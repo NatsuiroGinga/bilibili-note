@@ -1,3 +1,19 @@
+---
+title: MCDN 节点丢包率指标与告警
+date: 2026-06-23
+tags:
+  - go-op
+  - 丢包率
+  - MCDN
+  - 监控
+  - 告警
+related:
+  - "[[北斗资源上下线及踢点策略技术文档]]"
+  - "[[line-availability]]"
+  - "[[mcdn-cross-isp-ping-change-summary]]"
+  - "[[go-op MOC]]"
+---
+
 # MCDN 节点丢包率指标与告警
 
 > 记录于 2026-06-23，更新于 2026-06-25。

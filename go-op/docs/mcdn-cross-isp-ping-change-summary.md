@@ -1,3 +1,18 @@
+---
+title: MCDN v 节点丢包率探测改造总结
+date: 2026-07-10
+tags:
+  - go-op
+  - 丢包率
+  - MCDN
+  - 跨运营商
+  - 总结
+related:
+  - "[[2026-07-08-mcdn-cross-isp-ping]]"
+  - "[[mcdn-packet-loss-design]]"
+  - "[[go-op MOC]]"
+---
+
 # MCDN v 节点丢包率探测改造总结
 
 > 2026-07-08 启动，2026-07-10 联调完成。交付物：`.claude/scripts/mcdn_network.sh`

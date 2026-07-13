@@ -1,3 +1,17 @@
+---
+title: CPU 分析 - v-337 (hbwh 电信)
+date: 2026-07-06
+tags:
+  - go-op
+  - CPU
+  - MCDN
+  - 排查
+  - hbwh
+  - qny
+related:
+  - "[[MCDN CPU 高负载机器总览]]"
+---
+
 # MCDN 节点 CPU 高负载根因分析
 
 > 分析对象：`mcdn-qny-hbwh-dx-v-337`（历史分析 7/6 + 在线排查 7/7）

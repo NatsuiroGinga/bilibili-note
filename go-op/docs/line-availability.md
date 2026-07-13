@@ -1,3 +1,17 @@
+---
+title: MCDN 线路可用率
+date: 2026-07-13
+tags:
+  - go-op
+  - 线路可用率
+  - MCDN
+  - 监控
+related:
+  - "[[北斗资源上下线及踢点策略技术文档]]"
+  - "[[mcdn-packet-loss-design]]"
+  - "[[go-op MOC]]"
+---
+
 # MCDN 线路可用率
 
 ## 概述

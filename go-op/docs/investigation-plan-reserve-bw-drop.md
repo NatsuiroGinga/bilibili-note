@@ -1,3 +1,17 @@
+---
+title: MCDN 带宽埋点需求文档
+date: 2026-07-02
+tags:
+  - go-op
+  - MCDN
+  - 带宽
+  - 监控
+  - Prometheus
+related:
+  - "[[mcdn_lost_band_prom-delivery]]"
+  - "[[go-op MOC]]"
+---
+
 # MCDN 带宽埋点需求文档
 
 > **任务**：新增 Prometheus 指标辅助储备带宽下降归因

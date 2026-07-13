@@ -1,3 +1,17 @@
+---
+title: checkStatus CPU 健康检查实现方案
+date: 2026-07-07
+tags:
+  - go-op
+  - CPU
+  - MCDN
+  - 设计
+  - checkStatus
+related:
+  - "[[MCDN CPU 高负载机器总览]]"
+  - "[[go-op MOC]]"
+---
+
 # checkStatus CPU 健康检查实现方案
 
 > 状态：已设计，待实现

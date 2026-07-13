@@ -1,3 +1,17 @@
+---
+title: CPU 分析 - v-1169 (jstz 电信)
+date: 2026-07-03
+tags:
+  - go-op
+  - CPU
+  - MCDN
+  - 排查
+  - jstz
+  - qny
+related:
+  - "[[MCDN CPU 高负载机器总览]]"
+---
+
 # MCDN 节点 CPU 高负载根因分析
 
 > 分析对象：`mcdn-qny-jstz-dx-v-1169`（历史分析 7/3 + 在线排查 7/7）

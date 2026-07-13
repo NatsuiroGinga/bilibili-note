@@ -1,3 +1,17 @@
+---
+title: CPU 分析 - v-308 (jsnj 电信)
+date: 2026-07-04
+tags:
+  - go-op
+  - CPU
+  - MCDN
+  - 排查
+  - jsnj
+  - qny
+related:
+  - "[[MCDN CPU 高负载机器总览]]"
+---
+
 # MCDN 节点 CPU 高负载根因分析
 
 > 分析对象：`mcdn-qny-jsnj-dx-v-308`

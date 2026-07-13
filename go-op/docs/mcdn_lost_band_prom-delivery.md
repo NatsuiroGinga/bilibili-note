@@ -1,3 +1,16 @@
+---
+title: mcdn_vanished_bandwidth 交付格式
+date: 2026-07-13
+tags:
+  - go-op
+  - MCDN
+  - 带宽
+  - Prometheus
+related:
+  - "[[investigation-plan-reserve-bw-drop]]"
+  - "[[go-op MOC]]"
+---
+
 # mcdn_vanished_bandwidth 交付格式
 
 ## 指标

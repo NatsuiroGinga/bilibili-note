@@ -1,3 +1,16 @@
+---
+title: 双通道配置版本巡检告警设计
+date: 2026-06-08
+tags:
+  - te
+  - 配置巡检
+  - 双通道
+  - 设计
+related:
+  - "[[dual-channel-config-version-check-plan]]"
+  - "[[te MOC]]"
+---
+
 # 点直播兜底 SDK 双通道配置版本巡检告警设计文档
 
 ## 背景

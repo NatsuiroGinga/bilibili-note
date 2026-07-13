@@ -1,3 +1,18 @@
+---
+title: MCDN v 节点跨运营商丢包率探测改造
+date: 2026-07-08
+tags:
+  - go-op
+  - 丢包率
+  - MCDN
+  - 跨运营商
+  - 设计
+related:
+  - "[[mcdn-cross-isp-ping-change-summary]]"
+  - "[[mcdn-packet-loss-design]]"
+  - "[[go-op MOC]]"
+---
+
 # MCDN v 节点跨运营商丢包率探测改造
 
 > 开发完成，2026-07-08。脚本 `.claude/scripts/cross_isp_ping.sh` 就绪，待部署测试。

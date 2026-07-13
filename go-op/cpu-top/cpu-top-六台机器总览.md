@@ -1,3 +1,20 @@
+---
+title: MCDN CPU 高负载机器总览
+date: 2026-07-07
+tags:
+  - go-op
+  - CPU
+  - MCDN
+  - 排查
+  - MOC
+aliases:
+  - CPU 高负载总览
+  - 六台机器分析
+related:
+  - "[[checkstatus-design]]"
+  - "[[go-op MOC|go-op 项目架构与核心知识]]"
+---
+
 # MCDN CPU 高负载机器总览
 
 > 数据跨度：2026-06-20 ~ 2026-07-07

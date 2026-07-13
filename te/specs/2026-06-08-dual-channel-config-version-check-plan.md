@@ -1,3 +1,18 @@
+---
+title: 双通道配置版本巡检告警 - 实现计划
+date: 2026-06-08
+tags:
+  - te
+  - 配置巡检
+  - 双通道
+  - 计划
+aliases:
+  - dual-channel-config-version-check-plan
+related:
+  - "[[双通道配置版本巡检告警设计]]"
+  - "[[te MOC]]"
+---
+
 # 点直播兜底 SDK 双通道配置版本巡检告警 — 改造实现计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
