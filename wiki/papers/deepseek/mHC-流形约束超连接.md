@@ -25,6 +25,7 @@ year: 2025
 date: 2025-12-31
 journal: arXiv preprint
 doi: "arXiv:2512.24880"
+source_pdf: "[[raw/papers/2512.24880v2.pdf]]"
 tags:
   - 深度学习
   - 架构设计

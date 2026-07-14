@@ -1,6 +1,14 @@
+# AI 会话缓存
+.claudian/
+
 # Obsidian 工作区配置（个人偏好，不同步）
 .obsidian/workspace.json
 .obsidian/workspace-mobile.json
+.obsidian/plugins/
+.obsidian/community-plugins.json
+
+# 第三方插件的会话/缓存
+copilot/
 
 # 系统文件
 .DS_Store
