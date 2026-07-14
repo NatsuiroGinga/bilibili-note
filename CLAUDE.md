@@ -15,13 +15,13 @@ note/
 ├── CLAUDE.md      # ← 本文件：AI 的员工手册
 ├── SCHEMA.md      # wiki 的"宪法"：笔记类型定义 + 模板规范
 ├── raw/           # 第一层：外部源材料（不可变，只增不改）
-│   ├── papers/    # 论文 PDF 原件（8 篇）
+│   ├── papers/    # 论文 PDF 原件（11 篇：5 已读、6 待读）
 │   └── README.md  # raw 层规则说明
 ├── wiki/          # 第二层：结构化知识（AI 维护，持续演化）
 │   ├── INDEX.md   # 全局 MOC 索引
 │   ├── go-op/     # Bilibili 运维平台后端
 │   ├── te/        # 网络遥测服务 bili-tellurium
-│   ├── papers/    # 论文的结构化阅读笔记
+│   ├── papers/    # 论文的结构化阅读笔记（deepseek/、llm/）
 │   └── methodology/ # 工作流和设计原则
 └── output/        # 第三层：查询产物（临时报告/分析，可覆盖）
 ```
@@ -53,7 +53,12 @@ Bilibili 运维平台 Go 微服务项目，包含四个服务：`manba-bi`（BI 
 
 ### papers — 论文阅读
 
-论文 PDF 原件存放于 `raw/papers/`，结构化理解笔记存放于 `wiki/papers/`。每篇论文笔记必须含 `source_pdf` 字段指向 raw 原件。
+论文 PDF 原件存放于 `raw/papers/`，结构化理解笔记存放于 `wiki/papers/`，按研究方向分子目录：
+
+- `wiki/papers/deepseek/` — DeepSeek 团队架构系列（mHC、Engram）
+- `wiki/papers/llm/` — LLM 架构/推理/训练（Multi-Stream LLMs、Varnish、GRPO-RCS）
+
+每篇论文笔记必须含 `source_pdf` 字段指向 `raw/papers/` 中的对应 PDF。
 
 ### methodology — 方法论
 
@@ -78,5 +83,4 @@ Bilibili 运维平台 Go 微服务项目，包含四个服务：`manba-bi`（BI 
 ## 已知问题
 
 1. `wiki/go-op/cpu-top/` 文件名含运营商/机房长标识，统一截取主机名段更清晰。
-2. 仓库缺少 git 版本控制（2026-07-13 已初始化 `git init`）。
-3. `raw/papers/` 中有 5 篇论文 PDF 待确认主题并建立 wiki 笔记。
+2. `raw/papers/` 中有约 6 篇论文 PDF 待确认主题并建立 wiki 笔记（2401.15839v1、atc24-zhang-rui-xiao、nsdi22-paper-zhou、Proactive_Video_Push_CDN-P2P_VoD、视频CDN技术、北斗资源上下线&踢点逻辑）。

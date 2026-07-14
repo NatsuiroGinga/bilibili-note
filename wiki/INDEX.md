@@ -67,11 +67,15 @@ Bilibili 运维平台 Go 微服务项目，负责 MCDN 节点上下线（踢点�
 
 DeepSeek 等团队的论文笔记，按研究方向分类。
 
-> 笔记格式：frontmatter（作者/年份/DOI/tags）+ 一句话 + 背景演进 + 方法核心 + 实验结果 + 我的理解 + 疑问
+> 笔记格式参见 SCHEMA.md「论文类」——frontmatter（作者/年份/DOI/source_pdf）+ 一句话 + 背景演进 + 方法核心 + 实验结果 + 我的理解 + 疑问
 
-- **[[mHC]]** — DeepSeek 提出的流形约束超连接（Stiefel + Birkhoff），27B Dense 稳定训练 → 671B MoE 实际收益，额外开销仅 0.6%
-- **[[Varnish]]** — Bilibili CDN 生产部署：缓存感知的负载均衡，缓存命中率不退化 + 负载均衡度提升 24% + 跨节点转发开销降低 83%
-- **[[GRPO-RCS]]** — 腾讯 PCG + 哈工大：GRPO 强化学习 + 课程采样用于意图检测泛化，SFT 在细分/合并意图上准确率为 0%，GRPO 提升 83%+；Base Model 经 GRPO 后不输 Instruct Model
+| 方向 | 论文 |
+|------|------|
+| DeepSeek 架构 | **[[mHC]]** — 流形约束超连接（Stiefel+Birkhoff），27B Dense 稳定训练→671B MoE 收益，开销+0.6% |
+| | **[[Engram]]** — O(1) n-gram 哈希条件记忆模块，MoE 之外的第二条稀疏化轴线，长文本检索 84→97 |
+| LLM 架构/推理 | **[[Multi-Stream LLMs]]** — 多流并行架构（马普所/ETH），TTFT 降 40%+，prompt injection 免疫 |
+| | **[[Varnish]]** — Bilibili CDN 缓存感知负载均衡（SIGCOMM'25），命中率不退化+均衡度+24% |
+| | **[[GRPO-RCS]]** — GRPO+课程采样意图检测泛化（腾讯PCG+哈工大），SFT 准确率 0%→83%+ |
 
 ---
 
@@ -97,15 +101,10 @@ DeepSeek 等团队的论文笔记，按研究方向分类。
 | #带宽 | 3 篇（埋点 → 交付 → 水位线） |
 | #MySQL | 2 篇（知识库 → 性能修复） |
 | #配置巡检 | 2 篇（设计 → 计划） |
-| #深度学习 | 1 篇（mHC 架构设计） |
-| #DeepSeek | 1 篇（mHC） |
-| #NLP | 1 篇（GRPO-RCS 意图检测） |
-| #强化学习 | 1 篇（GRPO-RCS） |
-| #GRPO | 1 篇（GRPO-RCS） |
-| #意图检测 | 1 篇（GRPO-RCS） |
-| #课程学习 | 1 篇（GRPO-RCS） |
 | #方法论 | 1 篇（Obsidian AI 知识库设计原则） |
 | #Obsidian | 1 篇（知识库设计原则） |
+| #LLM | 5 篇（论文阅读：DeepSeek 架构 / LLM 架构 / 推理） |
+| #DeepSeek | 3 篇（mHC + Engram + Varnish） |
 
 ---
 

@@ -24,7 +24,7 @@ aliases:
 | `类型/设计` | 技术方案设计文档 | wiki/*/docs/ 或 wiki/*/specs/ | [[北斗资源上下线及踢点策略技术文档]] |
 | `类型/排查` | 故障排查记录 | wiki/*/cpu-top/ 等 | [[MCDN CPU 高负载机器总览]] |
 | `类型/参考` | 结构化知识库（表结构、常量、配置） | wiki/*/rules/ | [[mysql]] |
-| `类型/论文` | 论文阅读笔记（raw/papers 对应的结构化和理解） | wiki/papers/ | [[mHC]] |
+| `类型/论文` | 论文阅读笔记（raw/papers 对应的结构化和理解） | wiki/papers/deepseek/ 或 wiki/papers/llm/ | [[mHC]] |
 | `类型/方法论` | 工作流、设计原则、最佳实践 | wiki/methodology/ | [[AI 知识库设计原则]] |
 | `类型/交付` | API 文档、交付格式、指标定义 | wiki/*/docs/ | [[mcdn_vanished_bandwidth 交付格式]] |
 | `类型/计划` | 实现计划、任务分解 | wiki/*/specs/ | [[dual-channel-config-version-check-plan]] |
