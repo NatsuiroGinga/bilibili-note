@@ -70,6 +70,8 @@ DeepSeek 等团队的论文笔记，按研究方向分类。
 > 笔记格式：frontmatter（作者/年份/DOI/tags）+ 一句话 + 背景演进 + 方法核心 + 实验结果 + 我的理解 + 疑问
 
 - **[[mHC]]** — DeepSeek 提出的流形约束超连接（Stiefel + Birkhoff），27B Dense 稳定训练 → 671B MoE 实际收益，额外开销仅 0.6%
+- **[[Varnish]]** — Bilibili CDN 生产部署：缓存感知的负载均衡，缓存命中率不退化 + 负载均衡度提升 24% + 跨节点转发开销降低 83%
+- **[[GRPO-RCS]]** — 腾讯 PCG + 哈工大：GRPO 强化学习 + 课程采样用于意图检测泛化，SFT 在细分/合并意图上准确率为 0%，GRPO 提升 83%+；Base Model 经 GRPO 后不输 Instruct Model
 
 ---
 
@@ -97,6 +99,11 @@ DeepSeek 等团队的论文笔记，按研究方向分类。
 | #配置巡检 | 2 篇（设计 → 计划） |
 | #深度学习 | 1 篇（mHC 架构设计） |
 | #DeepSeek | 1 篇（mHC） |
+| #NLP | 1 篇（GRPO-RCS 意图检测） |
+| #强化学习 | 1 篇（GRPO-RCS） |
+| #GRPO | 1 篇（GRPO-RCS） |
+| #意图检测 | 1 篇（GRPO-RCS） |
+| #课程学习 | 1 篇（GRPO-RCS） |
 | #方法论 | 1 篇（Obsidian AI 知识库设计原则） |
 | #Obsidian | 1 篇（知识库设计原则） |
 
