@@ -7,6 +7,7 @@ tags:
   - MCDN
   - 跨运营商
   - 设计
+  - 类型/设计
 related:
   - "[[mcdn-cross-isp-ping-change-summary]]"
   - "[[mcdn-packet-loss-design]]"

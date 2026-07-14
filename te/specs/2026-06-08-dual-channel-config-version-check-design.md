@@ -6,6 +6,7 @@ tags:
   - 配置巡检
   - 双通道
   - 设计
+  - 类型/设计
 related:
   - "[[dual-channel-config-version-check-plan]]"
   - "[[te MOC]]"

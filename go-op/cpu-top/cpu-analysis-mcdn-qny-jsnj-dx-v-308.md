@@ -8,6 +8,7 @@ tags:
   - 排查
   - jsnj
   - qny
+  - 类型/排查
 related:
   - "[[MCDN CPU 高负载机器总览]]"
 ---

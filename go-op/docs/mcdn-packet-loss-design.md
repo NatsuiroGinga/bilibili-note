@@ -7,6 +7,7 @@ tags:
   - MCDN
   - 监控
   - 告警
+  - 类型/设计
 related:
   - "[[北斗资源上下线及踢点策略技术文档]]"
   - "[[line-availability]]"

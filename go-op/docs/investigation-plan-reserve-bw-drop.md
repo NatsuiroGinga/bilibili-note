@@ -7,6 +7,7 @@ tags:
   - 带宽
   - 监控
   - Prometheus
+  - 类型/设计
 related:
   - "[[mcdn_lost_band_prom-delivery]]"
   - "[[go-op MOC]]"

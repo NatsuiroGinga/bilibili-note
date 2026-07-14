@@ -7,6 +7,7 @@ tags:
   - MCDN
   - 带宽
   - 设计
+  - 类型/设计
 related:
   - "[[te MOC]]"
 ---

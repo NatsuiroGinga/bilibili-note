@@ -7,6 +7,7 @@ tags:
   - MCDN
   - 设计
   - checkStatus
+  - 类型/设计
 related:
   - "[[MCDN CPU 高负载机器总览]]"
   - "[[go-op MOC]]"

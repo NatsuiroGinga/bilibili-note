@@ -6,6 +6,7 @@ tags:
   - 线路可用率
   - MCDN
   - 监控
+  - 类型/设计
 related:
   - "[[北斗资源上下线及踢点策略技术文档]]"
   - "[[mcdn-packet-loss-design]]"

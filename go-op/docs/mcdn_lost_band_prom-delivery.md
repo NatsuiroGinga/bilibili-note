@@ -6,6 +6,7 @@ tags:
   - MCDN
   - 带宽
   - Prometheus
+  - 类型/交付
 related:
   - "[[investigation-plan-reserve-bw-drop]]"
   - "[[go-op MOC]]"

@@ -6,6 +6,7 @@ tags:
   - 配置巡检
   - 双通道
   - 计划
+  - 类型/计划
 aliases:
   - dual-channel-config-version-check-plan
 related:

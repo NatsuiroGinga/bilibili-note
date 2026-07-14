@@ -31,6 +31,7 @@ tags:
   - 残差连接
   - 大模型训练
   - DeepSeek
+  - 类型/论文
 aliases:
   - mHC
   - 流形约束超连接

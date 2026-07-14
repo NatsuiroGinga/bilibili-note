@@ -2,6 +2,10 @@
 name: mysql
 description: MySQL msg_data_all 表结构、索引、字段含义、查询性能注意事项与已知问题
 globs: ["*"]
+tags:
+  - go-op
+  - MySQL
+  - 类型/参考
 ---
 
 # msg_data_all 表知识库

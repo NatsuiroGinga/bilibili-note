@@ -8,3 +8,9 @@ Thumbs.db
 
 # Obsidian 插件（后续如安装社区插件，取消注释）
 # .obsidian/plugins/
+
+
+
+
+# Ignore Smart Environment folder
+.smart-env

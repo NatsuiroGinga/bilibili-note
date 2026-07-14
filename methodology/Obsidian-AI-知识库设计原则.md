@@ -11,6 +11,7 @@ tags:
   - AI
   - 知识管理
   - 笔记系统
+  - 类型/方法论
 aliases:
   - AI 知识库设计原则
   - Obsidian AI 方法论

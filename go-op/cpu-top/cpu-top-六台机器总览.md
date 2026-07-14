@@ -7,6 +7,7 @@ tags:
   - MCDN
   - 排查
   - MOC
+  - 类型/MOC
 aliases:
   - CPU 高负载总览
   - 六台机器分析
