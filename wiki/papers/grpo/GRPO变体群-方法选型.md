@@ -134,6 +134,19 @@ baseline: —
 - **训练稳定**：ABC-GRPO（[2]）裁剪修正、CW-GRPO（[10]）抑极端 token。
 - **理论支撑**：GRPO-norm（[14]）、TIC-GRPO（[17]）作收敛性论证。
 
+## 算法命名决策：PIC-GRPO（2026-07-15 定）
+
+- **缩写**：PIC-GRPO
+- **全称**：Physics-Informed Curriculum Group Relative Policy Optimization（物理信息课程式组相对策略优化）
+- **命名依据**：
+  - PIC = **P**hysics-**I**nformed **C**urriculum，同时覆盖两个核心要素——物理残差驱动 + 课程式。
+  - "Physics-Informed" 与创新点1的 PINN（Physics-Informed NN）术语一致，两级架构统一"物理信息"口径：PINN（物理初筛）+ PIC-GRPO（物理信息课程式精判）。
+  - "Informed"优于"Aware"：物理残差是**驱动**课程难度与奖励，不只是"感知"。
+- **无重名核实**：arXiv 全字段精确短语检索 PIC-GRPO=0（PhyC-GRPO/PAC-GRPO/PI-GRPO 亦均 0）；已知 16 个 GRPO 变体无重名。Google Scholar 全网核查待人工兜底。
+- **差异化句（必须配，钉死新意）**：PIC-GRPO 与 Feng-RCS（基于奖励的课程式 GRPO）的区别在于——其课程难度维度与可验证奖励**均由 PINN 物理残差驱动**，并与第一级 PINN 初筛跨级耦合。
+- **被否候选**：PhyC-GRPO（缩写略勉强）、PAC-GRPO（"Aware"偏弱、与 PINN 术语脱钩）、PI-GRPO（缺 Curriculum）。
+- **命名成立前提**：实现中物理残差必须真驱动课程采样 + 奖励 + 跨级耦合，不可沦为"GRPO+采样器+奖励项"的换名。
+
 ## 局限 / 待办
 
 - 16 篇均非攻击检测场景，迁移到检测+PINN 需自建桥接。
