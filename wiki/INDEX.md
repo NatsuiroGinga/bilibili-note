@@ -63,6 +63,19 @@ Bilibili 运维平台 Go 微服务项目，负责 MCDN 节点上下线（踢点�
 
 ---
 
+### 网络攻击检测大模型（开题）
+
+王童童·东南大学网安学院·工程硕士开题。方向：**物理信息神经网络 + 课程式强化学习** 的网络攻击检测大模型。初版 H-ORL（流形约束+课程 RL）拟改写为 PINN+课程 RL。
+
+- **研究方向决策**：方案 A（TCP 流体，[[TCP-AQM二维流体模型]]）vs 方案 B（守恒不变量，[[INVARLLM-物理不变量提取]]）——倾向 B，待 IDS2018 字段普查定夺
+- **两个创新点**：① PINN 物理信息检测（[[Raissi-PINN开山框架]] 为基）② 物理感知双维度课程式 GRPO（[[GRPO变体群-方法选型]] 为选型池，[[GRPO-RCS]] 为对标）
+- **数据集构建**：IDS2018（6.4GB，raw/datasets/）+ 自构造测试床——见 `output/数据集构建章节设计_开题实施计划.md`
+- **文献核验**：`output/参考文献核验报告_开题报告改进素材.md`（17 条核验，5 条错误已修正）
+- **同门参考**：[[朱焱雷-加密流量博弈对抗与高效训练]]（课程学习+高效训练+原型系统范本）
+- 课题论文笔记全部在 `wiki/papers/attack-detection/`、`wiki/papers/pinn/`、`wiki/papers/grpo/`
+
+---
+
 ### 论文阅读
 
 DeepSeek 等团队的论文笔记，按研究方向分类。
@@ -76,6 +89,14 @@ DeepSeek 等团队的论文笔记，按研究方向分类。
 | LLM 架构/推理 | **[[Multi-Stream LLMs]]** — 多流并行架构（马普所/ETH），TTFT 降 40%+，prompt injection 免疫 |
 | | **[[Varnish]]** — Bilibili CDN 缓存感知负载均衡（SIGCOMM'25），命中率不退化+均衡度+24% |
 | | **[[GRPO-RCS]]** — GRPO+课程采样意图检测泛化（腾讯PCG+哈工大），SFT 准确率 0%→83%+ |
+| 攻击检测应用 | **[[INVARLLM-物理不变量提取]]** — LLM 提取物理不变量做 CPS 异常检测（方案B 支撑，100% 精度零误报） |
+| | **[[PIGCRN-化工过程攻击检测]]** — first-principles+拓扑图 PINN（严谨参照，自构造仿真） |
+| | **[[数字孪生约束LLM-CPS异常检测]]** — 两级流水线+受约束 LLM 先例（原型系统架构来源） |
+| | **[[Minerva-CTI可验证奖励]]** — RLVR 可验证奖励，解初版 `<check>` 奖励作弊 |
+| | **[[朱焱雷-加密流量博弈对抗与高效训练]]** — ⭐同门参考，课程学习+高效训练+原型系统 |
+| PINN 基础 | **[[Raissi-PINN开山框架]]** — PINN 标准框架（自动微分 PDE 残差损失，JCP 2019） |
+| | **[[PINN综述群]]** — 4 篇综述合并，训练优化是核心难题（创新点2 动机） |
+| GRPO 变体 | **[[GRPO变体群-方法选型]]** — 16 篇 GRPO 合并，创新点2 方法选型池（含 9 篇作者勘误） |
 
 ---
 
@@ -105,6 +126,11 @@ DeepSeek 等团队的论文笔记，按研究方向分类。
 | #Obsidian | 1 篇（知识库设计原则） |
 | #LLM | 5 篇（论文阅读：DeepSeek 架构 / LLM 架构 / 推理） |
 | #DeepSeek | 3 篇（mHC + Engram + Varnish） |
+| #攻击检测 | 19 篇（attack-detection/：PINN-IDS + GRPO-安全 + 课程式PINN + 同门论文） |
+| #PINN | 9 篇（Raissi 开山 + 综述群 + 课程式PINN×3 + PIGCRN/PPINN-FDIA/PI-RF + TCP-AQM×2） |
+| #GRPO | 17 篇（GRPO变体群 + GRPO-RCS + SecLoop/漏洞检测/Minerva） |
+| #课程学习 | 6 篇（课程式PINN×3 + Feng-RCS + 朱焱雷 + 对抗训练在线理论） |
+| #物理信息 | 跨 PINN/攻击检测 多篇（守恒不变量 + first-principles + PINN 框架） |
 
 ---
 
