@@ -56,6 +56,30 @@ tags:
 | `2501.06572.pdf` | PINN 进化优化综述（Evo-PINN） | [[PINN综述群]] | ✅ 已有 |
 | `2410.13228.pdf` | From PINNs to PIKANs（Karniadakis 团队 2024） | [[PINN综述群]] | ✅ 已有 |
 
+### raw/papers/grpo/ — GRPO 基础与变体（创新点2 方法选型池）
+
+16 篇 GRPO 文献，统一笔记见 [[GRPO变体群-方法选型]]。⚠️ 清单 9/16 首作者错误，已按 PDF 更正（见笔记）。
+
+| 文件 | 主题 |
+|------|------|
+| `2402.03300.pdf` | DeepSeek-Math / GRPO 开山 |
+| `2601.03895.pdf` | ABC-GRPO 自适应边界裁剪 |
+| `2509.18851.pdf` | NGRPO 负样本增强 |
+| `2503.20783.pdf` | Dr. GRPO 长度偏置修正（COLM 2025） |
+| `2601.09085.pdf` | MMR-GRPO 多样性重加权 |
+| `2512.15347.pdf` | Pro-GRPO 扩增+剪枝（CVPR 2026） |
+| `2601.22478.pdf` | TA-GRPO 变换增强 |
+| `2504.13592v2.pdf` | Feng-RCS 课程式 GRPO（见 attack-detection/） |
+| `2602.05863.pdf` | Constrained GRPO 约束优化 |
+| `2605.11538.pdf` | CW-GRPO 协方差感知（ACL 2026） |
+| `2510.19807.pdf` | Scaf-GRPO 脚手架分层（ICLR 2026） |
+| `2505.11595.pdf` | SGPO 步骤引导信用分配 |
+| `2505.07686.pdf` | S-GRPO 早退出（NeurIPS 2025） |
+| `2601.23135.pdf` | GRPO 归一化理论（ICML 2026） |
+| `2509.24203.pdf` | Pan 离线策略重解读（ICLR 2026） |
+| `2511.03527.pdf` | Learning Without Critics 适用边界 |
+| `2508.02833.pdf` | TIC-GRPO 可证明收敛 |
+
 ### raw/papers/deepseek/ — DeepSeek 架构
 
 | 文件 | 主题 | wiki 笔记 | 状态 |
