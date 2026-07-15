@@ -22,3 +22,9 @@ Thumbs.db
 
 # Ignore Smart Environment folder
 .smart-env
+# 大型数据集（不入 git，仅本地保留）
+raw/datasets/
+
+# 会话日志与中间产物（不入库）
+.claude/logs/
+output/pdf-md/
