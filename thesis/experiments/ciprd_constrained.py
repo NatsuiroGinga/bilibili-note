@@ -14,6 +14,7 @@ OOD：训 Wed-21 DDoS → 测 Wed-14 暴力破解（未见攻击类型）
 import os, warnings
 import numpy as np
 import pandas as pd
+import swanlab
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import f1_score, precision_score, recall_score
 
@@ -84,21 +85,29 @@ def main():
     print(f"训练 {len(ytr)} 行(攻击{ytr.mean():.0%}) | OOD {len(yoo)} 行(攻击{yoo.mean():.0%})")
     print(f"\n{'模型':<26}{'F1':>7}{'Prec':>7}{'Recall':>8}{'FPR':>8}  说明")
     print('-'*72)
+    swanlab.init(project="ci-prd-pinn", name="v6-constrained-lr",
+                 description="v6: 物理约束 LR（不变量作软约束损失，CI-PRD proxy）",
+                 config={"train":"Wed-21 DDoS","ood":"Wed-14 暴力破解","max_per_class":MAX_PER_CLASS}, mode="online")
     # 1 纯数据驱动 LR（无物理）
     w, b = train_plain(Xtr_s, ytr); p = (sigmoid(Xoo_s @ w + b) > 0.5).astype(int)
     m = metrics(yoo, p); print(f"{'LR_纯数据驱动':<26}{m['F1']:>7.3f}{m['Prec']:>7.3f}{m['Rec']:>8.3f}{m['FPR']:>8.3f}  无物理")
+    swanlab.log({"LR_纯数据驱动/F1": m['F1'], "LR_纯数据驱动/FPR": m['FPR']})
     # 2 物理约束 LR（CI-PRD proxy），不同 λ
     for lam in [0.5, 1.0, 2.0]:
         w, b = train_constrained(Xtr_s, vtr, ytr, lam=lam); p = (sigmoid(Xoo_s @ w + b) > 0.5).astype(int)
         m = metrics(yoo, p); print(f"{'LR_物理约束(λ=%.1f)'%lam:<26}{m['F1']:>7.3f}{m['Prec']:>7.3f}{m['Rec']:>8.3f}{m['FPR']:>8.3f}  CI-PRD proxy")
+        swanlab.log({f"LR_物理约束λ{lam}/F1": m['F1'], f"LR_物理约束λ{lam}/FPR": m['FPR']})
     # 3 朴素 I2/I3 阈值（参照，v5/v3）
     p_thr = (voo > 0.9).astype(int)   # 不变量强违反 → 攻击
     m = metrics(yoo, p_thr); print(f"{'不变量硬阈值(参照)':<26}{m['F1']:>7.3f}{m['Prec']:>7.3f}{m['Rec']:>8.3f}{m['FPR']:>8.3f}  物理硬阈值")
+    swanlab.log({"不变量硬阈值/F1": m['F1'], "不变量硬阈值/FPR": m['FPR']})
     # 4 同分布 sanity
     from sklearn.model_selection import train_test_split
     Xa, Xb, va, vb, ya, yb = train_test_split(Xtr_s, vtr, ytr, test_size=0.3, random_state=42, stratify=ytr)
     w, b = train_constrained(Xa, va, ya, lam=1.0); p = (sigmoid(Xb @ w + b) > 0.5).astype(int)
     m = metrics(yb, p); print(f"\n同分布 sanity LR_物理约束: F1={m['F1']:.3f} Recall={m['Rec']:.3f} FPR={m['FPR']:.3f}")
+    swanlab.log({"indist/F1": m['F1'], "indist/FPR": m['FPR']})
+    swanlab.finish()
 
 if __name__ == '__main__':
     main()

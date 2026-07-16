@@ -16,11 +16,14 @@ import os
 import numpy as np
 import torch
 import torch.nn as nn
+import swanlab
 
 torch.manual_seed(42); np.random.seed(42)
 DEV = 'mps' if torch.backends.mps.is_available() else 'cpu'
 U = 0.5            # 平流速度
 X0, T0 = 0.7, 0.5  # 真实 DDoS 注入点
+EPOCHS = 2000
+LAM = 0.1
 
 def rho_field(x, t, attack=True):
     """正常=平流高斯包(s=0)；攻击=叠加局部源注入。"""
@@ -50,15 +53,25 @@ def main():
     rho = rho_field(x, t, attack=True)  # 含攻击的训练数据
     model = PINN().to(DEV)
     opt = torch.optim.Adam(model.parameters(), lr=1e-3)
-    lam = 0.1  # 物理约束权重（moderate：让模型拟合数据同时残差暴露违反）
-    for ep in range(2000):
+    run = swanlab.init(
+        project="ci-prd-pinn", name="v7-autodiff-pinn",
+        description="CI-PRD autodiff PINN: 连续性方程残差检测 DDoS 注入",
+        config={"U": U, "attack_point": [X0, T0], "epochs": EPOCHS, "lambda": LAM,
+                "device": DEV, "net": "MLP(2,64,64,1)"},
+        mode="online",
+    )
+    for ep in range(EPOCHS):
         opt.zero_grad()
         rho_p = model(x, t)
         res = residual(model, x, t)
-        loss = ((rho_p - rho)**2).mean() + lam * (res**2).mean()
+        data_loss = ((rho_p - rho)**2).mean()
+        res_loss = (res**2).mean()
+        loss = data_loss + LAM * res_loss
         loss.backward(); opt.step()
-        if ep % 500 == 0:
-            print(f"  ep{ep}: loss={loss.item():.5f} data={((rho_p-rho)**2).mean().item():.5f} res={(res**2).mean().item():.5f}")
+        if ep % 100 == 0:
+            swanlab.log({"loss": loss.item(), "data_loss": data_loss.item(),
+                         "res_loss": res_loss.item()}, step=ep)
+            print(f"  ep{ep}: loss={loss.item():.5f} data={data_loss.item():.5f} res={res_loss.item():.5f}")
     # 检测：网格上算残差，找峰值
     gx = torch.linspace(0,1,50, device=DEV); gt = torch.linspace(0,1,50, device=DEV)
     XM, TM = torch.meshgrid(gx, gt, indexing='ij')
@@ -78,7 +91,12 @@ def main():
     print(f"\n真实 DDoS 注入点: ({X0},{T0})")
     print(f"|残差|峰值={peak:.4f} @ ({gx[peak_idx[0]]:.2f},{gt[peak_idx[1]]:.2f})（高斯斜坡处，预期）")
     print(f"注入邻域|残差|均值={near:.4f} | 远区|残差|均值={far:.4f} | 倍数={near/max(far,1e-6):.1f}x")
-    print(f"检测: {'✅ 注入邻域残差显著高于远区（autodiff PINN 暴露守恒破坏）' if near > 3*far else '⚠️ 邻域残差未显著高于远区'}")
+    det = near > 3 * far
+    print(f"检测: {'✅ 注入邻域残差显著高于远区（autodiff PINN 暴露守恒破坏）' if det else '⚠️ 邻域残差未显著高于远区'}")
+    swanlab.log({"near_res": float(near), "far_res": float(far),
+                 "res_ratio": float(near / max(far, 1e-6)),
+                 "peak_res": float(peak), "detected": int(det)})
+    swanlab.finish()
 
 if __name__ == '__main__':
     main()

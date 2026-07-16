@@ -24,9 +24,16 @@ uv sync                      # 按 uv.lock 装依赖（创建 .venv，已 gitign
 uv run python <脚本>.py      # 运行（自动用 .venv，无需 activate）
 ```
 
-- Python 3.11+；依赖：scapy、dpkt（pcap 解析）、pandas、numpy、matplotlib（分析绘图）、scikit-learn（v5/v6 基线对比）、torch（v7 PINN，MPS 加速）。
+- Python 3.11+；依赖：scapy、dpkt（pcap 解析）、pandas、numpy、matplotlib（分析绘图）、scikit-learn（v5/v6 基线对比）、torch（v7 PINN，MPS 加速）、**swanlab（v5/v6/v7 实验跟踪）**。
 - v1-v3 的 CSV 脚本仅用标准库，可直接 `python3` 跑；需第三方库的脚本用 `uv run`。
 - PyPI 镜像：`pyproject.toml` 已配清华源（`[[tool.uv.index]] default=true`），pypi 直连超时时用镜像。
+
+### 实验跟踪（SwanLab）
+v5/v6/v7 已集成 SwanLab（`mode='online'`，上云）。运行后训练曲线与检测/OOD 指标自动记录到云端面板，论文实验章可直接出图。
+- 项目面板：https://swanlab.cn/@mortiswang/ci-prd-pinn
+- v7 PINN 训练曲线（loss/data_loss/res_loss）+ 检测指标（near_res/far_res/res_ratio）
+- v5/v6 各模型 OOD F1/FPR（按模型名分组）
+- 用法：`swanlab.init(project=, name=, config=, mode='online')` → `swanlab.log({...}, step=)` → `swanlab.finish()`；查询用 `swanlab api`（见 SwanLab skill）。
 
 ### 运行环境（本机，2026-07-16）
 - 机型：MacBook Pro 17,1 · 芯片：Apple M1（8 核：4 性能 + 4 能效）· 内存：16 GB

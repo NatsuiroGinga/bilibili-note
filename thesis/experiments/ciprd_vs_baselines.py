@@ -19,6 +19,7 @@
 import os, warnings
 import numpy as np
 import pandas as pd
+import swanlab
 from sklearn.linear_model import LogisticRegression
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
@@ -90,17 +91,23 @@ def main():
     print("\n=== OOD 测试（训 DDoS → 测暴力破解，未见攻击类型）===")
     print(f"{'模型':<14}{'F1':>7}{'Precision':>10}{'Recall':>8}{'FPR':>8}  物理?")
     print('-'*55)
+    swanlab.init(project="ci-prd-pinn", name="v5-feature-vs-baseline",
+                 description="v5: 纯数据驱动 vs +不变量特征 vs 朴素阈值（OOD）",
+                 config={"train":"Wed-21 DDoS","ood":"Wed-14 暴力破解","max_per_class":MAX_PER_CLASS}, mode="online")
     for name, (m, Xtr, Xoo, tag) in models.items():
         m.fit(Xtr, y_tr)
         p = m.predict(Xoo)
         mt = metrics(y_oo, p)
         print(f"{name:<14}{mt['F1']:>7.3f}{mt['Prec']:>10.3f}{mt['Rec']:>8.3f}{mt['FPR']:>8.3f}  {'+不变量' if tag=='inv' else '否'}")
+        swanlab.log({f"{name}/F1": mt['F1'], f"{name}/Precision": mt['Prec'],
+                     f"{name}/Recall": mt['Rec'], f"{name}/FPR": mt['FPR']})
 
     # 朴素 I2 阈值（参照）
     i2_oo = Xinv_oo['I2'].values
     p_thr = ((i2_oo > 0.95) | (i2_oo < 0.05)).astype(int)
     mt = metrics(y_oo, p_thr)
     print(f"{'I2阈值(参照)':<14}{mt['F1']:>7.3f}{mt['Prec']:>10.3f}{mt['Rec']:>8.3f}{mt['FPR']:>8.3f}  +不变量(硬阈值)")
+    swanlab.log({"I2阈值/F1": mt['F1'], "I2阈值/Recall": mt['Rec'], "I2阈值/FPR": mt['FPR']})
 
     # 同分布测试（训 DDoS → 测 DDoS held-out， sanity）
     print("\n=== 同分布 sanity（训 Wed-21 → 测 Wed-21 同分布）===")
@@ -109,6 +116,8 @@ def main():
     m = MLPClassifier(hidden_layer_sizes=(64,32), max_iter=40, random_state=42).fit(Xa, ya)
     mt = metrics(yb, m.predict(Xb))
     print(f"MLP_inv 同分布: F1={mt['F1']:.3f} Recall={mt['Rec']:.3f} FPR={mt['FPR']:.3f}")
+    swanlab.log({"indist/F1": mt['F1'], "indist/Recall": mt['Rec'], "indist/FPR": mt['FPR']})
+    swanlab.finish()
 
 if __name__ == '__main__':
     main()
