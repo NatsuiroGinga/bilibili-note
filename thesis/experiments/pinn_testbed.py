@@ -50,12 +50,13 @@ def main():
     print(f"  ρ 范围: {df['rho'].min():.0f}-{df['rho'].max():.0f}")
     print(f"  I1 残差范围: {df['i1_residual'].min():.0f}-{df['i1_residual'].max():.0f}")
 
-    # 归一化 t 到 [0,1]（ns-3 t 是 0.5-10s）
+    # 归一化 t 到 [0,1] + ρ 归一化到 [0,1]（避免数据损失淹没物理损失）
     t_max = df['t'].max()
+    rho_max = df['rho'].max() + 1e-8
     x = torch.tensor(df['x'].values, dtype=torch.float32, device=DEV).reshape(-1,1)
     t = torch.tensor(df['t'].values / t_max, dtype=torch.float32, device=DEV).reshape(-1,1)
-    rho = torch.tensor(df['rho'].values, dtype=torch.float32, device=DEV).reshape(-1,1)
-    i1_gt = df['i1_residual'].values  # ground truth I1 残差
+    rho = torch.tensor(df['rho'].values / rho_max, dtype=torch.float32, device=DEV).reshape(-1,1)
+    i1_gt = df['i1_residual'].values  # ground truth I1 残差（未归一化）
 
     # ===== PINN 训练 =====
     model = PINN().to(DEV)

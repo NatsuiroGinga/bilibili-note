@@ -18,6 +18,7 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/applications-module.h"
 #include "ns3/flow-monitor-module.h"
+#include "ns3/ipv4-global-routing-helper.h"
 
 #include <fstream>
 #include <vector>
@@ -110,7 +111,7 @@ main(int argc, char *argv[]) {
 
     // ===== PointToPoint 链路 =====
     PointToPointHelper p2p;
-    p2p.SetDeviceAttribute("DataRate", StringValue("10Mbps"));
+    p2p.SetDeviceAttribute("DataRate", StringValue("1Gbps"));
     p2p.SetChannelAttribute("Delay", StringValue("2ms"));
 
     // 客户端 ↔ S1
@@ -130,6 +131,12 @@ main(int argc, char *argv[]) {
         addr.Assign(serverLinks[i]);
         addr.NewNetwork();
     }
+
+    // ===== 启用 IP 转发 + 全局路由（否则流量无法经 S1 转发）=====
+    Ptr<Ipv4> s1Ipv4 = switchNode.Get(0)->GetObject<Ipv4>();
+    s1Ipv4->SetAttribute("IpForward", BooleanValue(true));
+    Ipv4GlobalRoutingHelper globalRouting;
+    globalRouting.PopulateRoutingTables();
 
     // ===== 获取 SV1 的 IP（DDoS 目标）=====
     Ptr<Ipv4> sv1Ipv4 = servers.Get(0)->GetObject<Ipv4>();

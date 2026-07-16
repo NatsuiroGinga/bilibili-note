@@ -134,3 +134,21 @@ torch.autograd 实现连续性方程残差：NN ρ_θ(x,t)，损失 L=MSE(ρ,ρ_
 - 残差峰值在高斯斜坡处（中心残差=0 是数学预期，非失败）。
 - **结论**：真正 autodiff PINN 机制跑通——连续性方程残差经 torch.autograd 可算，且残差幅值成功暴露守恒破坏的注入点。补上了 v6"未实现真 PINN"的缺口。
 - **局限（诚实）**：合成 1-D 数据，证明机制而非真实检测；真实场景需换测试床实测 ρ(node,t)（Mininet/ns-3 多节点采集）或跨主机 pcap 关联；图结构、I2-I4 联合待扩展。
+
+### v8 ns-3 测试床数据 + PINN（ciprd_testbed.py + pinn_testbed.py，2026-07-16）⭐真实数据
+ns-3 3.43 仿真（7 节点星形拓扑 C1/C2/C3→S1→SV1/SV2/SV3，1Gb/s 链路，DDoS t=5s 3×100Mb/s→SV1）。
+
+**ns-3 数据（testbed_rho.csv）**：
+| 节点 | 时段 | ρ(bytes/0.5s) | I1残差(|in-out|) |
+|------|------|--------------|----------------|
+| SV1(x=0.7) | 正常 t=3s | 18M | 8.6M |
+| SV1(x=0.7) | DDoS t=7s | **56.6M** | **26.8M** |
+| SV2(x=0.8) | DDoS t=7s | 18M | 8.6M（不受影响） |
+
+- **直接 I1 残差**：✅ 完美检测——SV1 在 DDoS 期 ρ 和 I1 残差 **3x 飙升**，SV2 不受影响。ns-3 仿真的守恒不变量 I1 在真实拓扑数据上有效。
+- **PINN autodiff 残差**：⚠️ 检测失败——1-D 连续性方程（∂ρ/∂t+U·∂ρ/∂x=0）不适配星形离散拓扑；PINN 残差峰值偏离注入点，与 ground-truth I1 相关性 r=-0.02。
+- **诚实结论**：
+  1. ns-3 仿真成功产出论文级测试床数据，I1 守恒残差直接检测 DDoS（3x 飙升）——**I1 不变量在真实拓扑上有效**。
+  2. v7 合成连续场上 PINN autodiff 有效（3.6x），但 1-D 连续 PDE **不适配离散网络拓扑**——真实场景需图结构 PINN（GNN + 图上守恒律），是后续工作。
+  3. 两者互补：ns-3 证 I1 不变量有效（ground truth），v7 证 autodiff PINN 机制有效（连续场），图结构 PINN 是两者的桥接（待实现）。
+- SwanLab：v8-testbed-ns3 run（PINN 训练曲线 + 检测指标），https://swanlab.cn/@mortiswang/ci-prd-pinn
