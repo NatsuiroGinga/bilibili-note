@@ -23,9 +23,15 @@ uv sync                      # 按 uv.lock 装依赖（创建 .venv，已 gitign
 uv run python <脚本>.py      # 运行（自动用 .venv，无需 activate）
 ```
 
-- Python 3.11+；依赖：scapy、dpkt（pcap 解析）、pandas、numpy、matplotlib（分析绘图）。
-- v1-v3 的 CSV 脚本仅用标准库，可直接 `python3` 跑；`i3_strict_pcap.py` 需 dpkt，用 `uv run`。
+- Python 3.11+；依赖：scapy、dpkt（pcap 解析）、pandas、numpy、matplotlib（分析绘图）、scikit-learn（v5/v6 基线对比）、torch（v7 PINN，MPS 加速）。
+- v1-v3 的 CSV 脚本仅用标准库，可直接 `python3` 跑；需第三方库的脚本用 `uv run`。
 - PyPI 镜像：`pyproject.toml` 已配清华源（`[[tool.uv.index]] default=true`），pypi 直连超时时用镜像。
+
+### 运行环境（本机，2026-07-16）
+- 机型：MacBook Pro 17,1 · 芯片：Apple M1（8 核：4 性能 + 4 能效）· 内存：16 GB
+- 系统：macOS 26.5（Build 25F71）· 架构：arm64
+- Python 3.13.13 · torch 2.13.0 · **MPS（Metal）可用**：`torch.backends.mps.is_available()=True`
+- 注：M1 用 macOS arm64 版 torch（自带 MPS），**不要**装 `--extra cpu`（会浪费 GPU）。torch 训练可 `.to('mps')` 加速。
 
 ## 数据
 - CSV：`raw/datasets/CSE-CIC-IDS2018/Thursday-15-02-2018_TrafficForML_CICFlowMeter.csv`（DoS GoldenEye + Slowloris 日）

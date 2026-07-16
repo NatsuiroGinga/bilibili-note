@@ -9,6 +9,7 @@ dependencies = [
     "pandas>=3.0.3",
     "scapy>=2.7.0",
     "scikit-learn>=1.9.0",
+    "torch[cpu]>=2.13.0",
 ]
 
 [[tool.uv.index]]
