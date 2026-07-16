@@ -12,6 +12,7 @@
 | `i3_strict_pcap.py` | 严格 I3：dpkt 解析真实 pcap 逐包算未应答 SYN，时间窗尖峰 | dpkt（uv 环境） |
 | `ciprd_vs_baselines.py` | v5：纯数据驱动 vs +不变量特征 vs 朴素阈值（OOD） | pandas, sklearn |
 | `ciprd_constrained.py` | v6：物理约束 LR（不变量作软约束损失，CI-PRD proxy）vs 纯数据驱动 vs 阈值 | numpy, pandas, sklearn |
+| `ciprd_pinn_autodiff.py` | v7：真正 autodiff PINN（torch.autograd 连续性方程残差，I1）| torch(MPS) |
 
 ## 环境与依赖（uv）
 
@@ -118,3 +119,11 @@ numpy 梯度下降逻辑回归，损失 L = BCE + λ·mean[max(0, v-p)]，v=不�
   2. 但提升幅度有限，且朴素硬阈值（0.723）仍最强——说明约束式模型还未能充分利用不变量。
   3. 综合判断：不变量是 OOD 鲁棒的主信号；最佳用法是**以不变量残差为主信号**（CI-PRD 设计：残差作异常得分），PINN 在此基础上精炼阈值，而非与过拟合的原始特征并列。v6 的约束 LR 是 CI-PRD 的简化 proxy，真正 PINN（autodiff 残差损失，I1/测试床场景）未实现。
 - **对论文的意义**：可行性与方向被实证（物理约束助 OOD）；但须诚实写明朴素阈值当前仍优，CI-PRD 的价值在于用 PINN 精炼不变量残差、并处理阈值无法应对的灰区（交第二级 LLM）。
+
+### v7 真正 autodiff PINN（ciprd_pinn_autodiff.py，2026-07-16）⭐CI-PRD 核心
+torch.autograd 实现连续性方程残差：NN ρ_θ(x,t)，损失 L=MSE(ρ,ρ_data)+λ·MSE(∂ρ/∂t+u·∂ρ/∂x,0)，残差 autodiff 求。合成数据：正常=无源平流包(s=0)，攻击=在(0.7,0.5)注入 DDoS 源破坏守恒。MPS 加速。
+- 训练 2000 epoch，loss 0.24→0.03，物理残差项随数据拟合而暴露违反。
+- **检测**：注入邻域(|残差|均值 0.2103) vs 远区(0.0589) = **3.6 倍** ✅。
+- 残差峰值在高斯斜坡处（中心残差=0 是数学预期，非失败）。
+- **结论**：真正 autodiff PINN 机制跑通——连续性方程残差经 torch.autograd 可算，且残差幅值成功暴露守恒破坏的注入点。补上了 v6"未实现真 PINN"的缺口。
+- **局限（诚实）**：合成 1-D 数据，证明机制而非真实检测；真实场景需换测试床实测 ρ(node,t)（Mininet/ns-3 多节点采集）或跨主机 pcap 关联；图结构、I2-I4 联合待扩展。
