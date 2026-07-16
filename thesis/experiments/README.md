@@ -8,7 +8,22 @@
 |------|------|------|
 | `i2_i3_separability_csv.py` | I2（流双向守恒）/I3-弱（单向SYN）在 Thursday-15-02 CSV 上的逐流可分性 | 标准库 |
 | `i2_i3_window_csv.py` | 同上，按时间窗聚合（攻击是突发，逐流阈值弱） | 标准库 |
-| `i3_strict_pcap.py` | 严格 I3：从恢复的 pcap 逐包算未应答 SYN，时间窗尖峰 | 标准库 |
+| `i2_i3_perflow_multi.py` | 跨攻击类型对比（多日 CSV） | 标准库 |
+| `i3_strict_pcap.py` | 严格 I3：dpkt 解析真实 pcap 逐包算未应答 SYN，时间窗尖峰 | dpkt（uv 环境） |
+
+## 环境与依赖（uv）
+
+实验用 uv 管理环境，依赖见 `pyproject.toml` / `uv.lock`。
+
+```bash
+cd thesis/experiments
+uv sync                      # 按 uv.lock 装依赖（创建 .venv，已 gitignore）
+uv run python <脚本>.py      # 运行（自动用 .venv，无需 activate）
+```
+
+- Python 3.11+；依赖：scapy、dpkt（pcap 解析）、pandas、numpy、matplotlib（分析绘图）。
+- v1-v3 的 CSV 脚本仅用标准库，可直接 `python3` 跑；`i3_strict_pcap.py` 需 dpkt，用 `uv run`。
+- PyPI 镜像：`pyproject.toml` 已配清华源（`[[tool.uv.index]] default=true`），pypi 直连超时时用镜像。
 
 ## 数据
 - CSV：`raw/datasets/CSE-CIC-IDS2018/Thursday-15-02-2018_TrafficForML_CICFlowMeter.csv`（DoS GoldenEye + Slowloris 日）
@@ -51,4 +66,17 @@
 5. 误报率（brute-force 日 33%）因 Benign 也有合法单向流（UDP/ACK）；作两级架构第一级粗筛可接受（FP 交给 LLM），且 PINN 学习残差比硬阈值更强。
 
 **建议**：方案 B 守恒不变量 + 两级分工，实验背书；可选加 I4（熵平稳）补体积异常覆盖。
+
+### v4 严格 I3 真实 pcap（i3_strict_pcap.py，2026-07-16）
+在 zip-FF 恢复的真实 IDS2018 pcap（Thursday-15-02 DoS 日）上逐包算未应答 SYN：
+
+| pcap（per-host） | TCP包 | 窗口数 | I3均值 | I3max | I3>50%窗口 |
+|------------------|------|------|--------|-------|-----------|
+| capDESKTOP-...64.46 | 4411 | 29 | 15.3% | 75% | 1/29 |
+| capEC2AMAZ-...68.6 | 125296 | 524 | 26.8% | 100% | 71/524 |
+| capEC2AMAZ-...68.8 | 96319 | 537 | 37.4% | 100% | 131/537 |
+
+- **结论**：严格 I3（逐包未应答 SYN）在真实包上**可算且暴露异常**——DoS 日多窗口 100% 未答 SYN（半开连接，符合 Slowloris/GoldenEye 特征）。
+- **局限（诚实）**：缺 benign 基线 pcap，未算召回/误报；此为"可算性 + 异常暴露"验证，定量可分性以 v3（CSV，有标签）为准。per-host 抓包下 SYN 与其 SYN-ACK 同在本机抓包中，未答 SYN 即真实半开。
+- v1-v3 跑流级 CSV（有标签，定量）；v4 跑原始 pcap（无标签，定性验证严格 I3 可算 + 暴露异常）。两者互补。
 
