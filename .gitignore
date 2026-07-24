@@ -28,3 +28,16 @@ raw/datasets/
 # 会话日志与中间产物（不入库）
 .claude/logs/
 output/pdf-md/
+
+# 子代理开发的本地进度与工具依赖
+.superpowers/
+.Codex/tools/**/node_modules/
+
+# 实验缓存与本地下载制品
+thesis/experiments/__pycache__/
+mininet/
+ns-allinone-*.tar.bz2
+ns3/*.tar.bz2
+wget-log
+*.download.log
+zeek_orange_dmz.zip
