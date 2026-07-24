@@ -4,229 +4,162 @@ authors:
   - Zhenda Xie
   - Yixuan Wei
   - Huanqi Cao
-  - Zizheng Pan
-  - Xihui Lin
-  - Chongyi Zheng
-  - Jing Huo
-  - Yifan Li
-  - Jiarui Fang
-  - Chi Zhang
-  - Wenbin Wang
-  - Wangding Zeng
-  - Zhibo Yang
-  - Xihao Xu
-  - Weiwei Deng
+  - Chenggang Zhao
+  - Chengqi Deng
+  - Jiashi Li
   - Damai Dai
-  - Xiaokang Chen
-  - Yuxuan Sun
-  - Zihan Qiu
+  - Huazuo Gao
+  - Jiang Chang
+  - Kuai Yu
+  - Liang Zhao
+  - Shangyan Zhou
+  - Zhean Xu
+  - Zhengyan Zhang
+  - Wangding Zeng
+  - Shengding Hu
+  - Yuqing Wang
+  - Jingyang Yuan
+  - Lean Wang
   - Wenfeng Liang
-year: 2025
-date: 2025-12-31
+year: 2026
+date: 2026-07-17
 journal: arXiv preprint
-doi: "arXiv:2512.24880"
-source_pdf: "[[raw/papers/2512.24880v2.pdf]]"
+doi: "arXiv:2512.24880v2"
+source_pdf: "[[raw/papers/deepseek/2512.24880v2.pdf]]"
 tags:
   - 深度学习
   - 架构设计
   - 残差连接
-  - 大模型训练
+  - 大模型预训练
   - DeepSeek
   - 类型/论文
 aliases:
   - mHC
   - 流形约束超连接
-  - Xie2025-mHC
-key_finding: "在 HC 的可学习连接矩阵上施加流形约束（Stiefel 流形 + Birkhoff 多面体），从动力系统角度恢复信号传播的稳定性——训练 27B Dense 不崩溃，且扩展到 671B MoE 取得实际收益。额外开销仅 0.6%"
-method: "Stiefel 流形约束（半正交矩阵，谱范数 = 1）+ Birkhoff 多面体约束（双重随机矩阵，行/列和为 1）；融合 CUDA kernel 将开销压缩至 0.6%"
-baseline: "Pre-Norm 残差连接、原始 Hyper-Connections (HC)"
+  - Xie2026-mHC
+key_finding: "mHC 将 Hyper-Connections 的残差混合矩阵投影到 Birkhoff 多面体，使其成为双随机矩阵；由非扩张性、乘法闭包和凸组合解释跨层信号稳定，并通过 Sinkhorn-Knopp 投影、核融合与重计算降低多流残差的内存访问开销。v2 在 3B、9B、27B 预训练中验证，n=4 时报告约 6.7% 额外训练时间。"
+method: "多流 Hyper-Connections + Birkhoff 双随机约束 + Sinkhorn-Knopp 投影 + 核融合、选择性重计算和通信重叠"
+baseline: "Pre-Norm 残差连接、原始 Hyper-Connections"
 ---
 
-# mHC: Manifold-Constrained Hyper-Connections
+# mHC：流形约束超连接
 
-> DeepSeek，2025-12-31（v1）· 2026-01-05（v2）
-> arXiv:2512.24880 · 20 位作者（含梁文锋）· 19 页
-
----
+> 本笔记依据仓库内 `arXiv:2512.24880v2` 原文于 2026-07-17 重新核对。旧笔记误写了 Stiefel 约束、Lyapunov 定理、0.6% 开销和 671B 实验，这些内容不属于当前 v2 原文，已全部删除。
 
 ## 一句话
 
-不给 HC 的连接矩阵完全自由——将其严格约束在 **Stiefel 流形**（半正交矩阵）和 **Birkhoff 多面体**（双重随机矩阵）的交集上，从动力系统的 Lyapunov 稳定性角度保证信号传播有界。额外开销仅 0.6%，27B Dense 稳定训练 + 671B MoE 实际收益。
+原始 Hyper-Connections 把单条残差流扩展为多条可学习残差流，但自由混合矩阵会破坏残差连接的恒等传播性质，并显著增加内存访问。mHC 用 Sinkhorn-Knopp 算法把残差混合矩阵投影到 Birkhoff 多面体，使其成为双随机矩阵，从而限制信号放大并保持跨层混合稳定。
 
----
+## 问题定义
 
-## 背景：残差 → HC → 问题 → mHC
+标准残差连接为：
 
-### 残差连接的作用
+\[
+x_{l+1}=x_l+F(x_l,\theta_l).
+\]
 
-论文将残差连接统一为 ODE 视角：
+当残差分支 \(F\) 接近零时，信号仍能通过恒等映射传播。Hyper-Connections 把残差状态扩展为 \(n\) 条流，并引入可学习映射：
 
-```
-x_{l+1} = x_l + F(x_l, θ_l)    ← 显式 Euler 步，步长固定 = 1
-```
+\[
+x_{l+1}=H_l^{res}x_l+(H_l^{post})^\top
+F(H_l^{pre}x_l,\theta_l).
+\]
 
-关键属性：**当 F → 0 时，退化为恒等映射 x_{l+1} = x_l**。这意味着即使深层网络的 F 训练不充分，信号仍然可以无损穿透。这就是「恒等映射属性」。
+其中 \(H_l^{res}\) 不受约束时，多层乘积可能放大或衰减信号；同时，\(n\) 条残差流使内存读写和反向激活保存开销显著增加。
 
-### HC 的贡献和问题
+## 核心方法
 
-HC 将单流残差扩展为 **n 流超连接**：
+### Birkhoff 双随机约束
 
-```
-x_{l+1} = x_l · W_l + F(x_l, θ_l) · B_l
-```
+mHC 约束残差混合矩阵属于双随机矩阵集合：
 
-其中 W_l 和 B_l 是 **可学习的 n × n 矩阵**。贡献是给了残差流之间可学习的交互权重。问题是：
+\[
+\mathcal B_n=\left\{
+H\in\mathbb R^{n\times n}\mid
+H\mathbf 1=\mathbf 1,\;
+\mathbf 1^\top H=\mathbf 1^\top,\;
+H\ge0
+\right\}.
+\]
 
-1. **破坏了恒等映射**：W_l ≠ I 时，即使 F → 0，x_{l+1} ≠ x_l
-2. **理论缺陷**：HC 初衷是模仿显式 Euler 方法动态调整步长，但可学习 W_l **未约束步长**——h_l 可以无界增长，违背了数值方法的稳定性要求
-3. **训练跷跷板**：n 条流互相竞争，loss 震荡，模型稍大就崩
+论文将其称为约束流形，但严格数学名称是 Birkhoff 多面体。它是置换矩阵集合的凸包。
 
-### mHC 的思路
+该约束提供三项性质：
 
-**不给 W 完全自由，将其限制在恒等映射附近的流形上。** 具体选了两种流形：
+1. **非扩张性**：双随机矩阵的谱范数不超过 1，限制残差混合造成的信号放大。
+2. **乘法闭包**：双随机矩阵的乘积仍是双随机矩阵，因此跨层组合继续满足相同约束。
+3. **凸组合解释**：每条输出流是输入流的凸组合，保持全局均值方向并允许流间信息交换。
 
----
+这些性质解释的是多流残差混合的稳定性，不是 Stiefel 正交约束，也不是 Lyapunov 全局稳定性定理。
 
-## 方法：两种流形约束
+### Sinkhorn-Knopp 投影
 
-### 约束 A：Stiefel 流形（mHC-S）
+对自由矩阵 \(\widetilde H_l^{res}\) 先逐元素指数化，再交替进行行归一化与列归一化：
 
-**定义**：半正交矩阵的集合——W^T W = I（当 n ≤ d 时）或 WW^T = I（当 n ≥ d 时）。
+\[
+M^{(0)}=\exp(\widetilde H_l^{res}),
+\qquad
+M^{(t)}=T_r\bigl(T_c(M^{(t-1)})\bigr).
+\]
 
-**动力系统含义**：
-- 谱范数 ∥W∥₂ = 1（半正交矩阵的所有奇异值均为 1）
-- 信号沿深度传播时，范数保持不变：∥x_{l+1}∥ = ∥x_l∥（F = 0 时）
-- Lyapunov 指数 = 0 —— 既不爆炸也不消失
+当迭代收敛时，\(M^{(t)}\) 接近双随机矩阵。论文实验使用 20 次迭代。
 
-**实现**：通过 Cayley 变换或 QR 分解将自由参数映射到 Stiefel 流形上。论文用了一种高效的 Cayley 参数化避免 QR 分解的 O(n³) 开销。
+### 系统优化
 
-### 约束 B：Birkhoff 多面体（mHC-B）
+原始 HC 的内存访问开销随残差流数 \(n\) 增长。mHC 通过以下工程方法控制成本：
 
-**定义**：双重随机矩阵的集合——所有元素 ≥ 0，行和 = 列和 = 1。
+- 融合映射计算、归一化与残差合并内核；
+- 混合精度计算；
+- 反向传播时重新计算轻量 mHC 中间量，减少激活保存；
+- 在分布式预训练中重叠通信与计算。
 
-**动力系统含义**：
-- 每层输出是上层所有流的**凸组合**（convex combination）
-- 组合闭包性：两个双重随机矩阵的乘积仍是双重随机矩阵 → 多层叠加后保证信号始终在有界区域内
-- 可解释性：每层的 W 直接告诉你「流 A 对输出贡献了 30%，流 B 贡献了 70%」
+论文报告扩展率 \(n=4\) 时约增加 6.7% 训练时间，不是 0.6%。
 
-**实现**：用 Sinkhorn 算法将自由参数迭代投影到 Birkhoff 多面体。
+## 实验边界
 
-### 两种约束的取舍
+- 实验任务是语言模型预训练，不是对现成模型进行 LoRA 微调。
+- 规模包括 3B、9B 和 27B；另有 3B 模型使用 1 万亿词元训练。
+- 主实验比较标准残差连接、原始 HC 和 mHC。
+- 原文没有验证单卡 QLoRA、恶意流量检测或强化学习训练。
+- 原文没有 Stiefel 版本、mHC-S 与 mHC-B 对比，也没有 671B 实验。
 
-| | mHC-S (Stiefel) | mHC-B (Birkhoff) |
-|---|---|---|
-| 约束强度 | 谱范数 = 1（等于恒等映射的范数） | 凸组合（比恒等映射弱，因为凸组合可以混合改变信号） |
-| 表示能力 | 更强（允许正交变换 ≈ 旋转） | 较弱（仅允许插值） |
-| 训练稳定性 | ✅ | ✅ |
-| 计算开销 | 较低（Cayley 参数化） | 稍高（需 Sinkhorn 迭代） |
-| 论文首选 | ✅ 主推方案 | 消融对比 |
+## 与 Stiefel-LoRA 的区别
 
-**论文的核心选择是 mHC-S**。
+| 维度           | mHC                          | Stiefel-LoRA                |
+| -------------- | ---------------------------- | --------------------------- |
+| 约束对象       | Transformer 多流残差混合矩阵 | LoRA 低秩矩阵 \(B\)         |
+| 几何集合       | Birkhoff 双随机多面体        | Stiefel 正交矩阵流形        |
+| 投影方法       | Sinkhorn-Knopp 行列归一化    | 切空间投影与 QR 回缩        |
+| 训练阶段       | 从头预训练或大规模持续训练   | 参数高效微调                |
+| 主要问题       | 多流残差信号稳定与内存访问   | LoRA 基向量冗余与有效秩下降 |
+| 当前课题兼容性 | 低，需要改造基座架构         | 较高，可在冻结基座上实验    |
 
----
+## 对恶意流量训练课题的意义
 
-## 理论分析：从动力系统视角看为什么有效
+### 可以作为理论背景
 
-论文第 4 节做了严格的理论分析（Section 4: Theoretical Analysis，非常精彩）：
+- 双随机矩阵的非扩张性、凸组合和乘法闭包可解释多分支信息融合为何能够避免单一分支无限放大。
+- Sinkhorn 投影可用于约束多个轻量适配器之间的混合权重。
+- mHC 提供“自由混合需要几何约束”的架构动机。
 
-### 对比三种架构的 ODE 类比
+### 不能直接作为当前创新机制
 
-| 架构 | 前向传播 | ODE 类比 | 步长 |
-|------|---------|---------|------|
-| Pre-Norm 残差 | x_{l+1} = x_l + F(Norm(x_l)) | 显式 Euler 法 | h = 1（固定） |
-| HC | x_{l+1} = x_l · W_l + F(·) · B_l | 类比 Euler 但 W_l 无约束 | h_l = ?（无界！） |
-| mHC-S | x_{l+1} = x_l · W_l + F(·) · B_l，W_l ∈ Stiefel | **投影 Euler 法** | ∥W_l∥ = 1（有界） |
+- 把 Qwen 的标准残差连接整体替换成原版 mHC，会改变预训练架构，无法直接继承现成权重的行为保证。
+- 多流残差会增加激活和内存访问，单块 RTX 5090 不适合复现其预训练实验。
+- 若只引用 mHC 公式而不实现多流混合，就不能把它写进方法章作为本论文贡献。
 
-关键洞察：**HC 的「超参数 h_l × 显式 Euler」类比是错的**——可学习的 W_l 根本不保证 h_l 在合理范围内，步长可以任意大。mHC-S 修复了这一点：Stiefel 约束确保每步的缩放因子恰好为 1，真正实现了恒定的数值步长。
+### 可实验的轻量改造方向
 
-论文通过 Lyapunov 函数分析证明了 mHC-S 的全局稳定性（Proposition 4.1–4.3），这是一般残差连接论文不提供的理论基础。
+可以借用 Birkhoff 约束设计“检测适配器流 + 物理适配器流”的双流 LoRA，仅对两个适配器输出进行双随机混合，而不修改基座残差流。这个方法不是原版 mHC，必须重新定义目标、证明非扩张性质并通过消融实验验证。
 
----
+## 当前结论
 
-## 系统优化：0.6% 的额外开销怎么做到的
-
-论文不仅做理论，而且做了扎实的系统工程（Section 5）：
-
-- **融合 CUDA kernel**：将流形投影（Cayley 参数化 / Sinkhorn 迭代）与后续的矩阵乘法和激活函数融合到一个 kernel
-- **内存访问优化**：mHC 的连接矩阵 W 很小（n × n，n 通常是 2~4），直接放到 shared memory，不额外读写 global memory
-- **最终开销**：相比 Pre-Norm 残差基线，仅 **+0.6%** 的前向/反向时间
-
-这是一个非常重要的工程结果——如果投影开销很大，再漂亮的数学也没法实际用。
-
----
-
-## 实验结果
-
-### Dense 模型（27B，300B tokens）
-
-| 架构 | 训练稳定性 | PPL | 额外开销 |
-|------|:----:|:----:|:----:|
-| Pre-Norm 残差 | ✅ | 基线 | 0% |
-| HC | ❌ 27B 崩溃 | — | — |
-| mHC-S | ✅ | **优于基线** | 0.6% |
-| mHC-B | ✅ | 优于基线但不如 mHC-S | 稍高 |
-
-**关键点**：HC 在 7B 时正常，升到 27B 就崩。mHC-S 在 27B 上不仅不崩，PPL 还优于标准 Pre-Norm 残差。
-
-### MoE 模型（671B）
-
-论文将 mHC 部署到了 **671B MoE** 的生产训练中，报告了实际训练收益——在同样的算力预算下，mHC 比 Pre-Norm 残差取得了更低的训练 loss。
-
-### 设计选择消融
-
-- **n（流数）**：n=4 是性价比甜点，n 更大会有边际收益递减
-- **Stiefel vs Birkhoff**：Stiefel 表现更好，表达力更强
-- **只约束 W 还是同时约束 W 和 B**：只约束 W（混合矩阵）就足够，约束 B（F 的输入权重）没有额外收益
-- **初始化**：W 初始化为单位矩阵 I（保证初始状态就是标准残差连接）
-
----
-
-## 我的理解
-
-这篇工作是 DeepSeek 在架构层面的延续推进。之前读 HC 时最大的疑惑就是「为什么可学习 W 不会崩」——事实证明，**在小模型上确实不会崩，到大模型就崩了**。
-
-mHC 的方法本质上是**给 W 装了一个数学安全笼**：
-
-- 传统残差：W = I，固定不变（最安全，但缺乏灵活性）
-- HC：W 完全自由（最灵活，但不安全）
-- mHC：W ∈ Stiefel 流形（灵活性与安全性的平衡点）
-
-**数学上的美感**：Stiefel 流形恰好是在「保持范数不变」的约束下最大的自由度。它允许 W 做任意旋转（正交变换），但不允许拉伸/压缩。这相当于说：你可以让 n 条残差流以任何方式「合作」，但不能让任何一条流被放大或压制。从信息论角度看，这保证了信号能量沿深度守恒。
-
-**工程上的务实**：0.6% 的额外开销是「白嫖」的水平。一般来说这种带约束的方法至少 5~10% 开销，融合 kernel 的工程功力值得关注——类似的工程技巧（Cayley 参数化避免 SVD/QR + shared memory + kernel fusion）在其他需要矩阵约束的场景也能复用。
-
-**一个被论文低调处理的发现**：消融实验显示 HC 的跷跷板效应不是因为 W 可以任意取值，而是因为 W 的**自由度太大导致优化困难**（非凸性加剧），而不是因为 W 真的跑到了极端值。这说明问题在优化动力学，不在表示能力——mHC 通过缩小搜索空间间接解决了优化问题，而不是通过限制表示能力。
-
----
-
-## 与相关工作的关系
-
-- **Pre-Norm 残差 (Vaswani et al. 2017 / Xiong et al. 2020)**：mHC 的直接对比基线
-- **原始 HC (DeepSeek, 2024)**：mHC 的前身，27B 崩塌的直接原因
-- **Stiefel 流形优化**：mHC-S 的数学基础，但此前主要用在 RNN 的正交权重约束，这是第一次在大规模 Transformer 的残差连接中应用
-- **Neural ODE / 动力系统视角**：mHC 的理论分析框架，Lyapunov 稳定性分析将架构设计放到了严格数学基础上——这比大多数「试试看能不能 work」的架构论文高一个层次
-- **DeepSeek-V3 / DeepSeek-R1**：mHC 被部署到的实际生产模型
-- **Liger-Kernel**：社区已跟进做融合 kernel（[GitHub #1066](https://github.com/linkedin/Liger-Kernel/issues/1066)）
-
----
-
-## 疑问 / 待验证
-
-- Stiefel 流形约束将所有奇异值强制为 1——是否有场景需要小于 1 的奇异值来做信号衰减（例如门控机制）？论文的消融暗示有 B 矩阵就够了，但这个论证是否在所有架构上都成立？
-- n=4 是实验甜点，但论文没有解释为什么——是否和 Transformer 内部的 4 头注意力分组有隐含关联？
-- 论文的 Lyapunov 分析假设 W 精确落在 Stiefel 流形上，但 Cayley 参数化的数值精度在 float16 下是否有退化？
-- mHC 在 RL（如 GRPO）下的表现如何？DeepSeek-R1 的训练管线是否已经用了 mHC？
-
----
-
-## 原始摘要
-
-> Hyper-connections (HC), which expand the width of residual streams and allow the connection weights to be learnable, have recently demonstrated notable performance improvements. However, HC's success comes at the cost of disrupting the identity mapping property, which is essential for signal and gradient propagation in deep neural networks. This disruption degrades training stability substantially and limits the scalability of deep models. In this paper, we tackle the training stability issue from a dynamical system perspective, introducing manifold-constrained hyper-connections (mHC). By projecting the connection matrix onto the Stiefel manifold or the Birkhoff polytope, we restore the identity mapping property within the framework of hyper-connections. Meticulous system optimizations reduce the associated overhead to a negligible 0.6%. Extensive experiments demonstrate that mHC achieves stable training at a 27B dense scale, where HC fails, and delivers consistent improvements when scaled up to 671B Mixture-of-Experts. These results establish mHC as a stable, scalable, and efficient drop-in replacement for standard residual connections.
-
----
+- 原版 mHC 适合放在第二章流形约束与稳定训练背景中。
+- 第三章若需要可落地的第二机制，优先实验 Stiefel-LoRA。
+- 只有“双适配器流 + Birkhoff 混合”探针显示额外增益时，才考虑把 mHC 思想提升为第三章的协同机制。
 
 ## 文献信息
 
-- arXiv: [2512.24880](https://arxiv.org/abs/2512.24880)（v1: 2025-12-31, v2: 2026-01-05）
+- 原文：`raw/papers/deepseek/2512.24880v2.pdf`
+- arXiv：2512.24880v2，2026-01-05
 - 页数：19 页
-- 代码：未公开（论文提交时）
