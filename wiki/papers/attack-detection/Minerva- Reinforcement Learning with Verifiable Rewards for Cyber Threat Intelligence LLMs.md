@@ -1,0 +1,58 @@
+---
+title: "Minerva: Reinforcement Learning with Verifiable Rewards for Cyber Threat Intelligence LLMs"
+date: 2026-07-23
+authors:
+  - Md Tanvirul Alam
+  - Aritran Piplai
+  - Ionut Cardei
+  - Nidhi Rastogi
+  - Peter J Worth Jr au2
+year: 1784021852.874984
+journal: "Findings of the Association for Computational Linguistics: ACL 2026"
+source_pdf: [[raw/papers/attack-detection/2602.00513.pdf]]
+tags:
+  - 博弈论
+  - PINN
+  - 网络异常流量检测
+  - 类型/论文
+key_finding: "待补充"
+---
+
+# Minerva: Reinforcement Learning with Verifiable Rewards for Cyber Threat Intelligence LLMs
+
+> 论文来源：PDF内置
+> 识别文件：raw/papers/attack-detection/2602.00513.pdf
+
+## 一句话
+
+待补充
+
+## 结构化摘要
+
+### 研究目的
+
+待补充：未解析到稳定段落，建议人工确认
+
+### 模型架构
+
+models/Foundation-Sec-8B-Instruct) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /H /I /Rect [ 419.751 394.21 540.996 405.335 ] /Subtype /Link /Type /Annot >> 335 0 obj << /A << /S /URI /Type /Action /URI (https://huggingface.co/fou
+
+### 实验数据集
+
+待补充：未解析到稳定数据集描述
+
+### 核心结论
+
+待补充：未解析到稳定结论句
+
+### 参考文献要点
+
+待补充：未提取到可用参考要点
+
+## 元数据补全状态
+
+- DOI：10.18653/v1/2026.findings-acl.1326
+- 年份：1784021852.874984
+- 期刊/出版源：Findings of the Association for Computational Linguistics: ACL 2026
+- 全文提取方式：strings
+- 缺失字段：无
