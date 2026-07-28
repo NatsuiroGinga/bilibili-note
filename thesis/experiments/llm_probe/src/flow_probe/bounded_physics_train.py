@@ -980,8 +980,8 @@ def _validate_settings(
 ) -> None:
     if probe.model_id != FIXED_BASE_MODEL_ID:
         raise PhysicsTrainingError(f"基座路径必须固定为 {FIXED_BASE_MODEL_ID}")
-    if probe.seed != 42:
-        raise PhysicsTrainingError("E1/E2 当前只允许固定种子 42")
+    if probe.seed not in {42, 43, 44}:
+        raise PhysicsTrainingError("E1/E2 只允许预注册训练种子 42、43、44")
     if settings.variant != contract.name:
         raise PhysicsTrainingError("训练设置与条件变体不一致")
     if settings.max_steps < 2 or settings.max_steps > FORMAL_TRAINING_STEPS:

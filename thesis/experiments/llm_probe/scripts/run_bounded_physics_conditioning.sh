@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-if [[ $# -lt 2 || $# -gt 3 ]]; then
-  printf '用法：%s <e1|e2> <唯一输出目录> [2|202]\n' "$0" >&2
+if [[ $# -lt 2 || $# -gt 4 ]]; then
+  printf '用法：%s <e1|e2> <唯一输出目录> [2|202] [配置路径]\n' "$0" >&2
   exit 2
 fi
 
@@ -10,7 +10,7 @@ GROUP="$1"
 OUTPUT_DIR="$2"
 MAX_STEPS="${3:-202}"
 PROJECT_ROOT="/root/autodl-tmp/thesis/experiments/llm_probe"
-CONFIG="configs/bounded_physics_conditioning_seed42.yaml"
+CONFIG="${4:-configs/bounded_physics_conditioning_seed42.yaml}"
 MODEL="/root/autodl-tmp/thesis/models/Qwen3-1.7B"
 DETECTION_ADAPTER="runs/physics-sparse/qwen3-1.7b-seed42-s3-anchor0-plus-one-fullphys202-v1/final_adapter"
 LAUNCHER_LOG="${OUTPUT_DIR}.launcher.log"
@@ -35,6 +35,11 @@ fi
 
 if [[ "$PWD" != "$PROJECT_ROOT" ]]; then
   printf '必须从服务端项目根目录运行：%s\n' "$PROJECT_ROOT" >&2
+  exit 2
+fi
+
+if [[ ! -f "$CONFIG" ]]; then
+  printf '配置文件不存在：%s\n' "$CONFIG" >&2
   exit 2
 fi
 

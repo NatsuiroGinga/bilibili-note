@@ -73,25 +73,20 @@ public:
     }
     m_output
         << "schema_version,scenario_id,topology_id,queue_model,group_id,seed,"
-           "run,"
-           "window_index,"
-           "window_start_s,window_end_s,is_attack,attack_exposure_fraction,"
-           "traffic_phase,label_primary,label_family,label_subtype,jitter_"
-           "stream_base,"
-           "jitter_max_ms,error_stream,downstream_error_rate,capacity_start_"
-           "bps,"
-           "capacity_end_bps,service_budget_bytes,"
-           "queue_limit_packets,"
-           "queue_start_bytes,queue_end_bytes,offered_bytes,enqueued_bytes,"
-           "departed_bytes,dropped_before_enqueue_bytes,dropped_after_dequeue_"
-           "bytes,"
-           "device_tx_drop_bytes,downstream_error_loss_bytes,sink_received_"
-           "bytes,"
-           "enqueued_packets,departed_packets,"
-           "dropped_before_enqueue_packets,dropped_after_dequeue_packets,"
-           "device_tx_drop_packets,downstream_error_loss_packets,sink_received_"
-           "packets,"
-           "queue_balance_residual_bytes\n";
+           "run,jitter_stream_base,jitter_max_ms,error_stream,downstream_error_"
+           "rate,window_index,window_start_s,window_end_s,is_attack,attack_"
+           "exposure_fraction,traffic_phase,label_primary,label_family,label_"
+           "subtype,capacity_start_bps,capacity_end_bps,configured_capacity_"
+           "integral_link_bytes,queue_limit_packets,queue_start_l3_bytes,queue_"
+           "end_l3_bytes,qdisc_received_l3_bytes,qdisc_enqueued_l3_bytes,qdisc_"
+           "dequeued_l3_bytes,qdisc_dropped_before_enqueue_l3_bytes,qdisc_"
+           "dropped_after_dequeue_l3_bytes,device_tx_drop_ppp_frame_bytes,"
+           "downstream_error_loss_ppp_frame_bytes,sink_received_app_payload_"
+           "bytes,queue_start_packets,queue_end_packets,qdisc_received_packets,"
+           "qdisc_enqueued_packets,qdisc_dequeued_packets,qdisc_dropped_before_"
+           "enqueue_packets,qdisc_dropped_after_dequeue_packets,device_tx_drop_"
+           "packets,downstream_error_loss_packets,sink_received_packets,queue_"
+           "balance_residual_l3_bytes,queue_balance_residual_packets\n";
   }
 
   void Start() {
@@ -111,17 +106,23 @@ public:
     m_enqueuedBytes += bytes;
     m_enqueuedPackets += 1;
     m_currentQueueBytes += bytes;
+    m_currentQueuePackets += 1;
   }
 
   void OnDequeue(Ptr<const QueueDiscItem> item) {
     const auto bytes = static_cast<uint64_t>(item->GetSize());
     NS_ABORT_MSG_IF(m_currentQueueBytes < bytes, "队列追踪出现负字节数");
+    NS_ABORT_MSG_IF(m_currentQueuePackets == 0, "队列追踪出现负包数");
     m_departedBytes += bytes;
     m_departedPackets += 1;
     m_currentQueueBytes -= bytes;
+    m_currentQueuePackets -= 1;
   }
 
-  void OnDropBeforeEnqueue(Ptr<const QueueDiscItem> item, const char *) {
+  void OnDropBeforeEnqueue(Ptr<const QueueDiscItem> item, const char *reason) {
+    NS_ABORT_MSG_IF(reason == nullptr || std::string(reason) !=
+                                             FifoQueueDisc::LIMIT_EXCEEDED_DROP,
+                    "入队前丢弃并非 FifoQueueDisc 上限触发");
     m_droppedBeforeBytes += item->GetSize();
     m_droppedBeforePackets += 1;
   }
@@ -171,13 +172,21 @@ private:
             : (attackExposureFraction < 1.0 - 1e-9 ? "transition" : "attack");
     m_capacityBitSeconds +=
         m_capacityBps * (windowEnd - m_lastCapacityUpdateSeconds);
-    const double serviceBudgetBytes = m_capacityBitSeconds / 8.0;
-    const uint64_t offeredBytes = m_enqueuedBytes + m_droppedBeforeBytes;
-    const int64_t residual = static_cast<int64_t>(m_currentQueueBytes) -
-                             static_cast<int64_t>(m_windowStartQueueBytes) -
-                             static_cast<int64_t>(offeredBytes) +
-                             static_cast<int64_t>(m_departedBytes) +
-                             static_cast<int64_t>(m_droppedBeforeBytes);
+    const double configuredCapacityIntegralLinkBytes =
+        m_capacityBitSeconds / 8.0;
+    const uint64_t receivedL3Bytes = m_enqueuedBytes + m_droppedBeforeBytes;
+    const uint64_t receivedPackets = m_enqueuedPackets + m_droppedBeforePackets;
+    const int64_t l3Residual = static_cast<int64_t>(m_currentQueueBytes) -
+                               static_cast<int64_t>(m_windowStartQueueBytes) -
+                               static_cast<int64_t>(receivedL3Bytes) +
+                               static_cast<int64_t>(m_departedBytes) +
+                               static_cast<int64_t>(m_droppedBeforeBytes);
+    const int64_t packetResidual =
+        static_cast<int64_t>(m_currentQueuePackets) -
+        static_cast<int64_t>(m_windowStartQueuePackets) -
+        static_cast<int64_t>(receivedPackets) +
+        static_cast<int64_t>(m_departedPackets) +
+        static_cast<int64_t>(m_droppedBeforePackets);
     const std::string labelPrimary = attackActive ? "malicious" : "benign";
     const std::string labelFamily = attackActive ? "dos" : "benign";
     const std::string labelSubtype = attackActive ? "udp" : "benign";
@@ -185,29 +194,33 @@ private:
     groupId << "star-bottleneck-v1|" << m_scenario.name << "|seed" << m_seed
             << "|run" << m_run;
 
-    m_output << "flow_probe_ns3_queue_v3," << m_scenario.name
+    m_output << "flow_probe_ns3_queue_v4," << m_scenario.name
              << ",star-bottleneck-v1,fifo-queue-disc," << groupId.str() << ','
-             << m_seed << ',' << m_run << ',' << m_windowIndex << ','
+             << m_seed << ',' << m_run << ',' << m_jitterStreamBase << ','
+             << m_jitterMaxMs << ',' << m_errorStream << ','
+             << m_downstreamErrorRate << ',' << m_windowIndex << ','
              << std::fixed << std::setprecision(6) << windowStart << ','
              << windowEnd << ',' << (attackActive ? 1 : 0) << ','
              << attackExposureFraction << ',' << trafficPhase << ','
              << labelPrimary << ',' << labelFamily << ',' << labelSubtype << ','
-             << m_jitterStreamBase << ',' << m_jitterMaxMs << ','
-             << m_errorStream << ',' << m_downstreamErrorRate << ','
              << m_windowStartCapacityBps << ',' << m_capacityBps << ','
-             << serviceBudgetBytes << ',' << m_queueLimitPackets << ','
-             << m_windowStartQueueBytes << ',' << m_currentQueueBytes << ','
-             << offeredBytes << ',' << m_enqueuedBytes << ',' << m_departedBytes
-             << ',' << m_droppedBeforeBytes << ',' << m_droppedAfterBytes << ','
+             << configuredCapacityIntegralLinkBytes << ','
+             << m_queueLimitPackets << ',' << m_windowStartQueueBytes << ','
+             << m_currentQueueBytes << ',' << receivedL3Bytes << ','
+             << m_enqueuedBytes << ',' << m_departedBytes << ','
+             << m_droppedBeforeBytes << ',' << m_droppedAfterBytes << ','
              << m_deviceTxDropBytes << ',' << m_downstreamErrorLossBytes << ','
-             << m_sinkReceivedBytes << ',' << m_enqueuedPackets << ','
-             << m_departedPackets << ',' << m_droppedBeforePackets << ','
-             << m_droppedAfterPackets << ',' << m_deviceTxDropPackets << ','
-             << m_downstreamErrorLossPackets << ',' << m_sinkReceivedPackets
-             << ',' << residual << '\n';
+             << m_sinkReceivedBytes << ',' << m_windowStartQueuePackets << ','
+             << m_currentQueuePackets << ',' << receivedPackets << ','
+             << m_enqueuedPackets << ',' << m_departedPackets << ','
+             << m_droppedBeforePackets << ',' << m_droppedAfterPackets << ','
+             << m_deviceTxDropPackets << ',' << m_downstreamErrorLossPackets
+             << ',' << m_sinkReceivedPackets << ',' << l3Residual << ','
+             << packetResidual << '\n';
     m_output.flush();
 
     m_windowStartQueueBytes = m_currentQueueBytes;
+    m_windowStartQueuePackets = m_currentQueuePackets;
     m_enqueuedBytes = 0;
     m_departedBytes = 0;
     m_droppedBeforeBytes = 0;
@@ -250,6 +263,8 @@ private:
   uint32_t m_windowIndex{0};
   uint64_t m_currentQueueBytes{0};
   uint64_t m_windowStartQueueBytes{0};
+  uint64_t m_currentQueuePackets{0};
+  uint64_t m_windowStartQueuePackets{0};
   uint64_t m_enqueuedBytes{0};
   uint64_t m_departedBytes{0};
   uint64_t m_droppedBeforeBytes{0};
@@ -391,6 +406,19 @@ int main(int argc, char *argv[]) {
   auto queueDiscs = trafficControl.Install(routerDevice);
   auto queueDisc = queueDiscs.Get(0);
   NS_ABORT_MSG_IF(queueDisc == nullptr, "无法安装瓶颈 FifoQueueDisc");
+  NS_ABORT_MSG_IF(queueDisc->GetInstanceTypeId().GetName() !=
+                      "ns3::FifoQueueDisc",
+                  "根队列规则类型不是 ns3::FifoQueueDisc");
+  NS_ABORT_MSG_IF(queueDisc->GetMaxSize() != QueueSize("50p"),
+                  "根队列规则上限不是 50p");
+  auto deviceQueue = routerDevice->GetQueue();
+  NS_ABORT_MSG_IF(deviceQueue == nullptr, "瓶颈发送设备队列不存在");
+  NS_ABORT_MSG_IF(deviceQueue->GetMaxSize() != QueueSize("1p"),
+                  "瓶颈发送设备队列上限不是 1p");
+  DataRateValue configuredDataRate;
+  routerDevice->GetAttribute("DataRate", configuredDataRate);
+  NS_ABORT_MSG_IF(configuredDataRate.Get().GetBitRate() != initialCapacityBps,
+                  "瓶颈链路初始速率不是 5000000 bit/s");
 
   Ipv4AddressHelper bottleneckAddress;
   bottleneckAddress.SetBase("10.2.0.0", "255.255.255.0");
@@ -411,22 +439,34 @@ int main(int argc, char *argv[]) {
       attackStartTimes, jitterStreamBase, jitterMaxSeconds * 1000.0,
       errorStream, scenario.randomLoss ? downstreamErrorRate : 0.0,
       initialCapacityBps, queueLimitPackets);
-  queueDisc->TraceConnectWithoutContext(
-      "Enqueue", MakeCallback(&QueueWindowCollector::OnEnqueue, &collector));
-  queueDisc->TraceConnectWithoutContext(
-      "Dequeue", MakeCallback(&QueueWindowCollector::OnDequeue, &collector));
-  queueDisc->TraceConnectWithoutContext(
-      "DropBeforeEnqueue",
-      MakeCallback(&QueueWindowCollector::OnDropBeforeEnqueue, &collector));
-  queueDisc->TraceConnectWithoutContext(
-      "DropAfterDequeue",
-      MakeCallback(&QueueWindowCollector::OnDropAfterDequeue, &collector));
-  routerDevice->TraceConnectWithoutContext(
-      "MacTxDrop",
-      MakeCallback(&QueueWindowCollector::OnDeviceTxDrop, &collector));
-  victimDevice->TraceConnectWithoutContext(
-      "PhyRxDrop",
-      MakeCallback(&QueueWindowCollector::OnDownstreamErrorLoss, &collector));
+  NS_ABORT_MSG_IF(!queueDisc->TraceConnectWithoutContext(
+                      "Enqueue", MakeCallback(&QueueWindowCollector::OnEnqueue,
+                                              &collector)),
+                  "无法连接追踪源 Enqueue");
+  NS_ABORT_MSG_IF(!queueDisc->TraceConnectWithoutContext(
+                      "Dequeue", MakeCallback(&QueueWindowCollector::OnDequeue,
+                                              &collector)),
+                  "无法连接追踪源 Dequeue");
+  NS_ABORT_MSG_IF(
+      !queueDisc->TraceConnectWithoutContext(
+          "DropBeforeEnqueue",
+          MakeCallback(&QueueWindowCollector::OnDropBeforeEnqueue, &collector)),
+      "无法连接追踪源 DropBeforeEnqueue");
+  NS_ABORT_MSG_IF(
+      !queueDisc->TraceConnectWithoutContext(
+          "DropAfterDequeue",
+          MakeCallback(&QueueWindowCollector::OnDropAfterDequeue, &collector)),
+      "无法连接追踪源 DropAfterDequeue");
+  NS_ABORT_MSG_IF(
+      !routerDevice->TraceConnectWithoutContext(
+          "MacTxDrop",
+          MakeCallback(&QueueWindowCollector::OnDeviceTxDrop, &collector)),
+      "无法连接追踪源 MacTxDrop");
+  NS_ABORT_MSG_IF(!victimDevice->TraceConnectWithoutContext(
+                      "PhyRxDrop",
+                      MakeCallback(&QueueWindowCollector::OnDownstreamErrorLoss,
+                                   &collector)),
+                  "无法连接追踪源 PhyRxDrop");
 
   constexpr uint16_t port = 9000;
   PacketSinkHelper sink("ns3::UdpSocketFactory",
@@ -435,8 +475,10 @@ int main(int argc, char *argv[]) {
   sinkApplications.Start(Seconds(0.5));
   sinkApplications.Stop(Seconds(durationSeconds));
   auto packetSink = DynamicCast<PacketSink>(sinkApplications.Get(0));
-  packetSink->TraceConnectWithoutContext(
-      "Rx", MakeCallback(&QueueWindowCollector::OnSinkRx, &collector));
+  NS_ABORT_MSG_IF(
+      !packetSink->TraceConnectWithoutContext(
+          "Rx", MakeCallback(&QueueWindowCollector::OnSinkRx, &collector)),
+      "无法连接追踪源 Rx");
 
   const Ipv4Address victimAddress = bottleneckInterfaces.GetAddress(1);
   const double trafficStopSeconds = durationSeconds;

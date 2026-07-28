@@ -6,8 +6,10 @@ readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [
     "pandas>=2.2,<4",
+    "pyarrow>=25,<26",
     "pyyaml>=6.0,<7",
     "scikit-learn>=1.5,<2",
+    "xgboost>=3.0,<4",
 ]
 
 [project.optional-dependencies]
@@ -42,12 +44,31 @@ flow-probe-plan-genis = "flow_probe.genis_forward_split:main"
 flow-probe-materialize-genis = "flow_probe.genis_forward_split:materialize_main"
 flow-probe-traditional-baselines = "flow_probe.traditional_baselines:main"
 flow-probe-multiclass-baselines = "flow_probe.multiclass_baselines:main"
+flow-probe-tabular-baselines = "flow_probe.tabular_baselines:main"
 flow-probe-evaluate-hierarchical = "flow_probe.hierarchical_evaluation:main"
 flow-probe-swanlab-artifact-smoke = "flow_probe.swanlab_artifact_smoke:main"
 flow-probe-analyze-h1 = "flow_probe.h1_analysis:main"
 flow-probe-validate-physics = "flow_probe.physics_validity:main"
 flow-probe-probe-qwen-physics-gradient = "flow_probe.qwen_physics_gradient:main"
 flow-probe-validate-ns3-truth = "flow_probe.ns3_truth:main"
+flow-probe-run-ns3-matrix = "flow_probe.ns3_experiment:main"
+flow-probe-build-ns3-sequences = "flow_probe.ns3_sequences:main"
+flow-probe-train-physics = "flow_probe.physics_train:main"
+flow-probe-train-asymmetric-physics = "flow_probe.asymmetric_physics_train:main"
+flow-probe-diagnose-gradient-conflict = "flow_probe.gradient_conflict:main"
+flow-probe-diagnose-gradient-feasibility = "flow_probe.gradient_feasibility:main"
+flow-probe-train-game = "flow_probe.game_train:main"
+flow-probe-audit-dedale = "flow_probe.dedale_audit:main"
+flow-probe-process-tqh-c2 = "flow_probe.tqh_c2:main"
+flow-probe-analyze-physics-errors = "flow_probe.physics_error_analysis:main"
+flow-probe-plan-ns3-domain-randomization = "flow_probe.ns3_domain_randomization:main"
+flow-probe-run-ns3-domain-randomization = "flow_probe.ns3_domain_experiment:main"
+flow-probe-build-ns3-observability-sequences = "flow_probe.ns3_observability_sequences:main"
+flow-probe-diagnose-observability = "flow_probe.observability_diagnostic:main"
+flow-probe-train-bounded-physics = "flow_probe.bounded_physics_train:main"
+flow-probe-evaluate-bounded-physics = "flow_probe.bounded_physics_evaluation:main"
+flow-probe-evaluate-s3-same-split-physics = "flow_probe.s3_same_split_physics:main"
+flow-probe-ns3-physics-baseline = "flow_probe.ns3_physics_baselines:main"
 
 [build-system]
 requires = ["hatchling>=1.27"]

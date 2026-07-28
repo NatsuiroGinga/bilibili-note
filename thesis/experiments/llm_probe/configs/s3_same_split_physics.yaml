@@ -1,0 +1,39 @@
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: canonical_core_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+s3_same_split_evaluation:
+  training_dir: runs/physics-sparse/qwen3-1.7b-seed42-s3-anchor0-plus-one-fullphys202-v1
+  detection_adapter_path: runs/physics-sparse/qwen3-1.7b-seed42-s3-anchor0-plus-one-fullphys202-v1/final_adapter
+  state_head_path: runs/physics-sparse/qwen3-1.7b-seed42-s3-anchor0-plus-one-fullphys202-v1/state_head.pt
+  physics_test_file: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/test.jsonl
+  physics_test_sha256: 6e64d2ab290813a246ed8efcefd1bb19f1026c2de7b7904d111af67b4465ef94
+  physics_test_samples: 807
+  physics_test_batch_size: 8
+  state_supervision_mode: anchor0_plus_one
+  state_mask_seeds:
+    - 42
+    - 43
+    - 44
+  output_dir: runs/bounded-physics-conditioning-evaluation/qwen3-1.7b-s3-same-split-physics-test-v1
+  calibration: none
+  parameter_tuning: none
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: qwen3-1.7b-s3-same-split-physics-test-v1
+  description: 冻结 S3 在 seed44 测试分区上的三种状态掩码物理评估
+  mode: online
+  tags:
+    - llm-probe
+    - pinn
+    - same-split
+    - s3-reference
+    - seed44-test

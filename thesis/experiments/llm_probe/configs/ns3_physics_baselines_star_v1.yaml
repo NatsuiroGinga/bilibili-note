@@ -1,0 +1,39 @@
+schema_version: flow_probe_ns3_physics_baseline_config_v1
+stage: theory_selection
+status: review_pending
+
+data:
+  input_dir: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2
+  expected_topology: star-bottleneck-v1
+  expected_sha256:
+    train.jsonl: d6a6ca23a985223401e1d650d619c2a50b255d2066769e2478cef72cc6239fa0
+    validation.jsonl: 0bbbb4ea483867561c329c896cb4e7745a102cb90024c464654e0b7d673c8723
+    test.jsonl: 6e64d2ab290813a246ed8efcefd1bb19f1026c2de7b7904d111af67b4465ef94
+    split_manifest.json: 3393d76e96b9104ea78a8a52bc73e72e2298798a4a4db29dbf76ef412eb88785
+
+training:
+  hidden_size: 128
+  batch_size: 64
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  max_epochs: 300
+  patience: 30
+  minimum_delta: 0.0000001
+  lambda_state: 1.0
+  lambda_physics: 0.01
+  state_supervision_mode: anchor0_plus_one
+  selection_metric: validation_state_mse
+  device: auto
+  cpu_threads: 4
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: overridden-by-cli
+  description: 星型 ns-3 五字段状态监督与标准物理信息神经网络同协议基线
+  mode: online
+  tags:
+    - llm-probe
+    - theory-selection
+    - ns3-physics
+    - review-pending

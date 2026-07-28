@@ -1,0 +1,23 @@
+seed: 42
+batch_size: 512
+hidden_size: 64
+learning_rate: 0.001
+weight_decay: 0.0001
+max_epochs: 100
+patience: 12
+minimum_delta: 0.00001
+bootstrap_repetitions: 5000
+constant_improvement_threshold: 0.10
+history_vs_single_ci_upper_threshold: 0.0
+ood_auc_ci_lower_threshold: 0.50
+device: cuda
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: task17-observability-seed42-20260722
+  description: 任务十七常数、单窗口与四窗口状态可辨识性裁决
+  mode: online
+  tags:
+    - task17
+    - observability
+    - pinn-data

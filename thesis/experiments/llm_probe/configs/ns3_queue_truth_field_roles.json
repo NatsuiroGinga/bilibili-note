@@ -1,0 +1,58 @@
+{
+  "model_input_observable": [
+    "capacity_start_bps",
+    "capacity_end_bps",
+    "configured_capacity_integral_link_bytes",
+    "qdisc_received_l3_bytes",
+    "qdisc_received_packets"
+  ],
+  "state_supervision": [
+    "queue_start_l3_bytes",
+    "queue_end_l3_bytes",
+    "qdisc_enqueued_l3_bytes",
+    "qdisc_dequeued_l3_bytes",
+    "qdisc_dropped_before_enqueue_l3_bytes",
+    "qdisc_dropped_after_dequeue_l3_bytes",
+    "queue_start_packets",
+    "queue_end_packets",
+    "qdisc_enqueued_packets",
+    "qdisc_dequeued_packets",
+    "qdisc_dropped_before_enqueue_packets",
+    "qdisc_dropped_after_dequeue_packets"
+  ],
+  "label_target": [
+    "is_attack",
+    "attack_exposure_fraction",
+    "traffic_phase",
+    "label_primary",
+    "label_family",
+    "label_subtype"
+  ],
+  "split_metadata": [
+    "schema_version",
+    "scenario_id",
+    "topology_id",
+    "queue_model",
+    "group_id",
+    "seed",
+    "run",
+    "jitter_stream_base",
+    "jitter_max_ms",
+    "error_stream",
+    "downstream_error_rate",
+    "window_index",
+    "window_start_s",
+    "window_end_s",
+    "queue_limit_packets"
+  ],
+  "audit_only": [
+    "device_tx_drop_ppp_frame_bytes",
+    "downstream_error_loss_ppp_frame_bytes",
+    "sink_received_app_payload_bytes",
+    "device_tx_drop_packets",
+    "downstream_error_loss_packets",
+    "sink_received_packets",
+    "queue_balance_residual_l3_bytes",
+    "queue_balance_residual_packets"
+  ]
+}

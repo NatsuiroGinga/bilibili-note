@@ -1,0 +1,34 @@
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: canonical_core_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+evaluation:
+  sample_dir: runs/data-sampled/genis-hierarchical-v2-seed42
+  output_dir: runs/physics-detection-evaluation/qwen3-1.7b-seed42-s3-anchor0-plus-one-eval300-v1
+  samples_per_label: 300
+  generation_batch_size: 16
+  scoring_batch_size: 24
+  progress_every_batches: 25
+  max_known_rejection_rate: 0.05
+  seed: 42
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: qwen3-1.7b-seed42-s3-anchor0-plus-one-eval300-v1
+  description: S3/S4 双锚点物理一致性对照的 GeNIS 同协议正式检测评估
+  mode: online
+  tags:
+    - llm-probe
+    - pinn
+    - s3-s4-comparison
+    - seed42
+    - hierarchical-v2
+    - open-set
+    - eval300

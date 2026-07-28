@@ -376,7 +376,11 @@ class _ProgressLogger:
         self.step += 1
 
 
-def _load_model_runtime(probe: ProbeConfig, adapter_path: Path):
+def _load_model_runtime(
+    probe: ProbeConfig,
+    adapter_path: Path,
+    task_adapter_path: Path | None = None,
+):
     import torch
     from peft import PeftModel
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -404,9 +408,32 @@ def _load_model_runtime(probe: ProbeConfig, adapter_path: Path):
         dtype=torch.bfloat16,
         device_map="auto",
     )
-    model = PeftModel.from_pretrained(base_model, str(adapter_path))
+    if task_adapter_path is None:
+        model = PeftModel.from_pretrained(base_model, str(adapter_path))
+    else:
+        if not task_adapter_path.is_dir():
+            raise ValueError(f"任务私有 LoRA 目录不存在：{task_adapter_path}")
+        model = PeftModel.from_pretrained(
+            base_model,
+            str(adapter_path),
+            adapter_name="detection",
+            is_trainable=False,
+        )
+        model.load_adapter(
+            str(task_adapter_path),
+            adapter_name="physics_private",
+            is_trainable=False,
+        )
+        model.base_model.set_adapter("detection", inference_mode=True)
     model.eval()
     return torch, tokenizer, model
+
+
+def _set_task_adapter_route(model: object, *, use_private: bool) -> tuple[str, ...]:
+    """按评估分区启用冻结检测路径或检测与物理私有路径。"""
+    route = ("detection", "physics_private") if use_private else ("detection",)
+    model.base_model.set_adapter(list(route) if use_private else route[0], inference_mode=True)
+    return route
 
 
 def _free_generation_metrics(
@@ -704,6 +731,7 @@ def run_hierarchical_evaluation(
     settings: EvaluationSettings,
     adapter_path: Path,
     tracking: TrackingSettings,
+    task_adapter_path: Path | None = None,
 ) -> dict[str, object]:
     """执行自由生成、候选完成评分与仅由域内验证集校准的开放集评估。"""
     import torch
@@ -770,6 +798,7 @@ def run_hierarchical_evaluation(
             "output_dir": str(settings.output_dir),
         },
         "adapter_path": str(adapter_path),
+        "task_adapter_path": str(task_adapter_path) if task_adapter_path is not None else None,
         "protocol": {
             "candidate_temperature": 1.0,
             "threshold_source": "subtype_validation_only",
@@ -788,6 +817,8 @@ def run_hierarchical_evaluation(
         "predictions": predictions_dir,
         "adapter": adapter_path,
     }
+    if task_adapter_path is not None:
+        data_files["task_adapter"] = task_adapter_path
 
     with (
         capture_console_log(output_dir / "console.log"),
@@ -826,11 +857,17 @@ def run_hierarchical_evaluation(
             encoding="utf-8",
         )
         progress = _ProgressLogger(swanlab, history_path)
-        runtime_torch, tokenizer, model = _load_model_runtime(probe, adapter_path)
+        runtime_torch, tokenizer, model = _load_model_runtime(
+            probe, adapter_path, task_adapter_path
+        )
         results: dict[str, object] = {}
+        routes: dict[str, list[str]] = {}
         threshold_calibration = None
 
         for split in plan:
+            if task_adapter_path is not None:
+                route = _set_task_adapter_route(model, use_private=split.name != "family_test")
+                routes[split.name] = list(route)
             records = selected_records[split.name]
             print(
                 f"评估分区开始：{split.name}，样本数={len(records)}",
@@ -894,6 +931,10 @@ def run_hierarchical_evaluation(
             "schema_version": "flow_probe_hierarchical_generative_evaluation_v1",
             "model_id": probe.model_id,
             "adapter_path": str(adapter_path),
+            "task_adapter_path": (
+                str(task_adapter_path) if task_adapter_path is not None else None
+            ),
+            "adapter_routes": routes,
             "seed": settings.seed,
             "samples_per_label": settings.samples_per_label,
             "threshold_calibration": asdict(threshold_calibration),
@@ -927,6 +968,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--model-path", type=Path)
     parser.add_argument("--adapter-path", type=Path, required=True)
+    parser.add_argument("--task-adapter-path", type=Path)
     return parser.parse_args()
 
 
@@ -943,4 +985,5 @@ def main() -> None:
         settings=settings,
         adapter_path=args.adapter_path,
         tracking=tracking,
+        task_adapter_path=args.task_adapter_path,
     )

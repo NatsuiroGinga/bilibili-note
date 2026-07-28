@@ -1,0 +1,47 @@
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: canonical_core_v1
+  seed: 44
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+evaluation:
+  sample_dir: runs/data-sampled/genis-hierarchical-v2-seed42
+  samples_per_label: 300
+  generation_batch_size: 16
+  scoring_batch_size: 24
+  progress_every_batches: 25
+  max_known_rejection_rate: 0.05
+  seed: 42
+
+bounded_evaluation:
+  detection_adapter_path: runs/physics-sparse/qwen3-1.7b-seed42-s3-anchor0-plus-one-fullphys202-v1/final_adapter
+  s3_evaluation_dir: runs/physics-detection-evaluation/qwen3-1.7b-seed42-s3-anchor0-plus-one-eval300-v1
+  physics_test_file: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/test.jsonl
+  physics_test_samples: 807
+  physics_test_batch_size: 8
+  state_supervision_mode: anchor0_plus_one
+  candidate_condition_tolerance: 0.000001
+  variants:
+    e2:
+      training_variant: combined
+      training_dir: runs/bounded-physics-conditioning/qwen3-1.7b-seed44-e2-pinn-combined-full202-v1
+      output_dir: runs/bounded-physics-conditioning-evaluation/qwen3-1.7b-seed44-e2-pinn-combined-eval300-v1
+      run_name: qwen3-1.7b-seed44-e2-pinn-combined-eval300-v1
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: bounded-physics-evaluation-seed44
+  description: 有界物理条件交叉注意力 E2 种子 44 固定六分区评估
+  mode: online
+  tags:
+    - llm-probe
+    - pinn
+    - bounded-physics
+    - seed44
+    - open-set
+    - eval300

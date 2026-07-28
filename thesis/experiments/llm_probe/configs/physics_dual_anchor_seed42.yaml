@@ -1,0 +1,39 @@
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: canonical_core_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+training:
+  generation_train_file: runs/data-bundled/genis-hierarchical-v2-multitask-seed42/train.jsonl
+  generation_validation_file: runs/data-bundled/genis-hierarchical-v2-multitask-seed42/validation.jsonl
+  physics_train_file: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/train.jsonl
+  physics_validation_file: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/validation.jsonl
+  physics_test_file: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/test.jsonl
+  learning_rate: 0.0002
+  generation_batch_size: 4
+  gradient_accumulation_steps: 4
+  physics_batch_size: 4
+  validation_batch_size: 8
+  state_supervision_mode: anchor0_plus_one
+  lambda_state: 1.0
+  lambda_physics: 0.01
+  max_grad_norm: 1.0
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: qwen3-1.7b-seed42-physics-dual-anchor
+  description: Qwen3-1.7B 双锚点稀疏状态监督物理一致性训练
+  mode: online
+  tags:
+    - llm-probe
+    - pinn
+    - physics-sparse
+    - qwen3-1.7b
+    - seed42
+    - dual-anchor

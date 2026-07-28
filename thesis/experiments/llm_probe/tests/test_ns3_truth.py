@@ -132,7 +132,7 @@ def _rows(scenario: str = "benign-low") -> list[dict[str, object]]:
                 "qdisc_dropped_after_dequeue_l3_bytes": 0,
                 "device_tx_drop_ppp_frame_bytes": 0,
                 "downstream_error_loss_ppp_frame_bytes": 100 if random_loss else 0,
-                "sink_received_app_payload_bytes": enqueued_bytes - (100 if random_loss else 0),
+                "sink_received_app_payload_bytes": 777 if random_loss else 800,
                 "queue_start_packets": 0,
                 "queue_end_packets": 0,
                 "qdisc_received_packets": received_packets,
@@ -150,9 +150,14 @@ def _rows(scenario: str = "benign-low") -> list[dict[str, object]]:
     return rows
 
 
-def _write_rows(path: Path, rows: list[dict[str, object]]) -> None:
+def _write_rows(
+    path: Path,
+    rows: list[dict[str, object]],
+    *,
+    fieldnames: tuple[str, ...] = FIELDS,
+) -> None:
     with path.open("w", encoding="utf-8", newline="") as output:
-        writer = csv.DictWriter(output, fieldnames=FIELDS)
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -269,6 +274,26 @@ def test_validate_ns3_truth_paths_rejects_full_attack_without_activity(tmp_path:
         validate_ns3_truth_paths([source])
 
 
+def test_validate_ns3_truth_paths_rejects_attack_tail_without_qdisc_ingress(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "no-qdisc-ingress-tail.csv"
+    rows = _rows("dos-udp-high")
+    for field in (
+        "qdisc_received_l3_bytes",
+        "qdisc_enqueued_l3_bytes",
+        "qdisc_dequeued_l3_bytes",
+        "qdisc_received_packets",
+        "qdisc_enqueued_packets",
+        "qdisc_dequeued_packets",
+    ):
+        rows[-1][field] = 0
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="no-qdisc-ingress-tail.csv.*攻击入口活动"):
+        validate_ns3_truth_paths([source])
+
+
 def test_validate_ns3_truth_paths_rejects_changed_jitter_config(tmp_path: Path) -> None:
     source = tmp_path / "bad-jitter.csv"
     rows = _rows()
@@ -326,6 +351,304 @@ def test_validate_ns3_truth_paths_rejects_hidden_device_drop(tmp_path: Path) -> 
     _write_rows(source, rows)
 
     with pytest.raises(NS3TruthValidationError, match="hidden-drop.csv.*隐藏设备丢弃"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_required_drop_without_packet_count(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "drop-bytes-without-packets.csv"
+    rows = _rows("dos-udp-high")
+    rows[50]["qdisc_dropped_before_enqueue_packets"] = 0
+    rows[50]["qdisc_received_packets"] = 1
+    _write_rows(source, rows)
+
+    with pytest.raises(
+        NS3TruthValidationError, match="drop-bytes-without-packets.csv.*队列丢弃计量"
+    ):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_random_loss_without_packet_count(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "loss-bytes-without-packets.csv"
+    rows = _rows("benign-random-loss")
+    rows[10]["downstream_error_loss_packets"] = 0
+    _write_rows(source, rows)
+
+    with pytest.raises(
+        NS3TruthValidationError, match="loss-bytes-without-packets.csv.*误码丢弃计量"
+    ):
+        validate_ns3_truth_paths([source])
+
+
+@pytest.mark.parametrize(
+    ("scenario", "byte_field", "packet_field", "first_index", "expected_rule"),
+    (
+        (
+            "dos-udp-high",
+            "qdisc_dropped_before_enqueue_l3_bytes",
+            "qdisc_dropped_before_enqueue_packets",
+            50,
+            "队列丢弃计量",
+        ),
+        (
+            "benign-random-loss",
+            "downstream_error_loss_ppp_frame_bytes",
+            "downstream_error_loss_packets",
+            10,
+            "误码丢弃计量",
+        ),
+    ),
+)
+def test_validate_ns3_truth_paths_rejects_cross_window_loss_measurement_splice(
+    tmp_path: Path,
+    scenario: str,
+    byte_field: str,
+    packet_field: str,
+    first_index: int,
+    expected_rule: str,
+) -> None:
+    source = tmp_path / f"cross-window-{scenario}.csv"
+    rows = _rows(scenario)
+    rows[first_index][packet_field] = 0
+    rows[first_index + 1][packet_field] = 1
+    if scenario == "dos-udp-high":
+        rows[first_index]["qdisc_received_packets"] = 1
+        rows[first_index + 1]["qdisc_received_packets"] = 2
+    assert rows[first_index][byte_field] != 0
+    assert rows[first_index + 1][byte_field] == 0
+    _write_rows(source, rows)
+
+    with pytest.raises(
+        NS3TruthValidationError,
+        match=f"cross-window-{scenario}.csv.*{expected_rule}",
+    ):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_wrong_topology(tmp_path: Path) -> None:
+    source = tmp_path / "wrong-topology.csv"
+    rows = _rows()
+    for row in rows:
+        row["topology_id"] = "line-v1"
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="wrong-topology.csv.*拓扑配置"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_wrong_queue_model(tmp_path: Path) -> None:
+    source = tmp_path / "wrong-queue-model.csv"
+    rows = _rows()
+    for row in rows:
+        row["queue_model"] = "codel-queue-disc"
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="wrong-queue-model.csv.*队列模型"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_forged_group_id(tmp_path: Path) -> None:
+    source = tmp_path / "forged-group-id.csv"
+    rows = _rows()
+    for row in rows:
+        row["group_id"] = "star-bottleneck-v1|benign-high|seed7|run9"
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="forged-group-id.csv.*组标识组成"):
+        validate_ns3_truth_paths([source])
+
+
+@pytest.mark.parametrize("drift_index", [None, 80])
+def test_validate_ns3_truth_paths_rejects_wrong_queue_limit(
+    tmp_path: Path,
+    drift_index: int | None,
+) -> None:
+    source = tmp_path / f"wrong-queue-limit-{drift_index}.csv"
+    rows = _rows()
+    targets = rows if drift_index is None else [rows[drift_index]]
+    for row in targets:
+        row["queue_limit_packets"] = 49
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="wrong-queue-limit.*队列上限"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_shifted_absolute_timeline(tmp_path: Path) -> None:
+    source = tmp_path / "shifted-timeline.csv"
+    rows = _rows()
+    for index, row in enumerate(rows):
+        row["window_start_s"] = f"{(index + 1) / 10:.1f}"
+        row["window_end_s"] = f"{(index + 2) / 10:.1f}"
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="shifted-timeline.csv.*绝对时间"):
+        validate_ns3_truth_paths([source])
+
+
+@pytest.mark.parametrize(
+    ("start_field", "end_field", "value"),
+    (
+        ("queue_start_l3_bytes", "queue_end_l3_bytes", 100),
+        ("queue_start_packets", "queue_end_packets", 1),
+    ),
+)
+def test_validate_ns3_truth_paths_rejects_discontinuous_queue_state(
+    tmp_path: Path,
+    start_field: str,
+    end_field: str,
+    value: int,
+) -> None:
+    source = tmp_path / f"discontinuous-{start_field}.csv"
+    rows = _rows()
+    rows[5][start_field] = value
+    rows[5][end_field] = value
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="discontinuous.*队列连续"):
+        validate_ns3_truth_paths([source])
+
+
+@pytest.mark.parametrize(
+    ("start_field", "end_field", "value"),
+    (
+        ("queue_start_l3_bytes", "queue_end_l3_bytes", 100),
+        ("queue_start_packets", "queue_end_packets", 1),
+    ),
+)
+def test_validate_ns3_truth_paths_rejects_nonzero_initial_queue_state(
+    tmp_path: Path,
+    start_field: str,
+    end_field: str,
+    value: int,
+) -> None:
+    source = tmp_path / f"nonzero-initial-{start_field}.csv"
+    rows = _rows()
+    for row in rows:
+        row[start_field] = value
+        row[end_field] = value
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="nonzero-initial.*初始队列"):
+        validate_ns3_truth_paths([source])
+
+
+@pytest.mark.parametrize("boundary", ("start", "end"))
+def test_validate_ns3_truth_paths_rejects_queue_packet_state_above_limit(
+    tmp_path: Path,
+    boundary: str,
+) -> None:
+    source = tmp_path / f"queue-{boundary}-packets-above-limit.csv"
+    rows = _rows()
+    grow_index = 118 if boundary == "start" else 119
+    rows[grow_index].update(
+        {
+            "queue_end_packets": 51,
+            "qdisc_received_packets": 52,
+            "qdisc_enqueued_packets": 52,
+        }
+    )
+    if boundary == "start":
+        rows[119].update(
+            {
+                "queue_start_packets": 51,
+                "qdisc_dequeued_packets": 52,
+            }
+        )
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="above-limit.csv.*队列包状态上限"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_missing_field(tmp_path: Path) -> None:
+    source = tmp_path / "missing-field.csv"
+    _write_rows(source, _rows(), fieldnames=FIELDS[:-1])
+
+    with pytest.raises(NS3TruthValidationError, match="missing-field.csv.*字段契约"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_reordered_fields(tmp_path: Path) -> None:
+    source = tmp_path / "reordered-fields.csv"
+    reordered = list(FIELDS)
+    reordered[0], reordered[1] = reordered[1], reordered[0]
+    _write_rows(source, _rows(), fieldnames=tuple(reordered))
+
+    with pytest.raises(NS3TruthValidationError, match="reordered-fields.csv.*字段顺序"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_fewer_than_120_windows(tmp_path: Path) -> None:
+    source = tmp_path / "short-group.csv"
+    _write_rows(source, _rows()[:-1])
+
+    with pytest.raises(NS3TruthValidationError, match="short-group.csv.*完整窗口"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_scrambled_window_indices(tmp_path: Path) -> None:
+    source = tmp_path / "scrambled-indices.csv"
+    rows = _rows()
+    rows[10], rows[11] = rows[11], rows[10]
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="scrambled-indices.csv.*窗口索引"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_discontinuous_time(tmp_path: Path) -> None:
+    source = tmp_path / "discontinuous-time.csv"
+    rows = _rows()
+    rows[5]["window_start_s"] = "0.6"
+    rows[5]["window_end_s"] = "0.7"
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="discontinuous-time.csv.*绝对时间"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_missing_required_queue_drop(tmp_path: Path) -> None:
+    source = tmp_path / "missing-required-drop.csv"
+    rows = _rows("dos-udp-high")
+    rows[50].update(
+        {
+            "qdisc_enqueued_l3_bytes": 1000,
+            "qdisc_dequeued_l3_bytes": 1000,
+            "qdisc_dropped_before_enqueue_l3_bytes": 0,
+            "qdisc_received_packets": 1,
+            "qdisc_dropped_before_enqueue_packets": 0,
+        }
+    )
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="missing-required-drop.csv.*队列规则丢弃"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_error_loss_in_nonrandom_scenario(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "unexpected-error-loss.csv"
+    rows = _rows()
+    rows[10]["downstream_error_loss_ppp_frame_bytes"] = 100
+    rows[10]["downstream_error_loss_packets"] = 1
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="unexpected-error-loss.csv.*下游误码丢弃"):
+        validate_ns3_truth_paths([source])
+
+
+def test_validate_ns3_truth_paths_rejects_saved_packet_residual(tmp_path: Path) -> None:
+    source = tmp_path / "saved-packet-residual.csv"
+    rows = _rows()
+    rows[5]["queue_balance_residual_packets"] = 1
+    _write_rows(source, rows)
+
+    with pytest.raises(NS3TruthValidationError, match="saved-packet-residual.csv.*保存残差"):
         validate_ns3_truth_paths([source])
 
 

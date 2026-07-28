@@ -24,6 +24,9 @@ ERROR_STREAM = Decimal("500")
 RANDOM_LOSS_ERROR_RATE = Decimal("0.01")
 JITTER_STREAM_BASE = Decimal("100")
 JITTER_MAX_MS = Decimal("40")
+TOPOLOGY_ID = "star-bottleneck-v1"
+QUEUE_MODEL = "fifo-queue-disc"
+QUEUE_LIMIT_PACKETS = Decimal("50")
 
 CSV_FIELDS = (
     "schema_version",
@@ -190,6 +193,8 @@ def _validate_header(path: Path, fieldnames: list[str] | None) -> None:
         if duplicates:
             details.append(f"重复：{', '.join(duplicates)}")
         raise _error(path, "<未读取>", "字段契约", "；".join(details))
+    if tuple(fieldnames) != CSV_FIELDS:
+        raise _error(path, "<未读取>", "字段顺序", "CSV 表头未按固定 46 字段顺序排列")
 
 
 def _parse_number(path: Path, row_number: int, group_id: str, field: str, raw: str) -> Decimal:
@@ -349,6 +354,40 @@ def _validate_row(window: _Window) -> None:
 
 def _validate_group_constants(windows: list[_Window]) -> None:
     first = windows[0]
+    expected_group_id = (
+        f"{TOPOLOGY_ID}|{first.scenario}|seed{int(first.numbers['seed'])}|"
+        f"run{int(first.numbers['run'])}"
+    )
+    if first.group_id != expected_group_id:
+        raise _error(
+            first.path,
+            first.group_id,
+            "组标识组成",
+            f"group_id 应为 {expected_group_id}，实际为 {first.group_id}",
+        )
+    if first.text["topology_id"] != TOPOLOGY_ID:
+        raise _error(
+            first.path,
+            first.group_id,
+            "拓扑配置",
+            f"topology_id 应为 {TOPOLOGY_ID}，实际为 {first.text['topology_id']}",
+        )
+    if first.text["queue_model"] != QUEUE_MODEL:
+        raise _error(
+            first.path,
+            first.group_id,
+            "队列模型",
+            f"queue_model 应为 {QUEUE_MODEL}，实际为 {first.text['queue_model']}",
+        )
+    for window in windows:
+        actual_queue_limit = window.numbers["queue_limit_packets"]
+        if actual_queue_limit != QUEUE_LIMIT_PACKETS:
+            raise _error(
+                window.path,
+                window.group_id,
+                "队列上限",
+                f"第 {window.row_number} 行应为 50p，实际为 {actual_queue_limit}p",
+            )
     for field in ("scenario_id", "topology_id", "queue_model"):
         expected = first.text[field]
         for window in windows[1:]:
@@ -407,7 +446,43 @@ def _complete_windows(windows: list[_Window], expected_windows: int) -> list[_Wi
 
 
 def _validate_timeline(windows: list[_Window]) -> None:
+    first = windows[0]
+    if first.numbers["queue_start_l3_bytes"] != 0 or first.numbers["queue_start_packets"] != 0:
+        raise _error(
+            first.path,
+            first.group_id,
+            "初始队列",
+            "首窗 queue_start_l3_bytes 与 queue_start_packets 必须均为零",
+        )
     for window in windows:
+        queue_start_packets = window.numbers["queue_start_packets"]
+        queue_end_packets = window.numbers["queue_end_packets"]
+        queue_limit_packets = window.numbers["queue_limit_packets"]
+        if queue_start_packets > queue_limit_packets or queue_end_packets > queue_limit_packets:
+            raise _error(
+                window.path,
+                window.group_id,
+                "队列包状态上限",
+                (
+                    f"窗口 {window.window_index} 的起止包数为 "
+                    f"{queue_start_packets}/{queue_end_packets}，"
+                    f"不得超过 {queue_limit_packets}p"
+                ),
+            )
+        expected_start = WINDOW_SECONDS * window.window_index
+        expected_end = expected_start + WINDOW_SECONDS
+        actual_boundary = (
+            window.numbers["window_start_s"],
+            window.numbers["window_end_s"],
+        )
+        if actual_boundary != (expected_start, expected_end):
+            raise _error(
+                window.path,
+                window.group_id,
+                "绝对时间",
+                f"窗口 {window.window_index} 应为 [{expected_start}, {expected_end}]，"
+                f"实际为 {actual_boundary}",
+            )
         duration = window.numbers["window_end_s"] - window.numbers["window_start_s"]
         if duration != WINDOW_SECONDS:
             raise _error(
@@ -424,12 +499,21 @@ def _validate_timeline(windows: list[_Window]) -> None:
                 "窗口连续",
                 f"窗口 {previous.window_index} 与 {current.window_index} 的时间边界不连续",
             )
-        if previous.numbers["queue_end_bytes"] != current.numbers["queue_start_bytes"]:
+        if previous.numbers["queue_end_l3_bytes"] != current.numbers["queue_start_l3_bytes"]:
             raise _error(
                 current.path,
                 current.group_id,
                 "队列连续",
-                f"窗口 {previous.window_index} 末队列与窗口 {current.window_index} 初队列不一致",
+                f"窗口 {previous.window_index} 末 L3 字节队列与窗口 "
+                f"{current.window_index} 初队列不一致",
+            )
+        if previous.numbers["queue_end_packets"] != current.numbers["queue_start_packets"]:
+            raise _error(
+                current.path,
+                current.group_id,
+                "队列连续",
+                f"窗口 {previous.window_index} 末包队列与窗口 "
+                f"{current.window_index} 初队列不一致",
             )
 
 
@@ -478,27 +562,14 @@ def _validate_labels(windows: list[_Window]) -> None:
                 ),
             )
 
-        attack_activity = sum(
-            (
-                window.numbers[field]
-                for field in (
-                    "offered_bytes",
-                    "queue_start_bytes",
-                    "queue_end_bytes",
-                    "departed_bytes",
-                    "dropped_before_enqueue_bytes",
-                    "dropped_after_dequeue_bytes",
-                    "sink_received_bytes",
-                )
-            ),
-            start=Decimal(0),
-        )
-        if exposure > 0 and attack_activity == 0:
+        received_l3_bytes = window.numbers["qdisc_received_l3_bytes"]
+        received_packets = window.numbers["qdisc_received_packets"]
+        if exposure > 0 and (received_l3_bytes == 0 or received_packets == 0):
             raise _error(
                 window.path,
                 window.group_id,
                 "攻击活动",
-                f"窗口 {window.window_index} 有攻击暴露标签，但所有流量与队列活动均为零",
+                f"窗口 {window.window_index} 的攻击入口活动要求 qdisc 接收 L3 字节" "和包数均非零",
             )
 
 
@@ -529,7 +600,7 @@ def _validate_capacity(windows: list[_Window]) -> None:
         actual = (
             window.numbers["capacity_start_bps"],
             window.numbers["capacity_end_bps"],
-            window.numbers["service_budget_bytes"],
+            window.numbers["configured_capacity_integral_link_bytes"],
         )
         if actual != expected:
             raise _error(
@@ -560,27 +631,47 @@ def _validate_error_model(windows: list[_Window]) -> None:
 
 def _queue_drop_bytes(window: _Window) -> Decimal:
     return (
-        window.numbers["dropped_before_enqueue_bytes"]
-        + window.numbers["dropped_after_dequeue_bytes"]
+        window.numbers["qdisc_dropped_before_enqueue_l3_bytes"]
+        + window.numbers["qdisc_dropped_after_dequeue_l3_bytes"]
     )
 
 
 def _queue_drop_packets(window: _Window) -> Decimal:
     return (
-        window.numbers["dropped_before_enqueue_packets"]
-        + window.numbers["dropped_after_dequeue_packets"]
+        window.numbers["qdisc_dropped_before_enqueue_packets"]
+        + window.numbers["qdisc_dropped_after_dequeue_packets"]
     )
 
 
 def _validate_drop_rules(windows: list[_Window]) -> None:
     first = windows[0]
     scenario = first.scenario
+    for window in windows:
+        window_queue_drop_bytes = _queue_drop_bytes(window)
+        window_queue_drop_packets = _queue_drop_packets(window)
+        if (window_queue_drop_bytes == 0) != (window_queue_drop_packets == 0):
+            raise _error(
+                window.path,
+                window.group_id,
+                "队列丢弃计量",
+                f"窗口 {window.window_index} 的队列规则丢弃 L3 字节与包数必须同时为零或同时非零",
+            )
+
+        window_downstream_bytes = window.numbers["downstream_error_loss_ppp_frame_bytes"]
+        window_downstream_packets = window.numbers["downstream_error_loss_packets"]
+        if (window_downstream_bytes == 0) != (window_downstream_packets == 0):
+            raise _error(
+                window.path,
+                window.group_id,
+                "误码丢弃计量",
+                f"窗口 {window.window_index} 的下游误码丢失 PPP 帧字节与包数必须同时为零或同时非零",
+            )
+
     queue_drop_bytes = sum((_queue_drop_bytes(window) for window in windows), start=Decimal(0))
     queue_drop_packets = sum(
         (_queue_drop_packets(window) for window in windows),
         start=Decimal(0),
     )
-
     if scenario in NO_QUEUE_DROP_SCENARIOS and (queue_drop_bytes != 0 or queue_drop_packets != 0):
         raise _error(
             first.path,
@@ -614,7 +705,7 @@ def _validate_drop_rules(windows: list[_Window]) -> None:
             )
 
     downstream_bytes = sum(
-        (window.numbers["downstream_error_loss_bytes"] for window in windows),
+        (window.numbers["downstream_error_loss_ppp_frame_bytes"] for window in windows),
         start=Decimal(0),
     )
     downstream_packets = sum(
@@ -697,14 +788,19 @@ def validate_ns3_truth_paths(
     )
     downstream_error_loss_bytes = sum(
         (
-            window.numbers["downstream_error_loss_bytes"]
+            window.numbers["downstream_error_loss_ppp_frame_bytes"]
             for windows in ordered_groups.values()
             for window in windows
         ),
         start=Decimal(0),
     )
-    nonzero_residual_count = sum(
-        window.numbers["queue_balance_residual_bytes"] != 0
+    nonzero_l3_residual_count = sum(
+        window.numbers["queue_balance_residual_l3_bytes"] != 0
+        for windows in ordered_groups.values()
+        for window in windows
+    )
+    nonzero_packet_residual_count = sum(
+        window.numbers["queue_balance_residual_packets"] != 0
         for windows in ordered_groups.values()
         for window in windows
     )
@@ -723,9 +819,10 @@ def validate_ns3_truth_paths(
         "scenario_window_counts": {
             scenario: scenario_window_counts.get(scenario, 0) for scenario in sorted(SCENARIOS)
         },
-        "queue_drop_bytes": int(queue_drop_bytes),
-        "downstream_error_loss_bytes": int(downstream_error_loss_bytes),
-        "nonzero_residual_count": nonzero_residual_count,
+        "qdisc_drop_l3_bytes": int(queue_drop_bytes),
+        "downstream_error_loss_ppp_frame_bytes": int(downstream_error_loss_bytes),
+        "nonzero_l3_residual_count": nonzero_l3_residual_count,
+        "nonzero_packet_residual_count": nonzero_packet_residual_count,
         "transition_window_count": transition_window_count,
     }
 
