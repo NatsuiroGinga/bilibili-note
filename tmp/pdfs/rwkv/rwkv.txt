@@ -1,0 +1,1786 @@
+                             RWKV: Reinventing RNNs for the Transformer Era
+                           Bo Peng1,2∗ Eric Alcaide2,3,4∗ Quentin Anthony2,5∗
+          Alon Albalak Samuel Arcadinho2,7 Stella Biderman2,8 Huanqi Cao9 Xin Cheng10
+                                   2,6
+
+          Michael Chung11 Xingjian Du1 Matteo Grella12 Kranthi Kiran GV2,13 Xuzheng He2
+            Haowen Hou14 Jiaju Lin1 Przemysław Kazienko15 Jan Kocoń15 Jiaming Kong16
+          Bartłomiej Koptyra15 Hayden Lau2 Krishna Sri Ipsit Mantri17 Ferdinand Mom18,19
+           Atsushi Saito2,20 Guangyu Song21 Xiangru Tang22 Bolun Wang23 Johan S. Wind24
+             Stanisław Woźniak15 Ruichong Zhang9 Zhenyuan Zhang2 Qihang Zhao25,26
+                       Peng Zhou23 Qinghua Zhou5 Jian Zhu27 Rui-Jie Zhu28,29
+          1
+              Generative AI Commons 2 EleutherAI 3 U. of Barcelona 4 Charm Therapeutics 5 Ohio State U. 6 U. of C., Santa Barbara
+          7
+              Zendesk 8 Booz Allen Hamilton 9 Tsinghua University 10 Peking University 11 Storyteller.io 12 Crisis24 13 New York U.
+    14
+         National U. of Singapore 15 Wroclaw U. of Science and Technology 16 Databaker Technology 17 Purdue U. 18 Criteo AI Lab
+                 19
+                      Epita 20 Nextremer 21 Moves 22 Yale U. 23 RuoxinTech 24 U. of Oslo 25 U. of Science and Technology of China
+ 26
+      Kuaishou Technology 27 U. of British Columbia 28 U. of C., Santa Cruz 29 U. of Electronic Science and Technology of China
+
+                                   Abstract                                 processing tasks such as natural language under-
+                                                                            standing, conversational AI, time-series analysis,
+          Transformers have revolutionized almost all                       and indirectly sequential formats like images and
+          natural language processing (NLP) tasks but                       graphs (Brown et al., 2020; Ismail Fawaz et al.,
+          suffer from memory and computational com-                         2019; Wu et al., 2020; Albalak et al., 2022). Pre-
+          plexity that scales quadratically with sequence
+                                                                            dominant among these techniques include RNNs
+          length. In contrast, recurrent neural networks
+          (RNNs) exhibit linear scaling in memory and                       and Transformers (Vaswani et al., 2017), each with
+          computational requirements but struggle to                        specific benefits and drawbacks. RNNs require less
+          match the same performance as Transformers                        memory, particularly for handling long sequences.
+          due to limitations in parallelization and scala-                  However, they suffer from the vanishing gradient
+          bility. We propose a novel model architecture,                    problem and non-parallelizability in the time di-
+          Receptance Weighted Key Value (RWKV), that                        mension during training, limiting their scalability
+          combines the efficient parallelizable training
+                                                                            (Hochreiter, 1998; Le and Zuidema, 2016).
+          of transformers with the efficient inference of
+          RNNs.
+          Our approach leverages a linear attention mech-
+          anism and allows us to formulate the model as                                55
+          either a Transformer or an RNN, thus paralleliz-
+          ing computations during training and maintains
+                                                                                       50
+          constant computational and memory complex-
+                                                                            Accuracy
+          ity during inference. We scale our models as
+          large as 14 billion parameters, by far the largest                           45
+          dense RNN ever trained, and find RWKV per-
+          forms on par with similarly sized Transformers,                                                                           BLOOM
+                                                                                       40
+          suggesting future work can leverage this archi-                                                                           Pythia
+                                                                                                                                    OPT
+          tecture to create more efficient models. This                                                                             RWKV
+          work presents a significant step towards rec-
+                                                                                                 102                       103
+          onciling trade-offs between computational ef-                                                Compute (exaFLOP)
+          ficiency and model performance in sequence
+          processing tasks. 1                                               Figure 1: Average performance of RWKV models com-
+                                                                            pared to transformers across twelve NLP tasks. For
+1         Introduction                                                      further details, see section 5.
+
+Deep learning has greatly advanced artificial intelli-                         Transformers emerged as a powerful alternative,
+gence, impacting a range of scientific and industrial                       adept at managing local and long-range dependen-
+uses. These often involve complex sequential data                           cies and supporting parallelized training (Tay et al.,
+          ∗
+            Equal first authorship. Others listed alphabetically.           2022). Models such as GPT-3 (Brown et al., 2020),
+      1
+          Code at: https://github.com/BlinkDL/RWKV-LM                       ChatGPT (OpenAI, 2022; Kocoń et al., 2023),
+                                                                      14048
+                          Findings of the Association for Computational Linguistics: EMNLP 2023, pages 14048–14077
+                                     December 6-10, 2023 ©2023 Association for Computational Linguistics
+Model                   Time              Space                   ture combining RNNs and Transformer advan-
+Transformer                2
+                      O(T d)                2
+                                      O(T + T d)                  tages while mitigating their limitations.
+Reformer            O(T log T d)    O(T log T + T d)            • Detailed experiments demonstrating RWKV’s
+Performer           O(T d2 log d) O(T d log d + d2 log d)         performance and efficiency on benchmark
+Linear Transformers   O(T d2 )        O(T d + d2 )
+AFT-full                   2
+                      O(T d)              O(T d)                  datasets for large-scale models.
+AFT-local             O(T sd)             O(T d)                • The release of pretrained models, from 169
+MEGA                  O(cT d)             O(cd)                   million to 14 billion parameters, trained on
+RWKV (ours)            O(Td)               O(d)                   the Pile (Gao et al., 2020; Biderman et al.,
+                                                                  2022).2
+Table 1: Inference complexity comparison with different
+Transformers. Here T denotes the sequence length,           2       Background
+d the feature dimension, c is MEGA’s chunk size of
+quadratic attention, and s is the size of a local window    Here we briefly review the fundamentals of RNNs
+for AFT.                                                    and Transformers.
+
+                                                            2.1       Recurrent Neural Networks (RNNs)
+LLaMA (Touvron et al., 2023), and Chinchilla
+(Hoffmann et al., 2022) showcase the potential of           Popular RNN architectures such as LSTM (Hochre-
+Transformers in NLP. However, the self-attention            iter and Schmidhuber, 1997) and GRU (Chung
+mechanism’s quadratic complexity makes it compu-            et al., 2014) are characterized by the following for-
+tationally and memory intensive for tasks involving         mulation (shown for LSTM, others can be reasoned
+long sequences and constrained resources. This              similarly):
+has stimulated research to enhance Transformers’
+scalability, sometimes sacrificing some of their ef-                     ft = σg (Wf xt + Uf ht−1 + bf ),    (1)
+fectiveness (Wang et al., 2020; Zaheer et al., 2020;                     it = σg (Wi xt + Ui ht−1 + bi ),    (2)
+Dao et al., 2022a).                                                      ot = σg (Wo xt + Uo ht−1 + bo ),    (3)
+   To tackle these challenges, we introduce the Re-
+                                                                         c̃t = σc (Wc xt + Uc ht−1 + bc ),   (4)
+ceptance Weighted Key Value (RWKV) model,
+combining the strengths of RNNs and Transform-                           ct = ft ⊙ ct−1 + it ⊙ c̃t ,         (5)
+ers while circumventing key drawbacks. RWKV                              ht = ot ⊙ σh (ct ).                 (6)
+alleviates memory bottleneck and quadratic scaling
+associated with Transformers (Katharopoulos et al.,         Although RNNs can be factored into two linear
+2020) with efficient linear scaling, while maintain-        blocks (W and U ) and an RNN-specific block (1)–
+ing the expressive properties of the Transformer,           (6), as noted by Bradbury et al. (2017), the data de-
+such as parallelized training and robust scalability.       pendency relying on previous time steps prohibits
+RWKV reformulates the attention mechanism with              parallelizing these typical RNNs.
+a variant of linear attention, replacing traditional
+dot-product token interaction with more effective           2.2       Transformers and AFT
+channel-directed attention. This implementation,            Introduced by Vaswani et al. (2017), Transformers
+without approximation, offers the lowest computa-           are a class of neural networks that have become
+tional and memory complexity; see Table 1.                  the dominant architecture for several NLP tasks.
+   The motivation behind RWKV is to balance com-            Instead of operating on sequences step-by-step like
+putational efficiency with expressive capacity in           RNNs, Transformers rely on attention mechanisms
+neural networks. It offers a solution for handling          to capture relationships between all input and all
+large-scale models with billions of parameters, ex-         output tokens:
+hibiting competitive performance at a reduced com-
+putational cost. Experiments suggest RWKV ad-                         Attn(Q, K, V ) = softmax(QK ⊤ )V,      (7)
+dresses scaling and deployment challenges in AI,
+especially for sequential data processing, pointing         where the multi-headness and scaling factor √1d is
+                                                                                                             k
+towards more sustainable and efficient AI models.           omitted for convenience. The core QK ⊤ multipli-
+   Our contributions in this paper are as follows:          cation is an ensemble of pairwise attention scores
+
+   • The introduction of RWKV, a novel architec-                2
+                                                                    https://huggingface.co/RWKV
+
+                                                       14049
+between each token in a sequence, which can be
+decomposed as vector operations:
+                                                                                                      Output Probabilities
+
+                                                                  Channel                                 Softmax
+                                                                   Mixing
+                             PT     qt⊤ ki ⊙ v
+                               i=1 e
+                                                                            ?                V'              Out
+                                               i
+       Attn(Q, K, V )t =       PT q⊤ k .            (8)                     R'               K'          LayerNorm
+                                 i=1 e
+                                         t  i
+                                                                                    ?'
+
+    AFT (Zhai et al., 2021), alternately formulates                              LayerNorm
+
+
+
+                          Pt      wt,i +ki ⊙ v
+                                                                                                      Channel Mixing
+
+                             i=1 e
+                                                                   Time
+                                                i                                  Out
+    Attn+ (W, K, V )t = P       t    w     +k
+                                                  , (9)           Mixing
+
+
+                                i=1 e
+                                       t,i    i                                                          LayerNorm
+
+
+                                                                     ?                   WKV
+
+where {wt,i } ∈ RT ×T is the learned pair-wise po-
+                                                                     R              K             V
+sition biases, and each wt,i is a scalar.                                                              Time Mixing
+
+   Inspired by AFT, RWKV takes a similar ap-                                        ?
+
+
+proach. However, for simplicity, it modifies the                                 LayerNorm               LayerNorm
+
+
+
+
+                                                                                                                                    RWKV-LM Head
+interaction weights so that it can be transformed                                                        LayerNorm
+
+into an RNN. Each wt,i in RWKV is a channel-                                                              Input
+wise time decay vector multiplied by the relative                                                       Embedding
+
+position and traced backward from current time as
+                                                          Figure 2: Elements within an RWKV block (left) and
+it decays:
+                                                          the complete RWKV residual block, equipped with a
+                                                          final head for language modeling (right).
+                  wt,i = −(t − i)w,                (10)
+
+where w ∈ (R≥0 )d , with d the number of chan-            softmax operation improving numerical stability
+nels. We require w to be non-negative to ensure           and mitigating vanishing gradients (for rigorous
+that ewt,i ≤ 1 and the per-channel weights decay          proof, see Appendix H). It ensures that the gra-
+backwards in time.                                        dient is propagated along the most relevant path.
+3    RWKV                                                 Additionally, layer normalization (Ba et al., 2016)
+                                                          incorporated within the architecture aids in stabi-
+The RWKV model architecture is defined by four            lizing the gradients, effectively addressing both
+fundamental elements that are intrinsic to the time-      vanishing and exploding gradient issues. These
+mixing and channel-mixing blocks:                         design elements not only enhance the training dy-
+                                                          namics of deep neural networks but also facilitate
+    • R: The Receptance vector acts as the receiver
+                                                          the stacking of multiple layers, leading to superior
+      of past information.
+                                                          performance over conventional RNN models by
+    • W : The Weight signifies the positional
+                                                          capturing complex patterns across different levels
+      weight decay vector, a trainable parameter
+                                                          of abstraction (see also Appendix I).
+      within the model.
+    • K: The Key vector performs a role analogous         3.1.1   Token Shift
+      to K in traditional attention mechanisms.
+    • V : The Value vector functions similarly to V       In this architecture, all linear projection vectors
+      in conventional attention processes.                (R, K, V in time-mixing, and R′ , K ′ in channel-
+                                                          mixing) involved in computations are produced by
+These core elements interact multiplicatively at          linear interpolation between current and previous
+each timestep, as depicted in Figure 2.                   timestep inputs, facilitating a token shift.
+                                                             The vectors for time-mixing computation are
+3.1 Architecture
+                                                          linear projections of linear combinations of the
+The RWKV model is composed of stacked residual            current and previous inputs of the block:
+blocks. Each block consists of a time-mixing and
+a channel-mixing sub-block, embodying recurrent              rt = Wr · (µr ⊙ xt + (1 − µr ) ⊙ xt−1 ),                        (11)
+structures to leverage past information.
+                                                             kt = Wk · (µk ⊙ xt + (1 − µk ) ⊙ xt−1 ), (12)
+   This model uses a unique attention-like score
+update process, which includes a time-dependent              vt = Wv · (µv ⊙ xt + (1 − µv ) ⊙ xt−1 ),                        (13)
+
+                                                     14050
+       name                     is                     Bob           the receptance, σ(r). The output vector ot post the
+     LM Head                 LM Head                 LM Head
+                                                                     W KV operator is given by:
+
+
+                                                                                    ot = Wo · (σ(rt ) ⊙ wkvt ).           (17)
+
+    Channel Mix             Channel Mix             Channel Mix
+                                                                        In the channel-mixing block, a similar operation
+                       n                       n
+                  Toke                    Toke
+                    shift                   shift
+                                                                     is performed:
+    Layer Norm              Layer Norm              Layer Norm
+
+
+                                                                                o′t = σ(rt′ ) ⊙ (Wv′ · max(kt′ , 0)2 ),   (18)
+
+     Time Mix
+                  States
+                             Time Mix
+                                          States
+                                                     Time Mix        where we adopt the squared ReLU activation func-
+                  Toke
+                       n
+                                          Toke
+                                               n                     tion (So et al., 2021).
+    Layer Norm      shift   Layer Norm      shift   Layer Norm
+
+                                                                     3.2      Transformer-like Training
+    Layer Norm              Layer Norm              Layer Norm
+                                                                     RWKV can be efficiently parallelized using a tech-
+        My                     name                     is
+                                                                     nique called time-parallel mode, reminiscent of
+Figure 3: RWKV architecture for language modeling.                   Transformers. The time complexity of processing
+                                                                     a batch of sequences in a single layer is O(BT d2 ),
+                                                                     primarily consisting of matrix multiplications Wλ ,
+as are the channel-mixing inputs:                                    where λ ∈ {r, k, v, o} (assuming B sequences, T
+  rt′ = Wr′ · (µ′r ⊙ xt + (1 − µ′r ) ⊙ xt−1 ),               (14)    maximum tokens, and d channels). In contrast, up-
+                                                                     dating attention scores wkvt involves a serial scan
+  kt′ = Wk′ · (µ′k ⊙ xt + (1 − µ′k ) ⊙ xt−1 ).               (15)
+                                                                     (see Appendix D for more detail) and has complex-
+   The token shift is implemented as a simple off-                   ity O(BT d).
+set in the temporal dimension at each block us-                         The matrix multiplications can be parallelized
+ing the PyTorch (Paszke et al., 2019) library as                     similarly to Wλ , where λ ∈ {Q, K, V, O} in con-
+nn.ZeroPad2d((0,0,1,-1)).                                            ventional Transformers. The element-wise W KV
+                                                                     computation is time-dependent but can be readily
+3.1.2 WKV Operator                                                   parallelized along the other two dimensions (Lei
+The computation of the W KV operator in our                          et al., 2018)3 .
+model parallels the method used in Attention Free
+Transformer (AFT) (Zhai et al., 2021). However,                      3.3      RNN-like Inference
+unlike AFT where W is a pairwise matrix, our                         Recurrent networks commonly utilize the output
+model treats W as a channel-wise vector that is                      at state t as input at state t + 1. This usage is
+modified by relative position. In our model, this                    also observed in the autoregressive decoding infer-
+recurrent behavior is defined by the time-dependent                  ence of language models, where each token must
+update of the W KV vectors, formalized in the fol-                   be computed before being passed to the next step.
+lowing equation:                                                     RWKV takes advantage of this RNN-like structure,
+                                                                     known as time-sequential mode. In this context,
+      Pt−1 −(t−1−i)w+ki                                              RWKV can be conveniently formulated recursively
+          e              ⊙ vi + eu+kt ⊙ vt
+wkvt = i=1Pt−1                             .                         for decoding during inference, as demonstrated in
+                 −(t−1−i)w+ki + eu+kt
+            i=1 e                                                    Appendix D.
+                                       (16)
+                                                                     3.4      Additional Optimizations
+   To circumvent any potential degradation of W ,
+we introduce a vector U that separately attends to                   Custom Kernels To address inefficiencies in the
+the current token. More information about this can                   W KV computation arising from the sequential na-
+be found in Appendix I.                                              ture of the task when using standard deep learning
+                                                                     frameworks, we have developed a custom CUDA
+3.1.3 Output Gating
+                                                                          3
+                                                                         For extremely long sequences, more sophisticated meth-
+Output gating is implemented in both time-mixing                     ods such as Martin and Cundy (2017) that parallelize over
+and channel-mixing blocks using the sigmoid of                       sequence length could be used.
+
+                                                                  14051
+kernel. This kernel enables the execution of a sin-     for next-token prediction and computation of the
+gle compute kernel on training accelerators, while      cross-entropy loss during training.
+all other parts of the model, such as matrix multi-
+plications and point-wise operations, are already
+                                                        4     Trained Models and Computing Costs
+inherently parallelizable and efficient.
+
+Small Init Embedding During the initial stage           To demonstrate the scalability of RWKV, we train
+of training a transformer model (Vaswani et al.,        six models ranging from 169 million to 14 billion
+2017), we observe that the embedding matrix un-         parameters as shown in Table 2. All models are
+dergoes slow changes, presenting a challenge for        trained for one epoch (330 billion tokens) on the
+the model to move away from its initial noisy em-       Pile (Gao et al., 2020; Biderman et al., 2022).
+bedding state. To address this issue, we propose
+an approach that involves initializing the embed-        Name     Layers   Model Dimension    Parameters    FLOP per token
+
+ding matrix with small values and subsequently           169 M     12            768         1.693 × 108     2.613 × 108
+                                                         430 M     24           1024         4.304 × 108     7.573 × 108
+applying an additional LayerNorm operation. This         1.5 B     24           2048         1.515 × 109     2.823 × 109
+accelerates and stabilizes the training process, al-      3B       32           2560         2.985 × 109     5.710 × 109
+                                                          7B       32           4096         7.393 × 109     1.437 × 1010
+lowing for the training of deep architectures with        14 B     40           5120         1.415 × 1010    2.778 × 1010
+post-LN components. The effectiveness of this
+approach is demonstrated in Figure 9, illustrating      Table 2: RWKV model architectures and FLOP counts.
+improved convergence by enabling the model to           Further details of these hyperparameters are elaborated
+quickly transition away from the initially small em-    upon in Appendix G.
+bedding. This is achieved through small changes
+occurring in a single step, which subsequently lead        The number of parameters for each model is
+to substantial alterations in directions and further    computed using the formula: # parameters =
+notable changes after the LayerNorm operation.          2V D + 13D2 L + D(11L + 4) where V = 50277
+                                                        is the vocabulary size, D represents the Model Di-
+Custom Initialization Building on principles            mension and L corresponds to the number of lay-
+from previous works (He et al., 2016; Jumper et al.,    ers. FLOPs is for a forward pass for one token. It
+2021), we adopt an initialization strategy where        was calculated as 2(2V D + 13D2 L), which is the
+parameters are set to values resembling an identity     twice (add and multiply) the number of parameters
+mapping while breaking symmetry to establish a          in linear layers. The backwards pass FLOPs can
+clear information flow. The majority of weights are     be approximated as twice that of the forward pass,
+initialized to zero, and linear layers do not employ    giving a total of 6(2V D + 13D2 L) FLOP per to-
+biases. Detailed formulas are given in Appendix E.      ken. Notably, this matches the standard formula
+We observe that the choice of initialization plays a    for FLOP calculations in transformers Kaplan et al.
+crucial role in both the speed and quality of conver-   (2020): FLOP = 6 · [# tokens] · [# parameters].
+gence (refer to Appendix F for further details).
+
+3.5 Implementation                                      4.1      Additional Training Details
+
+RWKV is implemented using the PyTorch Deep              For training, we use the standard Adam optimizer
+Learning Library (Paszke et al., 2019). We inte-        without weight decay, use bfloat16 precision, and
+grate additional optimization strategies inspired by    train with a context length of 1024 tokens. Fur-
+DeepSpeed (Rasley et al., 2020) into the system,        ther details on hyperparameters are in Appendix G.
+improving its efficiency and scalability.               Diverting from standard practice for transformers,
+   The model begins with an embedding layer, as         we apply exponential decay to our learning rate.
+detailed in Section 3.4. Following this are sev-        We also incorporate the auxiliary loss introduced
+eral identical residual blocks arranged sequentially.   by PaLM (Chowdhery et al., 2022), supplement-
+These are depicted in Figures 2 and 3 and adheres       ing the standard cross-entropy loss function. This
+to the principles outlined in Section 3.1.1. After      auxiliary loss encourages the softmax normalizer
+the last block, a simple output projection head, con-   to approximate zero closely. As for the learning
+sisting of a LayerNorm (Ba et al., 2016) and a          rate schedule, it remains constant for the initial
+linear projection, is employed for logits generation    iterations, and subsequently decays exponentially.
+                                                   14052
+4.2 Scaling Laws                                                         Competitiveness Is RWKV competitive against
+Scaling laws (Kaplan et al., 2020; Henighan et al.,                      quadratic transformer architectures with the same
+2020; Hoffmann et al., 2022; Muennighoff et al.,                         amount of compute?
+2023) in language models refer to the mathemati-                         Long Context Does increasing the context
+cal relationships that describe how the performance                      length of RWKV yield better language modeling
+of a language model changes with respect to var-                         loss when RWKV models are trained for context
+ious factors. These factors can include the model                        lengths that most open-sourced quadratic trans-
+size (N ), dataset size (D), or the optimally allo-                      formers cannot efficiently process?
+cated compute budget (Cmin ). Scaling laws are
+important for two primary reasons: they allow us                         5.1   NLP Evaluations
+to make predictions and plans regarding the costs
+                                                                         To demonstrate that RWKV is competitive with
+and performance of large models before they are
+                                                                         traditional transformers at NLP tasks, we compare
+trained via interpolation and extrapolation (Black
+                                                                         with similarly sized models trained for a similar
+et al., 2022; Le Scao et al., 2022) and the contexts
+                                                                         number of tokens (Pythia (Biderman et al., 2023b),
+in which they fail provides rich feedback on im-
+                                                                         OPT (Zhang et al., 2022) and BLOOM (Scao et al.,
+portant areas for future research (Wei et al., 2022a;
+                                                                         2022)). All RWKV models were trained for one
+Biderman et al., 2023a).
+                                                                         epoch on the Pile (330B tokens), which is close but
+   Previous work on scaling laws for RNNs has                            not identical to the amount of tokens the Pythia,
+claimed that LSTMs do not strictly follow the same                       OPT, and BLOOM models were trained for. Con-
+log-log linear scaling that transformers do (Kaplan                      sequently, we compare our models on a FLOP-
+et al., 2020). We train 45 RWKV models for a                             matched basis. We avoid comparing with model
+variety of pairs (dataset, parameters) and find that                     trained in the Chinchilla-optimal regime (Hoff-
+RWKV does follow the same general form of the                            mann et al., 2022) or the overtrained regime (Tou-
+scaling law that is well established for transformers.                   vron et al., 2023) to ensure the most equitable com-
+Figure 4 shows our results for loss as a function of                     parison.
+compute, with the linear fit to the Pareto optimal
+                                                                            We report results on ARC (both Easy and Chal-
+points holding an r2 value of 0.994. Even when
+                                                                         lenge) (Clark et al., 2018), BoolQ (Clark et al.,
+we extrapolate our curve an additional order of
+                                                                         2019), COPA (Roemmele et al., 2018), HeadQA
+magnitude (blue), we find an extremely good fit
+                                                                         (Vilares and Gómez-Rodríguez, 2019), HellaSwag
+with an r2 of 0.875.
+                                                                         (Zellers et al., 2019), LAMBADA (Paperno et al.,
+                                                        Non-Optimal
+                                                                         2016), OpenBookQA (Mihaylov et al., 2018),
+                                                        Optimal          PIQA (Bisk et al., 2020), ReCoRD (Zhang et al.,
+                                                        Test
+                                                        Trend Line       2018), SciQ (Johannes Welbl Nelson F. Liu, 2017),
+       3 × 100
+                                                                         and Winogrande (Zellers et al., 2020). Figure 1
+                                                                         shows the average results across all benchmarks.
+Loss                                                                     Some individual benchmarks are shown in Fig 5,
+                                                                         with the rest in Appendix J.
+                                                                            Additionally, we carried out comparative studies
+                                                                         on RWKV and ChatGPT / GPT-4, see Appendix
+                                                                         L. They revealed that RWKV is very sensitive to
+       2 × 100
+                 10 1   100        101            102          103
+                                                                         prompt engineering. When the prompts were ad-
+                              Compute (exaFLOP)                          justed (re-ordered) from the ones used for GPT to
+                                                                         more suitable for RWKV, the performance (F1) in-
+       Figure 4: Scaling laws curves for RWKV models
+                                                                         creased even from 44.2% to 74.8%. For sarcasm
+                                                                         detection, RWKV outperformed ChatGPT, but was
+                                                                         still slightly worse than the SOTA solution.
+5        Evaluations
+Having demonstrated the scalability of RWKV                              5.2   Extended Context Finetuning
+models in the previous section, we now turn our                          Unlike transformers, RNNs do not have a pre-
+attention to their competitiveness with traditional                      defined sequences length when they are created.
+transformers. We focus on two questions:                                 However in order to efficient make use of compute
+                                                                      14053
+            37.5                                                                                                                                                  70
+            35.0                                                                             50
+                                                                                                                                                                  60
+            32.5
+                                                                                             45
+            30.0                                                                                                                                                  50
+
+ Accuracy                                                                         Accuracy                                                             Accuracy
+            27.5                                                                             40
+                                                                                                                                                                  40
+            25.0
+                                                                                             35
+            22.5                                                                                                                                                  30                                        BLOOM
+                                                                         BLOOM
+                                                                         Pythia              30                                                                                                             Pythia
+            20.0                                                         OPT                                                                                                                                OPT
+                                                                         RWKV                                                                                     20                                        RWKV
+            17.5
+                                         102                       103                                     102                       103                                    102                       103
+                                               Compute (exaFLOP)                                                 Compute (exaFLOP)                                                Compute (exaFLOP)
+
+                                  (a) ARC (Challenge)                                                      (b) HellaSwag                                               (c) LAMBADA (OpenAI)
+
+                                                                                                                                                                  66
+            30.0                                                                             90
+                                                                                             85                                                                   64
+            27.5
+                                                                                             80                                                                   62
+            25.0
+                                                                                             75                                                                   60
+            22.5
+ Accuracy                                                                         Accuracy                                                             Accuracy
+                                                                                             70                                                                   58
+            20.0
+                                                                                             65                                                                   56
+            17.5                                                                             60                                                                   54
+                                                                                                                                              BLOOM
+            15.0                                                                             55                                               Pythia              52
+                                                                                                                                              OPT
+            12.5                                                                             50                                               RWKV                50
+                                         102                       103                                     102                       103                                    102                       103
+                                               Compute (exaFLOP)                                                 Compute (exaFLOP)                                                Compute (exaFLOP)
+
+                                   (d) OpenBookQA                                                          (e) ReCoRD                                                      (f) Winogrande
+
+Figure 5: Zero-Shot Performance of RWKV on common language modeling evaluation benchmarks. Additional
+plots can be found in Appendix J.
+
+
+we nevertheless need to preprocess the training data                                                                       5.3             Long Context Benchmarks
+into contexts of the same length. We find that we                                                                          Additionally, we evaluate our model’s ability to
+are able to teach the model how to efficiently handle                                                                      handle very long sequences by comparing to state-
+substantially larger batch sizes by finetuning with                                                                        of-the-art long sequence models on the Long-
+progressively increasing sequence length. Specif-                                                                          Range Arena (LRA) benchmark (Tay et al., 2021).
+ically, we first double the sequence length from                                                                           LRA is designed to assess the performance of mod-
+1024 to 2048 and finetune for 10B tokens from the                                                                          els in handling lengthy context situations. It in-
+original pretraining corpus, then we double again                                                                          cludes a collection of tasks with sequences rang-
+to 4096 for 100B tokens from the same corpus, and                                                                          ing from 1,000 to 16,000 tokens, covering various
+finally double to 8192 tokens for another 100B to-                                                                         types of data like text, natural language, synthetic
+kens from the same corpus. In Fig. 6 we show that                                                                          images, and mathematical expressions. We apply
+increasing context length leads to lower test loss                                                                         RWKV on the LRA benchmark and the results are
+on the Pile, an indication that RWKV can make                                                                              in Appendix J.2. The results show that RWKV per-
+effective use of long contextual information.                                                                              forms second only to the S4 model in five datasets.
+
+                                                                                                                           6         Inference Experiments
+                                                                                                  7B 8k                    We benchmark inference requirements according to
+                                                                                                  14B 8k
+                             22                                                                                            size and family. Specifically, we evaluate text gen-
+            Pile test loss
+                                                                                                                           eration speed and memory requirements on typical
+                             21                                                                                            compute platforms including CPU (x86) and GPU
+                                                                                                                           (NVIDIA A100 80 GB). For all of our inference
+                                    21             23         25       27         29              211                      experiments we use float32 precision and the Hug-
+                                                             Context Length
+                                                                                                                           gingFace Transformers (Wolf et al., 2020). We in-
+Figure 6: RWKV shows decreasing mean test loss as a                                                                        clude all model parameters in the parameter count,
+function of context length on the Pile (Gao et al., 2020)                                                                  including both embedding and non-embedding lay-
+                                                                                                                           ers. Performance under different quantization se-
+                                                                                                                           tups is left to further work. See Appendix K for
+                                                                                                                 14054
+more results.                                            experiments on expressivity, interpretability, and
+                                                         scaling showcase the model capabilities and draw
+                                                         parallels in behavior between RWKV and other
+                                                         LLMs.
+                                                            RWKV opens a new route for scalable and ef-
+                                                         ficient architectures to model complex relation-
+                                                         ships in sequential data. While many alternatives
+                                                         to Transformers have been proposed with similar
+                                                         claims, ours is the first to back up those claims with
+                                                         pretrained models with tens of billions of parame-
+                                                         ters.
+
+Figure 7: Cumulative time on text generation for LLMs.   9    Limitations
+Unlike transformers, RWKV exhibits linear scaling.       While our proposed RWKV model has demon-
+                                                         strated promising results regarding training and
+7   Future Work                                          memory efficiency during inference, some limita-
+There are several promising directions for future        tions should be acknowledged and addressed in
+work on the RWKV architecture. Work can be               future work.
+done to increase model expressivity by enhancing             First, the linear attention of RWKV leads to sig-
+the time-decay formulations and exploring initial        nificant efficiency gains but still, it may also limit
+model states while maintaining efficiency. The           the model’s performance on tasks that require re-
+RWKV computational efficiency can be further im-         calling minutiae information over very long con-
+proved by applying a parallel scan in the wkvt step      texts. This is due to the funneling of informa-
+to reduce the computational cost to O(B log(T )d).       tion through a single vector representation over
+The mechanisms used in RWKV can be applied               many time steps, compared with the full informa-
+to encoder-decoder architectures, potentially re-        tion maintained by the quadratic attention of stan-
+placing the cross-attention mechanism. This could        dard Transformers. In other words, the model’s
+be applicable in seq2seq or multimodal settings,         recurrent architecture inherently limits its ability to
+thereby enhancing efficiency during both training        “look back” at previous tokens, as opposed to tra-
+and inference.                                           ditional self-attention mechanisms. While learned
+   RWKV’s state (or context) can be leveraged for        time decay helps prevent the loss of information,
+interpretability, predictability in sequence data, and   it is mechanistically limited compared to full self-
+safety. Manipulating the hidden state could also         attention.
+guide behavior and allow greater customizability             Another limitation of this work is the increased
+through prompt tuning.                                   importance of prompt engineering in comparison to
+                                                         standard Transformer models. The linear attention
+8   Conclusions                                          mechanism used in RWKV limits the information
+                                                         from the prompt that will be carried over to the
+We introduced RWKV, a new approach to RNN
+                                                         model’s continuation. As a result, carefully de-
+models exploiting the potential of time-based mix-
+                                                         signed prompts may be even more crucial for the
+ing components. RWKV introduces several key
+                                                         model to perform well on tasks.
+strategies that allow it to capture locality and long-
+range dependencies while addressing limitations of           The above RWKV property was confirmed by
+current architectures by: (1) replacing the quadratic    studies on prompt engineering presented in Ap-
+QK attention with a scalar formulation at linear         pendix L. By changing the order of the information
+cost, (2) reformulating recurrence and sequential        pieces, we were even able to almost double the
+inductive biases to enable efficient training paral-     RWKV performance for some tasks.
+lelization and efficient inference, and (3) enhancing
+                                                         10    Ethics Statement
+training dynamics using custom initializations.
+   We benchmark the proposed architecture in a           In this paper, we present a novel architecture for se-
+wide variety of NLP tasks and show comparable            quential data processing and prove its effectiveness
+performance to SoTA with reduced cost. Further           by building a series of LLMs trained on publicly re-
+                                                    14055
+leased pretraining data (Gao et al., 2020; Biderman     References
+et al., 2022) and later fine-tuned on publicly avail-   Mohammad Mahmudul Alam, Edward Raff, Stella Bi-
+able instructions (Taori et al., 2023; Chaudhary,        derman, Tim Oates, and James Holt. 2023. Recasting
+2023; Cheung, 2023; Anand et al., 2023; Anony-           self-attention with holographic reduced representa-
+mous, 2023; Yang, 2023; Ji et al., 2023a,b).             tions. arXiv preprint arXiv:2305.19534.
+   As a novel architecture for sequential data,         Alon Albalak, Yi-Lin Tuan, Pegah Jandaghi, Connor
+RWKV has the potential to improve sequence-               Pryor, Luke Yoffe, Deepak Ramachandran, Lise
+based models across different applications ranging        Getoor, Jay Pujara, and William Yang Wang. 2022.
+                                                          FETA: A benchmark for few-sample task transfer
+from natural language processing to biomedical            in open-domain dialogue. In Proceedings of the
+data processing or climate modelling. Since the           2022 Conference on Empirical Methods in Natu-
+training code is released open source, RWKV con-          ral Language Processing, pages 10936–10953, Abu
+tributes to the democratization of AI, levels the         Dhabi, United Arab Emirates. Association for Com-
+                                                          putational Linguistics.
+playing field, and empowers members of the Open
+Source community to inspect, study, and finetune        Yuvanesh Anand, Zach Nussbaum, Brandon Duder-
+RWKV in particular tasks. Moreover, it contributes        stadt, Benjamin Schmidt, and Andriy Mulyar. 2023.
+to advancing the understanding of LLMs capabili-          Gpt4all: Training an assistant-style chatbot with large
+                                                          scale data distillation from gpt-3.5-turbo. https:
+ties and limitations. A significant amount of work        //github.com/nomic-ai/gpt4all.
+has been devoted to increasing the efficiency of
+RWKV training so as to minimize its cost and pro-       Anonymous. 2023. Sharegpt_vicuna_unfiltered.
+mote accessibility.                                     Jimmy Lei Ba, Jamie Ryan Kiros, and Geoffrey E. Hin-
+   As LLMs trained on public data, RWKV’s lower            ton. 2016. Layer normalization.
+inference cost compared to Transformer alterna-         Francesco Barbieri, Jose Camacho-Collados, Luis Es-
+tives makes it more suitable for deployment in con-       pinosa Anke, and Leonardo Neves. 2020. TweetEval:
+sumer and edge hardware, which is a step towards          Unified benchmark and comparative evaluation for
+the democratization and distribution of LLMs to           tweet classification. In Findings of the Association
+                                                          for Computational Linguistics: EMNLP 2020, pages
+the general public, creating better privacy and own-      1644–1650, Online. Association for Computational
+ership incentives. It also lowers the resource bar-       Linguistics.
+rier to Chat assistants and text generation for small
+and/or underrepresented communities. PreTrained         Iz Beltagy, Matthew E. Peters, and Arman Cohan.
+                                                           2020. Longformer: The long-document transformer.
+model weights for different sizes ranging from 0.1B        arXiv:2004.05150.
+to 14B parameters trained on multiple languages
+are released to increase ease of adoption and allow     Stella Biderman, Kieran Bicheno, and Leo Gao.
+                                                           2022. Datasheet for the pile. arXiv preprint
+for the study of emergent phenomena.
+                                                           arXiv:2201.07311.
+   On the other hand, with lower resource barri-
+ers, the spreading of AI-generated text might be-       Stella Biderman, USVSN Sai Prashanth, Lintang
+                                                           Sutawika, Hailey Schoelkopf, Quentin Anthony,
+come more prevalent. Current RWKV LLMs may                 Shivanshu Purohit, and Edward Raf. 2023a. Emer-
+exhibit and/or reproduce biases and potentially            gent and predictable memorization in large language
+harmful content present in the data used for train-        models. arXiv preprint arXiv:2304.11158.
+ing. Nonetheless, mitigation and finetuning strate-
+                                                        Stella Biderman, Hailey Schoelkopf, Quentin Anthony,
+gies discussed for other, large Transformer models         Herbie Bradley, Kyle O’Brien, Eric Hallahan, Mo-
+should be applicable to RWKV as well.                      hammad Aflah Khan, Shivanshu Purohit, USVSN Sai
+                                                           Prashanth, Edward Raff, et al. 2023b. Pythia: A suite
+                                                           for analyzing large language models across training
+Acknowledgements                                           and scaling. arXiv preprint arXiv:2304.01373.
+
+We thank StabilityAI for the compute used to train      Yonatan Bisk, Rowan Zellers, Ronan Le Bras, Jianfeng
+                                                          Gao, and Yejin Choi. 2020. Piqa: Reasoning about
+our models and for technical support in develop-          physical commonsense in natural language. In Thirty-
+ment of RWKV. We also thank the members of the            Fourth AAAI Conference on Artificial Intelligence.
+RWKV and EleutherAI Discord servers for their
+                                                        Sid Black, Leo Gao, Phil Wang, Connor Leahy, and
+help and work on further extending the applicabil-        Stella Biderman. 2021. Gpt-neo: Large scale autore-
+ity of RWKV to different domains.                         gressive language modeling with mesh-tensorflow.
+                                                          URL: https://doi. org/10.5281/zenodo, 5297715.
+
+                                                   14056
+Sidney Black, Stella Biderman, Eric Hallahan, Quentin     Junyoung Chung, Caglar Gulcehre, KyungHyun Cho,
+  Anthony, Leo Gao, Laurence Golding, Horace He,            and Yoshua Bengio. 2014. Empirical evaluation of
+   Connor Leahy, Kyle McDonell, Jason Phang, et al.         gated recurrent neural networks on sequence model-
+   2022. Gpt-neox-20b: An open-source autoregres-           ing. In NIPS 2014 Deep Learning and Representa-
+   sive language model. In Proceedings of BigScience        tion Learning Workshop.
+  Episode\# 5–Workshop on Challenges & Perspec-
+   tives in Creating Large Language Models, pages 95–     Christopher Clark, Kenton Lee, Ming-Wei Chang,
+  136.                                                      Tom Kwiatkowski, Michael Collins, and Kristina
+                                                            Toutanova. 2019. Boolq: Exploring the surprising
+James Bradbury, Stephen Merity, Caiming Xiong, and          difficulty of natural yes/no questions. arXiv preprint
+  Richard Socher. 2017. Quasi-recurrent neural net-         arXiv:1905.10044.
+  works. In ICLR.
+                                                          Peter Clark, Isaac Cowhey, Oren Etzioni, Tushar Khot,
+Tom Brown, Benjamin Mann, Nick Ryder, Melanie               Ashish Sabharwal, Carissa Schoenick, and Oyvind
+  Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind        Tafjord. 2018. Think you have solved question an-
+  Neelakantan, Pranav Shyam, Girish Sastry, Amanda          swering? try arc, the ai2 reasoning challenge. In
+  Askell, et al. 2020. Language models are few-shot         arXiv:1803.05457.
+  learners. Advances in neural information processing
+  systems, 33:1877–1901.                                  Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Ja-
+                                                            cob Hilton, Reiichiro Nakano, Christopher Hesse,
+Aydar Bulatov, Yuri Kuratov, and Mikhail S. Burtsev.        and John Schulman. 2021. Training verifiers to
+  2023. Scaling transformer to 1m tokens and beyond         solve math word problems. In arXiv, volume
+  with rmt.                                                 abs/2110.14168.
+Aydar Bulatov, Yury Kuratov, and Mikhail Burtsev.         Tri Dao, Daniel Y Fu, Stefano Ermon, Atri Rudra, and
+  2022. Recurrent memory transformer. Advances               Christopher Re. 2022a. Flashattention: Fast and
+  in Neural Information Processing Systems, 35:11079–        memory-efficient exact attention with IO-awareness.
+  11091.                                                     In Advances in Neural Information Processing Sys-
+                                                             tems.
+Sahil Chaudhary. 2023. Code alpaca: An instruction-
+  following llama model for code generation. https:       Tri Dao, Daniel Y Fu, Khaled K Saab, Armin W
+  //github.com/sahil280114/codealpaca.                      Thomas, Atri Rudra, and Christopher Ré. 2022b.
+                                                             Hungry hungry hippos: Towards language mod-
+Joseph Cheung. 2023. Guanacodataset.                         eling with state space models. arXiv preprint
+                                                             arXiv:2212.14052.
+Krzysztof Choromanski, Valerii Likhosherstov, David
+  Dohan, Xingyou Song, Andreea Gane, Tamas Sar-           Dorottya Demszky, Dana Movshovitz-Attias, Jeongwoo
+  los, Peter Hawkins, Jared Davis, Afroz Mohiuddin,         Ko, Alan S. Cowen, Gaurav Nemade, and Sujith Ravi.
+  Lukasz Kaiser, David Belanger, Lucy Colwell, and          2020. Goemotions: A dataset of fine-grained emo-
+  Adrian Weller. 2020. Rethinking attention with per-       tions. In Proceedings of the 58th Annual Meeting of
+  formers.                                                  the Association for Computational Linguistics, ACL
+                                                            2020, Online, July 5-10, 2020, pages 4040–4054.
+Aakanksha Chowdhery, Sharan Narang, Jacob Devlin,           Association for Computational Linguistics.
+  Maarten Bosma, Gaurav Mishra, Adam Roberts,
+  Paul Barham, Hyung Won Chung, Charles Sutton,           Leo Gao, Stella Biderman, Sid Black, Laurence Gold-
+  Sebastian Gehrmann, Parker Schuh, Kensen Shi,             ing, Travis Hoppe, Charles Foster, Jason Phang, Ho-
+  Sasha Tsvyashchenko, Joshua Maynez, Abhishek              race He, Anish Thite, Noa Nabeshima, et al. 2020.
+  Rao, Parker Barnes, Yi Tay, Noam Shazeer, Vin-            The pile: An 800gb dataset of diverse text for lan-
+  odkumar Prabhakaran, Emily Reif, Nan Du, Ben              guage modeling. arXiv preprint arXiv:2101.00027.
+  Hutchinson, Reiner Pope, James Bradbury, Jacob
+  Austin, Michael Isard, Guy Gur-Ari, Pengcheng Yin,      Albert Gu, Karan Goel, and Christopher Ré. 2021. Effi-
+  Toju Duke, Anselm Levskaya, Sanjay Ghemawat,              ciently modeling long sequences with structured state
+  Sunipa Dev, Henryk Michalewski, Xavier Garcia,            spaces. arXiv preprint arXiv:2111.00396.
+  Vedant Misra, Kevin Robinson, Liam Fedus, Denny
+  Zhou, Daphne Ippolito, David Luan, Hyeontaek Lim,       Albert Gu, Karan Goel, and Christopher Ré. 2022. Effi-
+  Barret Zoph, Alexander Spiridonov, Ryan Sepassi,          ciently modeling long sequences with structured state
+  David Dohan, Shivani Agrawal, Mark Omernick, An-          spaces. In The International Conference on Learning
+  drew M. Dai, Thanumalayan Sankaranarayana Pil-            Representations (ICLR).
+  lai, Marie Pellat, Aitor Lewkowycz, Erica Moreira,
+  Rewon Child, Oleksandr Polozov, Katherine Lee,          Mandy Guo, Joshua Ainslie, David C Uthus, Santiago
+  Zongwei Zhou, Xuezhi Wang, Brennan Saeta, Mark           Ontanon, Jianmo Ni, Yun-Hsuan Sung, and Yinfei
+  Diaz, Orhan Firat, Michele Catasta, Jason Wei, Kathy     Yang. 2022. Longt5: Efficient text-to-text trans-
+  Meier-Hellstern, Douglas Eck, Jeff Dean, Slav Petrov,    former for long sequences. In Findings of the Associ-
+  and Noah Fiedel. 2022. Palm: Scaling language mod-       ation for Computational Linguistics: NAACL 2022,
+  eling with pathways. CoRR, abs/2204.02311.               pages 724–736.
+
+                                                     14057
+Ankit Gupta, Albert Gu, and Jonathan Berant. 2022. Di-       Matt Gardner Johannes Welbl Nelson F. Liu. 2017.
+  agonal state spaces are as effective as structured state    Crowdsourcing multiple choice science questions.
+  spaces. Advances in Neural Information Processing           In DOI:10.18653/v1/W17-4413.
+  Systems, 35:22982–22994.
+                                                             John Jumper, Richard Evans, Alexander Pritzel, Tim
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian              Green, Michael Figurnov, Olaf Ronneberger, Kathryn
+  Sun. 2016. Identity mappings in deep residual net-           Tunyasuvunakool, Russ Bates, Augustin Žídek, Anna
+  works.                                                       Potapenko, and et al. 2021. Highly accurate pro-
+                                                               tein structure prediction with alphafold. Nature,
+Tom Henighan, Jared Kaplan, Mor Katz, Mark Chen,               596(7873):583–589.
+  Christopher Hesse, Jacob Jackson, Heewoo Jun,
+  Tom B Brown, Prafulla Dhariwal, Scott Gray, et al.         Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B
+  2020. Scaling laws for autoregressive generative              Brown, Benjamin Chess, Rewon Child, Scott Gray,
+  modeling. arXiv preprint arXiv:2010.14701.                    Alec Radford, Jeffrey Wu, and Dario Amodei. 2020.
+                                                                Scaling laws for neural language models. arXiv
+Sepp Hochreiter. 1998. The vanishing gradient problem           preprint arXiv:2001.08361.
+  during learning recurrent neural nets and problem so-
+  lutions. International Journal of Uncertainty, Fuzzi-      Angelos Katharopoulos, Apoorv Vyas, Nikolaos Pap-
+  ness and Knowledge-Based Systems, 6(02):107–116.             pas, and François Fleuret. 2020. Transformers are
+                                                               rnns: Fast autoregressive transformers with linear
+Sepp Hochreiter and Jürgen Schmidhuber. 1997. Long             attention. In International Conference on Machine
+  short-term memory. Neural Computation, 9(8):1735–            Learning, pages 5156–5165. PMLR.
+  1780.
+                                                             Nikita Kitaev, L. Kaiser, and Anselm Levskaya.
+Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch,            2020. Reformer: The efficient transformer. ArXiv,
+   Elena Buchatskaya, Trevor Cai, Eliza Rutherford,            abs/2001.04451.
+   Diego de Las Casas, Lisa Anne Hendricks, Johannes
+   Welbl, Aidan Clark, Tom Hennigan, Eric Noland,            Jan Kocoń, Igor Cichecki, Oliwier Kaszyca, Mateusz
+   Katie Millican, George van den Driessche, Bogdan            Kochanek, Dominika Szydło, Joanna Baran, Julita
+   Damoc, Aurelia Guy, Simon Osindero, Karen Si-               Bielaniewicz, Marcin Gruza, Arkadiusz Janz, Kamil
+   monyan, Erich Elsen, Jack W. Rae, Oriol Vinyals,            Kanclerz, Anna Kocoń, Bartłomiej Koptyra, Wik-
+   and Laurent Sifre. 2022. Training compute-optimal           toria Mieleszczenko-Kowszewicz, Piotr Miłkowski,
+   large language models.                                      Marcin Oleksy, Maciej Piasecki, Łukasz Radliński,
+                                                               Konrad Wojtasik, Stanisław Woźniak, and Prze-
+Hassan Ismail Fawaz, Germain Forestier, Jonathan We-           mysław Kazienko. 2023. Chatgpt: Jack of all trades,
+  ber, Lhassane Idoumghar, and Pierre-Alain Muller.            master of none. Information Fusion, page 101861.
+  2019. Deep learning for time series classification:
+  a review. Data mining and knowledge discovery,             Jan Kocoń, Piotr Miłkowski, and Monika Zaśko-
+  33(4):917–963.                                               Zielińska. 2019. Multi-level sentiment analysis of
+                                                               polemo 2.0: Extended corpus of multi-domain con-
+Andrew Jaegle, Felix Gimeno, Andy Brock, Oriol                 sumer reviews. In Proceedings of the 23rd Confer-
+  Vinyals, Andrew Zisserman, and Joao Carreira. 2021.          ence on Computational Natural Language Learning
+  Perceiver: General perception with iterative atten-          (CoNLL), pages 980–991.
+  tion. In International conference on machine learn-
+  ing, pages 4651–4664. PMLR.                                Phong Le and Willem Zuidema. 2016. Quantifying
+                                                               the vanishing gradient and long distance dependency
+Hanhwi Jang, Joonsung Kim, Jae-Eon Jo, Jaewon Lee,             problem in recursive neural networks and recursive
+  and Jangwoo Kim. 2019. Mnnfast: A fast and scal-             lstms. In Proceedings of the 1st Workshop on Repre-
+  able system architecture for memory-augmented neu-           sentation Learning for NLP, pages 87–93.
+  ral networks. In Proceedings of the 46th Interna-
+  tional Symposium on Computer Architecture, pages           Teven Le Scao, Thomas Wang, Daniel Hesslow, Lucile
+  250–263.                                                     Saulnier, Stas Bekman, M Saiful Bari, Stella Bider-
+                                                               man, Hady Elsahar, Jason Phang, Ofir Press, et al.
+Yunjie Ji, Yong Deng, Yan Gong, Yiping Peng, Qiang             2022. What language model to train if you have one
+  Niu, Baochang Ma, and Xiangang Li. 2023a. Belle:             million gpu hours? In Proceedings of BigScience
+  Be everyone’s large language model engine. https:            Episode #5–Workshop on Challenges & Perspectives
+  //github.com/LianjiaTech/BELLE.                              in Creating Large Language Models.
+
+Yunjie Ji, Yong Deng, Yan Gong, Yiping Peng, Qiang           Tao Lei, Yu Zhang, Sida I. Wang, Hui Dai, and Yoav
+  Niu, Lei Zhang, Baochang Ma, and Xiangang Li.                Artzi. 2018. Simple recurrent units for highly paral-
+  2023b. Exploring the impact of instruction data              lelizable recurrence. In Proceedings of the 2018 Con-
+  scaling on large language models: An empirical               ference on Empirical Methods in Natural Language
+  study on real-world use cases. arXiv preprint                Processing, pages 4470–4481, Brussels, Belgium.
+  arXiv:2303.14742.                                            Association for Computational Linguistics.
+
+                                                        14058
+Hanxiao Liu, Zihang Dai, David R. So, and Quoc V. Le.     Michael Poli, Stefano Massaroli, Eric Nguyen, Daniel Y
+  2021. Pay attention to mlps.                              Fu, Tri Dao, Stephen Baccus, Yoshua Bengio, Ste-
+                                                            fano Ermon, and Christopher Ré. 2023. Hyena hierar-
+Xuezhe Ma, Xiang Kong, Sinong Wang, Chunting Zhou,          chy: Towards larger convolutional language models.
+  Jonathan May, Hao Ma, and Luke Zettlemoyer. 2021.         arXiv preprint arXiv:2302.10866.
+  Luna: Linear unified nested attention. Advances
+  in Neural Information Processing Systems, 34:2441–      Ilan Price, Jordan Gifford-Moore, Jory Flemming, Saul
+  2453.                                                      Musker, Maayan Roichman, Guillaume Sylvain,
+                                                             Nithum Thain, Lucas Dixon, and Jeffrey Sorensen.
+Xuezhe Ma, Chunting Zhou, Xiang Kong, Junxian He,            2020. Six attributes of unhealthy conversations. In
+  Liangke Gui, Graham Neubig, Jonathan May, and              Proceedings of the Fourth Workshop on Online Abuse
+  Luke Zettlemoyer. 2023. Mega: Moving average               and Harms, pages 114–124, Online. Association for
+  equipped gated attention. In ICLR.                         Computational Linguistics.
+
+                                                          Markus N. Rabe and Charles Staats. 2022.          Self-
+Eric Martin and Chris Cundy. 2017. Parallelizing linear    attention does not need o(n2 ) memory.
+   recurrent neural nets over sequence length. ArXiv,
+   abs/1709.04057.                                        Jeff Rasley, Samyam Rajbhandari, Olatunji Ruwase,
+                                                             and Yuxiong He. 2020. Deepspeed: System opti-
+Kevin Meng, David Bau, Alex Andonian, and Yonatan            mizations enable training deep learning models with
+  Belinkov. 2022. Locating and editing factual asso-         over 100 billion parameters. In Proceedings of the
+  ciations in GPT. Advances in Neural Information            26th ACM SIGKDD International Conference on
+  Processing Systems, 36.                                    Knowledge Discovery & Data Mining, KDD ’20,
+                                                             page 3505–3506, New York, NY, USA. Association
+Todor Mihaylov, Peter Clark, Tushar Khot, and Ashish         for Computing Machinery.
+  Sabharwal. 2018. Can a suit of armor conduct elec-
+  tricity? a new dataset for open book question answer-   Melissa Roemmele, Cosmin Adrian Bejan, , and An-
+  ing. In EMNLP.                                           drew S. Gordon. 2018. Choice of plausible alterna-
+                                                           tives: An evaluation of commonsense causal reason-
+Niklas Muennighoff, Alexander M Rush, Boaz Barak,          ing. In AAAI.
+  Teven Le Scao, Aleksandra Piktus, Nouamane Tazi,
+  Sampo Pyysalo, Thomas Wolf, and Colin Raffel.           Teven Le Scao, Angela Fan, Christopher Akiki, El-
+  2023. Scaling data-constrained language models.           lie Pavlick, Suzana Ilić, Daniel Hesslow, Roman
+  arXiv preprint arXiv:2305.16264.                          Castagné, Alexandra Sasha Luccioni, François Yvon,
+                                                            Matthias Gallé, et al. 2022. Bloom: A 176b-
+OpenAI. 2022. Introducing chatgpt. https://openai.          parameter open-access multilingual language model.
+  com/blog/chatgpt.                                         arXiv preprint arXiv:2211.05100.
+
+                                                          Ramsha Siddiqui. 2019. SARCASMANIA: Sarcasm
+Antonio Orvieto, Samuel L Smith, Albert Gu, Anushan         Exposed! http://www.kaggle.com/rmsharks4/
+  Fernando, Caglar Gulcehre, Razvan Pascanu, and            sarcasmania-dataset. [Online; accessed 02-
+  Soham De. 2023. Resurrecting recurrent neu-               February-2023].
+  ral networks for long sequences. arXiv preprint
+  arXiv:2303.06349.                                       David R. So, Wojciech Manke, Hanxiao Liu, Zihang
+                                                            Dai, Noam Shazeer, and Quoc V. Le. 2021. Primer:
+Denis Paperno, Germán Kruszewski, Angeliki Lazari-          Searching for efficient transformers for language
+  dou, Ngoc Quan Pham, Raffaella Bernardi, Sandro           modeling. CoRR, abs/2109.08668.
+  Pezzelle, Marco Baroni, Gemma Boleda, and Raquel
+  Fernandez. 2016. The LAMBADA dataset: Word              Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann
+  prediction requiring a broad discourse context. In        Dubois, Xuechen Li, Carlos Guestrin, Percy Liang,
+  Proceedings of the 54th Annual Meeting of the As-         and Tatsunori B. Hashimoto. 2023. Stanford alpaca:
+  sociation for Computational Linguistics (Volume 1:        An instruction-following llama model. https://
+  Long Papers), pages 1525–1534, Berlin, Germany.           github.com/tatsu-lab/stanford_alpaca.
+  Association for Computational Linguistics.
+                                                          Yi Tay, Dara Bahri, Donald Metzler, Da-Cheng Juan,
+Adam Paszke, Sam Gross, Francisco Massa, Adam               Zhe Zhao, and Che Zheng. 2020. Synthesizer: Re-
+  Lerer, James Bradbury, Gregory Chanan, Trevor             thinking self-attention in transformer models.
+  Killeen, Zeming Lin, Natalia Gimelshein, Luca
+  Antiga, Alban Desmaison, Andreas Köpf, Edward           Yi Tay, Mostafa Dehghani, Samira Abnar, Yikang Shen,
+  Yang, Zach DeVito, Martin Raison, Alykhan Tejani,          Dara Bahri, Philip Pham, Jinfeng Rao, Liu Yang,
+  Sasank Chilamkurthy, Benoit Steiner, Lu Fang, Jun-         Sebastian Ruder, and Donald Metzler. 2021. Long
+  jie Bai, and Soumith Chintala. 2019. Pytorch: An           range arena : A benchmark for efficient transformers.
+  imperative style, high-performance deep learning li-       In International Conference on Learning Representa-
+  brary.                                                     tions.
+
+                                                     14059
+Yi Tay, Mostafa Dehghani, Dara Bahri, and Donald Met-         Drame, Quentin Lhoest, and Alexander M. Rush.
+   zler. 2022. Efficient transformers: A survey. ACM          2020. Transformers: State-of-the-Art Natural Lan-
+   Computing Surveys, 55(6):1–28.                             guage Processing. pages 38–45. Association for
+                                                              Computational Linguistics.
+Ilya O. Tolstikhin, Neil Houlsby, Alexander Kolesnikov,
+   Lucas Beyer, Xiaohua Zhai, Thomas Unterthiner, Jes-     Zonghan Wu, Shirui Pan, Fengwen Chen, Guodong
+   sica Yung, Andreas Steiner, Daniel Keysers, Jakob         Long, Chengqi Zhang, and S Yu Philip. 2020. A com-
+   Uszkoreit, Mario Lucic, and Alexey Dosovitskiy.           prehensive survey on graph neural networks. IEEE
+   2021. Mlp-mixer: An all-mlp architecture for vi-          transactions on neural networks and learning sys-
+   sion. CoRR, abs/2105.01601.                               tems, 32(1):4–24.
+Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier      Ellery Wulczyn, Nithum Thain, and Lucas Dixon. 2017.
+  Martinet, Marie-Anne Lachaux, Timothée Lacroix,             Ex machina: Personal attacks seen at scale. In Pro-
+  Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal          ceedings of the 26th International Conference on
+  Azhar, Aurelien Rodriguez, Armand Joulin, Edouard           World Wide Web, WWW 2017, Perth, Australia, April
+  Grave, and Guillaume Lample. 2023. Llama: Open              3-7, 2017, pages 1391–1399. ACM.
+  and efficient foundation language models.
+                                                           Jianxin Yang. 2023. Firefly. https://github.com/
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob              yangjianxin1/Firefly.
+  Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz
+  Kaiser, and Illia Polosukhin. 2017. Attention is all     Manzil Zaheer, Guru Guruganesh, Kumar Avinava
+  you need. In Advances in Neural Information Pro-          Dubey, Joshua Ainslie, Chris Alberti, Santiago On-
+  cessing Systems, volume 30. Curran Associates, Inc.       tanon, Philip Pham, Anirudh Ravula, Qifan Wang,
+                                                            Li Yang, et al. 2020. Big bird: Transformers for
+David Vilares and Carlos Gómez-Rodríguez. 2019.             longer sequences. Advances in Neural Information
+  Head-qa: A healthcare dataset for complex reasoning.      Processing Systems, 33.
+  In ACL.
+                                                           Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali
+Alex Wang, Yada Pruksachatkun, Nikita Nangia, Aman-          Farhadi, and Yejin Choi. 2019. Hellaswag: Can a
+  preet Singh, Julian Michael, Felix Hill, Omer Levy,        machine really finish your sentence? In ACL.
+  and Samuel Bowman. 2019. Superglue: A stickier
+  benchmark for general-purpose language understand-       Rowan Zellers, Ari Holtzman, Yonatan Bisk, Ali
+  ing systems. In Advances in Neural Information             Farhadi, and Yejin Choi. 2020. Winogrande: An
+  Processing Systems, volume 32. Curran Associates,          adversarial winograd schema challenge at scale. In
+  Inc.                                                       ACL.
+
+Alex Wang, Amanpreet Singh, Julian Michael, Felix          Shuangfei Zhai, Walter Talbott, Nitish Srivastava, Chen
+  Hill, Omer Levy, and Samuel Bowman. 2018. GLUE:            Huang, Hanlin Goh, Ruixiang Zhang, and Josh
+  A multi-task benchmark and analysis platform for nat-      Susskind. 2021. An attention free transformer.
+  ural language understanding. In Proceedings of the
+  2018 EMNLP Workshop BlackboxNLP: Analyzing               Sheng Zhang, Xiaodong Liu, Jingjing Liu, Jianfeng
+  and Interpreting Neural Networks for NLP, pages            Gao, Kevin Duh, and Benjamin Van Durme. 2018.
+  353–355, Brussels, Belgium. Association for Com-           Record: Bridging the gap between human and ma-
+  putational Linguistics.                                    chine commonsense reading comprehension. In
+                                                             arXiv:1810.12885.
+Sinong Wang, Belinda Z. Li, Madian Khabsa, Han Fang,
+   and Hao Ma. 2020. Linformer: Self-attention with        Susan Zhang, Stephen Roller, Naman Goyal, Mikel
+   linear complexity.                                        Artetxe, Moya Chen, Shuohui Chen, Christopher De-
+                                                             wan, Mona Diab, Xian Li, Xi Victoria Lin, et al. 2022.
+Jason Wei, Yi Tay, Rishi Bommasani, Colin Raf-               Opt: Open pre-trained transformer language models.
+   fel, Barret Zoph, Sebastian Borgeaud, Dani Yo-            arXiv preprint arXiv:2205.01068.
+   gatama, Maarten Bosma, Denny Zhou, Donald Met-
+   zler, Ed Chi, Tatsunori Hashimoto, Oriol Vinyals,
+   Percy Liang, Jeff Dean, and William Fedus. 2022a.
+   Emergent abilities of large language models. ArXiv,
+   abs/2206.07682.
+Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten
+   Bosma, Ed Chi, Quoc Le, and Denny Zhou. 2022b.
+   Chain of thought prompting elicits reasoning in large
+   language models. arXiv preprint arXiv:2201.11903.
+Thomas Wolf, Lysandre Debut, Victor Sanh, Julien
+  Chaumond, Clement Delangue, Anthony Moi, Perric
+  Cistac, Clara Ma, Yacine Jernite, Julien Plu, Can-
+  wen Xu, Teven Le Scao, Sylvain Gugger, Mariama
+
+                                                      14060
+A   Author Contributions
+All authors contributed to the drafting of this paper. Eric Alcaide and Quentin Anthony organized the
+paper and its experiments and were involved in all phases of the development process.
+Model Design and Development       Bo Peng (lead), Matteo Grella, Xuzheng He, Haowen Hou, Jiaming
+Kong, Johan S. Wind
+Model Training Bo Peng
+Scaling Laws Analysis Stella Biderman, Bo Peng
+Benchmark Evaluations Stella Biderman (lead), Kranthi Kiran GV, Krishna Sri Ipsit Mantri, Atsushi
+Saito, Qihang Zhao, Peng Zhou, Rui-Jie Zhuåç
+Long Context Experiments Xingjian Du, Rui-Jie Zhu, Bolun Wang, Ruichong Zhang, Jian Zhu,
+Rui-Jie Zhu
+Inference Speed Experiments Samuel Arcadinho, Przemysław Kazienko, Qinghua Zhou
+Information Flow Experiments Huanqi Cao, Michael Chung, Matteo Grella, Ferdinand Mom,
+Zhenyuan Zhang
+Chat Experiments Jan Kocoń (lead), Przemysław Kazienko, Bartłomiej Koptyra, Hayden Lau, Xiangru
+Tang, Stanisław Woźniak, Zhenyuan Zhang
+Ethics and Broader Impacts Stella Biderman, Guangyu Song
+
+
+
+
+                                               14061
+B   Author Contributions
+Bo Peng Original RWKV idea, original code, performance optimizations, original experiments, and
+trained RWKV models from 0.1B to 14B.
+Eric Alcaide Manuscript (initial draft sections 1, C; sections 3, 7 and 8; revision and proofreading; final
+version ). Figures (2, 3, 3, 8). Experiments section 6. Appendices E, K. Contributions to Appendix M.
+Quentin Anthony Manuscript (organization, initial draft sections 1, C, 2; revision and proofreading;
+final version).
+Alon Albalak Manuscript (abstract and sections 1, 9, and 7; proofreading and revision).
+Samuel Arcadinho Contributions to Figures 7, 13, and 14. Contributions to Appendix K.
+Stella Biderman     Performed the scaling laws analysis and evaluated competitor models on benchmark
+tasks.
+Huanqi Cao      Manuscript (contributions to 3.2 and 3.3; proofreading and revision). Experiments for
+Appendix I.
+Xin Cheng Manuscript (proofreading and revision). Contributions to Appendix M, J.
+Michael Chung Manuscript (contributions to section I; proofreading and revision).
+Xingjian Du Evaluation on Long Range Arena Benchmark (TBD until 5.31).
+Matteo Grella Manuscript (sections H, I, 8; contributions to sections 1, 7 and 9; proofreading and
+revision). Contributions to Appendix D.
+Kranthi Kiran GV Manuscript (sections C and 5; contributions to section 2; revision and proofreading).
+Tables K and K. Appendix 4.
+Xuzheng He Manuscript (contributions to section 2; proofreading and revision). Contributions to
+Figure8. Appendix I. Contributions to appendix H.
+Haowen Hou Figure 9. Appendix F.
+Jiaju Lin RWKV on LRA benchmarking
+Przemysław Kazienko Manuscript (proofreading and revision). Contributions to Section 6, 9, and
+Appendix L.
+Jan Kocon Manuscript (Section 1; proofreading and revision). Contributions to Appendix L.
+Jiaming Kong Manuscript (revision and proofreading). Appendix H.
+Bartłomiej Koptyra Manuscript (revision and proofreading) Contributions to Appendix L.
+Hayden Lau Manuscript (contributions to section 1 and 9; proofreading and revision). Contributions to
+Appendix M.
+Krishna Sri Ipsit Mantri Figure 12
+Ferdinand Mom Manuscript (contributions to section 1, C, 3.3, I; proofreading and revision). Contribu-
+tions to Appendix D.
+Atsushi Saito Manuscript (sections 2 and 5; contributions to section C). Contributions to Appendix J
+Guangyu Song Manuscript (rewrote section 3; final version). Initial draft Ethics Statement).
+Xiangru Tang Manuscript (sections C and 2; contributions to abstract; revision and proofreading).
+Contributions to Appendix M.
+                                                  14062
+Bolun Wang Contributions to Tables 1.
+
+Johan S. Wind RWKV performance optimizations (CUDA), Contributions to Appendix 4.
+
+Stanisław Woźniak Contributions to Appendix L.
+
+Ruichong Zhang Manuscript (proofreading and revision); Contributions to Figure 6 and Appendix M.
+
+Zhenyuan Zhang Manuscript (revision and proofreading). Figure 3. Experiments Appendix I. Contri-
+butions to Appendices D and M.
+
+Qihang Zhao Manuscript (proofreading and revision). Contributions to Table 5.
+
+Peng Zhou Contributions to Tables 1 and Table 5.
+
+Qinghua Zhou Manuscript (Proofreading and revision of section 3; Add missing citations in 3.3).
+Revision of Figures 2 and 12.
+
+Jian Zhu    Manuscript (section C; proofreading and revision). Figures 3 and 6.
+
+Rui-Jie Zhu Tables 1 and 5. Experiments for table 5.
+
+C   Additional Related Work
+Recently, a number of techniques have been proposed to address the limitations of transformers.
+
+Optimizing Attention Mechanism Many transformer variants (“x-formers”) have been introduced to
+reduce the complexity of transformers (Tay et al., 2022), including sparse attention (Beltagy et al., 2020;
+Kitaev et al., 2020; Guo et al., 2022), approximating the full attention matrix (Wang et al., 2020; Ma et al.,
+2021; Choromanski et al., 2020), combining chunked attention with gating (Ma et al., 2023) and other
+efficient methods (Katharopoulos et al., 2020; Jaegle et al., 2021).
+   Some recent works like FlashAttention (Dao et al., 2022a) and others (Rabe and Staats, 2022; Jang et al.,
+2019) share similarities with RWKV’s chunked computation scheme. Despite being memory-efficient,
+their time complexity remains quadratic or contains chunk size as a hidden factor. In contrast, RWKV
+achieves better space and time complexity during inference by formulating a linear attention as an RNN.
+
+Attention Free Models Another line of research replaces the attention mechanism with other modules to
+scale to long sequences. MLP-Mixer and others (Tolstikhin et al., 2021; Liu et al., 2021) propose replacing
+attention by Multi-Layer Perceptrons (MLPs) in computer vision tasks. The Attention Free Transformer
+(AFT) (Zhai et al., 2021) and HrrFormer (Alam et al., 2023) replaces dot-product self-attention with a
+computationally efficient alternative. None of these models have been successfully scaled to the point
+where drawing comparisons with transformer-based large language models makes sense.
+   There has also been substantial research into state space models (SSM) (Gu et al., 2021) and its variants
+(Dao et al., 2022b; Gupta et al., 2022; Poli et al., 2023). In contrast to the preceding models, SSM and
+its successors have shown substantial progress towards efficient scaling. Simultaneously with this work,
+Poli et al. (2023) train SSM-based models with 125 million and 355 million parameters and show that the
+performance is on-par with a transformer that uses a mix of local and global attention (Black et al., 2021).
+
+Advances in RNNs Inspired by the success of transformers, RNN-style (Hochreiter and Schmidhuber,
+1997; Chung et al., 2014) recursive components have also been modified to increase context length, such
+as the Recurrent Memory Transformer (Bulatov et al., 2022, 2023) and Linear Recurrent Units (Orvieto
+et al., 2023). Most similar to our work, the Quasi-Recurrent neural network (QRNN) (Bradbury et al.,
+2017) uses both convolutional layers and recurrent pooling functions across timesteps and channels.
+While QRNN utilizes convolutional filters with fixed sizes, RWKV employs a time-mixing module as
+an attention mechanism with time-decaying factors. Different from the element-wise pooling in QRNN,
+RWKV includes a parametrized channel-mixing module that is parallelizable.
+                                                   14063
+D    Time-Mixing Block as an RNN Cell
+As stated in 3.3, the RWKV time-mixing block can be formulated as an RNN, as the W KV computation
+can be written in such a recursive form:
+
+                                       a0 , b0 = 0,                                                               (19)
+                                                  at−1   + eu+kt ⊙ v   t
+                                        wkvt =                             ,                                      (20)
+                                                    bt−1 + eu+kt
+                                           at = e−w ⊙ at−1 + ekt ⊙ vt ,                                           (21)
+                                            bt = e−w ⊙ bt−1 + ekt .                                               (22)
+
+   The dataflow of the RNN-like time-mixing is
+shown in Fig. 8, where the hidden states h is
+the numerator-denominator tuple (a, b). To avoid
+                                                                                 1     2
+overflow in calculating ekt , a numerical trick is
+                                                                                              3
+used in the official implementation. Noticing
+that a1 = ek1 ⊙ v1 and b1 = ek1 , we set a′1 =                                   e
+
+v1 , b′1 = 1, p1 = k1 , where pt stores the shared
+exponents of at and bt . Now the above recursion
+can be converted into a numerical safe version,
+for each time step t > 1:
+                                                           Figure 8: RWKV time-mixing block formulated as an
+      q := max(pt−1 , u + kt ),                  (23)      RNN cell. Color codes: yellow (µ) denotes the token
+                                                           shift, red (1) denotes the denominator, blue (2) denotes the
+           ept−1 −q ⊙ a′t−1 + eu+kt −q ⊙ vt                numerator, and pink (3) denotes the fraction computations
+ wkvt =                                     . (24)
+              ept−1 −q ⊙ b′t−1 + eu+kt −q                  in 16. h denotes the numerator-denominator tuple.
+
+The update to a′t , b′t , and their shared exponent is
+also carried out in a similar fashion:
+
+                                    q ′ := max(pt−1 − w, kt ),                                                    (25)
+                                                    ′                ′
+                                    a′t = ept−1 −w−q ⊙ a′t−1 + ekt −q ⊙ vt ,                                      (26)
+                                                    ′                ′
+                                    b′t = ept−1 −w−q ⊙ b′t−1 + ekt −q ,                                           (27)
+                                    pt = q ′ .                                                                    (28)
+
+The RWKV model has an internal state that stores some previous information. In each layer, the internal
+state consists five parts, each of which is a vector with D numbers, where D is the model dimension. The
+five parts are:
+    • The current input of the Time-mix block xt ;
+    • The current input of the Channel-mix block yt ;
+    • The numerator of the W KV value a′t , as defined in equation (26);
+    • The denominator of the W KV value b′t , as defined in equation (27);
+    • An auxiliary state pt in (28), which is used for W KV computation to maintain numerical precision.
+Which yields a total size of 5DL parameters. It is worth noting that in an algebraic context with infinite
+precision, the helper state pt can be ignored, and the W KV numerator and denominator can be computed
+directly using equations (21) and (22), reducing the size of the internal state to 4DL.
+
+E    Parameter initializations
+We describe the specific parameter initializations below and motivate the design choices. Parameters
+belonging to residual blocks are often adjusted by layer depth and total number of layers. Let # denote
+the vocabulary size, s denote the embedding dimension, d denote the hidden size (we use d = 4s), L the
+number of layers, l the layer index (from 0 to L − 1), we use the following initializations:
+                                                         14064
+    • Embeddings are initialized to U (±1 × 10−4 ) as explained in 3.4
+                                                                                  l                  l
+    • For the time-mixing blocks (11, 12, 13), initializations are µki = ( si )1− L , µvi = ( si )1− L + L−1
+                                                                                                         0.3l
+                                                                                                              and
+                         l
+      µri = 12 · ( si )1− L
+                                                                                                     l
+    • For the channel-mixing blocks (14, 15), µki and µri are initialized to ( si )1− L
+                                                                                                  1.3l
+                                                                          i 0.7+ L−1
+    • wi (16), also known as “time decay”, is initialized to −5 + 8 · ( d−1  )        . Intuitively, it is the
+      discount factor applied to previous tokens over time.
+    • ui (16), also known as “bonus”, is set to 0.5 · (((i + 1) mod 3) − 1) + log 0.3. It is the special
+      weighting applied to the current token in equation 16. The alternating zigzag pattern initially
+      creates subtle variations in the tensor elements, which are intended to help the model treat different
+      dimensions of the embedding distinctively.                                q
+    • Wo (17) (time-mixing) and Wv (channel-mixing) are initialized to N (0, ds = 2)
+    • All other Wr , Wk , Wv weights are initialized to 0 so the model can start learning from the beginning
+      without noisy signals.
+    • All LayerNorm weights start from 1 and biases from 0.
+
+F    Small Init Embedding
+This section presents the experimental validation of small initialization embedding. The experimental
+setup is as follows. In the baseline configuration, the parameters are initialized using a normal distribution
+with a mean of 0.0 and a standard deviation of 0.02, which is a commonly used initialization method
+in models like BERT and GPT. On the other hand, in the small initialization of the embedding (small
+init emb) experiment, the parameters are initialized using a uniform distribution with a range of 1e-4,
+which is slightly different from RWKV where a normal distribution with a standard deviation of 1e-4
+is used. However, this difference is negligible and does not affect our conclusions. The experiments
+were conducted with a batch size of 400. As depicted in Figure 9, the loss curve for the small init emb
+exhibits a faster rate of decrease and convergence compared to the traditional initialization using a normal
+distribution.
+
+
+
+                              11                                                 Baseline
+                                                                                 Small Init Emb
+                              10
+
+                              9
+
+                              8
+                       Loss
+                              7
+
+                              6
+
+                              5
+
+                              4
+                                   0          10000      20000          30000   40000        50000
+                                                                 Step
+                                       Figure 9: Effect of small initialization embedding.
+
+
+G     Hyperparameters
+To train the models mentioned, we use ϵ = (0.9, 0.99) without weight decay for the Adam optimizer, and
+switch batch size dynamically between 128 or 256 sequences, each of 1024 tokens. We further organize
+                                                             14065
+        Model                      169M        430M          1.5B         3B           7B        14B
+        Init LR                    0.0006      0.0004     0.0003        0.00015      0.00015    0.0001
+        Warmup Mini-Epochs           361         411        443           451          465        544
+        End LR                    0.00001     0.00001     0.00001       0.00001      0.00001   0.000007
+
+            Table 3: Hyperparameters for our learning rate (LR) schedule of the pretrained models.
+
+
+the training into multiple mini-epochs, each of 40320 samples, to guide our learning rate schedule. The
+training process takes 8043 mini-epochs to make one pass over the Pile. The initial warming up mini-
+epochs have a constant learning rate of “Init LR”. After the warming up mini-epochs, the learning rate
+exponentially decays until in the last mini-epoch, in which the model finishes training on the entire Pile,
+the learning rate arrives at the “End LR”. The related hyperparameters are shown in Table 3.
+
+H    Gradient Stability in RWKV
+
+In this section, we present a mathematical description of the gradient stability property in RWKV, focusing
+specifically on the time-mixing block. By gradient stability we mean that if the inputs xt are bounded and
+the model parameters are fixed, then the gradients with respect to Wk and Wv are uniformly bounded for
+all T (thus not exploding). Consequently, we can control the amount each xt contributes to the gradient at
+T in a naturally decaying fashion by the weight decay mechanism w (thus not vanishing unless desired).
+   First, we make the simplification that there are no token shifts, this will not affect the final conclusion.
+In this scenario, wkvT can be written as
+                                          PT
+                                            t=1   Kte ⊙ vt                S(vt )
+                                wkvT =      P T
+                                                             = E(vt ) =          ,                        (29)
+                                                    e
+                                               t=1 Kt
+                                                                          S(1)
+
+where
+                                                      ∂(vt )i
+                                     vt = Wv xt ,              = (xt )j ,
+                                                     ∂(Wv )i,j
+
+                                                       ∂(Kte )i
+                              Kte = eWk xt +wT,t ,              = (xt )j (Kte )i ,
+                                                      ∂(Wk )i,j
+
+and S(·) and E(·) are shorthand for denoting sums and averages over weights Kte .
+  The loss function at position T can be written as
+
+                                          LT = l(f (wkvT ), yT ).                                         (30)
+
+Because wkvT relates to (Wk )i,j and (Wv )i,j only through the i-th channel (wkvT )i , we have
+
+                                      ∂LT         ∂LT ∂(wkvT )i
+                                              =                     .                                     (31)
+                                    ∂(Wv )i,j   ∂(wkvT )i ∂(Wv )i,j
+
+The first part of the above equation contains trivial operations like output layers, and other layers of
+time-mixing, which can be proven inductively. The second part of the above equation can be bounded as
+
+                                  ∂(wkvT )i   ∂Ei [(vt )i ]
+                                            =
+                                  ∂(Wv )i,j   ∂(Wv )i,j
+                                               = |Ei [(xt )j ]| ≤ max |(xt )j |,                          (32)
+                                                                    t
+
+                                                     14066
+which is irrelevant to T . Similarly,
+
+                             ∂(wkvT )i    Si [(vt )i ]
+                                       =∂              /∂(Wk )i,j
+                             ∂(Wk )i,j       Si (1)
+                                         Si [(xt )j (vt )i ] Si [(xt )j ]Si [(vt )i ]
+                                       =                     −
+                                              Si (1)                 Si (1)2
+                                       = Ei [(xt )j (vt )i ] − Ei [(xt )j ]Ei [(vt )i ]
+                                          = covi ((xt )j , (vt )i )                                     (33)
+
+can also be bounded. Note that wkv’s softmax operation contains at least two non-zero terms (u and w),
+so the above “covariance” will not degenerate into 0.
+
+I    Model Behavior Visualization
+The right plot illustrates the time decays (e−w )
+in each layer of the RWKV-169M model, sorted                      Time decay (sorted along channel axis)
+along the channel axis. Notably, several decays        1.0
+
+in the last layers are very close or equal to one,
+                                                       0.8
+implying that certain information is preserved
+                                                              Layer 1
+and propagated throughout the model’s temporal         0.6    Layer 2
+
+                                                             Time Decay
+                                                              Layer 3
+context. Meanwhile, many decays in the initial                Layer 4
+layer are close to zero, which corresponds to lo-             Layer 5
+                                                       0.4    Layer 6
+cal operations in wkv (16), likely to be associated           Layer 7
+                                                              Layer 8
+with tasks such as text parsing or lexical analy-      0.2    Layer 9
+                                                              Layer 10
+sis. (Note that the local operations in wkv are               Layer 11
+                                                       0.0    Layer 12
+due to the extra parameter u, when e−w is de-              0    100 200 300 400 500 600 700 800
+generated into 0.) These patterns of time decays                                 Channel
+are partly learned, but also come from parameter
+                                                    Figure 10: Model behavior visualizations of RWKV.
+initialization as it speeds up training.
+   The plot below shows the information retrieval
+and propagation path in the RWKV-430M model. The experiment follows the causal trace method
+introduced by Meng et al. (2022), where we
+
+    1. Run the model once, and record all states and activation of each layer during the computation;
+    2. Corrupt the input embeddings of the subject using noise (“The Eiffel Tower” in this example);
+    3. Restore the states and activation of a certain layer at a certain token during the computation, and
+       record the log-probability of the model outputting the correct answer (“Paris”).
+
+Unlike transformers, RWKV relies on the recursive propagation of information in the time dimension.
+In this case, the fact that the Eiffel Tower is located in Paris is retrieved in layer 4 just after the model
+sees “The Eiffel”. It is then passed down to the subsequent layers. In layer 20, mostly, the information is
+propagated through time until reaching where it is needed. Finally, at the token “of”, it is passed down to
+the last layer for outputting the answer.
+
+J     Additional Evaluations
+J.1 Further details on NLP tasks
+We evaluate on the following tasks:
+ARC (Clark et al., 2018) A dataset designed for multiple-choice question answering, encompassing
+science exam questions ranging from third grade to ninth grade. It has Easy and Challenge subsets that
+we report results on separately.
+BoolQ (Clark et al., 2019) A binary yes/no question answering benchmark.
+                                                      14067
+                                      Information propagation path                        1
+                The
+
+
+
+
+                                                                                          Log-probability of "Paris"
+                    E                                                                     2
+                  iff
+                  el                                                                      3
+              Tower                                                                       4
+                   is
+            located                                                                       5
+                  in
+                the                                                                       6
+                city                                                                      7
+                  of
+                        1              6           11           16           21
+                                                     Layer
+                            Figure 11: Model behavior visualizations of the RWKV model.
+
+
+COPA (Roemmele et al., 2018) A dataset to evaluate achievement in open-domain commonsense
+causal reasoning.
+HeadQA (Vilares and Gómez-Rodríguez, 2019) A benchmark consisting of graduate-level questions
+encompassing various fields such as medicine, nursing, biology, chemistry, psychology, and pharmacology.
+HellaSwag (Zellers et al., 2019) A novel benchmark for commonsense Natural Language Inference
+(NLI) which is build by adversarial filtering against transformer models.
+LAMBADA (Paperno et al., 2016) A benchmark dataset that evaluates the model’s contextual reasoning
+and language comprehension abilities by presenting context-target pairs, where the objective is to predict
+the most probable target token. We follow standard practice and use the untokenized version created by
+OpenAI (Brown et al., 2020).
+OpenBookQA (Mihaylov et al., 2018) A QA dataset to evaluate human comprehension of a subject by
+incorporating open book facts, scientific knowledge, and perceptual common sense, drawing inspiration
+from open book exams.
+PIQA (Bisk et al., 2020) A benchmark for the task of physical common sense reasoning, which consists
+of a binary choice task that can be better understood as a set of two pairs, namely (Goal, Solution).
+ReCoRD (Zhang et al., 2018) A benchmark for evaluating commonsense reasoning in reading
+comprehension by generating queries from CNN/Daily Mail news articles and requiring text span answers
+from corresponding summarizing passages.
+SciQ (Johannes Welbl Nelson F. Liu, 2017) A multiple-choice QA dataset which was created using
+an innovative approach to gather well-crafted multiple-choice questions that are focused on a specific
+domain.
+Winogrande (Zellers et al., 2020) A dataset designed to evaluate the acquisition of common sense
+reasoning by neural language models, aiming to determine whether we are accurately assessing the true
+capabilities of machine common sense.
+
+
+
+
+                                                        14068
+           100                                                              100                                                100
+
+
+           80                                                               80                                                 80
+
+
+           60                                                               60                                                 60
+
+Accuracy                                                         Accuracy                                           Accuracy
+           40                                                               40                                                 40
+
+
+           20                                           BLOOM               20                                                 20
+                                                        Pythia
+                                                        OPT
+                                                        RWKV
+            0                                                                0                                                  0
+                        102                       103                               102                       103                     102                       103
+                              Compute (exaFLOP)                                           Compute (exaFLOP)                                 Compute (exaFLOP)
+
+                    (a) ARC (Challenge)                                           (b) ARC (Easy)                                       (c) BoolQ
+
+           100                                                              100                                                100
+
+
+           80                                                               80                                                 80
+
+
+           60                                                               60                                                 60
+
+Accuracy                                                         Accuracy                                           Accuracy
+           40                                                               40                                                 40
+
+
+           20                                           BLOOM               20                                                 20
+                                                        Pythia
+                                                        OPT
+                                                        RWKV
+            0                                                                0                                                  0
+                        102                       103                               102                       103                     102                       103
+                              Compute (exaFLOP)                                           Compute (exaFLOP)                                 Compute (exaFLOP)
+
+                         (d) COPA                                                   (e) HeadQA                                       (f) HellaSwag
+
+           100                                                              100                                                100
+
+
+           80                                                               80                                                 80
+
+
+           60                                                               60                                                 60
+
+Accuracy                                                         Accuracy                                           Accuracy
+           40                                                               40                                                 40
+
+
+           20                                           BLOOM               20                                                 20
+                                                        Pythia
+                                                        OPT
+                                                        RWKV
+            0                                                                0                                                  0
+                        102                       103                               102                       103                     102                       103
+                              Compute (exaFLOP)                                           Compute (exaFLOP)                                 Compute (exaFLOP)
+
+                  (g) LAMBADA (OpenAI)                                            (h) OpenBookQA                                        (i) PiQA
+
+           100                                                              100                                                100
+
+
+           80                                                               80                                                 80
+
+
+           60                                                               60                                                 60
+
+Accuracy                                                         Accuracy                                           Accuracy
+           40                                                               40                                                 40
+
+
+           20                                           BLOOM               20                                                 20
+                                                        Pythia
+                                                        OPT
+                                                        RWKV
+            0                                                                0                                                  0
+                        102                       103                               102                       103                     102                       103
+                              Compute (exaFLOP)                                           Compute (exaFLOP)                                 Compute (exaFLOP)
+
+                        (j) ReCoRD                                                        (k) SciQ                                   (l) Winogrande
+
+                 Figure 12: Zero-Shot Performance of RWKV on common language modeling evaluation benchmarks.
+
+
+
+
+                                                                                          14069
+J.2 Evaluation on Long Range Arena
+The Long-Range Arena (LRA) benchmark (Tay et al., 2021) is designed to assess the performance of
+models in handling lengthy context situations. It includes a collection of tasks with sequences ranging
+from 1,000 to 16,000 tokens, covering various types of data like text, natural language, synthetic images,
+and mathematical expressions. We apply RWKV on the LRA benchmark and the report results are in
+Table 4. Other models’ performances are directly cited from Gu et al. (2022); Alam et al. (2023).
+
+Table 4: Evaluation on Long Range Arena. Other models reported in the literature (Gu et al., 2022; Alam et al.,
+2023). Bolded values are the best.
+
+          M ODEL              L IST O PS       T EXT     R ETRIEVAL      I MAGE      PATHFINDER    PATH -X    AVG
+          Transformer         36.37            64.27     57.46           42.44      71.40          ✗          53.66
+          Reformer            37.27            56.10     53.40           38.07      68.50          ✗          50.56
+          BigBird             36.05            64.02     59.29           40.83      74.87          ✗          54.17
+          Linear Trans.       16.13            65.90     53.09           42.34      75.30          ✗          50.46
+          Performer           18.01            65.40     53.82           42.77      77.05          ✗          51.18
+          FNet                35.33            65.11     59.61           38.67      77.80          ✗          54.42
+          Nyströmformer       37.15            65.52     79.56           41.58      70.94          ✗          57.46
+          Luna-256            37.25            64.57     79.29           47.38      77.72          ✗          59.37
+          Hrrformer           39.98            65.38     76.15           50.45      72.17          ✗          60.83
+          S4                  59.60            86.82     90.90           88.65      94.20          96.35      86.09
+          RWKV                55.88            86.04     88.34           70.53      58.42          ✗          72.07
+
+
+   The results show that RWKV performs second only to the S4 model in five datasets. While RWKV
+substantially underpreforms S4 on Image, Pathfinder, and Path-X, on the problems related to natural
+language and computer code processing RWKV performs on par with S4 or nearly so.
+
+J.3 Enwik8 Perplexity
+We also evaluate our model in terms of perplexity on the Enwik8 dataset. Baseline comparisons are
+made with Reformer (Kitaev et al., 2020), Synthesizer (Tay et al., 2020) (the best performing dense
+version), Linear Transformer (Katharopoulos et al., 2020), Performer (Choromanski et al., 2020). L, d,
+and T denote the number of blocks (network depth), dimension of features, and sequence length, re-
+spectively. Both Linear Transformer and Performer are implemented with customized CUDA kernels
+(github.com/idiap/fast-transformers), and all other models are implemented in native Pytorch. 1 No weight
+decay nor dropout was used. 2 Trained with AdamW and weight decay set to 0.1, dropout of 0.1, batch
+size of 16, and initial learning rate of 6e-4.
+
+     Method               L       d        T           Train bpc   Test bpc      Time Complexity   Space Complexity
+                                                                                     2
+     Transformer          12      512      1024        0.977       1.137         O(T d)            O(T 2 + T d)
+     Transformer          24      256      1024        1.039       1.130         O(T 2 d)          O(T 2 + T d)
+     Reformer             12      512      1024        1.040       1.195         O(T log T d)      O(T log T + T d)
+     Synthesizer          12      512      1024        0.994       1.298         O(T 2 d)          O(T 2 + T d)
+     Linear Transformer   12      512      1024        0.981       1.207         O(T d2 )          O(T d + d2 )
+     Performer            12      512      1024        1.002       1.199         O(T d2 log d)     O(T d log d + d2 log d)
+     AFT-simple           12      512      1024        1.046       1.209         O(T d)            O(T d)
+     RWKV-RNN1            6       512      1024        0.720       -             O(Td)             O(d)
+     RWKV-RNN2            12      512      1024        1.010       1.178         O(Td)             O(d)
+
+                          Table 5: Enwik8 results, measured in bits per character (bpc).
+
+
+K Inference results
+Figures 13 and 14 illustrate, respectively, the results on time (s) and memory (RAM, VRAM) requirements
+for LLM inference in float32 precision. We benchmark the following model families and sizes:
+                                                                 14070
+  • RWKV: 169m, 430m, 1.4b, 3b, 7b, 14b
+  • Bloom (Scao et al., 2022): 560m, 1b, 3b
+  • OPT (Zhang et al., 2022): 125m, 350m, 1.3b, 2.7b, 6.7b, 13b
+  • GPT-Neo (Black et al., 2021): 125m, 1.3b, 2.7b
+  • Pythia (Biderman et al., 2023b): 160m, 410m, 1.4b, 2.8b, 6.7b, 12b
+
+
+
+
+Figure 13: Text generation inference memory (CPU RAM, GPU VRAM) for LLMs. Model parameters are not
+accounted.
+
+
+
+
+                          Figure 14: Text generation inference time for LLMs.
+
+
+
+
+                                                14071
+       Task Name         Measure       ChatGPT      GPT-4       RWKV-GPT        RWKV-adapted         SOTA
+       RTE               F1 Macro        88.1        91.3          44.2               74.8            92.1
+       WNLI              Accuracy        81.7        91.6          47.9               49.3            97.9
+       GoEmotions        F1 Macro        25.6        23.1           7.9                7.9            52.8
+       PolEmo2           F1 Macro        44.1        41.0          38.2               40.9            76.4
+
+Table 6: ChatGPT, GPT-4 and RWKV-4-Raven-14B reasoning performance comparison in RTE (Wang et al., 2019),
+WNLI (Wang et al., 2018), GoEmotions (Demszky et al., 2020), and PolEmo2 (Kocoń et al., 2019) benchmarks.
+RWKV GPT prompts were primarily used for ChatGPT in (Kocoń et al., 2023). SOTA is provided as a supplementary
+reference.
+
+                      Task Name       Measure       ChatGPT      RWKV-adapted         SOTA
+                      Aggression      F1 Macro          69.10                56.66     74.45
+                      MathQA          Accuracy          71.40                 5.43     83.20
+                      Sarcasm         F1 Macro          49.88                50.96     53.57
+                      TweetSent       F1 Macro          63.32                52.50     72.07
+                      Unhealthy       F1 Macro          45.21                43.30     50.96
+
+Table 7: ChatGPT and RWKV-4-Raven-14B performance comparison in Aggresion (Wulczyn et al., 2017), Sarcasm
+(Siddiqui, 2019), Unhealthy (Price et al., 2020), MathQA (Cobbe et al., 2021), and TweetSent (Barbieri et al., 2020)
+benchmarks. SOTA is provided as a supplementary reference.
+
+
+L    Importance of prompt construction and comparison to GPT models
+Inspired by Kocoń et al. (2023), we compared the zero-shot performance of the RWKV-4-Raven-14B with
+ChatGPT (access in February 2023) and GPT-4 using several known NLP tasks, i.e., recognizing textual
+entailment (RTE), Winograd Natural Language Inference (WNLI), and recognizing emotions elicited
+in readers (GoEmotions and PolEmo2). Each model got the same prompts manually chosen to receive
+proper responses from the ChatGPT model. As shown in Tab. 6, RWKV performs significantly worse
+than ChatGPT and GPT-4 in several specific tasks. We suspect that this disparity is likely caused by the
+choice of prompts used to generate the answers since the prompts are written in natural language and do
+not take into account that RWKV, as an RNN, is unable to look back inside an instruction.
+   When the instruction style was adapted (re-ordered) to respect that RNNs are not capable of "retro-
+spective processing", the quality may significantly change, e.g., for RTE (Wang et al., 2019) F1 Macro
+increased from 44.2% to 74.8%. We hypothesize that RWKV models are more sensitive to the position of
+the components in the context, as RNN-based architectures cannot look back and readjust the weight of
+previous information. For better performance, the desired information should be placed after the main
+question.
+
+    An example ChatGPT prompt for recognizing textual entailment (RTE)
+
+    Having premise <here is a premise> judge if the following hypothesis <here is a hypothesis> is
+    logically connected with the premise. Answer "entailment" if yes, or "not_entailment" if no.
+
+    A re-ordered RWKV prompt for RTE taking into account the nature of the RNN
+
+    Can you tell me if the hypothesis is entailment or is not entailment to the premise?
+    premise: <here is a premise>
+    hypothesis: <here is a hypothesis>
+
+  While separating the instruction from the input is relatively easy to do, some other aspects of prompt
+engineering are harder to quantify. For that purpose, we also tested the approach of stating the input after
+                                                      14072
+the question on multiple other tasks, i.e., aggression and sarcasm detection, classification of unhealthy
+(offensive) texts, mathematical Q&A, and sentiment analysis, see Tab. 7. The results suggest that better
+prompts might reduce the disparity between models. Raven achieves comparable results to ChatGPT on
+unhealthy conversation detection and even surpasses it on the sarcasm detection dataset. While such an
+approach to prompting looks necessary, it is not enough in itself to replace the capability of having free
+access to the whole context. Therefore, prompt engineering seems to be significantly more important for
+the RNN models rather than for standard transformers. It is entirely possible that good prompts to RNN
+models do not mean additional restrictions, but should simply be constructed using completely different
+guidelines. The authors of the aforementioned paper (Kocoń et al., 2023)4 perform chain-of-thought
+to improve results on the MathQA dataset. Even including this approach, the Raven model achieved a
+very low accuracy of 5.43%. Without it, the model performed even worse, performing only very basic
+and simple calculations and achieving 4.13% accuracy. Raven struggled with questions that required
+intermediate results. It is likely that the order of information presented in the math questions inside the
+dataset poses a challenge for the RWKV model. It is yet to be seen if prompt engineering can address this
+issue. This further emphasizes the importance of the order of information the model receives.
+
+
+
+    Template used to prompt the Raven model in MathQA with chain-of-thought
+
+    Write the reasoning and highlight the answer to the question at the end in the format: "Answer: ".
+    The question is: <here is a question>
+
+
+
+    Template used to prompt the Raven model in MathQA without chain-of-thought
+
+    Write the answer to the math question in the format: "Answer: ".
+    The question is: <here is a question>
+
+
+
+
+M       Cases
+
+
+In this part, we present a few instances of outputs produced by RWKV model using a Chat interface56 .
+
+
+    RWKV-4-Raven-14B
+    Tell me about ravens.
+
+    Ravens are large, black birds with a distinctive white head and neck. They are found in most parts
+    of the world, including North America, Europe, Asia, and Australia. Ravens are known for their
+    intelligence and problem-solving abilities. They are also considered to be symbols of death and
+    transformation in many cultures. Ravens are often associated with the afterlife or death because
+    they have been known to eat carrion or even other birds. In some cultures, ravens are also believed
+    to be messengers of the gods or guardians of treasure.
+
+
+
+
+    4
+      This is in line with the idea discussed in (Wei et al., 2022b)
+    5
+      ttps://github.com/BlinkDL/ChatRWKV
+    6
+      https://huggingface.co/spaces/BlinkDL/ChatRWKV-gradio
+
+                                                               14073
+RWKV-4-Raven-14B
+Explain the concept of machine learning to a 10-year-old.
+
+Machine learning is like a super-smart computer that can learn on its own. It can recognize patterns
+and make decisions based on what it has learned. Just like how you might remember something
+from the past, the computer can remember what it’s learned and use it to make predictions or
+decisions in the future. It’s like having a smart friend who always knows what to do!
+
+
+
+
+RWKV-4-Raven-14B
+Write a short poem describing nature’s beauty in springtime.
+
+                             Nature’s beauty in springtime is rare,
+                            A symphony of colors, a gentle surprise.
+                           The flowers bloom, the birds sing and sing,
+                           As the sun shines down, warming our skin.
+                              The trees sway in the gentle breeze,
+                              As we take in their beauty with ease.
+                             The sky is blue, the clouds are white,
+                               A sight to behold, it’s truly divine.
+
+                                               14074
+RWKV-4-Raven-14B
+Below is the numerical stable formula for updating the state variable in RWKV:
+
+                                     a∗t = ep−q at−1 + eu+kt −q vt
+                                    b∗t = ep−q bt−1 + eu+kt −q
+                                          a∗
+                                  wkvt = ∗t
+                                          bt
+Please write out the corresponding pytorch code to do so, where both at and bt are
+torch.Tensor([n])
+
+Here is the PyTorch code to update the state variable in RWKV using the given formula:
+
+
+   import t o r c h
+   def u p d a t e _ s t a t e ( a , b , u , v , p , q ) :
+          a _ t = t o r c h . exp ( p − q ) * a + t o r c h . exp ( u + k − q ) * v
+          b _ t = t o r c h . exp ( p − q ) * b + t o r c h . exp ( u + k − q )
+          return a_t , b_t
+   a , b = t o r c h . randn (2 , 3)
+   u = t o r c h . randn ( 2 )
+   v = t o r c h . randn ( 2 )
+   wkv = t o r c h . r a n d n ( 2 )
+   a _ t , b _ t = u p d a t e _ s t a t e ( a , b , u , v , wkv , t o r c h . r a n d n ( 2 ) )
+   print ( " a_t : " , a_t )
+   print ( " b_t : " , b_t )
+
+
+This code defines a function update_state that takes in the state variables a and b, the control
+variables u and v, and the parameters wkv and torch.randn. It then uses the PyTorch torch.exp
+function to compute the exponential of the control variables and the log of the normalization factor.
+Finally, it uses these values to update the state.
+
+
+
+
+RWKV-4-Raven-14B
+Explain the following metaphor: Life is like cats.
+
+The metaphor "Life is like cats" suggests that life can be unpredictable and full of unexpected
+twists and turns, just like a cat’s behavior. It implies that we cannot fully control or predict the
+outcome of our lives, just as we cannot control the movements of a cat. The metaphor also implies
+that life is complex and multifaceted, with many different variables and factors at play. Just as a
+cat can have multiple personalities or moods, life can have many twists and turns that are difficult
+to predict or understand. Overall, the metaphor suggests that life is complex and unpredictable,
+much like a cat’s behavior.
+
+
+
+
+                                                14075
+RWKV-4-Raven-14B
+                          P∞
+Test the convergence of      i=0 2 .
+                                  −i
+
+
+The given series is a geometric series with the first term a0 = 2 and common ratio r = 12 . We can
+find the sum of this series using the formula for a geometric series:
+                           ∞
+                           X                  1
+                                         a0          1    2
+                                 ai =       = 2 1 =    1 = =2
+                                        1−r  1− 2   1− 2  1
+                           i=0
+
+So, the sum of the given series is 2 .
+
+
+
+RWKV-4-Raven-14B
+I would like to cook some Chinese food at home. Do you have any suggestions on the meal I
+could choose?
+
+Yes, of course! If you are not very experienced in cooking Chinese food, you could start with
+making noodles or rice, then make a dish using one of those. I also think making stir-fry with
+some meat is an excellent idea.
+
+I want to make something more special. What about red braised pork belly?
+
+Yes, red braised pork belly is also very popular and tasty.
+
+Tell me the steps to cook.
+
+You will need a few ingredients such as pork belly, star anise, sugar, ginger, scallions and wine.
+Put all of these in a pot, cook on medium heat and simmer until the meat is tender. After that,
+remove the meat from the pot and reserve the sauce. Slice the meat and add some ginger slices
+into it, then boil until it’s almost done.
+
+What do I need to be careful with the most during the cooking process?
+
+To cook pork belly properly, it is very important to monitor the heat of the stove and be patient
+with the cooking process. Overcooking it can cause the pork to be tough, dry and difficult to chew.
+You can add a few ingredients like soy sauce or black beans to give the pork more flavor.
+
+Tell me more about the proper heat and timing.
+
+If the temperature of the water is too high, it can damage the collagen and connective tissues,
+resulting in tough pork belly. It is essential to control the temperature carefully, especially
+when braising the pork. Additionally, keep the water simmering but not boiling to maintain a
+low simmer, as high heat will dry out the pork belly and result in tough and unpalatable meat.
+Lastly, monitor the heat during cooking and make sure the heat is medium, as this is what is most
+appropriate for slow cooking pork belly.
+
+I see. Thank you for your advice.
+
+You’re welcome! It was a pleasure chatting with you. Let me know if you need any further
+assistance in the future.
+                                               14076
+RWKV-4-Raven-14B
+If all apples are fruits and all fruits are sweet, are all apples sweet? Please explain your
+answer in detail.
+
+Yes, all apples are fruits, and all fruits are sweet. Therefore, it is safe to assume that all apples are
+sweet.
+
+If birds can fly. Penguins are birds. Can penguins fly? Please explain your answer in detail.
+
+No, penguins cannot fly. Penguins are birds, but they are not capable of flight like other birds.
+They have wings and can glide for short distances, but they cannot take off or fly long distances
+like other birds.
+
+The day before two days after the day before tomorrow is Saturday. What day is it today?
+Please explain your answer in detail.
+
+Today is Friday. Two days after tomorrow is Sunday. Tomorrow is Saturday.
+
+If five cats can catch five mice in five minutes, how long will it take one cat to catch one
+mouse? Please explain your answer in detail.
+
+If five cats can catch five mice in five minutes, it means that each cat can catch one mouse in one
+minute. To find out how long it will take one cat to catch one mouse, we can use the concept of
+proportionality.
+Let’s assume that it takes x minutes for a cat to catch a mouse. Then, the number of mice caught
+by a cat in one minute is equal to the number of cats multiplied by the number of mice caught by
+each cat: x = 5 * 1 = 5
+So, it will take 5 minutes for one cat to catch one mouse.
+
+
+
+RWKV-4-Raven-14B
+Summarize the following paragraph.
+
+<The Abstract of this paper goes here>
+
+The paper presents a novel architecture, Receptance Weighted Key Value (RWKV), that combines
+the efficient parallelizable training of Transformers with the efficient inference of RNNs. The
+model is able to scale to tens of billions of parameters and exhibits linear computational complexity
+during training and inference, making it a promising alternative to Transformers for sequence
+processing tasks.
+
+Please further summarize it in one sentence.
+
+The researchers have developed a new architecture that combines the efficient parallelizable
+training of Transformers with the efficient inference of RNNs, which allows for linear scaling in
+memory and computational requirements.
+
+
+
+
+                                                 14077
+
