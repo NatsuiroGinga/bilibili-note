@@ -1,0 +1,72 @@
+[project]
+name = "flow-probe"
+version = "0.1.0"
+description = "生成式恶意流量探针实验"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "pandas>=2.2,<4",
+    "pyyaml>=6.0,<7",
+    "scikit-learn>=1.5,<2",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "accelerate>=1.10,<2",
+    "bitsandbytes>=0.46,<1",
+    "datasets>=4.0,<5",
+    "peft>=0.17,<1",
+    "swanlab>=0.9,<1",
+    "torch>=2.8,<3",
+    "transformers>=4.55,<5",
+    "trl>=0.21,<1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1,<26",
+    "pytest>=8.4,<9",
+    "ruff>=0.12,<1",
+]
+
+[project.scripts]
+flow-probe-prepare = "flow_probe.prepare:main"
+flow-probe-sample = "flow_probe.sampling:main"
+flow-probe-sample-hierarchical = "flow_probe.hierarchical_sampling:main"
+flow-probe-build-multitask = "flow_probe.multitask_bundle:main"
+flow-probe-train = "flow_probe.train_sft:main"
+flow-probe-evaluate = "flow_probe.evaluate_model:main"
+flow-probe-swanlab-diagnostic = "flow_probe.swanlab_diagnostic:main"
+flow-probe-audit-genis = "flow_probe.genis_audit:main"
+flow-probe-plan-genis = "flow_probe.genis_forward_split:main"
+flow-probe-materialize-genis = "flow_probe.genis_forward_split:materialize_main"
+flow-probe-traditional-baselines = "flow_probe.traditional_baselines:main"
+flow-probe-multiclass-baselines = "flow_probe.multiclass_baselines:main"
+flow-probe-evaluate-hierarchical = "flow_probe.hierarchical_evaluation:main"
+flow-probe-swanlab-artifact-smoke = "flow_probe.swanlab_artifact_smoke:main"
+flow-probe-analyze-h1 = "flow_probe.h1_analysis:main"
+flow-probe-validate-physics = "flow_probe.physics_validity:main"
+flow-probe-probe-qwen-physics-gradient = "flow_probe.qwen_physics_gradient:main"
+flow-probe-validate-ns3-truth = "flow_probe.ns3_truth:main"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flow_probe"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

@@ -1,0 +1,31 @@
+probe:
+  model_id: Qwen/Qwen3-1.7B
+  feature_view: canonical_core_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+training:
+  train_file: data/processed/smoke/train.jsonl
+  validation_file: data/processed/smoke/validation.jsonl
+  output_dir: runs/pilot-qwen3-1.7b-seed42
+  learning_rate: 0.0002
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 2
+  num_train_epochs: 1
+  max_steps: 50
+
+evaluation:
+  test_file: data/processed/smoke/test.jsonl
+  output_dir: runs/pilot-qwen3-1.7b-seed42/evaluation
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: llm-probe-hikari-pilot-seed42
+  description: HIKARI 诊断集上的完整一轮 QLoRA 探针
+  mode: online
+  tags: [llm-probe, hikari, pilot, qlora]

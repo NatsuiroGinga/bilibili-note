@@ -1,0 +1,34 @@
+probe:
+  model_id: Qwen/Qwen3-1.7B
+  feature_view: canonical_core_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+evaluation:
+  sample_dir: runs/data-sampled/genis-hierarchical-v2-seed42
+  output_dir: runs/qwen-evaluation/genis-hierarchical-v2-seed42-full-epoch1-eval50
+  samples_per_label: 50
+  generation_batch_size: 16
+  scoring_batch_size: 24
+  progress_every_batches: 5
+  max_known_rejection_rate: 0.05
+  seed: 42
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: qwen3-1.7b-genis-hierarchical-v2-seed42-full-epoch1-eval50
+  description: GeNIS v2 完整一轮适配器分层多分类与未知攻击拒识探针评估
+  mode: online
+  tags:
+    - llm-probe
+    - genis-2025
+    - hierarchical-v2
+    - gen-eval
+    - open-set
+    - full-epoch1
+    - eval50

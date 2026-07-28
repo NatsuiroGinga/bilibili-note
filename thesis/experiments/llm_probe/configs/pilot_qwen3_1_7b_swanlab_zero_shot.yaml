@@ -1,0 +1,21 @@
+probe:
+  model_id: Qwen/Qwen3-1.7B
+  feature_view: canonical_core_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+evaluation:
+  test_file: data/processed/smoke/test.jsonl
+  output_dir: runs/tracked-pilot-qwen3-1.7b-seed42/zero-shot
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: llm-probe-hikari-tracked-pilot-seed42
+  description: HIKARI 诊断集上的 SwanLab 在线零样本基线
+  mode: online
+  tags: [llm-probe, hikari, pilot, zero-shot, swanlab]

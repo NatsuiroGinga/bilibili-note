@@ -9,6 +9,7 @@
 
 # 第三方插件的会话/缓存
 copilot/
+.Codex/
 
 # 系统文件
 .DS_Store

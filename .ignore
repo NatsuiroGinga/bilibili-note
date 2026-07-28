@@ -1,0 +1,23 @@
+# 历史备份：默认搜索不读取，需要时可使用明确路径或 --no-ignore
+.Codex/docs/archive/
+
+# 可再生的依赖与语言工具缓存
+**/.venv/
+**/node_modules/
+**/__pycache__/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.mypy_cache/
+**/*.pyc
+.Codex/tools/**/node_modules/
+
+# 编辑器、会话缓存和临时渲染产物
+.obsidian/
+.claudian/
+.claude/logs/
+.superpowers/
+copilot/
+tmp/
+output/pdf-md/
+.DS_Store
+Thumbs.db
