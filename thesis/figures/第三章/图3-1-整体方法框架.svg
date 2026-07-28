@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="510.23622pt" height="306.141732pt" viewBox="0 0 510.23622 306.141732" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>图3-1-整体方法框架</title>
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>图3-1-整体方法框架</dc:title>
+    <dc:date>2026-07-24T12:44:39.850259</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 306.141732 
+L 510.23622 306.141732 
+L 510.23622 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 13.266142 118.170709 
+L 76.025197 118.170709 
+Q 82.148031 118.170709 82.148031 114.497008 
+L 82.148031 56.942362 
+Q 82.148031 53.268661 76.025197 53.268661 
+L 13.266142 53.268661 
+Q 7.143307 53.268661 7.143307 56.942362 
+L 7.143307 114.497008 
+Q 7.143307 118.170709 13.266142 118.170709 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #eaf3fa; stroke: #2f6b9a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 13.266142 289.610079 
+L 91.332283 289.610079 
+Q 97.455118 289.610079 97.455118 285.936378 
+L 97.455118 243.688819 
+Q 97.455118 240.015118 91.332283 240.015118 
+L 13.266142 240.015118 
+Q 7.143307 240.015118 7.143307 243.688819 
+L 7.143307 285.936378 
+Q 7.143307 289.610079 13.266142 289.610079 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #fff4d6; stroke: #a66f00; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 107.659843 124.293543 
+L 175.52126 124.293543 
+Q 181.644094 124.293543 181.644094 120.619843 
+L 181.644094 60.00378 
+Q 181.644094 56.330079 175.52126 56.330079 
+L 107.659843 56.330079 
+Q 101.537008 56.330079 101.537008 60.00378 
+L 101.537008 120.619843 
+Q 101.537008 124.293543 107.659843 124.293543 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #f1f3f4; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 121.43622 73.780157 
+L 162.255118 73.780157 
+Q 170.418898 73.780157 170.418898 68.88189 
+L 170.418898 65.208189 
+Q 170.418898 60.309921 162.255118 60.309921 
+L 121.43622 60.309921 
+Q 113.272441 60.309921 113.272441 65.208189 
+L 113.272441 68.88189 
+Q 113.272441 73.780157 121.43622 73.780157 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #ffffff; stroke: #7d878e; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 204.604724 93.67937 
+L 262.261417 93.67937 
+Q 268.384252 93.67937 268.384252 90.005669 
+L 268.384252 50.819528 
+Q 268.384252 47.145827 262.261417 47.145827 
+L 204.604724 47.145827 
+Q 198.48189 47.145827 198.48189 50.819528 
+L 198.48189 90.005669 
+Q 198.48189 93.67937 204.604724 93.67937 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #e7f5f1; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 291.344882 93.67937 
+L 364.308661 93.67937 
+Q 370.431496 93.67937 370.431496 90.005669 
+L 370.431496 50.819528 
+Q 370.431496 47.145827 364.308661 47.145827 
+L 291.344882 47.145827 
+Q 285.222047 47.145827 285.222047 50.819528 
+L 285.222047 90.005669 
+Q 285.222047 93.67937 291.344882 93.67937 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #e7f5f1; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 204.604724 164.091969 
+L 262.261417 164.091969 
+Q 268.384252 164.091969 268.384252 160.418268 
+L 268.384252 124.293543 
+Q 268.384252 120.619843 262.261417 120.619843 
+L 204.604724 120.619843 
+Q 198.48189 120.619843 198.48189 124.293543 
+L 198.48189 160.418268 
+Q 198.48189 164.091969 204.604724 164.091969 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #f1f3f4; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 291.344882 170.214803 
+L 364.308661 170.214803 
+Q 370.431496 170.214803 370.431496 166.541102 
+L 370.431496 118.170709 
+Q 370.431496 114.497008 364.308661 114.497008 
+L 291.344882 114.497008 
+Q 285.222047 114.497008 285.222047 118.170709 
+L 285.222047 166.541102 
+Q 285.222047 170.214803 291.344882 170.214803 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #fbedea; stroke: #c84b31; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 393.392126 164.091969 
+L 445.946457 164.091969 
+Q 452.069291 164.091969 452.069291 160.418268 
+L 452.069291 124.293543 
+Q 452.069291 120.619843 445.946457 120.619843 
+L 393.392126 120.619843 
+Q 387.269291 120.619843 387.269291 124.293543 
+L 387.269291 160.418268 
+Q 387.269291 164.091969 393.392126 164.091969 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #f1f3f4; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 469.927559 164.091969 
+L 499.52126 164.091969 
+Q 505.644094 164.091969 505.644094 160.418268 
+L 505.644094 124.293543 
+Q 505.644094 120.619843 499.52126 120.619843 
+L 469.927559 120.619843 
+Q 463.804724 120.619843 463.804724 124.293543 
+L 463.804724 160.418268 
+Q 463.804724 164.091969 469.927559 164.091969 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #eaf3fa; stroke: #2f6b9a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 122.966929 228.381732 
+L 178.072441 228.381732 
+Q 184.195276 228.381732 184.195276 224.708031 
+L 184.195276 196.23685 
+Q 184.195276 192.56315 178.072441 192.56315 
+L 122.966929 192.56315 
+Q 116.844094 192.56315 116.844094 196.23685 
+L 116.844094 224.708031 
+Q 116.844094 228.381732 122.966929 228.381732 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #fff4d6; stroke: #a66f00; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 209.707087 228.381732 
+L 264.812598 228.381732 
+Q 270.935433 228.381732 270.935433 224.708031 
+L 270.935433 196.23685 
+Q 270.935433 192.56315 264.812598 192.56315 
+L 209.707087 192.56315 
+Q 203.584252 192.56315 203.584252 196.23685 
+L 203.584252 224.708031 
+Q 203.584252 228.381732 209.707087 228.381732 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #fff4d6; stroke: #a66f00; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 395.943307 228.381732 
+L 445.946457 228.381732 
+Q 452.069291 228.381732 452.069291 224.708031 
+L 452.069291 196.23685 
+Q 452.069291 192.56315 445.946457 192.56315 
+L 395.943307 192.56315 
+Q 389.820472 192.56315 389.820472 196.23685 
+L 389.820472 224.708031 
+Q 389.820472 228.381732 395.943307 228.381732 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #fbedea; stroke: #c84b31; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 434.72126 304.917165 
+L 491.35748 304.917165 
+Q 500.541732 304.917165 500.541732 299.406614 
+L 500.541732 295.732913 
+Q 500.541732 290.222362 491.35748 290.222362 
+L 434.72126 290.222362 
+Q 425.537008 290.222362 425.537008 295.732913 
+L 425.537008 299.406614 
+Q 425.537008 304.917165 434.72126 304.917165 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #f1f3f4; stroke: #7d878e; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 80.578333 87.4294 
+Q 91.845081 88.78141 101.446725 89.933607 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 98.08683 87.717506 
+L 101.446725 89.933607 
+L 97.657907 91.291863 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 179.290387 100.817121 
+Q 190.063033 120.926061 200.04374 139.556714 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 199.930407 135.533387 
+L 200.04374 139.556714 
+L 196.757079 137.233384 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 266.822339 142.355906 
+Q 276.802339 142.355906 285.105287 142.355906 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 281.505287 140.555906 
+L 285.105287 142.355906 
+L 281.505287 144.155906 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 368.869583 142.355906 
+Q 378.849583 142.355906 387.152532 142.355906 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 383.552532 140.555906 
+L 387.152532 142.355906 
+L 383.552532 144.155906 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 450.512049 142.355906 
+Q 457.940465 142.355906 463.691829 142.355906 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 460.091829 140.555906 
+L 463.691829 142.355906 
+L 460.091829 144.155906 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 179.829928 84.888184 
+Q 190.062411 78.066529 198.899503 72.175134 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #14866d; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 194.905662 72.674365 
+L 198.899503 72.175134 
+L 196.902582 75.669746 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #14866d; stroke: #14866d; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 266.822339 70.412598 
+Q 276.802339 70.412598 285.105287 70.412598 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #14866d; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 281.505287 68.612598 
+L 285.105287 70.412598 
+L 281.505287 72.212598 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #14866d; stroke: #14866d; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 329.102362 93.340342 
+Q 329.102362 104.086274 329.102362 113.155156 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #14866d; stroke-width: 1.5; stroke-linecap: round"/>
+    <path d="M 330.902362 109.555156 
+L 329.102362 113.155156 
+L 327.302362 109.555156 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #14866d; stroke: #14866d; stroke-width: 1.5; stroke-linecap: round"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 95.039904 263.455571 
+Q 107.150202 238.023946 118.707717 213.753164 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.15; stroke-linecap: round"/>
+    <path d="M 115.534807 216.229582 
+L 118.707717 213.753164 
+L 118.785105 217.777343 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #a66f00; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.15; stroke-linecap: round"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 95.726282 268.714205 
+Q 150.520825 240.320669 204.17379 212.518678 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.15; stroke-linecap: round"/>
+    <path d="M 200.149287 212.576794 
+L 204.17379 212.518678 
+L 201.805581 215.77315 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #a66f00; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.15; stroke-linecap: round"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 151.376411 193.169986 
+Q 186.234897 143.123161 220.358527 94.131377 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.15; stroke-linecap: round"/>
+    <path d="M 216.823943 96.05666 
+L 220.358527 94.131377 
+L 219.778003 98.114214 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #a66f00; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.15; stroke-linecap: round"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 237.334428 192.900823 
+Q 239.811108 143.119555 242.2239 94.622437 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #14866d; stroke-width: 1.15; stroke-linecap: round"/>
+    <path d="M 240.247241 98.128548 
+L 242.2239 94.622437 
+L 243.842794 98.307432 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #14866d; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #14866d; stroke-width: 1.15; stroke-linecap: round"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 483.456916 163.053639 
+Q 459.21204 178.327911 436.055016 192.916836 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.15; stroke-linecap: round"/>
+    <path d="M 440.060414 192.520865 
+L 436.055016 192.916836 
+L 438.141478 189.474935 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #c84b31; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.15; stroke-linecap: round"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 391.612715 210.44556 
+Q 365.832316 194.19117 348.599324 170.629879 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.15; stroke-linecap: round"/>
+    <path d="M 349.27174 174.598236 
+L 348.599324 170.629879 
+L 352.177459 172.47296 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #c84b31; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.15; stroke-linecap: round"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 391.501969 213.71375 
+Q 303.500825 176.132603 256.501542 94.259556 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.15; stroke-linecap: round"/>
+    <path d="M 256.732739 98.277833 
+L 256.501542 94.259556 
+L 259.854881 96.485565 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #c84b31; stroke-dasharray: 4.6,2.3; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.15; stroke-linecap: round"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 14.25541 296.95748 
+Q 24.235409 296.95748 32.985572 296.95748 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.1; stroke-linecap: round"/>
+    <path d="M 30.185572 295.55748 
+L 32.985572 296.95748 
+L 30.185572 298.35748 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-width: 1.1; stroke-linecap: round"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 106.097929 296.95748 
+Q 116.077929 296.95748 124.828092 296.95748 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke: #14866d; stroke-width: 1.1; stroke-linecap: round"/>
+    <path d="M 122.028092 295.55748 
+L 124.828092 296.95748 
+L 122.028092 298.35748 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #14866d; stroke: #14866d; stroke-width: 1.1; stroke-linecap: round"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 218.349898 296.95748 
+Q 228.329898 296.95748 237.08006 296.95748 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.4,2.2; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.1; stroke-linecap: round"/>
+    <path d="M 234.28006 295.55748 
+L 237.08006 296.95748 
+L 234.28006 298.35748 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #c84b31; stroke-dasharray: 4.4,2.2; stroke-dashoffset: 0; stroke: #c84b31; stroke-width: 1.1; stroke-linecap: round"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 307.641236 296.95748 
+Q 317.621236 296.95748 326.371399 296.95748 
+" clip-path="url(#p0513d77e25)" style="fill: none; stroke-dasharray: 4.4,2.2; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.1; stroke-linecap: round"/>
+    <path d="M 323.571399 295.55748 
+L 326.371399 296.95748 
+L 323.571399 298.35748 
+z
+" clip-path="url(#p0513d77e25)" style="fill: #a66f00; stroke-dasharray: 4.4,2.2; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 1.1; stroke-linecap: round"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #2f6b9a" x="9.184252" y="31.696465" transform="rotate(-0 9.184252 31.696465)">公共前向与生成任务</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #a66f00" x="9.184252" y="230.634676" transform="rotate(-0 9.184252 230.634676)">训练期物理监督</text>
+   </g>
+   <g id="text_3">
+    <text style="font-weight: 700; font-size: 7.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #2f6b9a" x="44.645669" y="80.127857" transform="rotate(-0 44.645669 80.127857)">GeNIS</text>
+   </g>
+   <g id="text_4">
+    <!-- 四窗口公共流量 $x_i$ -->
+    <g style="fill: #65737d" transform="translate(19.783669 96.384354)">
+     <text>
+      <tspan x="0" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">四</tspan>
+      <tspan x="6.187439" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">窗</tspan>
+      <tspan x="12.374878" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">口</tspan>
+      <tspan x="18.562317" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">公</tspan>
+      <tspan x="24.749756" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">共</tspan>
+      <tspan x="30.937195" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">流</tspan>
+      <tspan x="37.124634" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">量</tspan>
+      <tspan x="43.312073" y="-0.765625" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="45.372498" y="-0.765625" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">x</tspan>
+      <tspan x="48.11972" y="0.164375" style="font-style: italic; font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">i</tspan>
+     </text>
+    </g>
+    <!-- 分层生成标签 $y_i$ -->
+    <g style="fill: #65737d" transform="translate(22.883669 103.638354)">
+     <text>
+      <tspan x="0" y="-0.8125" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">分</tspan>
+      <tspan x="6.187439" y="-0.8125" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">层</tspan>
+      <tspan x="12.374878" y="-0.8125" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">生</tspan>
+      <tspan x="18.562317" y="-0.8125" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">成</tspan>
+      <tspan x="24.749756" y="-0.8125" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">标</tspan>
+      <tspan x="30.937195" y="-0.8125" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">签</tspan>
+      <tspan x="37.124634" y="-0.8125" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="39.185059" y="-0.8125" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">y</tspan>
+      <tspan x="41.932281" y="0.1175" style="font-style: italic; font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">i</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_5">
+    <text style="font-weight: 700; font-size: 7.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #a66f00" x="52.299213" y="261.360153" transform="rotate(-0 52.299213 261.360153)">ns-3 受控序列</text>
+   </g>
+   <g id="text_6">
+    <!-- $x_i$ + 双锚点 + 通量/$C_{i,k}$ -->
+    <g style="fill: #65737d" transform="translate(20.245213 275.82585)">
+     <text>
+      <tspan x="0" y="-0.859375" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">x</tspan>
+      <tspan x="54.459959" y="-0.859375" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">C</tspan>
+      <tspan x="2.747223" y="0.070625" style="font-style: italic; font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">i</tspan>
+      <tspan x="58.586988" y="0.070625" style="font-style: italic; font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">i</tspan>
+      <tspan x="61.741865" y="0.070625" style="font-style: italic; font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">k</tspan>
+      <tspan x="4.230299" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="6.290723" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">+</tspan>
+      <tspan x="10.349683" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="12.410108" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">双</tspan>
+      <tspan x="18.597547" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">锚</tspan>
+      <tspan x="24.784986" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">点</tspan>
+      <tspan x="30.972425" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="33.03285" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">+</tspan>
+      <tspan x="37.09181" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="39.152235" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">通</tspan>
+      <tspan x="45.339674" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">量</tspan>
+      <tspan x="51.527112" y="-0.859375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">/</tspan>
+      <tspan x="59.791064" y="0.070625" style="font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">,</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_7">
+    <text style="font-weight: 700; font-size: 7.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #24313a" x="141.590551" y="84.245064" transform="rotate(-0 141.590551 84.245064)">Qwen 第 1–13 层</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d" transform="translate(113.749645 101.849358)">冻结基座 + S3 适配</text>
+    <!-- 提示末端 $h^{(13)}$ -->
+    <g style="fill: #65737d" transform="translate(122.494551 109.400764)">
+     <text>
+      <tspan x="0" y="-0.50815" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">提</tspan>
+      <tspan x="6.187439" y="-0.50815" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">示</tspan>
+      <tspan x="12.374878" y="-0.50815" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">末</tspan>
+      <tspan x="18.562317" y="-0.50815" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">端</tspan>
+      <tspan x="24.749756" y="-0.50815" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="26.810181" y="-0.50815" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">h</tspan>
+      <tspan x="30.594538" y="-3.06875" style="font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">(</tspan>
+      <tspan x="32.036835" y="-3.06875" style="font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">1</tspan>
+      <tspan x="34.202439" y="-3.06875" style="font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">3</tspan>
+      <tspan x="36.368042" y="-3.06875" style="font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">)</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_9">
+    <text style="font-weight: 700; font-size: 5.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #7d878e" x="141.845669" y="69.216383" transform="rotate(-0 141.845669 69.216383)">冻结</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 7.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #14866d" x="233.433071" y="67.326791" transform="rotate(-0 233.433071 67.326791)">五维状态头</text>
+   </g>
+   <g id="text_11">
+    <!-- $\hat q_0,\ldots,\hat q_4$ -->
+    <g style="fill: #65737d" transform="translate(221.870071 80.472567)">
+     <text>
+      <tspan x="3.101562" y="-0.828125" style="font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">̂</tspan>
+      <tspan x="5.635973" y="-0.459375" style="font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">,</tspan>
+      <tspan x="8.422833" y="-0.459375" style="font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">…</tspan>
+      <tspan x="14.610272" y="-0.459375" style="font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">,</tspan>
+      <tspan x="20.498694" y="-0.828125" style="font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">̂</tspan>
+      <tspan x="0" y="-0.459375" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">q</tspan>
+      <tspan x="17.397132" y="-0.459375" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">q</tspan>
+      <tspan x="3.191369" y="1.054501" style="font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">0</tspan>
+      <tspan x="20.588501" y="1.054501" style="font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">4</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_12">
+    <text style="font-weight: 700; font-size: 7.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #14866d" x="327.826772" y="67.430861" transform="rotate(-0 327.826772 67.430861)">九个物理条件词元</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d" transform="translate(298.97885 77.654473)">5 状态 + 4 相邻增量</text>
+    <!-- 共享编码器 $Z_i$ -->
+    <g style="fill: #65737d" transform="translate(308.823772 84.874567)">
+     <text>
+      <tspan x="0" y="-0.734375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">共</tspan>
+      <tspan x="6.187439" y="-0.734375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">享</tspan>
+      <tspan x="12.374878" y="-0.734375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">编</tspan>
+      <tspan x="18.562317" y="-0.734375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">码</tspan>
+      <tspan x="24.749756" y="-0.734375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d">器</tspan>
+      <tspan x="30.937195" y="-0.734375" style="font-weight: 300; font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="32.99762" y="-0.734375" style="font-style: italic; font-size: 6.2px; font-family: 'STIXGeneral'; fill: #65737d">Z</tspan>
+      <tspan x="36.437836" y="0.195625" style="font-style: italic; font-size: 4.34px; font-family: 'STIXGeneral'; fill: #65737d">i</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 7.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #24313a" x="233.433071" y="139.717946" transform="rotate(-0 233.433071 139.717946)">Qwen 第 14–23 层</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #65737d" x="233.433071" y="152.733591" transform="rotate(-0 233.433071 152.733591)">冻结前向</text>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 700; font-size: 7.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #c84b31" x="327.826772" y="138.003553" transform="rotate(-0 327.826772 138.003553)">第 24–27 层</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d" transform="translate(306.145662 151.440928)">4 头交叉注意力</text>
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; fill: #65737d" transform="translate(298.246959 158.800521)">零门 + 单层 0.1 上界</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 700; font-size: 6.8px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #24313a" x="419.669291" y="139.375032" transform="rotate(-0 419.669291 139.375032)">第 28 层 + LM 头</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #65737d" x="419.669291" y="152.733591" transform="rotate(-0 419.669291 152.733591)">冻结前向</text>
+   </g>
+   <g id="text_20">
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Hiragino Sans GB'; fill: #2f6b9a" transform="translate(474.674409 140.862015)">结构化</text>
+    <text style="font-weight: 700; font-size: 6.7px; font-family: 'Hiragino Sans GB'; fill: #2f6b9a" transform="translate(478.024409 148.935515)">输出</text>
+   </g>
+   <g id="text_21">
+    <!-- $\mathcal{L}_{\mathrm{state}}$ -->
+    <g style="fill: #a66f00" transform="translate(142.665685 207.935657)">
+     <text>
+      <tspan x="0" y="-0.84375" style="font-style: italic; font-size: 7.7px; font-family: 'STIXNonUnicode'; fill: #a66f00"></tspan>
+      <tspan x="5.448759" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">s</tspan>
+      <tspan x="7.542083" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">t</tspan>
+      <tspan x="9.038086" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">a</tspan>
+      <tspan x="11.427385" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">t</tspan>
+      <tspan x="12.923387" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">e</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #65737d" x="150.519685" y="219.300527" transform="rotate(-0 150.519685 219.300527)">双锚点均方误差</text>
+   </g>
+   <g id="text_23">
+    <!-- $\mathcal{L}_{\mathrm{phy}}$ -->
+    <g style="fill: #a66f00" transform="translate(230.291343 207.358157)">
+     <text>
+      <tspan x="0" y="-0.84375" style="font-style: italic; font-size: 7.7px; font-family: 'STIXNonUnicode'; fill: #a66f00"></tspan>
+      <tspan x="5.448759" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">p</tspan>
+      <tspan x="8.139405" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">h</tspan>
+      <tspan x="10.830052" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #a66f00">y</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_24">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #65737d" x="237.259843" y="219.291324" transform="rotate(-0 237.259843 219.291324)">四段控制体残差</text>
+   </g>
+   <g id="text_25">
+    <!-- $\mathcal{L}_{\mathrm{gen}}$ -->
+    <g style="fill: #c84b31" transform="translate(414.130382 207.358157)">
+     <text>
+      <tspan x="0" y="-0.84375" style="font-style: italic; font-size: 7.7px; font-family: 'STIXNonUnicode'; fill: #c84b31"></tspan>
+      <tspan x="5.448759" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #c84b31">g</tspan>
+      <tspan x="8.139405" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #c84b31">e</tspan>
+      <tspan x="10.528705" y="0.31125" style="font-size: 5.39px; font-family: 'STIXGeneral'; fill: #c84b31">n</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #65737d" x="420.944882" y="219.248214" transform="rotate(-0 420.944882 219.248214)">生成词元损失</text>
+   </g>
+   <g id="text_27">
+    <text style="font-size: 5.8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #a66f00" x="104.598425" y="237.23385" transform="rotate(-0 104.598425 237.23385)">特权真值只进入损失，不进入部署前向</text>
+   </g>
+   <g id="text_28">
+    <text style="font-size: 5.8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #65737d" x="39.798425" y="299.181871" transform="rotate(-0 39.798425 299.181871)">前向路径</text>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 5.8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #65737d" x="131.640945" y="299.199543" transform="rotate(-0 131.640945 299.199543)">物理状态前向</text>
+   </g>
+   <g id="text_30">
+    <text style="font-size: 5.8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #65737d" x="243.892913" y="299.172808" transform="rotate(-0 243.892913 299.172808)">生成梯度</text>
+   </g>
+   <g id="text_31">
+    <text style="font-size: 5.8px; font-family: 'Hiragino Sans GB'; text-anchor: start; fill: #65737d" x="333.184252" y="298.963918" transform="rotate(-0 333.184252 298.963918)">状态/物理监督</text>
+   </g>
+   <g id="text_32">
+    <text style="font-weight: 700; font-size: 5.7px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #7d878e" x="463.03937" y="299.746897" transform="rotate(-0 463.03937 299.746897)">冻结参数不更新</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p0513d77e25">
+   <rect x="0" y="0" width="510.23622" height="306.141732"/>
+  </clipPath>
+ </defs>
+</svg>

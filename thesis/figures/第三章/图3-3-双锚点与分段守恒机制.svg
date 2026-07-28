@@ -1,0 +1,927 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="510.23622pt" height="269.291339pt" viewBox="0 0 510.23622 269.291339" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>图3-3-双锚点与分段守恒机制</title>
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>图3-3-双锚点与分段守恒机制</dc:title>
+    <dc:date>2026-07-24T12:44:41.069906</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 269.291339 
+L 510.23622 269.291339 
+L 510.23622 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 16.837795 249.36378 
+L 240.831496 249.36378 
+Q 247.974803 249.36378 247.974803 245.593701 
+L 247.974803 23.697638 
+Q 247.974803 19.927559 240.831496 19.927559 
+L 16.837795 19.927559 
+Q 9.694488 19.927559 9.694488 23.697638 
+L 9.694488 245.593701 
+Q 9.694488 249.36378 16.837795 249.36378 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #fafbfc; stroke: #c8d0d5; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 25.511811 37.970079 
+L 88.781102 37.970079 
+Q 98.475591 37.970079 98.475591 32.853543 
+L 98.475591 29.622047 
+Q 98.475591 24.505512 88.781102 24.505512 
+L 25.511811 24.505512 
+Q 15.817323 24.505512 15.817323 29.622047 
+L 15.817323 32.853543 
+Q 15.817323 37.970079 25.511811 37.970079 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #f1f3f4; stroke: #7d878e; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 269.404724 249.36378 
+L 493.398425 249.36378 
+Q 500.541732 249.36378 500.541732 245.593701 
+L 500.541732 23.697638 
+Q 500.541732 19.927559 493.398425 19.927559 
+L 269.404724 19.927559 
+Q 262.261417 19.927559 262.261417 23.697638 
+L 262.261417 245.593701 
+Q 262.261417 249.36378 269.404724 249.36378 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #fafbfc; stroke: #c8d0d5; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 278.07874 37.970079 
+L 361.75748 37.970079 
+Q 371.451969 37.970079 371.451969 32.853543 
+L 371.451969 29.622047 
+Q 371.451969 24.505512 361.75748 24.505512 
+L 278.07874 24.505512 
+Q 268.384252 24.505512 268.384252 29.622047 
+L 268.384252 32.853543 
+Q 268.384252 37.970079 278.07874 37.970079 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #f1f3f4; stroke: #7d878e; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 48.982677 82.40315 
+L 211.237795 82.40315 
+Q 217.36063 82.40315 217.36063 79.171654 
+L 217.36063 54.127559 
+Q 217.36063 50.896063 211.237795 50.896063 
+L 48.982677 50.896063 
+Q 42.859843 50.896063 42.859843 54.127559 
+L 42.859843 79.171654 
+Q 42.859843 82.40315 48.982677 82.40315 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #f1f3f4; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 281.650394 77.017323 
+L 325.530709 77.017323 
+Q 337.266142 77.017323 337.266142 70.823622 
+L 337.266142 67.592126 
+Q 337.266142 61.398425 325.530709 61.398425 
+L 281.650394 61.398425 
+Q 269.914961 61.398425 269.914961 67.592126 
+L 269.914961 70.823622 
+Q 269.914961 77.017323 281.650394 77.017323 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #fff4d6; stroke: #a66f00; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 424.516535 77.017323 
+L 478.601575 77.017323 
+Q 490.337008 77.017323 490.337008 70.823622 
+L 490.337008 67.592126 
+Q 490.337008 61.398425 478.601575 61.398425 
+L 424.516535 61.398425 
+Q 412.781102 61.398425 412.781102 67.592126 
+L 412.781102 70.823622 
+Q 412.781102 77.017323 424.516535 77.017323 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #fff4d6; stroke: #a66f00; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 306.907087 198.198425 
+L 318.132283 198.198425 
+Q 328.337008 198.198425 328.337008 192.812598 
+L 328.337008 189.581102 
+Q 328.337008 184.195276 318.132283 184.195276 
+L 306.907087 184.195276 
+Q 296.702362 184.195276 296.702362 189.581102 
+L 296.702362 192.812598 
+Q 296.702362 198.198425 306.907087 198.198425 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #e7f5f1; stroke: #14866d; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 355.379528 198.198425 
+L 366.604724 198.198425 
+Q 376.809449 198.198425 376.809449 192.812598 
+L 376.809449 189.581102 
+Q 376.809449 184.195276 366.604724 184.195276 
+L 355.379528 184.195276 
+Q 345.174803 184.195276 345.174803 189.581102 
+L 345.174803 192.812598 
+Q 345.174803 198.198425 355.379528 198.198425 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #e7f5f1; stroke: #14866d; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 403.851969 198.198425 
+L 415.077165 198.198425 
+Q 425.28189 198.198425 425.28189 192.812598 
+L 425.28189 189.581102 
+Q 425.28189 184.195276 415.077165 184.195276 
+L 403.851969 184.195276 
+Q 393.647244 184.195276 393.647244 189.581102 
+L 393.647244 192.812598 
+Q 393.647244 198.198425 403.851969 198.198425 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #e7f5f1; stroke: #14866d; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_12">
+    <path d="M 452.324409 198.198425 
+L 463.549606 198.198425 
+Q 473.754331 198.198425 473.754331 192.812598 
+L 473.754331 189.581102 
+Q 473.754331 184.195276 463.549606 184.195276 
+L 452.324409 184.195276 
+Q 442.119685 184.195276 442.119685 189.581102 
+L 442.119685 192.812598 
+Q 442.119685 198.198425 452.324409 198.198425 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #eaf3fa; stroke: #2f6b9a; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_13">
+    <path d="M 293.896063 59.513386 
+L 476.56063 59.513386 
+Q 482.683465 59.513386 482.683465 56.28189 
+L 482.683465 42.009449 
+Q 482.683465 38.777953 476.56063 38.777953 
+L 293.896063 38.777953 
+Q 287.773228 38.777953 287.773228 42.009449 
+L 287.773228 56.28189 
+Q 287.773228 59.513386 293.896063 59.513386 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #e7f5f1; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 35.716535 137.338583 
+L 81.637795 113.102362 
+L 127.559055 123.874016 
+L 173.480315 80.787402 
+L 219.401575 91.559055 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.35; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 35.716535 180.425197 
+L 81.637795 156.188976 
+L 127.559055 166.96063 
+L 173.480315 123.874016 
+L 219.401575 134.645669 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #14866d; stroke-width: 1.35; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_3">
+    <path d="M 35.716535 218.125984 
+L 81.637795 193.889764 
+L 127.559055 204.661417 
+L 173.480315 161.574803 
+L 219.401575 172.346457 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #7d878e; stroke-width: 1.35; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_4">
+    <path d="M 288.283465 177.732283 
+L 336.755906 156.188976 
+L 385.228346 164.267717 
+L 433.700787 115.795276 
+L 482.173228 129.259843 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #14866d; stroke-width: 1.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_5">
+    <path d="M 288.283465 231.590551 
+L 433.700787 231.590551 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #14866d; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_6">
+    <path d="M 288.283465 234.283465 
+L 288.283465 228.897638 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #14866d; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_7">
+    <path d="M 433.700787 234.283465 
+L 433.700787 228.897638 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #14866d; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_8">
+    <path d="M 433.700787 231.590551 
+L 482.173228 231.590551 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #2f6b9a; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_9">
+    <path d="M 482.173228 234.283465 
+L 482.173228 228.897638 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #2f6b9a; stroke-linecap: square"/>
+   </g>
+   <g id="patch_14">
+    <path d="M 48.472441 176.228368 
+Q 48.472441 157.531173 48.472441 139.840209 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke: #7d878e; stroke-width: 0.9; stroke-linecap: round"/>
+    <path d="M 47.072441 142.640209 
+L 48.472441 139.840209 
+L 49.872441 142.640209 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #7d878e; stroke: #7d878e; stroke-width: 0.9; stroke-linecap: round"/>
+   </g>
+   <g id="patch_15">
+    <path d="M 303.353714 76.880713 
+Q 295.937015 123.200741 288.679407 168.527195 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke-dasharray: 2.7,1.8; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 0.9; stroke-linecap: round"/>
+    <path d="M 291.025944 165.257063 
+L 288.679407 168.527195 
+L 287.471223 164.687886 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #a66f00; stroke-dasharray: 2.7,1.8; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 0.9; stroke-linecap: round"/>
+   </g>
+   <g id="patch_16">
+    <path d="M 450.854927 76.728801 
+Q 442.628604 92.234767 434.873858 106.851848 
+" clip-path="url(#p79e3a7a251)" style="fill: none; stroke-dasharray: 2.7,1.8; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 0.9; stroke-linecap: round"/>
+    <path d="M 438.151106 104.51526 
+L 434.873858 106.851848 
+L 434.970937 102.828096 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #a66f00; stroke-dasharray: 2.7,1.8; stroke-dashoffset: 0; stroke: #a66f00; stroke-width: 0.9; stroke-linecap: round"/>
+   </g>
+   <g id="patch_17">
+    <path d="M 35.716535 139.627559 
+C 36.866723 139.627559 37.969957 139.386378 38.783263 138.957133 
+C 39.596569 138.527889 40.053543 137.945626 40.053543 137.338583 
+C 40.053543 136.731539 39.596569 136.149277 38.783263 135.720032 
+C 37.969957 135.290787 36.866723 135.049606 35.716535 135.049606 
+C 34.566348 135.049606 33.463113 135.290787 32.649808 135.720032 
+C 31.836502 136.149277 31.379528 136.731539 31.379528 137.338583 
+C 31.379528 137.945626 31.836502 138.527889 32.649808 138.957133 
+C 33.463113 139.386378 34.566348 139.627559 35.716535 139.627559 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #2f6b9a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_18">
+    <path d="M 81.637795 115.391339 
+C 82.787983 115.391339 83.891217 115.150158 84.704523 114.720913 
+C 85.517829 114.291668 85.974803 113.709406 85.974803 113.102362 
+C 85.974803 112.495319 85.517829 111.913056 84.704523 111.483811 
+C 83.891217 111.054567 82.787983 110.813386 81.637795 110.813386 
+C 80.487607 110.813386 79.384373 111.054567 78.571068 111.483811 
+C 77.757762 111.913056 77.300787 112.495319 77.300787 113.102362 
+C 77.300787 113.709406 77.757762 114.291668 78.571068 114.720913 
+C 79.384373 115.150158 80.487607 115.391339 81.637795 115.391339 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #2f6b9a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_19">
+    <path d="M 127.559055 126.162992 
+C 128.709243 126.162992 129.812477 125.921811 130.625783 125.492566 
+C 131.439088 125.063322 131.896063 124.481059 131.896063 123.874016 
+C 131.896063 123.266972 131.439088 122.68471 130.625783 122.255465 
+C 129.812477 121.82622 128.709243 121.585039 127.559055 121.585039 
+C 126.408867 121.585039 125.305633 121.82622 124.492327 122.255465 
+C 123.679022 122.68471 123.222047 123.266972 123.222047 123.874016 
+C 123.222047 124.481059 123.679022 125.063322 124.492327 125.492566 
+C 125.305633 125.921811 126.408867 126.162992 127.559055 126.162992 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #2f6b9a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_20">
+    <path d="M 173.480315 83.076378 
+C 174.630503 83.076378 175.733737 82.835197 176.547043 82.405952 
+C 177.360348 81.976708 177.817323 81.394445 177.817323 80.787402 
+C 177.817323 80.180358 177.360348 79.598096 176.547043 79.168851 
+C 175.733737 78.739606 174.630503 78.498425 173.480315 78.498425 
+C 172.330127 78.498425 171.226893 78.739606 170.413587 79.168851 
+C 169.600282 79.598096 169.143307 80.180358 169.143307 80.787402 
+C 169.143307 81.394445 169.600282 81.976708 170.413587 82.405952 
+C 171.226893 82.835197 172.330127 83.076378 173.480315 83.076378 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #2f6b9a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_21">
+    <path d="M 219.401575 93.848031 
+C 220.551763 93.848031 221.654997 93.606851 222.468302 93.177606 
+C 223.281608 92.748361 223.738583 92.166099 223.738583 91.559055 
+C 223.738583 90.952011 223.281608 90.369749 222.468302 89.940504 
+C 221.654997 89.51126 220.551763 89.270079 219.401575 89.270079 
+C 218.251387 89.270079 217.148153 89.51126 216.334847 89.940504 
+C 215.521541 90.369749 215.064567 90.952011 215.064567 91.559055 
+C 215.064567 92.166099 215.521541 92.748361 216.334847 93.177606 
+C 217.148153 93.606851 218.251387 93.848031 219.401575 93.848031 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #2f6b9a; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_22">
+    <path d="M 35.716535 182.714173 
+C 36.866723 182.714173 37.969957 182.472992 38.783263 182.043748 
+C 39.596569 181.614503 40.053543 181.03224 40.053543 180.425197 
+C 40.053543 179.818153 39.596569 179.235891 38.783263 178.806646 
+C 37.969957 178.377401 36.866723 178.13622 35.716535 178.13622 
+C 34.566348 178.13622 33.463113 178.377401 32.649808 178.806646 
+C 31.836502 179.235891 31.379528 179.818153 31.379528 180.425197 
+C 31.379528 181.03224 31.836502 181.614503 32.649808 182.043748 
+C 33.463113 182.472992 34.566348 182.714173 35.716535 182.714173 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_23">
+    <path d="M 81.637795 158.477953 
+C 82.787983 158.477953 83.891217 158.236772 84.704523 157.807527 
+C 85.517829 157.378282 85.974803 156.79602 85.974803 156.188976 
+C 85.974803 155.581933 85.517829 154.99967 84.704523 154.570426 
+C 83.891217 154.141181 82.787983 153.9 81.637795 153.9 
+C 80.487607 153.9 79.384373 154.141181 78.571068 154.570426 
+C 77.757762 154.99967 77.300787 155.581933 77.300787 156.188976 
+C 77.300787 156.79602 77.757762 157.378282 78.571068 157.807527 
+C 79.384373 158.236772 80.487607 158.477953 81.637795 158.477953 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 127.559055 169.249606 
+C 128.709243 169.249606 129.812477 169.008425 130.625783 168.579181 
+C 131.439088 168.149936 131.896063 167.567674 131.896063 166.96063 
+C 131.896063 166.353586 131.439088 165.771324 130.625783 165.342079 
+C 129.812477 164.912835 128.709243 164.671654 127.559055 164.671654 
+C 126.408867 164.671654 125.305633 164.912835 124.492327 165.342079 
+C 123.679022 165.771324 123.222047 166.353586 123.222047 166.96063 
+C 123.222047 167.567674 123.679022 168.149936 124.492327 168.579181 
+C 125.305633 169.008425 126.408867 169.249606 127.559055 169.249606 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 173.480315 126.162992 
+C 174.630503 126.162992 175.733737 125.921811 176.547043 125.492566 
+C 177.360348 125.063322 177.817323 124.481059 177.817323 123.874016 
+C 177.817323 123.266972 177.360348 122.68471 176.547043 122.255465 
+C 175.733737 121.82622 174.630503 121.585039 173.480315 121.585039 
+C 172.330127 121.585039 171.226893 121.82622 170.413587 122.255465 
+C 169.600282 122.68471 169.143307 123.266972 169.143307 123.874016 
+C 169.143307 124.481059 169.600282 125.063322 170.413587 125.492566 
+C 171.226893 125.921811 172.330127 126.162992 173.480315 126.162992 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 219.401575 136.934646 
+C 220.551763 136.934646 221.654997 136.693465 222.468302 136.26422 
+C 223.281608 135.834975 223.738583 135.252713 223.738583 134.645669 
+C 223.738583 134.038626 223.281608 133.456363 222.468302 133.027119 
+C 221.654997 132.597874 220.551763 132.356693 219.401575 132.356693 
+C 218.251387 132.356693 217.148153 132.597874 216.334847 133.027119 
+C 215.521541 133.456363 215.064567 134.038626 215.064567 134.645669 
+C 215.064567 135.252713 215.521541 135.834975 216.334847 136.26422 
+C 217.148153 136.693465 218.251387 136.934646 219.401575 136.934646 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 35.716535 220.414961 
+C 36.866723 220.414961 37.969957 220.17378 38.783263 219.744535 
+C 39.596569 219.31529 40.053543 218.733028 40.053543 218.125984 
+C 40.053543 217.518941 39.596569 216.936678 38.783263 216.507434 
+C 37.969957 216.078189 36.866723 215.837008 35.716535 215.837008 
+C 34.566348 215.837008 33.463113 216.078189 32.649808 216.507434 
+C 31.836502 216.936678 31.379528 217.518941 31.379528 218.125984 
+C 31.379528 218.733028 31.836502 219.31529 32.649808 219.744535 
+C 33.463113 220.17378 34.566348 220.414961 35.716535 220.414961 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 81.637795 196.17874 
+C 82.787983 196.17874 83.891217 195.937559 84.704523 195.508314 
+C 85.517829 195.07907 85.974803 194.496807 85.974803 193.889764 
+C 85.974803 193.28272 85.517829 192.700458 84.704523 192.271213 
+C 83.891217 191.841968 82.787983 191.600787 81.637795 191.600787 
+C 80.487607 191.600787 79.384373 191.841968 78.571068 192.271213 
+C 77.757762 192.700458 77.300787 193.28272 77.300787 193.889764 
+C 77.300787 194.496807 77.757762 195.07907 78.571068 195.508314 
+C 79.384373 195.937559 80.487607 196.17874 81.637795 196.17874 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 127.559055 206.950394 
+C 128.709243 206.950394 129.812477 206.709213 130.625783 206.279968 
+C 131.439088 205.850723 131.896063 205.268461 131.896063 204.661417 
+C 131.896063 204.054374 131.439088 203.472111 130.625783 203.042867 
+C 129.812477 202.613622 128.709243 202.372441 127.559055 202.372441 
+C 126.408867 202.372441 125.305633 202.613622 124.492327 203.042867 
+C 123.679022 203.472111 123.222047 204.054374 123.222047 204.661417 
+C 123.222047 205.268461 123.679022 205.850723 124.492327 206.279968 
+C 125.305633 206.709213 126.408867 206.950394 127.559055 206.950394 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 173.480315 163.86378 
+C 174.630503 163.86378 175.733737 163.622599 176.547043 163.193354 
+C 177.360348 162.764109 177.817323 162.181847 177.817323 161.574803 
+C 177.817323 160.96776 177.360348 160.385497 176.547043 159.956252 
+C 175.733737 159.527008 174.630503 159.285827 173.480315 159.285827 
+C 172.330127 159.285827 171.226893 159.527008 170.413587 159.956252 
+C 169.600282 160.385497 169.143307 160.96776 169.143307 161.574803 
+C 169.143307 162.181847 169.600282 162.764109 170.413587 163.193354 
+C 171.226893 163.622599 172.330127 163.86378 173.480315 163.86378 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 219.401575 174.635433 
+C 220.551763 174.635433 221.654997 174.394252 222.468302 173.965007 
+C 223.281608 173.535763 223.738583 172.9535 223.738583 172.346457 
+C 223.738583 171.739413 223.281608 171.157151 222.468302 170.727906 
+C 221.654997 170.298661 220.551763 170.05748 219.401575 170.05748 
+C 218.251387 170.05748 217.148153 170.298661 216.334847 170.727906 
+C 215.521541 171.157151 215.064567 171.739413 215.064567 172.346457 
+C 215.064567 172.9535 215.521541 173.535763 216.334847 173.965007 
+C 217.148153 174.394252 218.251387 174.635433 219.401575 174.635433 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #7d878e; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 288.283465 180.96378 
+C 289.907259 180.96378 291.464766 180.623289 292.612962 180.017296 
+C 293.761159 179.411304 294.406299 178.589286 294.406299 177.732283 
+C 294.406299 176.875281 293.761159 176.053263 292.612962 175.447271 
+C 291.464766 174.841278 289.907259 174.500787 288.283465 174.500787 
+C 286.65967 174.500787 285.102163 174.841278 283.953967 175.447271 
+C 282.80577 176.053263 282.16063 176.875281 282.16063 177.732283 
+C 282.16063 178.589286 282.80577 179.411304 283.953967 180.017296 
+C 285.102163 180.623289 286.65967 180.96378 288.283465 180.96378 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #a66f00; stroke: #a66f00; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 336.755906 159.420472 
+C 338.3797 159.420472 339.937207 159.079982 341.085403 158.473989 
+C 342.2336 157.867997 342.87874 157.045979 342.87874 156.188976 
+C 342.87874 155.331974 342.2336 154.509956 341.085403 153.903964 
+C 339.937207 153.297971 338.3797 152.95748 336.755906 152.95748 
+C 335.132111 152.95748 333.574604 153.297971 332.426408 153.903964 
+C 331.278211 154.509956 330.633071 155.331974 330.633071 156.188976 
+C 330.633071 157.045979 331.278211 157.867997 332.426408 158.473989 
+C 333.574604 159.079982 335.132111 159.420472 336.755906 159.420472 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 385.228346 167.499213 
+C 386.852141 167.499213 388.409648 167.158722 389.557844 166.552729 
+C 390.706041 165.946737 391.351181 165.124719 391.351181 164.267717 
+C 391.351181 163.410714 390.706041 162.588696 389.557844 161.982704 
+C 388.409648 161.376711 386.852141 161.03622 385.228346 161.03622 
+C 383.604552 161.03622 382.047045 161.376711 380.898849 161.982704 
+C 379.750652 162.588696 379.105512 163.410714 379.105512 164.267717 
+C 379.105512 165.124719 379.750652 165.946737 380.898849 166.552729 
+C 382.047045 167.158722 383.604552 167.499213 385.228346 167.499213 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_35">
+    <path d="M 433.700787 119.026772 
+C 435.324582 119.026772 436.882089 118.686281 438.030285 118.080288 
+C 439.178482 117.474296 439.823622 116.652278 439.823622 115.795276 
+C 439.823622 114.938273 439.178482 114.116255 438.030285 113.510263 
+C 436.882089 112.90427 435.324582 112.56378 433.700787 112.56378 
+C 432.076993 112.56378 430.519486 112.90427 429.37129 113.510263 
+C 428.223093 114.116255 427.577953 114.938273 427.577953 115.795276 
+C 427.577953 116.652278 428.223093 117.474296 429.37129 118.080288 
+C 430.519486 118.686281 432.076993 119.026772 433.700787 119.026772 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #a66f00; stroke: #a66f00; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 482.173228 132.491339 
+C 483.797023 132.491339 485.35453 132.150848 486.502726 131.544855 
+C 487.650923 130.938863 488.296063 130.116845 488.296063 129.259843 
+C 488.296063 128.40284 487.650923 127.580822 486.502726 126.97483 
+C 485.35453 126.368837 483.797023 126.028346 482.173228 126.028346 
+C 480.549434 126.028346 478.991927 126.368837 477.84373 126.97483 
+C 476.695534 127.580822 476.050394 128.40284 476.050394 129.259843 
+C 476.050394 130.116845 476.695534 130.938863 477.84373 131.544855 
+C 478.991927 132.150848 480.549434 132.491339 482.173228 132.491339 
+z
+" clip-path="url(#p79e3a7a251)" style="fill: #ffffff; stroke: #14866d; stroke-width: 1.2; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-weight: 700; font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #24313a" x="57.146457" y="33.367108" transform="rotate(-0 57.146457 33.367108)">(a) 只有差分约束</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #24313a" x="319.91811" y="33.357905" transform="rotate(-0 319.91811 33.357905)">(b) 双锚点 + 分段守恒</text>
+   </g>
+   <g id="text_3">
+    <!-- $\hat q+c_2$ -->
+    <g style="fill: #2f6b9a" transform="translate(227.055118 93.122555)">
+     <text>
+      <tspan x="2.957031" y="-1.03125" style="font-size: 5.9px; font-family: 'STIXGeneral'; fill: #2f6b9a">̂</tspan>
+      <tspan x="4.125297" y="-0.684375" style="font-size: 5.9px; font-family: 'STIXGeneral'; fill: #2f6b9a">+</tspan>
+      <tspan x="0" y="-0.684375" style="font-style: italic; font-size: 5.9px; font-family: 'STIXGeneral'; fill: #2f6b9a">q</tspan>
+      <tspan x="9.340362" y="-0.684375" style="font-style: italic; font-size: 5.9px; font-family: 'STIXGeneral'; fill: #2f6b9a">c</tspan>
+      <tspan x="11.955795" y="0.200625" style="font-size: 4.13px; font-family: 'STIXGeneral'; fill: #2f6b9a">2</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_4">
+    <!-- $\hat q$ -->
+    <g style="fill: #14866d" transform="translate(227.055118 136.209169)">
+     <text>
+      <tspan x="2.957031" y="-1.03125" style="font-size: 5.9px; font-family: 'STIXGeneral'; fill: #14866d">̂</tspan>
+      <tspan x="0" y="-0.684375" style="font-style: italic; font-size: 5.9px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_5">
+    <!-- $\hat q+c_1$ -->
+    <g style="fill: #7d878e" transform="translate(227.055118 173.909957)">
+     <text>
+      <tspan x="2.957031" y="-1.03125" style="font-size: 5.9px; font-family: 'STIXGeneral'; fill: #7d878e">̂</tspan>
+      <tspan x="4.125297" y="-0.684375" style="font-size: 5.9px; font-family: 'STIXGeneral'; fill: #7d878e">+</tspan>
+      <tspan x="0" y="-0.684375" style="font-style: italic; font-size: 5.9px; font-family: 'STIXGeneral'; fill: #7d878e">q</tspan>
+      <tspan x="9.340362" y="-0.684375" style="font-style: italic; font-size: 5.9px; font-family: 'STIXGeneral'; fill: #7d878e">c</tspan>
+      <tspan x="11.955795" y="0.200625" style="font-size: 4.13px; font-family: 'STIXGeneral'; fill: #7d878e">1</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_6">
+    <!-- $t_0$ -->
+    <g style="fill: #65737d" transform="translate(33.812535 215.178614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">0</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_7">
+    <!-- $t_1$ -->
+    <g style="fill: #65737d" transform="translate(79.733795 215.206614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">1</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_8">
+    <!-- $t_2$ -->
+    <g style="fill: #65737d" transform="translate(125.655055 215.206614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">2</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_9">
+    <!-- $t_3$ -->
+    <g style="fill: #65737d" transform="translate(171.576315 215.178614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">3</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_10">
+    <!-- $t_4$ -->
+    <g style="fill: #65737d" transform="translate(217.497575 215.206614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">4</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_11">
+    <!-- 平移 $c$ -->
+    <g style="fill: #7d878e" transform="translate(56.125984 159.672933)">
+     <text>
+      <tspan x="0" y="-0.234375" style="font-weight: 300; font-size: 5.7px; font-family: 'Hiragino Sans GB'; fill: #7d878e">平</tspan>
+      <tspan x="5.687469" y="-0.234375" style="font-weight: 300; font-size: 5.7px; font-family: 'Hiragino Sans GB'; fill: #7d878e">移</tspan>
+      <tspan x="11.374939" y="-0.234375" style="font-weight: 300; font-size: 5.7px; font-family: 'Hiragino Sans GB'; fill: #7d878e"> </tspan>
+      <tspan x="13.268875" y="-0.234375" style="font-style: italic; font-size: 5.7px; font-family: 'STIXGeneral'; fill: #7d878e">c</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_12">
+    <!-- $r_k(\hat q+c)=r_k(\hat q)$ -->
+    <g style="fill: #24313a" transform="translate(105.316236 64.731524)">
+     <text>
+      <tspan x="0" y="-0.35" style="font-style: italic; font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">r</tspan>
+      <tspan x="8.286229" y="-0.35" style="font-style: italic; font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">q</tspan>
+      <tspan x="20.476001" y="-0.35" style="font-style: italic; font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">c</tspan>
+      <tspan x="34.795244" y="-0.35" style="font-style: italic; font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">r</tspan>
+      <tspan x="43.081473" y="-0.35" style="font-style: italic; font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">q</tspan>
+      <tspan x="2.990463" y="0.805" style="font-style: italic; font-size: 5.39px; font-family: 'STIXGeneral'; fill: #24313a">k</tspan>
+      <tspan x="37.785707" y="0.805" style="font-style: italic; font-size: 5.39px; font-family: 'STIXGeneral'; fill: #24313a">k</tspan>
+      <tspan x="5.726262" y="-0.35" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">(</tspan>
+      <tspan x="12.137792" y="-0.8125" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">̂</tspan>
+      <tspan x="13.67001" y="-0.35" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">+</tspan>
+      <tspan x="23.889285" y="-0.35" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">)</tspan>
+      <tspan x="27.989252" y="-0.35" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">=</tspan>
+      <tspan x="40.521506" y="-0.35" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">(</tspan>
+      <tspan x="46.925253" y="-0.35" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">)</tspan>
+      <tspan x="46.933035" y="-0.8125" style="font-size: 7.7px; font-family: 'STIXGeneral'; fill: #24313a">̂</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 6.2px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #65737d" x="130.110236" y="74.688334" transform="rotate(-0 130.110236 74.688334)">轨迹绝对位置不可由差分残差单独确定</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 6.1px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #65737d" x="128.579528" y="235.291227" transform="rotate(-0 128.579528 235.291227)">相同相邻差分 → 相同四段残差</text>
+   </g>
+   <g id="text_15">
+    <!-- $q_0$ -->
+    <g style="fill: #a66f00" transform="translate(285.583465 163.64126)">
+     <text>
+      <tspan x="0" y="-0.359375" style="font-style: italic; font-size: 6px; font-family: 'STIXGeneral'; fill: #a66f00">q</tspan>
+      <tspan x="3.000015" y="0.540625" style="font-size: 4.2px; font-family: 'STIXGeneral'; fill: #a66f00">0</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_16">
+    <!-- $t_0$ -->
+    <g style="fill: #65737d" transform="translate(286.379465 215.178614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">0</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_17">
+    <!-- $q_1$ -->
+    <g style="fill: #14866d" transform="translate(334.055906 142.097953)">
+     <text>
+      <tspan x="0" y="-0.359375" style="font-style: italic; font-size: 6px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+      <tspan x="3.000015" y="0.540625" style="font-size: 4.2px; font-family: 'STIXGeneral'; fill: #14866d">1</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_18">
+    <!-- $t_1$ -->
+    <g style="fill: #65737d" transform="translate(334.851906 215.206614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">1</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_19">
+    <!-- $q_2$ -->
+    <g style="fill: #14866d" transform="translate(382.528346 150.176693)">
+     <text>
+      <tspan x="0" y="-0.359375" style="font-style: italic; font-size: 6px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+      <tspan x="3.000015" y="0.540625" style="font-size: 4.2px; font-family: 'STIXGeneral'; fill: #14866d">2</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_20">
+    <!-- $t_2$ -->
+    <g style="fill: #65737d" transform="translate(383.324346 215.206614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">2</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_21">
+    <!-- $q_3$ -->
+    <g style="fill: #a66f00" transform="translate(431.000787 101.704252)">
+     <text>
+      <tspan x="0" y="-0.359375" style="font-style: italic; font-size: 6px; font-family: 'STIXGeneral'; fill: #a66f00">q</tspan>
+      <tspan x="3.000015" y="0.540625" style="font-size: 4.2px; font-family: 'STIXGeneral'; fill: #a66f00">3</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_22">
+    <!-- $t_3$ -->
+    <g style="fill: #65737d" transform="translate(431.796787 215.178614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">3</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_23">
+    <!-- $q_4$ -->
+    <g style="fill: #14866d" transform="translate(479.473228 115.168819)">
+     <text>
+      <tspan x="0" y="-0.359375" style="font-style: italic; font-size: 6px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+      <tspan x="3.000015" y="0.540625" style="font-size: 4.2px; font-family: 'STIXGeneral'; fill: #14866d">4</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_24">
+    <!-- $t_4$ -->
+    <g style="fill: #65737d" transform="translate(480.269228 215.206614)">
+     <text>
+      <tspan x="0" y="-0.953125" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">t</tspan>
+      <tspan x="1.555069" y="-0.113125" style="font-size: 3.92px; font-family: 'STIXGeneral'; fill: #65737d">4</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_25">
+    <!-- 初始锚点 $q_0$ -->
+    <g style="fill: #a66f00" transform="translate(288.423551 71.063874)">
+     <text>
+      <tspan x="0" y="-0.125" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">初</tspan>
+      <tspan x="5.796906" y="-0.125" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">始</tspan>
+      <tspan x="11.593811" y="-0.125" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">锚</tspan>
+      <tspan x="17.390717" y="-0.125" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">点</tspan>
+      <tspan x="23.187622" y="-0.125" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00"> </tspan>
+      <tspan x="25.117996" y="-0.125" style="font-style: italic; font-size: 5.8px; font-family: 'STIXGeneral'; fill: #a66f00">q</tspan>
+      <tspan x="28.016449" y="0.745" style="font-size: 4.06px; font-family: 'STIXGeneral'; fill: #a66f00">0</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_26">
+    <!-- 内部锚点 $q_a$ -->
+    <g style="fill: #a66f00" transform="translate(436.392055 71.063874)">
+     <text>
+      <tspan x="0" y="-0.109375" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">内</tspan>
+      <tspan x="5.796906" y="-0.109375" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">部</tspan>
+      <tspan x="11.593811" y="-0.109375" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">锚</tspan>
+      <tspan x="17.390717" y="-0.109375" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00">点</tspan>
+      <tspan x="23.187622" y="-0.109375" style="font-weight: 300; font-size: 5.8px; font-family: 'Hiragino Sans GB'; fill: #a66f00"> </tspan>
+      <tspan x="25.117996" y="-0.109375" style="font-style: italic; font-size: 5.8px; font-family: 'STIXGeneral'; fill: #a66f00">q</tspan>
+      <tspan x="28.016449" y="0.760625" style="font-style: italic; font-size: 4.06px; font-family: 'STIXGeneral'; fill: #a66f00">a</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_27">
+    <!-- $r_0$ -->
+    <g style="fill: #14866d" transform="translate(310.228685 192.03785)">
+     <text>
+      <tspan x="0" y="-0.4375" style="font-style: italic; font-size: 5.8px; font-family: 'STIXGeneral'; fill: #14866d">r</tspan>
+      <tspan x="2.255005" y="0.4325" style="font-size: 4.06px; font-family: 'STIXGeneral'; fill: #14866d">0</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_28">
+    <!-- $r_1$ -->
+    <g style="fill: #14866d" transform="translate(358.701126 192.06685)">
+     <text>
+      <tspan x="0" y="-0.4375" style="font-style: italic; font-size: 5.8px; font-family: 'STIXGeneral'; fill: #14866d">r</tspan>
+      <tspan x="2.255005" y="0.4325" style="font-size: 4.06px; font-family: 'STIXGeneral'; fill: #14866d">1</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_29">
+    <!-- $r_2$ -->
+    <g style="fill: #14866d" transform="translate(407.173567 192.06685)">
+     <text>
+      <tspan x="0" y="-0.4375" style="font-style: italic; font-size: 5.8px; font-family: 'STIXGeneral'; fill: #14866d">r</tspan>
+      <tspan x="2.255005" y="0.4325" style="font-size: 4.06px; font-family: 'STIXGeneral'; fill: #14866d">2</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_30">
+    <!-- $r_3$ -->
+    <g style="fill: #2f6b9a" transform="translate(455.646008 192.03785)">
+     <text>
+      <tspan x="0" y="-0.4375" style="font-style: italic; font-size: 5.8px; font-family: 'STIXGeneral'; fill: #2f6b9a">r</tspan>
+      <tspan x="2.255005" y="0.4325" style="font-size: 4.06px; font-family: 'STIXGeneral'; fill: #2f6b9a">3</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_31">
+    <!-- 前段累计漂移受 $q_0,q_a$ 限制 -->
+    <g style="fill: #14866d" transform="translate(328.239626 241.429291)">
+     <text>
+      <tspan x="0" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">前</tspan>
+      <tspan x="5.500076" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">段</tspan>
+      <tspan x="11.000153" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">累</tspan>
+      <tspan x="16.500229" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">计</tspan>
+      <tspan x="22.000305" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">漂</tspan>
+      <tspan x="27.500381" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">移</tspan>
+      <tspan x="33.000458" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">受</tspan>
+      <tspan x="38.500534" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d"> </tspan>
+      <tspan x="52.656078" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d"> </tspan>
+      <tspan x="54.487606" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">限</tspan>
+      <tspan x="59.987682" y="-0.328125" style="font-weight: 300; font-size: 5.5px; font-family: 'Hiragino Sans GB'; fill: #14866d">制</tspan>
+      <tspan x="40.332062" y="-0.328125" style="font-style: italic; font-size: 5.5px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+      <tspan x="47.729655" y="-0.328125" style="font-style: italic; font-size: 5.5px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+      <tspan x="43.082108" y="0.496875" style="font-size: 3.85px; font-family: 'STIXGeneral'; fill: #14866d">0</tspan>
+      <tspan x="45.25464" y="-0.328125" style="font-size: 5.5px; font-family: 'STIXGeneral'; fill: #14866d">,</tspan>
+      <tspan x="50.479701" y="0.496875" style="font-style: italic; font-size: 3.85px; font-family: 'STIXGeneral'; fill: #14866d">a</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 5.5px; font-family: 'Hiragino Sans GB'; text-anchor: middle; fill: #2f6b9a" x="457.937008" y="241.770463" transform="rotate(-0 457.937008 241.770463)">后段</text>
+   </g>
+   <g id="text_33">
+    <!-- $\mathcal{L}_{\mathrm{state}}(q_0,q_a)+\lambda_p\,\mathrm{mean}_k\,r_k^2$ -->
+    <g style="fill: #14866d" transform="translate(351.806846 50.909669)">
+     <text>
+      <tspan x="0" y="-0.4231" style="font-style: italic; font-size: 6.3px; font-family: 'STIXNonUnicode'; fill: #14866d"></tspan>
+      <tspan x="4.462964" y="0.5219" style="font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">s</tspan>
+      <tspan x="6.177599" y="0.5219" style="font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">t</tspan>
+      <tspan x="7.402973" y="0.5219" style="font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">a</tspan>
+      <tspan x="9.360037" y="0.5219" style="font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">t</tspan>
+      <tspan x="10.585411" y="0.5219" style="font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">e</tspan>
+      <tspan x="18.071276" y="0.5219" style="font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">0</tspan>
+      <tspan x="64.266332" y="-3.025" style="font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">2</tspan>
+      <tspan x="12.825976" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">(</tspan>
+      <tspan x="20.558683" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">,</tspan>
+      <tspan x="29.033156" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">)</tspan>
+      <tspan x="32.390019" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">+</tspan>
+      <tspan x="44.402408" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">m</tspan>
+      <tspan x="49.301379" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">e</tspan>
+      <tspan x="52.097186" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">a</tspan>
+      <tspan x="54.892993" y="-0.4231" style="font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">n</tspan>
+      <tspan x="14.922839" y="-0.4231" style="font-style: italic; font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+      <tspan x="23.392901" y="-0.4231" style="font-style: italic; font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">q</tspan>
+      <tspan x="37.963374" y="-0.4231" style="font-style: italic; font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">λ</tspan>
+      <tspan x="61.431241" y="-0.4231" style="font-style: italic; font-size: 6.3px; font-family: 'STIXGeneral'; fill: #14866d">r</tspan>
+      <tspan x="26.541339" y="0.5219" style="font-style: italic; font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">a</tspan>
+      <tspan x="40.847346" y="0.5219" style="font-style: italic; font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">p</tspan>
+      <tspan x="58.140656" y="0.5219" style="font-style: italic; font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">k</tspan>
+      <tspan x="63.880719" y="1.557812" style="font-style: italic; font-size: 4.41px; font-family: 'STIXGeneral'; fill: #14866d">k</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_34">
+    <!-- 图中以 $a=3$ 说明机制；实际内部锚点由 seed 与 group_id 固定分配。 -->
+    <g style="fill: #65737d" transform="translate(293.665165 258.965228)">
+     <text>
+      <tspan x="0" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">图</tspan>
+      <tspan x="5.593781" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">中</tspan>
+      <tspan x="11.187561" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">以</tspan>
+      <tspan x="16.781342" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="30.31518" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="32.177912" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">说</tspan>
+      <tspan x="37.771693" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">明</tspan>
+      <tspan x="43.365473" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">机</tspan>
+      <tspan x="48.959254" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">制</tspan>
+      <tspan x="54.553034" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">；</tspan>
+      <tspan x="60.146815" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">实</tspan>
+      <tspan x="65.740595" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">际</tspan>
+      <tspan x="71.334376" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">内</tspan>
+      <tspan x="76.928156" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">部</tspan>
+      <tspan x="82.521937" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">锚</tspan>
+      <tspan x="88.115717" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">点</tspan>
+      <tspan x="93.709498" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">由</tspan>
+      <tspan x="99.303278" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="101.16601" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">s</tspan>
+      <tspan x="104.169871" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">e</tspan>
+      <tspan x="107.459009" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">e</tspan>
+      <tspan x="110.748148" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">d</tspan>
+      <tspan x="114.361735" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="116.224467" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">与</tspan>
+      <tspan x="121.818247" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="123.680979" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">g</tspan>
+      <tspan x="127.266596" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">r</tspan>
+      <tspan x="129.671915" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">o</tspan>
+      <tspan x="133.168024" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">u</tspan>
+      <tspan x="136.624979" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">p</tspan>
+      <tspan x="140.24415" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">_</tspan>
+      <tspan x="143.046625" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">i</tspan>
+      <tspan x="144.377939" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">d</tspan>
+      <tspan x="147.991526" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d"> </tspan>
+      <tspan x="149.854258" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">固</tspan>
+      <tspan x="155.448038" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">定</tspan>
+      <tspan x="161.041819" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">分</tspan>
+      <tspan x="166.635599" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">配</tspan>
+      <tspan x="172.22938" y="-0.265625" style="font-weight: 300; font-size: 5.6px; font-family: 'Hiragino Sans GB'; fill: #65737d">。</tspan>
+      <tspan x="18.644073" y="-0.265625" style="font-style: italic; font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">a</tspan>
+      <tspan x="22.566548" y="-0.265625" style="font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">=</tspan>
+      <tspan x="27.51829" y="-0.265625" style="font-size: 5.6px; font-family: 'STIXGeneral'; fill: #65737d">3</tspan>
+     </text>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p79e3a7a251">
+   <rect x="0" y="0" width="510.23622" height="269.291339"/>
+  </clipPath>
+ </defs>
+</svg>
