@@ -34,6 +34,46 @@ class GeneratedResult:
     latency_ms: float
 
 
+def evaluation_record_contract(record: Mapping[str, object]) -> tuple[str, str]:
+    """从冻结记录中解析真实标签及其严格生成键。"""
+    direct_label = record.get("binary_label")
+    completion = record.get("completion")
+    output_key = "label"
+    completion_label = None
+    if completion is not None:
+        try:
+            payload = json.loads(str(completion))
+        except json.JSONDecodeError as error:
+            raise ValueError(f"completion 不是合法 JSON：{error.msg}") from error
+        if not isinstance(payload, dict) or len(payload) != 1:
+            raise ValueError("completion 必须是单键 JSON 对象")
+        output_key = next(iter(payload))
+        if output_key not in {"label", "binary_label"}:
+            raise ValueError(f"completion 使用了未知标签键：{output_key!r}")
+        completion_label = payload[output_key]
+
+    label = direct_label if direct_label is not None else completion_label
+    label = str(label)
+    if label not in {"benign", "malicious"}:
+        raise ValueError(f"未知真实标签：{label!r}")
+    if completion_label is not None and str(completion_label) != label:
+        raise ValueError("binary_label 与 completion 标签不一致")
+    return label, output_key
+
+
+def validate_evaluation_records(records: Sequence[Mapping[str, object]]) -> None:
+    """在加载模型前验证评测记录的提示与标签合同。"""
+    if not records:
+        raise ValueError("测试集不能为空")
+    for index, record in enumerate(records):
+        if not str(record.get("prompt", "")).strip():
+            raise ValueError(f"第 {index + 1} 条测试记录缺少 prompt")
+        try:
+            evaluation_record_contract(record)
+        except ValueError as error:
+            raise ValueError(f"第 {index + 1} 条测试记录合同非法：{error}") from error
+
+
 def format_generation_prompt(tokenizer, prompt: str) -> str:
     """使用 Qwen3 官方硬开关关闭思考模式。"""
     return tokenizer.apply_chat_template(
@@ -68,10 +108,8 @@ def summarize_generated_results(
     valid_mask = []
     rows = []
     for record, result in zip(records, generated, strict=True):
-        label = str(record["binary_label"])
-        if label not in {"benign", "malicious"}:
-            raise ValueError(f"未知真实标签：{label!r}")
-        parsed = parse_prediction(result.text)
+        label, output_key = evaluation_record_contract(record)
+        parsed = parse_prediction(result.text, label_key=output_key)
         labels.append(label)
         predictions.append(parsed.label)
         valid_mask.append(parsed.is_valid)
@@ -83,6 +121,7 @@ def summarize_generated_results(
                 "parsed_label": parsed.label,
                 "is_valid": parsed.is_valid,
                 "parse_error": parsed.error,
+                "expected_output_key": output_key,
                 "input_tokens": result.input_tokens,
                 "generated_tokens": result.generated_tokens,
                 "latency_ms": result.latency_ms,
@@ -140,8 +179,7 @@ def _evaluate_model_impl(
     if not torch.cuda.is_available():
         raise RuntimeError("未检测到 CUDA，拒绝启动大模型评估")
     records = _load_records(test_file)
-    if not records:
-        raise ValueError("测试集不能为空")
+    validate_evaluation_records(records)
 
     tokenizer = AutoTokenizer.from_pretrained(probe.model_id, use_fast=True)
     if tokenizer.pad_token_id is None:

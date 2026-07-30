@@ -4,8 +4,10 @@ from flow_probe.config import ProbeConfig
 from flow_probe.evaluate_model import (
     GeneratedResult,
     build_evaluation_tracking_config,
+    evaluation_record_contract,
     format_generation_prompt,
     summarize_generated_results,
+    validate_evaluation_records,
 )
 
 
@@ -49,6 +51,40 @@ def test_generated_summary_combines_strict_metrics_and_latency() -> None:
     assert summary["input_tokens"] == 40
     assert summary["generated_tokens"] == 12
     assert rows[1]["is_valid"] is False
+
+
+def test_generated_summary_supports_shared_binary_label_contract() -> None:
+    records = [
+        {
+            "sample_id": "shared-1",
+            "prompt": "只输出 binary_label",
+            "completion": '{"binary_label":"malicious"}',
+        }
+    ]
+    generated = [GeneratedResult('{"binary_label":"malicious"}', 20, 5, 10.0)]
+
+    summary, rows = summarize_generated_results(records, generated)
+
+    assert summary["json_valid_rate"] == pytest.approx(1.0)
+    assert rows[0]["true_label"] == "malicious"
+    assert rows[0]["expected_output_key"] == "binary_label"
+
+
+def test_evaluation_record_gate_rejects_unknown_completion_key() -> None:
+    records = [{"prompt": "流量提示", "completion": '{"class":"malicious"}'}]
+
+    with pytest.raises(ValueError, match="第 1 条测试记录合同非法"):
+        validate_evaluation_records(records)
+
+
+def test_evaluation_record_contract_rejects_conflicting_labels() -> None:
+    record = {
+        "binary_label": "benign",
+        "completion": '{"binary_label":"malicious"}',
+    }
+
+    with pytest.raises(ValueError, match="标签不一致"):
+        evaluation_record_contract(record)
 
 
 def test_evaluation_tracking_config_records_adapter_state() -> None:

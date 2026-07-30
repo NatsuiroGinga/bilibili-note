@@ -12,6 +12,22 @@ def test_parse_prediction_accepts_exact_label_object(label: str) -> None:
     assert result.error is None
 
 
+def test_parse_prediction_accepts_exact_binary_label_contract() -> None:
+    result = parse_prediction('{"binary_label":"malicious"}', label_key="binary_label")
+
+    assert result.is_valid is True
+    assert result.label == "malicious"
+    assert result.error is None
+
+
+def test_parse_prediction_rejects_wrong_key_for_selected_contract() -> None:
+    result = parse_prediction('{"label":"malicious"}', label_key="binary_label")
+
+    assert result.is_valid is False
+    assert result.label is None
+    assert result.error == "JSON 对象只能包含 binary_label 键"
+
+
 @pytest.mark.parametrize(
     "text",
     [
