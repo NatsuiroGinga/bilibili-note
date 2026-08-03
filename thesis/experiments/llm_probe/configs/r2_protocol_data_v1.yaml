@@ -1,0 +1,410 @@
+schema_version: flow_probe_r2_protocol_contract_v1
+dataset:
+  version: flow_probe_r2_protocol_dataset_v0
+  stage: theory_selection
+  status: review_pending
+  implementation_base_commit: acdf98ba5cc776f7c19495fc53b1164e916eb33c
+  publish_root: runs/data-frozen/dataset-candidate-r2-protocol-v0
+  source_lock_root: runs/data-freeze-configs/r2-protocol-v1
+
+common_view:
+  fields:
+    - total_packets
+    - total_bytes
+    - packet_length_mean
+    - packet_length_min
+    - packet_length_max
+    - iat_mean_ms
+    - packet_rate
+    - byte_rate
+  units:
+    total_packets: packets
+    total_bytes: network_layer_bytes
+    packet_length_mean: network_layer_bytes_per_packet
+    packet_length_min: network_layer_bytes
+    packet_length_max: network_layer_bytes
+    iat_mean_ms: milliseconds
+    packet_rate: packets_per_second
+    byte_rate: bytes_per_second
+  missing_suffix: _missing
+
+protocol:
+  quic_parser_version: flow_probe_quic_wire_image_v1
+  enums:
+    record_role:
+      - classification_candidate
+      - evaluation_reference
+      - physics_auxiliary
+      - open_protocol
+    transport_family:
+      - TCP
+      - UDP
+      - ICMP
+      - SCTP
+      - DCCP
+      - ESP
+      - OTHER
+      - UNKNOWN
+    protocol_target:
+      - TCP
+      - UDP
+      - ICMP
+      - SCTP
+      - DCCP
+      - ESP
+      - OTHER
+      - UNKNOWN
+      - QUIC
+    quic_evidence_class:
+      - NONE
+      - V1_LONG_HEADER
+      - CONTEXT_BOUND_SHORT_HEADER
+      - AMBIGUOUS
+    quic_evidence_priority:
+      - AMBIGUOUS
+      - V1_LONG_HEADER
+      - CONTEXT_BOUND_SHORT_HEADER
+      - NONE
+    field_role:
+      - router_or_physics_input
+      - audit_only
+      - blocked_pending_semantics
+  aggregate_fraction_fields:
+    - tcp_packet_fraction
+    - udp_packet_fraction
+    - icmp_packet_fraction
+    - other_transport_packet_fraction
+    - tcp_syn_packet_fraction
+    - tcp_ack_packet_fraction
+    - tcp_fin_packet_fraction
+    - tcp_rst_packet_fraction
+    - tcp_psh_packet_fraction
+    - payload_observed_fraction
+    - tcp_flags_applicable_fraction
+    - truncation_fraction
+  quic_aggregate_fields:
+    - quic_observed_packet_fraction
+    - quic_v1_long_packet_fraction
+    - quic_context_short_packet_fraction
+    - quic_ambiguous_packet_fraction
+    - quic_fixed_bit_one_fraction
+    - quic_spin_bit_one_fraction
+    - quic_cid_changed_packet_fraction
+    - quic_src_cid_length_mean
+    - quic_dst_cid_length_mean
+  field_roles:
+    router_or_physics_input:
+      - total_packets
+      - total_packets_missing
+      - total_bytes
+      - total_bytes_missing
+      - packet_length_mean
+      - packet_length_mean_missing
+      - packet_length_min
+      - packet_length_min_missing
+      - packet_length_max
+      - packet_length_max_missing
+      - iat_mean_ms
+      - iat_mean_ms_missing
+      - packet_rate
+      - packet_rate_missing
+      - byte_rate
+      - byte_rate_missing
+      - transport_family
+      - transport_family_observed
+      - quic_evidence_class
+      - protocol_confidence
+      - shared_expert_mask
+      - tcp_expert_mask
+      - udp_expert_mask
+      - loss_packets
+      - loss_packets_missing
+      - loss_packets_applicable
+      - retrans_packets
+      - retrans_packets_missing
+      - retrans_packets_applicable
+      - tcp_packet_fraction
+      - udp_packet_fraction
+      - icmp_packet_fraction
+      - other_transport_packet_fraction
+      - tcp_syn_packet_fraction
+      - tcp_ack_packet_fraction
+      - tcp_fin_packet_fraction
+      - tcp_rst_packet_fraction
+      - tcp_psh_packet_fraction
+      - payload_observed_fraction
+      - tcp_flags_applicable_fraction
+      - truncation_fraction
+      - quic_observed_packet_fraction
+      - quic_observed_packet_fraction_missing
+      - quic_observed_packet_fraction_applicable
+      - quic_v1_long_packet_fraction
+      - quic_v1_long_packet_fraction_missing
+      - quic_v1_long_packet_fraction_applicable
+      - quic_context_short_packet_fraction
+      - quic_context_short_packet_fraction_missing
+      - quic_context_short_packet_fraction_applicable
+      - quic_ambiguous_packet_fraction
+      - quic_ambiguous_packet_fraction_missing
+      - quic_ambiguous_packet_fraction_applicable
+      - quic_fixed_bit_one_fraction
+      - quic_fixed_bit_one_fraction_missing
+      - quic_fixed_bit_one_fraction_applicable
+      - quic_spin_bit_one_fraction
+      - quic_spin_bit_one_fraction_missing
+      - quic_spin_bit_one_fraction_applicable
+      - quic_cid_changed_packet_fraction
+      - quic_cid_changed_packet_fraction_missing
+      - quic_cid_changed_packet_fraction_applicable
+      - quic_src_cid_length_mean
+      - quic_src_cid_length_mean_missing
+      - quic_src_cid_length_mean_applicable
+      - quic_dst_cid_length_mean
+      - quic_dst_cid_length_mean_missing
+      - quic_dst_cid_length_mean_applicable
+    audit_only:
+      - sample_id
+      - protocol_target
+    blocked_pending_semantics:
+      - tcp_rtt_ms
+      - tcp_rtt_ms_missing
+      - tcp_rtt_ms_applicable
+      - src_window_bytes
+      - src_window_bytes_missing
+      - src_window_bytes_applicable
+      - dst_window_bytes
+      - dst_window_bytes_missing
+      - dst_window_bytes_applicable
+  semantic_gates:
+    TotBytes:
+      status: blocked_pending_semantics
+      required_evidence: hera_source_or_network_layer_packet_recalculation
+    TcpRtt:
+      status: blocked_pending_semantics
+      required_evidence: primary_unit_and_aggregation_evidence
+    SrcWin:
+      status: blocked_pending_semantics
+      required_evidence: primary_unit_scaling_and_aggregation_evidence
+    DstWin:
+      status: blocked_pending_semantics
+      required_evidence: primary_unit_scaling_and_aggregation_evidence
+
+parquet:
+  version: "2.6"
+  compression: zstd
+  compression_level: 9
+  use_dictionary: false
+  write_statistics: true
+  data_page_version: "1.0"
+  row_group_size: 65536
+
+sources:
+  frozen_inputs:
+    - role: master_records
+      root: project
+      path: runs/data-frozen/dataset-v1/master_records.parquet
+      sha256: 16458a4a191c51eefc58717e16609790b9914936a2470ef29099bdfbc70af703
+    - role: budget_checksums
+      root: project
+      path: runs/data-frozen/dataset-v1/manifests/budgets/budget_checksums.json
+      sha256: 38883c7ef8b1e47ebd218514e71f95474cebaa8637df6b5203326802546a6c2e
+    - role: classification_candidate
+      root: project
+      path: runs/data-frozen/dataset-v1/manifests/budgets/train_candidate_approx10000.jsonl
+      checksum_manifest: runs/data-frozen/dataset-v1/manifests/budgets/budget_checksums.json
+      checksum_key: manifests/budgets/train_candidate_approx10000.jsonl
+      row_count: 10000
+      source_counts:
+        genis: 3973
+        tqhc2: 3606
+        ns3: 2421
+    - role: genis_candidate
+      root: project
+      path: runs/data-frozen/dataset-candidate-genis-v0/protocol/samples.parquet
+      sha256: 2b0d8b49ef81db3a9f9338dfbabe185bab54c02512786c9f64f52718ee8c55a0
+    - role: genis_validation
+      root: project
+      path: runs/data-frozen/dataset-candidate-genis-v0/protocol/splits/genis-family-development-validation.jsonl
+      sha256: 52cce0c3b36273542e1fb05956e30876a8add1f6defd769ffa69b43bfaf19fca
+      row_count: 10399
+    - role: genis_dictionary
+      root: repository
+      path: raw/datasets/GeNIS-2025/0-info.zip
+      sha256: 7ef636cc758586f18a5d9958e68eede9b85925610331283cce802f45542701bc
+    - role: tqhc2_candidate
+      root: project
+      path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/samples.parquet
+      sha256: 05cb0774f8197f07d842a21d3c22ce07c111289b7cabe6950023b689c6b51dac
+    - role: tqhc2_validation
+      root: project
+      path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_cell_indomain-validation.jsonl
+      sha256: 729860d24f6e6a400ec061077f0111d2fc8504eeb3c3700e21ab6641869d5997
+      row_count: 4000
+    - role: historical_ns3_train
+      root: project
+      path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/train.jsonl
+      sha256: d6a6ca23a985223401e1d650d619c2a50b255d2066769e2478cef72cc6239fa0
+    - role: historical_ns3_validation
+      root: project
+      path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/validation.jsonl
+      sha256: 0bbbb4ea483867561c329c896cb4e7745a102cb90024c464654e0b7d673c8723
+    - role: historical_ns3_test
+      root: project
+      path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/test.jsonl
+      sha256: 6e64d2ab290813a246ed8efcefd1bb19f1026c2de7b7904d111af67b4465ef94
+  tqhc2:
+    approved_inputs_path: runs/data-freeze-configs/tqhc2-abc-v0/approved-inputs.json
+    approved_inputs_sha256: 191f737ae18eec982b8031b1ced2e6f74b3f122e6c1fa0bc97596ab3cdada610
+    artifact_manifest_path: artifact_checksums.provisional.json
+    source_manifest_path: source_checksums.json
+    expected_artifact_paths:
+      - audit/cell-audit.json
+      - audit/label-coverage.json
+      - audit/leakage-audit.json
+      - master_records.parquet
+      - run_manifest.provisional.json
+      - schema.provisional.json
+      - source_checksums.json
+      - views/packet_observations.parquet
+    raw_source_role_counts:
+      extractor_source: 1
+      label_or_audit_source: 60
+      source_pcap: 12
+    historical_path_mappings:
+      - source_prefix: /Users/bilibili/personal/note/raw
+        root: repository
+        logical_root: raw
+      - source_prefix: ../../../raw
+        root: repository
+        logical_root: raw
+      - source_prefix: /Users/bilibili/personal/note/thesis/experiments/llm_probe/src
+        root: project
+        logical_root: src
+    profiles:
+      A:
+        logical_root: runs/data-frozen/dataset-v1-provisional/tqh-c2-A-20260728-v1
+        input_id: tqh-c2-A-20260728-v1
+        artifact_manifest_sha256: f26723b0a10deb383aff9f7f9fa5893d30b883f1f602cbbc633e4e1846015a68
+        extractor_contract_sha256: 7daa2b2de3878660bb02860f416892d5a64aba3cc7edf5de561faa575047a617
+        extractor_evidence_mode: approved_manifest_only_blocked
+        master_sha256: 8dcbce77d18f785c1712f525807aab7f4ddf1c53ce1fc559cb59765487280799
+        master_rows: 181556
+        packets_sha256: 2366a25dc3a3c847ecb3549c4d79d131e172a17aa53b709dd65949a26647a32f
+        packet_rows: 15761376
+      B:
+        logical_root: runs/data-prepared/tqh-c2-b-v101-provisional-20260728
+        input_id: tqh-c2-B-20260728-v1
+        artifact_manifest_sha256: 44900a6bee08f0d339693524a42975d1ad9e47721f38bb70c1a6c886ce17a6f5
+        extractor_contract_sha256: c681639af7de97bf4902341e0e51066455492df968769be8d1e6cfaefb4fcdc0
+        extractor_evidence_mode: verified_snapshot
+        master_sha256: bac856cfbae0aa9a31faeaead635b3852bb68765209c0769eaee42b5cb5eb6ba
+        master_rows: 115734
+        packets_sha256: 97e736d28920702c3fab72cf86040a3258d4f0dcd8ea6a2c9db31d4b60a2f108
+        packet_rows: 9857089
+      C:
+        logical_root: runs/data-frozen/dataset-v1-provisional/tqh-c2-C-20260724-v8
+        input_id: tqh-c2-C-20260724-v8
+        artifact_manifest_sha256: 2203113a7cf198de5b393923a20cba22ad06127545123471f033cccb8a3e925e
+        extractor_contract_sha256: 7daa2b2de3878660bb02860f416892d5a64aba3cc7edf5de561faa575047a617
+        extractor_evidence_mode: approved_manifest_only_blocked
+        master_sha256: fbbfaaae1a8bc27fb658700f53ad3af371c968f3c9c143c6b6928c40d155ceba
+        master_rows: 36671
+        packets_sha256: 44547ce8421015ebfe5efead5fac4638ad5169137db735955e550c800fd4ef86
+        packet_rows: 396271
+  genis:
+    logical_path: zenodo:14919237/2-flows.zip
+    record_id: "14919237"
+    doi: 10.5281/zenodo.14919237
+    version: 1.0.0
+    url: https://zenodo.org/api/records/14919237/files/2-flows.zip/content
+    size_bytes: 380755720
+    md5: 063b7a2ec6e6b73cc302151d2b3ba6d7
+    scales_seconds:
+      - 5
+      - 10
+      - 30
+      - 60
+    csv_per_scale: 11
+    materialization_scale_seconds: 10
+    member_directory_template: flows-{scale}-sec
+
+ns3_matrix:
+  seed: 20260731
+  run_duration_seconds: 12
+  window_seconds: 0.1
+  windows_per_run: 120
+  sequence_length_windows: 4
+  sequences_per_run: 30
+  split_base_configuration_counts:
+    train-fit: 128
+    calibration: 32
+    validation: 32
+    test: 32
+    unseen-configuration: 32
+  base_configuration_count: 256
+  protocol_run_count: 512
+  window_count: 61440
+  sequence_count: 15360
+  paired_completion_minimum: 0.95
+  tcp_cwnd_window_coverage_minimum: 0.95
+  factor_cell_minimums:
+    train-fit: 15
+    calibration: 3
+    validation: 3
+    test: 3
+    unseen-configuration: 3
+  sequence_minimums_per_transport_and_label:
+    train-fit: 1728
+    calibration: 432
+    validation: 432
+    test: 432
+    unseen-configuration: 432
+
+information_budgets:
+  shared_invariants:
+    candidate_count: 10000
+    candidate_order: identical
+    labels: identical
+    splits: identical
+    common_features: identical
+    physics_auxiliary: identical
+  groups:
+    A:
+      classification_inputs:
+        - x_common
+      physics_branch: unified_without_protocol
+      physics_inputs: []
+      physics_truth_equal_to: C
+    B:
+      classification_inputs:
+        - x_common
+        - x_proto
+      physics_branch: unified_without_protocol
+      physics_inputs: []
+      physics_truth_equal_to: D
+    C:
+      classification_inputs:
+        - x_common
+      physics_branch: protocol_experts
+      physics_inputs:
+        - x_proto
+        - fixed_hard_masks
+        - stop_gradient_calibrated_confidence
+      physics_truth_equal_to: A
+    D:
+      classification_inputs:
+        - x_common
+        - x_proto
+      physics_branch: protocol_experts
+      physics_inputs:
+        - x_proto
+        - fixed_hard_masks
+        - stop_gradient_calibrated_confidence
+      physics_truth_equal_to: B
+  manifest_hash_fields:
+    - candidate_order_sha256
+    - label_sha256
+    - split_sha256
+    - x_common_sha256
+    - x_proto_sha256
+    - physics_auxiliary_sha256
