@@ -1,0 +1,26 @@
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: shared_b0_common_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+evaluation:
+  test_file: runs/verification/shared-b0-generation-preflight-20260730/genis_eval128.jsonl
+  output_dir: runs/verification/shared-b0-generation-preflight-20260730/batch16-nobucket
+  batch_size: 16
+  length_bucket: false
+  flush_every_batches: 1
+  resume: true
+  attention_backend: sdpa
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: shared-b0-qwen-eval128-b16-nobucket
+  description: 共享B0普通监督Qwen在GeNIS开发验证样本上的批量16无分桶一致性诊断
+  mode: online
+  tags: [shared-b0, qwen3-1.7b, eval128, batch16, no-bucket, review-pending]

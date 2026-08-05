@@ -8,7 +8,7 @@ import json
 import os
 import re
 import uuid
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -66,6 +66,8 @@ class TrainingSettings:
     max_steps: int = -1
     save_steps: int = 20
     resume_from_checkpoint: str = "auto"
+    attention_backend: str = "auto"
+    group_by_length: bool = False
 
     @property
     def effective_batch_size(self) -> int:
@@ -85,6 +87,13 @@ def _validate_resume_policy(resume_policy: object) -> str:
     if not isinstance(resume_policy, str) or resume_policy not in {"auto", "never"}:
         raise ValueError("resume_from_checkpoint 只允许 auto 或 never")
     return resume_policy
+
+
+def _validate_attention_backend(value: object) -> str:
+    allowed = {"auto", "sdpa", "flash_attention_2"}
+    if not isinstance(value, str) or value not in allowed:
+        raise ValueError("attention_backend 只允许 auto、sdpa 或 flash_attention_2")
+    return value
 
 
 def build_training_settings(probe: ProbeConfig, data: Mapping[str, object]) -> TrainingSettings:
@@ -111,6 +120,10 @@ def build_training_settings(probe: ProbeConfig, data: Mapping[str, object]) -> T
     if type(save_steps) is not int or not 1 <= save_steps <= 20:
         raise ValueError("save_steps 必须是 1 到 20 的整数")
     resume_policy = _validate_resume_policy(data.get("resume_from_checkpoint", "auto"))
+    attention_backend = _validate_attention_backend(data.get("attention_backend", "auto"))
+    group_by_length = data.get("group_by_length", False)
+    if type(group_by_length) is not bool:
+        raise ValueError("group_by_length 必须是布尔值")
     return TrainingSettings(
         train_file=Path(str(data["train_file"])),
         validation_file=Path(str(data["validation_file"])),
@@ -124,10 +137,15 @@ def build_training_settings(probe: ProbeConfig, data: Mapping[str, object]) -> T
         max_steps=int(data.get("max_steps", -1)),
         save_steps=save_steps,
         resume_from_checkpoint=resume_policy,
+        attention_backend=attention_backend,
+        group_by_length=group_by_length,
     )
 
 
-def build_model_load_spec(probe: ProbeConfig) -> dict[str, object]:
+def build_model_load_spec(
+    probe: ProbeConfig,
+    settings: TrainingSettings | None = None,
+) -> dict[str, object]:
     """返回可审计的量化、LoRA 与思考模式设置。"""
     return {
         "load_in_4bit": True,
@@ -139,6 +157,57 @@ def build_model_load_spec(probe: ProbeConfig) -> dict[str, object]:
         "lora_dropout": probe.lora_dropout,
         "target_modules": "all-linear",
         "enable_thinking": False,
+        "attention_backend": (settings.attention_backend if settings is not None else "auto"),
+    }
+
+
+def build_quantization_config_kwargs(compute_dtype: object) -> dict[str, object]:
+    """构造普通 Qwen 路径使用的 NF4 量化参数。"""
+    return {
+        "load_in_4bit": True,
+        "bnb_4bit_quant_type": "nf4",
+        "bnb_4bit_compute_dtype": compute_dtype,
+        "bnb_4bit_use_double_quant": True,
+    }
+
+
+def build_model_load_kwargs(
+    settings: TrainingSettings,
+    quantization_config: object,
+    compute_dtype: object,
+) -> dict[str, object]:
+    """构造模型加载参数，同时保留可选注意力后端。"""
+    kwargs: dict[str, object] = {
+        "quantization_config": quantization_config,
+        "dtype": compute_dtype,
+        "device_map": "auto",
+    }
+    if settings.attention_backend != "auto":
+        kwargs["attn_implementation"] = settings.attention_backend
+    return kwargs
+
+
+def build_lora_config_kwargs(probe: ProbeConfig) -> dict[str, object]:
+    """构造由 SFTTrainer 挂载的普通 Qwen LoRA 参数。"""
+    return {
+        "r": probe.lora_rank,
+        "lora_alpha": probe.lora_alpha,
+        "lora_dropout": probe.lora_dropout,
+        "bias": "none",
+        "task_type": "CAUSAL_LM",
+        "target_modules": "all-linear",
+    }
+
+
+def build_optimizer_scheduler_kwargs(settings: TrainingSettings) -> dict[str, object]:
+    """显式冻结普通 Qwen 的优化器、调度器和梯度裁剪默认值。"""
+    return {
+        "learning_rate": settings.learning_rate,
+        "optim": "paged_adamw_8bit",
+        "lr_scheduler_type": "linear",
+        "warmup_ratio": 0.0,
+        "warmup_steps": 0,
+        "max_grad_norm": 1.0,
     }
 
 
@@ -166,6 +235,8 @@ def build_training_tracking_config(
         "max_steps": settings.max_steps,
         "save_steps": settings.save_steps,
         "resume_from_checkpoint": settings.resume_from_checkpoint,
+        "attention_backend": settings.attention_backend,
+        "group_by_length": settings.group_by_length,
         "quantization": "NF4",
         "compute_dtype": "BF16",
     }
@@ -226,6 +297,8 @@ def build_training_binding(
         "lora_alpha": probe.lora_alpha,
         "lora_dropout": probe.lora_dropout,
         "target_modules": "all-linear",
+        "attention_backend": settings.attention_backend,
+        "group_by_length": settings.group_by_length,
         "training_code_sha256": _sha256_file(Path(__file__)),
     }
 
@@ -407,7 +480,7 @@ def _training_config_snapshot(
     return {
         "schema_version": "qwen_sft_training_config_v1",
         "binding_sha256": binding_sha256,
-        "model_load_spec": build_model_load_spec(probe),
+        "model_load_spec": build_model_load_spec(probe, settings),
         "training": build_training_tracking_config(probe, settings),
     }
 
@@ -585,13 +658,12 @@ def build_sft_config_kwargs(
         "per_device_train_batch_size": settings.per_device_train_batch_size,
         "per_device_eval_batch_size": settings.per_device_train_batch_size,
         "gradient_accumulation_steps": settings.gradient_accumulation_steps,
-        "learning_rate": settings.learning_rate,
         "num_train_epochs": settings.num_train_epochs,
         "max_steps": settings.max_steps,
         "bf16": True,
         "gradient_checkpointing": True,
         "gradient_checkpointing_kwargs": {"use_reentrant": False},
-        "optim": "paged_adamw_8bit",
+        **build_optimizer_scheduler_kwargs(settings),
         "eval_strategy": "epoch",
         "save_strategy": "steps",
         "save_steps": settings.save_steps,
@@ -599,6 +671,7 @@ def build_sft_config_kwargs(
         "save_only_model": False,
         "logging_steps": 1,
         "report_to": "swanlab" if tracking_enabled else "none",
+        "group_by_length": settings.group_by_length,
     }
 
 
@@ -618,29 +691,111 @@ def _run_trainer_with_resume(
         raise
 
 
-def _load_jsonl(path: Path) -> list[dict[str, object]]:
+def load_training_records(path: Path) -> list[dict[str, object]]:
+    """按文件顺序加载训练记录并保留包括 sample_id 在内的全部字段。"""
     with path.open("r", encoding="utf-8") as source:
         return [json.loads(line) for line in source if line.strip()]
 
 
-def _chat_dataset(records, tokenizer):
+def _load_jsonl(path: Path) -> list[dict[str, object]]:
+    return load_training_records(path)
+
+
+def build_chat_training_record(
+    record: Mapping[str, object],
+    tokenizer,
+) -> dict[str, object]:
+    """构造单条聊天样本；sample_id 仅作为不可见元数据保留。"""
+    prompt = tokenizer.apply_chat_template(
+        [{"role": "user", "content": record["prompt"]}],
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=False,
+    )
+    formatted: dict[str, object] = {
+        "prompt": prompt,
+        "completion": str(record["completion"]) + tokenizer.eos_token,
+    }
+    if "sample_id" in record:
+        formatted["sample_id"] = record["sample_id"]
+    return formatted
+
+
+def build_chat_training_records(
+    records: Iterable[Mapping[str, object]],
+    tokenizer,
+) -> list[dict[str, object]]:
+    """按输入顺序构造普通 Qwen 聊天样本。"""
+    return [build_chat_training_record(record, tokenizer) for record in records]
+
+
+def build_chat_dataset(
+    records: Iterable[Mapping[str, object]],
+    tokenizer,
+):
+    """构造供 SFTTrainer 使用的聊天数据集。"""
     from datasets import Dataset
 
-    formatted = []
-    for record in records:
-        prompt = tokenizer.apply_chat_template(
-            [{"role": "user", "content": record["prompt"]}],
-            tokenize=False,
-            add_generation_prompt=True,
-            enable_thinking=False,
-        )
-        formatted.append(
-            {
-                "prompt": prompt,
-                "completion": str(record["completion"]) + tokenizer.eos_token,
-            }
-        )
-    return Dataset.from_list(formatted)
+    return Dataset.from_list(build_chat_training_records(records, tokenizer))
+
+
+def _chat_dataset(records, tokenizer):
+    return build_chat_dataset(records, tokenizer)
+
+
+def build_qwen_model_and_tokenizer(
+    probe: ProbeConfig,
+    settings: TrainingSettings,
+    torch_module,
+) -> tuple[object, object]:
+    """按普通 Qwen 路径加载分词器与量化模型。"""
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+
+    tokenizer = AutoTokenizer.from_pretrained(probe.model_id, use_fast=True)
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    quantization = BitsAndBytesConfig(
+        **build_quantization_config_kwargs(torch_module.bfloat16)
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        probe.model_id,
+        **build_model_load_kwargs(settings, quantization, torch_module.bfloat16),
+    )
+    return model, tokenizer
+
+
+def build_lora_config(probe: ProbeConfig):
+    """构造由普通 SFTTrainer 挂载的 LoRA 配置。"""
+    from peft import LoraConfig
+
+    return LoraConfig(**build_lora_config_kwargs(probe))
+
+
+def build_sft_trainer(
+    probe: ProbeConfig,
+    settings: TrainingSettings,
+    *,
+    model: object,
+    tokenizer: object,
+    train_dataset: object,
+    validation_dataset: object,
+    tracking_enabled: bool,
+    callbacks: list[object],
+):
+    """以普通入口的 LoRA 挂载和训练参数构造 SFTTrainer。"""
+    from trl import SFTConfig, SFTTrainer
+
+    config_kwargs = build_sft_config_kwargs(settings, tracking_enabled)
+    config_kwargs.update({"seed": probe.seed, "data_seed": probe.seed})
+    return SFTTrainer(
+        model=model,
+        processing_class=tokenizer,
+        train_dataset=train_dataset,
+        eval_dataset=validation_dataset,
+        peft_config=build_lora_config(probe),
+        args=SFTConfig(**config_kwargs),
+        callbacks=callbacks,
+    )
 
 
 def _train_impl(
@@ -652,14 +807,7 @@ def _train_impl(
 ) -> dict[str, object]:
     """在 CUDA 环境执行 QLoRA 监督微调并保存运行摘要。"""
     import torch
-    from peft import LoraConfig
-    from transformers import (
-        AutoModelForCausalLM,
-        AutoTokenizer,
-        BitsAndBytesConfig,
-        TrainerCallback,
-    )
-    from trl import SFTConfig, SFTTrainer
+    from transformers import TrainerCallback
 
     class _RestartCallbackAdapter(TrainerCallback):
         def on_train_begin(self, args, state, control, **kwargs):
@@ -676,40 +824,23 @@ def _train_impl(
     if not torch.cuda.is_bf16_supported():
         raise RuntimeError("当前 GPU 不支持 BF16")
 
-    tokenizer = AutoTokenizer.from_pretrained(probe.model_id, use_fast=True)
-    if tokenizer.pad_token_id is None:
-        tokenizer.pad_token = tokenizer.eos_token
-    quantization = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_use_double_quant=True,
+    model, tokenizer = build_qwen_model_and_tokenizer(probe, settings, torch)
+    train_dataset = build_chat_dataset(
+        load_training_records(settings.train_file),
+        tokenizer,
     )
-    model = AutoModelForCausalLM.from_pretrained(
-        probe.model_id,
-        quantization_config=quantization,
-        dtype=torch.bfloat16,
-        device_map="auto",
+    validation_dataset = build_chat_dataset(
+        load_training_records(settings.validation_file),
+        tokenizer,
     )
-    train_dataset = _chat_dataset(_load_jsonl(settings.train_file), tokenizer)
-    validation_dataset = _chat_dataset(_load_jsonl(settings.validation_file), tokenizer)
-    peft_config = LoraConfig(
-        r=probe.lora_rank,
-        lora_alpha=probe.lora_alpha,
-        lora_dropout=probe.lora_dropout,
-        bias="none",
-        task_type="CAUSAL_LM",
-        target_modules="all-linear",
-    )
-    config_kwargs = build_sft_config_kwargs(settings, tracking_enabled)
-    config_kwargs.update({"seed": probe.seed, "data_seed": probe.seed})
-    trainer = SFTTrainer(
+    trainer = build_sft_trainer(
+        probe,
+        settings,
         model=model,
-        processing_class=tokenizer,
+        tokenizer=tokenizer,
         train_dataset=train_dataset,
-        eval_dataset=validation_dataset,
-        peft_config=peft_config,
-        args=SFTConfig(**config_kwargs),
+        validation_dataset=validation_dataset,
+        tracking_enabled=tracking_enabled,
         callbacks=[_RestartCallbackAdapter()],
     )
     train_result = _run_trainer_with_resume(
@@ -728,7 +859,7 @@ def _train_impl(
         "validation_samples": len(validation_dataset),
         "metrics": train_result.metrics,
         "trainer_log_history": trainer.state.log_history,
-        "model_load_spec": build_model_load_spec(probe),
+        "model_load_spec": build_model_load_spec(probe, settings),
         "binding_sha256": prepared.binding_sha256,
         "resumed_from_checkpoint": (
             str(prepared.resume_checkpoint) if prepared.resume_checkpoint is not None else None

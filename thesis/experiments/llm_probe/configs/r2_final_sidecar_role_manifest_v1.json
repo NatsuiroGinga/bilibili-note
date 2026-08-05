@@ -1,0 +1,283 @@
+{
+  "schema_version": "flow_probe_r2_final_sidecar_role_manifest_v1",
+  "dataset_version": "r2-final-sidecar-candidate-v1",
+  "status": "ready_for_model_integration_tcp_udp_quic_seed_only",
+  "final_test_visible": false,
+  "allowed_physics_splits": [
+    "train-fit",
+    "calibration",
+    "validation"
+  ],
+  "forbidden_splits": [
+    "test",
+    "unseen-configuration"
+  ],
+  "pre_read_gate": {
+    "must_parse_before_parquet": true,
+    "reject_unknown_role": true,
+    "reject_hash_mismatch": true,
+    "reject_final_test_visible": true,
+    "reject_split_outside_allowlist": true,
+    "reject_required_role_not_ready": true
+  },
+  "roles": {
+    "detection_pool_candidate": {
+      "role": "server_filter_id_allowlist",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1/detection-pool-manifest.jsonl",
+      "sha256": "a086968e972b92edac2fdb7f25a17cb9cb5ada67b9b0d03e443a3f03028caed1",
+      "row_count": 7579,
+      "split_ids": [
+        "train-fit"
+      ],
+      "uses_qlog": false,
+      "uses_label": false,
+      "formal_model_input": false
+    },
+    "detection_view_train_fit": {
+      "role": "detection_supervision",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/detection-view-train-fit.parquet",
+      "sha256": "98224268bfeff83a710c9739ef8294624e379c094ac68e23337cb58f67692ae9",
+      "schema_sha256": "1ce1cdb73304b16f27c6f3ad95cf500470b10fd6c6d3c6dab12b17a27c8f1154",
+      "row_count": 7579,
+      "split_ids": [
+        "train-fit"
+      ],
+      "required_columns": [
+        "sample_id",
+        "stable_order",
+        "split_id",
+        "text",
+        "binary_label",
+        "source_dataset"
+      ],
+      "source_path": "runs/data-frozen/dataset-v1-shared-b0/candidate/bert_train.parquet",
+      "source_sha256": "9e2aa375cba0052aa238f5c047fa524c98fe27717059a6670960b3476527c8fb",
+      "filter_id_role": "detection_pool_candidate",
+      "preserve_source_prompt_label_order": true,
+      "server_materialization_required": true,
+      "ready": true
+    },
+    "development_split_contract": {
+      "role": "group_exclusive_calibration_validation_contract",
+      "path": "configs/r2_final_detection_development_split_v1.yaml",
+      "sha256": "389de958126b25b91997f870d2cb4b21df090f826159c4e9ed45a897d2c3c968",
+      "row_count": null,
+      "uses_qlog": false,
+      "uses_label": false,
+      "ready": true
+    },
+    "development_materialization_manifest": {
+      "role": "resolved_group_exclusive_development_materialization",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/artifact-manifest.json",
+      "sha256": "167cb69cb39504c6db0cd40127f9103542f44d38a5d15cac1ac4ee7b76f63dbb",
+      "artifact_payload_merkle_sha256": "7ee5fe8fae8ccd6ec5a83f829dbd38f5a1b587b7611c3c32a436540c4097146d",
+      "source_lock_path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/source-lock.json",
+      "source_lock_sha256": "81b4c075d5a207ccc5401022f92f44ce8f56c29cb0b4528b9130b4be932ccfbc",
+      "uses_qlog": false,
+      "uses_label_for_assignment": false,
+      "final_test_visible": false,
+      "ready": true
+    },
+    "development_split_assignments": {
+      "role": "group_exclusive_calibration_validation_assignment",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/development-split-assignments.jsonl",
+      "sha256": "ca6b2bab05e0e5b082db3af1027fc5760a9b6c72cd5fb0c6751aa0f1ac6730f4",
+      "row_count": 14399,
+      "split_ids": [
+        "calibration",
+        "validation"
+      ],
+      "group_cross_partition_count": 0,
+      "sample_cross_partition_count": 0,
+      "uses_qlog": false,
+      "uses_label": false,
+      "formal_model_input": false,
+      "ready": true
+    },
+    "detection_view_calibration": {
+      "role": "detection_supervision",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/detection-view-calibration.parquet",
+      "sha256": "5736e8930ebd7c23f01bd5112278db35b4018c24556cfe3a03b4a721725b66df",
+      "schema_sha256": "1ce1cdb73304b16f27c6f3ad95cf500470b10fd6c6d3c6dab12b17a27c8f1154",
+      "row_count": 7200,
+      "split_ids": [
+        "calibration"
+      ],
+      "server_materialization_required": true,
+      "ready": true
+    },
+    "detection_view_development_validation": {
+      "role": "detection_supervision",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/detection-view-development-validation.parquet",
+      "sha256": "077a1faf35538481d2a63eb4d1c6417b6620582b50e2bf502dfde55c798c6239",
+      "schema_sha256": "1ce1cdb73304b16f27c6f3ad95cf500470b10fd6c6d3c6dab12b17a27c8f1154",
+      "row_count": 7199,
+      "split_ids": [
+        "validation"
+      ],
+      "server_materialization_required": true,
+      "ready": true
+    },
+    "common_history_train_fit": {
+      "role": "deployment_observable_causal_history",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1/common-history.parquet",
+      "sha256": "e8f8b83b1eabc6d649b67feb845e5b04e233522c3815e167d0ea6e909beb35f6",
+      "schema_sha256": "cff15d736c582837428c0c6d4aee09a052df49bc6228f0d23c11bb8b23480439",
+      "row_count": 30316,
+      "split_ids": [
+        "train-fit"
+      ],
+      "uses_qlog": false,
+      "uses_label": false
+    },
+    "common_history_calibration": {
+      "role": "deployment_observable_causal_history",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/common-history-calibration.parquet",
+      "sha256": "fd128612e5906241ffeb4b7d7ea2596c4398bc8cc3a88ae95638ec9d32423b6a",
+      "schema_sha256": "cff15d736c582837428c0c6d4aee09a052df49bc6228f0d23c11bb8b23480439",
+      "row_count": 28800,
+      "split_ids": [
+        "calibration"
+      ],
+      "uses_qlog": false,
+      "uses_label": false,
+      "server_materialization_required": true,
+      "ready": true
+    },
+    "common_history_development_validation": {
+      "role": "deployment_observable_causal_history",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/common-history-development-validation.parquet",
+      "sha256": "c69b237bcabbef8bdef6df4d2977a68b2a2440b95760294d014370a67a2113a6",
+      "schema_sha256": "cff15d736c582837428c0c6d4aee09a052df49bc6228f0d23c11bb8b23480439",
+      "row_count": 28796,
+      "split_ids": [
+        "validation"
+      ],
+      "uses_qlog": false,
+      "uses_label": false,
+      "server_materialization_required": true,
+      "ready": true
+    },
+    "route_assignments_train_fit": {
+      "role": "stop_gradient_inference_router",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1/route-assignments.parquet",
+      "sha256": "b46a08006c16ea669ddc642651ead49ffe6bd8193dec06ebcaba186bcf68a461",
+      "schema_sha256": "d39be92ee1950c03eeaa492b9931d91dbb9178279110bf4acb908e2f34f2af2e",
+      "row_count": 7579,
+      "split_ids": [
+        "train-fit"
+      ],
+      "allowed_inference_fields": [
+        "transport_family",
+        "transport_family_observed",
+        "route_id",
+        "route_confidence",
+        "route_confidence_observed",
+        "shared_expert_applicable",
+        "tcp_expert_applicable",
+        "udp_expert_applicable",
+        "quic_expert_applicable",
+        "quic_formal_training_enabled",
+        "stop_gradient_route"
+      ],
+      "forbidden_inference_fields": [
+        "protocol_target",
+        "qlog_truth_available"
+      ],
+      "uses_qlog": false,
+      "uses_label": false
+    },
+    "route_assignments_calibration": {
+      "role": "stop_gradient_inference_router",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/route-assignments-calibration.parquet",
+      "sha256": "b28bdac163d2d4ede236e6e4154b7f56ae6a35bc8eaebf4605b439c23c7360ae",
+      "schema_sha256": "d39be92ee1950c03eeaa492b9931d91dbb9178279110bf4acb908e2f34f2af2e",
+      "row_count": 7200,
+      "split_ids": [
+        "calibration"
+      ],
+      "uses_qlog": false,
+      "uses_label": false,
+      "server_materialization_required": true,
+      "ready": true
+    },
+    "route_assignments_development_validation": {
+      "role": "stop_gradient_inference_router",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1-server/route-assignments-development-validation.parquet",
+      "sha256": "217b65d25d7be83dc57966d0de2d16f42a944c10b8002d8f2bd09c1b1e202838",
+      "schema_sha256": "d39be92ee1950c03eeaa492b9931d91dbb9178279110bf4acb908e2f34f2af2e",
+      "row_count": 7199,
+      "split_ids": [
+        "validation"
+      ],
+      "uses_qlog": false,
+      "uses_label": false,
+      "server_materialization_required": true,
+      "ready": true
+    },
+    "ns3_physics_targets": {
+      "role": "training_only_privileged_tcp_udp_physics",
+      "path": "runs/data-prepared/r2-final-sidecar-candidate-v1/physics-targets-ns3.parquet",
+      "sha256": "7ac9adc5057befd867527975c04fdc733f0afb981ab2348dda7670d0a728a032",
+      "schema_sha256": "2a74fccbb7c5b50d7f2e05319a77581fab36631b049a1874fc22c400ac4861d5",
+      "row_count": 46080,
+      "split_ids": [
+        "train-fit",
+        "calibration",
+        "validation"
+      ],
+      "uses_qlog": false,
+      "uses_label": false
+    },
+    "quic_seed_physics_targets": {
+      "role": "seed_validation_only_privileged_quic_physics",
+      "path": "runs/data-prepared/r2-final-sidecar-quic-seed-v1/physics-targets-quic-seed.parquet",
+      "sha256": "a1a397e77972ffa4329656d3551e774465d5930e14d3bac06a4db813004dba94",
+      "schema_sha256": "dff5edb4833a2821fd6a0f7c4f443009ef34e3df1744c50c6da0a2dabc23a975",
+      "row_count": 439527,
+      "split_ids": [
+        "seed-validation-only"
+      ],
+      "uses_qlog": true,
+      "uses_label": false,
+      "formal_training_weight": 0.0,
+      "formal_model_input": false
+    },
+    "quic_seed_connection_partitions": {
+      "role": "seed_validation_only_connection_split_and_sequence_contract",
+      "path": "runs/data-prepared/r2-final-sidecar-quic-seed-partition-v1/quic-seed-connection-splits.jsonl",
+      "sha256": "eed21e30ac9b1d15f678c5294c9e81079f675cb9b611d3d7e092c49f5b72de83",
+      "row_count": 59,
+      "split_ids": [
+        "seed-train-fit",
+        "seed-calibration",
+        "seed-validation"
+      ],
+      "sequence_contract_path": "runs/data-prepared/r2-final-sidecar-quic-seed-partition-v1/sequence-construction.json",
+      "sequence_contract_sha256": "c62b4262d8d028cffcbd728a0553301b43913a11237377430ec26d1debfbe17f",
+      "sequence_count": 109860,
+      "uses_qlog": true,
+      "uses_label": false,
+      "formal_training_weight": 0.0,
+      "formal_model_input": false
+    }
+  },
+  "quic_inference_gate": {
+    "output_field": "quic_applicable",
+    "expression": "quic_expert_applicable AND quic_formal_training_enabled",
+    "current_value": false,
+    "effective_route_when_false": "UNKNOWN",
+    "visible_evidence_fields": [
+      "transport_family",
+      "transport_family_observed",
+      "route_id",
+      "route_confidence",
+      "route_confidence_observed",
+      "quic_formal_training_enabled"
+    ],
+    "uses_qlog": false,
+    "uses_label": false,
+    "udp_fallback": false,
+    "stop_gradient": true
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": "flow_probe_r2_quic_controlled_collection_v1",
+  "dataset_version": "r2-quic-controlled-v1",
+  "stage": "theory_selection",
+  "status": "field_closure_pending",
+  "tool_root": "runs/tools/r2-quic-controlled-v1",
+  "field_output_root": "runs/data-raw/r2-quic-controlled-field-v1",
+  "formal_output_root": "runs/data-raw/r2-quic-controlled-formal-v1",
+  "implementations": [
+    {
+      "id": "aioquic",
+      "version": "1.3.0",
+      "role": "client_under_test",
+      "qlog_observer": "client"
+    },
+    {
+      "id": "quiche",
+      "version": "0.24.5",
+      "role": "client_under_test",
+      "qlog_observer": "client"
+    }
+  ],
+  "reference_server": {
+    "implementation": "quiche",
+    "version": "0.24.5",
+    "role": "fixed_reference_server",
+    "listen_port": 4433
+  },
+  "network_contract": {
+    "queue_limit_packets": 1000,
+    "apply_both_directions": true,
+    "isolation": "network_namespace_veth",
+    "capture_point": "host_veth",
+    "capture_direction": "both",
+    "deployment_observation": "pcap_only",
+    "training_truth": "client_qlog_only"
+  },
+  "field_profiles": [
+    {"id": "p01", "delay_ms": 5, "loss_percent": 0.0, "rate_mbit": 100},
+    {"id": "p02", "delay_ms": 20, "loss_percent": 0.5, "rate_mbit": 100},
+    {"id": "p03", "delay_ms": 50, "loss_percent": 0.0, "rate_mbit": 20},
+    {"id": "p04", "delay_ms": 100, "loss_percent": 2.0, "rate_mbit": 100},
+    {"id": "p05", "delay_ms": 200, "loss_percent": 2.0, "rate_mbit": 20}
+  ],
+  "formal_grid": {
+    "delay_ms": [5, 20, 50, 100, 200],
+    "loss_percent": [0.0, 0.5, 2.0],
+    "rate_mbit": [20, 100]
+  },
+  "payloads": [
+    {"id": "small", "bytes": 4194304},
+    {"id": "bulk", "bytes": 67108864}
+  ],
+  "field_seeds": [42, 43],
+  "formal_seeds": [42, 43, 44, 45, 46],
+  "partition": {
+    "unit": "implementation_x_profile",
+    "ordered_connection_counts": {
+      "train_fit": 400,
+      "calibration": 100,
+      "development_validation": 100
+    }
+  },
+  "storage": {
+    "minimum_free_bytes_before_field": 10737418240,
+    "minimum_free_bytes_before_formal": 21474836480
+  },
+  "truth_contract": {
+    "pto_missing_policy": "explicit_mask",
+    "pto_fill_forbidden": true,
+    "qlog_deployment_input_forbidden": true,
+    "final_test_visible": false,
+    "malicious_labels_present": false
+  }
+}

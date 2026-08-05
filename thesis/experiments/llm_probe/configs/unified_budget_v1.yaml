@@ -1,0 +1,259 @@
+schema_version: flow_probe_unified_budget_config_v1
+config_id: unified-budget-v1
+contract_date: "2026-07-29"
+stage: theory_selection
+status: review_pending
+
+path_policy:
+  base: project_root
+  require_project_relative_paths: true
+  forbid_absolute_paths: true
+
+protocol_contract:
+  version: data-protocol-v1.0-rc1
+  status: provisional
+  phase: theory_selection
+
+determinism:
+  seed: 42
+  hash_algorithm: sha256
+  separator: '\0'
+  rank_key_fields:
+    - algorithm_namespace
+    - seed
+    - source_dataset
+    - sample_id
+  quota_algorithm: proportional_largest_remainder_minimum_one_v1
+  unified_order_algorithm: global_sha256_ascending_v1
+  require_input_order_independence: true
+  require_unique_sample_ids: true
+  require_byte_identical_rebuilds: true
+  algorithm_namespaces:
+    genis_formal: unified-budget-v1/genis-formal
+    genis_candidate: unified-budget-v1/genis-candidate
+    genis_open_neural: unified-budget-v1/genis-open-neural
+    tqhc2_candidate: unified-budget-v1/tqhc2-candidate
+    unified_formal_order: unified-budget-v1/unified-formal-order
+    unified_candidate_order: unified-budget-v1/unified-candidate-order
+
+input_policy:
+  allow_raw_source_data: false
+  allow_model_outputs: false
+  forbidden_result_kinds:
+    - metrics
+    - predictions
+    - checkpoints
+    - swanlab_summaries
+    - hyperparameter_search_results
+  preserve_source_sample_id: true
+  rewrite_labels: false
+  rewrite_source_roles: false
+  cross_source_sample_id_collisions_expected: 0
+
+sources:
+  genis:
+    source_dataset: genis
+    protocol_dir: runs/data-frozen/dataset-candidate-genis-v0/protocol
+    protocol_file: runs/data-frozen/dataset-candidate-genis-v0/protocol/protocol.yaml
+    protocol_sha256: ec2c81f404da48edae5c518cdd8ce8269cb979e73cc506a42c8933b63b35a9f0
+    samples_file: runs/data-frozen/dataset-candidate-genis-v0/protocol/samples.parquet
+    samples_sha256: 2b0d8b49ef81db3a9f9338dfbabe185bab54c02512786c9f64f52718ee8c55a0
+    expected_sample_count: 1372690
+    identity:
+      field: sample_id
+      pattern: "^genis:[0-9a-f]{64}$"
+      expected_unique_count: 1372690
+    session_assignments_file: runs/data-splits/genis-hybrid-forward-v1-20260719-v2/session_assignments.jsonl
+    session_assignments_sha256: d4d3909abab9900f5c38bc5d3799991b52d3dc1eceb9d79ff02026e128eb4cae
+    session_join:
+      sample_field: group_id
+      assignment_field: session_id
+      require_complete_join: true
+      on_missing: fail
+    time_stratum:
+      source_field: start_time
+      source_unit: unix_seconds
+      timezone: UTC
+      derived_field: utc_day
+      format: "%Y-%m-%d"
+      allow_fabricated_fallback: false
+    formal_train_pool:
+      manifest: runs/data-frozen/dataset-candidate-genis-v0/protocol/splits/genis-family-development-train.jsonl
+      manifest_sha256: f82775ce8fcc43e2acc27a04fcc4da919f6b2010ef242131a1dde0cf480cfaa7
+      expected_count: 151324
+      required_source_partition: train
+      required_split_id: train
+      forbidden_source_partitions:
+        - validation
+        - test
+        - ood:dos-icmp
+        - ood:dos-pushack
+        - ood:dos-udp
+      stratification_fields:
+        - utc_day
+        - family_label
+        - subtype_label
+      session_spread_field: group_id
+      within_stratum_algorithm: group_round_robin_then_sha256_v1
+      expected_group_count: 38876
+      expected_joint_strata: 8
+      formal_target_count: 30000
+      candidate_target_count: 3973
+    open_eval_pool:
+      manifest: runs/data-frozen/dataset-candidate-genis-v0/protocol/splits/genis-subtype-open-set-test.jsonl
+      manifest_sha256: 1bcd42f3f2c4fc463f770cbc05cf7eea3fbe9cc468a5bb07888762ba2dc6e341
+      expected_count: 1179168
+      allowed_use: evaluation_only
+      stratification_fields:
+        - utc_day
+        - family_label
+        - subtype_label
+      session_spread_field: group_id
+      within_stratum_algorithm: group_round_robin_then_sha256_v1
+      neural_eval_target_count: 30000
+
+  tqhc2:
+    source_dataset: tqhc2
+    protocol_dir: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol
+    protocol_file: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/protocol.yaml
+    protocol_sha256: 1c001a0a0808f8a7403b31dabad6a10faf249cf5b9870e618de745b5ed4c1d60
+    samples_file: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/samples.parquet
+    samples_sha256: 05cb0774f8197f07d842a21d3c22ce07c111289b7cabe6950023b689c6b51dac
+    expected_sample_count: 35235
+    identity:
+      field: sample_id
+      expected_unique_count: 35235
+    formal_train_pool:
+      manifest: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_cell_indomain-train.jsonl
+      manifest_sha256: 6dd746d8a0a43ef9921bdc4868711bb88827d149db2c858283cc4e0db77a306d
+      expected_count: 27235
+      expected_allocation_group_count: 28
+      expected_joint_strata: 56
+      formal_selection_algorithm: preserve_manifest_membership_and_order_v1
+      formal_target_count: 27235
+      candidate_target_count: 3606
+      candidate_stratification_fields:
+        - allocation_group_id
+        - profile
+        - interval_s
+        - jitter_pct
+        - binary_label
+      candidate_within_stratum_algorithm: sha256_ascending_v1
+      forbidden_manifests:
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_cell_indomain-validation.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_cell_indomain-test.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_A-train.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_A-validation.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_A-test.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_B-train.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_B-validation.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_B-test.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_C-train.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_C-validation.jsonl
+        - runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_leave_one_profile_out_C-test.jsonl
+
+  ns3:
+    source_dataset: ns3
+    source_dir: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2
+    files:
+      train:
+        path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/train.jsonl
+        sha256: d6a6ca23a985223401e1d650d619c2a50b255d2066769e2478cef72cc6239fa0
+        expected_count: 807
+      validation:
+        path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/validation.jsonl
+        sha256: 0bbbb4ea483867561c329c896cb4e7745a102cb90024c464654e0b7d673c8723
+        expected_count: 807
+      test:
+        path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/test.jsonl
+        sha256: 6e64d2ab290813a246ed8efcefd1bb19f1026c2de7b7904d111af67b4465ef94
+        expected_count: 807
+      split_manifest:
+        path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/split_manifest.json
+        sha256: 3393d76e96b9104ea78a8a52bc73e72e2298798a4a4db29dbf76ef412eb88785
+      artifact_manifest:
+        path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/artifact_manifest.json
+        sha256: 53c5970e34ae88206e1fc7f63133bc795d37711c624862dbb34ed20b9e69a0ac
+    identity:
+      field: sample_id
+      expected_unique_count: 2421
+    expected_group_count: 21
+    formal_target_count: 2421
+    candidate_target_count: 2421
+    selection_algorithm: include_all_once_preserve_source_split_then_hash_order_v1
+    allow_oversampling: false
+    allow_duplicate_index_entries: false
+    source_splits_become_training_inputs:
+      - train
+      - validation
+      - test
+    forbidden_later_uses:
+      - untouched_physics_validation
+      - untouched_physics_test
+      - final_cross_topology_test
+
+budgets:
+  formal_training:
+    total_target_count: 59656
+    source_counts:
+      genis: 30000
+      tqhc2: 27235
+      ns3: 2421
+    output_manifest: train_unified_formal.jsonl
+  candidate_screening:
+    total_target_count: 10000
+    source_counts:
+      genis: 3973
+      tqhc2: 3606
+      ns3: 2421
+    public_detection_allocation_basis:
+      remaining_after_ns3: 7579
+      formal_weights:
+        genis: 30000
+        tqhc2: 27235
+      allocation_algorithm: hamilton_largest_remainder_v1
+    require_subset_of_formal_training: true
+    output_manifest: train_candidate_approx10000.jsonl
+  genis_open_neural:
+    total_target_count: 30000
+    output_manifest: eval_genis_open_neural_30000.jsonl
+  genis_open_full:
+    total_target_count: 1179168
+    output_manifest: eval_genis_open_full_1179168.jsonl
+
+outputs:
+  dataset_root: runs/data-frozen/dataset-v1
+  master_records: master_records.parquet
+  master_records_expected_count: 1410346
+  budgets_dir: manifests/budgets
+  files:
+    - train_genis_30000.jsonl
+    - train_tqhc2_cell_cap1000.jsonl
+    - train_ns3_all2421.jsonl
+    - train_unified_formal.jsonl
+    - train_candidate_approx10000.jsonl
+    - eval_genis_open_neural_30000.jsonl
+    - eval_genis_open_full_1179168.jsonl
+    - budget_statistics.json
+    - budget_checksums.json
+    - budget_freeze_manifest.json
+  required_record_fields:
+    - sample_id
+    - source_dataset
+    - source_split
+    - task_role
+    - stable_order
+
+publication:
+  build_root: runs/data-candidate-builds/unified-budget-v1
+  independent_builds:
+    - build-a
+    - build-b
+  partial_suffix: .partial
+  publish_target: runs/data-frozen/dataset-v1
+  refuse_overwrite: true
+  require_atomic_rename: true
+  require_byte_identical_builds: true
+  require_independent_review: true
+  status_before_review: review_pending
+  status_after_approval: frozen

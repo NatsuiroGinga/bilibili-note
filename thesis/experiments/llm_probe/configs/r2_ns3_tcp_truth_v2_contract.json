@@ -1,0 +1,70 @@
+{
+  "schema_version": "flow_probe_r2_ns3_tcp_truth_v2_contract_v1",
+  "ns3_version": "3.48",
+  "tcp_congestion_control": "ns3::TcpNewReno",
+  "fixed_tcp_options": {
+    "BetaLoss": 0.5,
+    "Sack": false,
+    "Timestamp": false,
+    "UseEcn": "Off"
+  },
+  "identity_key": [
+    "physics_group_sha256",
+    "window_index",
+    "sender_index"
+  ],
+  "window_duration_seconds": 0.1,
+  "windows_per_run": 120,
+  "trace_sources": {
+    "acked_bytes": "HighestRxAck",
+    "bytes_in_flight": "BytesInFlight",
+    "congestion_state": "CongState",
+    "congestion_window": "CongestionWindow",
+    "packet_receive": "Rx",
+    "packet_transmit": "Tx",
+    "retransmission": "Retransmission",
+    "rto_value": "RTO",
+    "rtt_cross_check": "LastRTT",
+    "slow_start_threshold": "SlowStartThreshold"
+  },
+  "event_semantics": {
+    "acked_segments": "cumulative_ack_bytes_plus_connection_remainder_divided_by_actual_segment_size",
+    "loss_event_count": "entries_into_CA_RECOVERY",
+    "rtt_samples": "tcp_send_history_with_Karn_rule_and_latest_acked_segment",
+    "timeout_event_count": "same_time_RTO_doubling_and_retransmission_while_CA_LOSS"
+  },
+  "missing_value_policy": "empty_value_with_zero_observation_mask",
+  "newreno_residual": {
+    "ack_growth": "event_exact_ns3_3_48_slow_start_then_congestion_avoidance",
+    "loss_threshold": "ssthresh_after-max(2*MSS,floor(0.5*bytes_in_flight_before_loss))",
+    "trainable_parameter_count": 0
+  },
+  "required_closure": {
+    "ack_residual_valid_terms_minimum": 1,
+    "acked_bytes_minimum": 1,
+    "congestion_contraction_events_minimum": 1,
+    "loss_residual_valid_terms_minimum": 1,
+    "rtt_samples_minimum": 1
+  },
+  "udp_observation_contract": {
+    "scope": "future_formal_gate_not_executed_in_tcp_field_closure",
+    "window_fields": [
+      "window_duration_s",
+      "truth_udp_burst_active_duration_s",
+      "truth_udp_planned_app_payload_packets",
+      "truth_udp_planned_app_payload_bytes",
+      "truth_udp_actual_send_packets",
+      "truth_udp_actual_send_bytes",
+      "truth_udp_app_drop_packets",
+      "truth_udp_app_drop_bytes",
+      "truth_udp_backlog_applicable",
+      "truth_udp_backlog_start_bytes",
+      "truth_udp_backlog_end_bytes"
+    ],
+    "active_duration_semantics": "mean_active_seconds_per_sender_in_window_from_frozen_integer_timestep_burst_schedule",
+    "app_drop_semantics": "Send_failure_or_unaccepted_suffix_of_partial_Send",
+    "backlog_applicable": false,
+    "backlog_reason": "application_has_no_internal_backlog_queue",
+    "backlog_value_policy": "empty_when_not_applicable"
+  }
+}

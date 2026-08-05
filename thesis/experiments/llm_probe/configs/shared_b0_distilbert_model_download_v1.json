@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "repo_id": "distilbert/distilbert-base-multilingual-cased",
+  "endpoint": "https://hf-mirror.com",
+  "model_dir": "/root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased",
+  "partial_dir": "/root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased.partial",
+  "screen_name": "shared-b0-distilbert-model",
+  "log_path": "runs/setup/shared-b0-distilbert-model-v1/download.log",
+  "state_path": "runs/setup/shared-b0-distilbert-model-v1/download_state.json",
+  "manifest_path": "/root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased.manifest.json",
+  "checksums_path": "/root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased.checksums.sha256",
+  "minimum_free_bytes": 10737418240
+}

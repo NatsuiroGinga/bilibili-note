@@ -1,0 +1,53 @@
+schema_version: flow_probe_r2_final_quic_seed_config_v1
+dataset_version: r2-final-quic-seed-v1
+stage: theory_selection
+status: review_pending
+output_root: runs/data-prepared/r2-final-sidecar-quic-seed-v1
+
+inputs:
+  trace_manifest:
+    root: project
+    path: runs/data-audit/r2-quic-mednetcom-v1-ack-semantics-gate-review-pending.build-a/trace-manifest.jsonl
+    sha256: f9996195a163d378c625a024168138caa9bc990a26fb7da50ac31fc5f3d9560f
+  field_coverage:
+    root: project
+    path: runs/data-audit/r2-quic-mednetcom-v1-ack-semantics-gate-review-pending.build-a/field-coverage.json
+    sha256: 2e0e0e99f614c12ba2f6fa367d5869801790387f8de0281873fd5cace0c12e42
+  unit_contract:
+    root: project
+    path: runs/data-audit/r2-quic-mednetcom-v1-ack-semantics-gate-review-pending.build-a/unit-contract.json
+    sha256: 01bac7cbf467432ad0b1ca2e48422b606b3b44d9430364ee0ff4384a729e8ad8
+  audit_source_lock:
+    root: project
+    path: runs/data-audit/r2-quic-mednetcom-v1-ack-semantics-gate-review-pending.build-a/source-lock.json
+    sha256: 618b1ae2e99e8e1dbf8144ffa519998e656c77564fa7b062593219f8e30103ef
+  raw_qlog_root:
+    root: repository
+    path: raw/datasets/QUIC-MedNetCom
+    upstream_commit: f237a20360b83868a197488c5b557f53e4b7e53c
+    manifest_sha256: ad4924be38968925ea0532d32e643709b40f7f852c863108cbd165addf4ecd61
+
+expected:
+  independent_connections: 59
+  full_window_rows: 439527
+  candidate_events: 2815899
+  packet_sent_events: 2230100
+  packet_received_events: 313027
+  metrics_events: 268936
+  endpoint_packet_lost_events: 3777
+
+window_contract:
+  duration_ns: 100000000
+  interval: left_closed_right_open
+  partial_tail_policy: exclude
+  state_policy: last_observation_at_or_before_window_end
+  interpolation: forbidden
+
+training_boundary:
+  seed_validation_only: true
+  formal_training_weight: 0.0
+  quic_formal_training_enabled: false
+  effective_route_id: UNKNOWN
+  quic_expert_ready: false
+  pto_observed: false
+  final_test_visible: false

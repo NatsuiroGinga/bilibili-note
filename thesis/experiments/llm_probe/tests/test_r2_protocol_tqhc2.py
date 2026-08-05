@@ -279,6 +279,14 @@ def test_task01_contract_field_order_and_enums_are_reused() -> None:
         "CONTEXT_BOUND_SHORT_HEADER",
         "AMBIGUOUS",
     )
+    handoff_params_path = (
+        PROJECT_ROOT
+        / "runs/launchers/r2-protocol-data-rebuild-v0/local-producer/tqhc2-handoff-params.json"
+    )
+    handoff_params = json.loads(handoff_params_path.read_text(encoding="utf-8"))
+    assert handoff_params["source_lock_root"] == str(
+        PROJECT_ROOT / "runs/data-freeze-configs/r2-protocol-v1/source-locks-v1"
+    )
 
 
 @pytest.mark.parametrize("mutation", ["delete", "swap"])

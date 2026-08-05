@@ -24,6 +24,15 @@ def test_config_accepts_probe_defaults() -> None:
     assert config.seed == 42
 
 
+def test_config_accepts_shared_b0_common_view() -> None:
+    data = valid_mapping()
+    data["feature_view"] = "shared_b0_common_v1"
+
+    config = ProbeConfig.from_mapping(data)
+
+    assert config.feature_view == "shared_b0_common_v1"
+
+
 def test_model_id_override_preserves_experiment_parameters() -> None:
     config = ProbeConfig.from_mapping(valid_mapping())
 

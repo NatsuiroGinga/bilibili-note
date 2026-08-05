@@ -1,0 +1,34 @@
+schema_version: flow_probe_shared_b0_physics_sidecar_config_v1
+dataset_name: dataset-v1-shared-b0-physics-v1
+stage: theory_selection
+status: review_pending
+
+classification:
+  manifest: runs/data-frozen/dataset-v1-shared-b0/candidate/qwen_train.jsonl
+  ns3_sample_id_prefix: ns3-h4-
+
+contract:
+  record_count: 2421
+  anchor_count: 5
+  usage: train_fit_diagnostic
+
+state_mask:
+  mode: anchor0_plus_one
+  seed: 42
+
+sources:
+  - split: train
+    path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/train.jsonl
+    sha256: d6a6ca23a985223401e1d650d619c2a50b255d2066769e2478cef72cc6239fa0
+    expected_count: 807
+  - split: validation
+    path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/validation.jsonl
+    sha256: 0bbbb4ea483867561c329c896cb4e7745a102cb90024c464654e0b7d673c8723
+    expected_count: 807
+  - split: test
+    path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/test.jsonl
+    sha256: 6e64d2ab290813a246ed8efcefd1bb19f1026c2de7b7904d111af67b4465ef94
+    expected_count: 807
+
+publication:
+  output: runs/data-frozen/dataset-v1-shared-b0-physics-v1

@@ -1,0 +1,154 @@
+schema_version: flow_probe_r2_final_sidecar_data_contract_v1
+dataset_version: r2-final-sidecar-candidate-v1
+stage: theory_selection
+status: review_pending
+final_test_visible: false
+output_root: runs/data-prepared/r2-final-sidecar-candidate-v1
+
+inputs:
+  candidate_manifest:
+    root: project
+    path: runs/data-frozen/dataset-v1/manifests/budgets/train_candidate_approx10000.jsonl
+    sha256: b39b60af6baec91e4586947e7e5a9fdba947419285a37f2ca9fd54cf241b56f3
+    row_count: 10000
+  genis_flows:
+    root: repository
+    path: raw/datasets/GeNIS-2025/2-flows.zip
+    sha256: 72033b5e3df6e45cda9a339985194d8232c437c243a5037a62ebeff457489b30
+  tqhc2_packets:
+    root: project
+    path: runs/data-frozen/r2-protocol-tqhc2-handoff-v0.build-a.partial/packet-observations.parquet
+    sha256: 21168c943d7b9be043174a19cbde751c5cdb9c34b37e6902370998be88013991
+  tqhc2_protocol:
+    root: project
+    path: runs/data-frozen/r2-protocol-tqhc2-handoff-v0.build-a.partial/protocol.parquet
+    sha256: 1c48b3437d5c17b0eb1524bc22856b1803b9dbb5d29b13b4f0593a7542b3560c
+  ns3_manifest:
+    root: project
+    path: runs/data-freeze-configs/r2-protocol-v1/ns3-config-manifest.jsonl
+    sha256: d867c05013ff9c566d965ec3115bcefe6c905cca69865b042eb81f56e012a111
+    row_count: 512
+  ns3_root:
+    root: project
+    path: runs/ns3-data/r2-protocol-paired-v0
+  ns3_summary:
+    root: project
+    path: runs/ns3-data/r2-protocol-paired-v0/matrix-summary.json
+    sha256: 574118e3a3ddddc21f23fdcb9c770ab7f9b3f86dd73feb018bd067d181234819
+  ns3_source_lock:
+    root: project
+    path: runs/ns3-data/r2-protocol-paired-v0/source-lock.json
+    sha256: 95708a0fffd702f65ec18acfe9ca1c806ba893b5d4f816643bdc59534ec8d38b
+  ns3_trace_contract:
+    root: project
+    path: runs/ns3-data/r2-protocol-paired-v0/ns3-trace-contract.json
+    sha256: b90e4b657b0b5e8cece9af577e05f24d84da58cc7af33a596f21aadcd5b481d9
+  quic_trace_manifest:
+    root: project
+    path: runs/data-audit/r2-quic-mednetcom-v1-ack-semantics-gate-review-pending.build-a/trace-manifest.jsonl
+    sha256: f9996195a163d378c625a024168138caa9bc990a26fb7da50ac31fc5f3d9560f
+    row_count: 59
+  quic_audit_summary:
+    root: project
+    path: runs/data-audit/r2-quic-mednetcom-v1-ack-semantics-gate-review-pending.build-a/audit-summary.json
+    sha256: 21c23d823e852f7ea453cf4b3ccfd2fd952de675f13f49b7db8fe9f2355e2c40
+  quic_source_lock:
+    root: project
+    path: runs/data-audit/r2-quic-mednetcom-v1-ack-semantics-gate-review-pending.build-a/source-lock.json
+    sha256: 618b1ae2e99e8e1dbf8144ffa519998e656c77564fa7b062593219f8e30103ef
+
+detection_pool:
+  allowed_sources:
+    - genis
+    - tqhc2
+  expected_counts:
+    genis: 3973
+    tqhc2: 3606
+  expected_total: 7579
+  classifier_views:
+    qwen: runs/data-frozen/dataset-v1-shared-b0/candidate/qwen_train.jsonl
+    bert: runs/data-frozen/dataset-v1-shared-b0/candidate/bert_train.parquet
+  classifier_view_materialized_locally: false
+
+causal_history:
+  window_packet_ranges:
+    - [0, 2]
+    - [2, 4]
+    - [4, 8]
+    - [8, null]
+  value_fields:
+    - total_packets
+    - total_bytes
+    - packet_length_mean
+    - packet_length_min
+    - packet_length_max
+    - iat_mean_ms
+    - packet_rate
+    - byte_rate
+  tqhc2_packet_fields:
+    - sample_id
+    - packet_index
+    - delta_time_us
+    - network_length_bytes
+  genis_history_policy: explicit_missing
+
+route_contract:
+  route_ids:
+    - TCP
+    - UDP
+    - QUIC
+    - UNKNOWN
+  shared_expert_always_on: true
+  stop_gradient_confidence: true
+  tqhc2_unknown_udp_falls_back_to: UNKNOWN
+  quic_formal_training_enabled: false
+  quic_seed_validation_only: true
+  quic_effective_route: UNKNOWN
+
+ns3_physics:
+  included_splits:
+    - train-fit
+    - calibration
+    - validation
+  withheld_splits:
+    - test
+    - unseen-configuration
+  windows_per_run: 120
+  sequence_length: 4
+  sequences_per_run: 30
+  expected_included_runs: 384
+  expected_window_rows: 46080
+  expected_sequence_rows: 11520
+
+quic_physics:
+  candidate_trace_count: 59
+  independent_group_count: 59
+  observer_vantage_point: server
+  qlog_version: draft-02-wip
+  quic_version: ff00001b
+  qlog_title: quic-go qlog
+  malicious_labels_available: false
+  pto_available: false
+  formal_training_eligible: false
+  expansion_contract:
+    implementations:
+      - aioquic
+      - quiche
+    field_closure_connections: 40
+    network_configurations: 30
+    seeds: 5
+    load_modes: 2
+    target_independent_connections: 600
+    capture_pair:
+      - pcap
+      - qlog
+    network_control: linux_netem
+
+parquet:
+  version: "2.6"
+  compression: zstd
+  compression_level: 9
+  use_dictionary: false
+  write_statistics: true
+  data_page_version: "1.0"
+  row_group_size: 65536

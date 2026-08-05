@@ -1,0 +1,177 @@
+schema_version: flow_probe_r2_ns3_protocol_matrix_v1
+matrix_seed: 20260731
+
+shared_contract:
+  path: configs/r2_protocol_data_v1.yaml
+  schema_version: flow_probe_r2_protocol_contract_v1
+
+manifest:
+  output_directory: runs/data-freeze-configs/r2-protocol-v1
+  manifest_filename: ns3-config-manifest.jsonl
+  checksum_filename: ns3-config-manifest.sha256
+  field_order:
+    - schema_version
+    - matrix_config_sha256
+    - r2_contract_sha256
+    - physics_group_sha256
+    - seed_basis_sha256
+    - split
+    - replicate_key_sha256
+    - run_seed
+    - matrix_seed
+    - topology_id
+    - ns3_version
+    - tcp_congestion_control
+    - duration_seconds
+    - window_seconds
+    - windows_per_run
+    - sequence_length_windows
+    - sequences_per_run
+    - traffic_mode
+    - binary_label
+    - arrival_model
+    - queue_model
+    - offered_load_ratio
+    - initial_capacity_mbps
+    - capacity_change_multiplier
+    - shifted_capacity_mbps
+    - capacity_change_time_seconds
+    - access_delay_ms
+    - bottleneck_delay_ms
+    - queue_limit_packets
+    - downstream_loss_rate
+    - sender_count
+    - benign_sender_count
+    - attack_sender_count
+    - total_offered_load_mbps
+    - per_sender_offered_load_mbps
+    - packet_size_bytes
+    - burst_on_seconds
+    - burst_off_seconds
+    - transport_family
+
+protocols:
+  - TCP
+  - UDP
+
+split_order:
+  - train-fit
+  - calibration
+  - validation
+  - test
+  - unseen-configuration
+
+split_base_configuration_counts:
+  train-fit: 128
+  calibration: 32
+  validation: 32
+  test: 32
+  unseen-configuration: 32
+
+replicas_per_factor_cell:
+  train-fit: 4
+  calibration: 1
+  validation: 1
+  test: 1
+  unseen-configuration: 2
+
+factors:
+  traffic_modes:
+    - benign
+    - dos
+  binary_labels:
+    benign: 0
+    dos: 1
+  arrival_models:
+    - constant
+    - bursty
+  in_distribution_queue_models:
+    - fifo
+    - codel
+  unseen_queue_models:
+    - red
+  offered_load_ratios:
+    - 0.35
+    - 0.70
+    - 1.05
+    - 1.40
+
+timing:
+  duration_seconds: 12.0
+  window_seconds: 0.1
+  windows_per_run: 120
+  sequence_length_windows: 4
+  sequences_per_run: 30
+
+topology:
+  topology_id: single-bottleneck-star-r2-v1
+  ns3_version: "3.48"
+  tcp_congestion_control: ns3::TcpNewReno
+  capacity_change_time_seconds: 6.0
+  packet_size_bytes: 1200
+  burst_on_seconds: 0.20
+  burst_off_seconds: 0.10
+
+sender_composition:
+  benign:
+    benign_senders: 8
+    attack_senders: 0
+  dos:
+    benign_senders: 4
+    attack_senders: 4
+
+parameter_grids:
+  in_distribution:
+    initial_capacity_mbps:
+      - 10
+      - 20
+    capacity_change_multiplier:
+      - 0.5
+      - 1.0
+    access_delay_ms:
+      - 1
+      - 5
+    bottleneck_delay_ms:
+      - 5
+      - 20
+    queue_limit_packets:
+      - 32
+      - 128
+    downstream_loss_rate:
+      - 0.0
+      - 0.01
+  unseen_configuration:
+    initial_capacity_mbps:
+      - 5
+      - 40
+    capacity_change_multiplier:
+      - 0.25
+      - 1.5
+    access_delay_ms:
+      - 0.25
+      - 8
+    bottleneck_delay_ms:
+      - 50
+      - 100
+    queue_limit_packets:
+      - 8
+      - 256
+    downstream_loss_rate:
+      - 0.03
+      - 0.05
+
+coverage:
+  paired_completion_minimum: 0.95
+  tcp_cwnd_window_coverage_minimum: 0.95
+  factor_cell_minimums:
+    train-fit: 15
+    calibration: 3
+    validation: 3
+    test: 3
+    unseen-configuration: 3
+  sequence_minimums_per_transport_and_label:
+    train-fit: 1728
+    calibration: 432
+    validation: 432
+    test: 432
+    unseen-configuration: 432

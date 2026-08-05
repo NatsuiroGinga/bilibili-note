@@ -1,0 +1,62 @@
+schema_version: flow_probe_r2_distilbert_sidecar_probe_config_v2
+
+dataset:
+  input_summary:
+    path: runs/r2-physics-sidecar-pilot/inputs/input-summary.json
+    sha256: 028d18d41d5703b3792f6440948716edea43b6f45ddf1ebb427f816ebd829462
+  detection_view:
+    path: runs/r2-physics-sidecar-pilot/inputs/tqhc2/tqhc2-pilot-detection-view.parquet
+    sha256: 6d8019dc15f2cd11abc2b4aa8a92ca81608b8000ef0c39eb83aae04607d9a126
+  sidecar:
+    path: runs/r2-physics-sidecar-pilot/inputs/tqhc2/tqhc2-pilot-sidecar.parquet
+    sha256: 56658ea8886a57cdefe1dba2268e658f9072e24a94b93d5bf7a3711db9de2553
+
+model:
+  identifier: distilbert/distilbert-base-multilingual-cased
+  source: /root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased
+  max_length: 128
+  device: auto
+  precision: auto
+
+training:
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 64
+  gradient_accumulation_steps: 2
+  learning_rate: 0.00002
+  weight_decay: 0.01
+  num_train_epochs: 3
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  save_steps: 20
+  save_total_limit: 1
+  num_workers: 2
+  resume_from_checkpoint: auto
+
+evaluation:
+  threshold: 0.5
+  calibration_bins: 15
+
+run:
+  output_dir: runs/r2-transformer-sidecar-probe/distilbert-v0/seed-43
+  seed: 43
+  stage: theory_selection
+  status: review_pending
+
+storage:
+  seed_execution: serial
+  minimum_free_bytes: 5368709120
+  artifact_write_reserve_bytes: 2147483648
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: r2-sidecar-distilbert-s43
+  description: R2 物理旁路 DistilBERT 结构适配开发集探针，仅用于理论筛选
+  mode: online
+  tags:
+    - r2-sidecar
+    - distilbert
+    - seed-43
+    - epochs-3
+    - run-probe
+    - protocol-partial

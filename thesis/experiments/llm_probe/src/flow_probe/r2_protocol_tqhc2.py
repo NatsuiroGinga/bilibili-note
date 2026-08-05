@@ -2767,7 +2767,7 @@ def run_formal_tqhc2_handoff(parameters_path: Path) -> Mapping[str, object]:
         "handoff_root": project_data_root
         / "runs/data-frozen/r2-protocol-tqhc2-handoff-v0",
         "source_lock_root": project_data_root
-        / "runs/data-freeze-configs/r2-protocol-v1",
+        / "runs/data-freeze-configs/r2-protocol-v1/source-locks-v1",
     }
     actual_paths = {
         "build_a": build_a,

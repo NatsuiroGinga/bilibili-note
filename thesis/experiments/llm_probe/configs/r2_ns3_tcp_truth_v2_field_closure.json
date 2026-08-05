@@ -1,0 +1,29 @@
+{
+  "schema_version": "flow_probe_r2_ns3_tcp_truth_v2_field_closure_v1",
+  "expected_manifest_sha256": "d867c05013ff9c566d965ec3115bcefe6c905cca69865b042eb81f56e012a111",
+  "manifest_path": "runs/data-freeze-configs/r2-protocol-v1/ns3-config-manifest.jsonl",
+  "selection_policy": "frozen_manifest_tcp_rows_only",
+  "sender_count_limitation": "frozen_manifest_sender_count_is_always_8",
+  "selected_runs": [
+    {
+      "coverage": "low_loss_low_rtt_stable_capacity_8_plus_0",
+      "physics_group_sha256": "dd83746a955899c9b5c5db2d074e65e0059a73424803090b0cc83f932b550739"
+    },
+    {
+      "coverage": "zero_external_loss_capacity_decrease_8_plus_0",
+      "physics_group_sha256": "5bcb7874c7951ee9f7bd0419aa3210cbb556faef6f656cf40d9b8099e6a89654"
+    },
+    {
+      "coverage": "one_percent_loss_high_rtt_capacity_decrease_8_plus_0",
+      "physics_group_sha256": "46cb554a6675a8a78bfc9dd2caa5a95d310da248303a61565e007aecc43831fd"
+    },
+    {
+      "coverage": "one_percent_loss_bursty_dos_4_plus_4",
+      "physics_group_sha256": "7d03c3f22fc4796c7c7083c823dd366f1691a6adb45b73e7ef74e44696cadcbc"
+    },
+    {
+      "coverage": "five_percent_loss_very_high_rtt_unseen_configuration_8_plus_0",
+      "physics_group_sha256": "d5090f8c572b0f5928ed144e329f02eeb46624112d3949a7eb1b46fedef58b51"
+    }
+  ]
+}

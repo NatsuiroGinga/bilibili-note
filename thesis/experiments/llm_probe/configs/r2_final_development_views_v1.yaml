@@ -1,0 +1,105 @@
+schema_version: flow_probe_r2_final_development_views_materialization_v1
+dataset_version: r2-final-sidecar-candidate-v1-server
+stage: theory_selection
+status: review_pending
+final_test_visible: false
+output_root: runs/data-prepared/r2-final-sidecar-candidate-v1-server
+
+inputs:
+  split_contract:
+    root: project
+    path: configs/r2_final_detection_development_split_v1.yaml
+    sha256: 389de958126b25b91997f870d2cb4b21df090f826159c4e9ed45a897d2c3c968
+  helper_script:
+    root: project
+    path: scripts/r2_final_sidecar_candidate_materialize.py
+    sha256: 6c9fa068fa5f6b73ce762b310de55df383fbb0d3a6ef079501e3efe46b763f95
+  train_allowlist:
+    root: project
+    path: runs/data-prepared/r2-final-sidecar-candidate-v1/detection-pool-manifest.jsonl
+    sha256: a086968e972b92edac2fdb7f25a17cb9cb5ada67b9b0d03e443a3f03028caed1
+    row_count: 7579
+  train_bert:
+    root: project
+    path: runs/data-frozen/dataset-v1-shared-b0/candidate/bert_train.parquet
+    sha256: 9e2aa375cba0052aa238f5c047fa524c98fe27717059a6670960b3476527c8fb
+    row_count: 10000
+    sample_order_sha256: 95811d86a3aad83dc7b80da850f095098b739205b26dbb7b71a414c3ee13634f
+  genis_validation_manifest:
+    root: project
+    path: runs/data-frozen/dataset-candidate-genis-v0/protocol/splits/genis-family-development-validation.jsonl
+    sha256: 52cce0c3b36273542e1fb05956e30876a8add1f6defd769ffa69b43bfaf19fca
+    row_count: 10399
+  genis_samples:
+    root: project
+    path: runs/data-frozen/dataset-candidate-genis-v0/protocol/samples.parquet
+    sha256: 2b0d8b49ef81db3a9f9338dfbabe185bab54c02512786c9f64f52718ee8c55a0
+    group_key: group_id
+  genis_bert:
+    root: project
+    path: runs/data-frozen/dataset-v1-shared-b0/validation/genis_bert.parquet
+    sha256: 3f0d08e64ea1b91eab9ff2182f8bd56f92c3cdc5b8e06421826cb9f1820a63c8
+    row_count: 10399
+    sample_order_sha256: 88b7fd0d38c26cc97ca871f5cc44e7ef6c52825fea12045aeb3e166cac9fedfd
+  tqhc2_validation_manifest:
+    root: project
+    path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_cell_indomain-validation.jsonl
+    sha256: 729860d24f6e6a400ec061077f0111d2fc8504eeb3c3700e21ab6641869d5997
+    row_count: 4000
+  tqhc2_samples:
+    root: project
+    path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/samples.parquet
+    sha256: 05cb0774f8197f07d842a21d3c22ce07c111289b7cabe6950023b689c6b51dac
+    group_key: capture_group_id
+  tqhc2_bert:
+    root: project
+    path: runs/data-frozen/dataset-v1-shared-b0/validation/tqhc2_bert.parquet
+    sha256: 1fee45b669daa9e4da9f3bda3af681a310358b1d345e783f91e001c5feb946a5
+    row_count: 4000
+    sample_order_sha256: 6b5ec922efc03239b2f9282228538ecb075e9a858db8fa4b2086f86e3defd3e9
+  genis_flows:
+    root: absolute
+    path: /root/autodl-tmp/thesis/datasets/GeNIS-2025/2-flows.zip
+    sha256: 72033b5e3df6e45cda9a339985194d8232c437c243a5037a62ebeff457489b30
+  tqhc2_packets:
+    root: project
+    path: runs/data-frozen/r2-protocol-tqhc2-handoff-v0.build-a.partial/packet-observations.parquet
+    sha256: 21168c943d7b9be043174a19cbde751c5cdb9c34b37e6902370998be88013991
+  tqhc2_protocol:
+    root: project
+    path: runs/data-frozen/r2-protocol-tqhc2-handoff-v0.build-a.partial/protocol.parquet
+    sha256: 1c48b3437d5c17b0eb1524bc22856b1803b9dbb5d29b13b4f0593a7542b3560c
+
+group_partition:
+  seed: 42
+  source_order:
+    - genis
+    - tqhc2
+  split_order:
+    - calibration
+    - validation
+  target_row_weights:
+    calibration: 0.5
+    validation: 0.5
+  tie_hash_namespace: r2-final-detection-development-split-v1
+  group_hash_namespace: r2-final-detection-development-group-v1
+
+expected:
+  train_fit_rows: 7579
+  development_rows: 14399
+  development_source_rows:
+    genis: 10399
+    tqhc2: 4000
+  history_windows_per_sample: 4
+  sample_cross_partition_count: 0
+  group_cross_partition_count: 0
+  final_test_visible: false
+
+parquet:
+  version: "2.6"
+  compression: zstd
+  compression_level: 9
+  use_dictionary: false
+  write_statistics: true
+  data_page_version: "1.0"
+  row_group_size: 65536

@@ -1,0 +1,117 @@
+schema_version: flow_probe_r2_final_distilbert_probe_v1
+variant: F-A
+seed: 42
+
+data:
+  ready: true
+  not_ready_reason: ""
+  freeze_manifest:
+    path: configs/r2_final_sidecar_role_manifest_v1.json
+    sha256: 69cc3be2cc3668f0b90937496f02a37a5d6b6aa57bb346969f385e4e5e0f9d28
+  artifact_payload_merkle_sha256: 7ee5fe8fae8ccd6ec5a83f829dbd38f5a1b587b7611c3c32a436540c4097146d
+  detection_views:
+    train-fit:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/detection-view-train-fit.parquet
+      sha256: 98224268bfeff83a710c9739ef8294624e379c094ac68e23337cb58f67692ae9
+    calibration:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/detection-view-calibration.parquet
+      sha256: 5736e8930ebd7c23f01bd5112278db35b4018c24556cfe3a03b4a721725b66df
+    validation:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/detection-view-development-validation.parquet
+      sha256: 077a1faf35538481d2a63eb4d1c6417b6620582b50e2bf502dfde55c798c6239
+  common_histories:
+    train-fit:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1/common-history.parquet
+      sha256: e8f8b83b1eabc6d649b67feb845e5b04e233522c3815e167d0ea6e909beb35f6
+    calibration:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/common-history-calibration.parquet
+      sha256: fd128612e5906241ffeb4b7d7ea2596c4398bc8cc3a88ae95638ec9d32423b6a
+    validation:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/common-history-development-validation.parquet
+      sha256: c69b237bcabbef8bdef6df4d2977a68b2a2440b95760294d014370a67a2113a6
+  route_assignments:
+    train-fit:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1/route-assignments.parquet
+      sha256: b46a08006c16ea669ddc642651ead49ffe6bd8193dec06ebcaba186bcf68a461
+    calibration:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/route-assignments-calibration.parquet
+      sha256: b28bdac163d2d4ede236e6e4154b7f56ae6a35bc8eaebf4605b439c23c7360ae
+    validation:
+      path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/route-assignments-development-validation.parquet
+      sha256: 217b65d25d7be83dc57966d0de2d16f42a944c10b8002d8f2bd09c1b1e202838
+  window_count: 4
+  history_scales: [1000, 1000000, 100000, 100000000]
+  columns:
+    sample_id: sample_id
+    stable_order: stable_order
+    split_id: split_id
+    text: text
+    label: binary_label
+    window_index: window_index
+    window_valid: window_valid
+    history_fields:
+      - total_packets
+      - total_bytes
+      - packet_rate
+      - byte_rate
+    route_name: route_id
+    route_confidence: route_confidence
+    quic_applicable: quic_expert_applicable
+    quic_formal_training_enabled: quic_formal_training_enabled
+    source_dataset: source_dataset
+
+physics:
+  fit_config:
+    path: configs/r2_final_physics_fit_seed42.yaml
+    sha256: 70fedbbc99d33f303e585100ff32a2e7469c94ff38f923c603a08cac7d6dc4e6
+  checkpoint:
+    ready: false
+    not_ready_reason: 种子 42 的 TCP/UDP v2 正式物理拟合尚未完成
+    path: runs/r2-minimal-sidecar-physics-fit/tcp-udp-v2-seed-42/checkpoint-latest.pt
+    sha256: null
+    binding_manifest:
+      path: runs/r2-minimal-sidecar-physics-fit/tcp-udp-v2-seed-42/checkpoint-binding-manifest.json
+      sha256: null
+  quic_expert_ready: false
+  comparison_variants: [F-A, F-P, F-S]
+  production_batch_size: 512
+  capacity_contract: trained_equal_active_branch_v1
+  physical_evaluation_split: validation
+  physical_evaluation_cluster_id: physics_group_sha256
+  physical_state_metric: training_standardized_state_mse_v1
+  physical_residual_metric: dimensionless_residual_mse_v1
+  physical_aggregation: equal_state_equation_protocol_v1
+
+model:
+  identifier: distilbert/distilbert-base-multilingual-cased
+  source: /root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased
+  max_length: 128
+  device: auto
+  precision: auto
+
+training:
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 64
+  gradient_accumulation_steps: 2
+  learning_rate: 0.00002
+  weight_decay: 0.01
+  num_train_epochs: 3
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  save_steps: 20
+  save_total_limit: 1
+  num_workers: 2
+  resume_from_checkpoint: auto
+
+evaluation:
+  threshold: 0.5
+  calibration_bins: 15
+
+output_root: runs/r2-minimal-sidecar-probe/distilbert-v1
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: r2-final-sidecar-s42
+  mode: online
+  tags: [r2-final, distilbert, seed-42, theory-selection, protocol-adaptive]

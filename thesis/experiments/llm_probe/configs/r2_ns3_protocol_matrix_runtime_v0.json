@@ -1,0 +1,11 @@
+{
+  "expected_manifest_sha256": "d867c05013ff9c566d965ec3115bcefe6c905cca69865b042eb81f56e012a111",
+  "expected_scenario_source_sha256": "b82efbbc5a90b535463282263f76b1c04f4b49da654af17d2d3c1301efb5c771",
+  "manifest_path": "runs/data-freeze-configs/r2-protocol-v1/ns3-config-manifest.jsonl",
+  "ns3_root": "/root/autodl-tmp/thesis/ns3/ns-3.48",
+  "output_dir": "runs/ns3-data/r2-protocol-paired-v0",
+  "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+  "resume": false,
+  "scenario_source": "ns3/r2_protocol_queue_scenario.cc",
+  "schema_version": "flow_probe_r2_ns3_wrapper_params_v1"
+}

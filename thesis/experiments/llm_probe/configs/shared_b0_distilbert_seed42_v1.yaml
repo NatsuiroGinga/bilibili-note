@@ -1,0 +1,49 @@
+schema_version: flow_probe_shared_b0_distilbert_config_v1
+
+dataset:
+  root: runs/data-frozen/dataset-v1-shared-b0
+
+model:
+  identifier: distilbert/distilbert-base-multilingual-cased
+  source: /root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased
+  max_length: 128
+  device: auto
+  precision: auto
+
+training:
+  per_device_train_batch_size: 16
+  per_device_eval_batch_size: 64
+  gradient_accumulation_steps: 2
+  learning_rate: 0.00002
+  weight_decay: 0.01
+  num_train_epochs: 3
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  save_steps: 20
+  save_total_limit: 3
+  num_workers: 2
+  resume_from_checkpoint: auto
+
+evaluation:
+  threshold: 0.5
+  calibration_bins: 15
+
+run:
+  output_dir: runs/baselines/shared-b0-distilbert-seed42-theory-selection-review-pending-v1
+  seed: 42
+  stage: theory_selection
+  status: review_pending
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: shared-b0-distilbert-seed42-v1
+  description: 共享 B0 冻结中文文本视图上的 DistilBERT 判别式二分类基线，仅用于理论筛选阶段
+  mode: online
+  tags:
+    - shared-b0
+    - distilbert
+    - seed-42
+    - epochs-3
+    - run-baseline
+    - protocol-partial

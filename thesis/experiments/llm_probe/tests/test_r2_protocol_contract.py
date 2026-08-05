@@ -195,6 +195,10 @@ def test_real_config_freezes_complete_r2_contract() -> None:
 
     assert config.dataset_version == "flow_probe_r2_protocol_dataset_v0"
     assert config.publish_root == "runs/data-frozen/dataset-candidate-r2-protocol-v0"
+    assert (
+        config.source_lock_root
+        == "runs/data-freeze-configs/r2-protocol-v1/source-locks-v1"
+    )
     assert config.common_fields == COMMON_FIELDS
     assert config.parquet.row_group_size == 65536
     assert config.parquet.compression == "zstd"

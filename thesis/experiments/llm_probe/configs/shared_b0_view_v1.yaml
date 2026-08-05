@@ -1,0 +1,67 @@
+schema_version: flow_probe_shared_b0_view_config_v1
+config_id: shared-b0-view-v1
+contract_date: "2026-07-29"
+stage: theory_selection
+status: review_pending
+
+common_fields:
+  - total_packets
+  - total_bytes
+  - packet_length_mean
+  - packet_length_min
+  - packet_length_max
+  - iat_mean_ms
+  - packet_rate
+  - byte_rate
+
+dataset:
+  master_records:
+    path: runs/data-frozen/dataset-v1/master_records.parquet
+    sha256: 16458a4a191c51eefc58717e16609790b9914936a2470ef29099bdfbc70af703
+  budget_checksums:
+    path: runs/data-frozen/dataset-v1/manifests/budgets/budget_checksums.json
+    sha256: 38883c7ef8b1e47ebd218514e71f95474cebaa8637df6b5203326802546a6c2e
+  candidate_manifest:
+    path: runs/data-frozen/dataset-v1/manifests/budgets/train_candidate_approx10000.jsonl
+    checksum_entry: manifests/budgets/train_candidate_approx10000.jsonl
+    expected_count: 10000
+    source_counts:
+      genis: 3973
+      tqhc2: 3606
+      ns3: 2421
+
+sources:
+  genis:
+    samples_path: runs/data-frozen/dataset-candidate-genis-v0/protocol/samples.parquet
+    samples_sha256: 2b0d8b49ef81db3a9f9338dfbabe185bab54c02512786c9f64f52718ee8c55a0
+    validation_manifest:
+      path: runs/data-frozen/dataset-candidate-genis-v0/protocol/splits/genis-family-development-validation.jsonl
+      sha256: 52cce0c3b36273542e1fb05956e30876a8add1f6defd769ffa69b43bfaf19fca
+      expected_count: 10399
+      suite_id: genis_family_development
+      split_id: validation
+      group_field: group_id
+  tqhc2:
+    samples_path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/samples.parquet
+    samples_sha256: 05cb0774f8197f07d842a21d3c22ce07c111289b7cabe6950023b689c6b51dac
+    validation_manifest:
+      path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_cell_indomain-validation.jsonl
+      sha256: 729860d24f6e6a400ec061077f0111d2fc8504eeb3c3700e21ab6641869d5997
+      expected_count: 4000
+      suite_id: tqhc2_cell_indomain
+      split_id: validation
+      group_field: capture_group_id
+  ns3:
+    files:
+      - path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/train.jsonl
+        sha256: d6a6ca23a985223401e1d650d619c2a50b255d2066769e2478cef72cc6239fa0
+      - path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/validation.jsonl
+        sha256: 0bbbb4ea483867561c329c896cb4e7745a102cb90024c464654e0b7d673c8723
+      - path: runs/ns3-data/ns3-queue-sequences-h4-seed-split-20260721-v2/test.jsonl
+        sha256: 6e64d2ab290813a246ed8efcefd1bb19f1026c2de7b7904d111af67b4465ef94
+
+publication:
+  output: runs/data-frozen/dataset-v1-shared-b0
+  partial_suffix: .partial
+  refuse_overwrite: true
+  require_atomic_rename: true

@@ -32,7 +32,11 @@ class ProbeConfig:
             raise ConfigError(f"缺少配置字段：{', '.join(missing)}")
 
         feature_view = str(data["feature_view"])
-        if feature_view not in {"canonical_core_v1", "dataset_full_v1"}:
+        if feature_view not in {
+            "canonical_core_v1",
+            "dataset_full_v1",
+            "shared_b0_common_v1",
+        }:
             raise ConfigError(f"未知字段视图：{feature_view!r}")
 
         model_id = str(data["model_id"]).strip()

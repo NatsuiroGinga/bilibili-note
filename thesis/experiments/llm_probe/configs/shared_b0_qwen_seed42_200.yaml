@@ -1,0 +1,33 @@
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: shared_b0_common_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+training:
+  train_file: runs/data-frozen/dataset-v1-shared-b0/candidate/qwen_train.jsonl
+  validation_file: runs/data-frozen/dataset-v1-shared-b0/validation/genis_qwen.jsonl
+  output_dir: runs/baselines/shared-b0-qwen-seed42-200
+  learning_rate: 0.0002
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 2
+  num_train_epochs: 1
+  max_steps: 200
+  save_steps: 20
+  resume_from_checkpoint: auto
+
+evaluation:
+  test_file: runs/data-frozen/dataset-v1-shared-b0/validation/tqhc2_qwen.jsonl
+  output_dir: runs/baselines/shared-b0-qwen-seed42-200/evaluation-tqhc2
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: shared-b0-qwen-seed42-200
+  description: 三源统一候选视图上的普通监督 Qwen 二分类管线基线，不作为最终多分类主表结果
+  mode: online
+  tags: [shared-b0, qwen3-1.7b, seed42, steps200, review-pending]

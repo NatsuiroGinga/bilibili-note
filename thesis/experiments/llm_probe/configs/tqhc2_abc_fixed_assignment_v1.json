@@ -1,0 +1,1257 @@
+{
+  "budget": {
+    "cap_per_cell": 1000,
+    "expected_packet_count": 2475729,
+    "expected_sample_count": 35235,
+    "sampling_algorithm": "tqhc2-abc-budget-v1",
+    "source_mapped_sample_count": 303599
+  },
+  "cells": [
+    {
+      "allocation_group_id": "853f61e16c1fff9538499ad967887971fb2c3cd3069f84b3536e356e5d9c771c",
+      "benign_count": 18302,
+      "capture_group_id": "A_i1800_j0",
+      "interval_s": 1800,
+      "jitter_pct": 0,
+      "malicious_count": 720,
+      "mapped_count": 19022,
+      "profile": "A",
+      "source_capture_sha256": "af9ea801e5142521286894fe9fd23c1eda3f206759a2cf1c87563eb453054f7c"
+    },
+    {
+      "allocation_group_id": "a432502005ea34ea35833f4a77fd5c17c8341fe2ce9baa22f0f995bdedddb23c",
+      "benign_count": 18593,
+      "capture_group_id": "A_i1800_j30",
+      "interval_s": 1800,
+      "jitter_pct": 30,
+      "malicious_count": 690,
+      "mapped_count": 19283,
+      "profile": "A",
+      "source_capture_sha256": "5f64b8be300f6d498f00281e96bf9bdf437a1109131b3ddeba4b4613c252e556"
+    },
+    {
+      "allocation_group_id": "39f76569e2bb7c307a3ca78938d13f0bed3182fc16fe546b2bd78d314770bde1",
+      "benign_count": 18620,
+      "capture_group_id": "A_i1800_j70",
+      "interval_s": 1800,
+      "jitter_pct": 70,
+      "malicious_count": 690,
+      "mapped_count": 19310,
+      "profile": "A",
+      "source_capture_sha256": "b1b064c479970a007040c2b34e41d8a14aeaf37c1068b108dfba36f19c34d9d0"
+    },
+    {
+      "allocation_group_id": "2bcdd7c1e1a2f72c3e3cd98a55282613b1d16a948f8959a516e1e28e377f69e3",
+      "benign_count": 5133,
+      "capture_group_id": "A_i300_j0",
+      "interval_s": 300,
+      "jitter_pct": 0,
+      "malicious_count": 960,
+      "mapped_count": 6093,
+      "profile": "A",
+      "source_capture_sha256": "a18cbf12c4c6451ef967b3f8f3c993f80bf6d95d4b5121d0364e47ce61ace1bd"
+    },
+    {
+      "allocation_group_id": "2b15295399ce7727cec77b493335faf5ed32f54ecb163571cf1a0df76d4cfb18",
+      "benign_count": 5110,
+      "capture_group_id": "A_i300_j30",
+      "interval_s": 300,
+      "jitter_pct": 30,
+      "malicious_count": 907,
+      "mapped_count": 6017,
+      "profile": "A",
+      "source_capture_sha256": "3fd28fa6b6f47f6c6b2cb7963edfb798279368bc86a7de76a3de1c4a4f4ea77c"
+    },
+    {
+      "allocation_group_id": "16c01288f0c1fa4a2910dd39571b4700af2ba96ef6443711c4bb8629f52c5c65",
+      "benign_count": 5082,
+      "capture_group_id": "A_i300_j70",
+      "interval_s": 300,
+      "jitter_pct": 70,
+      "malicious_count": 848,
+      "mapped_count": 5930,
+      "profile": "A",
+      "source_capture_sha256": "11411b7951b6e2af5c2aad324032d310c90b741bb37c6a8b33e5bb4ddd0006e1"
+    },
+    {
+      "allocation_group_id": "400e5f50dc495f5d7bbbeb2c1df75d4d26db1a8dbd2bbbec543ec991ec9bfeeb",
+      "benign_count": 3085,
+      "capture_group_id": "A_i30_j0",
+      "interval_s": 30,
+      "jitter_pct": 0,
+      "malicious_count": 2404,
+      "mapped_count": 5489,
+      "profile": "A",
+      "source_capture_sha256": "69aca83a6de70498baa96f2c709597ccbb0546d49c89be3cf6bdc2f6174ef4a0"
+    },
+    {
+      "allocation_group_id": "b63fb6561dc2581f3878eef3f9c075ae17c4aa7f4d13cf7f50a9edf18e83b9df",
+      "benign_count": 3016,
+      "capture_group_id": "A_i30_j30",
+      "interval_s": 30,
+      "jitter_pct": 30,
+      "malicious_count": 1601,
+      "mapped_count": 4617,
+      "profile": "A",
+      "source_capture_sha256": "316ad550af92d9ca4d972cbb18c8586f082a4e7ddfd1a4327ae67e3c20c40a81"
+    },
+    {
+      "allocation_group_id": "3fa0f32f14933126bef375de9795dd3d0d3102bf54adedb91faab86cac0198d7",
+      "benign_count": 3070,
+      "capture_group_id": "A_i30_j70",
+      "interval_s": 30,
+      "jitter_pct": 70,
+      "malicious_count": 1118,
+      "mapped_count": 4188,
+      "profile": "A",
+      "source_capture_sha256": "7fbbcae67c4e452ec16cfc5a95d9da8293eadd6713fd4e1e1850dd583a5d4b91"
+    },
+    {
+      "allocation_group_id": "6be1dc99ccb805d86ef0b17f182355520ba9a53591566ebe7878b25d666f7c1a",
+      "benign_count": 29297,
+      "capture_group_id": "A_i3600_j0",
+      "interval_s": 3600,
+      "jitter_pct": 0,
+      "malicious_count": 720,
+      "mapped_count": 30017,
+      "profile": "A",
+      "source_capture_sha256": "d19fcac33c95ac7939b343f3c601dc51e0383c27cea8d85bf24f377030c3825c"
+    },
+    {
+      "allocation_group_id": "c7a864c4514cb567b9c26fba15a93add9358b41fe91b8ecdbf25b94fe37d80e7",
+      "benign_count": 30646,
+      "capture_group_id": "A_i3600_j30",
+      "interval_s": 3600,
+      "jitter_pct": 30,
+      "malicious_count": 690,
+      "mapped_count": 31336,
+      "profile": "A",
+      "source_capture_sha256": "d8b72fe563af932249331feead123ba1b4c1227337500857470a06acf8c7ae7b"
+    },
+    {
+      "allocation_group_id": "19d0f2724ec510ad7a2eba81d764dea2214e6d98a48a2451724e8c23a516fb7c",
+      "benign_count": 29564,
+      "capture_group_id": "A_i3600_j70",
+      "interval_s": 3600,
+      "jitter_pct": 70,
+      "malicious_count": 690,
+      "mapped_count": 30254,
+      "profile": "A",
+      "source_capture_sha256": "eca731d4604a31f67d0c213b7845b3a7629a3f77dcc49f3db7692273cdba0fc9"
+    },
+    {
+      "allocation_group_id": "663f7d105fb1f944c7d81aa6e587bbcbb2135641ba182819498adde4cbfedfaf",
+      "benign_count": 8252,
+      "capture_group_id": "B_i1800_j0",
+      "interval_s": 1800,
+      "jitter_pct": 0,
+      "malicious_count": 612,
+      "mapped_count": 8864,
+      "profile": "B",
+      "source_capture_sha256": "8df766fe5a058ecd08bd84b24d773085fa1f97606218e239be4096da5b76b42a"
+    },
+    {
+      "allocation_group_id": "391caa11e7771ac53b64cc087c707c3d696bd21c23bdd154ba27bcf2b3d2ce94",
+      "benign_count": 8217,
+      "capture_group_id": "B_i1800_j30",
+      "interval_s": 1800,
+      "jitter_pct": 30,
+      "malicious_count": 540,
+      "mapped_count": 8757,
+      "profile": "B",
+      "source_capture_sha256": "34d0b69f9c078b7f507b4da3c752d6b55879391a9e88db02f6b5898c81484bff"
+    },
+    {
+      "allocation_group_id": "136d2f4c732fff9bd37ca787c393f83a3b41388e619fa0298b30984e15350f93",
+      "benign_count": 8272,
+      "capture_group_id": "B_i1800_j70",
+      "interval_s": 1800,
+      "jitter_pct": 70,
+      "malicious_count": 460,
+      "mapped_count": 8732,
+      "profile": "B",
+      "source_capture_sha256": "eb9e1c07569c6f42dda4286eb043506c928aa564b9858f57931903a2525cd24f"
+    },
+    {
+      "allocation_group_id": "50a4d0536ce40295f8117fc941a76263acadb2c3fea505897e287d4ecf21152a",
+      "benign_count": 1387,
+      "capture_group_id": "B_i300_j0",
+      "interval_s": 300,
+      "jitter_pct": 0,
+      "malicious_count": 705,
+      "mapped_count": 2092,
+      "profile": "B",
+      "source_capture_sha256": "44f5430f2ff35137aadf0d64006aeed8f6c231a79dc441cbde4580e6dbe5af5f"
+    },
+    {
+      "allocation_group_id": "94596983a1c03c782824746521484ab941a2dadb87bc728d7d48de37319f752d",
+      "benign_count": 1384,
+      "capture_group_id": "B_i300_j30",
+      "interval_s": 300,
+      "jitter_pct": 30,
+      "malicious_count": 629,
+      "mapped_count": 2013,
+      "profile": "B",
+      "source_capture_sha256": "93fd7c00a59de3025a7e890ddecb4a309ecdc4b5c69b402baa7cd0518aed052d"
+    },
+    {
+      "allocation_group_id": "b6c16845526b8f0449f50cc51a8fc5cf642a499a490c9015aeee4ff6e56d3663",
+      "benign_count": 1407,
+      "capture_group_id": "B_i300_j70",
+      "interval_s": 300,
+      "jitter_pct": 70,
+      "malicious_count": 532,
+      "mapped_count": 1939,
+      "profile": "B",
+      "source_capture_sha256": "7e0a6af1f29b7615dbae72dfbf8addd76b69459e51641056d688c52dab740622"
+    },
+    {
+      "allocation_group_id": "cf5e5bdb88d56ba20957c6f54964f37d86ecbead9355a6e90490e56c6daa68aa",
+      "benign_count": 1075,
+      "capture_group_id": "B_i30_j0",
+      "interval_s": 30,
+      "jitter_pct": 0,
+      "malicious_count": 105,
+      "mapped_count": 1180,
+      "profile": "B",
+      "source_capture_sha256": "766ecdb7a2ae9e92b36026211588a4bc652458a986a81e17844187a436adb40c"
+    },
+    {
+      "allocation_group_id": "d1e3babb5d71b9ba436ce50c3b4851c263a9eb41c4876806e411f15d41a25a85",
+      "benign_count": 1076,
+      "capture_group_id": "B_i30_j30",
+      "interval_s": 30,
+      "jitter_pct": 30,
+      "malicious_count": 105,
+      "mapped_count": 1181,
+      "profile": "B",
+      "source_capture_sha256": "cd873e6b6ebcc80aeb7510bfebcf090c7922b0bae8e34431374747816ead7585"
+    },
+    {
+      "allocation_group_id": "55fdf6055a4b0b10c3530d567e702d9c6b628cb0e0528ef489e80b9d4494e5db",
+      "benign_count": 1098,
+      "capture_group_id": "B_i30_j70",
+      "interval_s": 30,
+      "jitter_pct": 70,
+      "malicious_count": 98,
+      "mapped_count": 1196,
+      "profile": "B",
+      "source_capture_sha256": "c2f42ff8b58052c647098641c0f50da76e8dbc077ed6aa88c7fedd5b732a31ab"
+    },
+    {
+      "allocation_group_id": "020d9ac2bb17258fda5c22f4ee372579a270d927c6318eda100df65a22b14ff9",
+      "benign_count": 16359,
+      "capture_group_id": "B_i3600_j0",
+      "interval_s": 3600,
+      "jitter_pct": 0,
+      "malicious_count": 612,
+      "mapped_count": 16971,
+      "profile": "B",
+      "source_capture_sha256": "35435fc01b608cf3d83b66791be43b15eb4a434d99bca1c0b22b9eef12af2c1f"
+    },
+    {
+      "allocation_group_id": "551e442cf4ff7db464a37dac9ab748de6963da9a5f25b02c4daf65987efae1c7",
+      "benign_count": 16397,
+      "capture_group_id": "B_i3600_j30",
+      "interval_s": 3600,
+      "jitter_pct": 30,
+      "malicious_count": 542,
+      "mapped_count": 16939,
+      "profile": "B",
+      "source_capture_sha256": "37ad578840d7ab777cfe126c8a73db8d845b9dd7490877a6c8afcc399723bc95"
+    },
+    {
+      "allocation_group_id": "49be3ab76b6f8c5328724be2faee6db62f98e8074629ce9d4e3170c4f3c585d3",
+      "benign_count": 16370,
+      "capture_group_id": "B_i3600_j70",
+      "interval_s": 3600,
+      "jitter_pct": 70,
+      "malicious_count": 458,
+      "mapped_count": 16828,
+      "profile": "B",
+      "source_capture_sha256": "f61d98eea3711e94d94f06aa3c5bd5deff0a726a42405269099fd092251b42b2"
+    },
+    {
+      "allocation_group_id": "1d794bf356b26b26de07312a26564286632a4cdfbbd1188c1daaac66e73ba248",
+      "benign_count": 2597,
+      "capture_group_id": "C_i1800_j0",
+      "interval_s": 1800,
+      "jitter_pct": 0,
+      "malicious_count": 830,
+      "mapped_count": 3427,
+      "profile": "C",
+      "source_capture_sha256": "32186375b260008809959e91b6f0bb4ad5c9c0d6ceecf193069fe4736a7c2c09"
+    },
+    {
+      "allocation_group_id": "ed6f7a6a9d0f7409a925afdeaeec7bed27d4a99bc145dec5a5cc750a08c54780",
+      "benign_count": 2605,
+      "capture_group_id": "C_i1800_j30",
+      "interval_s": 1800,
+      "jitter_pct": 30,
+      "malicious_count": 820,
+      "mapped_count": 3425,
+      "profile": "C",
+      "source_capture_sha256": "4a21b07af7eb1c18c7313d10d629357c5d341f9ec2e722c3c836a277c510e7d0"
+    },
+    {
+      "allocation_group_id": "905a622cc4897143ce0e0a203f5795863558f039fb320561be69cc2df2db59c8",
+      "benign_count": 2587,
+      "capture_group_id": "C_i1800_j70",
+      "interval_s": 1800,
+      "jitter_pct": 70,
+      "malicious_count": 804,
+      "mapped_count": 3391,
+      "profile": "C",
+      "source_capture_sha256": "7c8e0f02760393db165e9cbbf663fe091da7cf1e03d147ce0cc5c84bb2e3def4"
+    },
+    {
+      "allocation_group_id": "e3e8f8aaf5a98fac4b5c72cd75dd9992a72a2fbf115a71fca3fd517c73e9af3f",
+      "benign_count": 511,
+      "capture_group_id": "C_i300_j0",
+      "interval_s": 300,
+      "jitter_pct": 0,
+      "malicious_count": 980,
+      "mapped_count": 1491,
+      "profile": "C",
+      "source_capture_sha256": "6a05727a0bae13239c7a30c4a02513406c0f6e8459f23ff271c99838d291f08f"
+    },
+    {
+      "allocation_group_id": "b4ca079cd52fc98f5473add015a09b6bbd16a9f87a5a63eceffd537c63d7664e",
+      "benign_count": 511,
+      "capture_group_id": "C_i300_j30",
+      "interval_s": 300,
+      "jitter_pct": 30,
+      "malicious_count": 939,
+      "mapped_count": 1450,
+      "profile": "C",
+      "source_capture_sha256": "6ac325b462852a1d7d4746b266dda5967e610510387b10de379c18193502bef8"
+    },
+    {
+      "allocation_group_id": "ce6b7d7dccea02ce440d5b581cdae45759f58f6d2d321be204722ec161001bd1",
+      "benign_count": 511,
+      "capture_group_id": "C_i300_j70",
+      "interval_s": 300,
+      "jitter_pct": 70,
+      "malicious_count": 977,
+      "mapped_count": 1488,
+      "profile": "C",
+      "source_capture_sha256": "9b934bd8cdef805357719ae63c469f509be9aae2b9561fd34096d2c8f4a67699"
+    },
+    {
+      "allocation_group_id": "eeb368508a4a81e7f7a101ab32656fea10ee3cc66f84abbe772ee6069cdf4eac",
+      "benign_count": 155,
+      "capture_group_id": "C_i30_j0",
+      "interval_s": 30,
+      "jitter_pct": 0,
+      "malicious_count": 80,
+      "mapped_count": 235,
+      "profile": "C",
+      "source_capture_sha256": "951fbd893f8251a524012019b5bed62da0a7be81064a0ec92f5dc38778b1ecb3"
+    },
+    {
+      "allocation_group_id": "a4f274a3b5176b1b06207e301a7453f38d4c42835a2c5dda61161b29b0c6262a",
+      "benign_count": 380,
+      "capture_group_id": "C_i30_j30",
+      "interval_s": 30,
+      "jitter_pct": 30,
+      "malicious_count": 2365,
+      "mapped_count": 2745,
+      "profile": "C",
+      "source_capture_sha256": "74c097aff30700cd867c51454063ae3a84c4957fa4fa5916f8b68f1cc39f9c9a"
+    },
+    {
+      "allocation_group_id": "72cb5ff17e6e1bcc81bb84c31674f8367e25d8b0b2ba8f22c86d88812812ca24",
+      "benign_count": 380,
+      "capture_group_id": "C_i30_j70",
+      "interval_s": 30,
+      "jitter_pct": 70,
+      "malicious_count": 2369,
+      "mapped_count": 2749,
+      "profile": "C",
+      "source_capture_sha256": "96f40294ab4b665a8b0e6b2d90bb995e7949b8500ee7111de98dfc50b4de3767"
+    },
+    {
+      "allocation_group_id": "698197f979e3373c7b529bf361d53400512482e640cc64c5d2a46a5836940ff9",
+      "benign_count": 4089,
+      "capture_group_id": "C_i3600_j0",
+      "interval_s": 3600,
+      "jitter_pct": 0,
+      "malicious_count": 890,
+      "mapped_count": 4979,
+      "profile": "C",
+      "source_capture_sha256": "60083a5786645d42a76a061175792e8d193b571efbce7d038ca8809b9d5b6689"
+    },
+    {
+      "allocation_group_id": "ba2bd0c19930864a722e0d6d8f770f8a9279f1136920604f8ee57b5a074fd2f7",
+      "benign_count": 4106,
+      "capture_group_id": "C_i3600_j30",
+      "interval_s": 3600,
+      "jitter_pct": 30,
+      "malicious_count": 861,
+      "mapped_count": 4967,
+      "profile": "C",
+      "source_capture_sha256": "2d6b8b5f0943d9d12d49b6a96c29bbd4f4db7922e8dd251f222afa869e41ce77"
+    },
+    {
+      "allocation_group_id": "ce992ed05f8f47de1d87d587bd1faac8d7cf44e3a7bdd2b33b13db025f817ac3",
+      "benign_count": 4115,
+      "capture_group_id": "C_i3600_j70",
+      "interval_s": 3600,
+      "jitter_pct": 70,
+      "malicious_count": 889,
+      "mapped_count": 5004,
+      "profile": "C",
+      "source_capture_sha256": "11172603863abd3abfd375a3a1b6435d6314fca58e6b1e9ed0a7b1acaef3cf87"
+    }
+  ],
+  "generation": {
+    "candidate_id": "dataset-candidate-tqhc2-abc-v0",
+    "method": "一次受约束组合搜索后冻结；域内验证与测试采用三档抖动硬覆盖",
+    "model_outputs_used": false,
+    "selection_inputs": "36 个完整 cell 的映射标签计数与预注册覆盖规则",
+    "source_input_ids": {
+      "A": "tqh-c2-A-20260728-v1",
+      "B": "tqh-c2-B-20260728-v1",
+      "C": "tqh-c2-C-20260724-v8"
+    }
+  },
+  "schema_version": "tqhc2-abc-fixed-assignment-v1",
+  "suites": [
+    {
+      "assignments": [
+        {
+          "capture_group_id": "A_i1800_j0",
+          "domain_role": "in_domain",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "A_i1800_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i1800_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j30",
+          "domain_role": "in_domain",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i300_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i30_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i30_j30",
+          "domain_role": "in_domain",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "A_i30_j70",
+          "domain_role": "in_domain",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i3600_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i3600_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i3600_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i300_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i300_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i300_j70",
+          "domain_role": "in_domain",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "B_i30_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i30_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i30_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j70",
+          "domain_role": "in_domain",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i1800_j0",
+          "domain_role": "in_domain",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i1800_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i1800_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i30_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i30_j30",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i30_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i3600_j0",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i3600_j30",
+          "domain_role": "in_domain",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "C_i3600_j70",
+          "domain_role": "in_domain",
+          "split_id": "train"
+        }
+      ],
+      "held_out_profile": null,
+      "selection_audit": {
+        "candidate_count": 1296,
+        "deterministic_tie_break": "04914d8f29dc517ab950506e7f14066a2e0d0706ebf93396320476be95d3c289",
+        "l1_sample_fraction_deviation": 0.0018787940671741343,
+        "sample_counts": {
+          "test": 30460,
+          "train": 242594,
+          "validation": 30545
+        },
+        "sample_fractions": {
+          "test": 0.10032971123093291,
+          "train": 0.7990606029664129,
+          "validation": 0.10060968580265416
+        },
+        "selection_method": "域内验证和测试硬覆盖 A/B/C、四档 interval 与三档 jitter；在可行组合中最小化样本比例偏差",
+        "target_sample_fractions": {
+          "test": 0.1,
+          "train": 0.8,
+          "validation": 0.1
+        },
+        "test_jitter_count": 3,
+        "validation_jitter_count": 3
+      },
+      "suite_id": "tqhc2_cell_indomain"
+    },
+    {
+      "assignments": [
+        {
+          "capture_group_id": "A_i1800_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i1800_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i1800_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i300_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i300_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i300_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i30_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i30_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i30_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i3600_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i3600_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "A_i3600_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i1800_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j70",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "B_i300_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i300_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i300_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i30_j0",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "B_i30_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i30_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i1800_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i1800_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i1800_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j70",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "C_i30_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i30_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i30_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i3600_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i3600_j30",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "C_i3600_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        }
+      ],
+      "held_out_profile": "A",
+      "selection_audit": {
+        "candidate_count": 1134,
+        "deterministic_tie_break": "00db4873aacc95694b43248318f2fdd4e16811511fb9f5f0b52c7f6966236522",
+        "held_out_profile": "A",
+        "l1_sample_fraction_deviation": 0.5293583531785897,
+        "sample_counts": {
+          "test": 181556,
+          "train": 105676,
+          "validation": 16367
+        },
+        "sample_fractions": {
+          "test": 0.5980125099226282,
+          "train": 0.34807756283782226,
+          "validation": 0.053909927239549536
+        },
+        "selection_method": "留一 profile 固定测试；源域硬覆盖组合中最小化样本比例偏差，再扩大 jitter 覆盖",
+        "target_sample_fractions": {
+          "test": 0.3333333333333333,
+          "train": 0.5555555555555556,
+          "validation": 0.1111111111111111
+        },
+        "validation_jitter_count": 3
+      },
+      "suite_id": "tqhc2_leave_one_profile_out_A"
+    },
+    {
+      "assignments": [
+        {
+          "capture_group_id": "A_i1800_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i1800_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i1800_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i30_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i30_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i30_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i3600_j0",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "A_i3600_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i3600_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i1800_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i1800_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i300_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i300_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i300_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i30_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i30_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i30_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i3600_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i3600_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "B_i3600_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i1800_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i1800_j30",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "C_i1800_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i300_j70",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "C_i30_j0",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "C_i30_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i30_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i3600_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i3600_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "C_i3600_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        }
+      ],
+      "held_out_profile": "B",
+      "selection_audit": {
+        "candidate_count": 1134,
+        "deterministic_tie_break": "004eab81286114dd2f407b2a30b735736dc6582343c9b3d83c46cc5127f56f5c",
+        "held_out_profile": "B",
+        "l1_sample_fraction_deviation": 0.09557124145116859,
+        "sample_counts": {
+          "test": 86692,
+          "train": 181742,
+          "validation": 35165
+        },
+        "sample_fractions": {
+          "test": 0.285547712607749,
+          "train": 0.5986251601619241,
+          "validation": 0.11582712723032684
+        },
+        "selection_method": "留一 profile 固定测试；源域硬覆盖组合中最小化样本比例偏差，再扩大 jitter 覆盖",
+        "target_sample_fractions": {
+          "test": 0.3333333333333333,
+          "train": 0.5555555555555556,
+          "validation": 0.1111111111111111
+        },
+        "validation_jitter_count": 3
+      },
+      "suite_id": "tqhc2_leave_one_profile_out_B"
+    },
+    {
+      "assignments": [
+        {
+          "capture_group_id": "A_i1800_j0",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "A_i1800_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i1800_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i300_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i30_j0",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "A_i30_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i30_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i3600_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i3600_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "A_i3600_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i1800_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i300_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i300_j30",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "B_i300_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i30_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i30_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i30_j70",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j0",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j30",
+          "domain_role": "source_profile",
+          "split_id": "train"
+        },
+        {
+          "capture_group_id": "B_i3600_j70",
+          "domain_role": "source_profile",
+          "split_id": "validation"
+        },
+        {
+          "capture_group_id": "C_i1800_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i1800_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i1800_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i300_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i300_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i300_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i30_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i30_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i30_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i3600_j0",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i3600_j30",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        },
+        {
+          "capture_group_id": "C_i3600_j70",
+          "domain_role": "held_out_profile",
+          "split_id": "test"
+        }
+      ],
+      "held_out_profile": "C",
+      "selection_audit": {
+        "candidate_count": 1134,
+        "deterministic_tie_break": "00710c61e73030c265c5c9b8986dac5b4b3b82d9a8bfcef0b3ce2e6f22b4012b",
+        "held_out_profile": "C",
+        "l1_sample_fraction_deviation": 0.4337871117274211,
+        "sample_counts": {
+          "test": 35351,
+          "train": 224896,
+          "validation": 43352
+        },
+        "sample_fractions": {
+          "test": 0.11643977746962277,
+          "train": 0.7407666033155577,
+          "validation": 0.14279361921481956
+        },
+        "selection_method": "留一 profile 固定测试；源域硬覆盖组合中最小化样本比例偏差，再扩大 jitter 覆盖",
+        "target_sample_fractions": {
+          "test": 0.3333333333333333,
+          "train": 0.5555555555555556,
+          "validation": 0.1111111111111111
+        },
+        "validation_jitter_count": 3
+      },
+      "suite_id": "tqhc2_leave_one_profile_out_C"
+    }
+  ]
+}

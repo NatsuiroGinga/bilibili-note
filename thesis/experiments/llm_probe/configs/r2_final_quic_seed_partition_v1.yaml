@@ -1,0 +1,34 @@
+schema_version: flow_probe_r2_final_quic_seed_partition_config_v1
+dataset_version: r2-final-quic-seed-partition-v1
+stage: theory_selection
+status: review_pending
+output_root: runs/data-prepared/r2-final-sidecar-quic-seed-partition-v1
+
+input:
+  path: runs/data-prepared/r2-final-sidecar-quic-seed-v1/quic-seed-connection-manifest.jsonl
+  sha256: 69b0eb881e2e4922318383dd4887d1ebaee10fe289dfffb5dea44edc6c591572
+  row_count: 59
+
+partition:
+  seed: 42
+  hash_payload: "r2-quic-seed-split-v1\\0{seed}\\0{source_qlog_sha256}"
+  ordered_counts:
+    seed-train-fit: 41
+    seed-calibration: 9
+    seed-validation: 9
+  unit: independent_connection
+
+sequence:
+  window_count: 4
+  window_duration_ns: 100000000
+  stride_windows: 4
+  cross_connection: false
+  partial_tail_policy: drop
+  expected_sequence_count: 109860
+
+training_boundary:
+  seed_validation_only: true
+  formal_training_weight: 0.0
+  quic_formal_training_enabled: false
+  quic_expert_ready: false
+  final_test_visible: false

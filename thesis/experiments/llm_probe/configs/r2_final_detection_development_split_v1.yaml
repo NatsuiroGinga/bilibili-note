@@ -1,0 +1,111 @@
+schema_version: flow_probe_r2_final_detection_development_split_v1
+stage: theory_selection
+status: blocked_pending_server_materialization
+final_test_visible: false
+
+train_fit:
+  id_allowlist:
+    path: runs/data-prepared/r2-final-sidecar-candidate-v1/detection-pool-manifest.jsonl
+    sha256: a086968e972b92edac2fdb7f25a17cb9cb5ada67b9b0d03e443a3f03028caed1
+    row_count: 7579
+  frozen_bert_view:
+    path: runs/data-frozen/dataset-v1-shared-b0/candidate/bert_train.parquet
+    sha256: 9e2aa375cba0052aa238f5c047fa524c98fe27717059a6670960b3476527c8fb
+    row_count: 10000
+    sample_order_sha256: 95811d86a3aad83dc7b80da850f095098b739205b26dbb7b71a414c3ee13634f
+  action: filter_by_id_allowlist_preserve_frozen_order
+  output:
+    path: runs/data-prepared/r2-final-sidecar-candidate-v1-server/detection-view-train-fit.parquet
+    expected_row_count: 7579
+    sha256: null
+
+development_sources:
+  genis:
+    validation_manifest:
+      path: runs/data-frozen/dataset-candidate-genis-v0/protocol/splits/genis-family-development-validation.jsonl
+      sha256: 52cce0c3b36273542e1fb05956e30876a8add1f6defd769ffa69b43bfaf19fca
+      row_count: 10399
+    samples:
+      path: runs/data-frozen/dataset-candidate-genis-v0/protocol/samples.parquet
+      sha256: 2b0d8b49ef81db3a9f9338dfbabe185bab54c02512786c9f64f52718ee8c55a0
+      group_key: group_id
+    frozen_bert_view:
+      path: runs/data-frozen/dataset-v1-shared-b0/validation/genis_bert.parquet
+      sha256: 3f0d08e64ea1b91eab9ff2182f8bd56f92c3cdc5b8e06421826cb9f1820a63c8
+      row_count: 10399
+      sample_order_sha256: 88b7fd0d38c26cc97ca871f5cc44e7ef6c52825fea12045aeb3e166cac9fedfd
+  tqhc2:
+    validation_manifest:
+      path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/splits/tqhc2_cell_indomain-validation.jsonl
+      sha256: 729860d24f6e6a400ec061077f0111d2fc8504eeb3c3700e21ab6641869d5997
+      row_count: 4000
+    samples:
+      path: runs/data-frozen/dataset-candidate-tqhc2-abc-v0/protocol/samples.parquet
+      sha256: 05cb0774f8197f07d842a21d3c22ce07c111289b7cabe6950023b689c6b51dac
+      group_key: capture_group_id
+    frozen_bert_view:
+      path: runs/data-frozen/dataset-v1-shared-b0/validation/tqhc2_bert.parquet
+      sha256: 1fee45b669daa9e4da9f3bda3af681a310358b1d345e783f91e001c5feb946a5
+      row_count: 4000
+      sample_order_sha256: 6b5ec922efc03239b2f9282228538ecb075e9a858db8fa4b2086f86e3defd3e9
+
+group_partition:
+  seed: 42
+  source_scope: independent
+  target_row_weights:
+    calibration: 0.5
+    validation: 0.5
+  algorithm:
+    - join_validation_manifest_to_samples_by_sample_id
+    - reject_missing_or_duplicate_sample_and_group_keys
+    - aggregate_row_count_by_source_and_group_key
+    - order_groups_by_descending_row_count_then_sha256_seed_source_group
+    - assign_each_whole_group_to_current_lower_row_count_partition
+    - break_partition_count_ties_in_favor_of_calibration
+    - preserve_original_frozen_view_order_within_each_output
+  hash_payload: "r2-final-detection-development-split-v1\\0{seed}\\0{source}\\0{group_id}"
+  forbidden_assignment_inputs:
+    - binary_label
+    - family_label
+    - subtype_label
+    - model_prediction
+    - model_metric
+    - final_test_membership
+  invariants:
+    group_cross_partition_count: 0
+    sample_cross_partition_count: 0
+    total_input_rows: 14399
+    final_test_visible: false
+
+server_outputs:
+  root: runs/data-prepared/r2-final-sidecar-candidate-v1-server
+  split_assignments:
+    path: development-split-assignments.jsonl
+    sha256: null
+  calibration_detection:
+    path: detection-view-calibration.parquet
+    sha256: null
+  validation_detection:
+    path: detection-view-development-validation.parquet
+    sha256: null
+  calibration_history:
+    path: common-history-calibration.parquet
+    sha256: null
+  validation_history:
+    path: common-history-development-validation.parquet
+    sha256: null
+  calibration_routes:
+    path: route-assignments-calibration.parquet
+    sha256: null
+  validation_routes:
+    path: route-assignments-development-validation.parquet
+    sha256: null
+
+training_gate:
+  allowed_splits:
+    - train-fit
+    - calibration
+    - validation
+  require_all_output_hashes: true
+  require_group_exclusivity_audit: true
+  task5_ready: false

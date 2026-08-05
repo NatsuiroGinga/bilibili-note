@@ -35,3 +35,49 @@ uv run flow-probe-evaluate \
   --config configs/smoke_qwen3_1_7b.yaml \
   --adapter-path runs/smoke-qwen3-1.7b-seed42/final_adapter
 ```
+
+## Pyright 静态类型检查
+
+安装开发依赖后运行默认检查：
+
+```bash
+uv sync --group dev
+uv run --no-sync pyright
+```
+
+默认范围由 `pyproject.toml` 的 `[tool.pyright]` 固定，当前只覆盖 Shared B0 物理侧车和 R2 数据合同两个高风险新模块。新增或实质重构的 Python 模块应先单文件检查，清零后再加入默认范围：
+
+```bash
+uv run --no-sync pyright src/flow_probe/模块名.py
+```
+
+全仓扫描用于盘点历史类型债务，不作为实验启动门禁：
+
+```bash
+uv run --no-sync pyright src/flow_probe
+```
+
+Pyright 不能证明运行时数组长度、物理公式或实验语义正确；这些问题仍由目标测试、数据合同和制品校验负责。详细策略与首次基线见 `../../../.Codex/docs/2026-07-31-Pyright渐进启用计划.md`。
+
+## Pyright 静态类型检查
+
+安装开发依赖后运行默认检查：
+
+```bash
+uv sync --group dev
+uv run --no-sync pyright
+```
+
+默认范围由 `pyproject.toml` 的 `[tool.pyright]` 固定，当前只覆盖 Shared B0 物理侧车和 R2 数据合同两个高风险新模块。新增或实质重构的 Python 模块应先单文件检查，清零后再加入默认范围：
+
+```bash
+uv run --no-sync pyright src/flow_probe/模块名.py
+```
+
+全仓扫描用于盘点历史类型债务，不作为实验启动门禁：
+
+```bash
+uv run --no-sync pyright src/flow_probe
+```
+
+Pyright 不能证明运行时数组长度、物理公式或实验语义正确；这些问题仍由目标测试、数据合同和制品校验负责。详细策略与首次基线见 `../../../.Codex/docs/2026-07-31-Pyright渐进启用计划.md`。

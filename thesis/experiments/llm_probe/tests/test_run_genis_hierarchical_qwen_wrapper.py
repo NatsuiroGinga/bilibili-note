@@ -1,5 +1,6 @@
 import json
 import os
+import shlex
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -89,7 +90,10 @@ def _create_wrapper_fixture(
 
     venv_bin = work_dir / ".venv" / "bin"
     venv_bin.mkdir(parents=True)
-    (venv_bin / "python").symlink_to(Path(sys.executable))
+    _write_executable(
+        venv_bin / "python",
+        "#!/usr/bin/env bash\n" f'exec {shlex.quote(sys.executable)} "$@"\n',
+    )
     _write_executable(
         venv_bin / "swanlab",
         "#!/usr/bin/env bash\nset -euo pipefail\nprintf '假的 SwanLab：%s\\n' \"$1\"\n",

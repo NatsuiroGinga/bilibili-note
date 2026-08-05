@@ -1,0 +1,115 @@
+schema_version: flow_probe_r2_final_physics_fit_v1
+mode: formal
+seed: 44
+
+data:
+  artifact:
+    path: runs/data-prepared/r2-final-sidecar-candidate-v1/physics-targets-ns3.parquet
+    sha256: 7ac9adc5057befd867527975c04fdc733f0afb981ab2348dda7670d0a728a032
+  role_manifest:
+    path: configs/r2_final_physics_role_manifest_v1.json
+    sha256: 2d9033948700760a21c2a2a891ea14df6794eb52842623c1786b993b391081f8
+    artifact_id: ns3_tcp_udp_development_physics_v1
+    expected_role: training_only_privileged_tcp_udp_physics
+    allowed_splits: [train-fit, calibration, validation]
+  sequence_id: sequence_id
+  evaluation_cluster_id: physics_group_sha256
+  window_index: window_index_in_sequence
+  split_id: split_id
+  route_id: route_id
+  route_confidence: route_confidence
+  quic_applicable: null
+  qlog_truth_available: null
+  window_valid: null
+  window_count: 4
+  observation_fields:
+    - public_total_packets
+    - public_total_l3_bytes
+    - public_packet_length_mean_l3_bytes
+    - public_packet_length_min_l3_bytes
+    - public_packet_length_max_l3_bytes
+    - public_iat_mean_ms
+    - public_packet_rate_pps
+    - public_byte_rate_Bps
+  observation_scales: [1000, 1000000, 1500, 1500, 1500, 1000, 100000, 100000000]
+  truths:
+    shared_conservation:
+      fields:
+        - truth_queue_start_l3_bytes
+        - truth_queue_end_l3_bytes
+        - truth_qdisc_received_l3_bytes
+        - truth_qdisc_dequeued_l3_bytes
+        - truth_qdisc_drop_before_enqueue_l3_bytes
+        - truth_qdisc_drop_after_dequeue_l3_bytes
+      observed_fields:
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+      scales: [1000000, 1000000, 1000000, 1000000, 1000000, 1000000]
+    tcp_dynamics:
+      fields:
+        - truth_tcp_cwnd_mean_bytes
+        - truth_tcp_cwnd_min_bytes
+        - truth_tcp_cwnd_max_bytes
+      observed_fields:
+        - truth_tcp_cwnd_observed
+        - truth_tcp_cwnd_observed
+        - truth_tcp_cwnd_observed
+      scales: [1000000, 1000000, 1000000]
+    udp_dynamics:
+      fields:
+        - truth_udp_planned_app_payload_packets
+        - truth_udp_planned_app_payload_bytes
+        - truth_udp_actual_send_events
+        - truth_udp_actual_send_bytes
+        - truth_udp_target_rate_bps
+        - truth_udp_burst_active
+      observed_fields:
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+      scales: [1000, 1000000, 1000, 1000000, 100000000, 1]
+    quic_dynamics:
+      fields: []
+      observed_fields: []
+      scales: []
+
+model:
+  hidden_dimension: 64
+  representation_dimension: 64
+  layer_count: 2
+  dropout: 0.1
+  residual_dimensions:
+    shared_conservation: 1
+    tcp_dynamics: 3
+    udp_dynamics: 6
+    quic_dynamics: 6
+    unknown_fallback: 1
+
+training:
+  batch_size: 256
+  epochs: 10
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  state_weight: 1.0
+  residual_weight: 0.1
+  max_grad_norm: 1.0
+  save_steps: 20
+  num_workers: 2
+  device: auto
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: r2-final-physics-tcp-udp-s44
+  mode: online
+  tags: [r2-final, physics-fit, tcp, udp, seed-44, theory-selection]
+
+output_dir: runs/r2-final-physics-fit/tcp-udp-seed-44
+quic_expert_ready_after_fit: false

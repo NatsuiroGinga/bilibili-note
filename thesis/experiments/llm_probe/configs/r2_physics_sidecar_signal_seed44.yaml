@@ -1,0 +1,25 @@
+schema_version: flow_probe_r2_physics_sidecar_signal_config_v1
+status: prerequisites_pending
+dataset:
+  version: flow_probe_r2_protocol_dataset_v0
+  stage: theory_selection
+  status: review_pending
+experiment:
+  seed: 44
+  variants: [A, A+P, A+P_shuffle, A+P_random]
+  bootstrap_repetitions: 5000
+  calibration_bins: 15
+fields:
+  common: [total_packets, total_packets_missing, total_bytes, total_bytes_missing, packet_length_mean, packet_length_mean_missing, packet_length_min, packet_length_min_missing, packet_length_max, packet_length_max_missing, iat_mean_ms, iat_mean_ms_missing, packet_rate, packet_rate_missing, byte_rate, byte_rate_missing]
+  sidecar: [estimated_queue_q0, estimated_queue_q1, estimated_queue_q2, estimated_queue_q3, estimated_queue_q4, normalized_queue_residual_w0, normalized_queue_residual_w1, normalized_queue_residual_w2, normalized_queue_residual_w3, state_uncertainty_q0, state_uncertainty_q1, state_uncertainty_q2, state_uncertainty_q3, state_uncertainty_q4, shared_expert_mask, tcp_expert_mask, udp_expert_mask, protocol_confidence]
+inputs:
+  freeze_manifest: {path: runs/data-frozen/dataset-candidate-r2-protocol-v0/freeze-manifest.json, sha256: PENDING}
+  master_records: {path: runs/data-frozen/dataset-candidate-r2-protocol-v0/master_records.parquet, sha256: PENDING}
+  common_features: {path: runs/data-frozen/dataset-candidate-r2-protocol-v0/views/common_features.parquet, sha256: PENDING}
+  protocol_observations: {path: runs/data-frozen/dataset-candidate-r2-protocol-v0/views/protocol_observations.parquet, sha256: PENDING}
+  sidecar: {path: runs/r2-physics-sidecar-signal/inputs/r2_physics_sidecar_public_development_v0.parquet, sha256: PENDING}
+  readiness_receipt: {path: runs/r2-physics-sidecar-signal/inputs/r2_physics_sidecar_readiness_v0.json, sha256: PENDING}
+splits:
+  train: {path: runs/data-frozen/dataset-candidate-r2-protocol-v0/splits/train-fit.jsonl, sha256: PENDING}
+  evaluations:
+    validation: {path: runs/data-frozen/dataset-candidate-r2-protocol-v0/splits/validation.jsonl, sha256: PENDING}

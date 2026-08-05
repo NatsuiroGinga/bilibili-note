@@ -1,0 +1,26 @@
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: shared_b0_common_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+evaluation:
+  test_file: runs/data-frozen/dataset-v1-shared-b0/validation/tqhc2_qwen.jsonl
+  output_dir: runs/baselines/shared-b0-qwen-seed42-200/evaluation-tqhc2-batch16-v1
+  batch_size: 16
+  length_bucket: false
+  flush_every_batches: 1
+  resume: true
+  attention_backend: sdpa
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: shared-b0-qwen-tqhc2-b16-v1
+  description: 冻结批量16无分桶SDPA协议下的共享B0普通监督Qwen种子42 TQH-C2二分类基线
+  mode: online
+  tags: [shared-b0, tqhc2, qwen3-1.7b, batch16, seed42, review-pending]

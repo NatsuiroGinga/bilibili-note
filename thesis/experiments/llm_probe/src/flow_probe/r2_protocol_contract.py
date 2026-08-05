@@ -31,7 +31,7 @@ DATASET_STAGE = "theory_selection"
 DATASET_STATUS = "review_pending"
 IMPLEMENTATION_BASE_COMMIT = "acdf98ba5cc776f7c19495fc53b1164e916eb33c"
 PUBLISH_ROOT = "runs/data-frozen/dataset-candidate-r2-protocol-v0"
-SOURCE_LOCK_ROOT = "runs/data-freeze-configs/r2-protocol-v1"
+SOURCE_LOCK_ROOT = "runs/data-freeze-configs/r2-protocol-v1/source-locks-v1"
 EXECUTION_CODE_REQUIRED_PATHS = (
     "pyproject.toml",
     "uv.lock",

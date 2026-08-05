@@ -5,7 +5,7 @@ dataset:
   status: review_pending
   implementation_base_commit: acdf98ba5cc776f7c19495fc53b1164e916eb33c
   publish_root: runs/data-frozen/dataset-candidate-r2-protocol-v0
-  source_lock_root: runs/data-freeze-configs/r2-protocol-v1
+  source_lock_root: runs/data-freeze-configs/r2-protocol-v1/source-locks-v1
 
 common_view:
   fields:

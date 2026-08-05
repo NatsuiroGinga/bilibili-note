@@ -1,0 +1,38 @@
+{
+  "calibration_metrics": {
+    "physics_residual_mse": null,
+    "state_mse": null,
+    "state_mse_unobserved": null
+  },
+  "dataset_freeze_manifest_sha256": "PENDING",
+  "forbidden_splits_read": false,
+  "ns3_physics_input_sha256": "PENDING",
+  "physics_fit_splits": [
+    "train-fit",
+    "calibration"
+  ],
+  "schema_version": "flow_probe_r2_physics_sidecar_readiness_v1",
+  "sidecar_fields": [
+    "estimated_queue_q0",
+    "estimated_queue_q1",
+    "estimated_queue_q2",
+    "estimated_queue_q3",
+    "estimated_queue_q4",
+    "normalized_queue_residual_w0",
+    "normalized_queue_residual_w1",
+    "normalized_queue_residual_w2",
+    "normalized_queue_residual_w3",
+    "state_uncertainty_q0",
+    "state_uncertainty_q1",
+    "state_uncertainty_q2",
+    "state_uncertainty_q3",
+    "state_uncertainty_q4",
+    "shared_expert_mask",
+    "tcp_expert_mask",
+    "udp_expert_mask",
+    "protocol_confidence"
+  ],
+  "sidecar_sha256": "PENDING",
+  "state_estimator_artifact_sha256": "PENDING",
+  "status": "prerequisites_pending"
+}

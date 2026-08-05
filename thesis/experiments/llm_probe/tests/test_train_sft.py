@@ -5,20 +5,34 @@ from types import SimpleNamespace
 
 import pytest
 
+import flow_probe.train_sft as train_sft_module
 from flow_probe.config import ProbeConfig
 from flow_probe.train_sft import (
     RestartStateCallback,
     _atomic_write_json,
     _prepare_training_run,
     _run_trainer_with_resume,
+    _train_impl,
+    build_chat_dataset,
+    build_chat_training_records,
+    build_lora_config,
+    build_lora_config_kwargs,
+    build_model_load_kwargs,
     build_model_load_spec,
+    build_optimizer_scheduler_kwargs,
+    build_qwen_model_and_tokenizer,
+    build_quantization_config_kwargs,
     build_sft_config_kwargs,
+    build_sft_trainer,
     build_training_binding,
     build_training_settings,
     build_training_tracking_config,
+    load_training_records,
     resolve_resume_checkpoint,
     training_binding_sha256,
 )
+
+QWEN_TOKENIZER_PATH = Path("/root/autodl-tmp/thesis/models/Qwen3-1.7B")
 
 RUN_STATE_FIELDS = {
     "binding_sha256",
@@ -81,6 +95,60 @@ def _settings(tmp_path: Path, **overrides: object):
     return build_training_settings(probe_config(), _training_mapping(tmp_path, **overrides))
 
 
+def _legacy_chat_training_record(
+    record: dict[str, object],
+    tokenizer,
+) -> dict[str, str]:
+    prompt = tokenizer.apply_chat_template(
+        [{"role": "user", "content": record["prompt"]}],
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=False,
+    )
+    return {
+        "prompt": prompt,
+        "completion": str(record["completion"]) + tokenizer.eos_token,
+    }
+
+
+def _legacy_chat_dataset(records: list[dict[str, object]], tokenizer):
+    from datasets import Dataset
+
+    return Dataset.from_list(
+        [_legacy_chat_training_record(record, tokenizer) for record in records]
+    )
+
+
+def _prepare_with_real_trl(
+    dataset,
+    tokenizer,
+    max_length: int,
+    output_dir: Path,
+):
+    from trl import SFTConfig, SFTTrainer
+
+    args = SFTConfig(
+        output_dir=str(output_dir),
+        max_length=max_length,
+        completion_only_loss=True,
+        bf16=False,
+        fp16=False,
+        report_to="none",
+        shuffle_dataset=False,
+    )
+    trainer = object.__new__(SFTTrainer)
+    trainer._is_vlm = False
+    return SFTTrainer._prepare_dataset(
+        trainer,
+        dataset,
+        tokenizer,
+        args,
+        False,
+        None,
+        output_dir.name,
+    )
+
+
 def _run_state(binding: dict[str, object], status: str = "interrupted") -> dict[str, object]:
     return {
         "schema_version": "qwen_sft_run_state_v1",
@@ -137,6 +205,8 @@ def test_training_settings_preserve_effective_batch_and_probe_limits(tmp_path: P
     assert settings.completion_only_loss is True
     assert settings.save_steps == 20
     assert settings.resume_from_checkpoint == "auto"
+    assert settings.attention_backend == "auto"
+    assert settings.group_by_length is False
 
 
 @pytest.mark.parametrize("save_steps", [0, 21, 1.5, "20", True])
@@ -170,7 +240,335 @@ def test_model_load_spec_uses_nf4_bf16_and_all_linear_lora() -> None:
         "lora_dropout": 0.05,
         "target_modules": "all-linear",
         "enable_thinking": False,
+        "attention_backend": "auto",
     }
+
+
+def test_extracted_model_lora_optimizer_and_scheduler_parameters_match_plain_qwen(
+    tmp_path: Path,
+) -> None:
+    probe = probe_config()
+    settings = _settings(tmp_path, attention_backend="sdpa")
+    compute_dtype = object()
+    quantization_config = object()
+
+    assert build_quantization_config_kwargs(compute_dtype) == {
+        "load_in_4bit": True,
+        "bnb_4bit_quant_type": "nf4",
+        "bnb_4bit_compute_dtype": compute_dtype,
+        "bnb_4bit_use_double_quant": True,
+    }
+    assert build_model_load_kwargs(
+        settings,
+        quantization_config,
+        compute_dtype,
+    ) == {
+        "quantization_config": quantization_config,
+        "dtype": compute_dtype,
+        "device_map": "auto",
+        "attn_implementation": "sdpa",
+    }
+    assert build_lora_config_kwargs(probe) == {
+        "r": 16,
+        "lora_alpha": 32,
+        "lora_dropout": 0.05,
+        "bias": "none",
+        "task_type": "CAUSAL_LM",
+        "target_modules": "all-linear",
+    }
+    optimizer_scheduler = build_optimizer_scheduler_kwargs(settings)
+    assert optimizer_scheduler == {
+        "learning_rate": 0.0002,
+        "optim": "paged_adamw_8bit",
+        "lr_scheduler_type": "linear",
+        "warmup_ratio": 0.0,
+        "warmup_steps": 0,
+        "max_grad_norm": 1.0,
+    }
+    sft_parameters = build_sft_config_kwargs(settings, tracking_enabled=False)
+    assert all(sft_parameters[key] == value for key, value in optimizer_scheduler.items())
+    assert sft_parameters["max_length"] == 512
+    assert sft_parameters["group_by_length"] is False
+
+
+def test_public_builders_and_train_impl_are_strictly_wired(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import peft
+    import torch
+    import transformers
+    import trl
+
+    probe = probe_config()
+    settings = _settings(
+        tmp_path,
+        attention_backend="sdpa",
+        group_by_length=True,
+    )
+    calls: dict[str, object] = {}
+
+    class RecordingTokenizerFactory:
+        tokenizer: object
+
+        @classmethod
+        def from_pretrained(cls, model_id, **kwargs):
+            calls["tokenizer"] = (model_id, kwargs)
+            return cls.tokenizer
+
+    class RecordingQuantizationConfig:
+        def __init__(self, **kwargs) -> None:
+            self.kwargs = kwargs
+            calls["quantization"] = kwargs
+
+    class RecordingModelFactory:
+        @classmethod
+        def from_pretrained(cls, model_id, **kwargs):
+            calls["model"] = (model_id, kwargs)
+            return "model-sentinel"
+
+    monkeypatch.setattr(transformers, "AutoTokenizer", RecordingTokenizerFactory)
+    monkeypatch.setattr(transformers, "BitsAndBytesConfig", RecordingQuantizationConfig)
+    monkeypatch.setattr(transformers, "AutoModelForCausalLM", RecordingModelFactory)
+    for pad_token_id, pad_token in ((None, None), (17, "<pad>")):
+        tokenizer = SimpleNamespace(
+            pad_token_id=pad_token_id,
+            pad_token=pad_token,
+            eos_token="<eos>",
+        )
+        RecordingTokenizerFactory.tokenizer = tokenizer
+        model, returned_tokenizer = build_qwen_model_and_tokenizer(
+            probe,
+            settings,
+            SimpleNamespace(bfloat16="bf16-sentinel"),
+        )
+
+        assert model == "model-sentinel"
+        assert returned_tokenizer is tokenizer
+        assert tokenizer.pad_token == ("<eos>" if pad_token_id is None else "<pad>")
+        assert calls["tokenizer"] == (probe.model_id, {"use_fast": True})
+        assert calls["quantization"] == {
+            "load_in_4bit": True,
+            "bnb_4bit_quant_type": "nf4",
+            "bnb_4bit_compute_dtype": "bf16-sentinel",
+            "bnb_4bit_use_double_quant": True,
+        }
+        model_kwargs = calls["model"][1]
+        assert model_kwargs["dtype"] == "bf16-sentinel"
+        assert model_kwargs["device_map"] == "auto"
+        assert model_kwargs["attn_implementation"] == "sdpa"
+        assert isinstance(model_kwargs["quantization_config"], RecordingQuantizationConfig)
+
+    class RecordingLoraConfig:
+        def __init__(self, **kwargs) -> None:
+            self.kwargs = kwargs
+            calls["lora"] = kwargs
+
+    class RecordingSFTConfig:
+        def __init__(self, **kwargs) -> None:
+            self.kwargs = kwargs
+            calls["sft_config"] = kwargs
+
+    class RecordingSFTTrainer:
+        def __init__(self, **kwargs) -> None:
+            self.kwargs = kwargs
+            calls["sft_trainer"] = kwargs
+
+    monkeypatch.setattr(peft, "LoraConfig", RecordingLoraConfig)
+    monkeypatch.setattr(trl, "SFTConfig", RecordingSFTConfig)
+    monkeypatch.setattr(trl, "SFTTrainer", RecordingSFTTrainer)
+    lora_config = build_lora_config(probe)
+    callbacks = [object()]
+    trainer = build_sft_trainer(
+        probe,
+        settings,
+        model="model",
+        tokenizer="tokenizer",
+        train_dataset="train-dataset",
+        validation_dataset="validation-dataset",
+        tracking_enabled=False,
+        callbacks=callbacks,
+    )
+
+    assert isinstance(lora_config, RecordingLoraConfig)
+    assert calls["lora"] == build_lora_config_kwargs(probe)
+    assert calls["sft_config"]["seed"] == probe.seed
+    assert calls["sft_config"]["data_seed"] == probe.seed
+    assert calls["sft_config"]["optim"] == "paged_adamw_8bit"
+    assert calls["sft_config"]["lr_scheduler_type"] == "linear"
+    assert calls["sft_config"]["max_grad_norm"] == 1.0
+    assert calls["sft_config"]["group_by_length"] is True
+    assert trainer.kwargs["model"] == "model"
+    assert trainer.kwargs["processing_class"] == "tokenizer"
+    assert trainer.kwargs["train_dataset"] == "train-dataset"
+    assert trainer.kwargs["eval_dataset"] == "validation-dataset"
+    assert isinstance(trainer.kwargs["peft_config"], RecordingLoraConfig)
+    assert isinstance(trainer.kwargs["args"], RecordingSFTConfig)
+    assert trainer.kwargs["callbacks"] is callbacks
+
+    runtime_calls: list[str] = []
+    runtime_tokenizer = SimpleNamespace(
+        save_pretrained=lambda path: runtime_calls.append(f"save-tokenizer:{path}")
+    )
+    runtime_trainer = SimpleNamespace(
+        save_model=lambda path: runtime_calls.append(f"save-model:{path}"),
+        state=SimpleNamespace(log_history=[], global_step=3),
+    )
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "is_bf16_supported", lambda: True)
+    monkeypatch.setattr(
+        train_sft_module,
+        "build_qwen_model_and_tokenizer",
+        lambda *args: (runtime_calls.append("model-builder") or "model", runtime_tokenizer),
+    )
+    monkeypatch.setattr(
+        train_sft_module,
+        "load_training_records",
+        lambda path: runtime_calls.append(f"load:{path.name}")
+        or [{"sample_id": path.name, "prompt": "p", "completion": "c"}],
+    )
+    monkeypatch.setattr(
+        train_sft_module,
+        "build_chat_dataset",
+        lambda records, tokenizer: runtime_calls.append(
+            f"chat-dataset:{records[0]['sample_id']}"
+        )
+        or records,
+    )
+
+    def record_trainer_builder(*args, **kwargs):
+        runtime_calls.append("trainer-builder")
+        assert kwargs["train_dataset"][0]["sample_id"] == settings.train_file.name
+        assert kwargs["validation_dataset"][0]["sample_id"] == settings.validation_file.name
+        return runtime_trainer
+
+    monkeypatch.setattr(train_sft_module, "build_sft_trainer", record_trainer_builder)
+    monkeypatch.setattr(
+        train_sft_module,
+        "_run_trainer_with_resume",
+        lambda *args: SimpleNamespace(metrics={}),
+    )
+    monkeypatch.setattr(train_sft_module, "_atomic_write_json", lambda *args: None)
+    state_callback = SimpleNamespace(mark_finished=lambda step: runtime_calls.append(f"step:{step}"))
+    prepared = SimpleNamespace(resume_checkpoint=None, binding_sha256="a" * 64)
+
+    _train_impl(
+        probe,
+        settings,
+        tracking_enabled=False,
+        prepared=prepared,
+        state_callback=state_callback,
+    )
+
+    assert runtime_calls[:6] == [
+        "model-builder",
+        f"load:{settings.train_file.name}",
+        f"chat-dataset:{settings.train_file.name}",
+        f"load:{settings.validation_file.name}",
+        f"chat-dataset:{settings.validation_file.name}",
+        "trainer-builder",
+    ]
+
+
+def test_real_trl_qwen_preprocessing_matches_legacy_and_isolates_sample_id(
+    tmp_path: Path,
+) -> None:
+    from transformers import AutoTokenizer
+    from trl.trainer.sft_trainer import DataCollatorForLanguageModeling
+
+    assert QWEN_TOKENIZER_PATH.is_dir()
+    tokenizer = AutoTokenizer.from_pretrained(
+        QWEN_TOKENIZER_PATH,
+        use_fast=True,
+        local_files_only=True,
+    )
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    records = [
+        {
+            "sample_id": "sample-short",
+            "prompt": "flow duration=1.0 packets=4",
+            "completion": '{"label":"benign"}',
+        },
+        {
+            "sample_id": "sample-truncated",
+            "prompt": " ".join(["flow duration=1.0 packets=4"] * 8),
+            "completion": " ".join(['{"label":"malicious"}'] * 32),
+        },
+    ]
+    legacy_dataset = _legacy_chat_dataset(records, tokenizer)
+    extracted_dataset = build_chat_dataset(records, tokenizer)
+    long_prompt_ids = tokenizer(text=extracted_dataset[1]["prompt"])["input_ids"]
+    long_full_ids = tokenizer(
+        text=extracted_dataset[1]["prompt"] + extracted_dataset[1]["completion"]
+    )["input_ids"]
+    short_full_ids = tokenizer(
+        text=extracted_dataset[0]["prompt"] + extracted_dataset[0]["completion"]
+    )["input_ids"]
+    max_length = len(long_prompt_ids) + 4
+
+    assert len(short_full_ids) < max_length
+    assert max_length < len(long_full_ids)
+    legacy_processed = _prepare_with_real_trl(
+        legacy_dataset,
+        tokenizer,
+        max_length,
+        tmp_path / "legacy",
+    )
+    extracted_processed = _prepare_with_real_trl(
+        extracted_dataset,
+        tokenizer,
+        max_length,
+        tmp_path / "extracted",
+    )
+
+    assert extracted_dataset["sample_id"] == [record["sample_id"] for record in records]
+    assert extracted_processed["sample_id"] == [record["sample_id"] for record in records]
+    for index in range(len(records)):
+        assert extracted_processed[index]["input_ids"] == legacy_processed[index]["input_ids"]
+        assert extracted_processed[index]["completion_mask"] == legacy_processed[index][
+            "completion_mask"
+        ]
+    assert len(extracted_processed[0]["input_ids"]) == len(short_full_ids)
+    assert len(extracted_processed[1]["input_ids"]) == max_length
+    assert sum(extracted_processed[1]["completion_mask"]) == 4
+
+    collator = DataCollatorForLanguageModeling(
+        pad_token_id=tokenizer.pad_token_id,
+        completion_only_loss=True,
+    )
+    legacy_batch = collator([legacy_processed[index] for index in range(len(records))])
+    extracted_batch = collator(
+        [extracted_processed[index] for index in range(len(records))]
+    )
+    assert extracted_batch["input_ids"].equal(legacy_batch["input_ids"])
+    assert extracted_batch["labels"].equal(legacy_batch["labels"])
+    assert "sample_id" not in extracted_batch
+    model_keys: set[str] = set()
+
+    def strict_model(**kwargs):
+        model_keys.update(kwargs)
+
+    strict_model(**extracted_batch)
+    assert model_keys == {"attention_mask", "input_ids", "labels"}
+
+
+@pytest.mark.parametrize("attention_backend", ["flash", "", 1, None])
+def test_training_settings_reject_invalid_attention_backend(
+    tmp_path: Path,
+    attention_backend: object,
+) -> None:
+    with pytest.raises(ValueError, match="attention_backend 只允许"):
+        _settings(tmp_path, attention_backend=attention_backend)
+
+
+@pytest.mark.parametrize("group_by_length", [1, "true", None])
+def test_training_settings_reject_invalid_group_by_length(
+    tmp_path: Path,
+    group_by_length: object,
+) -> None:
+    with pytest.raises(ValueError, match="group_by_length 必须是布尔值"):
+        _settings(tmp_path, group_by_length=group_by_length)
 
 
 def test_training_tracking_config_contains_restart_fields(tmp_path: Path) -> None:
@@ -195,6 +593,8 @@ def test_training_tracking_config_contains_restart_fields(tmp_path: Path) -> Non
     assert config["max_steps"] == 50
     assert config["save_steps"] == 10
     assert config["resume_from_checkpoint"] == "never"
+    assert config["attention_backend"] == "auto"
+    assert config["group_by_length"] is False
 
 
 def test_training_binding_is_stable_and_changes_with_scientific_inputs(
@@ -222,6 +622,16 @@ def test_training_binding_is_stable_and_changes_with_scientific_inputs(
         build_training_binding(
             probe,
             replace(settings, per_device_train_batch_size=2),
+            model_path,
+        ),
+        build_training_binding(
+            probe,
+            replace(settings, attention_backend="sdpa"),
+            model_path,
+        ),
+        build_training_binding(
+            probe,
+            replace(settings, group_by_length=True),
             model_path,
         ),
         build_training_binding(probe, settings, tmp_path / "models" / "other"),
@@ -438,3 +848,20 @@ def test_sft_config_uses_bounded_step_checkpoints(tmp_path: Path) -> None:
     assert config["save_only_model"] is False
     assert config["logging_steps"] == 1
     assert config["report_to"] == "none"
+    assert config["group_by_length"] is False
+
+
+def test_training_runtime_acceleration_does_not_change_effective_batch(
+    tmp_path: Path,
+) -> None:
+    settings = _settings(
+        tmp_path,
+        attention_backend="flash_attention_2",
+        group_by_length=True,
+    )
+
+    assert settings.effective_batch_size == 64
+    assert build_sft_config_kwargs(settings, tracking_enabled=False)["group_by_length"] is True
+    assert build_model_load_spec(probe_config(), settings)["attention_backend"] == (
+        "flash_attention_2"
+    )

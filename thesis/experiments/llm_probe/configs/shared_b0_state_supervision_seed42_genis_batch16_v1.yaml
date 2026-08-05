@@ -1,0 +1,44 @@
+schema_version: flow_probe_shared_b0_physics_evaluation_config_v1
+config_id: shared-b0-state-supervision-seed42-genis-batch16-v1
+status: review_pending
+baseline: state_supervision
+
+probe:
+  model_id: /root/autodl-tmp/thesis/models/Qwen3-1.7B
+  feature_view: shared_b0_common_v1
+  seed: 42
+  max_input_length: 512
+  max_new_tokens: 16
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+training_artifacts:
+  run_dir: runs/baselines/shared-b0-qwen-state-supervision-seed42-200-v1
+
+public_evaluation:
+  dataset: genis
+  test_file: runs/data-frozen/dataset-v1-shared-b0/validation/genis_qwen.jsonl
+  output_dir: runs/baselines/shared-b0-qwen-state-supervision-seed42-200-v1/evaluation-genis-batch16-v1
+  batch_size: 16
+  length_bucket: false
+  flush_every_batches: 1
+  resume: true
+  attention_backend: sdpa
+
+physics_diagnostic:
+  evaluation_scope: train_fit_diagnostic
+  classification_train_file: runs/data-frozen/dataset-v1-shared-b0/candidate/qwen_train.jsonl
+  sidecar_root: runs/data-frozen/dataset-v1-shared-b0-physics-v1
+  sidecar_file: runs/data-frozen/dataset-v1-shared-b0-physics-v1/candidate/ns3_physics_train.jsonl
+  dataset_manifest: runs/data-frozen/dataset-v1-shared-b0-physics-v1/dataset_manifest.json
+  output_file: runs/baselines/shared-b0-qwen-state-supervision-seed42-200-v1/physics_train_fit_diagnostic.json
+  batch_size: 16
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: shared-b0-state-supervision-genis-b16-v1
+  description: 共享B0状态监督基线的GeNIS公开检测评估
+  mode: online
+  tags: [shared-b0, state-supervision, genis, batch16, seed42, review-pending]
