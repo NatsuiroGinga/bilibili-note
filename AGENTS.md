@@ -11,7 +11,7 @@
 - Codex 不会因为随后编辑了子目录文件而动态重新发现规则。从仓库根启动时，只要任务涉及下列子域，必须在分析或编辑前主动**完整读取**对应局部文件；任务横跨多个子域时逐一读取。
 
 - 论文正文、章节结构、公式、数据证据或图件：`thesis/AGENTS.md`。
-- `llm_probe` 代码、配置、测试、同步或服务器实验：`thesis/AGENTS.md`、`thesis/experiments/llm_probe/AGENTS.md`。
+- `llm_probe` 代码、配置、测试、同步或服务器实验：`thesis/AGENTS.md`、`thesis/experiments/llm_probe/AGENTS.md`；涉及 `scripts/` 时还必须读取 `thesis/experiments/llm_probe/scripts/AGENTS.md`。
 - 原始论文、PDF 或外部材料：`raw/AGENTS.md`。
 - Obsidian 笔记、论文笔记或索引：`wiki/AGENTS.md`。
 - 两份恢复文档或高层交付物：`output/AGENTS.md`。
@@ -41,15 +41,17 @@
 ## 凭据与远程访问
 
 - GPU 登录信息、密码、访问令牌和其他凭据只能来自环境变量、系统密钥存储或既有登录状态，禁止写入仓库文件、配置、日志、计划、命令清单或汇报。
-- 本机连接服务器使用 `GPU_SSH` 与 `GPU_PWD`；读取不到时先 `source ~/.zshrc`。不得打印、回显或持久化解析出的值。
+- 当前活动服务器的连接信息使用 `GPU_SSH_378` 与 `GPU_PWD_378`；读取不到时先 `source ~/.zshrc`。旧的 `GPU_SSH` 与 `GPU_PWD` 仅在用户明确指定旧服务器仍可用时使用。不得打印、回显或持久化解析出的值。
+- GPU 服务器可能被平台随时回收。服务器切换、重启或回收后，先只读核验服务器身份、项目根、磁盘、依赖和持久化制品；不得假定旧进程、运行目录、模型、数据或工具链仍存在，也不得把预期关机或服务器回收计作科学失败。
 - 更具体的 shell、同步、环境和服务器规则由 `thesis/experiments/llm_probe/AGENTS.md` 规定。
 
 ## 默认搜索排除边界（强制）
 
-- 根目录以 `.ignore` 控制 `rg` 与 `fd` 的默认搜索噪声；在本机 Codex 明确验证支持前，不得依赖或新建 `.codexignore`。
+- 根目录以 `.ignore` 控制 `rg` 与已解析的 `fd`/`fdfind` 遍历命令的默认搜索噪声；在本机 Codex 明确验证支持前，不得依赖或新建 `.codexignore`。
+- 文件遍历不得直接假定命令名为 `fd`：先执行 `command -v fd`，未命中时再执行 `command -v fdfind`，将命中的绝对路径保存为统一变量（如 `FD_CMD`），后续只通过该变量调用。两者均不存在时仅文件枚举可降级为 `rg --files`，其他遍历必须停止，禁止使用 `find`。
 - `.ignore` 只允许排除 `.Codex/docs/archive/`、依赖目录、语言工具缓存、编辑器缓存和可再生临时渲染物。
 - 不得排除 `AGENTS.md`、两份恢复文档、当前 `.Codex/docs/`、`thesis/` 正文与实验源码、`raw/`、论文 PDF、数据集、模型制品、实验 `runs/`、SwanLab 日志或普通实验日志。
-- `thesis/experiments/llm_probe/.gitignore` 已排除 `runs/*`，默认 `rg --files` 不会列出运行制品。核验实验结果必须使用总控中的明确路径，或临时使用 `rg --no-ignore`、`fd --no-ignore`，不得据此误判文件不存在。
+- `thesis/experiments/llm_probe/.gitignore` 已排除 `runs/*`，默认 `rg --files` 不会列出运行制品。核验实验结果必须使用总控中的明确路径，或临时使用 `rg --no-ignore`、`"$FD_CMD" --no-ignore`，不得据此误判文件不存在。
 - 核验历史备份时使用明确路径或 `--no-ignore`；不得为缩短上下文删除历史文件，也不得把历史内容复制回默认恢复文档。
 
 ## 实验工程开发范式（强制）

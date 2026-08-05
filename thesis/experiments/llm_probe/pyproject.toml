@@ -27,6 +27,7 @@ gpu = [
 [dependency-groups]
 dev = [
     "black>=25.1,<26",
+    "pyright>=1.1.411",
     "pytest>=8.4,<9",
     "ruff>=0.12,<1",
 ]
@@ -60,6 +61,9 @@ flow-probe-diagnose-gradient-feasibility = "flow_probe.gradient_feasibility:main
 flow-probe-train-game = "flow_probe.game_train:main"
 flow-probe-audit-dedale = "flow_probe.dedale_audit:main"
 flow-probe-process-tqh-c2 = "flow_probe.tqh_c2:main"
+flow-probe-materialize-tqh-c2-abc-budget = "flow_probe.tqh_c2_candidate_abc_fixed:main"
+flow-probe-build-unified-budget = "flow_probe.unified_budget:main"
+flow-probe-build-shared-b0-view = "flow_probe.shared_b0_view:main"
 flow-probe-analyze-physics-errors = "flow_probe.physics_error_analysis:main"
 flow-probe-plan-ns3-domain-randomization = "flow_probe.ns3_domain_randomization:main"
 flow-probe-run-ns3-domain-randomization = "flow_probe.ns3_domain_experiment:main"
@@ -69,6 +73,7 @@ flow-probe-train-bounded-physics = "flow_probe.bounded_physics_train:main"
 flow-probe-evaluate-bounded-physics = "flow_probe.bounded_physics_evaluation:main"
 flow-probe-evaluate-s3-same-split-physics = "flow_probe.s3_same_split_physics:main"
 flow-probe-ns3-physics-baseline = "flow_probe.ns3_physics_baselines:main"
+flow-probe-train-shared-b0-physics = "flow_probe.shared_b0_physics_train:main"
 
 [build-system]
 requires = ["hatchling>=1.27"]
@@ -91,3 +96,21 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
+
+
+[tool.pyright]
+include = [
+    "src/flow_probe/r2_protocol_contract.py",
+    "src/flow_probe/shared_b0_physics_sidecar.py",
+]
+exclude = [
+    ".venv",
+    "data",
+    "runs",
+    "swanlog",
+]
+pythonVersion = "3.10"
+typeCheckingMode = "basic"
+reportMissingTypeStubs = "none"
+venvPath = "."
+venv = ".venv"
