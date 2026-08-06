@@ -62,16 +62,16 @@ data:
 
 physics:
   fit_config:
-    path: configs/r2_final_physics_fit_seed42.yaml
-    sha256: 70fedbbc99d33f303e585100ff32a2e7469c94ff38f923c603a08cac7d6dc4e6
+    path: configs/r2_final_physics_fit_seed42_identifiable_g3mask_v3.yaml
+    sha256: a8f6464d2de67efaf3fcdcccbce942c49b1198d9116cd3c76f025878da830718
   checkpoint:
-    ready: false
-    not_ready_reason: 种子 42 的 TCP/UDP v2 正式物理拟合尚未完成
-    path: runs/r2-minimal-sidecar-physics-fit/tcp-udp-v2-seed-42/checkpoint-latest.pt
-    sha256: null
+    ready: true
+    not_ready_reason: ""
+    path: runs/r2-minimal-sidecar-physics-fit/tcp-udp-identifiable-g3mask-v3-seed-42/checkpoint-latest.pt
+    sha256: ce0f0be461f179b25f620bbca2c0abae8a2d372701386b3eec0c7d11a2afa188
     binding_manifest:
-      path: runs/r2-minimal-sidecar-physics-fit/tcp-udp-v2-seed-42/checkpoint-binding-manifest.json
-      sha256: null
+      path: runs/r2-minimal-sidecar-physics-fit/tcp-udp-identifiable-g3mask-v3-seed-42/checkpoint-binding-manifest.json
+      sha256: 635c9316bd4d16a049fc203e83c08eb8063b08b1e4c1057d2449b2042a88d420
   quic_expert_ready: false
   comparison_variants: [F-A, F-P, F-S]
   production_batch_size: 512
@@ -107,11 +107,11 @@ evaluation:
   threshold: 0.5
   calibration_bins: 15
 
-output_root: runs/r2-minimal-sidecar-probe/distilbert-v1
+output_root: runs/r2-minimal-sidecar-probe/distilbert-identifiable-g3mask-v3
 
 tracking:
   project: malicious-traffic-llm
   workspace: mortiswang
-  run_name: r2-final-sidecar-s42
+  run_name: r2-identifiable-g3mask-v3-s42
   mode: online
-  tags: [r2-final, distilbert, seed-42, theory-selection, protocol-adaptive]
+  tags: [r2-final, distilbert, seed-42, theory-selection, protocol-adaptive, tcp-identifiable-v2, g3-mask-fix]

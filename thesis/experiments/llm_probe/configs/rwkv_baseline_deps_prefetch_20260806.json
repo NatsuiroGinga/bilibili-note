@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "run_id": "rwkv-baseline-deps-prefetch-20260806t030118z",
+  "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/artifacts/rwkv-baseline-deps",
+  "sources": [
+    {
+      "name": "RWKV-LM",
+      "repository": "https://github.com/BlinkDL/RWKV-LM.git",
+      "commit": "952102498e9ed367ea0a59ee64106916d474d30f"
+    },
+    {
+      "name": "Time-Series-Library",
+      "repository": "https://github.com/THUML/Time-Series-Library.git",
+      "commit": "4e938a1767106324dd753b2a44832bf870a0252e"
+    },
+    {
+      "name": "mamba",
+      "repository": "https://github.com/state-spaces/mamba.git",
+      "commit": "e9594ce1c732d97440f0332fdc43170a2294dbfa"
+    },
+    {
+      "name": "causal-conv1d",
+      "repository": "https://github.com/Dao-AILab/causal-conv1d.git",
+      "commit": "4f6ae4e26ae5fe8af9372f8d312ab25cc4595223"
+    }
+  ],
+  "audit_packages": [
+    "torch",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scikit-learn",
+    "xgboost",
+    "scipy",
+    "einops",
+    "tqdm",
+    "matplotlib",
+    "sktime",
+    "sympy",
+    "PyWavelets",
+    "local-attention",
+    "reformer-pytorch",
+    "lightning",
+    "pytorch-lightning",
+    "deepspeed",
+    "transformers",
+    "triton",
+    "ninja",
+    "packaging",
+    "setuptools",
+    "wheel"
+  ],
+  "download_requirements": [
+    "scikit-learn",
+    "xgboost",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "scipy",
+    "einops",
+    "tqdm",
+    "matplotlib",
+    "sktime",
+    "sympy",
+    "PyWavelets",
+    "local-attention",
+    "reformer-pytorch",
+    "lightning",
+    "pytorch-lightning",
+    "deepspeed",
+    "transformers",
+    "triton",
+    "ninja",
+    "packaging",
+    "setuptools",
+    "wheel"
+  ]
+}

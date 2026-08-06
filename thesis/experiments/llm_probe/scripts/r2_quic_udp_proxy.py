@@ -35,6 +35,9 @@ class DirectionState:
     loss_probability: float
     rate_bits_per_second: float
     queue_limit_packets: int
+    queue_capacity_bytes: int | None = None
+    queue_margin_max_bytes: int | None = None
+    max_datagram_bytes: int = 65_535
     random_source: random.Random = field(init=False)
     packet_sequence: int = 0
     schedule_epoch_monotonic: float | None = None
@@ -42,6 +45,18 @@ class DirectionState:
     previous_frozen_send_offset_seconds: float = 0.0
     queued_packets: int = 0
     peak_queue_packets: int = 0
+    previous_serialization_finish_monotonic: float | None = None
+    service_backlog_bytes: int = 0
+    waiting_bytes: int = 0
+    in_service_bytes: int = 0
+    delay_inflight_bytes: int = 0
+    peak_service_backlog_bytes: int = 0
+    peak_service_backlog_packet_sequence: int | None = None
+    peak_service_backlog_offset_us: int | None = None
+    peak_delay_inflight_bytes: int = 0
+    peak_delay_inflight_packet_sequence: int | None = None
+    peak_delay_inflight_offset_us: int | None = None
+    service_completions: list[ServiceCompletion] = field(default_factory=list)
     received_packets: int = 0
     received_bytes: int = 0
     scheduled_packets: int = 0
@@ -49,8 +64,15 @@ class DirectionState:
     forwarded_packets: int = 0
     forwarded_bytes: int = 0
     random_drop_packets: int = 0
+    random_drop_bytes: int = 0
     queue_drop_packets: int = 0
+    queue_drop_bytes: int = 0
     send_error_packets: int = 0
+    send_error_bytes: int = 0
+    max_receive_batch_packets: int = 0
+    max_receive_batch_bytes: int = 0
+    max_actual_forwarding_lag_us: int = 0
+    receive_batch_sequence: int = 0
 
     def __post_init__(self) -> None:
         self.random_source = random.Random(self.seed)
@@ -65,9 +87,7 @@ class DirectionState:
                 if self.schedule_epoch_monotonic is not None
                 else None
             ),
-            "cumulative_serialization_us": round(
-                self.cumulative_serialization_seconds * 1_000_000
-            ),
+            "cumulative_serialization_us": round(self.cumulative_serialization_seconds * 1_000_000),
             "final_frozen_send_offset_us": round(
                 self.previous_frozen_send_offset_seconds * 1_000_000
             ),
@@ -78,11 +98,107 @@ class DirectionState:
             "forwarded_packets": self.forwarded_packets,
             "forwarded_bytes": self.forwarded_bytes,
             "random_drop_packets": self.random_drop_packets,
+            "random_drop_bytes": self.random_drop_bytes,
             "queue_drop_packets": self.queue_drop_packets,
+            "queue_drop_bytes": self.queue_drop_bytes,
             "send_error_packets": self.send_error_packets,
+            "send_error_bytes": self.send_error_bytes,
             "peak_queue_packets": self.peak_queue_packets,
             "queued_packets_at_shutdown": self.queued_packets,
+            "queue_capacity_bytes": self.queue_capacity_bytes,
+            "queue_margin_max_bytes": self.queue_margin_max_bytes,
+            "max_datagram_bytes": self.max_datagram_bytes,
+            "service_backlog_bytes_at_shutdown": self.service_backlog_bytes,
+            "waiting_bytes_at_shutdown": self.waiting_bytes,
+            "in_service_bytes_at_shutdown": self.in_service_bytes,
+            "delay_inflight_bytes_at_shutdown": self.delay_inflight_bytes,
+            "peak_service_backlog_bytes": self.peak_service_backlog_bytes,
+            "peak_service_backlog_packet_sequence": (self.peak_service_backlog_packet_sequence),
+            "peak_service_backlog_offset_us": self.peak_service_backlog_offset_us,
+            "queue_margin_diagnostic_passed": (
+                self.queue_margin_max_bytes is None
+                or self.peak_service_backlog_bytes <= self.queue_margin_max_bytes
+            ),
+            "peak_delay_inflight_bytes": self.peak_delay_inflight_bytes,
+            "peak_delay_inflight_packet_sequence": (self.peak_delay_inflight_packet_sequence),
+            "peak_delay_inflight_offset_us": self.peak_delay_inflight_offset_us,
+            "max_receive_batch_packets": self.max_receive_batch_packets,
+            "max_receive_batch_bytes": self.max_receive_batch_bytes,
+            "max_actual_forwarding_lag_us": self.max_actual_forwarding_lag_us,
         }
+
+    def settle_service(self, now: float, started_monotonic: float) -> list[dict[str, Any]]:
+        receipts: list[dict[str, Any]] = []
+        while self.service_completions and self.service_completions[0].finish_time <= now:
+            completion = heapq.heappop(self.service_completions)
+            service_before = self.service_backlog_bytes
+            waiting_before = self.waiting_bytes
+            in_service_before = self.in_service_bytes
+            delay_before = self.delay_inflight_bytes
+            if in_service_before != completion.datagram_bytes:
+                raise RuntimeError("服务中数据报与完成事件不一致")
+            self.service_backlog_bytes -= completion.datagram_bytes
+            self.in_service_bytes = 0
+            self.delay_inflight_bytes += completion.datagram_bytes
+            if self.service_backlog_bytes < 0:
+                raise RuntimeError("待服务字节结算为负数")
+            if self.delay_inflight_bytes > self.peak_delay_inflight_bytes:
+                self.peak_delay_inflight_bytes = self.delay_inflight_bytes
+                self.peak_delay_inflight_packet_sequence = completion.packet_sequence
+                self.peak_delay_inflight_offset_us = round(
+                    (completion.finish_time - started_monotonic) * 1_000_000
+                )
+            receipts.append(
+                {
+                    "packet_sequence": completion.packet_sequence,
+                    "bytes": completion.datagram_bytes,
+                    "service_completion_offset_us": round(
+                        (completion.finish_time - started_monotonic) * 1_000_000
+                    ),
+                    "service_backlog_before_bytes": service_before,
+                    "service_backlog_after_bytes": self.service_backlog_bytes,
+                    "waiting_before_bytes": waiting_before,
+                    "waiting_after_bytes": self.waiting_bytes,
+                    "in_service_before_bytes": in_service_before,
+                    "in_service_after_bytes": self.in_service_bytes,
+                    "delay_inflight_before_bytes": delay_before,
+                    "delay_inflight_after_bytes": self.delay_inflight_bytes,
+                }
+            )
+            if self.service_completions:
+                next_completion = self.service_completions[0]
+                waiting_before = self.waiting_bytes
+                self.waiting_bytes -= next_completion.datagram_bytes
+                if self.waiting_bytes < 0:
+                    raise RuntimeError("等待字节结算为负数")
+                self.in_service_bytes = next_completion.datagram_bytes
+                receipts.append(
+                    {
+                        "action": "service_started",
+                        "packet_sequence": next_completion.packet_sequence,
+                        "bytes": next_completion.datagram_bytes,
+                        "service_start_offset_us": round(
+                            (next_completion.start_time - started_monotonic) * 1_000_000
+                        ),
+                        "service_backlog_before_bytes": self.service_backlog_bytes,
+                        "service_backlog_after_bytes": self.service_backlog_bytes,
+                        "waiting_before_bytes": waiting_before,
+                        "waiting_after_bytes": self.waiting_bytes,
+                        "in_service_before_bytes": 0,
+                        "in_service_after_bytes": self.in_service_bytes,
+                        "delay_inflight_before_bytes": self.delay_inflight_bytes,
+                        "delay_inflight_after_bytes": self.delay_inflight_bytes,
+                    }
+                )
+        return receipts
+
+
+@dataclass(order=True)
+class ServiceCompletion:
+    finish_time: float
+    packet_sequence: int
+    start_time: float = field(compare=False)
+    datagram_bytes: int = field(compare=False)
 
 
 @dataclass(order=True)
@@ -95,6 +211,25 @@ class ScheduledDatagram:
     frozen_send_offset_us: int = field(compare=False)
     payload: bytes = field(compare=False)
     destination: tuple[str, int] | None = field(compare=False)
+    serialization_start_offset_us: int | None = field(compare=False, default=None)
+    serialization_finish_offset_us: int | None = field(compare=False, default=None)
+
+
+def resolve_directional_datagram_limits(args: argparse.Namespace) -> dict[str, int]:
+    client_limit = getattr(args, "client_to_server_max_datagram_bytes", None)
+    server_limit = getattr(args, "server_to_client_max_datagram_bytes", None)
+    if (client_limit is None) != (server_limit is None):
+        raise ValueError("方向级最大数据报必须同时提供两个方向")
+    if client_limit is None:
+        maximum = int(args.max_datagram_bytes)
+        return {"client_to_server": maximum, "server_to_client": maximum}
+    limits = {
+        "client_to_server": int(client_limit),
+        "server_to_client": int(server_limit),
+    }
+    if any(not 1 <= value <= 65_535 for value in limits.values()):
+        raise ValueError("方向级最大数据报字节必须位于 1..65535")
+    return limits
 
 
 class DeterministicUdpProxy:
@@ -125,19 +260,31 @@ class DeterministicUdpProxy:
         self.selector.register(self.downstream, selectors.EVENT_READ, "client_to_server")
         self.selector.register(self.upstream, selectors.EVENT_READ, "server_to_client")
 
+        self.directional_datagram_limits_enabled = (
+            args.client_to_server_max_datagram_bytes is not None
+        )
+        self.max_datagram_bytes_by_direction = resolve_directional_datagram_limits(args)
         common = {
             "delay_seconds": args.delay_ms / 1000.0,
             "jitter_seconds": args.jitter_ms / 1000.0,
             "loss_probability": args.loss_percent / 100.0,
             "rate_bits_per_second": args.rate_mbit * 1_000_000.0,
             "queue_limit_packets": args.queue_limit_packets,
+            "queue_capacity_bytes": args.queue_capacity_bytes,
+            "queue_margin_max_bytes": args.queue_margin_max_bytes,
         }
         self.directions = {
             "client_to_server": DirectionState(
-                name="client_to_server", seed=args.client_to_server_seed, **common
+                name="client_to_server",
+                seed=args.client_to_server_seed,
+                max_datagram_bytes=self.max_datagram_bytes_by_direction["client_to_server"],
+                **common,
             ),
             "server_to_client": DirectionState(
-                name="server_to_client", seed=args.server_to_client_seed, **common
+                name="server_to_client",
+                seed=args.server_to_client_seed,
+                max_datagram_bytes=self.max_datagram_bytes_by_direction["server_to_client"],
+                **common,
             ),
         }
 
@@ -146,9 +293,27 @@ class DeterministicUdpProxy:
 
     def write_event(self, payload: dict[str, Any]) -> None:
         self.event_stream.write(
-            json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
-            + "\n"
+            json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":")) + "\n"
         )
+
+    def settle_service_events(self, direction_name: str, now: float) -> None:
+        direction = self.directions[direction_name]
+        for receipt in direction.settle_service(now, self.started_monotonic):
+            self.sequence += 1
+            self.write_event(
+                {
+                    "sequence": self.sequence,
+                    "direction": direction_name,
+                    "action": "service_completed",
+                    **receipt,
+                }
+            )
+
+    def settle_all_services(self, now: float) -> None:
+        if self.args.schedule_mode != "work_conserving_byte_service_delay_v1":
+            return
+        for direction_name in sorted(self.directions):
+            self.settle_service_events(direction_name, now)
 
     def schedule_datagram(
         self,
@@ -156,6 +321,7 @@ class DeterministicUdpProxy:
         direction_name: str,
         payload: bytes,
         destination: tuple[str, int] | None,
+        receive_batch_id: int,
     ) -> None:
         now = time.monotonic()
         self.last_activity = now
@@ -164,6 +330,31 @@ class DeterministicUdpProxy:
         direction.received_bytes += len(payload)
         direction.packet_sequence += 1
         packet_sequence = direction.packet_sequence
+        datagram_bytes = len(payload)
+        if datagram_bytes > direction.max_datagram_bytes:
+            self.contract_error = {
+                "reason": "datagram_exceeds_frozen_maximum",
+                "direction": direction_name,
+                "packet_sequence": packet_sequence,
+                "datagram_bytes": datagram_bytes,
+                "max_datagram_bytes": direction.max_datagram_bytes,
+            }
+            self.sequence += 1
+            self.write_event(
+                {
+                    "sequence": self.sequence,
+                    "direction": direction_name,
+                    "action": "contract_failed",
+                    "reason": self.contract_error["reason"],
+                    "packet_sequence": packet_sequence,
+                    "bytes": datagram_bytes,
+                    "arrival_offset_us": self.offset_microseconds(now),
+                    "max_datagram_bytes": direction.max_datagram_bytes,
+                }
+            )
+            raise RuntimeError(
+                f"UDP 数据报超过冻结上限：{datagram_bytes} > {direction.max_datagram_bytes}"
+            )
         if direction.schedule_epoch_monotonic is None:
             direction.schedule_epoch_monotonic = now
         schedule_epoch = direction.schedule_epoch_monotonic
@@ -175,13 +366,154 @@ class DeterministicUdpProxy:
             jitter_seconds = direction.random_source.uniform(
                 -direction.jitter_seconds, direction.jitter_seconds
             )
+
+        if self.args.schedule_mode == "work_conserving_byte_service_delay_v1":
+            self.settle_service_events(direction_name, now)
+            service_before = direction.service_backlog_bytes
+            delay_inflight = direction.delay_inflight_bytes
+            common_receipt = {
+                "receive_batch_id": receive_batch_id,
+                "packet_sequence": packet_sequence,
+                "arrival_offset_us": self.offset_microseconds(now),
+                "bytes": datagram_bytes,
+                "service_backlog_before_bytes": service_before,
+                "delay_inflight_bytes": delay_inflight,
+                "waiting_before_bytes": direction.waiting_bytes,
+                "in_service_before_bytes": direction.in_service_bytes,
+            }
+            if loss_draw < direction.loss_probability:
+                direction.random_drop_packets += 1
+                direction.random_drop_bytes += datagram_bytes
+                self.sequence += 1
+                self.write_event(
+                    {
+                        "sequence": self.sequence,
+                        "direction": direction_name,
+                        "action": "dropped",
+                        "reason": "deterministic_random_loss",
+                        "admitted": False,
+                        "service_backlog_after_bytes": service_before,
+                        "waiting_after_bytes": direction.waiting_bytes,
+                        "in_service_after_bytes": direction.in_service_bytes,
+                        "serialization_start_offset_us": None,
+                        "serialization_finish_offset_us": None,
+                        "scheduled_release_offset_us": None,
+                        **common_receipt,
+                    }
+                )
+                return
+
+            if direction.queue_capacity_bytes is None:
+                raise RuntimeError("v4 调度缺少字节队列容量")
+            if service_before + datagram_bytes > direction.queue_capacity_bytes:
+                direction.queue_drop_packets += 1
+                direction.queue_drop_bytes += datagram_bytes
+                self.sequence += 1
+                self.write_event(
+                    {
+                        "sequence": self.sequence,
+                        "direction": direction_name,
+                        "action": "dropped",
+                        "reason": "userspace_queue_limit_bytes",
+                        "admitted": False,
+                        "service_backlog_after_bytes": service_before,
+                        "waiting_after_bytes": direction.waiting_bytes,
+                        "in_service_after_bytes": direction.in_service_bytes,
+                        "serialization_start_offset_us": None,
+                        "serialization_finish_offset_us": None,
+                        "scheduled_release_offset_us": None,
+                        **common_receipt,
+                    }
+                )
+                return
+
+            serialization_seconds = datagram_bytes * 8.0 / direction.rate_bits_per_second
+            serialization_start = max(
+                now,
+                direction.previous_serialization_finish_monotonic or now,
+            )
+            serialization_finish = serialization_start + serialization_seconds
+            release_time = serialization_finish + direction.delay_seconds + jitter_seconds
+            if release_time < serialization_finish:
+                raise RuntimeError("传播时延与抖动组合导致释放早于服务完成")
+            direction.previous_serialization_finish_monotonic = serialization_finish
+            direction.cumulative_serialization_seconds += serialization_seconds
+            direction.previous_frozen_send_offset_seconds = (
+                release_time - direction.schedule_epoch_monotonic
+            )
+            direction.service_backlog_bytes += datagram_bytes
+            service_classification = (
+                "in_service" if not direction.service_completions else "waiting"
+            )
+            if service_classification == "in_service":
+                direction.in_service_bytes += datagram_bytes
+            else:
+                direction.waiting_bytes += datagram_bytes
+            direction.queued_packets += 1
+            direction.peak_queue_packets = max(
+                direction.peak_queue_packets, direction.queued_packets
+            )
+            if direction.service_backlog_bytes > direction.peak_service_backlog_bytes:
+                direction.peak_service_backlog_bytes = direction.service_backlog_bytes
+                direction.peak_service_backlog_packet_sequence = packet_sequence
+                direction.peak_service_backlog_offset_us = self.offset_microseconds(now)
+            direction.scheduled_packets += 1
+            direction.scheduled_bytes += datagram_bytes
+            heapq.heappush(
+                direction.service_completions,
+                ServiceCompletion(
+                    finish_time=serialization_finish,
+                    packet_sequence=packet_sequence,
+                    start_time=serialization_start,
+                    datagram_bytes=datagram_bytes,
+                ),
+            )
+            self.sequence += 1
+            start_offset_us = self.offset_microseconds(serialization_start)
+            finish_offset_us = self.offset_microseconds(serialization_finish)
+            release_offset_us = self.offset_microseconds(release_time)
+            heapq.heappush(
+                self.schedule,
+                ScheduledDatagram(
+                    release_time=release_time,
+                    sequence=self.sequence,
+                    direction=direction_name,
+                    packet_sequence=packet_sequence,
+                    schedule_epoch_offset_us=self.offset_microseconds(schedule_epoch),
+                    frozen_send_offset_us=release_offset_us,
+                    payload=payload,
+                    destination=destination,
+                    serialization_start_offset_us=start_offset_us,
+                    serialization_finish_offset_us=finish_offset_us,
+                ),
+            )
+            self.write_event(
+                {
+                    "sequence": self.sequence,
+                    "direction": direction_name,
+                    "action": "scheduled",
+                    "reason": None,
+                    "admitted": True,
+                    "service_backlog_after_bytes": direction.service_backlog_bytes,
+                    "waiting_after_bytes": direction.waiting_bytes,
+                    "in_service_after_bytes": direction.in_service_bytes,
+                    "service_classification": service_classification,
+                    "serialization_start_offset_us": start_offset_us,
+                    "serialization_finish_offset_us": finish_offset_us,
+                    "scheduled_release_offset_us": release_offset_us,
+                    "serialization_us": round(serialization_seconds * 1_000_000),
+                    "jitter_us": round(jitter_seconds * 1_000_000),
+                    "queue_capacity_bytes": direction.queue_capacity_bytes,
+                    **common_receipt,
+                }
+            )
+            return
+
         serialization_seconds = len(payload) * 8.0 / direction.rate_bits_per_second
         direction.cumulative_serialization_seconds += serialization_seconds
         candidate_offset = max(
             0.0,
-            direction.delay_seconds
-            + direction.cumulative_serialization_seconds
-            + jitter_seconds,
+            direction.delay_seconds + direction.cumulative_serialization_seconds + jitter_seconds,
         )
         frozen_send_offset = max(
             direction.previous_frozen_send_offset_seconds,
@@ -199,6 +531,7 @@ class DeterministicUdpProxy:
 
         if loss_draw < direction.loss_probability:
             direction.random_drop_packets += 1
+            direction.random_drop_bytes += len(payload)
             self.sequence += 1
             self.write_event(
                 {
@@ -216,6 +549,7 @@ class DeterministicUdpProxy:
 
         if direction.queued_packets >= direction.queue_limit_packets:
             direction.queue_drop_packets += 1
+            direction.queue_drop_bytes += len(payload)
             self.sequence += 1
             self.write_event(
                 {
@@ -232,9 +566,7 @@ class DeterministicUdpProxy:
             return
 
         direction.queued_packets += 1
-        direction.peak_queue_packets = max(
-            direction.peak_queue_packets, direction.queued_packets
-        )
+        direction.peak_queue_packets = max(direction.peak_queue_packets, direction.queued_packets)
         direction.scheduled_packets += 1
         direction.scheduled_bytes += len(payload)
         self.sequence += 1
@@ -267,10 +599,15 @@ class DeterministicUdpProxy:
         )
 
     def receive_ready_datagrams(self, endpoint: socket.socket, direction_name: str) -> None:
+        direction = self.directions[direction_name]
+        direction.receive_batch_sequence += 1
+        batch_id = direction.receive_batch_sequence
+        batch_packets = 0
+        batch_bytes = 0
         for _ in range(256):
             try:
                 if direction_name == "client_to_server":
-                    payload, source = endpoint.recvfrom(65535)
+                    payload, source = endpoint.recvfrom(self.args.udp_receive_buffer_bytes)
                     observed = (str(source[0]), int(source[1]))
                     expected = (
                         self.args.expected_client_host,
@@ -290,9 +627,7 @@ class DeterministicUdpProxy:
                                 "action": "contract_failed",
                                 "reason": self.contract_error["reason"],
                                 "bytes": len(payload),
-                                "arrival_offset_us": self.offset_microseconds(
-                                    time.monotonic()
-                                ),
+                                "arrival_offset_us": self.offset_microseconds(time.monotonic()),
                                 "observed_endpoint": list(observed),
                                 "expected_endpoint": list(expected),
                                 "packet_sequence": None,
@@ -308,7 +643,7 @@ class DeterministicUdpProxy:
                     self.client_endpoint = observed
                     destination = None
                 else:
-                    payload = endpoint.recv(65535)
+                    payload = endpoint.recv(self.args.udp_receive_buffer_bytes)
                     destination = self.client_endpoint
                     if destination is None:
                         self.sequence += 1
@@ -319,9 +654,7 @@ class DeterministicUdpProxy:
                                 "action": "dropped",
                                 "reason": "client_endpoint_unknown",
                                 "bytes": len(payload),
-                                "arrival_offset_us": self.offset_microseconds(
-                                    time.monotonic()
-                                ),
+                                "arrival_offset_us": self.offset_microseconds(time.monotonic()),
                                 "packet_sequence": None,
                                 "schedule_epoch_offset_us": None,
                                 "frozen_send_offset_us": None,
@@ -330,19 +663,52 @@ class DeterministicUdpProxy:
                         )
                         continue
             except BlockingIOError:
-                return
+                break
+            batch_packets += 1
+            batch_bytes += len(payload)
+            direction.max_receive_batch_packets = max(
+                direction.max_receive_batch_packets, batch_packets
+            )
+            direction.max_receive_batch_bytes = max(direction.max_receive_batch_bytes, batch_bytes)
             self.schedule_datagram(
                 direction_name=direction_name,
                 payload=payload,
                 destination=destination,
+                receive_batch_id=batch_id,
+            )
+        if batch_packets:
+            self.sequence += 1
+            self.write_event(
+                {
+                    "sequence": self.sequence,
+                    "direction": direction_name,
+                    "action": "receive_batch_completed",
+                    "receive_batch_id": batch_id,
+                    "batch_packets": batch_packets,
+                    "batch_bytes": batch_bytes,
+                }
             )
 
     def forward_due_datagrams(self) -> None:
         now = time.monotonic()
+        self.settle_all_services(now)
         while self.schedule and self.schedule[0].release_time <= now:
             datagram = heapq.heappop(self.schedule)
             direction = self.directions[datagram.direction]
             direction.queued_packets -= 1
+            delay_before: int | None = None
+            delay_after: int | None = None
+            if self.args.schedule_mode == "work_conserving_byte_service_delay_v1":
+                delay_before = direction.delay_inflight_bytes
+                direction.delay_inflight_bytes -= len(datagram.payload)
+                if direction.delay_inflight_bytes < 0:
+                    raise RuntimeError("传播中字节结算为负数")
+                delay_after = direction.delay_inflight_bytes
+            forwarding_lag_us = round((now - datagram.release_time) * 1_000_000)
+            direction.max_actual_forwarding_lag_us = max(
+                direction.max_actual_forwarding_lag_us,
+                forwarding_lag_us,
+            )
             try:
                 if datagram.direction == "client_to_server":
                     sent = self.upstream.send(datagram.payload)
@@ -354,6 +720,7 @@ class DeterministicUdpProxy:
                     raise RuntimeError(f"UDP 报文未完整发送：{sent}/{len(datagram.payload)}")
             except (OSError, RuntimeError) as error:
                 direction.send_error_packets += 1
+                direction.send_error_bytes += len(datagram.payload)
                 self.sequence += 1
                 self.write_event(
                     {
@@ -363,13 +730,16 @@ class DeterministicUdpProxy:
                         "reason": type(error).__name__,
                         "bytes": len(datagram.payload),
                         "release_offset_us": self.offset_microseconds(now),
+                        "forwarded_offset_us": self.offset_microseconds(now),
                         "queue_depth_packets": direction.queued_packets,
                         "packet_sequence": datagram.packet_sequence,
                         "schedule_epoch_offset_us": datagram.schedule_epoch_offset_us,
                         "frozen_send_offset_us": datagram.frozen_send_offset_us,
-                        "actual_forwarding_lag_us": round(
-                            (now - datagram.release_time) * 1_000_000
-                        ),
+                        "serialization_start_offset_us": (datagram.serialization_start_offset_us),
+                        "serialization_finish_offset_us": (datagram.serialization_finish_offset_us),
+                        "delay_inflight_before_bytes": delay_before,
+                        "delay_inflight_after_bytes": delay_after,
+                        "actual_forwarding_lag_us": forwarding_lag_us,
                     }
                 )
                 raise
@@ -384,16 +754,16 @@ class DeterministicUdpProxy:
                     "action": "forwarded",
                     "bytes": sent,
                     "forwarded_offset_us": self.offset_microseconds(now),
-                    "scheduled_release_offset_us": self.offset_microseconds(
-                        datagram.release_time
-                    ),
+                    "scheduled_release_offset_us": self.offset_microseconds(datagram.release_time),
                     "queue_depth_packets": direction.queued_packets,
                     "packet_sequence": datagram.packet_sequence,
                     "schedule_epoch_offset_us": datagram.schedule_epoch_offset_us,
                     "frozen_send_offset_us": datagram.frozen_send_offset_us,
-                    "actual_forwarding_lag_us": round(
-                        (now - datagram.release_time) * 1_000_000
-                    ),
+                    "serialization_start_offset_us": (datagram.serialization_start_offset_us),
+                    "serialization_finish_offset_us": (datagram.serialization_finish_offset_us),
+                    "delay_inflight_before_bytes": delay_before,
+                    "delay_inflight_after_bytes": delay_after,
+                    "actual_forwarding_lag_us": forwarding_lag_us,
                 }
             )
 
@@ -401,7 +771,11 @@ class DeterministicUdpProxy:
         downstream_host, downstream_port = self.downstream.getsockname()
         upstream_host, upstream_port = self.upstream.getsockname()
         return {
-            "schema_version": "flow_probe_r2_quic_udp_proxy_ready_v1",
+            "schema_version": (
+                "flow_probe_r2_quic_udp_proxy_ready_v4"
+                if self.args.schedule_mode == "work_conserving_byte_service_delay_v1"
+                else "flow_probe_r2_quic_udp_proxy_ready_v1"
+            ),
             "status": "ready",
             "backend": "deterministic_userspace_udp_proxy",
             "pid": os.getpid(),
@@ -423,12 +797,41 @@ class DeterministicUdpProxy:
                 "server_to_client": 0,
             },
             "config_sha256": self.args.config_sha256,
+            "queue_capacity_unit": (
+                "bytes"
+                if self.args.schedule_mode == "work_conserving_byte_service_delay_v1"
+                else "packets"
+            ),
+            "queue_capacity_bytes": self.args.queue_capacity_bytes,
+            "queue_margin_ratio": self.args.queue_margin_ratio,
+            "queue_margin_max_bytes": self.args.queue_margin_max_bytes,
+            "queue_margin_role": (
+                "diagnostic_only"
+                if self.args.schedule_mode == "work_conserving_byte_service_delay_v1"
+                else None
+            ),
+            **(
+                {"queue_drop_acceptance": self.args.queue_drop_acceptance}
+                if self.args.queue_drop_acceptance is not None
+                else {}
+            ),
+            "max_datagram_bytes": self.args.max_datagram_bytes,
+            **(
+                {"max_datagram_bytes_by_direction": self.max_datagram_bytes_by_direction}
+                if self.directional_datagram_limits_enabled
+                else {}
+            ),
+            "udp_receive_buffer_bytes": self.args.udp_receive_buffer_bytes,
             "started_at": self.started_wall,
         }
 
     def stats_payload(self) -> dict[str, Any]:
         return {
-            "schema_version": "flow_probe_r2_quic_udp_proxy_stats_v1",
+            "schema_version": (
+                "flow_probe_r2_quic_udp_proxy_stats_v4"
+                if self.args.schedule_mode == "work_conserving_byte_service_delay_v1"
+                else "flow_probe_r2_quic_udp_proxy_stats_v1"
+            ),
             "status": "failed" if self.failed else "finished",
             "backend": "deterministic_userspace_udp_proxy",
             "implementation_layer": "userspace",
@@ -460,13 +863,44 @@ class DeterministicUdpProxy:
                 "jitter_ms": self.args.jitter_ms,
                 "loss_percent": self.args.loss_percent,
                 "rate_mbit": self.args.rate_mbit,
+                "rate_bits_per_second": round(self.args.rate_mbit * 1_000_000),
+                "delay_us": round(self.args.delay_ms * 1000),
                 "queue_limit_packets": self.args.queue_limit_packets,
+                "queue_capacity_unit": (
+                    "bytes"
+                    if self.args.schedule_mode == "work_conserving_byte_service_delay_v1"
+                    else "packets"
+                ),
+                "queue_capacity_bytes": self.args.queue_capacity_bytes,
+                "queue_margin_ratio": self.args.queue_margin_ratio,
+                "queue_margin_max_bytes": self.args.queue_margin_max_bytes,
+                "queue_margin_role": (
+                    "diagnostic_only"
+                    if self.args.schedule_mode == "work_conserving_byte_service_delay_v1"
+                    else None
+                ),
+                **(
+                    {"queue_drop_acceptance": self.args.queue_drop_acceptance}
+                    if self.args.queue_drop_acceptance is not None
+                    else {}
+                ),
+                "max_datagram_bytes": self.args.max_datagram_bytes,
+                **(
+                    {"max_datagram_bytes_by_direction": (self.max_datagram_bytes_by_direction)}
+                    if self.directional_datagram_limits_enabled
+                    else {}
+                ),
+                "udp_receive_buffer_bytes": self.args.udp_receive_buffer_bytes,
+                "serialization_rounding_tolerance_us_per_packet": (
+                    self.args.serialization_rounding_tolerance_us_per_packet
+                ),
             },
             "directions": {
                 name: direction.as_dict(self.started_monotonic)
                 for name, direction in sorted(self.directions.items())
             },
             "scheduled_packets_at_shutdown": len(self.schedule),
+            "scheduled_bytes_at_shutdown": sum(len(datagram.payload) for datagram in self.schedule),
         }
 
     def run(self) -> None:
@@ -495,6 +929,7 @@ class DeterministicUdpProxy:
                 self.exit_reason = f"error_{type(error).__name__}"
             raise
         finally:
+            self.settle_all_services(time.monotonic())
             atomic_json(self.args.stats_file, self.stats_payload())
             self.event_stream.flush()
             self.event_stream.close()
@@ -515,14 +950,33 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--expected-client-port", type=int, required=True)
     parser.add_argument(
         "--schedule-mode",
-        choices=("fixed_sequence_epoch_v1",),
+        choices=(
+            "fixed_sequence_epoch_v1",
+            "work_conserving_byte_service_delay_v1",
+        ),
         required=True,
     )
     parser.add_argument("--delay-ms", type=float, required=True)
     parser.add_argument("--jitter-ms", type=float, required=True)
     parser.add_argument("--loss-percent", type=float, required=True)
     parser.add_argument("--rate-mbit", type=float, required=True)
-    parser.add_argument("--queue-limit-packets", type=int, required=True)
+    parser.add_argument("--queue-limit-packets", type=int, default=1000)
+    parser.add_argument("--queue-capacity-bytes", type=int)
+    parser.add_argument("--queue-margin-ratio", type=float)
+    parser.add_argument("--queue-margin-max-bytes", type=int)
+    parser.add_argument(
+        "--queue-drop-acceptance",
+        choices=("deterministic_capacity_causal_replay_v1",),
+    )
+    parser.add_argument("--max-datagram-bytes", type=int, default=65_535)
+    parser.add_argument("--client-to-server-max-datagram-bytes", type=int)
+    parser.add_argument("--server-to-client-max-datagram-bytes", type=int)
+    parser.add_argument("--udp-receive-buffer-bytes", type=int, default=65_535)
+    parser.add_argument(
+        "--serialization-rounding-tolerance-us-per-packet",
+        type=int,
+        default=1,
+    )
     parser.add_argument("--client-to-server-seed", type=int, required=True)
     parser.add_argument("--server-to-client-seed", type=int, required=True)
     parser.add_argument("--config-sha256", required=True)
@@ -544,7 +998,26 @@ def parse_arguments() -> argparse.Namespace:
     if not 0 <= args.loss_percent < 100:
         parser.error("丢包率必须位于 [0, 100)")
     if args.rate_mbit <= 0 or args.queue_limit_packets <= 0:
-        parser.error("速率与队列上限必须为正数")
+        parser.error("速率与报文队列诊断上限必须为正数")
+    if not 1 <= args.max_datagram_bytes <= 65_535:
+        parser.error("最大数据报字节必须位于 1..65535")
+    try:
+        resolve_directional_datagram_limits(args)
+    except ValueError as error:
+        parser.error(str(error))
+    if not 1 <= args.udp_receive_buffer_bytes <= 65_535:
+        parser.error("UDP 接收缓冲字节必须位于 1..65535")
+    if args.serialization_rounding_tolerance_us_per_packet < 0:
+        parser.error("序列化取整容差不得为负数")
+    if args.schedule_mode == "work_conserving_byte_service_delay_v1":
+        if args.queue_capacity_bytes is None or args.queue_capacity_bytes <= 0:
+            parser.error("v4 调度必须提供正数字节容量")
+        if args.queue_margin_ratio is None or not 0 < args.queue_margin_ratio <= 1:
+            parser.error("v4 队列余量比例必须位于 (0, 1]")
+        if args.queue_margin_max_bytes is None or args.queue_margin_max_bytes != int(
+            args.queue_capacity_bytes * args.queue_margin_ratio
+        ):
+            parser.error("v4 队列余量字节必须与容量及比例一致")
     if len(args.config_sha256) != 64:
         parser.error("配置 SHA-256 必须为 64 个十六进制字符")
     for path in (args.ready_file, args.stats_file, args.event_log):

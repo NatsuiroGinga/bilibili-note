@@ -31,7 +31,7 @@ printf 'running\n' >"$status_path"
 
 set +e
 R2_G3_REQUIRED=1 R2_ZERO_COLLAPSE_REQUIRED=1 \
-  uv run python -m flow_probe.r2_final_distilbert_probe \
+  uv run --no-sync python -m flow_probe.r2_final_distilbert_probe \
   --config "$config" \
   --trusted-root "$project_root" \
   --variant "$variant" 2>&1 | tee "$log_path"

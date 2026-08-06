@@ -105,7 +105,7 @@ model:
   dropout: 0.1
   residual_dimensions:
     shared_conservation: 1
-    tcp_dynamics: 3
+    tcp_dynamics: 4
     udp_dynamics: 2
     quic_dynamics: 6
     unknown_fallback: 1

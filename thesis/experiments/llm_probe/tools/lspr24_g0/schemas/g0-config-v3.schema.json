@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "g0-config-v3.schema.json",
+  "title": "LSPR24 G0-A 门禁配置 v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_version",
+    "contract_sha256",
+    "receipt_paths"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "g0-config-v3"
+    },
+    "contract_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "receipt_paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "A01": { "$ref": "#/$defs/path" },
+        "A02": { "$ref": "#/$defs/path" },
+        "A03": { "$ref": "#/$defs/path" },
+        "A04": { "$ref": "#/$defs/path" },
+        "A05": { "$ref": "#/$defs/path" },
+        "A06": { "$ref": "#/$defs/path" },
+        "A07": { "$ref": "#/$defs/path" },
+        "A08": { "$ref": "#/$defs/path" },
+        "A09": { "$ref": "#/$defs/path" },
+        "A10": { "$ref": "#/$defs/path" },
+        "A11": { "$ref": "#/$defs/path" },
+        "A12": { "$ref": "#/$defs/path" },
+        "A13": { "$ref": "#/$defs/path" },
+        "A14": { "$ref": "#/$defs/path" }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "[*?]"
+      }
+    }
+  }
+}

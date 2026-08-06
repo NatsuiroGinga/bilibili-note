@@ -18,8 +18,25 @@ elif [[ "${CONFIG_ARGUMENT}" == /* ]]; then
 else
   CONFIG_PATH="${PROJECT_ROOT}/${CONFIG_ARGUMENT}"
 fi
+LAUNCHER_SCHEMA_VERSION="$(
+  "${PROJECT_ROOT}/.venv/bin/python" -c '
+import json
+import sys
+from pathlib import Path
+
+config = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+print(config.get("determinism_contract", {}).get("launcher_schema_version", "flow_probe_r2_quic_launcher_v3"))
+' "${CONFIG_PATH}"
+)"
+if [[ "${LAUNCHER_SCHEMA_VERSION}" != "flow_probe_r2_quic_launcher_v3" && "${LAUNCHER_SCHEMA_VERSION}" != "flow_probe_r2_quic_launcher_v4" ]]; then
+  printf '不支持的 QUIC 启动器模式：%s\n' "${LAUNCHER_SCHEMA_VERSION}" >&2
+  exit 1
+fi
 if [[ "${STOP_AFTER}" == "-" ]]; then
   STOP_AFTER=""
+fi
+if [[ -n "${OUTPUT_ROOT}" && "${OUTPUT_ROOT}" != /* ]]; then
+  OUTPUT_ROOT="${PROJECT_ROOT}/${OUTPUT_ROOT}"
 fi
 LAUNCHER_ROOT="${PROJECT_ROOT}/runs/launchers/${RUN_ID}"
 LOG_PATH="${LAUNCHER_ROOT}/launcher.log"
@@ -35,9 +52,21 @@ write_status() {
   local status="$1"
   local driver_exit="$2"
   local tee_exit="$3"
+  local started_at="$4"
+  local finished_at="$5"
   local temporary="${STATUS_PATH}.tmp"
-  printf '{"schema_version":"flow_probe_r2_quic_launcher_v1","status":"%s","phase":"%s","driver_exit":%s,"tee_exit":%s,"updated_at":"%s"}\n' \
-    "${status}" "${PHASE}" "${driver_exit}" "${tee_exit}" "$(date -Iseconds)" > "${temporary}"
+  local started_json="null"
+  local finished_json="null"
+  if [[ -n "${started_at}" ]]; then
+    started_json="\"${started_at}\""
+  fi
+  if [[ -n "${finished_at}" ]]; then
+    finished_json="\"${finished_at}\""
+  fi
+  printf '{"schema_version":"%s","status":"%s","phase":"%s","run_id":"%s","output_root":"%s","config_path":"%s","driver_exit":%s,"tee_exit":%s,"started_at":%s,"finished_at":%s,"updated_at":"%s"}\n' \
+    "${LAUNCHER_SCHEMA_VERSION}" "${status}" "${PHASE}" "${RUN_ID}" "${OUTPUT_ROOT}" "${CONFIG_PATH}" \
+    "${driver_exit}" "${tee_exit}" "${started_json}" "${finished_json}" \
+    "$(date -Iseconds)" > "${temporary}"
   mv "${temporary}" "${STATUS_PATH}"
 }
 
@@ -46,7 +75,7 @@ if [[ "${R2_QUIC_IN_SCREEN:-0}" != "1" ]]; then
     printf '启动目录已存在状态文件，拒绝重复启动：%s\n' "${STATUS_PATH}" >&2
     exit 1
   fi
-  write_status "prepared" "null" "null"
+  write_status "prepared" "null" "null" "" ""
   screen -dmS "${RUN_ID}" env R2_QUIC_IN_SCREEN=1 bash "${SCRIPT_PATH}" \
     "${PHASE}" "${RUN_ID}" "${STOP_AFTER}" "${ONLY_INDEX}" "${OUTPUT_ROOT}" \
     "${CONFIG_PATH}"
@@ -54,7 +83,8 @@ if [[ "${R2_QUIC_IN_SCREEN:-0}" != "1" ]]; then
   exit 0
 fi
 
-write_status "running" "null" "null"
+started_at="$(date -Iseconds)"
+write_status "running" "null" "null" "${started_at}" ""
 driver_command=(
   "${PROJECT_ROOT}/.venv/bin/python"
   "${PROJECT_ROOT}/scripts/r2_quic_controlled_collect.py"
@@ -79,8 +109,8 @@ set -e
 driver_exit="${pipeline_status[0]}"
 tee_exit="${pipeline_status[1]}"
 if [[ "${driver_exit}" -eq 0 && "${tee_exit}" -eq 0 && -s "${LOG_PATH}" ]]; then
-  write_status "finished" "${driver_exit}" "${tee_exit}"
+  write_status "finished" "${driver_exit}" "${tee_exit}" "${started_at}" "$(date -Iseconds)"
   exit 0
 fi
-write_status "failed" "${driver_exit}" "${tee_exit}"
+write_status "failed" "${driver_exit}" "${tee_exit}" "${started_at}" "$(date -Iseconds)"
 exit 1

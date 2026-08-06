@@ -1,8 +1,8 @@
 # 生成式恶意流量探针实验
 
-本目录用于验证 Qwen3-1.7B 能否从统一流级表示中学习良性/恶意二分类。实验设计见 `output/2026-07-17-生成式恶意流量探针实施计划.md`。
+本目录用于验证生成式主实验基座 `Qwen/Qwen3-0.6B` 能否从统一流级表示中学习恶意流量检测任务，并保存 DistilBERT 候选筛选、`Qwen3-1.7B` 规模验证及历史实验的可复现证据。
 
-## HIKARI 烟雾实验
+## 历史 HIKARI 烟雾实验（Qwen3-1.7B）
 
 先生成按通信主机对分组的完整切分：
 
@@ -27,7 +27,7 @@ uv run flow-probe-sample \
   --seed 42
 ```
 
-最后依次执行短训练和严格结构化评估：
+以下命令只用于复现早期 `Qwen3-1.7B` 烟雾实验，不是当前主实验入口：
 
 ```bash
 uv run flow-probe-train --config configs/smoke_qwen3_1_7b.yaml

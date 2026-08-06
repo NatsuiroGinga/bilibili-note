@@ -22,6 +22,7 @@ from flow_probe.r2_final_experts import (
     EXPERT_TCP,
     EXPERT_UDP,
     ROUTE_NAMES,
+    ResidualObservationContext,
     RouteBatch,
     fixed_residual_zero_collapse_receipt,
 )
@@ -31,6 +32,7 @@ from flow_probe.r2_final_physics_fit import (
     build_history_control_system,
     build_system,
     build_unified_control_system,
+    checkpoint_binding,
     config_semantic_sha256,
     load_config as load_physics_fit_config,
     load_splits as load_physics_splits,
@@ -66,6 +68,12 @@ HISTORY_TO_PHYSICS = {
     "packet_rate": "public_packet_rate_pps",
     "byte_rate": "public_byte_rate_Bps",
 }
+
+
+def _bounded_residual_strength(parameter: Any, tensor_ops: Any) -> Any:
+    """以零为初值，在有界区间内学习物理旁路残差强度。"""
+
+    return FUSION_LIMIT * tensor_ops.tanh(parameter)
 
 
 class R2FinalProbeError(ValueError):
@@ -198,9 +206,7 @@ def _relative_to_trusted_root(
     try:
         relative = lexical_path.relative_to(root)
     except ValueError as error:
-        raise R2FinalProbeError(
-            f"{description}超出受信任根：{lexical_path}"
-        ) from error
+        raise R2FinalProbeError(f"{description}超出受信任根：{lexical_path}") from error
     return lexical_path, root, relative
 
 
@@ -213,13 +219,9 @@ def _require_fixed_config_path(
     try:
         relative = config_path.relative_to(configs_root)
     except ValueError as error:
-        raise R2FinalProbeError(
-            f"{description}必须位于固定配置目录：{configs_root}"
-        ) from error
+        raise R2FinalProbeError(f"{description}必须位于固定配置目录：{configs_root}") from error
     if len(relative.parts) != 1:
-        raise R2FinalProbeError(
-            f"{description}必须是固定配置目录中的直接文件：{config_path}"
-        )
+        raise R2FinalProbeError(f"{description}必须是固定配置目录中的直接文件：{config_path}")
 
 
 @contextmanager
@@ -234,27 +236,21 @@ def _open_anchored_directory(
         trusted_root,
         description,
     )
-    directory_flags = (
-        os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
-    )
+    directory_flags = os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
     descriptors: list[int] = []
     component_names: list[str] = []
     try:
         try:
             root_descriptor = os.open(root, directory_flags)
         except OSError as error:
-            raise R2FinalProbeError(
-                f"{description}无法固定受信任根：{root}"
-            ) from error
+            raise R2FinalProbeError(f"{description}无法固定受信任根：{root}") from error
         descriptors.append(root_descriptor)
         root_stat = os.fstat(root_descriptor)
         if not stat.S_ISDIR(root_stat.st_mode):
             raise R2FinalProbeError(f"受信任根不是目录：{root}")
         for component in relative.parts:
             if component in ("", ".", ".."):
-                raise R2FinalProbeError(
-                    f"{description}包含非法路径组件：{component}"
-                )
+                raise R2FinalProbeError(f"{description}包含非法路径组件：{component}")
             parent_descriptor = descriptors[-1]
             try:
                 next_descriptor = os.open(
@@ -263,9 +259,7 @@ def _open_anchored_directory(
                     dir_fd=parent_descriptor,
                 )
             except OSError as error:
-                raise R2FinalProbeError(
-                    f"{description}父目录无法安全打开：{directory}"
-                ) from error
+                raise R2FinalProbeError(f"{description}父目录无法安全打开：{directory}") from error
             try:
                 opened_stat = os.fstat(next_descriptor)
                 named_stat = os.stat(
@@ -280,9 +274,7 @@ def _open_anchored_directory(
                     or (opened_stat.st_dev, opened_stat.st_ino)
                     != (named_stat.st_dev, named_stat.st_ino)
                 ):
-                    raise R2FinalProbeError(
-                        f"{description}父目录身份不稳定：{component}"
-                    )
+                    raise R2FinalProbeError(f"{description}父目录身份不稳定：{component}")
             except BaseException:
                 os.close(next_descriptor)
                 raise
@@ -294,9 +286,7 @@ def _open_anchored_directory(
             try:
                 named_root_stat = os.stat(root, follow_symlinks=False)
             except OSError as error:
-                raise R2FinalProbeError(
-                    f"{description}受信任根身份无法复核：{root}"
-                ) from error
+                raise R2FinalProbeError(f"{description}受信任根身份无法复核：{root}") from error
             if (
                 stat.S_ISLNK(named_root_stat.st_mode)
                 or not stat.S_ISDIR(current_root_stat.st_mode)
@@ -306,9 +296,7 @@ def _open_anchored_directory(
                 or (current_root_stat.st_dev, current_root_stat.st_ino)
                 != (named_root_stat.st_dev, named_root_stat.st_ino)
             ):
-                raise R2FinalProbeError(
-                    f"{description}受信任根身份发生变化：{root}"
-                )
+                raise R2FinalProbeError(f"{description}受信任根身份发生变化：{root}")
             for index, component in enumerate(component_names, start=1):
                 opened_stat = os.fstat(descriptors[index])
                 try:
@@ -328,9 +316,7 @@ def _open_anchored_directory(
                     or (opened_stat.st_dev, opened_stat.st_ino)
                     != (named_stat.st_dev, named_stat.st_ino)
                 ):
-                    raise R2FinalProbeError(
-                        f"{description}父目录身份发生变化：{component}"
-                    )
+                    raise R2FinalProbeError(f"{description}父目录身份发生变化：{component}")
 
         verify_chain()
         yield descriptors[-1], verify_chain
@@ -362,9 +348,7 @@ def _open_stable_regular_file(
         try:
             descriptor = os.open(path.name, flags, dir_fd=parent_descriptor)
         except OSError as error:
-            raise R2FinalProbeError(
-                f"{description}无法从固定父目录安全打开：{path}"
-            ) from error
+            raise R2FinalProbeError(f"{description}无法从固定父目录安全打开：{path}") from error
         source = os.fdopen(descriptor, "rb")
         try:
             before = os.fstat(source.fileno())
@@ -377,12 +361,9 @@ def _open_stable_regular_file(
                 stat.S_ISLNK(named_before.st_mode)
                 or not stat.S_ISREG(before.st_mode)
                 or not stat.S_ISREG(named_before.st_mode)
-                or (before.st_dev, before.st_ino)
-                != (named_before.st_dev, named_before.st_ino)
+                or (before.st_dev, before.st_ino) != (named_before.st_dev, named_before.st_ino)
             ):
-                raise R2FinalProbeError(
-                    f"{description}文件身份不稳定：{path}"
-                )
+                raise R2FinalProbeError(f"{description}文件身份不稳定：{path}")
             verify_parent_chain()
             yield source
             after = os.fstat(source.fileno())
@@ -394,12 +375,9 @@ def _open_stable_regular_file(
             if (
                 _stat_identity(before) != _stat_identity(after)
                 or stat.S_ISLNK(named_after.st_mode)
-                or (after.st_dev, after.st_ino)
-                != (named_after.st_dev, named_after.st_ino)
+                or (after.st_dev, after.st_ino) != (named_after.st_dev, named_after.st_ino)
             ):
-                raise R2FinalProbeError(
-                    f"{description}在读取期间发生变化：{path}"
-                )
+                raise R2FinalProbeError(f"{description}在读取期间发生变化：{path}")
             verify_parent_chain()
         finally:
             source.close()
@@ -421,22 +399,20 @@ def _read_verified_artifact_bytes(
     trusted_root: Path,
 ) -> bytes:
     path = _lexical_absolute(spec.path)
-    with _open_stable_regular_file(
-        path, description, trusted_root=trusted_root
-    ) as source:
+    with _open_stable_regular_file(path, description, trusted_root=trusted_root) as source:
         payload = source.read()
     actual = hashlib.sha256(payload).hexdigest()
     if actual != spec.sha256:
-        raise R2FinalProbeError(
-            f"{description} SHA-256 不一致：预期 {spec.sha256}，实际 {actual}"
-        )
+        raise R2FinalProbeError(f"{description} SHA-256 不一致：预期 {spec.sha256}，实际 {actual}")
     return payload
 
 
 def _sha256_string(value: object, description: str) -> str:
     result = _string(value, description)
-    if len(result) != 64 or result != result.lower() or any(
-        character not in "0123456789abcdef" for character in result
+    if (
+        len(result) != 64
+        or result != result.lower()
+        or any(character not in "0123456789abcdef" for character in result)
     ):
         raise R2FinalProbeError(f"{description} 必须是规范的 64 位 SHA-256")
     return result
@@ -460,15 +436,11 @@ def _checkpoint_spec(value: object, root: Path) -> CheckpointSpec:
         "physics.checkpoint.not_ready_reason",
         allow_empty=True,
     )
-    binding = _mapping(
-        raw.get("binding_manifest"), "physics.checkpoint.binding_manifest"
-    )
+    binding = _mapping(raw.get("binding_manifest"), "physics.checkpoint.binding_manifest")
     checkpoint_sha256 = raw.get("sha256")
     manifest_sha256 = binding.get("sha256")
     if ready:
-        checkpoint_sha256 = _sha256_string(
-            checkpoint_sha256, "physics.checkpoint.sha256"
-        )
+        checkpoint_sha256 = _sha256_string(checkpoint_sha256, "physics.checkpoint.sha256")
         manifest_sha256 = _sha256_string(
             manifest_sha256, "physics.checkpoint.binding_manifest.sha256"
         )
@@ -524,9 +496,7 @@ def _verify_seed_checkpoint_consistency(
                 f"同种子配置 {sibling.name}",
             )
         except (UnicodeDecodeError, yaml.YAMLError) as error:
-            raise R2FinalProbeError(
-                f"同种子配置无法解析：{sibling.name}"
-            ) from error
+            raise R2FinalProbeError(f"同种子配置无法解析：{sibling.name}") from error
         if sibling_raw.get("seed") != seed:
             raise R2FinalProbeError(f"同种子配置种子不一致：{sibling.name}")
         if sibling_raw.get("variant") != variant:
@@ -553,9 +523,7 @@ def _verify_seed_checkpoint_consistency(
             raise R2FinalProbeError(
                 f"种子 {seed} 的冻结比较组模型、训练预算或评价协议不一致：{sibling.name}"
             )
-        sibling_physics = _mapping(
-            sibling_raw.get("physics"), f"同种子配置 {sibling.name}.physics"
-        )
+        sibling_physics = _mapping(sibling_raw.get("physics"), f"同种子配置 {sibling.name}.physics")
         fit = _mapping(
             sibling_physics.get("fit_config"),
             f"同种子配置 {sibling.name}.physics.fit_config",
@@ -578,9 +546,7 @@ def _verify_seed_checkpoint_consistency(
             manifest.get("sha256"),
         )
         if identity != expected:
-            raise R2FinalProbeError(
-                f"种子 {seed} 的五组未绑定同一物理检查点：{sibling.name}"
-            )
+            raise R2FinalProbeError(f"种子 {seed} 的五组未绑定同一物理检查点：{sibling.name}")
 
 
 def _split_artifacts(
@@ -592,8 +558,7 @@ def _split_artifacts(
     if set(raw) != set(ALLOWED_SPLITS):
         raise R2FinalProbeError(f"{description} 必须精确覆盖三个开发划分")
     return {
-        split: _artifact(raw[split], root, f"{description}.{split}")
-        for split in ALLOWED_SPLITS
+        split: _artifact(raw[split], root, f"{description}.{split}") for split in ALLOWED_SPLITS
     }
 
 
@@ -615,17 +580,13 @@ def _training(value: object) -> baseline.TrainingSettings:
             "training.gradient_accumulation_steps",
             minimum=1,
         ),
-        learning_rate=_number(
-            raw.get("learning_rate"), "training.learning_rate", minimum=1e-12
-        ),
+        learning_rate=_number(raw.get("learning_rate"), "training.learning_rate", minimum=1e-12),
         weight_decay=_number(raw.get("weight_decay"), "training.weight_decay"),
         num_train_epochs=_integer(
             raw.get("num_train_epochs"), "training.num_train_epochs", minimum=1
         ),
         warmup_ratio=_number(raw.get("warmup_ratio"), "training.warmup_ratio"),
-        max_grad_norm=_number(
-            raw.get("max_grad_norm"), "training.max_grad_norm", minimum=1e-12
-        ),
+        max_grad_norm=_number(raw.get("max_grad_norm"), "training.max_grad_norm", minimum=1e-12),
         save_steps=_integer(raw.get("save_steps"), "training.save_steps", minimum=1),
         save_total_limit=_integer(
             raw.get("save_total_limit"), "training.save_total_limit", minimum=1
@@ -641,9 +602,7 @@ def load_config(path: Path, *, trusted_root: Path) -> ProbeConfig:
     config_path = _lexical_absolute(path)
     root = _lexical_absolute(trusted_root)
     _require_fixed_config_path(config_path, root, "正式探针配置")
-    with _open_stable_regular_file(
-        config_path, "正式探针配置", trusted_root=root
-    ) as source:
+    with _open_stable_regular_file(config_path, "正式探针配置", trusted_root=root) as source:
         config_snapshot = source.read()
     try:
         raw = _mapping(yaml.safe_load(config_snapshot.decode("utf-8")), "配置")
@@ -676,7 +635,9 @@ def load_config(path: Path, *, trusted_root: Path) -> ProbeConfig:
     history_missing_fields = columns_raw.get("history_missing_fields")
     if history_missing_fields is None:
         history_missing_fields = [f"{field}_missing" for field in history_fields]
-    if not isinstance(history_missing_fields, list) or len(history_missing_fields) != len(history_fields):
+    if not isinstance(history_missing_fields, list) or len(history_missing_fields) != len(
+        history_fields
+    ):
         raise R2FinalProbeError("data.columns.history_missing_fields 必须与历史字段等长")
     columns = ViewColumnSpec(
         sample_id=_string(columns_raw.get("sample_id"), "data.columns.sample_id"),
@@ -697,25 +658,18 @@ def load_config(path: Path, *, trusted_root: Path) -> ProbeConfig:
         route_confidence=_string(
             columns_raw.get("route_confidence"), "data.columns.route_confidence"
         ),
-        quic_applicable=_string(
-            columns_raw.get("quic_applicable"), "data.columns.quic_applicable"
-        ),
+        quic_applicable=_string(columns_raw.get("quic_applicable"), "data.columns.quic_applicable"),
         quic_formal_training_enabled=_string(
             columns_raw.get("quic_formal_training_enabled"),
             "data.columns.quic_formal_training_enabled",
         ),
-        source_dataset=_string(
-            columns_raw.get("source_dataset"), "data.columns.source_dataset"
-        ),
+        source_dataset=_string(columns_raw.get("source_dataset"), "data.columns.source_dataset"),
     )
     history_scales_raw = data_raw.get("history_scales")
-    if not isinstance(history_scales_raw, list) or len(history_scales_raw) != len(
-        history_fields
-    ):
+    if not isinstance(history_scales_raw, list) or len(history_scales_raw) != len(history_fields):
         raise R2FinalProbeError("data.history_scales 必须与历史字段等长")
     history_scales = tuple(
-        _number(value, "data.history_scales", minimum=1e-12)
-        for value in history_scales_raw
+        _number(value, "data.history_scales", minimum=1e-12) for value in history_scales_raw
     )
     data = DataSettings(
         ready=ready,
@@ -734,9 +688,7 @@ def load_config(path: Path, *, trusted_root: Path) -> ProbeConfig:
                 data_raw.get("route_assignments"), root, "data.route_assignments"
             ),
             columns=columns,
-            window_count=_integer(
-                data_raw.get("window_count"), "data.window_count", minimum=1
-            ),
+            window_count=_integer(data_raw.get("window_count"), "data.window_count", minimum=1),
             final_test_visible=False,
             artifact_payload_merkle_sha256=_string(
                 data_raw.get("artifact_payload_merkle_sha256"),
@@ -754,8 +706,7 @@ def load_config(path: Path, *, trusted_root: Path) -> ProbeConfig:
     if not isinstance(comparison_variants_raw, list) or not comparison_variants_raw:
         raise R2FinalProbeError("physics.comparison_variants 必须是非空组别列表")
     comparison_variants = tuple(
-        _string(item, "physics.comparison_variants")
-        for item in comparison_variants_raw
+        _string(item, "physics.comparison_variants") for item in comparison_variants_raw
     )
     if len(set(comparison_variants)) != len(comparison_variants) or not set(
         comparison_variants
@@ -764,9 +715,7 @@ def load_config(path: Path, *, trusted_root: Path) -> ProbeConfig:
     if variant not in comparison_variants:
         raise R2FinalProbeError("当前组别未包含在冻结比较集合")
     physics = PhysicsSettings(
-        fit_config=_artifact(
-            physics_raw.get("fit_config"), root, "physics.fit_config"
-        ),
+        fit_config=_artifact(physics_raw.get("fit_config"), root, "physics.fit_config"),
         checkpoint=_checkpoint_spec(physics_raw.get("checkpoint"), root),
         quic_expert_ready=quic_ready,
         production_batch_size=_integer(
@@ -875,9 +824,7 @@ def _verify_artifact(
     trusted_root: Path,
 ) -> tuple[Path, bytes]:
     path = _lexical_absolute(spec.path)
-    return path, _read_verified_artifact_bytes(
-        spec, description, trusted_root=trusted_root
-    )
+    return path, _read_verified_artifact_bytes(spec, description, trusted_root=trusted_root)
 
 
 def _physics_system(
@@ -897,13 +844,11 @@ def _physics_system(
         trusted_root=config.project_root,
         snapshot=fit_snapshot,
     )
-    expected_binding = {
-        "config_sha256": config_semantic_sha256(fit_config),
-        "fit_config_sha256": config.physics.fit_config.sha256,
-        "input_sha256": fit_config.data.artifact_payload_merkle_sha256,
-        "seed": config.seed,
-        "mode": fit_config.mode,
-    }
+    expected_binding = dict(checkpoint_binding(fit_config))
+    if expected_binding["config_sha256"] != config_semantic_sha256(fit_config):
+        raise R2FinalProbeError("物理拟合配置语义摘要生成不一致")
+    if expected_binding["fit_config_sha256"] != config.physics.fit_config.sha256:
+        raise R2FinalProbeError("当前实现绑定的拟合配置文件摘要不一致")
     if fit_config.seed != config.seed or fit_config.mode != "formal":
         raise R2FinalProbeError("物理拟合配置的种子或模式与探针不一致")
     manifest_path = _lexical_absolute(checkpoint_spec.binding_manifest_path)
@@ -924,20 +869,21 @@ def _physics_system(
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise R2FinalProbeError("检查点绑定清单无法解析") from error
     if (
-        manifest.get("schema_version")
-        != "flow_probe_r2_checkpoint_binding_manifest_v1"
+        manifest.get("schema_version") != "flow_probe_r2_checkpoint_binding_manifest_v1"
         or manifest.get("status") != "frozen"
         or manifest.get("immutable") is not True
     ):
         raise R2FinalProbeError("检查点绑定清单未处于不可变冻结状态")
     checkpoint_path = _lexical_absolute(checkpoint_spec.path)
-    if _lexical_absolute(
-        Path(_string(manifest.get("checkpoint_path"), "检查点清单路径"))
-    ) != checkpoint_path:
+    if (
+        _lexical_absolute(Path(_string(manifest.get("checkpoint_path"), "检查点清单路径")))
+        != checkpoint_path
+    ):
         raise R2FinalProbeError("检查点绑定清单的规范路径与运行配置不一致")
-    if _lexical_absolute(
-        Path(_string(manifest.get("fit_config_path"), "拟合配置清单路径"))
-    ) != fit_path:
+    if (
+        _lexical_absolute(Path(_string(manifest.get("fit_config_path"), "拟合配置清单路径")))
+        != fit_path
+    ):
         raise R2FinalProbeError("检查点绑定清单的拟合配置路径不一致")
     if _lexical_absolute(
         Path(_string(manifest.get("input_path"), "物理输入清单路径"))
@@ -945,10 +891,7 @@ def _physics_system(
         raise R2FinalProbeError("检查点绑定清单的物理输入路径不一致")
     if manifest.get("fit_config_sha256") != config.physics.fit_config.sha256:
         raise R2FinalProbeError("检查点绑定清单的拟合配置哈希不一致")
-    if (
-        manifest.get("input_sha256")
-        != fit_config.data.artifact_payload_merkle_sha256
-    ):
+    if manifest.get("input_sha256") != fit_config.data.artifact_payload_merkle_sha256:
         raise R2FinalProbeError("检查点绑定清单的物理输入哈希不一致")
     if manifest.get("seed") != config.seed or manifest.get("mode") != fit_config.mode:
         raise R2FinalProbeError("检查点绑定清单的种子或模式不一致")
@@ -987,14 +930,17 @@ def _physics_system(
     routed_capacity = capacity.get("routed_active")
     unified_capacity = capacity.get("unified_control")
     history_capacity = capacity.get("history_control")
-    if not isinstance(routed_capacity, Mapping) or not isinstance(
-        unified_capacity, Mapping
-    ) or not isinstance(history_capacity, Mapping):
+    if (
+        not isinstance(routed_capacity, Mapping)
+        or not isinstance(unified_capacity, Mapping)
+        or not isinstance(history_capacity, Mapping)
+    ):
         raise R2FinalProbeError("物理检查点缺少三条比较支路的参数收据")
     expected_capacity_keys = {"total", "trainable", "frozen"}
-    if set(routed_capacity) != expected_capacity_keys or set(
-        unified_capacity
-    ) != expected_capacity_keys:
+    if (
+        set(routed_capacity) != expected_capacity_keys
+        or set(unified_capacity) != expected_capacity_keys
+    ):
         raise R2FinalProbeError("物理检查点参数收据字段不完整")
     if dict(routed_capacity) != dict(unified_capacity):
         raise R2FinalProbeError("物理检查点两条支路容量收据不一致")
@@ -1010,15 +956,15 @@ def _physics_system(
         raise R2FinalProbeError("物理检查点固定残差零坍缩收据与当前实现不一致")
     if not bool(current_residual_receipt["formal_tcp_udp_dynamics_ready"]):
         raise R2FinalProbeError("物理检查点未通过固定协议动力学门禁")
-    checkpoint_binding = values.get("checkpoint_binding")
-    if not isinstance(checkpoint_binding, Mapping):
+    checkpoint_binding_payload = values.get("checkpoint_binding")
+    if not isinstance(checkpoint_binding_payload, Mapping):
         raise R2FinalProbeError("物理检查点缺少训练绑定")
-    if dict(checkpoint_binding) != expected_binding:
+    if dict(checkpoint_binding_payload) != expected_binding:
         raise R2FinalProbeError("物理检查点内部训练绑定与当前运行不一致")
     binding_sha256 = hashlib.sha256(
-        json.dumps(
-            dict(checkpoint_binding), sort_keys=True, separators=(",", ":")
-        ).encode("utf-8")
+        json.dumps(dict(checkpoint_binding_payload), sort_keys=True, separators=(",", ":")).encode(
+            "utf-8"
+        )
     ).hexdigest()
     system.load_state_dict(values["routed_system"], strict=True)
     unified_state = values.get("unified_control")
@@ -1086,9 +1032,7 @@ def _produce_bound_sequences(
     unified_control.eval()
     routed_capacity = capacity_receipt["routed_active"]
     unified_capacity = capacity_receipt["unified_control"]
-    if not isinstance(routed_capacity, Mapping) or not isinstance(
-        unified_capacity, Mapping
-    ):
+    if not isinstance(routed_capacity, Mapping) or not isinstance(unified_capacity, Mapping):
         raise R2FinalProbeError("参数容量收据非法")
     unified: dict[str, BoundSequence] = {}
     physics: dict[str, BoundSequence] = {}
@@ -1105,9 +1049,7 @@ def _produce_bound_sequences(
                 observations = torch.tensor(
                     split.histories[start:stop], dtype=torch.float32, device=device
                 )
-                valid = torch.tensor(
-                    split.valid_masks[start:stop], dtype=torch.bool, device=device
-                )
+                valid = torch.tensor(split.valid_masks[start:stop], dtype=torch.bool, device=device)
                 actual_route = RouteBatch(
                     route_index=torch.tensor(
                         split.route_indices[start:stop], dtype=torch.int64, device=device
@@ -1158,9 +1100,7 @@ def _produce_bound_sequences(
                 parameter_count=parameter_count,
                 trainable_parameter_count=0,
                 frozen_parameter_count=parameter_count,
-                checkpoint_trainable_parameter_count=int(
-                    branch_capacity["trainable"]
-                ),
+                checkpoint_trainable_parameter_count=int(branch_capacity["trainable"]),
                 checkpoint_frozen_parameter_count=int(branch_capacity["frozen"]),
                 branch_name=branch_name,
                 checkpoint_binding_sha256=checkpoint_binding_sha256,
@@ -1189,9 +1129,7 @@ def _physical_donor_indices(
             ordered = sorted(
                 members,
                 key=lambda index: hashlib.sha256(
-                    f"r2-g3-shuffle-v1\0{seed}\0{validation.sequence_ids[index]}".encode(
-                        "utf-8"
-                    )
+                    f"r2-g3-shuffle-v1\0{seed}\0{validation.sequence_ids[index]}".encode("utf-8")
                 ).hexdigest(),
             )
             rotated = ordered[1:] + ordered[:1]
@@ -1199,20 +1137,14 @@ def _physical_donor_indices(
                 donors[target] = donor
         if np.any(donors < 0) or np.any(donors == np.arange(len(validation))):
             raise R2FinalProbeError("F-S 物理验证供体不完整或出现自配对")
-        return donors, validation, tuple(
-            validation.sequence_ids[int(index)] for index in donors
-        )
+        return donors, validation, tuple(validation.sequence_ids[int(index)] for index in donors)
     donors = np.full(len(validation), -1, dtype=np.int64)
     for target in range(len(validation)):
-        eligible = np.flatnonzero(
-            train.route_index == validation.route_index[target]
-        ).tolist()
+        eligible = np.flatnonzero(train.route_index == validation.route_index[target]).tolist()
         if not eligible:
             raise R2FinalProbeError("F-R 物理训练池缺少同协议供体")
         digest = hashlib.sha256(
-            f"r2-g3-random-v1\0{seed}\0{validation.sequence_ids[target]}".encode(
-                "utf-8"
-            )
+            f"r2-g3-random-v1\0{seed}\0{validation.sequence_ids[target]}".encode("utf-8")
         ).digest()
         donors[target] = eligible[int.from_bytes(digest[:8], "big") % len(eligible)]
     return donors, train, tuple(train.sequence_ids[int(index)] for index in donors)
@@ -1228,19 +1160,46 @@ def _masked_state_statistics(
         raise R2FinalProbeError("G3 状态预测、真值和掩码形状不一致")
     mean = np.asarray(normalization["mean"], dtype=np.float64)
     scale = np.asarray(normalization["scale"], dtype=np.float64)
-    if mean.shape != prediction.shape[-1:] or scale.shape != prediction.shape[-1:]:
+    raw_scale = np.asarray(normalization["raw_scale"], dtype=np.float64)
+    metric_state_mask = np.asarray(normalization["metric_state_mask"], dtype=bool)
+    degenerate_state_indices = np.asarray(normalization["degenerate_state_indices"], dtype=np.int64)
+    if (
+        mean.shape != prediction.shape[-1:]
+        or scale.shape != prediction.shape[-1:]
+        or raw_scale.shape != prediction.shape[-1:]
+        or metric_state_mask.shape != prediction.shape[-1:]
+    ):
         raise R2FinalProbeError("G3 状态训练区归一化统计量维数不一致")
     if not np.isfinite(scale).all() or np.any(scale <= 0):
         raise R2FinalProbeError("G3 状态训练区归一化尺度必须为有限正数")
+    if not np.array_equal(np.flatnonzero(~metric_state_mask), degenerate_state_indices):
+        raise R2FinalProbeError("G3 状态退化维索引与指标掩码不一致")
     counts = mask.sum(axis=(0, 1)).astype(np.int64)
-    if np.any(counts <= 0):
-        raise R2FinalProbeError("G3 逐簇状态维度缺少有效观测")
+    cluster_metric_state_mask = metric_state_mask & (counts > 0)
+    if not np.any(cluster_metric_state_mask):
+        raise R2FinalProbeError("G3 当前评价簇缺少可观测的正式状态维度")
     prediction_sum = np.where(mask, prediction, 0.0).sum(axis=(0, 1))
     truth_sum = np.where(mask, truth, 0.0).sum(axis=(0, 1))
     normalized_error = (prediction.astype(np.float64) - truth.astype(np.float64)) / scale
     squared_error = np.where(mask, np.square(normalized_error), 0.0)
     squared_sum = squared_error.sum(axis=(0, 1))
-    mse_by_state = squared_sum / counts
+    mse_by_state = np.divide(
+        squared_sum,
+        counts,
+        out=np.zeros_like(squared_sum, dtype=np.float64),
+        where=counts > 0,
+    )
+    raw_squared_error = np.where(
+        mask, np.square(prediction.astype(np.float64) - truth.astype(np.float64)), 0.0
+    )
+    raw_squared_sum = raw_squared_error.sum(axis=(0, 1))
+    raw_mse_by_state = np.divide(
+        raw_squared_sum,
+        counts,
+        out=np.zeros_like(raw_squared_sum, dtype=np.float64),
+        where=counts > 0,
+    )
+    metric_mse_by_state = mse_by_state[cluster_metric_state_mask]
     return {
         "prediction_mean": np.divide(
             prediction_sum,
@@ -1258,14 +1217,25 @@ def _masked_state_statistics(
         "mask_sha256": array_sha256(mask.astype(bool, copy=False)),
         "normalization_mean": mean.tolist(),
         "normalization_scale": scale.tolist(),
+        "normalization_raw_scale": raw_scale.tolist(),
+        "metric_state_mask": metric_state_mask.tolist(),
+        "cluster_metric_state_mask": cluster_metric_state_mask.tolist(),
+        "missing_metric_state_indices": np.flatnonzero(
+            metric_state_mask & ~cluster_metric_state_mask
+        ).tolist(),
+        "degenerate_state_indices": degenerate_state_indices.tolist(),
         "squared_error_sum_by_state": squared_sum.tolist(),
         "observed_count_by_state": counts.tolist(),
         "mse_by_state": mse_by_state.tolist(),
-        "equal_state_mse_numerator": float(mse_by_state.sum()),
-        "equal_state_mse_denominator": int(len(mse_by_state)),
-        "state_mse": float(mse_by_state.mean()),
+        "metric_squared_error_sum_by_state": squared_sum[metric_state_mask].tolist(),
+        "metric_observed_count_by_state": counts[metric_state_mask].tolist(),
+        "metric_mse_by_state": metric_mse_by_state.tolist(),
+        "degenerate_raw_mse_by_state": raw_mse_by_state[~metric_state_mask].tolist(),
+        "equal_state_mse_numerator": float(metric_mse_by_state.sum()),
+        "equal_state_mse_denominator": int(metric_mse_by_state.size),
+        "state_mse": float(metric_mse_by_state.mean()),
         "unit": "squared_training_standardized_state",
-        "aggregation": "masked_time_mean_per_state_then_equal_state_mean",
+        "aggregation": "masked_time_mean_per_observed_non_degenerate_state_then_equal_observed_state_mean",
     }
 
 
@@ -1299,20 +1269,32 @@ def _training_state_normalization(
     mask = split.truth_masks[expert_name] & split.valid_mask[..., None]
     counts = mask.sum(axis=(0, 1)).astype(np.int64)
     if np.any(counts < 2):
-        raise R2FinalProbeError(
-            f"G3 训练区 {expert_name} 状态归一化观测不足"
-        )
+        raise R2FinalProbeError(f"G3 训练区 {expert_name} 状态归一化观测不足")
     sums = np.where(mask, truth, 0.0).sum(axis=(0, 1))
     mean = sums / counts
     centered = np.where(mask, truth - mean, 0.0)
-    scale = np.sqrt(np.square(centered).sum(axis=(0, 1)) / counts)
-    if not np.isfinite(scale).all() or np.any(scale <= 0):
-        raise R2FinalProbeError(
-            f"G3 训练区 {expert_name} 存在零方差或非有限状态维度"
-        )
+    raw_scale = np.sqrt(np.square(centered).sum(axis=(0, 1)) / counts)
+    degenerate_state_mask = np.zeros_like(raw_scale, dtype=bool)
+    if (
+        expert_name == EXPERT_UDP
+        and raw_scale.shape == (6,)
+        and np.array_equal(raw_scale[4:6], np.zeros(2, dtype=np.float64))
+        and np.array_equal(mean[4:6], np.zeros(2, dtype=np.float64))
+    ):
+        degenerate_state_mask[4:6] = True
+    if (
+        not np.isfinite(mean).all()
+        or not np.isfinite(raw_scale).all()
+        or np.any((raw_scale <= 0) & ~degenerate_state_mask)
+    ):
+        raise R2FinalProbeError(f"G3 训练区 {expert_name} 存在零方差或非有限状态维度")
+    scale = np.where(degenerate_state_mask, 1.0, raw_scale)
     return {
         "mean": mean.tolist(),
         "scale": scale.tolist(),
+        "raw_scale": raw_scale.tolist(),
+        "metric_state_mask": (~degenerate_state_mask).tolist(),
+        "degenerate_state_indices": np.flatnonzero(degenerate_state_mask).tolist(),
         "observed_count_by_state": counts.tolist(),
         "fit_split": "train-fit",
         "estimator": "population_standard_deviation",
@@ -1324,8 +1306,7 @@ def _combine_equal_component_metric(
     component_key: str,
 ) -> Mapping[str, object]:
     components = [
-        np.asarray(statistic[component_key], dtype=np.float64)
-        for statistic in statistics
+        np.asarray(statistic[component_key], dtype=np.float64) for statistic in statistics
     ]
     if not components or any(component.size == 0 for component in components):
         raise R2FinalProbeError("G3 等权指标缺少状态或方程分量")
@@ -1343,12 +1324,8 @@ def _pooled_protocol_metric(
 ) -> Mapping[str, object]:
     values: list[np.ndarray] = []
     for numerator_key, denominator_key in components:
-        numerators = np.stack(
-            [np.asarray(row[numerator_key], dtype=np.float64) for row in rows]
-        )
-        denominators = np.stack(
-            [np.asarray(row[denominator_key], dtype=np.int64) for row in rows]
-        )
+        numerators = np.stack([np.asarray(row[numerator_key], dtype=np.float64) for row in rows])
+        denominators = np.stack([np.asarray(row[denominator_key], dtype=np.int64) for row in rows])
         pooled_denominator = denominators.sum(axis=0)
         if np.any(pooled_denominator <= 0):
             raise R2FinalProbeError("G3 分协议汇总存在无有效观测的分量")
@@ -1382,9 +1359,7 @@ def _physical_validation_artifacts(
         name: _training_state_normalization(train, name)
         for name in (EXPERT_SHARED, EXPERT_TCP, EXPERT_UDP)
     }
-    donors, donor_split, donor_ids = _physical_donor_indices(
-        variant, validation, train, seed
-    )
+    donors, donor_split, donor_ids = _physical_donor_indices(variant, validation, train, seed)
     system.to(device).eval()
     unified_control.to(device).eval()
     history_control.to(device).eval()
@@ -1419,33 +1394,52 @@ def _physical_validation_artifacts(
                     device=device,
                 ),
             )
+            residual_contexts = {
+                name: ResidualObservationContext(
+                    observed_state=torch.tensor(
+                        validation.truths[name][target_indices],
+                        dtype=torch.float32,
+                        device=device,
+                    ),
+                    observed_mask=torch.tensor(
+                        validation.truth_masks[name][target_indices],
+                        dtype=torch.bool,
+                        device=device,
+                    ),
+                )
+                for name in (EXPERT_SHARED, EXPERT_TCP, EXPERT_UDP)
+            }
             if variant == "F-A":
-                output = unified_control(observations, valid)
+                output = unified_control(observations, valid, residual_contexts=residual_contexts)
             elif variant == "F-H":
-                output = history_control(observations, valid, route)
+                output = history_control(
+                    observations,
+                    valid,
+                    route,
+                    residual_contexts=residual_contexts,
+                )
             else:
-                output = system(observations, valid, route)
+                output = system(
+                    observations,
+                    valid,
+                    route,
+                    residual_contexts=residual_contexts,
+                )
             shared = output.shared
             shared_prediction = shared.predicted_state.detach().float().cpu().numpy()
             shared_residual = shared.physics_residual.detach().float().cpu().numpy()
             for local, target_index in enumerate(target_indices.tolist()):
-                evaluation_protocol = ROUTE_NAMES[
-                    int(validation.route_index[target_index])
-                ]
+                evaluation_protocol = ROUTE_NAMES[int(validation.route_index[target_index])]
                 if evaluation_protocol not in ("TCP", "UDP"):
                     raise R2FinalProbeError("正式 G3 物理验证只允许 TCP/UDP")
                 protocol_output = output.protocol_outputs[evaluation_protocol]
                 effective_route = ROUTE_NAMES[
                     int(output.effective_route_index[local].detach().cpu().item())
                 ]
-                actual_branch = (
-                    "UNIFIED_NON_ROUTED" if variant == "F-A" else effective_route
-                )
+                actual_branch = "UNIFIED_NON_ROUTED" if variant == "F-A" else effective_route
                 fragments.append(
                     {
-                        "evaluation_cluster_id": validation.evaluation_cluster_ids[
-                            target_index
-                        ],
+                        "evaluation_cluster_id": validation.evaluation_cluster_ids[target_index],
                         "sequence_id": validation.sequence_ids[target_index],
                         "donor_sequence_id": donor_ids[target_index],
                         "evaluation_protocol": evaluation_protocol,
@@ -1453,16 +1447,12 @@ def _physical_validation_artifacts(
                         "actual_branch": actual_branch,
                         "shared_prediction": shared_prediction[local : local + 1],
                         "shared_residual": shared_residual[local : local + 1],
-                        "protocol_prediction": protocol_output.predicted_state[
-                            local : local + 1
-                        ]
+                        "protocol_prediction": protocol_output.predicted_state[local : local + 1]
                         .detach()
                         .float()
                         .cpu()
                         .numpy(),
-                        "protocol_residual": protocol_output.physics_residual[
-                            local : local + 1
-                        ]
+                        "protocol_residual": protocol_output.physics_residual[local : local + 1]
                         .detach()
                         .float()
                         .cpu()
@@ -1477,14 +1467,10 @@ def _physical_validation_artifacts(
                             source_indices[local] : source_indices[local] + 1, :, None
                         ],
                         "protocol_truth": validation.truths[
-                            EXPERT_TCP
-                            if evaluation_protocol == "TCP"
-                            else EXPERT_UDP
+                            EXPERT_TCP if evaluation_protocol == "TCP" else EXPERT_UDP
                         ][target_index : target_index + 1],
                         "protocol_mask": validation.truth_masks[
-                            EXPERT_TCP
-                            if evaluation_protocol == "TCP"
-                            else EXPERT_UDP
+                            EXPERT_TCP if evaluation_protocol == "TCP" else EXPERT_UDP
                         ][target_index : target_index + 1]
                         & donor_split.valid_mask[
                             source_indices[local] : source_indices[local] + 1, :, None
@@ -1510,18 +1496,14 @@ def _physical_validation_artifacts(
         shared_prediction = np.concatenate(
             [np.asarray(item["shared_prediction"]) for item in members]
         )
-        shared_truth = np.concatenate(
-            [np.asarray(item["shared_truth"]) for item in members]
-        )
+        shared_truth = np.concatenate([np.asarray(item["shared_truth"]) for item in members])
         shared_mask = np.concatenate(
             [np.asarray(item["shared_mask"], dtype=bool) for item in members]
         )
         protocol_prediction = np.concatenate(
             [np.asarray(item["protocol_prediction"]) for item in members]
         )
-        protocol_truth = np.concatenate(
-            [np.asarray(item["protocol_truth"]) for item in members]
-        )
+        protocol_truth = np.concatenate([np.asarray(item["protocol_truth"]) for item in members])
         protocol_mask = np.concatenate(
             [np.asarray(item["protocol_mask"], dtype=bool) for item in members]
         )
@@ -1538,22 +1520,18 @@ def _physical_validation_artifacts(
             protocol_prediction,
             protocol_truth,
             protocol_mask,
-            state_normalization[
-                EXPERT_TCP if protocol == "TCP" else EXPERT_UDP
-            ],
+            state_normalization[EXPERT_TCP if protocol == "TCP" else EXPERT_UDP],
         )
         shared_residual = _residual_statistics(
             np.concatenate([np.asarray(item["shared_residual"]) for item in members]),
             residual_mask,
         )
         protocol_residual = _residual_statistics(
-            np.concatenate(
-                [np.asarray(item["protocol_residual"]) for item in members]
-            ),
+            np.concatenate([np.asarray(item["protocol_residual"]) for item in members]),
             residual_mask,
         )
         state_metric = _combine_equal_component_metric(
-            (shared_state, protocol_state), "mse_by_state"
+            (shared_state, protocol_state), "metric_mse_by_state"
         )
         residual_metric = _combine_equal_component_metric(
             (shared_residual, protocol_residual), "mse_by_equation"
@@ -1574,9 +1552,7 @@ def _physical_validation_artifacts(
                 "donor_sequence_ids_sha256": strings_sha256(
                     tuple(str(item["donor_sequence_id"]) for item in members)
                 ),
-                "donor_sequence_ids": [
-                    str(item["donor_sequence_id"]) for item in members
-                ],
+                "donor_sequence_ids": [str(item["donor_sequence_id"]) for item in members],
                 "checkpoint_sha256": checkpoint_sha256,
                 "checkpoint_binding_sha256": checkpoint_binding_sha256,
                 "shared_state_prediction": shared_prediction.tolist(),
@@ -1586,19 +1562,26 @@ def _physical_validation_artifacts(
                 "shared_state_truth_mean": shared_state["truth_mean"],
                 "shared_state_mask_count": shared_state["mask_count_by_state"],
                 "shared_state_mask_sha256": shared_state["mask_sha256"],
-                "shared_state_normalization_mean": shared_state[
-                    "normalization_mean"
-                ],
-                "shared_state_normalization_scale": shared_state[
-                    "normalization_scale"
-                ],
+                "shared_state_normalization_mean": shared_state["normalization_mean"],
+                "shared_state_normalization_scale": shared_state["normalization_scale"],
+                "shared_state_normalization_raw_scale": shared_state["normalization_raw_scale"],
+                "shared_state_metric_mask": shared_state["metric_state_mask"],
+                "shared_state_degenerate_indices": shared_state["degenerate_state_indices"],
                 "shared_state_squared_error_sum_by_state": shared_state[
                     "squared_error_sum_by_state"
                 ],
-                "shared_state_observed_count_by_state": shared_state[
-                    "observed_count_by_state"
-                ],
+                "shared_state_observed_count_by_state": shared_state["observed_count_by_state"],
                 "shared_state_mse_by_state": shared_state["mse_by_state"],
+                "shared_state_metric_squared_error_sum_by_state": shared_state[
+                    "metric_squared_error_sum_by_state"
+                ],
+                "shared_state_metric_observed_count_by_state": shared_state[
+                    "metric_observed_count_by_state"
+                ],
+                "shared_state_metric_mse_by_state": shared_state["metric_mse_by_state"],
+                "shared_state_degenerate_raw_mse_by_state": shared_state[
+                    "degenerate_raw_mse_by_state"
+                ],
                 "protocol_state_prediction": protocol_prediction.tolist(),
                 "protocol_state_truth": protocol_truth.tolist(),
                 "protocol_state_mask": protocol_mask.tolist(),
@@ -1606,19 +1589,26 @@ def _physical_validation_artifacts(
                 "protocol_state_truth_mean": protocol_state["truth_mean"],
                 "protocol_state_mask_count": protocol_state["mask_count_by_state"],
                 "protocol_state_mask_sha256": protocol_state["mask_sha256"],
-                "protocol_state_normalization_mean": protocol_state[
-                    "normalization_mean"
-                ],
-                "protocol_state_normalization_scale": protocol_state[
-                    "normalization_scale"
-                ],
+                "protocol_state_normalization_mean": protocol_state["normalization_mean"],
+                "protocol_state_normalization_scale": protocol_state["normalization_scale"],
+                "protocol_state_normalization_raw_scale": protocol_state["normalization_raw_scale"],
+                "protocol_state_metric_mask": protocol_state["metric_state_mask"],
+                "protocol_state_degenerate_indices": protocol_state["degenerate_state_indices"],
                 "protocol_state_squared_error_sum_by_state": protocol_state[
                     "squared_error_sum_by_state"
                 ],
-                "protocol_state_observed_count_by_state": protocol_state[
-                    "observed_count_by_state"
-                ],
+                "protocol_state_observed_count_by_state": protocol_state["observed_count_by_state"],
                 "protocol_state_mse_by_state": protocol_state["mse_by_state"],
+                "protocol_state_metric_squared_error_sum_by_state": protocol_state[
+                    "metric_squared_error_sum_by_state"
+                ],
+                "protocol_state_metric_observed_count_by_state": protocol_state[
+                    "metric_observed_count_by_state"
+                ],
+                "protocol_state_metric_mse_by_state": protocol_state["metric_mse_by_state"],
+                "protocol_state_degenerate_raw_mse_by_state": protocol_state[
+                    "degenerate_raw_mse_by_state"
+                ],
                 "shared_physics_residual": np.concatenate(
                     [np.asarray(item["shared_residual"]) for item in members]
                 ).tolist(),
@@ -1634,18 +1624,14 @@ def _physical_validation_artifacts(
                 "shared_residual_observed_count_by_equation": shared_residual[
                     "observed_count_by_equation"
                 ],
-                "shared_residual_mse_by_equation": shared_residual[
-                    "mse_by_equation"
-                ],
+                "shared_residual_mse_by_equation": shared_residual["mse_by_equation"],
                 "protocol_residual_squared_sum_by_equation": protocol_residual[
                     "squared_residual_sum_by_equation"
                 ],
                 "protocol_residual_observed_count_by_equation": protocol_residual[
                     "observed_count_by_equation"
                 ],
-                "protocol_residual_mse_by_equation": protocol_residual[
-                    "mse_by_equation"
-                ],
+                "protocol_residual_mse_by_equation": protocol_residual["mse_by_equation"],
                 "state_mse_numerator": state_metric["numerator"],
                 "state_mse_denominator": state_metric["denominator"],
                 "state_mse": state_metric["value"],
@@ -1656,9 +1642,7 @@ def _physical_validation_artifacts(
                 "physics_residual_mse_numerator": residual_metric["numerator"],
                 "physics_residual_mse_denominator": residual_metric["denominator"],
                 "physics_residual_mse": residual_metric["value"],
-                "physics_residual_mse_unit": (
-                    "dimensionless_squared_physics_residual"
-                ),
+                "physics_residual_mse_unit": ("dimensionless_squared_physics_residual"),
                 "physics_residual_mse_aggregation": (
                     "masked_time_mean_per_equation_then_equal_shared_and_protocol_equation_mean"
                 ),
@@ -1666,33 +1650,28 @@ def _physical_validation_artifacts(
         )
     expected_clusters = set(validation.evaluation_cluster_ids)
     expected_pairs = {
-        (cluster, protocol)
-        for cluster in expected_clusters
-        for protocol in ("TCP", "UDP")
+        (cluster, protocol) for cluster in expected_clusters for protocol in ("TCP", "UDP")
     }
     observed_pairs = {
-        (str(row["evaluation_cluster_id"]), str(row["evaluation_protocol"]))
-        for row in rows
+        (str(row["evaluation_cluster_id"]), str(row["evaluation_protocol"])) for row in rows
     }
     if observed_pairs != expected_pairs:
         raise R2FinalProbeError("G3 逐簇输出未覆盖完整验证簇与协议")
     by_protocol: dict[str, Mapping[str, object]] = {}
     for protocol in ("TCP", "UDP"):
-        selected = [
-            row for row in rows if row["evaluation_protocol"] == protocol
-        ]
+        selected = [row for row in rows if row["evaluation_protocol"] == protocol]
         if not selected:
             raise R2FinalProbeError(f"G3 缺少 {protocol} 验证簇")
         state_metric = _pooled_protocol_metric(
             selected,
             (
                 (
-                    "shared_state_squared_error_sum_by_state",
-                    "shared_state_observed_count_by_state",
+                    "shared_state_metric_squared_error_sum_by_state",
+                    "shared_state_metric_observed_count_by_state",
                 ),
                 (
-                    "protocol_state_squared_error_sum_by_state",
-                    "protocol_state_observed_count_by_state",
+                    "protocol_state_metric_squared_error_sum_by_state",
+                    "protocol_state_metric_observed_count_by_state",
                 ),
             ),
         )
@@ -1736,16 +1715,11 @@ def _physical_validation_artifacts(
             np.mean([by_protocol[name]["state_mse"] for name in ("TCP", "UDP")])
         ),
         "equal_protocol_physics_residual_mse_numerator": float(
-            sum(
-                float(by_protocol[name]["physics_residual_mse"])
-                for name in ("TCP", "UDP")
-            )
+            sum(float(by_protocol[name]["physics_residual_mse"]) for name in ("TCP", "UDP"))
         ),
         "equal_protocol_physics_residual_mse_denominator": 2,
         "equal_protocol_physics_residual_mse": float(
-            np.mean(
-                [by_protocol[name]["physics_residual_mse"] for name in ("TCP", "UDP")]
-            )
+            np.mean([by_protocol[name]["physics_residual_mse"] for name in ("TCP", "UDP")])
         ),
         "state_mse_unit": "squared_training_standardized_state",
         "physics_residual_mse_unit": "dimensionless_squared_physics_residual",
@@ -1788,12 +1762,8 @@ def _collate(tokenizer: Any, max_length: int, torch: Any):
             return_tensors="pt",
         )
         encoded["labels"] = torch.tensor(labels, dtype=torch.long)
-        encoded["sidecar_sequence"] = torch.tensor(
-            np.stack(sequences), dtype=torch.float32
-        )
-        encoded["sidecar_valid_mask"] = torch.tensor(
-            np.stack(valid), dtype=torch.bool
-        )
+        encoded["sidecar_sequence"] = torch.tensor(np.stack(sequences), dtype=torch.float32)
+        encoded["sidecar_valid_mask"] = torch.tensor(np.stack(valid), dtype=torch.bool)
         encoded["sidecar_gate"] = torch.tensor(gates, dtype=torch.float32)
         return encoded
 
@@ -1857,7 +1827,7 @@ def _build_model(
                 batch_first=True,
             )
             self.sidecar_projection = torch.nn.Linear(128, hidden_size, bias=False)
-            self.fusion_logit = torch.nn.Parameter(torch.tensor(-4.0))
+            self.fusion_logit = torch.nn.Parameter(torch.tensor(0.0))
 
         def forward(
             self,
@@ -1884,14 +1854,12 @@ def _build_model(
             text_representation = torch.nn.functional.relu(
                 self.backbone.pre_classifier(text_hidden)
             )
-            encoded, _ = self.sidecar_encoder(
-                sidecar_sequence.to(dtype=text_representation.dtype)
-            )
+            encoded, _ = self.sidecar_encoder(sidecar_sequence.to(dtype=text_representation.dtype))
             batch_index = torch.arange(encoded.shape[0], device=encoded.device)
             sidecar = encoded[batch_index, torch.clamp(lengths - 1, min=0)]
             sidecar = sidecar * (lengths > 0).unsqueeze(1).to(sidecar.dtype)
             projected = self.sidecar_projection(sidecar)
-            bounded_strength = FUSION_LIMIT * torch.sigmoid(self.fusion_logit)
+            bounded_strength = _bounded_residual_strength(self.fusion_logit, torch)
             gate = sidecar_gate.detach().to(dtype=projected.dtype)
             fused = text_representation + bounded_strength * gate[:, None] * projected
             logits = self.backbone.classifier(self.backbone.dropout(fused))
@@ -1915,9 +1883,7 @@ def _evaluate(
     model.eval()
     started = time.perf_counter()
     with torch.no_grad():
-        for batch in _loader(
-            split, config, tokenizer, torch, shuffle=False, seed=config.seed
-        ):
+        for batch in _loader(split, config, tokenizer, torch, shuffle=False, seed=config.seed):
             batch = {name: value.to(runtime.device) for name, value in batch.items()}
             labels = batch.pop("labels")
             with baseline._autocast(torch, runtime):
@@ -2063,12 +2029,8 @@ def _train(
         lr=config.training.learning_rate,
         weight_decay=config.training.weight_decay,
     )
-    batches_per_epoch = math.ceil(
-        len(views.train) / config.training.per_device_train_batch_size
-    )
-    steps_per_epoch = math.ceil(
-        batches_per_epoch / config.training.gradient_accumulation_steps
-    )
+    batches_per_epoch = math.ceil(len(views.train) / config.training.per_device_train_batch_size)
+    steps_per_epoch = math.ceil(batches_per_epoch / config.training.gradient_accumulation_steps)
     total_steps = steps_per_epoch * config.training.num_train_epochs
     warmup_steps = int(total_steps * config.training.warmup_ratio)
     scheduler = torch.optim.lr_scheduler.LambdaLR(
@@ -2110,13 +2072,9 @@ def _train(
                 physical_metrics["equal_protocol_physics_residual_mse"]
             ),
             "physical/tcp_state_mse": float(protocol_metrics["TCP"]["state_mse"]),
-            "physical/tcp_residual_mse": float(
-                protocol_metrics["TCP"]["physics_residual_mse"]
-            ),
+            "physical/tcp_residual_mse": float(protocol_metrics["TCP"]["physics_residual_mse"]),
             "physical/udp_state_mse": float(protocol_metrics["UDP"]["state_mse"]),
-            "physical/udp_residual_mse": float(
-                protocol_metrics["UDP"]["physics_residual_mse"]
-            ),
+            "physical/udp_residual_mse": float(protocol_metrics["UDP"]["physics_residual_mse"]),
         },
         0,
         "physical_validation",
@@ -2201,9 +2159,7 @@ def _train(
                     {
                         "train/loss": group_loss / group_batches,
                         "train/learning_rate": float(optimizer.param_groups[0]["lr"]),
-                        "train/gradient_norm": float(
-                            gradient_norm.detach().float().item()
-                        ),
+                        "train/gradient_norm": float(gradient_norm.detach().float().item()),
                         "train/epoch": float(epoch + 1),
                     },
                     step,
@@ -2281,9 +2237,7 @@ def execute(config: ProbeConfig, variant: str) -> Mapping[str, object]:
     if variant not in VARIANTS:
         raise R2FinalProbeError(f"variant 必须属于 {VARIANTS}")
     if variant != config.variant:
-        raise R2FinalProbeError(
-            f"命令组别 {variant} 与配置冻结组别 {config.variant} 不一致"
-        )
+        raise R2FinalProbeError(f"命令组别 {variant} 与配置冻结组别 {config.variant} 不一致")
     if not config.data.ready:
         raise R2FinalDataNotReady(config.data.not_ready_reason)
     if not config.physics.checkpoint.ready:
@@ -2300,17 +2254,13 @@ def execute(config: ProbeConfig, variant: str) -> Mapping[str, object]:
         checkpoint_binding_sha256,
     ) = _physics_system(config, modules.torch)
     mapped_history = tuple(
-        HISTORY_TO_PHYSICS.get(field, "")
-        for field in config.data.contract.columns.history_fields
+        HISTORY_TO_PHYSICS.get(field, "") for field in config.data.contract.columns.history_fields
     )
     if mapped_history != fit_config.data.observation_fields:
         raise R2FinalProbeError("检测公共历史与物理专家输入语义或顺序不一致")
     if config.data.contract.history_scales != fit_config.data.observation_scales:
         raise R2FinalProbeError("检测公共历史与物理预训练尺度不一致")
-    if (
-        config.physics.physical_evaluation_cluster_id
-        != fit_config.data.evaluation_cluster_id
-    ):
+    if config.physics.physical_evaluation_cluster_id != fit_config.data.evaluation_cluster_id:
         raise R2FinalProbeError("G3 评价簇字段与物理预训练配置不一致")
     base = load_base_views(config.data.contract)
     device = modules.torch.device(runtime.device)

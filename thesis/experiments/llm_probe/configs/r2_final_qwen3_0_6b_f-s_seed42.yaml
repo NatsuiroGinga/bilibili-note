@@ -1,0 +1,50 @@
+schema_version: flow_probe_r2_final_qwen_probe_v1
+variant: F-S
+seed: 42
+
+candidate_contract:
+  detection_supervision_rows: 7579
+  physics_auxiliary_rows: 2421
+  total_rows: 10000
+  final_test_visible: false
+
+r2_contract:
+  path: configs/r2_final_distilbert_f-s_seed42.yaml
+  sha256: 88d0b4a24f9922ee73eb429a7e5318574930327f3235cdfe186a735b42522b1c
+
+model:
+  identifier: Qwen/Qwen3-0.6B
+  source: /root/autodl-tmp/thesis/models/Qwen3-0.6B
+  max_length: 512
+  max_new_tokens: 16
+  attention_backend: sdpa
+  lora_rank: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+training:
+  per_device_train_batch_size: 2
+  per_device_eval_batch_size: 16
+  gradient_accumulation_steps: 2
+  max_steps: 200
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  save_steps: 20
+  resume_from_checkpoint: auto
+
+evaluation:
+  threshold: 0.5
+  calibration_bins: 15
+  protocol: constrained_json_label_likelihood_v1
+
+quic_training_weight: 0.0
+output_root: runs/r2-qwen-candidate/qwen3-0.6b-v2
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: r2-qwen06-candidate-s42
+  mode: online
+  tags: [r2, qwen3-0.6b, seed42, dev-candidate, tcp-udp, quic-weight-zero]

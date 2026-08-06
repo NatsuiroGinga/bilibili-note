@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "g0-receipt-v3.schema.json",
+  "title": "LSPR24 G0-A 机器收据 v3",
+  "description": "receipt_sha256 是删除该字段后按对象键字典序生成的紧凑 JSON 的 SHA-256。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "gate_id",
+    "contract_version",
+    "contract_sha256",
+    "producer_binary_sha256",
+    "input_artifacts",
+    "schema_version",
+    "checks",
+    "status",
+    "created_at_utc",
+    "receipt_sha256",
+    "depends_on"
+  ],
+  "properties": {
+    "gate_id": {
+      "$ref": "#/$defs/gate_id"
+    },
+    "contract_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "producer_binary_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "input_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": {
+            "$ref": "#/$defs/path"
+          },
+          "sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      }
+    },
+    "schema_version": {
+      "const": "g0-receipt-v3"
+    },
+    "checks": {
+      "type": "object"
+    },
+    "status": {
+      "enum": ["PASS", "FAIL", "NOT_READY"]
+    },
+    "created_at_utc": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "Z$"
+    },
+    "receipt_sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "depends_on": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate_id", "receipt_sha256"],
+        "properties": {
+          "gate_id": {
+            "$ref": "#/$defs/gate_id"
+          },
+          "receipt_sha256": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "gate_id": {
+      "enum": [
+        "A01",
+        "A02",
+        "A03",
+        "A04",
+        "A05",
+        "A06",
+        "A07",
+        "A08",
+        "A09",
+        "A10",
+        "A11",
+        "A12",
+        "A13",
+        "A14"
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "[*?]"
+      }
+    }
+  }
+}

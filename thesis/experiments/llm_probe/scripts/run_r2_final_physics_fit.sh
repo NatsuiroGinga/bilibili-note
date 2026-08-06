@@ -22,7 +22,7 @@ printf 'running\n' >"$status_path"
 
 set +e
 R2_EQUAL_CAPACITY_REQUIRED=1 R2_ZERO_COLLAPSE_REQUIRED=1 \
-  uv run python -m flow_probe.r2_final_physics_fit \
+  uv run --no-sync python -m flow_probe.r2_final_physics_fit \
   --config "$config" \
   --trusted-root "$project_root" 2>&1 | tee "$log_path"
 pipeline_status=("${PIPESTATUS[@]}")

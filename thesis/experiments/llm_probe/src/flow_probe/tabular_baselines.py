@@ -15,7 +15,7 @@ import resource
 import sys
 import time
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
@@ -588,8 +588,14 @@ def _execute_prepared_suite(
     runtime_capabilities: Mapping[str, object] | None = None,
     stage: str = FINAL_TUNING_STAGE,
     tuning_trial_index: int = 0,
+    fitted_models: Mapping[str, ProbabilisticClassifier] | None = None,
+    model_state_output: MutableMapping[str, ProbabilisticClassifier] | None = None,
 ) -> TabularSuiteResult:
     keys = _normalise_model_keys(model_keys)
+    if fitted_models is not None and set(fitted_models) != set(keys):
+        raise TabularBaselineError("复用的已拟合模型必须与请求模型键完全一致")
+    if fitted_models is not None and model_state_output is not None:
+        raise TabularBaselineError("复用已拟合模型时不得再次捕获模型状态")
     validation_budget = _validation_budget(tuning_trial_index)
     runtime = dict(runtime_capabilities or detect_runtime_capabilities())
     model_results: dict[str, object] = {}
@@ -604,15 +610,21 @@ def _execute_prepared_suite(
             )
 
         for model_key in keys:
-            model = _build_model(model_key, seed=seed, class_count=len(prepared.known_labels))
-            fit_started = time.perf_counter()
-            with threadpool_limits(limits=1):
-                model.fit(
-                    prepared.train.features,
-                    prepared.encoded_train_labels,
-                    sample_weight=prepared.train_sample_weights,
-                )
-            fit_seconds = time.perf_counter() - fit_started
+            if fitted_models is None:
+                model = _build_model(model_key, seed=seed, class_count=len(prepared.known_labels))
+                fit_started = time.perf_counter()
+                with threadpool_limits(limits=1):
+                    model.fit(
+                        prepared.train.features,
+                        prepared.encoded_train_labels,
+                        sample_weight=prepared.train_sample_weights,
+                    )
+                fit_seconds = time.perf_counter() - fit_started
+                if model_state_output is not None:
+                    model_state_output[model_key] = model
+            else:
+                model = fitted_models[model_key]
+                fit_seconds = 0.0
             fitted_classes = tuple(int(value) for value in np.asarray(model.classes_).tolist())
             expected_classes = tuple(range(len(prepared.known_labels)))
             if fitted_classes != expected_classes:
@@ -665,6 +677,7 @@ def _execute_prepared_suite(
             model_results[model_key] = {
                 "parameters": _json_safe(model.get_params(deep=True)),
                 "fit_seconds": fit_seconds,
+                "reused_fitted_model": fitted_models is not None,
                 "validation_trial_index": tuning_trial_index,
                 "training_input": {
                     "manifest": prepared.train.manifest.relative_path,
@@ -759,6 +772,32 @@ def run_tabular_baseline_suite(
         runtime_capabilities=runtime,
         stage=stage,
         tuning_trial_index=tuning_trial_index,
+    )
+
+
+def run_prepared_tabular_baseline_suite(
+    *,
+    prepared: PreparedTabularData,
+    model_keys: Sequence[str],
+    seed: int,
+    predictions_path: Path | None = None,
+    runtime_capabilities: Mapping[str, object] | None = None,
+    stage: str = "prepared_external_data",
+    tuning_trial_index: int = 0,
+    fitted_models: Mapping[str, ProbabilisticClassifier] | None = None,
+    model_state_output: MutableMapping[str, ProbabilisticClassifier] | None = None,
+) -> TabularSuiteResult:
+    """执行已经由外部适配器验证的共享树模型输入，不读取任何数据路径。"""
+    return _execute_prepared_suite(
+        prepared=prepared,
+        model_keys=model_keys,
+        seed=seed,
+        predictions_path=predictions_path,
+        runtime_capabilities=runtime_capabilities,
+        stage=stage,
+        tuning_trial_index=tuning_trial_index,
+        fitted_models=fitted_models,
+        model_state_output=model_state_output,
     )
 
 

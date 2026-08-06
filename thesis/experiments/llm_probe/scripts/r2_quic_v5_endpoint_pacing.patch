@@ -1,0 +1,226 @@
+--- a/quiche-0.24.5/apps/src/sendto.rs
++++ b/quiche-0.24.5/apps/src/sendto.rs
+@@ -27,7 +27,90 @@
+ use std::cmp;
+ 
+ use std::io;
++use std::sync::atomic::{AtomicU64, Ordering};
+ 
++static R2_QUIC_V5_PACING_SEQUENCE: AtomicU64 = AtomicU64::new(0);
++
++fn r2_quic_v5_pacing_enabled() -> bool {
++    std::env::var_os("R2_QUIC_V5_USERSPACE_PACING").as_deref()
++        == Some(std::ffi::OsStr::new("1"))
++}
++
++fn receipt_time_ns(time: &std::time::Instant) -> u64 {
++    #[cfg(target_os = "linux")]
++    {
++        std_time_to_u64(time)
++    }
++
++    #[cfg(not(target_os = "linux"))]
++    {
++        let _ = time;
++        0
++    }
++}
++
++/// 在 v5 工具隔离环境中兑现 `SendInfo.at`，并输出可机器审计的节奏收据。
++pub fn send_to_userspace_paced(
++    socket: &mio::net::UdpSocket, buf: &[u8], send_info: &quiche::SendInfo,
++    segment_size: usize, endpoint_role: &str, pacing_requested: bool,
++) -> io::Result<usize> {
++    if !r2_quic_v5_pacing_enabled() {
++        return socket.send_to(buf, send_info.to);
++    }
++
++    let before_wait = std::time::Instant::now();
++    if send_info.at > before_wait {
++        std::thread::sleep(send_info.at - before_wait);
++    }
++
++    let mut off = 0;
++    let mut left = buf.len();
++    let mut written = 0;
++    while left > 0 {
++        let packet_bytes = cmp::min(left, segment_size);
++        let actual_at = std::time::Instant::now();
++        let sent = socket.send_to(&buf[off..off + packet_bytes], send_info.to)?;
++        let sequence = R2_QUIC_V5_PACING_SEQUENCE.fetch_add(1, Ordering::Relaxed);
++        let lateness_ns = actual_at
++            .checked_duration_since(send_info.at)
++            .unwrap_or_default()
++            .as_nanos();
++        eprintln!(
++            "R2_QUIC_V5_PACING {{\"schema_version\":\"flow_probe_r2_quic_endpoint_pacing_v5\",\"implementation\":\"quiche\",\"endpoint_role\":\"{}\",\"sequence\":{},\"planned_monotonic_ns\":{},\"actual_monotonic_ns\":{},\"lateness_ns\":{},\"packet_bytes\":{},\"pacing_requested\":{}}}",
++            endpoint_role,
++            sequence,
++            receipt_time_ns(&send_info.at),
++            receipt_time_ns(&actual_at),
++            lateness_ns,
++            sent,
++            pacing_requested,
++        );
++        written += sent;
++        off += packet_bytes;
++        left -= packet_bytes;
++    }
++    Ok(written)
++}
++
++/// 为版本协商和重试等没有 `SendInfo.at` 的控制报文记录即时发送收据。
++pub fn send_to_immediate_receipt(
++    socket: &mio::net::UdpSocket, buf: &[u8], to: std::net::SocketAddr,
++    endpoint_role: &str,
++) -> io::Result<usize> {
++    if !r2_quic_v5_pacing_enabled() {
++        return socket.send_to(buf, to);
++    }
++    let actual_at = std::time::Instant::now();
++    let sent = socket.send_to(buf, to)?;
++    let sequence = R2_QUIC_V5_PACING_SEQUENCE.fetch_add(1, Ordering::Relaxed);
++    let actual_ns = receipt_time_ns(&actual_at);
++    eprintln!(
++        "R2_QUIC_V5_PACING {{\"schema_version\":\"flow_probe_r2_quic_endpoint_pacing_v5\",\"implementation\":\"quiche\",\"endpoint_role\":\"{}\",\"sequence\":{},\"planned_monotonic_ns\":{},\"actual_monotonic_ns\":{},\"lateness_ns\":0,\"packet_bytes\":{},\"pacing_requested\":false}}",
++        endpoint_role, sequence, actual_ns, actual_ns, sent,
++    );
++    Ok(sent)
++}
++
+ /// For Linux, try to detect GSO is available.
+ #[cfg(target_os = "linux")]
+ pub fn detect_gso(socket: &mio::net::UdpSocket, segment_size: usize) -> bool {
+@@ -98,6 +181,17 @@
+     socket: &mio::net::UdpSocket, buf: &[u8], send_info: &quiche::SendInfo,
+     segment_size: usize, pacing: bool, enable_gso: bool,
+ ) -> io::Result<usize> {
++    if r2_quic_v5_pacing_enabled() {
++        return send_to_userspace_paced(
++            socket,
++            buf,
++            send_info,
++            segment_size,
++            "server",
++            pacing,
++        );
++    }
++
+     if pacing && enable_gso {
+         match send_to_gso_pacing(socket, buf, send_info, segment_size) {
+             Ok(v) => {
+--- a/quiche-0.24.5/apps/src/client.rs
++++ b/quiche-0.24.5/apps/src/client.rs
+@@ -26,6 +26,7 @@
+ 
+ use crate::args::*;
+ use crate::common::*;
++use crate::sendto::send_to_userspace_paced;
+ 
+ use std::io::prelude::*;
+ 
+@@ -228,7 +229,14 @@
+ 
+     let (write, send_info) = conn.send(&mut out).expect("initial send failed");
+ 
+-    while let Err(e) = socket.send_to(&out[..write], send_info.to) {
++    while let Err(e) = send_to_userspace_paced(
++        &socket,
++        &out[..write],
++        &send_info,
++        MAX_DATAGRAM_SIZE,
++        "client",
++        true,
++    ) {
+         if e.kind() == std::io::ErrorKind::WouldBlock {
+             trace!(
+                 "{} -> {}: send() would block",
+@@ -519,7 +527,14 @@
+                         },
+                     };
+ 
+-                    if let Err(e) = socket.send_to(&out[..write], send_info.to) {
++                    if let Err(e) = send_to_userspace_paced(
++                        &socket,
++                        &out[..write],
++                        &send_info,
++                        MAX_DATAGRAM_SIZE,
++                        "client",
++                        true,
++                    ) {
+                         if e.kind() == std::io::ErrorKind::WouldBlock {
+                             trace!(
+                                 "{} -> {}: send() would block",
+--- a/quiche-0.24.5/apps/src/bin/quiche-server.rs
++++ b/quiche-0.24.5/apps/src/bin/quiche-server.rs
+@@ -285,7 +285,7 @@
+ 
+                     let out = &out[..len];
+ 
+-                    if let Err(e) = socket.send_to(out, from) {
++                    if let Err(e) = send_to_immediate_receipt(&socket, out, from, "server") {
+                         if e.kind() == std::io::ErrorKind::WouldBlock {
+                             trace!("send() would block");
+                             break;
+@@ -324,7 +324,7 @@
+ 
+                         let out = &out[..len];
+ 
+-                        if let Err(e) = socket.send_to(out, from) {
++                        if let Err(e) = send_to_immediate_receipt(&socket, out, from, "server") {
+                             if e.kind() == std::io::ErrorKind::WouldBlock {
+                                 trace!("send() would block");
+                                 break;
+--- a/aioquic-1.3.0/src/aioquic/asyncio/protocol.py
++++ b/aioquic-1.3.0/src/aioquic/asyncio/protocol.py
+@@ -1,4 +1,7 @@
+ import asyncio
++import json
++import os
++import sys
+ from typing import Any, Callable, Optional, Text, Union, cast
+ 
+ from ..quic import events
+@@ -25,6 +28,7 @@
+         self._timer: Optional[asyncio.TimerHandle] = None
+         self._timer_at: Optional[float] = None
+         self._transmit_task: Optional[asyncio.Handle] = None
++        self._r2_pacing_sequence = 0
+         self._transport: Optional[asyncio.DatagramTransport] = None
+ 
+         # callbacks
+@@ -117,8 +121,32 @@
+         """
+         self._transmit_task = None
+ 
+-        # send datagrams
+-        for data, addr in self._quic.datagrams_to_send(now=self._loop.time()):
++        # v5 仅增加端点节奏收据，不改变 aioquic 的事件循环调度。
++        requested_at = self._quic._pacing_at
++        now = self._loop.time()
++        datagrams = self._quic.datagrams_to_send(now=now)
++        for data, addr in datagrams:
++            actual_at = self._loop.time()
++            planned_at = actual_at if requested_at is None else requested_at
++            if os.environ.get("R2_QUIC_V5_PACING_RECEIPTS") == "1":
++                receipt = {
++                    "schema_version": "flow_probe_r2_quic_endpoint_pacing_v5",
++                    "implementation": "aioquic",
++                    "endpoint_role": "client",
++                    "sequence": self._r2_pacing_sequence,
++                    "planned_monotonic_ns": round(planned_at * 1_000_000_000),
++                    "actual_monotonic_ns": round(actual_at * 1_000_000_000),
++                    "lateness_ns": max(0, round((actual_at - planned_at) * 1_000_000_000)),
++                    "packet_bytes": len(data),
++                    "pacing_requested": requested_at is not None,
++                }
++                print(
++                    "R2_QUIC_V5_PACING "
++                    + json.dumps(receipt, ensure_ascii=False, sort_keys=True),
++                    file=sys.stderr,
++                    flush=True,
++                )
++                self._r2_pacing_sequence += 1
+             self._transport.sendto(data, addr)
+ 
+         # re-arm timer

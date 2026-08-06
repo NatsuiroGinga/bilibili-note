@@ -1,0 +1,61 @@
+--- a/aioquic/asyncio/protocol.py
++++ b/aioquic/asyncio/protocol.py
+@@ -121,27 +121,31 @@
+-        # v5 仅增加端点节奏收据，不改变 aioquic 的事件循环调度。
+-        requested_at = self._quic._pacing_at
+-        now = self._loop.time()
+-        datagrams = self._quic.datagrams_to_send(now=now)
+-        for data, addr in datagrams:
+-            actual_at = self._loop.time()
+-            planned_at = actual_at if requested_at is None else requested_at
+-            if os.environ.get("R2_QUIC_V5_PACING_RECEIPTS") == "1":
+-                receipt = {
+-                    "schema_version": "flow_probe_r2_quic_endpoint_pacing_v5",
+-                    "implementation": "aioquic",
+-                    "endpoint_role": "client",
+-                    "sequence": self._r2_pacing_sequence,
+-                    "planned_monotonic_ns": round(planned_at * 1_000_000_000),
+-                    "actual_monotonic_ns": round(actual_at * 1_000_000_000),
+-                    "lateness_ns": max(0, round((actual_at - planned_at) * 1_000_000_000)),
+-                    "packet_bytes": len(data),
+-                    "pacing_requested": requested_at is not None,
+-                }
+-                print(
+-                    "R2_QUIC_V5_PACING "
+-                    + json.dumps(receipt, ensure_ascii=False, sort_keys=True),
+-                    file=sys.stderr,
+-                    flush=True,
+-                )
+-                self._r2_pacing_sequence += 1
+-            self._transport.sendto(data, addr)
++        # v8.1 修正端点节奏收据时间语义，不改变事件循环调度。
++        requested_at = self._quic._pacing_at
++        invocation_at = self._loop.time()
++        datagrams = self._quic.datagrams_to_send(now=invocation_at)
++        pacing_due = requested_at is not None and requested_at <= invocation_at
++        for data, addr in datagrams:
++            send_started_at = self._loop.time()
++            planned_at = requested_at if pacing_due else send_started_at
++            self._transport.sendto(data, addr)
++            actual_at = self._loop.time()
++            if os.environ.get("R2_QUIC_V5_PACING_RECEIPTS") == "1":
++                planned_monotonic_ns = round(planned_at * 1_000_000_000)
++                actual_monotonic_ns = round(actual_at * 1_000_000_000)
++                receipt = {
++                    "schema_version": "flow_probe_r2_quic_endpoint_pacing_v5",
++                    "implementation": "aioquic",
++                    "endpoint_role": "client",
++                    "sequence": self._r2_pacing_sequence,
++                    "planned_monotonic_ns": planned_monotonic_ns,
++                    "actual_monotonic_ns": actual_monotonic_ns,
++                    "lateness_ns": actual_monotonic_ns - planned_monotonic_ns,
++                    "packet_bytes": len(data),
++                    "pacing_requested": pacing_due,
++                }
++                print(
++                    "R2_QUIC_V5_PACING "
++                    + json.dumps(receipt, ensure_ascii=False, sort_keys=True),
++                    file=sys.stderr,
++                    flush=True,
++                )
++                self._r2_pacing_sequence += 1

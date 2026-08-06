@@ -31,6 +31,15 @@ GPU_RSYNC = Path("/tmp/gpu-rsync-push.exp")
 HASH_PATTERN = re.compile(r"(?<![0-9a-f])[0-9a-f]{64}(?![0-9a-f])", re.IGNORECASE)
 ANSI_ESCAPE_PATTERN = re.compile(r"\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 CONTROL_CHARACTER_PATTERN = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+AUTHORIZED_PHYSICS_SOURCES = frozenset(
+    {
+        "runs/data-prepared/r2-final-tcp-udp-physics-v2/physics-targets-ns3-v2.parquet",
+        "runs/data-prepared/r2-final-tcp-udp-physics-v2/udp-window-truth-v2.parquet",
+        "runs/data-prepared/r2-final-tcp-udp-physics-v2/tcp-sender-truth-v2.parquet",
+        "runs/data-prepared/r2-final-sidecar-candidate-v1/common-history.parquet",
+        "runs/data-prepared/r2-final-sidecar-candidate-v1/route-assignments.parquet",
+    }
+)
 CREDENTIAL_ASSIGNMENT_PATTERN = re.compile(
     r"(?i)\b(password|passwd|token|secret)\b(\s*[:=]\s*)(?:\S+)"
 )
@@ -76,8 +85,14 @@ def build_sync_plan(
     destination: str | None = None,
     project_root: Path = PROJECT_ROOT,
 ) -> SyncPlan:
-    source_relative = normalize_project_file(source)
-    destination_relative = normalize_project_file(destination or source)
+    if source in AUTHORIZED_PHYSICS_SOURCES:
+        if destination not in {None, source}:
+            raise GuardViolation("授权数据只能同步到同名远端相对路径。")
+        source_relative = PurePosixPath(source)
+        destination_relative = source_relative
+    else:
+        source_relative = normalize_project_file(source)
+        destination_relative = normalize_project_file(destination or source)
     source_absolute = resolve_regular_file(project_root, source_relative)
     remote_absolute = REMOTE_PROJECT_ROOT.joinpath(*destination_relative.parts)
     return SyncPlan(
@@ -165,9 +180,7 @@ def prepare_remote_parent(
     return {"prepare_exit_code": prepare.returncode}
 
 
-def apply_sync_plan(
-    plan: SyncPlan, runner: Runner = subprocess.run
-) -> dict[str, object]:
+def apply_sync_plan(plan: SyncPlan, runner: Runner = subprocess.run) -> dict[str, object]:
     """创建父目录、同步并验证远端哈希。"""
     if not GPU_EXEC.is_file() or not GPU_RSYNC.is_file():
         raise GuardViolation("缺少固定的 GPU Expect 入口，拒绝退化为裸 ssh 或 rsync。")
@@ -214,9 +227,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--destination", help="仓库内白名单相对远端目标")
     parser.add_argument("--receipt", help="runs/ 下的本地 JSON 收据")
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument(
-        "--apply", action="store_true", help="实际执行同步；默认只生成计划"
-    )
+    mode.add_argument("--apply", action="store_true", help="实际执行同步；默认只生成计划")
     mode.add_argument(
         "--prepare-only",
         action="store_true",

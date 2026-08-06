@@ -1562,7 +1562,7 @@ def compute_binary_metrics(
     calibration_bins: int = 15,
 ) -> dict[str, int | float]:
     """计算固定标签映射下的效果与概率校准指标。"""
-    if not labels or len(labels) != len(malicious_probabilities):
+    if len(labels) == 0 or len(labels) != len(malicious_probabilities):
         raise SharedB0DistilBertError("指标标签与概率必须等长且非空")
     if threshold != FIXED_THRESHOLD:
         raise SharedB0DistilBertError(f"评价阈值必须固定为 {FIXED_THRESHOLD}")

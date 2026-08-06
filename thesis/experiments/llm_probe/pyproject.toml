@@ -74,6 +74,8 @@ flow-probe-evaluate-bounded-physics = "flow_probe.bounded_physics_evaluation:mai
 flow-probe-evaluate-s3-same-split-physics = "flow_probe.s3_same_split_physics:main"
 flow-probe-ns3-physics-baseline = "flow_probe.ns3_physics_baselines:main"
 flow-probe-train-shared-b0-physics = "flow_probe.shared_b0_physics_train:main"
+flow-probe-lspr24-g0-reference = "flow_probe.lspr24_g0_reference:main"
+flow-probe-r2-final-qwen = "flow_probe.r2_final_qwen_probe:main"
 
 [build-system]
 requires = ["hatchling>=1.27"]

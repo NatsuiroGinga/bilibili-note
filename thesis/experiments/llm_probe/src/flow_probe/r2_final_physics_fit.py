@@ -29,6 +29,7 @@ from flow_probe.r2_final_experts import (
     ExpertConfig,
     PhysicsSupervisionBatch,
     ProtocolAdaptivePhysicsSystem,
+    ResidualObservationContext,
     UnifiedPhysicsControlSystem,
     count_parameters,
     expert_state_supervision_loss,
@@ -39,6 +40,13 @@ from flow_probe.r2_final_experts import (
 SCHEMA_VERSION = "flow_probe_r2_final_physics_fit_v1"
 FIT_MODES = ("formal", "quic-seed-validation")
 SPLITS = ("train-fit", "calibration", "validation")
+IMPLEMENTATION_ARTIFACT_PATHS = (
+    "src/flow_probe/r2_final_experts.py",
+    "src/flow_probe/r2_final_physics_fit.py",
+    "src/flow_probe/r2_final_distilbert_probe.py",
+    "scripts/run_r2_final_physics_fit.sh",
+    "scripts/run_r2_final_probe.sh",
+)
 
 
 class R2FinalPhysicsFitError(ValueError):
@@ -68,6 +76,15 @@ class TruthSpec:
 
 
 @dataclass(frozen=True)
+class TcpSupervisionSpec:
+    target_granularity: str
+    sender_aggregation: str
+    rtt_aggregation: str
+    require_complete_sender_set: bool
+    ssthresh_unset_value: int
+
+
+@dataclass(frozen=True)
 class DataSpec:
     artifact: ArtifactSpec
     companion_artifacts: Mapping[str, ArtifactSpec]
@@ -85,6 +102,7 @@ class DataSpec:
     observation_fields: tuple[str, ...]
     observation_scales: tuple[float, ...]
     truths: Mapping[str, TruthSpec]
+    tcp_supervision: TcpSupervisionSpec | None
     window_count: int
 
 
@@ -195,8 +213,10 @@ def _strings(value: object, description: str) -> tuple[str, ...]:
 
 def _sha256_string(value: object, description: str) -> str:
     result = _string(value, description)
-    if len(result) != 64 or result != result.lower() or any(
-        character not in "0123456789abcdef" for character in result
+    if (
+        len(result) != 64
+        or result != result.lower()
+        or any(character not in "0123456789abcdef" for character in result)
     ):
         raise R2FinalPhysicsFitError(f"{description} 必须是规范的 64 位 SHA-256")
     return result
@@ -216,16 +236,47 @@ def _truth_spec(value: object, description: str) -> TruthSpec:
     if not all(isinstance(item, list) for item in (fields_raw, observed_raw, scales_raw)):
         raise R2FinalPhysicsFitError(f"{description} 的字段、掩码和尺度必须是列表")
     fields = tuple(_string(item, f"{description}.fields") for item in fields_raw)
-    observed = tuple(
-        _string(item, f"{description}.observed_fields") for item in observed_raw
-    )
-    scales = tuple(
-        _number(item, f"{description}.scales", minimum=1e-12)
-        for item in scales_raw
-    )
+    observed = tuple(_string(item, f"{description}.observed_fields") for item in observed_raw)
+    scales = tuple(_number(item, f"{description}.scales", minimum=1e-12) for item in scales_raw)
     if not (len(fields) == len(observed) == len(scales)):
         raise R2FinalPhysicsFitError(f"{description} 的字段、掩码和尺度长度不一致")
     return TruthSpec(fields=fields, observed_fields=observed, scales=scales)
+
+
+def _tcp_supervision_spec(value: object) -> TcpSupervisionSpec | None:
+    if value is None:
+        return None
+    raw = _mapping(value, "data.tcp_supervision")
+    target_granularity = _string(
+        raw.get("target_granularity"), "data.tcp_supervision.target_granularity"
+    )
+    sender_aggregation = _string(
+        raw.get("sender_aggregation"), "data.tcp_supervision.sender_aggregation"
+    )
+    rtt_aggregation = _string(raw.get("rtt_aggregation"), "data.tcp_supervision.rtt_aggregation")
+    require_complete = raw.get("require_complete_sender_set")
+    unset_value = _integer(
+        raw.get("ssthresh_unset_value"),
+        "data.tcp_supervision.ssthresh_unset_value",
+        minimum=1,
+    )
+    if target_granularity != "public_network_window":
+        raise R2FinalPhysicsFitError("TCP 监督粒度必须为公共网络窗口")
+    if sender_aggregation != "sum":
+        raise R2FinalPhysicsFitError("TCP 可加状态必须按发送者求和")
+    if rtt_aggregation != "sample_weighted_mean":
+        raise R2FinalPhysicsFitError("TCP RTT 必须按样本数加权平均")
+    if require_complete is not True:
+        raise R2FinalPhysicsFitError("TCP 总量监督必须要求完整发送者集合")
+    if unset_value != 2**32 - 1:
+        raise R2FinalPhysicsFitError("TCP ssthresh 未设置哨兵必须为 UINT32_MAX")
+    return TcpSupervisionSpec(
+        target_granularity=target_granularity,
+        sender_aggregation=sender_aggregation,
+        rtt_aggregation=rtt_aggregation,
+        require_complete_sender_set=True,
+        ssthresh_unset_value=unset_value,
+    )
 
 
 def _resolve_path(value: object, root: Path, description: str) -> Path:
@@ -258,9 +309,7 @@ def _relative_to_trusted_root(
     try:
         relative = lexical_path.relative_to(root)
     except ValueError as error:
-        raise R2FinalPhysicsFitError(
-            f"{description}超出受信任根：{lexical_path}"
-        ) from error
+        raise R2FinalPhysicsFitError(f"{description}超出受信任根：{lexical_path}") from error
     return lexical_path, root, relative
 
 
@@ -277,9 +326,7 @@ def _require_fixed_config_path(
             f"{description}必须位于固定配置目录：{configs_root}"
         ) from error
     if len(relative.parts) != 1:
-        raise R2FinalPhysicsFitError(
-            f"{description}必须是固定配置目录中的直接文件：{config_path}"
-        )
+        raise R2FinalPhysicsFitError(f"{description}必须是固定配置目录中的直接文件：{config_path}")
 
 
 @contextmanager
@@ -294,27 +341,21 @@ def _open_anchored_directory(
         trusted_root,
         description,
     )
-    directory_flags = (
-        os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
-    )
+    directory_flags = os.O_RDONLY | os.O_CLOEXEC | os.O_DIRECTORY | os.O_NOFOLLOW
     descriptors: list[int] = []
     component_names: list[str] = []
     try:
         try:
             root_descriptor = os.open(root, directory_flags)
         except OSError as error:
-            raise R2FinalPhysicsFitError(
-                f"{description}无法固定受信任根：{root}"
-            ) from error
+            raise R2FinalPhysicsFitError(f"{description}无法固定受信任根：{root}") from error
         descriptors.append(root_descriptor)
         root_stat = os.fstat(root_descriptor)
         if not stat.S_ISDIR(root_stat.st_mode):
             raise R2FinalPhysicsFitError(f"受信任根不是目录：{root}")
         for component in relative.parts:
             if component in ("", ".", ".."):
-                raise R2FinalPhysicsFitError(
-                    f"{description}包含非法路径组件：{component}"
-                )
+                raise R2FinalPhysicsFitError(f"{description}包含非法路径组件：{component}")
             parent_descriptor = descriptors[-1]
             try:
                 next_descriptor = os.open(
@@ -340,9 +381,7 @@ def _open_anchored_directory(
                     or (opened_stat.st_dev, opened_stat.st_ino)
                     != (named_stat.st_dev, named_stat.st_ino)
                 ):
-                    raise R2FinalPhysicsFitError(
-                        f"{description}父目录身份不稳定：{component}"
-                    )
+                    raise R2FinalPhysicsFitError(f"{description}父目录身份不稳定：{component}")
             except BaseException:
                 os.close(next_descriptor)
                 raise
@@ -366,9 +405,7 @@ def _open_anchored_directory(
                 or (current_root_stat.st_dev, current_root_stat.st_ino)
                 != (named_root_stat.st_dev, named_root_stat.st_ino)
             ):
-                raise R2FinalPhysicsFitError(
-                    f"{description}受信任根身份发生变化：{root}"
-                )
+                raise R2FinalPhysicsFitError(f"{description}受信任根身份发生变化：{root}")
             for index, component in enumerate(component_names, start=1):
                 opened_stat = os.fstat(descriptors[index])
                 try:
@@ -388,9 +425,7 @@ def _open_anchored_directory(
                     or (opened_stat.st_dev, opened_stat.st_ino)
                     != (named_stat.st_dev, named_stat.st_ino)
                 ):
-                    raise R2FinalPhysicsFitError(
-                        f"{description}父目录身份发生变化：{component}"
-                    )
+                    raise R2FinalPhysicsFitError(f"{description}父目录身份发生变化：{component}")
 
         verify_chain()
         yield descriptors[-1], verify_chain
@@ -437,12 +472,9 @@ def _open_stable_regular_file(
                 stat.S_ISLNK(named_before.st_mode)
                 or not stat.S_ISREG(before.st_mode)
                 or not stat.S_ISREG(named_before.st_mode)
-                or (before.st_dev, before.st_ino)
-                != (named_before.st_dev, named_before.st_ino)
+                or (before.st_dev, before.st_ino) != (named_before.st_dev, named_before.st_ino)
             ):
-                raise R2FinalPhysicsFitError(
-                    f"{description}文件身份不稳定：{path}"
-                )
+                raise R2FinalPhysicsFitError(f"{description}文件身份不稳定：{path}")
             verify_parent_chain()
             yield source
             after = os.fstat(source.fileno())
@@ -454,23 +486,16 @@ def _open_stable_regular_file(
             if (
                 _stat_identity(before) != _stat_identity(after)
                 or stat.S_ISLNK(named_after.st_mode)
-                or (after.st_dev, after.st_ino)
-                != (named_after.st_dev, named_after.st_ino)
+                or (after.st_dev, after.st_ino) != (named_after.st_dev, named_after.st_ino)
             ):
-                raise R2FinalPhysicsFitError(
-                    f"{description}在读取期间发生变化：{path}"
-                )
+                raise R2FinalPhysicsFitError(f"{description}在读取期间发生变化：{path}")
             verify_parent_chain()
         finally:
             source.close()
 
 
-def _read_stable_regular_bytes(
-    path: Path, description: str, *, trusted_root: Path
-) -> bytes:
-    with _open_stable_regular_file(
-        path, description, trusted_root=trusted_root
-    ) as source:
+def _read_stable_regular_bytes(path: Path, description: str, *, trusted_root: Path) -> bytes:
+    with _open_stable_regular_file(path, description, trusted_root=trusted_root) as source:
         return source.read()
 
 
@@ -484,9 +509,7 @@ def load_config(
     project_root = _lexical_absolute(trusted_root)
     _require_fixed_config_path(config_path, project_root, "物理拟合配置")
     config_bytes = (
-        _read_stable_regular_bytes(
-            config_path, "物理拟合配置", trusted_root=project_root
-        )
+        _read_stable_regular_bytes(config_path, "物理拟合配置", trusted_root=project_root)
         if snapshot is None
         else snapshot
     )
@@ -508,13 +531,9 @@ def load_config(
     artifact_raw = _mapping(data_raw.get("artifact"), "data.artifact")
     artifact = ArtifactSpec(
         path=_resolve_path(artifact_raw.get("path"), root, "data.artifact.path"),
-        sha256=_sha256_string(
-            artifact_raw.get("sha256"), "data.artifact.sha256"
-        ),
+        sha256=_sha256_string(artifact_raw.get("sha256"), "data.artifact.sha256"),
     )
-    companion_raw = _mapping(
-        data_raw.get("companion_artifacts"), "data.companion_artifacts"
-    )
+    companion_raw = _mapping(data_raw.get("companion_artifacts"), "data.companion_artifacts")
     if set(companion_raw) != {"tcp_sender_truth", "udp_window_truth"}:
         raise R2FinalPhysicsFitError(
             "data.companion_artifacts 必须精确覆盖 TCP 发送者级与 UDP 窗口真值"
@@ -533,16 +552,10 @@ def load_config(
         )
         for name, value in companion_raw.items()
     }
-    role_manifest_raw = _mapping(
-        data_raw.get("role_manifest"), "data.role_manifest"
-    )
+    role_manifest_raw = _mapping(data_raw.get("role_manifest"), "data.role_manifest")
     role_manifest = RoleManifestSpec(
-        path=_resolve_path(
-            role_manifest_raw.get("path"), root, "data.role_manifest.path"
-        ),
-        sha256=_sha256_string(
-            role_manifest_raw.get("sha256"), "data.role_manifest.sha256"
-        ),
+        path=_resolve_path(role_manifest_raw.get("path"), root, "data.role_manifest.path"),
+        sha256=_sha256_string(role_manifest_raw.get("sha256"), "data.role_manifest.sha256"),
         artifact_id=_string(
             role_manifest_raw.get("artifact_id"),
             "data.role_manifest.artifact_id",
@@ -557,15 +570,9 @@ def load_config(
         ),
     )
     if role_manifest.allowed_splits != SPLITS:
-        raise R2FinalPhysicsFitError(
-            "data.role_manifest.allowed_splits 必须精确覆盖三个开发划分"
-        )
-    observations = _strings(
-        data_raw.get("observation_fields"), "data.observation_fields"
-    )
-    observation_scales = _numbers(
-        data_raw.get("observation_scales"), "data.observation_scales"
-    )
+        raise R2FinalPhysicsFitError("data.role_manifest.allowed_splits 必须精确覆盖三个开发划分")
+    observations = _strings(data_raw.get("observation_fields"), "data.observation_fields")
+    observation_scales = _numbers(data_raw.get("observation_scales"), "data.observation_scales")
     if len(observations) != len(observation_scales):
         raise R2FinalPhysicsFitError("观测字段和尺度长度不一致")
     truth_raw = _mapping(data_raw.get("truths"), "data.truths")
@@ -591,21 +598,16 @@ def load_config(
         window_index=_string(data_raw.get("window_index"), "data.window_index"),
         split_id=_string(data_raw.get("split_id"), "data.split_id"),
         route_id=_string(data_raw.get("route_id"), "data.route_id"),
-        route_confidence=_string(
-            data_raw.get("route_confidence"), "data.route_confidence"
-        ),
-        quic_applicable=_optional_string(
-            data_raw.get("quic_applicable"), "data.quic_applicable"
-        ),
+        route_confidence=_string(data_raw.get("route_confidence"), "data.route_confidence"),
+        quic_applicable=_optional_string(data_raw.get("quic_applicable"), "data.quic_applicable"),
         qlog_truth_available=_optional_string(
             data_raw.get("qlog_truth_available"), "data.qlog_truth_available"
         ),
-        window_valid=_optional_string(
-            data_raw.get("window_valid"), "data.window_valid"
-        ),
+        window_valid=_optional_string(data_raw.get("window_valid"), "data.window_valid"),
         observation_fields=observations,
         observation_scales=observation_scales,
         truths=truths,
+        tcp_supervision=_tcp_supervision_spec(data_raw.get("tcp_supervision")),
         window_count=_integer(data_raw.get("window_count"), "data.window_count", minimum=1),
     )
 
@@ -614,7 +616,9 @@ def load_config(
     if set(residual_raw) != expected_truths | {EXPERT_UNKNOWN}:
         raise R2FinalPhysicsFitError("残差维数必须精确覆盖五个专家")
     model = ModelSpec(
-        hidden_dimension=_integer(model_raw.get("hidden_dimension"), "model.hidden_dimension", minimum=1),
+        hidden_dimension=_integer(
+            model_raw.get("hidden_dimension"), "model.hidden_dimension", minimum=1
+        ),
         representation_dimension=_integer(
             model_raw.get("representation_dimension"),
             "model.representation_dimension",
@@ -639,9 +643,7 @@ def load_config(
         ),
         weight_decay=_number(training_raw.get("weight_decay"), "training.weight_decay"),
         state_weight=_number(training_raw.get("state_weight"), "training.state_weight"),
-        residual_weight=_number(
-            training_raw.get("residual_weight"), "training.residual_weight"
-        ),
+        residual_weight=_number(training_raw.get("residual_weight"), "training.residual_weight"),
         max_grad_norm=_number(
             training_raw.get("max_grad_norm"), "training.max_grad_norm", minimum=1e-12
         ),
@@ -682,10 +684,18 @@ def load_config(
 
 
 def _file_sha256(path: Path, *, trusted_root: Path) -> str:
-    with _open_stable_regular_file(
-        path, "哈希制品", trusted_root=trusted_root
-    ) as source:
+    with _open_stable_regular_file(path, "哈希制品", trusted_root=trusted_root) as source:
         return _open_file_sha256(source)
+
+
+def implementation_artifact_sha256(project_root: Path) -> Mapping[str, str]:
+    """复算正式训练、加载与包装器实现的固定内容摘要。"""
+
+    root = _lexical_absolute(project_root)
+    return {
+        relative: _file_sha256(root / relative, trusted_root=root)
+        for relative in IMPLEMENTATION_ARTIFACT_PATHS
+    }
 
 
 def _open_file_sha256(source: Any) -> str:
@@ -705,9 +715,7 @@ def _config_sha256(config: PhysicsFitConfig) -> str:
     value["data"]["artifact"]["path"] = str(config.data.artifact.path)
     for name, artifact in config.data.companion_artifacts.items():
         value["data"]["companion_artifacts"][name]["path"] = str(artifact.path)
-    value["data"]["role_manifest"]["path"] = str(
-        config.data.role_manifest.path
-    )
+    value["data"]["role_manifest"]["path"] = str(config.data.role_manifest.path)
     value["output_dir"] = str(config.output_dir)
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
@@ -715,6 +723,19 @@ def _config_sha256(config: PhysicsFitConfig) -> str:
 
 def config_semantic_sha256(config: PhysicsFitConfig) -> str:
     return _config_sha256(config)
+
+
+def checkpoint_binding(config: PhysicsFitConfig) -> Mapping[str, object]:
+    """生成检查点、不可变清单和探针共同复核的唯一绑定。"""
+
+    return {
+        "config_sha256": _config_sha256(config),
+        "fit_config_sha256": config.file_sha256,
+        "input_sha256": config.data.artifact_payload_merkle_sha256,
+        "seed": config.seed,
+        "mode": config.mode,
+        "implementation_artifact_sha256": implementation_artifact_sha256(config.project_root),
+    }
 
 
 def _verify_physics_role_manifest(config: PhysicsFitConfig) -> None:
@@ -728,8 +749,7 @@ def _verify_physics_role_manifest(config: PhysicsFitConfig) -> None:
     actual_manifest_sha256 = hashlib.sha256(manifest_bytes).hexdigest()
     if actual_manifest_sha256 != spec.sha256:
         raise R2FinalPhysicsFitError(
-            "物理角色清单 SHA-256 不一致："
-            f"预期 {spec.sha256}，实际 {actual_manifest_sha256}"
+            "物理角色清单 SHA-256 不一致：" f"预期 {spec.sha256}，实际 {actual_manifest_sha256}"
         )
     try:
         raw = _mapping(
@@ -754,10 +774,7 @@ def _verify_physics_role_manifest(config: PhysicsFitConfig) -> None:
         raise R2FinalPhysicsFitError("物理真值角色不符合拟合配置")
     if artifact.get("ready") is not True:
         raise R2FinalPhysicsFitError("物理真值角色尚未就绪")
-    if (
-        artifact.get("artifact_payload_merkle_sha256")
-        != config.data.artifact_payload_merkle_sha256
-    ):
+    if artifact.get("artifact_payload_merkle_sha256") != config.data.artifact_payload_merkle_sha256:
         raise R2FinalPhysicsFitError("物理角色清单载荷 Merkle 与配置不一致")
     if artifact.get("split_id_column") != config.data.split_id:
         raise R2FinalPhysicsFitError("物理角色清单划分字段不一致")
@@ -771,9 +788,7 @@ def _verify_physics_role_manifest(config: PhysicsFitConfig) -> None:
     )
     if declared_path != _lexical_absolute(config.data.artifact.path):
         raise R2FinalPhysicsFitError("物理角色清单规范路径与配置不一致")
-    declared_sha256 = _sha256_string(
-        artifact.get("sha256"), "物理角色清单.artifact.sha256"
-    )
+    declared_sha256 = _sha256_string(artifact.get("sha256"), "物理角色清单.artifact.sha256")
     if declared_sha256 != config.data.artifact.sha256:
         raise R2FinalPhysicsFitError("物理角色清单制品哈希与配置不一致")
     companions = _mapping(
@@ -783,9 +798,7 @@ def _verify_physics_role_manifest(config: PhysicsFitConfig) -> None:
     if set(companions) != set(config.data.companion_artifacts):
         raise R2FinalPhysicsFitError("物理角色清单伴随真值角色不完整")
     for name, spec_artifact in config.data.companion_artifacts.items():
-        declared = _mapping(
-            companions[name], f"物理角色清单.artifact.companion_artifacts.{name}"
-        )
+        declared = _mapping(companions[name], f"物理角色清单.artifact.companion_artifacts.{name}")
         expected_role = {
             "tcp_sender_truth": "training_only_privileged_tcp_sender_truth",
             "udp_window_truth": "training_only_privileged_udp_window_truth",
@@ -812,15 +825,119 @@ def _read_verified_parquet(
     config: PhysicsFitConfig,
 ) -> pd.DataFrame:
     path = artifact.path
-    with _open_stable_regular_file(
-        path, description, trusted_root=config.project_root
-    ) as source:
+    with _open_stable_regular_file(path, description, trusted_root=config.project_root) as source:
         actual = _open_file_sha256(source)
         if actual != artifact.sha256:
             raise R2FinalPhysicsFitError(
                 f"{description} SHA-256 不一致：预期 {artifact.sha256}，实际 {actual}"
             )
-        return pd.read_parquet(source)
+        frame = pd.read_parquet(source)
+    _require_unique_columns(frame, description)
+    return frame
+
+
+def _require_unique_columns(frame: pd.DataFrame, source: str) -> None:
+    duplicate_columns = sorted(
+        {str(column) for column in frame.columns[frame.columns.duplicated()].tolist()}
+    )
+    if duplicate_columns:
+        receipt = {
+            "schema_version": "r2_column_uniqueness_failure_v1",
+            "status": "failed",
+            "source": source,
+            "duplicate_columns": duplicate_columns,
+        }
+        raise R2FinalPhysicsFitError(
+            "物理拟合列唯一性门禁失败：" + json.dumps(receipt, ensure_ascii=False, sort_keys=True)
+        )
+
+
+def _stable_unique_columns(columns: Sequence[str]) -> list[str]:
+    """保留首次出现顺序，允许多个状态复用同一观察掩码列。"""
+
+    return list(dict.fromkeys(columns))
+
+
+def _aggregate_tcp_sender_truth(
+    frame: pd.DataFrame,
+    spec: TruthSpec,
+    *,
+    join_keys: Sequence[str],
+    ssthresh_unset_value: int,
+) -> pd.DataFrame:
+    """将特权发送者真值折叠为与公共观测一一对应的网络级目标。"""
+
+    keys = list(join_keys)
+    required = {
+        *keys,
+        "sender_index",
+        "truth_tcp_rtt_sample_count",
+        *spec.fields,
+        *spec.observed_fields,
+    }
+    missing = sorted(required - set(frame.columns))
+    if missing:
+        raise R2FinalPhysicsFitError(f"TCP 网络级聚合缺少字段：{missing}")
+    identity = [*keys, "sender_index"]
+    if bool(frame.duplicated(identity, keep=False).any()):
+        raise R2FinalPhysicsFitError("TCP 发送者真值主键重复")
+
+    grouped = frame.groupby(keys, sort=False, dropna=False)
+    row_counts = grouped.size()
+    sender_counts = grouped["sender_index"].nunique()
+    if not bool((row_counts == sender_counts).all()):
+        raise R2FinalPhysicsFitError("TCP 公共窗口内发送者集合不唯一")
+    result = sender_counts.rename("truth_tcp_sender_count").to_frame()
+    if bool((result["truth_tcp_sender_count"] <= 0).any()):
+        raise R2FinalPhysicsFitError("TCP 公共窗口缺少发送者真值")
+
+    for field, observed_field in zip(spec.fields, spec.observed_fields, strict=True):
+        observed = pd.Series(
+            _strict_bool_series(frame[observed_field], f"TCP 发送者级真值 {observed_field}"),
+            index=frame.index,
+        )
+        values = pd.to_numeric(frame[field], errors="coerce")
+        if bool(values[observed].isna().any()):
+            raise R2FinalPhysicsFitError(f"TCP 已观察字段 {field} 包含空值")
+
+        working = frame[keys].copy()
+        if field == "truth_tcp_rtt_mean_ms":
+            sample_counts = pd.to_numeric(frame["truth_tcp_rtt_sample_count"], errors="coerce")
+            if bool(sample_counts.isna().any()) or bool((sample_counts < 0).any()):
+                raise R2FinalPhysicsFitError("TCP RTT 样本数非法")
+            if bool((observed != (sample_counts > 0)).any()):
+                raise R2FinalPhysicsFitError("TCP RTT 掩码与样本数语义不一致")
+            working["_numerator"] = values.fillna(0.0) * sample_counts
+            working["_denominator"] = sample_counts
+            rtt_grouped = working.groupby(keys, sort=False, dropna=False)
+            numerator = rtt_grouped["_numerator"].sum()
+            denominator = rtt_grouped["_denominator"].sum()
+            valid = denominator > 0
+            result[field] = (numerator / denominator.where(valid, 1.0)).where(valid, 0.0)
+            result[observed_field] = valid
+            continue
+
+        unset = pd.Series(False, index=frame.index)
+        if field in {
+            "truth_tcp_ssthresh_start_bytes",
+            "truth_tcp_ssthresh_end_bytes",
+        }:
+            unset = observed & (values == float(ssthresh_unset_value))
+            endpoint = "start" if "_start_" in field else "end"
+            working["_unset"] = unset.astype(np.int64)
+            unset_counts = working.groupby(keys, sort=False, dropna=False)["_unset"].sum()
+            result[f"truth_tcp_ssthresh_{endpoint}_unset_sender_count"] = unset_counts
+
+        valid = observed & values.notna() & ~unset
+        working["_valid"] = valid
+        working["_value"] = values.where(valid, 0.0)
+        value_grouped = working.groupby(keys, sort=False, dropna=False)
+        complete = value_grouped["_valid"].all()
+        totals = value_grouped["_value"].sum()
+        result[field] = totals.where(complete, 0.0)
+        result[observed_field] = complete
+
+    return result.reset_index()
 
 
 def _load_frame(config: PhysicsFitConfig) -> pd.DataFrame:
@@ -853,42 +970,82 @@ def _load_frame(config: PhysicsFitConfig) -> pd.DataFrame:
 
     tcp_fields = config.data.truths[EXPERT_TCP]
     udp_fields = config.data.truths[EXPERT_UDP]
-    tcp_columns = [
-        *join_keys,
-        "sender_index",
-        *tcp_fields.fields,
-        *tcp_fields.observed_fields,
-    ]
-    udp_columns = [*join_keys, *udp_fields.fields, *udp_fields.observed_fields]
+    tcp_columns = _stable_unique_columns(
+        [
+            *join_keys,
+            "sender_index",
+            "truth_tcp_rtt_sample_count",
+            *tcp_fields.fields,
+            *tcp_fields.observed_fields,
+        ]
+    )
+    udp_columns = _stable_unique_columns(
+        [*join_keys, *udp_fields.fields, *udp_fields.observed_fields]
+    )
     tcp_common = frame.loc[frame[config.data.route_id].astype(str) == "TCP"].copy()
     udp_common = frame.loc[frame[config.data.route_id].astype(str) == "UDP"].copy()
+    tcp_common = tcp_common.drop(
+        columns=[
+            field
+            for field in (*tcp_fields.fields, *tcp_fields.observed_fields)
+            if field in tcp_common.columns
+        ]
+    )
+    udp_common = udp_common.drop(
+        columns=[
+            field
+            for field in (*udp_fields.fields, *udp_fields.observed_fields)
+            if field in udp_common.columns
+        ]
+    )
+    if config.data.tcp_supervision is None:
+        tcp_target = tcp_truth[tcp_columns]
+        tcp_merge_validation = "one_to_many"
+    else:
+        tcp_target = _aggregate_tcp_sender_truth(
+            tcp_truth[tcp_columns],
+            tcp_fields,
+            join_keys=join_keys,
+            ssthresh_unset_value=(config.data.tcp_supervision.ssthresh_unset_value),
+        )
+        tcp_merge_validation = "one_to_one"
     tcp_frame = tcp_common.merge(
-        tcp_truth[tcp_columns], on=join_keys, how="inner", validate="one_to_many"
+        tcp_target,
+        on=join_keys,
+        how="inner",
+        validate=tcp_merge_validation,
     )
     udp_frame = udp_common.merge(
         udp_truth[udp_columns], on=join_keys, how="inner", validate="one_to_one"
     )
-    if len(tcp_frame) != len(tcp_truth) or len(udp_frame) != len(udp_truth):
+    _require_unique_columns(tcp_frame, "TCP 公共窗口与发送者级真值合并结果")
+    _require_unique_columns(udp_frame, "UDP 公共窗口与窗口真值合并结果")
+    expected_tcp_rows = len(tcp_truth) if config.data.tcp_supervision is None else len(tcp_common)
+    if len(tcp_frame) != expected_tcp_rows or len(udp_frame) != len(udp_truth):
         raise R2FinalPhysicsFitError("v2 公共窗口与协议真值主键绑定不完整")
-    for field, observed_field in zip(
-        tcp_fields.fields, tcp_fields.observed_fields, strict=True
-    ):
+    for field, observed_field in zip(tcp_fields.fields, tcp_fields.observed_fields, strict=True):
         observed = _strict_bool_series(
             tcp_frame[observed_field], f"TCP 发送者级真值 {observed_field}"
         )
         if bool(tcp_frame.loc[observed, field].isna().any()):
             raise R2FinalPhysicsFitError(f"TCP 已观察字段 {field} 包含空值")
         tcp_frame[field] = tcp_frame[field].fillna(0.0)
-    tcp_frame[config.data.sequence_id] = (
-        tcp_frame[config.data.sequence_id].astype(str)
-        + ":sender-"
-        + tcp_frame["sender_index"].astype(int).astype(str)
-    )
+    if config.data.tcp_supervision is None:
+        tcp_frame[config.data.sequence_id] = (
+            tcp_frame[config.data.sequence_id].astype(str)
+            + ":sender-"
+            + tcp_frame["sender_index"].astype(int).astype(str)
+        )
+    elif "sender_index" in tcp_frame:
+        raise R2FinalPhysicsFitError("网络级 TCP 监督不得保留 sender_index")
     for field in (*udp_fields.fields, *udp_fields.observed_fields):
         tcp_frame[field] = False if field in udp_fields.observed_fields else 0.0
     for field in (*tcp_fields.fields, *tcp_fields.observed_fields):
         udp_frame[field] = False if field in tcp_fields.observed_fields else 0.0
+    _require_unique_columns(tcp_frame, "TCP 协议拟合帧拼接前结果")
+    _require_unique_columns(udp_frame, "UDP 协议拟合帧拼接前结果")
     frame = pd.concat((tcp_frame, udp_frame), ignore_index=True, sort=False)
+    _require_unique_columns(frame, "TCP/UDP 正式物理拟合拼接结果")
     required = {
         config.data.sequence_id,
         config.data.evaluation_cluster_id,
@@ -915,14 +1072,14 @@ def _load_frame(config: PhysicsFitConfig) -> pd.DataFrame:
         raise R2FinalPhysicsFitError(f"物理真值制品缺少字段：{missing}")
     if not set(frame[config.data.split_id].astype(str)).issubset(SPLITS):
         raise R2FinalPhysicsFitError("物理真值制品包含最终测试或未知划分")
-    if "final_test_visible" not in frame or bool(
-        frame["final_test_visible"].astype(bool).any()
-    ):
+    if "final_test_visible" not in frame or bool(frame["final_test_visible"].astype(bool).any()):
         raise R2FinalPhysicsFitError("物理真值制品未保持最终测试不可见")
     return frame
 
 
-def _scaled_matrix(frame: pd.DataFrame, fields: Sequence[str], scales: Sequence[float]) -> np.ndarray:
+def _scaled_matrix(
+    frame: pd.DataFrame, fields: Sequence[str], scales: Sequence[float]
+) -> np.ndarray:
     values = frame[list(fields)].to_numpy(dtype=np.float32)
     values = values / np.asarray(scales, dtype=np.float32)[None, :]
     if not np.isfinite(values).all():
@@ -939,7 +1096,21 @@ def _strict_bool_series(values: pd.Series, description: str) -> np.ndarray:
         numeric = values.to_numpy()
         if np.isin(numeric, (0, 1)).all():
             return numeric == 1
-    raise R2FinalPhysicsFitError(f"{description}只允许原生布尔或精确 0/1")
+    normalized: list[bool] = []
+    for value in values.to_numpy(dtype=object):
+        if isinstance(value, (bool, np.bool_)):
+            normalized.append(bool(value))
+        elif isinstance(value, (int, float, np.integer, np.floating)) and not isinstance(
+            value, (bool, np.bool_)
+        ):
+            numeric = float(value)
+            if math.isfinite(numeric) and numeric in (0.0, 1.0):
+                normalized.append(numeric == 1.0)
+            else:
+                raise R2FinalPhysicsFitError(f"{description}只允许原生布尔或精确 0/1")
+        else:
+            raise R2FinalPhysicsFitError(f"{description}只允许原生布尔或精确 0/1")
+    return np.asarray(normalized, dtype=bool)
 
 
 def _build_split(frame: pd.DataFrame, config: PhysicsFitConfig, split: str) -> PhysicsSplit:
@@ -985,9 +1156,7 @@ def _build_split(frame: pd.DataFrame, config: PhysicsFitConfig, split: str) -> P
             else np.ones(data.window_count, dtype=bool)
         )
         length = int(valid.sum())
-        if length <= 0 or not np.array_equal(
-            valid, np.arange(data.window_count) < length
-        ):
+        if length <= 0 or not np.array_equal(valid, np.arange(data.window_count) < length):
             raise R2FinalPhysicsFitError(f"序列 {sequence_id} 的有效窗口不是非空前缀")
         observations.append(
             _scaled_matrix(ordered, data.observation_fields, data.observation_scales)
@@ -1018,12 +1187,16 @@ def _build_split(frame: pd.DataFrame, config: PhysicsFitConfig, split: str) -> P
         sequence_ids.append(str(sequence_id))
         cluster_values = tuple(ordered[data.evaluation_cluster_id].astype(str).unique())
         if len(cluster_values) != 1 or not cluster_values[0]:
-            raise R2FinalPhysicsFitError(
-                f"序列 {sequence_id} 的 evaluation_cluster_id 非法"
-            )
+            raise R2FinalPhysicsFitError(f"序列 {sequence_id} 的 evaluation_cluster_id 非法")
         evaluation_cluster_ids.append(cluster_values[0])
         for name, spec in data.truths.items():
-            if spec.fields:
+            applicable_expert = {
+                "TCP": EXPERT_TCP,
+                "UDP": EXPERT_UDP,
+                "QUIC": EXPERT_QUIC,
+                "UNKNOWN": "",
+            }[route_name]
+            if spec.fields and (name == EXPERT_SHARED or name == applicable_expert):
                 values = _scaled_matrix(ordered, spec.fields, spec.scales)
                 observed = np.column_stack(
                     [
@@ -1034,6 +1207,9 @@ def _build_split(frame: pd.DataFrame, config: PhysicsFitConfig, split: str) -> P
                         for field in spec.observed_fields
                     ]
                 )
+            elif spec.fields:
+                values = np.zeros((data.window_count, len(spec.fields)), dtype=np.float32)
+                observed = np.zeros((data.window_count, len(spec.observed_fields)), dtype=bool)
             else:
                 values = np.zeros((data.window_count, 1), dtype=np.float32)
                 observed = np.zeros((data.window_count, 1), dtype=bool)
@@ -1059,9 +1235,13 @@ def load_splits(config: PhysicsFitConfig) -> Mapping[str, PhysicsSplit]:
 
 
 def _expert_config(config: PhysicsFitConfig, name: str) -> ExpertConfig:
-    state_dimension = 1 if name == EXPERT_UNKNOWN else max(
-        len(config.data.truths[name].fields),
-        5 if name == EXPERT_SHARED else 1,
+    state_dimension = (
+        1
+        if name == EXPERT_UNKNOWN
+        else max(
+            len(config.data.truths[name].fields),
+            5 if name == EXPERT_SHARED else 1,
+        )
     )
     return ExpertConfig(
         name=name,
@@ -1135,15 +1315,63 @@ def _loader(split: PhysicsSplit, config: PhysicsFitConfig, torch: Any, *, shuffl
     )
 
 
+def _epoch_sample_order(size: int, seed: int, epoch: int) -> tuple[int, ...]:
+    """生成不消耗任何全局随机状态的固定轮次采样顺序。"""
+
+    generator = np.random.Generator(np.random.PCG64(seed * 1_000_003 + epoch * 97_409))
+    return tuple(int(value) for value in generator.permutation(size).tolist())
+
+
+def _sample_order_sha256(order: Sequence[int]) -> str:
+    values = np.asarray(order, dtype="<i8")
+    return hashlib.sha256(values.tobytes(order="C")).hexdigest()
+
+
+def _batch_orders(order: Sequence[int], batch_size: int) -> tuple[tuple[int, ...], ...]:
+    return tuple(
+        tuple(order[start : start + batch_size]) for start in range(0, len(order), batch_size)
+    )
+
+
+def _capture_random_state(torch: Any) -> Mapping[str, object]:
+    return {
+        "python": random.getstate(),
+        "numpy": np.random.get_state(),
+        "torch_cpu": torch.get_rng_state(),
+        "torch_cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [],
+        "cuda_device_count": int(torch.cuda.device_count()) if torch.cuda.is_available() else 0,
+    }
+
+
+def _restore_random_state(state: object, torch: Any) -> None:
+    if not isinstance(state, Mapping):
+        raise R2FinalPhysicsFitError("恢复检查点缺少完整随机状态")
+    required = {"python", "numpy", "torch_cpu", "torch_cuda", "cuda_device_count"}
+    if set(state) != required:
+        raise R2FinalPhysicsFitError("恢复检查点随机状态字段不完整")
+    random.setstate(state["python"])
+    np.random.set_state(state["numpy"])
+    torch.set_rng_state(state["torch_cpu"])
+    cuda_states = state["torch_cuda"]
+    expected_cuda_count = int(state["cuda_device_count"])
+    current_cuda_count = int(torch.cuda.device_count()) if torch.cuda.is_available() else 0
+    if expected_cuda_count != current_cuda_count:
+        raise R2FinalPhysicsFitError("恢复检查点的 CUDA 随机状态设备数不一致")
+    if expected_cuda_count:
+        if not isinstance(cuda_states, list) or len(cuda_states) != expected_cuda_count:
+            raise R2FinalPhysicsFitError("恢复检查点的 CUDA 随机状态不完整")
+        torch.cuda.set_rng_state_all(cuda_states)
+
+
 def _tensor_batch(split: PhysicsSplit, indices: Any, torch: Any, device: Any) -> dict[str, Any]:
     values = np.asarray(indices, dtype=np.int64)
     return {
-        "observations": torch.tensor(split.observations[values], dtype=torch.float32, device=device),
+        "observations": torch.tensor(
+            split.observations[values], dtype=torch.float32, device=device
+        ),
         "valid": torch.tensor(split.valid_mask[values], dtype=torch.bool, device=device),
         "route": torch.tensor(split.route_index[values], dtype=torch.int64, device=device),
-        "qlog": torch.tensor(
-            split.qlog_truth_available[values], dtype=torch.bool, device=device
-        ),
+        "qlog": torch.tensor(split.qlog_truth_available[values], dtype=torch.bool, device=device),
         "truths": {
             name: torch.tensor(array[values], dtype=torch.float32, device=device)
             for name, array in split.truths.items()
@@ -1184,12 +1412,8 @@ def _component_losses(
         total = total + config.training.state_weight * state
         if include_residual:
             total = total + config.training.residual_weight * residual
-        scalars[f"{prefix}/{name}/state_loss"] = float(
-            state.detach().float().item()
-        )
-        scalars[f"{prefix}/{name}/residual_loss"] = float(
-            residual.detach().float().item()
-        )
+        scalars[f"{prefix}/{name}/state_loss"] = float(state.detach().float().item())
+        scalars[f"{prefix}/{name}/residual_loss"] = float(residual.detach().float().item())
     scalars[f"{prefix}/loss"] = float(total.detach().float().item())
     return total, scalars
 
@@ -1206,6 +1430,13 @@ def _losses(
     valid = batch["valid"]
     route = batch["route"]
     qlog = batch["qlog"]
+    residual_contexts = {
+        name: ResidualObservationContext(
+            observed_state=batch["truths"][name],
+            observed_mask=batch["masks"][name],
+        )
+        for name in batch["truths"]
+    }
     outputs: dict[str, Any] = {}
     if config.mode == "formal":
         outputs[EXPERT_SHARED] = system.shared(observations, valid)
@@ -1215,15 +1446,16 @@ def _losses(
     for route_name, expert_name in active_experts:
         active = route == ROUTE_TO_INDEX[route_name]
         outputs[expert_name] = system.protocol_experts[route_name](
-            observations, valid, active
+            observations,
+            valid,
+            active,
+            residual_context=residual_contexts[expert_name],
         )
-    total, scalars = _component_losses(
-        outputs, batch, config, torch, prefix="routed"
-    )
+    total, scalars = _component_losses(outputs, batch, config, torch, prefix="routed")
     if config.mode == "formal":
         if unified_control is None or history_control is None:
             raise R2FinalPhysicsFitError("正式训练缺少统一或历史控制支路")
-        unified_output = unified_control(observations, valid)
+        unified_output = unified_control(observations, valid, residual_contexts=residual_contexts)
         unified_outputs = {
             EXPERT_SHARED: unified_output.shared,
             EXPERT_TCP: unified_output.protocol_outputs["TCP"],
@@ -1238,7 +1470,10 @@ def _losses(
         for route_name, expert_name in (("TCP", EXPERT_TCP), ("UDP", EXPERT_UDP)):
             active = route == ROUTE_TO_INDEX[route_name]
             history_outputs[expert_name] = history_control.protocol_experts[route_name](
-                observations, valid, active
+                observations,
+                valid,
+                active,
+                residual_context=residual_contexts[expert_name],
             )
         history_loss, history_scalars = _component_losses(
             history_outputs,
@@ -1273,9 +1508,7 @@ def _evaluate(
     with torch.no_grad():
         for indices in _loader(split, config, torch, shuffle=False):
             batch = _tensor_batch(split, indices, torch, device)
-            _, scalars = _losses(
-                system, unified_control, history_control, batch, config, torch
-            )
+            _, scalars = _losses(system, unified_control, history_control, batch, config, torch)
             weight = len(indices)
             count += weight
             for name, value in scalars.items():
@@ -1406,38 +1639,41 @@ def _checkpoint(
     config: PhysicsFitConfig,
     torch: Any,
     step: int,
-    epoch: int,
+    next_epoch: int,
+    next_batch: int,
+    next_sample_order: Sequence[int],
 ) -> None:
     capacity = _parameter_receipt(system, unified_control, history_control)
     residual_receipt = fixed_residual_zero_collapse_receipt(system)
     if not bool(residual_receipt["formal_tcp_udp_dynamics_ready"]):
         raise R2FinalPhysicsFitError("未通过固定残差零坍缩门禁，不得写正式检查点")
     fit_config_sha256 = config.file_sha256
-    checkpoint_binding = {
-        "config_sha256": _config_sha256(config),
-        "fit_config_sha256": fit_config_sha256,
-        "input_sha256": config.data.artifact_payload_merkle_sha256,
-        "seed": config.seed,
-        "mode": config.mode,
+    binding = checkpoint_binding(config)
+    sampler_state = {
+        "schema_version": "r2_epoch_sample_order_v1",
+        "algorithm": "numpy_pcg64_seed_epoch_v1",
+        "epoch": next_epoch,
+        "next_batch": next_batch,
+        "sample_order": list(next_sample_order),
+        "sample_order_sha256": _sample_order_sha256(next_sample_order),
     }
     payload = {
         "schema_version": SCHEMA_VERSION,
         "config_sha256": _config_sha256(config),
         "fit_config_sha256": fit_config_sha256,
         "step": step,
-        "epoch": epoch,
+        "next_epoch": next_epoch,
+        "next_batch": next_batch,
+        "sampler_state": sampler_state,
+        "random_state": _capture_random_state(torch),
         "routed_system": system.state_dict(),
-        "unified_control": (
-            unified_control.state_dict() if unified_control is not None else None
-        ),
-        "history_control": (
-            history_control.state_dict() if history_control is not None else None
-        ),
+        "unified_control": (unified_control.state_dict() if unified_control is not None else None),
+        "history_control": (history_control.state_dict() if history_control is not None else None),
         "optimizer": optimizer.state_dict(),
         "quic_expert_ready": config.quic_expert_ready_after_fit,
         "capacity_receipt": capacity,
         "zero_collapse_receipt": residual_receipt,
-        "checkpoint_binding": checkpoint_binding,
+        "checkpoint_binding": binding,
     }
     temporary = config.output_dir / "checkpoint-latest.pt.tmp"
     torch.save(payload, temporary)
@@ -1453,18 +1689,12 @@ def _write_immutable_json(
     path = _lexical_absolute(path)
     root = _lexical_absolute(trusted_root)
     _relative_to_trusted_root(path, root, "不可变检查点绑定清单")
-    encoded = (
-        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
-    ).encode("utf-8")
+    encoded = (json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode(
+        "utf-8"
+    )
     expected_sha256 = hashlib.sha256(encoded).hexdigest()
     temporary_name = f".{path.name}.{secrets.token_hex(16)}.tmp"
-    temporary_flags = (
-        os.O_RDWR
-        | os.O_CREAT
-        | os.O_EXCL
-        | os.O_CLOEXEC
-        | os.O_NOFOLLOW
-    )
+    temporary_flags = os.O_RDWR | os.O_CREAT | os.O_EXCL | os.O_CLOEXEC | os.O_NOFOLLOW
     with _open_anchored_directory(
         path.parent,
         "不可变检查点绑定清单",
@@ -1485,13 +1715,8 @@ def _write_immutable_json(
                 os.fsync(destination.fileno())
                 destination.seek(0)
                 written = destination.read()
-                if (
-                    written != encoded
-                    or hashlib.sha256(written).hexdigest() != expected_sha256
-                ):
-                    raise R2FinalPhysicsFitError(
-                        "不可变检查点绑定清单临时文件校验失败"
-                    )
+                if written != encoded or hashlib.sha256(written).hexdigest() != expected_sha256:
+                    raise R2FinalPhysicsFitError("不可变检查点绑定清单临时文件校验失败")
             verify_directory_chain()
             try:
                 os.link(
@@ -1524,15 +1749,11 @@ def _write_immutable_json(
                         or (existing_stat.st_dev, existing_stat.st_ino)
                         != (named_stat.st_dev, named_stat.st_ino)
                     ):
-                        raise R2FinalPhysicsFitError(
-                            "既有不可变检查点绑定清单身份不稳定"
-                        )
+                        raise R2FinalPhysicsFitError("既有不可变检查点绑定清单身份不稳定")
                     existing = existing_source.read()
                 verify_directory_chain()
                 if existing != encoded:
-                    raise R2FinalPhysicsFitError(
-                        f"不可变检查点绑定清单已存在且内容不同：{path}"
-                    )
+                    raise R2FinalPhysicsFitError(f"不可变检查点绑定清单已存在且内容不同：{path}")
             os.fsync(directory_descriptor)
             verify_directory_chain()
             try:
@@ -1562,17 +1783,9 @@ def _write_immutable_json(
 
 def _freeze_checkpoint_binding(config: PhysicsFitConfig) -> Mapping[str, object]:
     checkpoint = config.output_dir / "checkpoint-latest.pt"
-    checkpoint_sha256 = _file_sha256(
-        checkpoint, trusted_root=config.project_root
-    )
+    checkpoint_sha256 = _file_sha256(checkpoint, trusted_root=config.project_root)
     fit_config_sha256 = config.file_sha256
-    checkpoint_binding = {
-        "config_sha256": _config_sha256(config),
-        "fit_config_sha256": fit_config_sha256,
-        "input_sha256": config.data.artifact_payload_merkle_sha256,
-        "seed": config.seed,
-        "mode": config.mode,
-    }
+    binding = checkpoint_binding(config)
     payload = {
         "schema_version": "flow_probe_r2_checkpoint_binding_manifest_v1",
         "status": "frozen",
@@ -1585,7 +1798,8 @@ def _freeze_checkpoint_binding(config: PhysicsFitConfig) -> Mapping[str, object]
         "input_sha256": config.data.artifact_payload_merkle_sha256,
         "seed": config.seed,
         "mode": config.mode,
-        "checkpoint_binding": checkpoint_binding,
+        "implementation_artifact_sha256": binding["implementation_artifact_sha256"],
+        "checkpoint_binding": binding,
     }
     manifest_path = config.output_dir / "checkpoint-binding-manifest.json"
     manifest_sha256 = _write_immutable_json(
@@ -1626,33 +1840,26 @@ def execute(config: PhysicsFitConfig) -> Mapping[str, object]:
     config.output_dir.mkdir(parents=True, exist_ok=True)
     frozen_manifest = config.output_dir / "checkpoint-binding-manifest.json"
     if frozen_manifest.exists():
-        raise R2FinalPhysicsFitError(
-            "输出目录已有不可变检查点绑定清单，禁止继续覆盖训练"
-        )
+        raise R2FinalPhysicsFitError("输出目录已有不可变检查点绑定清单，禁止继续覆盖训练")
     system = build_system(config)
     residual_receipt = fixed_residual_zero_collapse_receipt(system)
     _atomic_json(config.output_dir / "zero-collapse-receipt.json", residual_receipt)
-    if config.mode == "formal" and not bool(
-        residual_receipt["formal_tcp_udp_dynamics_ready"]
-    ):
+    if config.mode == "formal" and not bool(residual_receipt["formal_tcp_udp_dynamics_ready"]):
         raise R2FinalPhysicsFitError(
-            "固定协议动力学残差尚未闭合："
-            + str(residual_receipt["blocking_reason"])
+            "固定协议动力学残差尚未闭合：" + str(residual_receipt["blocking_reason"])
         )
     splits = load_splits(config)
-    unified_control = (
-        build_unified_control_system(config) if config.mode == "formal" else None
-    )
-    history_control = (
-        build_history_control_system(config) if config.mode == "formal" else None
-    )
-    capacity_receipt = _parameter_receipt(
-        system, unified_control, history_control
-    )
+    unified_control = build_unified_control_system(config) if config.mode == "formal" else None
+    history_control = build_history_control_system(config) if config.mode == "formal" else None
+    capacity_receipt = _parameter_receipt(system, unified_control, history_control)
+    training_binding = checkpoint_binding(config)
     binding = {
         "schema_version": SCHEMA_VERSION,
         "config_sha256": _config_sha256(config),
+        "fit_config_sha256": config.file_sha256,
         "input_sha256": config.data.artifact_payload_merkle_sha256,
+        "implementation_artifact_sha256": training_binding["implementation_artifact_sha256"],
+        "checkpoint_binding": training_binding,
         "mode": config.mode,
         "seed": config.seed,
         "split_counts": {name: len(split) for name, split in splits.items()},
@@ -1685,10 +1892,13 @@ def execute(config: PhysicsFitConfig) -> Mapping[str, object]:
     )
     step = 0
     start_epoch = 0
+    start_batch = 0
+    resume_order: tuple[int, ...] | None = None
+    resume_random_state: object | None = None
     checkpoint = config.output_dir / "checkpoint-latest.pt"
     if checkpoint.is_file():
         values = torch.load(checkpoint, map_location="cpu", weights_only=False)
-        if values.get("config_sha256") != _config_sha256(config):
+        if values.get("checkpoint_binding") != training_binding:
             raise R2FinalPhysicsFitError("恢复检查点与当前配置绑定不一致")
         system.load_state_dict(values["routed_system"], strict=True)
         if unified_control is not None:
@@ -1705,8 +1915,43 @@ def execute(config: PhysicsFitConfig) -> Mapping[str, object]:
             raise R2FinalPhysicsFitError("恢复检查点的容量收据不一致")
         optimizer.load_state_dict(values["optimizer"])
         step = int(values["step"])
-        start_epoch = int(values["epoch"])
+        start_epoch = int(values["next_epoch"])
+        start_batch = int(values["next_batch"])
+        sampler_state = values.get("sampler_state")
+        if not isinstance(sampler_state, Mapping):
+            raise R2FinalPhysicsFitError("恢复检查点缺少确定性采样器状态")
+        if (
+            sampler_state.get("schema_version") != "r2_epoch_sample_order_v1"
+            or sampler_state.get("algorithm") != "numpy_pcg64_seed_epoch_v1"
+            or int(sampler_state.get("epoch", -1)) != start_epoch
+            or int(sampler_state.get("next_batch", -1)) != start_batch
+        ):
+            raise R2FinalPhysicsFitError("恢复检查点采样器坐标不一致")
+        stored_order = sampler_state.get("sample_order")
+        if not isinstance(stored_order, list) or not all(
+            isinstance(value, int) and not isinstance(value, bool) for value in stored_order
+        ):
+            raise R2FinalPhysicsFitError("恢复检查点采样顺序非法")
+        resume_order = tuple(stored_order)
+        if sampler_state.get("sample_order_sha256") != _sample_order_sha256(resume_order):
+            raise R2FinalPhysicsFitError("恢复检查点采样顺序摘要不一致")
+        expected_order = (
+            _epoch_sample_order(len(splits["train-fit"]), config.seed, start_epoch)
+            if start_epoch < config.training.epochs
+            else tuple()
+        )
+        if resume_order != expected_order:
+            raise R2FinalPhysicsFitError("恢复检查点采样顺序与冻结算法不一致")
+        if start_epoch < 0 or start_epoch > config.training.epochs:
+            raise R2FinalPhysicsFitError("恢复检查点下一轮次越界")
+        if start_batch < 0 or start_batch > len(
+            _batch_orders(resume_order, config.training.batch_size)
+        ):
+            raise R2FinalPhysicsFitError("恢复检查点下一批位置越界")
+        resume_random_state = values.get("random_state")
     logger = _MetricLogger(config)
+    if resume_random_state is not None:
+        _restore_random_state(resume_random_state, torch)
     started = time.perf_counter()
     try:
         for epoch in range(start_epoch, config.training.epochs):
@@ -1715,7 +1960,15 @@ def execute(config: PhysicsFitConfig) -> Mapping[str, object]:
                 unified_control.train()
             if history_control is not None:
                 history_control.train()
-            for indices in _loader(splits["train-fit"], config, torch, shuffle=True):
+            sample_order = (
+                resume_order
+                if epoch == start_epoch and resume_order is not None
+                else _epoch_sample_order(len(splits["train-fit"]), config.seed, epoch)
+            )
+            batch_orders = _batch_orders(sample_order, config.training.batch_size)
+            first_batch = start_batch if epoch == start_epoch else 0
+            for batch_index in range(first_batch, len(batch_orders)):
+                indices = batch_orders[batch_index]
                 batch = _tensor_batch(splits["train-fit"], indices, torch, device)
                 optimizer.zero_grad(set_to_none=True)
                 loss, scalars = _losses(
@@ -1746,6 +1999,8 @@ def execute(config: PhysicsFitConfig) -> Mapping[str, object]:
                         torch,
                         step,
                         epoch,
+                        batch_index + 1,
+                        sample_order,
                     )
             calibration = _evaluate(
                 system,
@@ -1770,6 +2025,12 @@ def execute(config: PhysicsFitConfig) -> Mapping[str, object]:
                 torch,
                 step,
                 epoch + 1,
+                0,
+                (
+                    _epoch_sample_order(len(splits["train-fit"]), config.seed, epoch + 1)
+                    if epoch + 1 < config.training.epochs
+                    else tuple()
+                ),
             )
         validation = _evaluate(
             system,

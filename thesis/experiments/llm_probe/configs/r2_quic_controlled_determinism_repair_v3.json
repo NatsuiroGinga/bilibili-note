@@ -1,0 +1,115 @@
+{
+  "schema_version": "flow_probe_r2_quic_controlled_collection_userspace_v3",
+  "dataset_version": "r2-quic-controlled-userspace-v3",
+  "stage": "theory_selection",
+  "status": "determinism_repair_v3_pending",
+  "client_timeout_seconds": 240,
+  "determinism_contract": {
+    "contract_version": "flow_probe_r2_quic_four_tuple_contract_v3",
+    "schedule_mode": "fixed_sequence_epoch_v1",
+    "run_id_prefix": "r2-quic-determinism-repair-v3-run",
+    "gate_runs": [
+      {
+        "run_id": "r2-quic-determinism-repair-v3-run1-aioquic",
+        "target_connection_index": 12,
+        "implementation": "aioquic"
+      },
+      {
+        "run_id": "r2-quic-determinism-repair-v3-run2-quiche",
+        "target_connection_index": 32,
+        "implementation": "quiche"
+      },
+      {
+        "run_id": "r2-quic-determinism-repair-v3-run3-aioquic",
+        "target_connection_index": 12,
+        "implementation": "aioquic"
+      }
+    ],
+    "client_endpoint": {"host": "127.0.0.1", "port": 21012},
+    "proxy_listen_endpoint": {"host": "127.0.0.1", "port": 20012},
+    "proxy_upstream_endpoint": {"host": "127.0.0.1", "port": 22012},
+    "reference_server_endpoint": {"host": "127.0.0.1", "port": 4433},
+    "direction_seeds_by_target_index": {
+      "12": {
+        "client_to_server": 373387841787797959,
+        "server_to_client": 7996260466250834367
+      },
+      "32": {
+        "client_to_server": 8219132617497683263,
+        "server_to_client": 7852044573340421143
+      }
+    },
+    "process_state_scope": "per_connection_new_proxy_process_empty_state",
+    "server_exit_policy": "raw_zero_or_controller_sigterm_receipt_v1"
+  },
+  "tool_root": "runs/tools/r2-quic-controlled-v1",
+  "field_output_root": "runs/data-raw/r2-quic-controlled-field-userspace-v3",
+  "formal_output_root": "runs/data-raw/r2-quic-controlled-formal-userspace-v3",
+  "implementations": [
+    {"id": "aioquic", "version": "1.3.0", "role": "client_under_test", "qlog_observer": "client"},
+    {"id": "quiche", "version": "0.24.5", "role": "client_under_test", "qlog_observer": "client"}
+  ],
+  "reference_server": {
+    "implementation": "quiche",
+    "version": "0.24.5",
+    "role": "fixed_reference_server",
+    "listen_port": 4433
+  },
+  "network_contract": {
+    "impairment_backend": "deterministic_userspace_udp_proxy",
+    "implementation_layer": "userspace",
+    "isolation": "loopback_udp_proxy_per_connection",
+    "proxy_host": "127.0.0.1",
+    "proxy_port_base": 20000,
+    "reference_server_host": "127.0.0.1",
+    "queue_limit_packets": 1000,
+    "post_client_drain_seconds": 1.0,
+    "apply_both_directions": true,
+    "jitter_distribution": "deterministic_uniform_symmetric",
+    "rate_model": "per_direction_byte_serialization",
+    "capture_interface": "lo",
+    "capture_point": "loopback_client_proxy_leg",
+    "capture_direction": "both",
+    "deployment_observation": "pcap_only",
+    "training_truth": "client_qlog_only",
+    "impairment_audit_truth": "userspace_proxy_packet_schedule_and_drop_events",
+    "network_namespace_truth": false,
+    "kernel_netem_truth": false,
+    "kernel_queue_truth": false
+  },
+  "field_profiles": [
+    {"id": "p01", "delay_ms": 5, "jitter_ms": 0.0, "loss_percent": 0.0, "rate_mbit": 100},
+    {"id": "p02", "delay_ms": 20, "jitter_ms": 0.0, "loss_percent": 0.5, "rate_mbit": 100},
+    {"id": "p03", "delay_ms": 50, "jitter_ms": 0.0, "loss_percent": 0.0, "rate_mbit": 20},
+    {"id": "p04", "delay_ms": 100, "jitter_ms": 0.0, "loss_percent": 2.0, "rate_mbit": 100},
+    {"id": "p05", "delay_ms": 200, "jitter_ms": 0.0, "loss_percent": 2.0, "rate_mbit": 20}
+  ],
+  "formal_grid": {
+    "delay_ms": [5, 20, 50, 100, 200],
+    "jitter_ms": [0.0],
+    "loss_percent": [0.0, 0.5, 2.0],
+    "rate_mbit": [20, 100]
+  },
+  "payloads": [
+    {"id": "small", "bytes": 4194304},
+    {"id": "bulk", "bytes": 67108864}
+  ],
+  "field_seeds": [42, 43],
+  "formal_seeds": [42, 43, 44, 45, 46],
+  "partition": {
+    "unit": "implementation_x_profile",
+    "ordered_connection_counts": {"train_fit": 400, "calibration": 100, "development_validation": 100}
+  },
+  "storage": {
+    "minimum_free_bytes_before_field": 10737418240,
+    "minimum_free_bytes_before_formal": 21474836480
+  },
+  "truth_contract": {
+    "pto_missing_policy": "explicit_mask",
+    "pto_fill_forbidden": true,
+    "qlog_deployment_input_forbidden": true,
+    "proxy_truth_deployment_input_forbidden": true,
+    "final_test_visible": false,
+    "malicious_labels_present": false
+  }
+}

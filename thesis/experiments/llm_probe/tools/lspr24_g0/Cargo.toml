@@ -1,0 +1,15 @@
+[package]
+name = "lspr24_g0"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+description = "LSPR24 G0-D 确定性开发数据物化工具"
+
+[dependencies]
+arrow-array = "55.2.0"
+arrow-schema = "55.2.0"
+parquet = { version = "55.2.0", default-features = false, features = ["arrow"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sha2 = "0.10.9"
