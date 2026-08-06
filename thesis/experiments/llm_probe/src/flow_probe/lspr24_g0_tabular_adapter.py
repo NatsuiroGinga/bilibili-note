@@ -29,7 +29,7 @@ from flow_probe.tabular_baselines import (
 )
 
 
-G0_D_CONTRACT_VERSION = "lspr24-g0-v4-staged"
+G0_D_CONTRACT_VERSION = "lspr24-g0-v5-staged"
 DEVELOPMENT_SPLITS = (
     "train-fit",
     "architecture-selection",

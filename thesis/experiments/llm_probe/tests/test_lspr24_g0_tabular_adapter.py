@@ -2,6 +2,7 @@ import gzip
 import hashlib
 import importlib
 import json
+import re
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -11,7 +12,7 @@ import pytest
 import pyarrow.parquet as pq
 
 
-CONTRACT_VERSION = "lspr24-g0-v4-staged"
+CONTRACT_VERSION = "lspr24-g0-v5-staged"
 DEVELOPMENT_SPLITS = (
     "train-fit",
     "architecture-selection",
@@ -37,6 +38,30 @@ def _stable_order_sha256(rows: list[dict[str, object]]) -> str:
 
 def _adapter_module() -> object:
     return importlib.import_module("flow_probe.lspr24_g0_tabular_adapter")
+
+
+# G0-D 制品的生产者是 Rust 侧 development_router.rs，消费者是本 Python 适配器；
+# 两侧合同版本常量必须逐字一致，否则第二遍产出的制品会被适配器整体拒绝。
+_RUST_DEVELOPMENT_ROUTER = (
+    Path(__file__).resolve().parents[1] / "tools" / "lspr24_g0" / "src" / "development_router.rs"
+)
+
+
+def _rust_contract_version() -> str:
+    source = _RUST_DEVELOPMENT_ROUTER.read_text(encoding="utf-8")
+    match = re.search(r'LSPR24_G0_CONTRACT_VERSION:\s*&str\s*=\s*"([^"]+)"', source)
+    assert match is not None, f"未在 {_RUST_DEVELOPMENT_ROUTER} 找到 LSPR24_G0_CONTRACT_VERSION"
+    return match.group(1)
+
+
+def test_python_adapter_contract_version_matches_rust_producer_constant() -> None:
+    """跨语言合同版本一致性：Python 适配器常量必须等于 Rust 生产者常量。"""
+
+    adapter = _adapter_module()
+    rust_version = _rust_contract_version()
+
+    assert rust_version == adapter.G0_D_CONTRACT_VERSION
+    assert rust_version == CONTRACT_VERSION
 
 
 def _write_json(path: Path, value: object) -> None:
