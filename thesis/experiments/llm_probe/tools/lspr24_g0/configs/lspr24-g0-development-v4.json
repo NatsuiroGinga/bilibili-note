@@ -1,7 +1,7 @@
 {
   "schema_version": "lspr24-g0-development-config-v2",
-  "contract_version": "lspr24-g0-v4-staged",
-  "contract_sha256": "6ba37e7be3765d876977e95114adebd0b185d05b1b2311ed0c7c6236e0ca8389",
+  "contract_version": "lspr24-g0-v5-staged",
+  "contract_sha256": "877488f3529c6c862b060a74782d1904aae81512ea1169c713ba20d8c3f31a0e",
   "parquet_path": "data/raw/lspr24-v1/lspr24_v2.parquet",
   "split_receipt_path": "runs/lspr24-g0-d/INSTANTIATE_RUN_ID/receipts/development-split-receipt.json",
   "output_path": "runs/lspr24-g0-d/INSTANTIATE_RUN_ID/views/development-rows.jsonl",

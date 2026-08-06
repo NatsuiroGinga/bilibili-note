@@ -9,10 +9,10 @@ use sha2::{Digest, Sha256};
 use crate::Sha256Digest;
 
 /// 当前分阶段合同版本。
-pub const LSPR24_G0_CONTRACT_VERSION: &str = "lspr24-g0-v4-staged";
+pub const LSPR24_G0_CONTRACT_VERSION: &str = "lspr24-g0-v5-staged";
 /// 当前分阶段合同 SHA-256。
 pub const LSPR24_G0_CONTRACT_SHA256: &str =
-    "6ba37e7be3765d876977e95114adebd0b185d05b1b2311ed0c7c6236e0ca8389";
+    "877488f3529c6c862b060a74782d1904aae81512ea1169c713ba20d8c3f31a0e";
 
 /// 无标签切分收据中的开发成员标识。
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
