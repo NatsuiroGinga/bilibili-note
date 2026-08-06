@@ -4,5 +4,31 @@
       "Bash(cp /Users/bilibili/Downloads/2504.13592v2.pdf /Users/bilibili/personal/note/raw/papers/)",
       "Bash(pdftotext -layout /Users/bilibili/personal/note/raw/papers/2504.13592v2.pdf -)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/prettier_guard.py\"",
+            "timeout": 5000
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/precompact_snapshot.py\"",
+            "timeout": 8000
+          }
+        ]
+      }
+    ]
   }
 }

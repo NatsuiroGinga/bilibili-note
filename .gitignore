@@ -36,6 +36,20 @@ output/pdf-md/
 
 # 实验缓存与本地下载制品
 thesis/experiments/__pycache__/
+thesis/experiments/llm_probe/**/*/target/
+thesis/experiments/llm_probe/**/*/__pycache__/
+thesis/experiments/llm_probe/**/*/tmp/
+thesis/experiments/llm_probe/**/*/*.pyc
+thesis/experiments/llm_probe/artifacts/
+thesis/experiments/llm_probe/*.tmp
+thesis/experiments/llm_probe/*.log
+tmp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*.swn
+*.xaa
 mininet/
 ns-allinone-*.tar.bz2
 ns3/*.tar.bz2
