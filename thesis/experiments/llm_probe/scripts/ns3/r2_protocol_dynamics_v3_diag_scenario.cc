@@ -27,7 +27,10 @@ using namespace ns3;
 
 namespace {
 
-constexpr const char *kMainSchema = "flow_probe_r2_ns3_main_v3_diag";
+constexpr const char *kMainSchema = "flow_probe_r2_ns3_protocol_windows_v3";
+// 诊断量写入独立旁车 CSV，主表保持与 v3 完全一致的 46 列，
+// 以便 _validate_main 精确表头校验通过，并可与 v3 同参数运行逐值比对。
+constexpr const char *kDiagSchema = "flow_probe_r2_ns3_diag_window_observables_v1";
 constexpr const char *kTcpSchema = "flow_probe_r2_ns3_tcp_sender_windows_v2";
 constexpr const char *kNs3Version = "3.48";
 constexpr const char *kTcpCongestionControl = "ns3::TcpNewReno";
@@ -73,6 +76,16 @@ bool IsHexSha256(const std::string &value) {
            return (character >= '0' && character <= '9') ||
                   (character >= 'a' && character <= 'f');
          });
+}
+
+// 旁车路径由主表路径推导，保证与 main.csv 落在同一运行目录，
+// 无需正式运行器额外传参。
+std::string DeriveDiagOutputPath(const std::string &mainOutputPath) {
+  const std::string::size_type slash = mainOutputPath.find_last_of('/');
+  if (slash == std::string::npos) {
+    return "diag-window-observables.csv";
+  }
+  return mainOutputPath.substr(0, slash + 1) + "diag-window-observables.csv";
 }
 
 uint64_t MbpsToBps(double value) {
@@ -168,8 +181,10 @@ public:
       : m_config(config), m_states(config.senderCount),
         m_udpRegistered(config.senderCount, false),
         m_udpPhaseOffsetTimeSteps(config.senderCount, 0),
-        m_mainOutput(config.outputPath), m_tcpOutput(config.tcpOutputPath) {
-    if (!m_mainOutput.is_open() || !m_tcpOutput.is_open()) {
+        m_mainOutput(config.outputPath), m_tcpOutput(config.tcpOutputPath),
+        m_diagOutput(DeriveDiagOutputPath(config.outputPath)) {
+    if (!m_mainOutput.is_open() || !m_tcpOutput.is_open() ||
+        !m_diagOutput.is_open()) {
       throw std::runtime_error("无法创建 v2 输出文件");
     }
     m_mainOutput
@@ -196,9 +211,11 @@ public:
            "truth_udp_actual_send_packets,truth_udp_actual_send_bytes,"
            "truth_udp_app_drop_packets,truth_udp_app_drop_bytes,"
            "truth_udp_backlog_applicable,truth_udp_backlog_start_bytes,"
-           "truth_udp_backlog_end_bytes,"
-           "diag_queue_peak_l3_bytes,diag_queue_peak_packets,"
-           "diag_queue_nonzero_seconds,diag_queue_time_avg_l3_bytes\n";
+           "truth_udp_backlog_end_bytes\n";
+    m_diagOutput << "schema_version,physics_group_sha256,transport_family,"
+                    "window_index,diag_queue_peak_l3_bytes,"
+                    "diag_queue_peak_packets,diag_queue_nonzero_seconds,"
+                    "diag_queue_time_avg_l3_bytes\n";
     m_tcpOutput
         << "schema_version,physics_group_sha256,matrix_config_sha256,"
            "tcp_truth_contract_sha256,split,run_seed,transport_family,"
@@ -846,14 +863,19 @@ private:
     } else {
       m_mainOutput << ",,,,,,,,,";
     }
+    m_mainOutput << '\n';
+
+    // 诊断量写入旁车 CSV，主表保持 46 列不变。
     const double windowSeconds = m_config.windowSeconds;
-    m_mainOutput << ',' << m_windowPeakQueueBytes << ','
-                 << m_windowPeakQueuePackets << ','
+    m_diagOutput << kDiagSchema << ',' << m_config.physicsGroupSha256 << ','
+                 << m_config.transportFamily << ',' << m_windowIndex << ','
+                 << m_windowPeakQueueBytes << ',' << m_windowPeakQueuePackets
+                 << ',' << std::fixed << std::setprecision(9)
                  << m_windowQueueNonzeroSeconds << ','
                  << (windowSeconds > 0.0
                          ? m_windowQueueByteSeconds / windowSeconds
-                         : 0.0);
-    m_mainOutput << '\n';
+                         : 0.0)
+                 << '\n';
 
     if (m_config.transportFamily == "TCP") {
       for (uint32_t index = 0; index < m_states.size(); ++index) {
@@ -922,6 +944,7 @@ private:
   std::vector<int64_t> m_udpPhaseOffsetTimeSteps;
   std::ofstream m_mainOutput;
   std::ofstream m_tcpOutput;
+  std::ofstream m_diagOutput;
   std::ofstream m_queueTraceOutput;
   uint32_t m_windowIndex{0};
   uint64_t m_currentQueueBytes{0};
