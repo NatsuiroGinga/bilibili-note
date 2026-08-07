@@ -11,6 +11,9 @@
 **/*.pyc
 .Codex/tools/**/node_modules/
 
+# 第三方工具构建源码（离线 bundle 解压产物，非实验制品；实验输出目录不在此列）
+thesis/experiments/llm_probe/runs/tools/*/
+
 # 编辑器、会话缓存和临时渲染产物
 .obsidian/
 .claudian/

@@ -1,4 +1,8 @@
 {
+  "claudeMdExcludes": [
+    "**/.claude/rules/go-code-review.md",
+    "**/.claude/rules/go-error-handling.md"
+  ],
   "permissions": {
     "allow": [
       "Bash(cp /Users/bilibili/Downloads/2504.13592v2.pdf /Users/bilibili/personal/note/raw/papers/)",
