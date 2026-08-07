@@ -63,6 +63,8 @@ struct ScenarioConfig {
   double burstOffSeconds{0.1};
   std::string outputPath{"r2-dynamics-v2-main.csv.partial"};
   std::string tcpOutputPath{"r2-dynamics-v2-tcp.csv.partial"};
+  uint32_t queueTraceIntervalMs{0};
+  std::string queueTracePath{};
 };
 
 bool IsHexSha256(const std::string &value) {
@@ -231,6 +233,7 @@ public:
   void Start() {
     Simulator::Schedule(Seconds(m_config.windowSeconds),
                         &WindowCollector::Flush, this);
+    StartQueueTrace();
   }
 
   void SetObservationInterface(uint32_t interface) {
@@ -769,6 +772,31 @@ private:
     m_lastQueueSampleTime = now;
   }
 
+  // 可选队列轨迹：按固定毫秒间隔只读采样当前队列占用，不参与任何
+  // 守恒计算或诊断量累积，默认关闭时不创建文件、不注册调度事件。
+  void StartQueueTrace() {
+    if (m_config.queueTraceIntervalMs == 0 || m_config.queueTracePath.empty()) {
+      return;
+    }
+    m_queueTraceOutput.open(m_config.queueTracePath);
+    NS_ABORT_MSG_IF(!m_queueTraceOutput.is_open(), "无法创建队列轨迹文件");
+    m_queueTraceOutput << "time_s,queue_l3_bytes,queue_packets\n";
+    ScheduleQueueTrace();
+  }
+
+  void ScheduleQueueTrace() {
+    Simulator::Schedule(MilliSeconds(m_config.queueTraceIntervalMs),
+                        &WindowCollector::SampleQueueTrace, this);
+  }
+
+  void SampleQueueTrace() {
+    m_queueTraceOutput << std::fixed << std::setprecision(6)
+                       << Simulator::Now().GetSeconds() << ','
+                       << m_currentQueueBytes << ',' << m_currentQueuePackets
+                       << '\n';
+    ScheduleQueueTrace();
+  }
+
   void Flush() {
     const Time windowEndTime = Simulator::Now();
     AccumulateQueueOccupancy();
@@ -894,6 +922,7 @@ private:
   std::vector<int64_t> m_udpPhaseOffsetTimeSteps;
   std::ofstream m_mainOutput;
   std::ofstream m_tcpOutput;
+  std::ofstream m_queueTraceOutput;
   uint32_t m_windowIndex{0};
   uint64_t m_currentQueueBytes{0};
   uint64_t m_windowStartQueueBytes{0};
@@ -1304,6 +1333,11 @@ int main(int argc, char *argv[]) {
   command.AddValue("queueLimitPackets", "队列上限", config.queueLimitPackets);
   command.AddValue("downstreamLossRate", "下游独立丢包率",
                    config.downstreamLossRate);
+  command.AddValue("queueTraceIntervalMs",
+                   "队列轨迹采样间隔毫秒，0 表示关闭",
+                   config.queueTraceIntervalMs);
+  command.AddValue("queueTracePath", "队列轨迹输出路径",
+                   config.queueTracePath);
   command.AddValue("senderCount", "发送者总数", config.senderCount);
   command.AddValue("benignSenderCount", "良性发送者数",
                    config.benignSenderCount);
