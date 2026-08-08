@@ -11,6 +11,7 @@ pub mod materialize;
 pub mod output;
 pub mod parquet_scan;
 pub mod receipt;
+pub mod screen;
 pub mod types;
 
 pub use canonical::{
@@ -49,6 +50,10 @@ pub use parquet_scan::{ScanError, TimeRow, TimeRowReader};
 pub use receipt::{
     ArtifactRef, GateConfig, GateId, GateReceipt, GateStatus, ReceiptError, parse_gate_config,
     parse_gate_receipt,
+};
+pub use screen::{
+    EndpointAssignment, EndpointDirection, NS_PER_MICROSECOND, NumericColumn, ScreenSourceError,
+    parse_external_marker, resolve_protected_endpoints, utc_ns_from_micros,
 };
 pub use types::{
     EndpointRoleOrder, IntegerOverflow, Sha256Digest, SortableRecord, SourceRowIndex,

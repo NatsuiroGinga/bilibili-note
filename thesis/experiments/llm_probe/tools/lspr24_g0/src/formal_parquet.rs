@@ -7,7 +7,7 @@ use std::fs::{self, File};
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
-use arrow_array::{Array, BooleanArray, Int32Array, Int64Array, RecordBatch, StringArray};
+use arrow_array::{Array, Int32Array, Int64Array, RecordBatch, StringArray};
 use arrow_schema::{DataType, Schema};
 use parquet::arrow::ProjectionMask;
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
@@ -18,7 +18,10 @@ use crate::development_router::{
     DevelopmentMemberId, DevelopmentSegment, LSPR24_G0_CONTRACT_SHA256,
     LSPR24_G0_CONTRACT_VERSION,
 };
-use crate::{OutputError, PartialOutput, Sha256Digest};
+use crate::{
+    NumericColumn, OutputError, PartialOutput, ScreenSourceError, Sha256Digest,
+    parse_external_marker, resolve_protected_endpoints, utc_ns_from_micros,
+};
 
 /// 正式开发配置模式版本。
 pub const FORMAL_DEVELOPMENT_CONFIG_SCHEMA_VERSION: &str =
@@ -187,6 +190,7 @@ struct StoredSplitReceipt {
     split_algorithm_sha256: Sha256Digest,
     cut_ns: [i64; 4],
     development_member_count: u64,
+    quarantined_non_finite_feature_count: u64,
     #[serde(with = "hex_digest")]
     development_member_sha256: Sha256Digest,
     #[serde(with = "hex_digest")]
@@ -200,6 +204,7 @@ pub struct FormalDevelopmentMaterializationReceipt {
     development_row_count: u64,
     development_semantic_sha256: Sha256Digest,
     split_receipt_sha256: Sha256Digest,
+    quarantined_non_finite_feature_count: u64,
 }
 
 impl FormalDevelopmentMaterializationReceipt {
@@ -226,6 +231,12 @@ impl FormalDevelopmentMaterializationReceipt {
     pub const fn split_receipt_sha256(&self) -> Sha256Digest {
         self.split_receipt_sha256
     }
+
+    /// 返回因非有限数值特征而隔离的开发行数。
+    #[must_use]
+    pub const fn quarantined_non_finite_feature_count(&self) -> u64 {
+        self.quarantined_non_finite_feature_count
+    }
 }
 
 /// 第一阶段只读取无标签列，生成排他的外部切分收据。
@@ -234,7 +245,7 @@ pub fn prepare_unlabeled_development_split(
 ) -> Result<UnlabeledDevelopmentSplitReceipt, FormalEntryError> {
     config.validate()?;
     let parquet_sha256 = file_sha256(&config.parquet_path)?;
-    let facts = recompute_split_facts(&config.parquet_path)?;
+    let facts = recompute_split_facts(&config.parquet_path, &config.feature_columns)?;
     let mut stored = StoredSplitReceipt {
         schema_version: SPLIT_RECEIPT_SCHEMA_VERSION.to_owned(),
         contract_version: LSPR24_G0_CONTRACT_VERSION.to_owned(),
@@ -243,6 +254,7 @@ pub fn prepare_unlabeled_development_split(
         split_algorithm_sha256: split_algorithm_sha256(),
         cut_ns: facts.cut_ns,
         development_member_count: facts.development_member_count,
+        quarantined_non_finite_feature_count: facts.quarantined_non_finite_feature_count,
         development_member_sha256: facts.development_member_sha256,
         receipt_sha256: [0; 32],
     };
@@ -305,12 +317,15 @@ fn verify_split_binding(
     if stored.split_algorithm_sha256 != split_algorithm_sha256() {
         return Err(binding_mismatch("split_algorithm_sha256"));
     }
-    let facts = recompute_split_facts(&config.parquet_path)?;
+    let facts = recompute_split_facts(&config.parquet_path, &config.feature_columns)?;
     if stored.cut_ns != facts.cut_ns {
         return Err(binding_mismatch("cut_ns"));
     }
     if stored.development_member_count != facts.development_member_count {
         return Err(binding_mismatch("development_member_count"));
+    }
+    if stored.quarantined_non_finite_feature_count != facts.quarantined_non_finite_feature_count {
+        return Err(binding_mismatch("quarantined_non_finite_feature_count"));
     }
     if stored.development_member_sha256 != facts.development_member_sha256 {
         return Err(binding_mismatch("development_member_sha256"));
@@ -327,17 +342,38 @@ struct SplitFacts {
     cut_ns: [i64; 4],
     development_member_count: u64,
     development_member_sha256: Sha256Digest,
+    quarantined_non_finite_feature_count: u64,
 }
 
-fn recompute_split_facts(path: &Path) -> Result<SplitFacts, FormalEntryError> {
+fn recompute_split_facts(
+    path: &Path,
+    feature_columns: &[String],
+) -> Result<SplitFacts, FormalEntryError> {
     let mut active_seconds = BTreeSet::new();
-    for batch in read_projected_batches(path, &UNLABELED_COLUMNS)? {
+    let projected = projected_columns(feature_columns);
+    let projected_refs = projected.iter().map(String::as_str).collect::<Vec<_>>();
+    let mut quarantined_non_finite_feature_count = 0_u64;
+    let mut first_pass_source_row_index = 0_u64;
+    for batch in read_projected_batches(path, &projected_refs)? {
         let batch = batch?;
         let columns = UnlabeledBatch::try_new(&batch)?;
+        let features = FeatureBatch::try_new(&batch, feature_columns)?;
         for row in 0..batch.num_rows() {
-            if let Some(values) = columns.valid_row(row) {
+            if features.has_non_finite(row) {
+                quarantined_non_finite_feature_count = quarantined_non_finite_feature_count
+                    .checked_add(1)
+                    .ok_or(FormalEntryError::CountOverflow)?;
+                first_pass_source_row_index = first_pass_source_row_index
+                    .checked_add(1)
+                    .ok_or(FormalEntryError::CountOverflow)?;
+                continue;
+            }
+            if let Some(values) = columns.valid_row(row, first_pass_source_row_index)? {
                 active_seconds.insert(values.last_ns.div_euclid(BILLION));
             }
+            first_pass_source_row_index = first_pass_source_row_index
+                .checked_add(1)
+                .ok_or(FormalEntryError::CountOverflow)?;
         }
     }
     let seconds = active_seconds.into_iter().collect::<Vec<_>>();
@@ -347,11 +383,18 @@ fn recompute_split_facts(path: &Path) -> Result<SplitFacts, FormalEntryError> {
     member_hasher.update(b"lspr24-g0-development-members-v1\0");
     let mut development_member_count = 0_u64;
     let mut source_row_index = 0_u64;
-    for batch in read_projected_batches(path, &UNLABELED_COLUMNS)? {
+    for batch in read_projected_batches(path, &projected_refs)? {
         let batch = batch?;
         let columns = UnlabeledBatch::try_new(&batch)?;
+        let features = FeatureBatch::try_new(&batch, feature_columns)?;
         for row in 0..batch.num_rows() {
-            if let Some(values) = columns.valid_row(row) {
+            if features.has_non_finite(row) {
+                source_row_index = source_row_index
+                    .checked_add(1)
+                    .ok_or(FormalEntryError::CountOverflow)?;
+                continue;
+            }
+            if let Some(values) = columns.valid_row(row, source_row_index)? {
                 if values.last_ns < cut_ns[3] {
                     let member = DevelopmentMemberId::new(
                         sha256_bytes(values.flow_id.as_bytes()),
@@ -376,6 +419,7 @@ fn recompute_split_facts(path: &Path) -> Result<SplitFacts, FormalEntryError> {
         cut_ns,
         development_member_count,
         development_member_sha256: member_hasher.finalize().into(),
+        quarantined_non_finite_feature_count,
     })
 }
 
@@ -460,7 +504,7 @@ struct FormalOutputRow {
     raw_flow_id: String,
     source_row_index: u64,
     label: i32,
-    features: BTreeMap<String, i64>,
+    features: BTreeMap<String, f64>,
 }
 
 fn write_development_rows(
@@ -482,14 +526,20 @@ fn write_development_rows(
         let batch = batch?;
         let columns = FormalBatch::try_new(&batch, &config.feature_columns)?;
         for row in 0..batch.num_rows() {
-            let last_ns = columns.last_ns(row);
+            let last_ns = columns.last_ns(row)?;
             if last_ns.is_some_and(|value| value >= stored.cut_ns[3]) {
                 source_row_index = source_row_index
                     .checked_add(1)
                     .ok_or(FormalEntryError::CountOverflow)?;
                 continue;
             }
-            if let Some(values) = columns.unlabeled.valid_row(row) {
+            if columns.has_non_finite(row) {
+                source_row_index = source_row_index
+                    .checked_add(1)
+                    .ok_or(FormalEntryError::CountOverflow)?;
+                continue;
+            }
+            if let Some(values) = columns.unlabeled.valid_row(row, source_row_index)? {
                 let member = DevelopmentMemberId::new(
                     sha256_bytes(values.flow_id.as_bytes()),
                     source_row_index,
@@ -538,7 +588,17 @@ fn write_development_rows(
         development_row_count,
         development_semantic_sha256: output_hasher.finalize().into(),
         split_receipt_sha256: [0; 32],
+        quarantined_non_finite_feature_count: stored.quarantined_non_finite_feature_count,
     })
+}
+
+fn projected_columns(feature_columns: &[String]) -> Vec<String> {
+    let mut projected = UNLABELED_COLUMNS
+        .iter()
+        .map(|value| (*value).to_owned())
+        .collect::<Vec<_>>();
+    projected.extend(feature_columns.iter().cloned());
+    projected
 }
 
 struct ValidUnlabeledRow<'a> {
@@ -551,8 +611,8 @@ struct UnlabeledBatch {
     last: Int64Array,
     src_ip: StringArray,
     dst_ip: StringArray,
-    external_src: BooleanArray,
-    external_dst: BooleanArray,
+    external_src: StringArray,
+    external_dst: StringArray,
     src_port: Int32Array,
     dst_port: Int32Array,
     protocol: Int32Array,
@@ -566,8 +626,8 @@ impl UnlabeledBatch {
             last: int64_column(batch, "mTimestampLast")?,
             src_ip: string_column(batch, "SrcIP")?,
             dst_ip: string_column(batch, "DstIP")?,
-            external_src: bool_column(batch, "External_src")?,
-            external_dst: bool_column(batch, "External_dst")?,
+            external_src: string_column(batch, "External_src")?,
+            external_dst: string_column(batch, "External_dst")?,
             src_port: int32_column(batch, "SrcPort")?,
             dst_port: int32_column(batch, "DstPort")?,
             protocol: int32_column(batch, "Protocol")?,
@@ -575,80 +635,123 @@ impl UnlabeledBatch {
         })
     }
 
-    fn valid_row(&self, row: usize) -> Option<ValidUnlabeledRow<'_>> {
+    fn valid_row(
+        &self,
+        row: usize,
+        source_row_index: u64,
+    ) -> Result<Option<ValidUnlabeledRow<'_>>, FormalEntryError> {
         if self.start.is_null(row)
             || self.last.is_null(row)
             || self.src_ip.is_null(row)
             || self.dst_ip.is_null(row)
-            || self.external_src.is_null(row)
-            || self.external_dst.is_null(row)
             || self.src_port.is_null(row)
             || self.dst_port.is_null(row)
             || self.protocol.is_null(row)
             || self.flow_id.is_null(row)
         {
-            return None;
+            return Ok(None);
         }
-        let start_ns = self.start.value(row);
-        let last_ns = self.last.value(row);
+        let start_ns = timestamp_ns(self.start.value(row))?;
+        let last_ns = timestamp_ns(self.last.value(row))?;
         let src_port = self.src_port.value(row);
         let dst_port = self.dst_port.value(row);
         let protocol = self.protocol.value(row);
         let src_ip = self.src_ip.value(row);
         let dst_ip = self.dst_ip.value(row);
         let flow_id = self.flow_id.value(row);
+        let external_src = parse_external_marker(
+            (!self.external_src.is_null(row)).then(|| self.external_src.value(row)),
+            "External_src",
+            source_row_index,
+        )
+        .map_err(FormalEntryError::Screen)?;
+        let external_dst = parse_external_marker(
+            (!self.external_dst.is_null(row)).then(|| self.external_dst.value(row)),
+            "External_dst",
+            source_row_index,
+        )
+        .map_err(FormalEntryError::Screen)?;
         if start_ns > last_ns
             || !(0..=65_535).contains(&src_port)
             || !(0..=65_535).contains(&dst_port)
             || !(0..=255).contains(&protocol)
-            || src_ip.parse::<std::net::IpAddr>().is_err()
-            || dst_ip.parse::<std::net::IpAddr>().is_err()
-            || (self.external_src.value(row) && self.external_dst.value(row))
+            || (external_src && external_dst)
             || flow_id.is_empty()
         {
-            return None;
+            return Ok(None);
         }
-        Some(ValidUnlabeledRow { last_ns, flow_id })
+        resolve_protected_endpoints(
+            Some(src_ip),
+            Some(dst_ip),
+            Some(if external_src { "1" } else { "0" }),
+            Some(if external_dst { "1" } else { "0" }),
+            source_row_index,
+        )
+        .map_err(FormalEntryError::Screen)?;
+        Ok(Some(ValidUnlabeledRow { last_ns, flow_id }))
     }
 }
 
-struct FormalBatch {
-    unlabeled: UnlabeledBatch,
-    label: Int32Array,
-    features: Vec<(String, Int64Array)>,
+struct FeatureBatch<'a> {
+    features: Vec<(String, NumericColumn<'a>)>,
 }
 
-impl FormalBatch {
-    fn try_new(batch: &RecordBatch, feature_columns: &[String]) -> Result<Self, FormalEntryError> {
+impl<'a> FeatureBatch<'a> {
+    fn try_new(batch: &'a RecordBatch, feature_columns: &[String]) -> Result<Self, FormalEntryError> {
         let features = feature_columns
             .iter()
-            .map(|column| Ok((column.clone(), int64_column(batch, column)?)))
+            .map(|column| Ok((column.clone(), numeric_column(batch, column)?)))
             .collect::<Result<Vec<_>, FormalEntryError>>()?;
+        Ok(Self { features })
+    }
+
+    fn has_non_finite(&self, row: usize) -> bool {
+        self.features
+            .iter()
+            .any(|(_, values)| values.is_non_finite(row))
+    }
+}
+
+struct FormalBatch<'a> {
+    unlabeled: UnlabeledBatch,
+    label: Int32Array,
+    features: FeatureBatch<'a>,
+}
+
+impl<'a> FormalBatch<'a> {
+    fn try_new(batch: &'a RecordBatch, feature_columns: &[String]) -> Result<Self, FormalEntryError> {
         Ok(Self {
             unlabeled: UnlabeledBatch::try_new(batch)?,
             label: int32_column(batch, "Label")?,
-            features,
+            features: FeatureBatch::try_new(batch, feature_columns)?,
         })
     }
 
-    fn last_ns(&self, row: usize) -> Option<i64> {
-        (!self.unlabeled.last.is_null(row)).then(|| self.unlabeled.last.value(row))
+    fn last_ns(&self, row: usize) -> Result<Option<i64>, FormalEntryError> {
+        (!self.unlabeled.last.is_null(row))
+            .then(|| timestamp_ns(self.unlabeled.last.value(row)))
+            .transpose()
     }
 
     fn label(&self, row: usize) -> Option<i32> {
         (!self.label.is_null(row)).then(|| self.label.value(row))
     }
 
-    fn features(&self, row: usize) -> Result<BTreeMap<String, i64>, FormalEntryError> {
+    fn has_non_finite(&self, row: usize) -> bool {
+        self.features.has_non_finite(row)
+    }
+
+    fn features(&self, row: usize) -> Result<BTreeMap<String, f64>, FormalEntryError> {
         self.features
+            .features
             .iter()
             .map(|(name, values)| {
-                if values.is_null(row) {
-                    return Err(FormalEntryError::MissingDevelopmentFeature {
+                values
+                    .value_as_f64(row)
+                    .map(|value| (name.clone(), value))
+                    .ok_or_else(|| FormalEntryError::MissingDevelopmentFeature {
                         column: name.clone(),
-                    });
-                }
-                Ok((name.clone(), values.value(row)))
+                    })
             })
             .collect()
     }
@@ -719,8 +822,21 @@ fn string_column(batch: &RecordBatch, column: &str) -> Result<StringArray, Forma
     typed_column(batch, column, DataType::Utf8)
 }
 
-fn bool_column(batch: &RecordBatch, column: &str) -> Result<BooleanArray, FormalEntryError> {
-    typed_column(batch, column, DataType::Boolean)
+fn numeric_column<'a>(
+    batch: &'a RecordBatch,
+    column: &str,
+) -> Result<NumericColumn<'a>, FormalEntryError> {
+    let index = batch
+        .schema()
+        .fields()
+        .iter()
+        .position(|field| field.name() == column)
+        .ok_or_else(|| FormalEntryError::Schema(format!("缺少投影列 {column}")))?;
+    NumericColumn::try_new(column, batch.column(index).as_ref()).map_err(FormalEntryError::Screen)
+}
+
+fn timestamp_ns(value: i64) -> Result<i64, FormalEntryError> {
+    utc_ns_from_micros(value).map_err(FormalEntryError::Screen)
 }
 
 fn stored_receipt_sha256(stored: &StoredSplitReceipt) -> Result<Sha256Digest, FormalEntryError> {
@@ -785,6 +901,7 @@ pub enum FormalEntryError {
     Io { path: PathBuf, source: io::Error },
     Parquet(String),
     Schema(String),
+    Screen(ScreenSourceError),
     CutPrecondition,
     CountOverflow,
     Receipt(String),
@@ -803,6 +920,7 @@ impl Display for FormalEntryError {
             Self::Io { path, source } => write!(formatter, "读取 {} 失败：{source}", path.display()),
             Self::Parquet(message) => write!(formatter, "Parquet 读取失败：{message}"),
             Self::Schema(message) => write!(formatter, "Parquet 模式错误：{message}"),
+            Self::Screen(error) => write!(formatter, "真实源行错误：{error}"),
             Self::CutPrecondition => formatter.write_str("活动秒切点前置条件不成立"),
             Self::CountOverflow => formatter.write_str("正式开发计数溢出"),
             Self::Receipt(message) => write!(formatter, "切分收据错误：{message}"),
@@ -825,6 +943,7 @@ impl Error for FormalEntryError {
         match self {
             Self::Io { source, .. } => Some(source),
             Self::Output(error) => Some(error),
+            Self::Screen(error) => Some(error),
             _ => None,
         }
     }
