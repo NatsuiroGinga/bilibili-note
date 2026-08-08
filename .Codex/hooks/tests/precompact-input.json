@@ -1,0 +1,9 @@
+{
+  "session_id": "00000000-0000-0000-0000-000000000000",
+  "turn_id": "manual-test-turn",
+  "transcript_path": null,
+  "cwd": "/Users/bilibili/personal/note",
+  "hook_event_name": "PreCompact",
+  "model": "gpt-5.4",
+  "trigger": "manual"
+}

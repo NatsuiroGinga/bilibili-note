@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "checks": {
+    "inventory_count_unchanged": true,
+    "all_skill_file_hashes_unchanged": true,
+    "active_count_reduced_by_13": true,
+    "profile_has_exactly_13_unique_entries": true,
+    "profile_entries_all_disabled": true,
+    "profile_paths_match_p1_candidates": true,
+    "twenty_identical_groups_have_one_active_source": true,
+    "seventeen_divergent_groups_unchanged": true,
+    "explicit_skill_invocation_resolves_canonical_paths": true,
+    "plugin_install_enable_policy_unchanged": true,
+    "plugin_marketplace_set_unchanged": true,
+    "user_config_restored": true,
+    "project_config_absent": true,
+    "profile_permissions_are_0600": true
+  },
+  "counts": {
+    "inventory": 175,
+    "active_before": 134,
+    "active_after": 121,
+    "identical_groups": 20,
+    "divergent_groups": 17,
+    "profile_entries": 13
+  },
+  "notes": {
+    "plugin_exact_json_equal": false,
+    "plugin_exact_json_difference": "市场查询刷新了 chrome-devtools-mcp 的来源提交哈希；插件安装、启用、版本与策略未变。"
+  }
+}

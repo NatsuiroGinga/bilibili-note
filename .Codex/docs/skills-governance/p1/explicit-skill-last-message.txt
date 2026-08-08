@@ -1,0 +1,1 @@
+{"planning-with-files":"/Users/bilibili/.agents/skills/planning-with-files/SKILL.md","results-analysis":"/Users/bilibili/.agents/skills/results-analysis/SKILL.md","nature-data":"/Users/bilibili/.agents/skills/nature-data/SKILL.md"}

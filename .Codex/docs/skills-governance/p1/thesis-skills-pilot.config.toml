@@ -1,0 +1,4 @@
+# Skills-P1 只隔离逐字节相同的旧副本，不修改技能文件或调用策略。
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/planning-with-files/SKILL.md"
+enabled = false

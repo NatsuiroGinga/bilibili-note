@@ -1,0 +1,2 @@
+Filesystem        1B-blocks        Used   Available Use% Mounted on
+/dev/md0       107374182400 58235502592 49138679808  55% /root/autodl-tmp

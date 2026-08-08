@@ -1,0 +1,349 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "1785388247s since unix epoch",
+  "overallStatus": "fail",
+  "codexVersion": "0.144.5",
+  "checks": {
+    "app_server.status": {
+      "id": "app_server.status",
+      "category": "app-server",
+      "status": "ok",
+      "summary": "background server is not running",
+      "details": {
+        "control socket": "/Users/bilibili/.codex/app-server-control/app-server-control.sock",
+        "daemon state dir": "/Users/bilibili/.codex/app-server-daemon",
+        "mode": "ephemeral",
+        "pid file": "/Users/bilibili/.codex/app-server-daemon/app-server.pid (missing)",
+        "settings": "/Users/bilibili/.codex/app-server-daemon/settings.json (missing)",
+        "status": "not running",
+        "update-loop pid file": "/Users/bilibili/.codex/app-server-daemon/app-server-updater.pid (missing)"
+      },
+      "remediation": null,
+      "durationMs": 0
+    },
+    "auth.credentials": {
+      "id": "auth.credentials",
+      "category": "auth",
+      "status": "ok",
+      "summary": "auth is configured",
+      "details": {
+        "auth file": "/Users/bilibili/.codex/auth.json",
+        "auth storage mode": "File",
+        "stored API key": "false",
+        "stored ChatGPT tokens": "true",
+        "stored agent identity": "false",
+        "stored auth mode": "chatgpt"
+      },
+      "remediation": null,
+      "durationMs": 0
+    },
+    "config.load": {
+      "id": "config.load",
+      "category": "config",
+      "status": "warning",
+      "summary": "config loaded",
+      "details": {
+        "CODEX_HOME": "/Users/bilibili/.codex",
+        "config.toml": "/Users/bilibili/.codex/config.toml",
+        "config.toml parse": "ok",
+        "cwd": "/Users/bilibili/personal/note",
+        "enabled feature flags": "shell_tool, unified_exec, shell_snapshot, code_mode_host, terminal_resize_reflow, sqlite, hooks, enable_request_compression, multi_agent, apps, tool_search_always_defer_mcp_tools, tool_suggest, plugins, in_app_browser, browser_use, browser_use_full_cdp_access, browser_use_external, computer_use, remote_plugin, plugin_sharing, image_generation, resize_all_images, skill_mcp_dependency_install, mentions_v2, steer, guardian_approval, goals, collaboration_modes, tool_call_mcp_elicitation, auth_elicitation, personality, fast_mode, tui_app_server, remote_compaction_v2, workspace_dependencies",
+        "feature flag overrides": "none",
+        "feature flags enabled": "35",
+        "log dir": "/Users/bilibili/.codex/log",
+        "mcp servers": "8",
+        "model": "gpt-5.6-terra",
+        "model provider": "openai",
+        "sqlite home": "/Users/bilibili/.codex",
+        "startup warning": [
+          "Ignoring malformed agent role definition: duplicate agent role name `code-reviewer` declared in the same config layer",
+          "Ignoring malformed agent role definition: duplicate agent role name `literature-reviewer` declared in the same config layer",
+          "Ignoring malformed agent role definition: duplicate agent role name `rebuttal-writer` declared in the same config layer",
+          "Ignoring malformed agent role definition: duplicate agent role name `tdd-guide` declared in the same config layer"
+        ],
+        "startup warning MCP": "0",
+        "startup warning deprecated": "0",
+        "startup warning hooks": "0",
+        "startup warning plugins": "0",
+        "startup warning skills": "0",
+        "startup warnings": "4"
+      },
+      "remediation": null,
+      "durationMs": 0
+    },
+    "git.environment": {
+      "id": "git.environment",
+      "category": "git",
+      "status": "ok",
+      "summary": "git version 2.39.5 (Apple Git-154)",
+      "details": {
+        ".git entry": "directory",
+        "PATH git #1": "/usr/bin/git",
+        "PATH git entries": "1",
+        "git branch": "codex/ns3-pinn-m012-20260720",
+        "git build options": "git version 2.39.5 (Apple Git-154); cpu: arm64; no commit associated with this build; sizeof-long: 8; sizeof-size_t: 8; shell-path: /bin/sh; feature: fsmonitor--daemon",
+        "git exec path": "/Library/Developer/CommandLineTools/usr/libexec/git-core",
+        "git version": "git version 2.39.5 (Apple Git-154)",
+        "repo detected": "true",
+        "repo root": "/Users/bilibili/personal/note",
+        "selected git": "/usr/bin/git"
+      },
+      "remediation": null,
+      "durationMs": 167
+    },
+    "installation": {
+      "id": "installation",
+      "category": "install",
+      "status": "ok",
+      "summary": "installation looks consistent",
+      "details": {
+        "PATH codex #1": "/opt/homebrew/bin/codex",
+        "current executable": "/opt/homebrew/bin/codex",
+        "install context": "brew",
+        "managed by bun": "false",
+        "managed by npm": "false",
+        "managed by pnpm": "false",
+        "managed package root": "not set"
+      },
+      "remediation": null,
+      "durationMs": 3
+    },
+    "mcp.config": {
+      "id": "mcp.config",
+      "category": "mcp",
+      "status": "warning",
+      "summary": "MCP configuration has optional issues",
+      "details": {
+        "configured servers": "8",
+        "disabled servers": "1",
+        "optional reachability failed": "GitLab: https://git.bilibili.co/api/<redacted> (HEAD connect failed; GET connect failed)",
+        "stdio servers": "5",
+        "streamable_http servers": "3"
+      },
+      "remediation": "Set the missing MCP env vars or disable the affected server.",
+      "durationMs": 6125
+    },
+    "network.env": {
+      "id": "network.env",
+      "category": "network",
+      "status": "ok",
+      "summary": "network-related environment looks readable",
+      "details": {
+        "proxy env vars": "none"
+      },
+      "remediation": null,
+      "durationMs": 0
+    },
+    "network.provider_reachability": {
+      "id": "network.provider_reachability",
+      "category": "reachability",
+      "status": "ok",
+      "summary": "active provider endpoints are reachable over HTTP",
+      "details": {
+        "ChatGPT base URL": "https://chatgpt.com/backend-api/ reachable (HTTP 403)",
+        "reachability mode": "ChatGPT auth"
+      },
+      "remediation": null,
+      "durationMs": 1306
+    },
+    "network.websocket_reachability": {
+      "id": "network.websocket_reachability",
+      "category": "websocket",
+      "status": "warning",
+      "summary": "Responses WebSocket failed; HTTPS fallback may still work",
+      "details": {
+        "DNS": "2 IPv4, 0 IPv6, first IPv4",
+        "auth mode": "chatgpt",
+        "connect timeout": "15000 ms",
+        "endpoint": "wss://chatgpt.com/backend-api/<redacted>",
+        "handshake transport error": "network error: Connection reset by peer (os error 54)",
+        "model provider": "openai",
+        "provider name": "OpenAI",
+        "proxy env vars": "none",
+        "supports websockets": "true",
+        "wire API": "responses"
+      },
+      "remediation": "Check proxy, VPN, firewall, DNS, custom CA, and WebSocket policy support.",
+      "durationMs": 297
+    },
+    "runtime.provenance": {
+      "id": "runtime.provenance",
+      "category": "runtime",
+      "status": "ok",
+      "summary": "running brew on macos-aarch64",
+      "details": {
+        "commit": "unknown",
+        "current executable": "/opt/homebrew/bin/codex",
+        "install method": "brew",
+        "platform": "macos-aarch64",
+        "version": "0.144.5"
+      },
+      "remediation": null,
+      "durationMs": 0
+    },
+    "runtime.search": {
+      "id": "runtime.search",
+      "category": "search",
+      "status": "ok",
+      "summary": "search is OK (system)",
+      "details": {
+        "search command": "rg",
+        "search command readiness": "ripgrep 15.1.0",
+        "search provider": "system"
+      },
+      "remediation": null,
+      "durationMs": 57
+    },
+    "sandbox.helpers": {
+      "id": "sandbox.helpers",
+      "category": "sandbox",
+      "status": "ok",
+      "summary": "sandbox configuration is readable",
+      "details": {
+        "approval policy": "OnRequest",
+        "codex-linux-sandbox helper": "none",
+        "execve wrapper helper": "/Users/bilibili/.codex/tmp/arg0/codex-arg0TZsA1n/codex-execve-wrapper",
+        "filesystem sandbox": "restricted",
+        "network sandbox": "restricted"
+      },
+      "remediation": null,
+      "durationMs": 0
+    },
+    "state.paths": {
+      "id": "state.paths",
+      "category": "state",
+      "status": "ok",
+      "summary": "state paths and databases are inspectable",
+      "details": {
+        "CODEX_HOME": "/Users/bilibili/.codex (dir)",
+        "active rollout files": "309 files, 1021699170 total bytes, 3306469 average bytes",
+        "archived rollout files": "0 files, 0 total bytes, 0 average bytes",
+        "goals DB": "/Users/bilibili/.codex/goals_1.sqlite (file)",
+        "goals DB integrity": "ok",
+        "log DB": "/Users/bilibili/.codex/logs_2.sqlite (file)",
+        "log DB integrity": "ok",
+        "log dir": "/Users/bilibili/.codex/log (missing)",
+        "memories DB": "/Users/bilibili/.codex/memories_1.sqlite (file)",
+        "memories DB integrity": "ok",
+        "sqlite home": "/Users/bilibili/.codex (dir)",
+        "state DB": "/Users/bilibili/.codex/state_5.sqlite (file)",
+        "state DB integrity": "ok"
+      },
+      "remediation": null,
+      "durationMs": 27671
+    },
+    "state.rollout_db_parity": {
+      "id": "state.rollout_db_parity",
+      "category": "threads",
+      "status": "ok",
+      "summary": "rollout files and state DB thread inventory agree",
+      "details": {
+        "default model provider": "openai",
+        "rollout DB active files": "309",
+        "rollout DB active rows": "309",
+        "rollout DB archive mismatches": "0",
+        "rollout DB archived files": "0",
+        "rollout DB archived rows": "0",
+        "rollout DB duplicate DB paths": "0",
+        "rollout DB duplicate rollout thread ids": "0",
+        "rollout DB malformed file names": "0",
+        "rollout DB missing active rows": "0",
+        "rollout DB missing archived rows": "0",
+        "rollout DB model providers": "openai=306, ollama-launch=3",
+        "rollout DB rows": "309",
+        "rollout DB scan cap reached": "false",
+        "rollout DB scan errors": "0",
+        "rollout DB sources": "subagent:thread_spawn=132, subagent:other=90, vscode=72, cli=15",
+        "rollout DB stale rows": "0"
+      },
+      "remediation": null,
+      "durationMs": 7596
+    },
+    "system.environment": {
+      "id": "system.environment",
+      "category": "system",
+      "status": "ok",
+      "summary": "OS language zh-Hans-CN",
+      "details": {
+        "EDITOR": "not set",
+        "GH_PAGER": "set",
+        "GIT_PAGER": "set",
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "LC_CTYPE": "C.UTF-8",
+        "PAGER": "set",
+        "VISUAL": "not set",
+        "os": "Mac OS 26.5.0 [64-bit]",
+        "os language": "zh-Hans-CN",
+        "os type": "Mac OS",
+        "os version": "26.5.0"
+      },
+      "remediation": null,
+      "durationMs": 3
+    },
+    "terminal.env": {
+      "id": "terminal.env",
+      "category": "terminal",
+      "status": "fail",
+      "summary": "TERM=dumb - colors and cursor control are disabled",
+      "details": {
+        "COLORTERM": "present",
+        "NO_COLOR": "1",
+        "TERM": "dumb",
+        "color output": "disabled (NO_COLOR)",
+        "effective locale": "C.UTF-8",
+        "stderr is terminal": "false",
+        "stdin is terminal": "false",
+        "stdout is terminal": "false",
+        "terminal": "dumb",
+        "terminal size": "80x24"
+      },
+      "issues": [
+        {
+          "severity": "fail",
+          "cause": "TERM=dumb - colors and cursor control are disabled",
+          "measured": "TERM=dumb",
+          "expected": "TERM=xterm-256color or another real terminal type",
+          "remedy": "set TERM to a real value, for example xterm-256color",
+          "fields": [
+            "TERM"
+          ]
+        }
+      ],
+      "remediation": null,
+      "durationMs": 11
+    },
+    "terminal.title": {
+      "id": "terminal.title",
+      "category": "title",
+      "status": "ok",
+      "summary": "terminal title default",
+      "details": {
+        "terminal title activity": "true",
+        "terminal title items": "activity, project-name",
+        "terminal title project source": "git repo root",
+        "terminal title project value": "note",
+        "terminal title source": "default"
+      },
+      "remediation": null,
+      "durationMs": 0
+    },
+    "updates.status": {
+      "id": "updates.status",
+      "category": "updates",
+      "status": "ok",
+      "summary": "update configuration is locally consistent",
+      "details": {
+        "cached latest version": "0.144.5",
+        "check for update on startup": "true",
+        "last checked at": "2026-07-17T03:57:47.575252Z",
+        "latest version": "0.146.0",
+        "latest version status": "newer version is available",
+        "update action": "brew upgrade --cask codex",
+        "version cache": "/Users/bilibili/.codex/version.json"
+      },
+      "remediation": null,
+      "durationMs": 363
+    }
+  }
+}

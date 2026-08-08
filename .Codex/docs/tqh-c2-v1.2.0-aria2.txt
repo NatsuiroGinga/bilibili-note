@@ -1,0 +1,12 @@
+https://zenodo.org/api/records/21523144/files/TQH-C2_pcap_B_merlin_quic_v110.zip/content
+  out=TQH-C2_pcap_B_merlin_quic_v110.zip
+https://zenodo.org/api/records/21523144/files/TQH-C2_pcap_D_merlin_h2.zip/content
+  out=TQH-C2_pcap_D_merlin_h2.zip
+https://zenodo.org/api/records/21523144/files/TQH-C2_features_v110.zip/content
+  out=TQH-C2_features_v110.zip
+https://zenodo.org/api/records/21523144/files/TQH-C2_labels_v110.zip/content
+  out=TQH-C2_labels_v110.zip
+https://zenodo.org/api/records/21523144/files/TQH-C2_features_D.zip/content
+  out=TQH-C2_features_D.zip
+https://zenodo.org/api/records/21523144/files/TQH-C2_labels_D.zip/content
+  out=TQH-C2_labels_D.zip

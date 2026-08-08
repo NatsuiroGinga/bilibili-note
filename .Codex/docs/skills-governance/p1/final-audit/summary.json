@@ -1,0 +1,12 @@
+{
+  "inventory_count": 175,
+  "active_index_count": 121,
+  "active_local_inventory_count": 91,
+  "cross_root_duplicate_groups": 37,
+  "identical_groups": 20,
+  "different_groups": 17,
+  "p1_project_disable_count": 13,
+  "p1_already_deduplicated_count": 7,
+  "p1_blocked_count": 0,
+  "invalid_frontmatter_count": 0
+}

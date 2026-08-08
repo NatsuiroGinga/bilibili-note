@@ -9,7 +9,30 @@
 
 # 第三方插件的会话/缓存
 copilot/
-.Codex/
+
+# ── .Codex 共享工作记忆：整体纳入版本控制，仅逐项排除 ──
+# 理由：.Codex/hooks 与 .Codex/docs 是 AGENTS.md 强制加载的规则与恢复文档来源，
+# 整目录忽略会导致克隆后的仓库缺失全部必读规则与路线恢复文档。
+# 第三方 npm 安装产物（约 9.6 MB / 57 文件）；package.json 与 package-lock.json 保留入库
+.Codex/tools/**/node_modules/
+# Python 字节码缓存，可再生且随解释器版本产生噪声 diff
+.Codex/**/__pycache__/
+.Codex/**/*.py[cod]
+# 会话运行时快照，由 .Codex/hooks/precompact_snapshot.py 每次压缩自动重写
+.Codex/precompact_snapshot.json
+# CUDA smoke 编译产物（ELF 各约 972 KB）；同目录 .cu 源码与 .sha256 校验文件保留入库
+# 注意：必须写精确文件名，不可用 minimal_cuda_smoke* 通配，否则误伤 .cu 源码
+.Codex/docs/RWKV/**/minimal_cuda_smoke
+.Codex/docs/RWKV/**/minimal_cuda_smoke_project_env
+# ninja 增量构建缓存
+.Codex/**/.ninja_log
+# 第三方下载的二进制密钥环（NVIDIA CUDA APT 公开公钥），非本仓库自有资产
+.Codex/**/*.gpg
+# 大体积原始下载/续传日志（2.0 MB + 324 KB），结论已在同目录 Markdown 留存
+.Codex/docs/tqh-c2-*.log
+# 兜底：临时物
+.Codex/**/*.tmp
+.Codex/**/*.temp
 
 # 系统文件
 .DS_Store

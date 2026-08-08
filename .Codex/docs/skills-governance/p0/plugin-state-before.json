@@ -1,0 +1,341 @@
+{
+  "installed": [
+    {
+      "pluginId": "documents@openai-primary-runtime",
+      "name": "documents",
+      "marketplaceName": "openai-primary-runtime",
+      "version": "26.727.11326",
+      "installed": true,
+      "enabled": false,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime/plugins/documents"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_USE"
+    },
+    {
+      "pluginId": "pdf@openai-primary-runtime",
+      "name": "pdf",
+      "marketplaceName": "openai-primary-runtime",
+      "version": "26.727.11326",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime/plugins/pdf"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_USE"
+    },
+    {
+      "pluginId": "spreadsheets@openai-primary-runtime",
+      "name": "spreadsheets",
+      "marketplaceName": "openai-primary-runtime",
+      "version": "26.727.11326",
+      "installed": true,
+      "enabled": false,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime/plugins/spreadsheets"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_USE"
+    },
+    {
+      "pluginId": "presentations@openai-primary-runtime",
+      "name": "presentations",
+      "marketplaceName": "openai-primary-runtime",
+      "version": "26.727.11326",
+      "installed": true,
+      "enabled": false,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime/plugins/presentations"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_USE"
+    },
+    {
+      "pluginId": "template-creator@openai-primary-runtime",
+      "name": "template-creator",
+      "marketplaceName": "openai-primary-runtime",
+      "version": "26.727.11326",
+      "installed": true,
+      "enabled": false,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime/plugins/template-creator"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_USE"
+    },
+    {
+      "pluginId": "mcpmarket-me@mcpmarket-me",
+      "name": "mcpmarket-me",
+      "marketplaceName": "mcpmarket-me",
+      "version": "0.1.0",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.claude/plugins/mcpmarket-me"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.claude/plugins/mcpmarket-me"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "sites@openai-bundled",
+      "name": "sites",
+      "marketplaceName": "openai-bundled",
+      "version": "0.1.31",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins/sites"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "browser@openai-bundled",
+      "name": "browser",
+      "marketplaceName": "openai-bundled",
+      "version": "26.721.41059",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins/browser"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "chrome@openai-bundled",
+      "name": "chrome",
+      "marketplaceName": "openai-bundled",
+      "version": "26.721.41059",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins/chrome"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "computer-use@openai-bundled",
+      "name": "computer-use",
+      "marketplaceName": "openai-bundled",
+      "version": "1.0.1000502",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins/computer-use"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "latex@openai-bundled",
+      "name": "latex",
+      "marketplaceName": "openai-bundled",
+      "version": "0.2.4",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins/latex"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "visualize@openai-bundled",
+      "name": "visualize",
+      "marketplaceName": "openai-bundled",
+      "version": "1.0.15",
+      "installed": true,
+      "enabled": false,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled/plugins/visualize"
+      },
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "document-skills@anthropic-agent-skills",
+      "name": "document-skills",
+      "marketplaceName": "anthropic-agent-skills",
+      "version": "local",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/marketplaces/anthropic-agent-skills"
+      },
+      "marketplaceSource": {
+        "sourceType": "git",
+        "source": "https://github.com/anthropics/skills.git"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "chrome-devtools-mcp@claude-plugins-official",
+      "name": "chrome-devtools-mcp",
+      "marketplaceName": "claude-plugins-official",
+      "version": "1.6.0",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "git",
+        "url": "https://github.com/ChromeDevTools/chrome-devtools-mcp.git",
+        "sha": "04269f1b31ddf395d71ce046a06cdb54a29be429"
+      },
+      "marketplaceSource": {
+        "sourceType": "git",
+        "source": "https://github.com/anthropics/claude-plugins-official.git"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "github@claude-plugins-official",
+      "name": "github",
+      "marketplaceName": "claude-plugins-official",
+      "version": "local",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/marketplaces/claude-plugins-official/external_plugins/github"
+      },
+      "marketplaceSource": {
+        "sourceType": "git",
+        "source": "https://github.com/anthropics/claude-plugins-official.git"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "gopls-lsp@claude-plugins-official",
+      "name": "gopls-lsp",
+      "marketplaceName": "claude-plugins-official",
+      "version": "1.0.0",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/marketplaces/claude-plugins-official/plugins/gopls-lsp"
+      },
+      "marketplaceSource": {
+        "sourceType": "git",
+        "source": "https://github.com/anthropics/claude-plugins-official.git"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "superpowers@claude-plugins-official",
+      "name": "superpowers",
+      "marketplaceName": "claude-plugins-official",
+      "version": "6.2.0",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "git",
+        "url": "https://github.com/obra/superpowers.git",
+        "sha": "44c9b2d6e889982ac18c27d05a19fefe335194e1"
+      },
+      "marketplaceSource": {
+        "sourceType": "git",
+        "source": "https://github.com/anthropics/claude-plugins-official.git"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "google-calendar@openai-curated",
+      "name": "google-calendar",
+      "marketplaceName": "openai-curated",
+      "version": "11c74d6b",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/plugins/plugins/google-calendar"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    },
+    {
+      "pluginId": "slack@openai-curated",
+      "name": "slack",
+      "marketplaceName": "openai-curated",
+      "version": "11c74d6b",
+      "installed": true,
+      "enabled": true,
+      "source": {
+        "source": "local",
+        "path": "/Users/bilibili/.codex/.tmp/plugins/plugins/slack"
+      },
+      "installPolicy": "AVAILABLE",
+      "authPolicy": "ON_INSTALL"
+    }
+  ],
+  "available": []
+}

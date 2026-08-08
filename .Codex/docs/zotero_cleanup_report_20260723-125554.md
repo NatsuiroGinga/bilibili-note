@@ -1,0 +1,101 @@
+# Zotero 清理报告
+生成时间：2026-07-23T12:55:54
+
+- 备份：/Users/bilibili/Zotero/zotero.sqlite.bak_20260723-125546
+- 处理前 journalArticle：217
+- 处理后 journalArticle：124
+- 处理后 attachment：120
+- 保留条目：124
+- 删除条目：93
+- 删除日志条目：399
+- 标题更新：0
+- 集合更新：2
+- 新增标签关系：0
+
+## 去重与删除条目（前 80 条）
+- 保留 830｜删除 114｜TIC-GRPO: Provable and Efficient Optimization for Reinforcem｜TIC-GRPO: Provable and Efficient Optimization for Reinforcem｜DOI:10.1609/aaai.v39i27.35123/-
+- 保留 468｜删除 212｜Physics-Informed Neural Networks: A Review of Methodological｜Physics-Informed Neural Networks: A Review of Methodological｜DOI:10.3390/app15148092/-
+- 保留 874｜删除 158｜PDEformer-2402.12652｜PDEformer-2402.12652｜DOI:10.1016/j.ijrobp.2006.07.812/-
+- 保留 728｜删除 16｜Advancing LLM-Based Security Automation with Customized Grou｜Advancing LLM-Based Security Automation with Customized Grou｜DOI:10.1109/jsac.2025.3643844/-
+- 保留 846｜删除 130｜2601.22478｜2601.22478｜DOI:10.1351/goldbook.22478/-
+- 保留 718｜删除 6｜2211.10833｜2211.10833｜DOI:10.2307/2695747/-
+- 保留 810｜删除 94｜Enhancing network security through integration of game theor｜Enhancing network security through integration of game theor｜DOI:10.1007/s10207-025-01012-4/-
+- 保留 732｜删除 20｜Minerva: Reinforcement Learning with Verifiable Rewards for ｜Minerva: Reinforcement Learning with Verifiable Rewards for ｜DOI:10.18653/v1/2026.findings-acl.1326/-
+- 保留 866｜删除 150｜Domain Separation Networks｜Domain Separation Networks｜DOI:10.21437/interspeech.2021-1531/-
+- 保留 786｜删除 70｜Game-Theoretic Modeling of Stealthy Intrusion Defense agains｜Game-Theoretic Modeling of Stealthy Intrusion Defense agains｜DOI:10.2139/ssrn.6206922/-
+- 保留 744｜删除 32｜Enhancing Intrusion Detection in Electric Networks Using Phy｜Enhancing Intrusion Detection in Electric Networks Using Phy｜DOI:10.1109/asyu62119.2024.10757087/-
+- 保留 756｜删除 42｜2401.15839v1｜2401.15839v1｜DOI:10.1249/00005768-200505001-02401/-
+- 保留 734｜删除 22｜Curriculum-Learned Vanishing Stacked Residual PINNs for Hype｜Curriculum-Learned Vanishing Stacked Residual PINNs for Hype｜DOI:10.1109/lcsys.2025.3580026/-
+- 保留 850｜删除 134｜Constrained Group Relative Policy Optimization｜Constrained Group Relative Policy Optimization｜DOI:10.1109/asru65441.2025.11434657/-
+- 保留 840｜删除 124｜2512.15347｜2512.15347｜DOI:10.1016/j.ijrobp.2006.07.924/-
+- 保留 802｜删除 86｜Investigating the Application of Moving Target Defenses to N｜Investigating the Application of Moving Target Defenses to N｜DOI:10.1109/isrcs.2013.6623770/-
+- 保留 794｜删除 78｜game-theoretic_MTD_2017_security_games｜game-theoretic_MTD_2017_security_games｜DOI:10.1109/iccnc.2019.8685647/-
+- 保留 868｜删除 152｜Sim-to-Real Transfer of Robotic Control with Dynamics Random｜Sim-to-Real Transfer of Robotic Control with Dynamics Random｜DOI:10.1109/mra.2018.2804478/-
+- 保留 804｜删除 88｜mtd-gamefor-web-2016_Bayesian-Stackelberg｜mtd-gamefor-web-2016_Bayesian-Stackelberg｜DOI:10.1145/2976749.2990483/-
+- 保留 806｜删除 90｜main.pdf｜main.pdf｜DOI:10.56520/asj.v5i2.261.g122/-
+- 保留 886｜删除 170｜Obsidian + Claude Code：用AI重建你的第二大脑｜Obsidian + Claude Code：用AI重建你的第二大脑｜DOI:10.1360/csb1995-40-15-1420/-
+- 保留 782｜删除 66｜Partially-Observable Security Games for Automating Attack-De｜Partially-Observable Security Games for Automating Attack-De｜DOI:10.1007/978-3-031-77382-2_9/-
+- 保留 818｜删除 102｜stackelberg-vs-nash_2011_kiekintveld｜stackelberg-vs-nash_2011_kiekintveld｜DOI:10.24963/ijcai.2025/441/-
+- 保留 466｜删除 184｜Evolutionary Optimization of Physics-Informed Neural Network｜Evolutionary Optimization of Physics-Informed Neural Network｜DOI:10.1109/mci.2025.3607749/-
+- 保留 752｜删除 40｜朱焱雷｜朱焱雷｜DOI:10.2307/jj.29895194.40/-
+- 保留 788｜删除 72｜Zero-determinant Strategy for Moving Target Defense: Existen｜Zero-determinant Strategy for Moving Target Defense: Existen｜DOI:10.23919/ecc65951.2025.11186931/-
+- 保留 878｜删除 162｜Disentangling Physical Dynamics From Unknown Factors for Uns｜Disentangling Physical Dynamics From Unknown Factors for Uns｜DOI:10.1109/cvpr42600.2020.01149/-
+- 保留 758｜删除 44｜Proactive Video Push for Optimizing Bandwidth Consumption in｜Proactive Video Push for Optimizing Bandwidth Consumption in｜DOI:10.1109/infocom.2018.8485962/-
+- 保留 770｜删除 54｜Engram: Conditional Memory via Scalable Lookup — A New Axis ｜Engram: Conditional Memory via Scalable Lookup — A New Axis ｜DOI:10.1016/j.ijrobp.2006.07.1015/-
+- 保留 872｜删除 156｜NewtonianVAE: Proportional Control and Goal Identification f｜NewtonianVAE: Proportional Control and Goal Identification f｜DOI:10.1109/cvpr46437.2021.00443/-
+- 保留 814｜删除 98｜A robust and scalable intrusion detection framework for SDN ｜A robust and scalable intrusion detection framework for SDN ｜DOI:10.1007/s11227-025-07821-7/-
+- 保留 780｜删除 64｜2109.12286v1｜2109.12286v1｜DOI:10.1016/j.ijrobp.2006.07.513/-
+- 保留 784｜删除 68｜2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_｜2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_｜DOI:10.20533/ijisr.2042.4639.2022.0115/-
+- 保留 826｜删除 110｜S-GRPO: Early Exit via Reinforcement Learning in Reasoning M｜S-GRPO: Early Exit via Reinforcement Learning in Reasoning M｜DOI:10.12677/airr.2026.151002/-
+- 保留 730｜删除 18｜Large Language Models for Detecting Cyberattacks on Smart Gr｜Large Language Models for Detecting Cyberattacks on Smart Gr｜DOI:10.1109/oajpe.2026.3656761/-
+- 保留 842｜删除 126｜Adaptive-Boundary-Clipping GRPO: Ensuring Bounded Ratios for｜Adaptive-Boundary-Clipping GRPO: Ensuring Bounded Ratios for｜DOI:10.1109/iceic57457.2023.10049939/-
+- 保留 760｜删除 46｜atc24-zhang-rui-xiao｜atc24-zhang-rui-xiao｜DOI:10.1017/jme.2026.10256.sm002/-
+- 保留 854｜删除 138｜Multi-Stream LLMs: Unblocking Language Models with Parallel ｜Multi-Stream LLMs: Unblocking Language Models with Parallel ｜DOI:10.2139/ssrn.5224604/-
+- 保留 888｜删除 172｜1711.10561｜1711.10561｜DOI:10.1007/978-3-540-29925-7_8022/-
+- 保留 776｜删除 60｜Stackelberg Coupling of Online Representation Learning and R｜Stackelberg Coupling of Online Representation Learning and R｜DOI:10.23919/acc50511.2021.9482632/-
+- 保留 808｜删除 92｜mtd-timing_2019_model｜mtd-timing_2019_model｜DOI:10.1145/3319535.3353550/-
+- 保留 740｜删除 28｜From Simple to Complex: Curriculum-Guided Physics-Informed N｜From Simple to Complex: Curriculum-Guided Physics-Informed N｜DOI:10.1145/3783779.3783812/-
+- 保留 764｜删除 235｜北斗资源上下线&踢点逻辑｜北斗资源上下线&踢点逻辑｜DOI:10.69979/3029-2735.25.1.025/-
+- 保留 764｜删除 234｜北斗资源上下线&踢点逻辑｜北斗资源上下线&踢点逻辑｜DOI:10.69979/3029-2735.25.1.025/-
+- 保留 764｜删除 231｜北斗资源上下线&踢点逻辑｜北斗资源上下线&踢点逻辑｜DOI:10.69979/3029-2735.25.1.025/-
+- 保留 764｜删除 232｜北斗资源上下线&踢点逻辑｜北斗资源上下线&踢点逻辑｜DOI:10.69979/3029-2735.25.1.025/-
+- 保留 764｜删除 233｜北斗资源上下线&踢点逻辑｜北斗资源上下线&踢点逻辑｜DOI:10.69979/3029-2735.25.1.025/-
+- 保留 764｜删除 230｜北斗资源上下线&踢点逻辑｜北斗资源上下线&踢点逻辑｜DOI:10.69979/3029-2735.25.1.025/-
+- 保留 764｜删除 50｜北斗资源上下线&踢点逻辑｜北斗资源上下线&踢点逻辑｜DOI:10.69979/3029-2735.25.1.025/-
+- 保留 738｜删除 26｜Curriculum Learning of Physics-Informed Neural Networks base｜Curriculum Learning of Physics-Informed Neural Networks base｜DOI:10.32657/10356/182950/-
+- 保留 800｜删除 84｜massive-security-games_2009_kiekintveld_mixed_resource｜massive-security-games_2009_kiekintveld_mixed_resource｜DOI:10.1017/cbo9780511973031.008/-
+- 保留 766｜删除 207｜视频CDN技术｜视频CDN技术｜DOI:10.37155/2717-5170-0606-50/-
+- 保留 762｜删除 48｜nsdi22-paper-zhou｜nsdi22-paper-zhou｜DOI:10.5194/acp-2019-155-rc1/-
+- 保留 772｜删除 56｜2022_Navon_Multi-Task_Learning_as_a_Bargaining_Game｜2022_Navon_Multi-Task_Learning_as_a_Bargaining_Game｜DOI:10.2139/ssrn.2577142/-
+- 保留 860｜删除 144｜Manifold-Constrained Hyper-Connections for Parameter-Efficie｜Manifold-Constrained Hyper-Connections for Parameter-Efficie｜DOI:10.2139/ssrn.6048614/-
+- 保留 726｜删除 14｜Riemannian Optimization for LoRA on the Stiefel Manifold｜Riemannian Optimization for LoRA on the Stiefel Manifold｜DOI:10.18653/v1/2025.findings-emnlp.1143/-
+- 保留 870｜删除 154｜Latent Ordinary Differential Equations for Irregularly-Sampl｜Latent Ordinary Differential Equations for Irregularly-Sampl｜DOI:10.54546/mlit.2021.83.52.001/-
+- 保留 798｜删除 82｜Complexity of Computing Optimal Stackelberg Strategies in Se｜Complexity of Computing Optimal Stackelberg Strategies in Se｜DOI:10.1609/aaai.v24i1.7638/-
+- 保留 720｜删除 8｜INVARLLM: LLM-assisted Physical Invariant Extraction for Cyb｜INVARLLM: LLM-assisted Physical Invariant Extraction for Cyb｜DOI:10.1007/978-3-031-02354-5_5/-
+- 保留 862｜删除 146｜Proceedings of the 55th Annual Meeting of the Association fo｜Proceedings of the 55th Annual Meeting of the Association fo｜DOI:10.18653/v1/p17-2/-
+- 保留 890｜删除 174｜Physics Informed Deep Learning (Part II): Data-driven Discov｜Physics Informed Deep Learning (Part II): Data-driven Discov｜DOI:10.5270/esa-i73fhk7/-
+- 保留 822｜删除 106｜Understanding R1-Zero-Like Training: A Critical Perspective｜Understanding R1-Zero-Like Training: A Critical Perspective｜DOI:10.18653/v1/2025.findings-emnlp.1015/-
+- 保留 462｜删除 180｜2408.11104-ConFIG｜2408.11104-ConFIG｜DOI:10.5270/esa-zvx1tt9/-
+- 保留 836｜删除 120｜Scaf-GRPO: Scaffolded Group Relative Policy Optimization for｜Scaf-GRPO: Scaffolded Group Relative Policy Optimization for｜DOI:10.1007/978-3-032-18477-1_65/-
+- 保留 864｜删除 148｜BayesSim-RSS2019｜BayesSim-RSS2019｜DOI:10.4236/ojs.2017.71012/-
+- 保留 812｜删除 96｜Detecting malicious nodes using game theory and reinforcemen｜Detecting malicious nodes using game theory and reinforcemen｜DOI:10.1007/s10207-025-01026-y/-
+- 保留 464｜删除 182｜From PINNs to PIKANs: Recent Advances in Physics-Informed Ma｜From PINNs to PIKANs: Recent Advances in Physics-Informed Ma｜DOI:10.1007/s44379-025-00015-1/-
+- 保留 824｜删除 108｜Improving Generalization in Intent Detection: GRPO with Rewa｜Improving Generalization in Intent Detection: GRPO with Rewa｜DOI:10.30595/juita.v12i1.19386/-
+- 保留 828｜删除 112｜Stepwise Guided Policy Optimization: Coloring your Incorrect｜Stepwise Guided Policy Optimization: Coloring your Incorrect｜DOI:10.18653/v1/2026.findings-acl.685/-
+- 保留 746｜删除 34｜Stability analysis and impulsive control of bifurcation and ｜Stability analysis and impulsive control of bifurcation and ｜DOI:10.1109/wcica.2010.5554932/-
+- 保留 736｜删除 24｜Systematic Integration of Digital Twins and Constrained LLMs｜Systematic Integration of Digital Twins and Constrained LLMs｜DOI:10.1007/978-3-032-27993-4_14/-
+- 保留 880｜删除 164｜Learning to Think in Physics: Breaking Shortcut Learning in ｜Learning to Think in Physics: Breaking Shortcut Learning in ｜DOI:10.1109/ccsb63463.2024.10735702/-
+- 保留 742｜删除 30｜FoRA: Fisher-orthogonal Rank Adaptation for Parameter-Effici｜FoRA: Fisher-orthogonal Rank Adaptation for Parameter-Effici｜DOI:10.1109/lsp.2026.3652946/-
+- 保留 852｜删除 136｜Taming Extreme Tokens: Covariance-Aware GRPO with Gaussian-K｜Taming Extreme Tokens: Covariance-Aware GRPO with Gaussian-K｜DOI:10.18653/v1/2026.acl-short.45/-
+- 保留 796｜删除 80｜klp_game_theoretic_foundations_2014｜klp_game_theoretic_foundations_2014｜DOI:10.2139/ssrn.2334192/-
+- 保留 856｜删除 140｜StelLA: Subspace Learning in Low-rank Adaptation using Stief｜StelLA: Subspace Learning in Low-rank Adaptation using Stief｜DOI:10.1016/j.ins.2019.12.004/-
+- 保留 838｜删除 122｜2511.03527｜2511.03527｜DOI:10.1249/01.mss.0000537139.61350.ad/-
+- 保留 858｜删除 142｜Analyzing Stream Collapse in Hyper-Connections: From Diagnos｜Analyzing Stream Collapse in Hyper-Connections: From Diagnos｜DOI:10.2307/j.ctv2ks71gr/-
+- 保留 724｜删除 12｜Improving LLM Reasoning for Vulnerability Detection via Grou｜Improving LLM Reasoning for Vulnerability Detection via Grou｜DOI:10.18653/v1/2026.acl-long.1462/-
+- 保留 792｜删除 76｜dobss-2008_pita-etal_Bayesian_Stackelberg_Game｜dobss-2008_pita-etal_Bayesian_Stackelberg_Game｜DOI:10.1109/ecis69634.2026.11604255/-
+
+## 非论文清理（新增）
+- 209｜2007.14527 PINN
+- 210｜2105.00862
+- 211｜2109.01050 PINN
+- 208｜2001.04536 PINN

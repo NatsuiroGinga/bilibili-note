@@ -1,0 +1,31 @@
+{
+  "description": "禁止运行 Prettier，并在上下文压缩前更新活动计划快照；其他项目执行门禁继续暂停。",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/prettier_guard.py\"",
+            "timeout": 5,
+            "statusMessage": "检查是否调用 Prettier"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/precompact_snapshot.py\"",
+            "timeout": 8,
+            "statusMessage": "更新活动计划快照"
+          }
+        ]
+      }
+    ]
+  }
+}

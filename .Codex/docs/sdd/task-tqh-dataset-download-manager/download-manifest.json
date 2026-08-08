@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0",
+  "status": "provisional",
+  "dataset": "TQH-C2",
+  "dataset_version": "1.0.1",
+  "acquired_at": "2026-07-24",
+  "raw_root": "/Users/bilibili/personal/note/raw/datasets/TQH-C2-2026",
+  "raw_upload_allowed": false,
+  "archives": [
+    {
+      "id": "C_HTTP_AES",
+      "filename": "TQH-C2_pcap_C_mythic_http.zip",
+      "status": "verified_and_extracted",
+      "expected_size_bytes": 379187915,
+      "actual_size_bytes": 379187915,
+      "official_md5": "d29f8f2c9cfb05847cae7e39de957d69",
+      "actual_md5": "d29f8f2c9cfb05847cae7e39de957d69",
+      "actual_sha256": "522ab75ed1de642492f24d4276cc79004a69d09931b4ad3d1f1998f9b8121cbf",
+      "download_log": "thesis/experiments/llm_probe/runs/data-downloads/tqh-c2-pcap-20260724/C/console.log",
+      "extraction_status": "verified_12_of_12"
+    },
+    {
+      "id": "A_TLS",
+      "filename": "TQH-C2_pcap_A_sliver_tls.zip",
+      "status": "verified_and_extracted",
+      "expected_size_bytes": 33399375434,
+      "actual_size_bytes": 33399375434,
+      "official_md5": "a48cd911df671193c207f2d0589be259",
+      "official_sha256": "699669d05c7afa990b25197aed6a79d8ecf323f1b5edf84839719aa52cd386b0",
+      "actual_md5": "a48cd911df671193c207f2d0589be259",
+      "actual_sha256": "699669d05c7afa990b25197aed6a79d8ecf323f1b5edf84839719aa52cd386b0",
+      "download_log": "thesis/experiments/llm_probe/runs/data-downloads/tqh-c2-pcap-20260724/A/console.log",
+      "completion_log": "thesis/experiments/llm_probe/runs/data-downloads/tqh-c2-pcap-20260724/A/aria2-resume.log",
+      "screen_session": null,
+      "extraction_status": "verified_12_of_12"
+    },
+    {
+      "id": "B_QUIC_HTTP3",
+      "filename": "TQH-C2_pcap_B_merlin_quic.zip",
+      "status": "verified_and_extracted",
+      "expected_size_bytes": 18228425928,
+      "actual_size_bytes": 18228425928,
+      "official_md5": "fd1ce38e33bc64305fc8f6be246312e4",
+      "official_sha256": "ae8ecd9347b94fa8aa97b8ccdce5b81beb2ad7476a8e9dd759d5b7a61e5db1d9",
+      "actual_md5": "fd1ce38e33bc64305fc8f6be246312e4",
+      "actual_sha256": "ae8ecd9347b94fa8aa97b8ccdce5b81beb2ad7476a8e9dd759d5b7a61e5db1d9",
+      "download_log": "thesis/experiments/llm_probe/runs/data-downloads/tqh-c2-pcap-20260724/B/console.log",
+      "screen_session": null,
+      "extraction_status": "verified_12_of_12"
+    }
+  ]
+}

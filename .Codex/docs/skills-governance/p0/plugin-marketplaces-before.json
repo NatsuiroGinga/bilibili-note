@@ -1,0 +1,48 @@
+{
+  "marketplaces": [
+    {
+      "name": "openai-primary-runtime",
+      "root": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime",
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+      }
+    },
+    {
+      "name": "mcpmarket-me",
+      "root": "/Users/bilibili/.claude/plugins/mcpmarket-me",
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.claude/plugins/mcpmarket-me"
+      }
+    },
+    {
+      "name": "openai-bundled",
+      "root": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled",
+      "marketplaceSource": {
+        "sourceType": "local",
+        "source": "/Users/bilibili/.codex/.tmp/bundled-marketplaces/openai-bundled"
+      }
+    },
+    {
+      "name": "anthropic-agent-skills",
+      "root": "/Users/bilibili/.codex/.tmp/marketplaces/anthropic-agent-skills",
+      "marketplaceSource": {
+        "sourceType": "git",
+        "source": "https://github.com/anthropics/skills.git"
+      }
+    },
+    {
+      "name": "claude-plugins-official",
+      "root": "/Users/bilibili/.codex/.tmp/marketplaces/claude-plugins-official",
+      "marketplaceSource": {
+        "sourceType": "git",
+        "source": "https://github.com/anthropics/claude-plugins-official.git"
+      }
+    },
+    {
+      "name": "openai-curated",
+      "root": "/Users/bilibili/.codex/.tmp/plugins"
+    }
+  ]
+}

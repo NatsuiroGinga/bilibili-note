@@ -1,0 +1,7 @@
+{
+  "output_dir": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/toolchain/cuda13-compiler-install-20260806",
+  "python_bin": "/root/autodl-tmp/thesis/experiments/llm_probe/.venv/bin/python",
+  "expected_torch_cuda": "13.0",
+  "cuda_root": "/usr/local/cuda-13.0",
+  "cuda_repo_base": "https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64"
+}

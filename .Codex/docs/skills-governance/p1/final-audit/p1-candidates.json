@@ -1,0 +1,202 @@
+[
+  {
+    "directory_key": "architecture-design",
+    "sha256": "28c61385e6d01fde395213b0edcf5a734235f05ec812e95c20e6b930a4d45bf7",
+    "action": "already_deduplicated_user_config",
+    "canonical_path": "/Users/bilibili/.agents/skills/architecture-design/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/architecture-design/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "尊重既有用户配置，当前已只保留一个来源"
+  },
+  {
+    "directory_key": "bug-detective",
+    "sha256": "ab228dd490b6eb8a30582dd4ea472816854fe77c704e4d8487371c266070a0f1",
+    "action": "already_deduplicated_user_config",
+    "canonical_path": "/Users/bilibili/.agents/skills/bug-detective/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/bug-detective/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "尊重既有用户配置，当前已只保留一个来源"
+  },
+  {
+    "directory_key": "code-review-excellence",
+    "sha256": "a8e048bd3b8c453c3e60259455e01bbffceaf0f7d7907ad5a22996f9a4b13e50",
+    "action": "already_deduplicated_user_config",
+    "canonical_path": "/Users/bilibili/.codex/skills/code-review-excellence/SKILL.md",
+    "disabled_path": "/Users/bilibili/.agents/skills/code-review-excellence/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "尊重既有用户配置，当前已只保留一个来源"
+  },
+  {
+    "directory_key": "daily-paper-generator",
+    "sha256": "5a3bd2fbebd2e3bd7825e07cf4c36b07008333fb2b232f968be108f2afa54cbd",
+    "action": "already_deduplicated_user_config",
+    "canonical_path": "/Users/bilibili/.agents/skills/daily-paper-generator/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/daily-paper-generator/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "尊重既有用户配置，当前已只保留一个来源"
+  },
+  {
+    "directory_key": "expression-skill",
+    "sha256": "169bf37650172466449c5dfc52dde2c2f296eb856e43223fa942946e9be381fd",
+    "action": "already_deduplicated_user_config",
+    "canonical_path": "/Users/bilibili/.agents/skills/expression-skill/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/expression-skill/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "尊重既有用户配置，当前已只保留一个来源"
+  },
+  {
+    "directory_key": "git-workflow",
+    "sha256": "bf38f307d02a5567e41faa7b54fde518fd59cec635f4c7676d99d8e9a8494c95",
+    "action": "already_deduplicated_user_config",
+    "canonical_path": "/Users/bilibili/.agents/skills/git-workflow/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/git-workflow/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "尊重既有用户配置，当前已只保留一个来源"
+  },
+  {
+    "directory_key": "latex-conference-template-organizer",
+    "sha256": "3042069e385f515be086ea8f3aff7b3ef68570a54648f62182645ef9da19e0f5",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/latex-conference-template-organizer/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/latex-conference-template-organizer/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "nature-data",
+    "sha256": "16761a2d6aef2a28f25b4eb443c4d47d7e393d4de525b11793b72452f1d116d8",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/nature-data/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/nature-data/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "nature-polishing",
+    "sha256": "946eeed13b86805fbd926e6adc25c84d825e3726f001a11175b9ad277e3a2792",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/nature-polishing/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/nature-polishing/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "nature-response",
+    "sha256": "9521d5cd6d66b331a635dda21608fc9546d0ef10140d3cfa28f1acb11c0da159",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/nature-response/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/nature-response/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "nature-writing",
+    "sha256": "9cf73605a225fd17d1ee191c5f8f978a198902eeb3ff467edc7de38bfdbeae4c",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/nature-writing/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/nature-writing/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "obsidian-kb-artifacts",
+    "sha256": "14f01b72484904ae2eab93e159fdfcf7a631d5deb36eeff7fe057214404bad6e",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/obsidian-kb-artifacts/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/obsidian-kb-artifacts/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "obsidian-literature-workflow",
+    "sha256": "63f63a1a1465d450e53c3cd8baa970391fefdf5617db9ba63e724553f5e83ad7",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/obsidian-literature-workflow/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/obsidian-literature-workflow/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "obsidian-source-ingestion",
+    "sha256": "c55bedd1b18ec410b6499d3776df5074a5a12a04f8829292e5174fd13aa86a2b",
+    "action": "already_deduplicated_user_config",
+    "canonical_path": "/Users/bilibili/.codex/skills/obsidian-source-ingestion/SKILL.md",
+    "disabled_path": "/Users/bilibili/.agents/skills/obsidian-source-ingestion/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "尊重既有用户配置，当前已只保留一个来源"
+  },
+  {
+    "directory_key": "paper-self-review",
+    "sha256": "e9c0040db7394e537becb5209f1b0100eb1267fbf1c540a2da07d7876cb93a41",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/paper-self-review/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/paper-self-review/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "planning-with-files",
+    "sha256": "6b527bee3d60e5f57c255c194aeb7b56e0bf429400a6be6191df6d70698ca9c6",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/planning-with-files/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/planning-with-files/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "post-acceptance",
+    "sha256": "1d3432e6bff94c61779df9fea3c719ed425bf6fe90e8acb0366a7f1c51e6401e",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/post-acceptance/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/post-acceptance/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "publication-chart-skill",
+    "sha256": "dd95ca64069b85bd7dddb99bc5ad0762bfb402106524b22eb85973fa255a5d87",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/publication-chart-skill/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/publication-chart-skill/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "results-analysis",
+    "sha256": "2232f74d141fad4a3e23635be0109217713d34bf0cb7be8d120e6296f4b79782",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/results-analysis/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/results-analysis/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  },
+  {
+    "directory_key": "zotero-obsidian-bridge",
+    "sha256": "7d89742d4db187eb8ef93032a9b39470c41fb560ce4ff661b69ea946176b477a",
+    "action": "disable_legacy_codex_in_project",
+    "canonical_path": "/Users/bilibili/.agents/skills/zotero-obsidian-bridge/SKILL.md",
+    "disabled_path": "/Users/bilibili/.codex/skills/zotero-obsidian-bridge/SKILL.md",
+    "canonical_active_before": true,
+    "disabled_active_before": false,
+    "reason": "两份内容逐字节相同，保留当前官方用户目录副本"
+  }
+]

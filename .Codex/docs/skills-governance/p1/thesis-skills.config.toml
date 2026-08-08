@@ -1,0 +1,54 @@
+# Skills-P1 仅隔离逐字节相同的旧副本；不修改技能文件、插件状态或调用策略。
+# 使用方式：codex --profile thesis-skills <运行时子命令>
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/latex-conference-template-organizer/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/nature-data/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/nature-polishing/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/nature-response/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/nature-writing/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/obsidian-kb-artifacts/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/obsidian-literature-workflow/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/paper-self-review/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/planning-with-files/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/post-acceptance/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/publication-chart-skill/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/results-analysis/SKILL.md"
+enabled = false
+
+[[skills.config]]
+path = "/Users/bilibili/.codex/skills/zotero-obsidian-bridge/SKILL.md"
+enabled = false

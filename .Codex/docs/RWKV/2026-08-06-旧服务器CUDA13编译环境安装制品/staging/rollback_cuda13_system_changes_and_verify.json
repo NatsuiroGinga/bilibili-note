@@ -1,0 +1,6 @@
+{
+  "output_dir": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/toolchain/cuda13-compiler-install-20260806",
+  "python_bin": "/root/autodl-tmp/thesis/experiments/llm_probe/.venv/bin/python",
+  "venv_dir": "/root/autodl-tmp/thesis/experiments/llm_probe/.venv",
+  "cuda_root": "/usr/local/cuda-13.0"
+}

@@ -1,0 +1,6 @@
+插件	项目级状态	理由
+sites@openai-bundled	停用	本仓库不构建或托管网站
+gopls-lsp@claude-plugins-official	停用	本仓库当前没有 Go 开发任务
+google-calendar@openai-curated	停用	论文实验不依赖日历连接器
+slack@openai-curated	停用	论文实验不依赖 Slack 连接器
+chrome-devtools-mcp@claude-plugins-official	停用	前端性能、内存与无障碍调试不属于当前主线

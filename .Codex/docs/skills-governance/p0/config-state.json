@@ -1,0 +1,525 @@
+{
+  "user": {
+    "exists": true,
+    "path": "/Users/bilibili/.codex/config.toml",
+    "sha256": "f69e9dd08bd84a315a2b94abafd3b86fdeff96ed46df2c7562d9876a5f775a0f",
+    "bytes": 24240,
+    "skills_config": [
+      {
+        "path": "/Users/bilibili/.agents/skills/web-design-reviewer/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/webapp-testing/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/ui-ux-pro-max/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-bundled/browser/26.707.72221/skills/control-in-app-browser/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-financial-budget/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-investment-committee-memo/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-legal-memorandum/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-market-trends-report/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-bundled/chrome/26.707.72221/skills/control-chrome/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-bundled/browser/26.715.21425/skills/control-in-app-browser/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/summary/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/anthropic-agent-skills/document-skills/local/skills/pptx/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/anthropic-agent-skills/document-skills/local/skills/xlsx/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-bundled/computer-use/1.0.1000451/skills/computer-use/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/anthropic-agent-skills/document-skills/local/skills/docx/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-primary-runtime/documents/26.715.12143/skills/documents/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/frontend-design/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/hugging-face/1.0.0/skills/gradio/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/mcpmarket-me/mcpmarket-me/0.1.0/skills/sql-database-assistant/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-primary-runtime/spreadsheets/26.715.12143/skills/excel-live-control/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-primary-runtime/spreadsheets/26.715.12143/skills/spreadsheets/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/webapp-testing.disabled/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/claude-plugins-official/superpowers/6.1.1/skills/using-git-worktrees/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/claude-plugins-official/superpowers/6.1.1/skills/finishing-a-development-branch/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/code-review-excellence/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/claude-plugins-official/superpowers/6.1.1/skills/requesting-code-review/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/claude-plugins-official/superpowers/6.1.1/skills/receiving-code-review/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/hf-cloud-aws-context-discovery/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-bundled/visualize/1.0.12/skills/visualize/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/ui-ux-pro-max.disabled/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-bundled/sites/0.1.30/skills/sites-building/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-bundled/sites/0.1.30/skills/sites-hosting/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-operating-review/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-project-kickoff/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-project-tracker/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-sales-pipeline/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-simple-dark-mode/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-simple-light-mode/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-strategy-memorandum/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-team-alignment/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-system-design/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-minimal-letterhead/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-operating-calendar/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-business-review/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-design-report/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-curated-remote/openai-templates/0.1.0/skills/artifact-template-experiment-analysis/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/plugins/cache/openai-primary-runtime/presentations/26.715.12143/skills/presentations/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/git-version-control/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-sync/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-poster/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-presentation/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-promote/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-promote/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-commit/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-archive/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-index/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-ingest/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-init/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-links/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-lint/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-literature-review/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-log/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-map/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-kb-status/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-mine-writing-patterns/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-plan/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-rebuttal/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-research-init/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-analyze/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-brainstorm/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-build/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-cleanup/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-design/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-document/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-estimate/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-explain/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-git/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-implement/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-help/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-improve/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-index/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-index-repo/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-load/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-pm/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-recommend/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-reflect/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-research/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-save/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-sc/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-select-tool/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-spawn/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-task/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-test/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-troubleshoot/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-sc-workflow/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-setup-pm/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-update-memory/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-zotero-notes/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/source-command-zotero-review/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/obsidian-source-ingestion/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.agents/skills/frontend-design.disabled/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/agent-identifier/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/architecture-design/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/bug-detective/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/citation-verification/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/daily-coding/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/daily-paper-generator/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/defuddle/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/doc-coauthoring/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/expression-skill/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/git-workflow/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/ui-ux-pro-max/SKILL.md",
+        "enabled": false
+      },
+      {
+        "path": "/Users/bilibili/.codex/skills/frontend-design/SKILL.md",
+        "enabled": false
+      }
+    ],
+    "plugins": {
+      "visualize@openai-bundled": {
+        "enabled": false
+      },
+      "documents@openai-primary-runtime": {
+        "enabled": false
+      },
+      "pdf@openai-primary-runtime": {
+        "enabled": true
+      },
+      "spreadsheets@openai-primary-runtime": {
+        "enabled": false
+      },
+      "presentations@openai-primary-runtime": {
+        "enabled": false
+      },
+      "template-creator@openai-primary-runtime": {
+        "enabled": false
+      },
+      "google-calendar@openai-curated": {
+        "enabled": true
+      },
+      "slack@openai-curated": {
+        "enabled": true
+      },
+      "mcpmarket-me@mcpmarket-me": {
+        "enabled": true
+      },
+      "document-skills@anthropic-agent-skills": {
+        "enabled": true
+      },
+      "github@claude-plugins-official": {
+        "enabled": true
+      },
+      "gopls-lsp@claude-plugins-official": {
+        "enabled": true
+      },
+      "superpowers@claude-plugins-official": {
+        "enabled": true
+      },
+      "chrome@openai-bundled": {
+        "enabled": true
+      },
+      "latex@openai-bundled": {
+        "enabled": true
+      },
+      "computer-use@openai-bundled": {
+        "enabled": true
+      },
+      "sites@openai-bundled": {
+        "enabled": true
+      },
+      "browser@openai-bundled": {
+        "enabled": true
+      },
+      "chrome-devtools-mcp@claude-plugins-official": {
+        "enabled": true
+      }
+    }
+  },
+  "project": {
+    "exists": false,
+    "path": ".codex/config.toml"
+  }
+}
