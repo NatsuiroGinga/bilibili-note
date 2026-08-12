@@ -11,6 +11,7 @@
 - C12“漂移触发有界状态控制与可信双参照校正”与 R1 双层尾部风险的种子 42 Q0 均为**不晋级／弱证据不利**，且均为 `screening_only=true`、`formal_paper_evidence=false`、`final_accessed=false`；不得写成正式证伪、论文结果或方法有效。
 - 不重跑 C12/R1，不依据目标开发标签追参；状态和指标以[第三章候选方案登记册](2026-08-08-第三章候选方案登记册.md)及下列报告为准。
 - **唯一下一步**：候选 B“连续时间频谱状态与有界信任融合”。按既有文献边界收窄独立机制，再做最小可证伪快速消融；当前[实施计划](2026-08-12-候选B角色分离物理时间RWKV-Q0实施计划.md)。结果先写专属报告和登记册，再更新总控。
+- **2026-08-12 11:27 运行检查点**：C56 上完整基线矩阵 `runs/baselines/lspr-baseline-dual-track-q0-seed42-v1` 已完成 `17/17` 个单元，`state=finished`、`exit_code=0`、`final_accessed=false`。候选 B 的 `candidate-b-time-q0-s42-v1` 持久会话仍在运行，首批三个变体训练结束后正在封存概率，运行根为 `runs/candidates/candidate-b-physical-time-rwkv-q0-seed42-v1`。C12-R 的 `c12-r-reference-replay-q0-s42` 持久会话仍在运行，`DREF` 已完成，两个后续变体并行回放，其余按队列继续，运行根为 `runs/candidates/c12-r-nondestructive-dual-reference-replay-q0-seed42-v1`。两项运行均为快速筛选证据且 `final_accessed=false`；新会话只读检查状态与日志，禁止重复启动。
 
 ## 数据与泄漏边界
 
