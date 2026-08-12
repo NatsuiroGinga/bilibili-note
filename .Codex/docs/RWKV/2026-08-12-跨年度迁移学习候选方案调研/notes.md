@@ -39,6 +39,16 @@
 - 结果：DI-NIDS 取得公开全文；KDD 2024 的 ReCDA 与 2025 年 IEEE TDSC 扩展仅取得正式元数据和摘要，尚未找到合法公开全文。
 - 纠错：搜索线索曾把 `arXiv:2402.19407` 错配为 ReCDA；核验首页发现其实际为 MENTOR，已从 `raw/` 移到临时隔离目录，不纳入全文计数、索引或 Zotero。
 
+### 2026-08-12 第二轮机制查重
+
+- 查询式：`2024 2025 rare class imbalanced partial optimal transport unsupervised domain adaptation paper`
+- 查询式：`2024 2025 negative transfer unsupervised domain adaptation model selection without target labels paper`
+- 查询式：`2023 2024 2025 label shift anomaly detection time series domain adaptation paper`
+- 查询式：`2023 2024 2025 causal invariant domain adaptation nonstationary time series paper`
+- 高相关命中：NeurIPS 2024 *Towards Reliable Model Selection for Unsupervised Domain Adaptation*；2025/2026 *Time Series Domain Adaptation via Latent Invariant Causal Mechanism*；2025 *Bi-level Unbalanced Optimal Transport for Partial Domain Adaptation*；2023 *Context-aware Domain Adaptation for Time Series Anomaly Detection*。
+- 当前证据等级：仅完成正式页/摘要初筛，尚未下载、全文核验、去重或纳入计数；不得据此形成公式或有效性论断。
+- 初步排序影响：尚未改变“部分传输必须增加稀有恶意质量保护”和“无标签门禁不能依赖单一代理分数”的前两项判断；因果机制候选是否保留必须等全文核验，不得提前晋级。
+
 ## 全文核验记录
 
 ### 检查点一：新增全文 1–4
@@ -89,6 +99,43 @@
 - 关键限制：其类别多样性/互信息假设与稀有恶意二分类冲突；把预测推向均衡可能虚增分数。因此必须预注册只作安全门禁而非训练目标，并在源保持与稀有率包络内解释。
 - 检查点状态：上述四篇均完成全文核验；下载不计核验的边界已执行。下一组为原型部分最优传输、WARMPOT 与 DI-NIDS。
 
+### 检查点二：新增全文 5–7
+
+#### 5. 原型部分最优传输：通用域适应中的已知/未知质量分离
+
+- 题录：Yucheng Yang、Xiang Gu、Jian Sun，*Prototypical Partial Optimal Transport for Universal Domain Adaptation*，AAAI 2023，37(9):10852–10860，DOI `10.1609/aaai.v37i9.26287`。
+- 正式来源：https://ojs.aaai.org/index.php/AAAI/article/view/26287；作者公开全文：https://xjtu-xgu.github.io/xianggu/docs/AAAI2023_Prototypical_Partial_Optimal_Transport_for_Universal_Domain_Adaptation.pdf 。
+- 原件：`raw/papers/methodology/2024-Yang-Prototypical-Partial-Optimal-Transport.pdf`；文件为作者于 2024 年上传的 AAAI 2023 正式论文版本，题录年份按正式会议记为 2023；SHA-256：`a3c1d40fef8e5e843016ba4955bfda61a3d465f057c66e8785a501e7693cd05f`。
+- 证据等级：正式会议全文，已核验定义、定理、训练损失和消融；未找到由论文正式页直接指向的可信官方源码，`wiki`/Zotero 待补。
+- 关键位置：第 4.1 节假设共享类别样本间传输成本低于私有—共享或私有—私有成本；公式（5）以共享比例控制传输质量；定义 1/公式（6）把源样本替换为源类原型；公式（7）为小批量 PPOT；命题 1 与定理 1 给出上界；公式（11）–（13）用传输计划边缘重加权目标熵和源交叉熵；表 4 分离 PPOT、普通部分传输与去重加权。
+- 纳入理由：直接说明全量最优传输在类别集合/局部支持错配时会发生负迁移，并提供“未传输质量”这一可观测量。
+- 与本任务关系：LSPR 二分类标签名相同并不保证攻击族支持相同。可把源恶意与良性原型分别设质量上下限，用未匹配目标质量、源原型行和与类间传输熵诊断支持错配。
+- 关键限制：其核心前提是共享类之间比非共享类更近；跨年攻击表征若比良性漂移更大，该假设可能反转。论文以视觉多类准确率/H 分数评价，并把目标熵最小化用于“已知”样本，未处理低基率恶意污染和固定告警预算。
+
+#### 6. WARMPOT：部分最优传输的目标风险界与构造性源权重
+
+- 题录：Jayadev Naram 等，*Theoretical Performance Guarantees for Partial Domain Adaptation via Partial Optimal Transport*，ICML 2025，PMLR 267:45663–45681，`arXiv:2506.02712`。
+- 正式来源：https://proceedings.mlr.press/v267/naram25a.html；正式页链接的官方源码：https://github.com/JayD2106/WARMPOT ，MIT 许可证。
+- 原件：`raw/papers/methodology/2025-Naram-WARMPOT-Partial-Domain-Adaptation.pdf`；SHA-256：`bbd09b2caab7e87d9c29a28291be8199a057a17fe6a9c3039585b4464093be84`。
+- 证据等级：正式会议开放全文，已核验主要界、算法、实验协议、超参数和官方源码；`wiki`/Zotero 待补。
+- 关键位置：定义 3.1/公式（3）–（4）定义传输总质量为 `α` 的部分 Wasserstein 距离；定理 3.2 的公式（5）给出“构造性加权源经验损失 + 部分 Wasserstein + 目标边缘总变差 + 不可计算任务难度项”的目标经验风险界；定理 3.3 将成本扩展为特征距离与源标签—目标预测损失；公式（19）给出 WARMPOT 目标；第 4 节解释 `β` 控制参与匹配的源质量、`α` 控制参与匹配的目标质量；第 5.3 节与表 1 比较不同源权重。
+- 纳入理由：为部分传输边缘作为源样本权重提供理论来源，也明确界中仍存在不可计算任务难度项，避免把“小传输距离”误称为目标风险保证。
+- 与本任务关系：可把传输计划边缘用于源样本/环境加权，并以 `α、β` 非对称控制目标污染和源支持；但必须把恶意质量下限另行加入，因为无约束最小成本计划很可能优先搬运占绝大多数的良性质量。
+- 关键限制：论文的标准部分域适应假设是目标标签集合为源标签集合子集，和 LSPR 的同名二分类/攻击族变化并不一致；实验仅为图像数据。正文固定 Office-Home 的 `(α,β)=(0.8,0.35)`，附录说明参数经搜索取得，不能把该数值迁入 LSPR；风险界依赖有界度量损失、分类头 Lipschitz 性和不可计算的任务难度项。
+
+#### 7. DI-NIDS：DANN 表示后的一类异常检测
+
+- 题录：Siamak Layeghy、Mahsa Baktashmotlagh、Marius Portmann，*DI-NIDS: Domain Invariant Network Intrusion Detection System*，Knowledge-Based Systems 273:110626，2023，DOI `10.1016/j.knosys.2023.110626`；公开预印本 `arXiv:2210.08252`。
+- 正式元数据：https://about.uq.edu.au/experts-publication/24474/all；公开全文：https://arxiv.org/abs/2210.08252 。
+- 原件：`raw/papers/attack-detection/2022-Layeghy-DI-NIDS-Domain-Invariant.pdf`；文件名按预印本年份保留，正式引用按 2023 期刊版；SHA-256：`2a54e452d3ebe2e69510be598baafc04e68c2f316ed265a31bf228a81b97bf3b`。
+- 证据等级：作者公开预印本全文与机构正式题录交叉核验；未发现作者官方源码；`wiki`/Zotero 待补。
+- 关键位置：第 3 节给出两阶段架构：以有标签源和无标签目标训练 DANN，再在域不变表示上训练一类支持向量机；公式（6）是源分类与源/目标域判别对抗目标；公式（9）是一类支持向量机目标；第 4 节做 NFv2-CIC-2018 与 NFv2-UNSW-NB15 双向跨数据集评价；表 5、表 6 显示跨域方向高度非对称，普通 DANN 在两个方向分别为 17.31% 和 61.94% F1。
+- 纳入理由：直接属于跨域网络入侵检测，并明确指出一般域适应在高度不平衡异常任务上表现有限。
+- 与本任务关系：DANN + 一类检测应列强基线；其结果也支持“域不可分不等于恶意排序保留”，必须额外监控源恶意排序方向和目标预算告警结构。
+- 关键限制：训练 DANN 时使用整个目标数据集而非严格的因果前缀；论文只报告 F1，未报告 PR-AUC、固定预算召回或校准；没有攻击污染缓冲、类条件错配或负迁移回滚；因此普通 DANN 和普通一类检测均不能构成本任务原创。
+
+- 检查点状态：新增 7 篇均完成全文核验；其中 6 篇为 2023–2025 正式论文、1 个原件以 2022 预印本对应 2023 期刊版。下一步执行第二轮受控查重，重点搜索稀有类部分传输、无标签负迁移选择、标签移位与因果/不变时间序列迁移。
+
 ## 综合发现
 
 待阶段五填写。
@@ -103,4 +150,12 @@
 
 ## 下一检查点
 
-盘点既有跨年度综述、C12 近邻核验、`raw/wiki` 原件和 Zotero 条目；每完成 3–4 篇新增全文核验即更新本文件。
+### 2026-08-12 中断恢复检查点
+
+- 已完成：规则与路线恢复；本地综述/C12 邻近工作/Zotero 盘点；两轮联网检索；7 篇新增全文逐篇核验；两次按 3–4 篇落盘的检查点；7 个原件哈希核验。
+- 已验收原件：RAINCOAT、ACON、标签对齐正则、迁移分数、原型部分最优传输、WARMPOT、DI-NIDS，精确路径和 SHA-256 见上文各条。
+- 已复用核心全文但尚未在本任务中重新逐条计数：DANN、Courty 最优传输、BBSE、JCPOT、加权保形、TTA-AD、RTTAD、CANDI、OWAD、SoTTA、FOIL、DIVERSIFY，以及既有 C12 近邻核验中的相关原件/笔记。
+- 未完成：第二轮命中全文核验；7 篇 `wiki/papers` 结构化笔记；`raw/papers/INDEX.md` 与 `wiki/papers/INDEX.md` 最小追加；官方源码资源笔记；Zotero 导入及键回填；`references.bib`；主综述；候选总览；3–5 个候选详案与快速消融；停止条件复核。
+- 未公开全文：ReCDA（KDD 2024，DOI `10.1145/3637528.3672007`）及其 IEEE TDSC 2025 扩展（DOI `10.1109/TDSC.2025.3599321`）。两者只有正式元数据/摘要，不计全文，不支持方法细节论断。
+- 唯一续接入口：先读取本文件与 `task_plan.md`，随后从第二轮四个精确查询命中的正式全文去重开始；优先核验 NeurIPS 2024 无标签选模与 2025/2026 潜在因果机制，再决定候选排序。
+- 当前候选只可视为方向草案：①稀有恶意质量保护的非对称部分传输 + 负迁移停机；②恶意方向保留的目标谱分类头校正 + 标签移位/预算校准；③污染隔离的因果前缀/状态适应 + 源排序锚。全部状态均为“实验待证”，名称、公式与排序尚未冻结。
