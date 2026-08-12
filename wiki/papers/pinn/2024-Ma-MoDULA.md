@@ -1,54 +1,49 @@
 ---
-title: "2024-Ma-MoDULA"
-date: 2026-07-23
+title: "2024-Ma-MoDULA（重定向）"
 authors:
-  - 
+  - Yufei Ma
+  - Zihan Liang
+  - Huangyu Dai
+  - Ben Chen
+  - Dehong Gao
+  - Zhuoran Ran
+  - Zihan Wang
+  - Linbo Jin
+  - Wen Jiang
+  - Guannan Zhang
+  - Xiaoyan Cai
+  - Libin Yang
 year: 2024
-journal: "Handbook of Object Technology"
-source_pdf: [[raw/papers/pinn/2024-Ma-MoDULA.pdf]]
+date: 2026-07-23
+updated: 2026-08-07
+journal: "Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing"
+source_pdf: "[[raw/papers/pinn/2024-Ma-MoDULA.pdf]]"
 tags:
-  - 博弈论
-  - PINN
-  - 网络异常流量检测
   - 类型/论文
-key_finding: "待补充"
+  - 主题/低秩适配
+  - 主题/通用专用分支
+  - 主题/阶段式训练
+status: 重定向
+canonical: "[[MoDULA通用与领域专用低秩适配]]"
+key_finding: "本文件只是重定向入口，论文结论以 [[MoDULA通用与领域专用低秩适配]] 为准。"
 ---
 
-# 2024-Ma-MoDULA
+# 2024-Ma-MoDULA（重定向）
 
-> 论文来源：PDF内置
-> 识别文件：raw/papers/pinn/2024-Ma-MoDULA.pdf
+> **本文件不含论文结论。正式阅读笔记：[[MoDULA通用与领域专用低秩适配]]**
 
-## 一句话
+## 重定向说明
 
-待补充
+- 对应论文：Yufei Ma、Zihan Liang、Huangyu Dai、Ben Chen、Dehong Gao、Zhuoran Ran、Zihan Wang、Linbo Jin、Wen Jiang、Guannan Zhang、Xiaoyan Cai、Libin Yang，*MoDULA: Mixture of Domain-Specific and Universal LoRA for Multi-Task Learning*，Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing，2024。
+- 原件：[[raw/papers/pinn/2024-Ma-MoDULA.pdf]]
+- 正式笔记：[[MoDULA通用与领域专用低秩适配]]，其结论已按原件核验。
+- 保留本文件的理由：`2024-Ma-MoDULA` 是本仓库既有的检索入口，直接删除会断开按此名检索的路径。
 
-## 结构化摘要
+## 历史状态
 
-### 研究目的
+2026-07-23 由自动提取流程生成，正文各节全部为「待补充」。原 YAML 的论文身份由 PDF 元数据自动推断且未经核验，原值为期刊 `Handbook of Object Technology`、DOI `10.1201/9781420049114.ch21`、年份 `2024`。2026-08-07 清空正文，身份字段改为继承已核验的正式笔记 [[MoDULA通用与领域专用低秩适配]]；原值仅在此保留以便追溯，不作为本论文的出版信息。
 
-待补充：未解析到稳定段落，建议人工确认
+## 文献信息
 
-### 模型架构
-
-待补充：未解析到稳定模型结构描述
-
-### 实验数据集
-
-待补充：未解析到稳定数据集描述
-
-### 核心结论
-
-待补充：未解析到稳定结论句
-
-### 参考文献要点
-
-待补充：未提取到可用参考要点
-
-## 元数据补全状态
-
-- DOI：10.1201/9781420049114.ch21
-- 年份：2024
-- 期刊/出版源：Handbook of Object Technology
-- 全文提取方式：strings
-- 缺失字段：authors
+- ACL Anthology：[2024.emnlp-main.161](https://aclanthology.org/2024.emnlp-main.161/)
+- 页码：2758-2770

@@ -1,56 +1,39 @@
 ---
-title: "Deep Asymmetric Multi-task Feature Learning"
-date: 2026-07-23
+title: "Deep Asymmetric Multi-task Feature Learning（重定向）"
 authors:
   - Hae Beom Lee
   - Eunho Yang
   - Sung Ju Hwang
 year: 2018
-journal: "Proceedings of the International Conference on Machine Learning 2018"
-source_pdf: [[raw/papers/pinn/2018-Lee-深度非对称多任务特征学习.pdf]]
+date: 2026-07-23
+updated: 2026-08-07
+journal: "Proceedings of the 35th International Conference on Machine Learning"
+source_pdf: "[[raw/papers/pinn/2018-Lee-深度非对称多任务特征学习.pdf]]"
 tags:
-  - 博弈论
-  - PINN
-  - 网络异常流量检测
   - 类型/论文
-key_finding: "待补充"
+  - 主题/非对称多任务学习
+  - 主题/负迁移
+status: 重定向
+canonical: "[[Deep-AMTFL深度非对称特征学习]]"
+key_finding: "本文件只是重定向入口，论文结论以 [[Deep-AMTFL深度非对称特征学习]] 为准。"
 ---
 
-# Deep Asymmetric Multi-task Feature Learning
+# Deep Asymmetric Multi-task Feature Learning（重定向）
 
-> 论文来源：PDF内置
-> 识别文件：raw/papers/pinn/2018-Lee-深度非对称多任务特征学习.pdf
+> **本文件不含论文结论。正式阅读笔记：[[Deep-AMTFL深度非对称特征学习]]**
 
-## 一句话
+## 重定向说明
 
-待补充
+- 对应论文：Hae Beom Lee、Eunho Yang、Sung Ju Hwang，*Deep Asymmetric Multi-task Feature Learning*，Proceedings of the 35th International Conference on Machine Learning，2018。
+- 原件：[[raw/papers/pinn/2018-Lee-深度非对称多任务特征学习.pdf]]
+- 正式笔记：[[Deep-AMTFL深度非对称特征学习]]，其结论已按原件核验。
+- 保留本文件的理由：`Deep Asymmetric Multi-task Feature Learning` 是本仓库既有的检索入口，直接删除会断开按此名检索的路径。
 
-## 结构化摘要
+## 历史状态
 
-### 研究目的
+2026-07-23 由自动提取流程生成，正文各节全部为「待补充」。原 YAML 的论文身份由 PDF 元数据自动推断且未经核验，原值为期刊 `Proceedings of the International Conference on Machine Learning 2018`、DOI `10.7551/mitpress/7503.003.0010`、年份 `2018`。2026-08-07 清空正文，身份字段改为继承已核验的正式笔记 [[Deep-AMTFL深度非对称特征学习]]；原值仅在此保留以便追溯，不作为本论文的出版信息。
 
-待补充：未解析到稳定段落，建议人工确认
+## 文献信息
 
-### 模型架构
-
-待补充：未解析到稳定模型结构描述
-
-### 实验数据集
-
-待补充：未解析到稳定数据集描述
-
-### 核心结论
-
-待补充：未解析到稳定结论句
-
-### 参考文献要点
-
-待补充：未提取到可用参考要点
-
-## 元数据补全状态
-
-- DOI：10.7551/mitpress/7503.003.0010
-- 年份：2018
-- 期刊/出版源：Proceedings of the International Conference on Machine Learning 2018
-- 全文提取方式：strings
-- 缺失字段：无
+- PMLR：[v80/lee18d](https://proceedings.mlr.press/v80/lee18d.html)
+- 页码：2956-2964

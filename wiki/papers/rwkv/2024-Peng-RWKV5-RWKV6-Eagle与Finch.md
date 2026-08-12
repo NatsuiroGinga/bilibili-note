@@ -5,6 +5,8 @@ year: 2024
 date: 2026-08-05
 journal: "arXiv:2404.05892"
 source_pdf: "[[raw/papers/rwkv/2024_Peng_Eagle_and_Finch_RWKV5_RWKV6.pdf]]"
+zotero_key: "4B5F4H65"
+citation_note: "本笔记正文只列前三位作者；正式引用使用 Zotero 条目的完整作者表。"
 tags: [RWKV, 线性递归, 类型/论文]
 key_finding: "RWKV-5/6 以矩阵值状态和动态递归提高表达力，同时保留递归推理效率。"
 ---

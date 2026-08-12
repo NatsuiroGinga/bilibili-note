@@ -40,6 +40,8 @@ year: 2023
 date: 2026-07-21
 journal: "Findings of the Association for Computational Linguistics: EMNLP 2023"
 source_pdf: "[[raw/papers/rwkv/2023_Peng_RWKV_Reinventing_RNNs_for_the_Transformer_Era.pdf]]"
+zotero_key: "VBQMSNDM"
+citation_note: "正式引用采用 ACL 论文集版本及 DOI 10.18653/v1/2023.findings-emnlp.936；本地预印本作者表与正式版本存在差异。"
 tags:
   - RWKV
   - 循环神经网络

@@ -1,0 +1,129 @@
+--- /Users/bilibili/.codex/skills/daily-coding/SKILL.md
++++ /Users/bilibili/.codex/skills/daily-coding/SKILL.md
+@@ -31,5 +31,8 @@
+ 
+ - [ ] **Read before modify** - Must read target file with Read tool before making changes
+ - [ ] **Understand context** - Confirm understanding of existing code logic and design intent
++- [ ] **复杂度与状态预算** - 写明时间、空间和 I/O 复杂度；列出活跃状态的键基数、每键状态大小和历史窗口上限。输入分批读取不等于有界内存：跨批状态、排序缓存、去重集合或待写缓冲只要随累计输入或唯一键数增长，就必须给出驱逐、分区或磁盘溢写策略及容量阈值
++- [ ] **峰值资源估算** - 在实现前估算峰值内存、临时磁盘、总读写量与预期墙钟时间；计算口径应覆盖解析缓冲、活跃状态、输出缓冲、排序/聚合中间结果和失败重试空间
++- [ ] **流式背压与缓冲** - 为生产者、消费者和每个队列设置固定消息/字节容量；队列满时阻塞、等待容量或按已声明策略落盘，不得改用无界队列掩盖积压。将 `BufReader`/`BufWriter` 的缓冲字节数计入峰值内存与 I/O 预算，并显式处理刷新错误
+ 
+ ### During Coding
+@@ -42,4 +45,5 @@
+ 
+ - [ ] **Verify execution** - Ensure code runs correctly with no syntax errors
+ - [ ] **Clean up** - Remove print/console.log debug statements and temporary files
++- [ ] **记录真实资源** - 在运行记录中写入实际吞吐、处理总量、峰值内存、峰值磁盘、总读写量和墙钟时间；若超过预算，说明增长源并在再次扩容前修正上界或预算
+ - [ ] **Brief summary** - Inform user what was changed and the scope of impact
+--- /Users/bilibili/.codex/skills/rust-skills/SKILL.md
++++ /Users/bilibili/.codex/skills/rust-skills/SKILL.md
+@@ -4 +4 @@
+-  Comprehensive Rust coding guidelines with 265 rules across 26 categories.
++  Comprehensive Rust coding guidelines with 267 rules across 26 categories.
+@@ -13 +13 @@
+-  version: "1.5.1"
++  version: "1.5.2"
+@@ -24 +24 @@
+-Comprehensive guide for writing high-quality, idiomatic, and highly optimized Rust code. Contains 265 rules across 26 categories, prioritized by impact to guide LLMs in code generation and refactoring. Current for Rust 1.96 (2024 edition).
++Comprehensive guide for writing high-quality, idiomatic, and highly optimized Rust code. Contains 267 rules across 26 categories, prioritized by impact to guide LLMs in code generation and refactoring. Current for Rust 1.96 (2024 edition).
+@@ -64 +64 @@
+-| 23 | Performance Patterns | MEDIUM | `perf-` | 13 |
++| 23 | Performance Patterns | MEDIUM | `perf-` | 15 |
+@@ -362,2 +362,4 @@
+ - [`perf-ahash`](rules/perf-ahash.md) - Use a faster hasher (`ahash` / `FxHashMap`) when DoS resistance is not needed
+ - [`perf-io-buffering`](rules/perf-io-buffering.md) - Wrap `Read`/`Write` in `BufReader`/`BufWriter` for many small operations
++- [`perf-stream-state-bound`](rules/perf-stream-state-bound.md) - 为流式处理证明活跃状态基数上界，并对超界状态实施驱逐、分区或磁盘溢写
++- [`perf-production-resource-budget`](rules/perf-production-resource-budget.md) - 在生产规模运行前核定时间、空间和 I/O 预算，并用真实负载记录实际峰值
+@@ -468,2 +470,3 @@
+ | Memory optimization | `mem-`, `own-`, `perf-` |
+ | Performance tuning | `opt-`, `mem-`, `perf-` |
++| 流式处理 / 大规模物化 | `perf-stream-state-bound`, `perf-production-resource-budget`, `mem-`, `perf-` |
+--- /dev/null
++++ /Users/bilibili/.codex/skills/rust-skills/rules/perf-stream-state-bound.md
+@@ -0,0 +1,43 @@
++# perf-stream-state-bound
++
++> 为流式系统证明活跃状态基数上界，并对超界状态实施驱逐、分区或磁盘溢写
++
++## 为什么重要
++
++逐批读取只能限制单批输入，不会限制跨批保留的状态。按流、用户、会话、去重键或排序键维护的 `HashMap`、`BTreeMap`、`HashSet`、`VecDeque`、窗口和写入缓冲，如果随着唯一键或累计输入增长，最终仍会耗尽内存。生产实现必须把状态上界写成可计算的容量合同。
++
++## 错误做法
++
++```rust
++use std::collections::HashMap;
++
++// 输入按批读取，但每个新键永久留在内存中。
++fn aggregate_unbounded(records: impl Iterator<Item = Record>) {
++    let mut totals = HashMap::new();
++    for record in records {
++        *totals.entry(record.flow_id).or_insert(0_u64) += record.bytes;
++    }
++}
++```
++
++## 正确做法
++
++使用固定容量的活动状态表；达到 `MAX_ACTIVE_FLOWS` 时，先将已完成或最久未用状态刷入分区文件，再接纳新键。驱逐、分区或溢写必须返回错误，而不能静默丢失状态。
++
++`HashMap::with_capacity` 只预分配存储，不能阻止后续插入超过该值；`BTreeMap::entry` 和队列入队也不会自动限制基数。每次新键插入、排序项追加或消息入队前，必须先检查逻辑上限，并在超限时执行驱逐、分区、磁盘溢写或返回可处理错误。
++
++## 容量合同
++
++- 记录活跃键最大数量、每键状态最大字节数和历史窗口最大长度。
++- 为解析缓冲、排序缓存、待写缓冲和重试队列分别设定容量上限。
++- 列出超阈值时的驱逐、分区或磁盘溢写策略，及溢写文件最大大小和清理时机。
++- 给出公式，例如 `峰值内存 <= 活跃键上限 × 每键状态上限 + 固定缓冲`。
++- 为 `HashMap`、`BTreeMap` 和队列分别记录实际 `len`、逻辑上限及超限处理；预分配容量不能作为内存上界证据。
++
++键空间无法在内存中给出固定上界时，按固定数量分区处理，并将完成分区写入磁盘；不要以“批量读取”宣称内存有界。
++
++## 另见
++
++- [mem-with-capacity](mem-with-capacity.md)
++- [perf-io-buffering](perf-io-buffering.md)
++- [perf-production-resource-budget](perf-production-resource-budget.md)
+--- /dev/null
++++ /Users/bilibili/.codex/skills/rust-skills/rules/perf-production-resource-budget.md
+@@ -0,0 +1,40 @@
++# perf-production-resource-budget
++
++> 在生产规模运行前核定时间、空间和 I/O 预算，并用真实负载记录实际峰值
++
++## 为什么重要
++
++小样本可运行不代表生产规模可运行。一个线性扫描若每条记录重复读写、保留无界中间结果或触发随机 I/O，仍可能超出墙钟、内存或磁盘预算。预算应覆盖完整流水线，而不是只覆盖核心循环。
++
++## 实施前清单
++
++- 写明输入规模 `N`、活跃状态上限 `A`、预期时间复杂度、空间复杂度和 I/O 复杂度。
++- 估算 `峰值内存 = 固定缓冲 + A × 每键状态 + 输出缓冲 + 排序/聚合工作区`，并保留安全余量。
++- 估算总读取、总写入和临时磁盘；多次全量扫描、重复序列化和未清理的溢写文件必须计入预算。
++- 为墙钟、内存、磁盘和 I/O 设置停止阈值；超过阈值时保留进度与诊断信息，停止扩张。
++- 以输入规模和预期吞吐推导墙钟预算，并把实际吞吐、等待时间和读写字节数与预算对比；不能只报告完成与否。
++
++## 错误做法
++
++```rust
++// 每个批次重新扫描全部输入，并把所有输出保留到结束。
++for batch in batches {
++    let all_records = read_everything(input_path)?;
++    results.extend(transform(all_records, batch));
++}
++write_all(results)?;
++```
++
++## 正确做法
++
++顺序打开输入一次，使用具有字节上限的 `BufReader`/`BufWriter` 缓冲并在阈值处刷新。缓存、队列和临时文件都必须有明确容量；禁止把全部结果或全部中间状态累积到任务结束。磁盘溢写按固定分区或文件大小滚动，写入错误必须传播，不能将溢写视为无上限后备内存。
++
++## 运行后记录
++
++使用与生产输入分布相符的运行记录实际处理量、吞吐、墙钟、峰值内存、峰值磁盘和读写字节数。若实测超过预算，先定位状态增长、重复扫描、序列化、排序或设备吞吐原因，再修正实现或预算后扩大规模。
++
++## 另见
++
++- [perf-stream-state-bound](perf-stream-state-bound.md)
++- [perf-profile-first](perf-profile-first.md)
++- [perf-io-buffering](perf-io-buffering.md)

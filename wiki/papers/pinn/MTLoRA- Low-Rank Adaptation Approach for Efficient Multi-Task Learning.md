@@ -1,56 +1,40 @@
 ---
-title: "MTLoRA: Low-Rank Adaptation Approach for Efficient Multi-Task Learning"
-date: 2026-07-23
+title: "MTLoRA- Low-Rank Adaptation Approach for Efficient Multi-Task Learning（重定向）"
 authors:
   - Ahmed Agiza
   - Marina Neseem
   - Sherief Reda
-year: 2047
-journal: "IEEE Conference on Computer Vision and Pattern Recognition"
-source_pdf: [[raw/papers/pinn/2024-Agiza-MTLoRA.pdf]]
+year: 2024
+date: 2026-07-23
+updated: 2026-08-07
+journal: "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition"
+source_pdf: "[[raw/papers/pinn/2024-Agiza-MTLoRA.pdf]]"
 tags:
-  - 博弈论
-  - PINN
-  - 网络异常流量检测
   - 类型/论文
-key_finding: "待补充"
+  - 主题/低秩适配
+  - 主题/共享私有参数
+  - 主题/多任务学习
+status: 重定向
+canonical: "[[MTLoRA共享与任务专用低秩适配]]"
+key_finding: "本文件只是重定向入口，论文结论以 [[MTLoRA共享与任务专用低秩适配]] 为准。"
 ---
 
-# MTLoRA: Low-Rank Adaptation Approach for Efficient Multi-Task Learning
+# MTLoRA- Low-Rank Adaptation Approach for Efficient Multi-Task Learning（重定向）
 
-> 论文来源：PDF内置
-> 识别文件：raw/papers/pinn/2024-Agiza-MTLoRA.pdf
+> **本文件不含论文结论。正式阅读笔记：[[MTLoRA共享与任务专用低秩适配]]**
 
-## 一句话
+## 重定向说明
 
-待补充
+- 对应论文：Ahmed Agiza、Marina Neseem、Sherief Reda，*MTLoRA: A Low-Rank Adaptation Approach for Efficient Multi-Task Learning*，Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition，2024。
+- 原件：[[raw/papers/pinn/2024-Agiza-MTLoRA.pdf]]
+- 正式笔记：[[MTLoRA共享与任务专用低秩适配]]，其结论已按原件核验。
+- 保留本文件的理由：`MTLoRA- Low-Rank Adaptation Approach for Efficient Multi-Task Learning` 是本仓库既有的检索入口，直接删除会断开按此名检索的路径。
 
-## 结构化摘要
+## 历史状态
 
-### 研究目的
+2026-07-23 由自动提取流程生成，正文各节全部为「待补充」。原 YAML 的论文身份由 PDF 元数据自动推断且未经核验，原值为期刊 `IEEE Conference on Computer Vision and Pattern Recognition`、DOI `10.1109/cvpr52733.2024.01533`、年份 `2047`，其中年份 `2047` 不成立。2026-08-07 清空正文，身份字段改为继承已核验的正式笔记 [[MTLoRA共享与任务专用低秩适配]]；原值仅在此保留以便追溯，不作为本论文的出版信息。
 
-待补充：未解析到稳定段落，建议人工确认
+## 文献信息
 
-### 模型架构
-
-models.)]TJ/F86 8.9664 Tf 165.496 0 Td [(arXiv)-207(pr)37(eprint)]TJ -165.496 -10.959 Td [(arXiv:2309.12307)]TJ/F82 8.9664 Tf 65.499 0 Td [(,)-250(2023.)]TJ 1 0 0 rg 1 0 0 RG [-360(3)]TJ -80.935 -12.445 Td [([4])]TJ [-55
-
-### 实验数据集
-
-待补充：未解析到稳定数据集描述
-
-### 核心结论
-
-待补充：未解析到稳定结论句
-
-### 参考文献要点
-
-待补充：未提取到可用参考要点
-
-## 元数据补全状态
-
-- DOI：10.1109/cvpr52733.2024.01533
-- 年份：2047
-- 期刊/出版源：IEEE Conference on Computer Vision and Pattern Recognition
-- 全文提取方式：strings
-- 缺失字段：无
+- CVF：[CVPR 2024 正式页面](https://openaccess.thecvf.com/content/CVPR2024/html/Agiza_MTLoRA_Low-Rank_Adaptation_Approach_for_Efficient_Multi-Task_Learning_CVPR_2024_paper.html)
+- 页码：16196-16205

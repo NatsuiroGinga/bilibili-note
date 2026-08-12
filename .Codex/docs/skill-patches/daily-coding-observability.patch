@@ -1,0 +1,18 @@
+--- /Users/bilibili/.codex/skills/daily-coding/SKILL.md
++++ /Users/bilibili/.codex/skills/daily-coding/SKILL.md
+@@ -37,9 +37,15 @@
+ - [ ] **Minimal changes** - Only change what's necessary, no over-engineering, no unrelated features
+ - [ ] **Type safety** - Add type hints for Python, avoid `any` in TypeScript
+ - [ ] **Security check** - Avoid command injection, XSS, SQL injection vulnerabilities
++- [ ] **长时任务可观测日志** - 对预计超过 1 分钟的数据处理、构建、训练、评估、下载和远程启动器，设计结构化、可检索的生产日志；日志规则必须适用于所用语言和运行环境，不得只为当前实现或 Rust 编写
++- [ ] **阶段与状态** - 为环境准备、依赖解析、编译、数据物化、训练和评估分别记录开始、结束、状态转换和耗时；未使用的阶段明确标记跳过。不得把依赖解析或编译日志（例如 `Updating crates.io index`）伪装为训练或评估正在执行
++- [ ] **进度心跳** - 以可配置的固定时间间隔或固定记录数输出业务进度，至少包含已处理量、总量（可知时）、吞吐、累计耗时和预计剩余时间（可推导时）。进度频率应有默认上限，禁止逐行或逐样本刷屏
++- [ ] **阻塞与失败诊断** - 超过预设心跳周期仍无业务进度时，输出当前阻塞阶段、已等待时长和已知等待原因。错误日志必须包含阶段、经过脱敏的输入摘要、退出码或异常类型，以及可执行的恢复动作；失败时不得删除已写入的日志
++- [ ] **日志落点与保密** - 日志同时写入控制台和持久化运行目录，并在启动时记录运行目录；运行失败也必须保留该目录。禁止写入密码、令牌、连接地址解析值、原始敏感载荷、标签泄漏字段或其他可识别敏感内容；必要的输入摘要只记录脱敏后的规模、版本或哈希
+ 
+ ### After Completion
+ 
+ - [ ] **Verify execution** - Ensure code runs correctly with no syntax errors
+ - [ ] **Clean up** - Remove print/console.log debug statements and temporary files
++- [ ] **验证关键日志** - 交付前通过真实运行或最小命令入口确认阶段日志、至少一条进度心跳或明确的快速完成记录、持久化日志路径和失败保留行为可见；不得以仅阅读代码替代验证
+ - [ ] **Brief summary** - Inform user what was changed and the scope of impact

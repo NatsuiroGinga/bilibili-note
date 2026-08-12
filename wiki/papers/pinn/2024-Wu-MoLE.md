@@ -1,54 +1,40 @@
 ---
-title: "2024-Wu-MoLE"
-date: 2026-07-23
+title: "2024-Wu-MoLE（重定向）"
 authors:
-  - 
+  - Xun Wu
+  - Shaohan Huang
+  - Furu Wei
 year: 2024
-journal: "Wiadomości Ubezpieczeniowe"
-source_pdf: [[raw/papers/pinn/2024-Wu-MoLE.pdf]]
+date: 2026-07-23
+updated: 2026-08-07
+journal: "The Twelfth International Conference on Learning Representations"
+source_pdf: "[[raw/papers/pinn/2024-Wu-MoLE.pdf]]"
 tags:
-  - 博弈论
-  - PINN
-  - 网络异常流量检测
   - 类型/论文
-key_finding: "待补充"
+  - 主题/低秩适配
+  - 主题/模型组合
+  - 主题/分层门控
+status: 重定向
+canonical: "[[MoLE分层低秩专家组合]]"
+key_finding: "本文件只是重定向入口，论文结论以 [[MoLE分层低秩专家组合]] 为准。"
 ---
 
-# 2024-Wu-MoLE
+# 2024-Wu-MoLE（重定向）
 
-> 论文来源：PDF内置
-> 识别文件：raw/papers/pinn/2024-Wu-MoLE.pdf
+> **本文件不含论文结论。正式阅读笔记：[[MoLE分层低秩专家组合]]**
 
-## 一句话
+## 重定向说明
 
-待补充
+- 对应论文：Xun Wu、Shaohan Huang、Furu Wei，*Mixture of LoRA Experts*，The Twelfth International Conference on Learning Representations，2024。
+- 原件：[[raw/papers/pinn/2024-Wu-MoLE.pdf]]
+- 正式笔记：[[MoLE分层低秩专家组合]]，其结论已按原件核验。
+- 保留本文件的理由：`2024-Wu-MoLE` 是本仓库既有的检索入口，直接删除会断开按此名检索的路径。
 
-## 结构化摘要
+## 历史状态
 
-### 研究目的
+2026-07-23 由自动提取流程生成，正文各节全部为「待补充」。原 YAML 的论文身份由 PDF 元数据自动推断且未经核验，原值为期刊 `Wiadomości Ubezpieczeniowe`、DOI `10.33995/wu2024`、年份 `2024`。2026-08-07 清空正文，身份字段改为继承已核验的正式笔记 [[MoLE分层低秩专家组合]]；原值仅在此保留以便追溯，不作为本论文的出版信息。
 
-待补充：未解析到稳定段落，建议人工确认
+## 文献信息
 
-### 模型架构
-
-待补充：未解析到稳定模型结构描述
-
-### 实验数据集
-
-待补充：未解析到稳定数据集描述
-
-### 核心结论
-
-待补充：未解析到稳定结论句
-
-### 参考文献要点
-
-待补充：未提取到可用参考要点
-
-## 元数据补全状态
-
-- DOI：10.33995/wu2024
-- 年份：2024
-- 期刊/出版源：Wiadomości Ubezpieczeniowe
-- 全文提取方式：strings
-- 缺失字段：authors
+- arXiv：[2404.13628](https://arxiv.org/abs/2404.13628)
+- OpenReview：ICLR 2024 投稿列表核验为海报论文。

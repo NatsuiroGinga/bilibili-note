@@ -1,6 +1,6 @@
 ---
 title: PINN 论文阅读索引
-date: 2026-08-05
+date: 2026-08-07
 tags:
   - PINN
   - 物理信息神经网络
@@ -84,18 +84,6 @@ related:
 - **[[HyperLoRA受约束低秩参数生成|HyperLoRA]]** — 根据任务说明生成逐层 LoRA，并揭示完整参数生成对教师权重约束和初始化高度敏感。
 - **[[原型HyperAdapter样本高效条件适配|原型 HyperAdapter]]** — 从实例集合构造任务原型，再由共享超网络生成适配器；不能直接当作逐样本物理控制证据。
 
-## 条件注入与恒等旁路
-
-- **[[Flamingo零初始化门控交叉注意力|Flamingo]]** — 在冻结语言模型中用零初始化门控交叉注意力注入外部条件，初始化时严格复现原模型。
-- **[[LLaMA-Adapter零初始化注意力|LLaMA-Adapter]]** — 分离原词元与适配提示的注意力归一化，只用零初始化有界门控缩放新增条件贡献。
-- **[[ControlNet零卷积条件旁路|ControlNet]]** — 冻结原生成网络并通过零初始化连接层接入条件分支，给出第一步前向等价公式。
-
-## 条件超网络与动态参数
-
-- **[[HyperFormer共享超网络适配器|HyperFormer++]]** — 用共享超网络按任务、层和位置生成适配器，支持参数高效的条件化结构。
-- **[[HyperLoRA受约束低秩参数生成|HyperLoRA]]** — 根据任务说明生成逐层 LoRA，并揭示完整参数生成对教师权重约束和初始化高度敏感。
-- **[[原型HyperAdapter样本高效条件适配|原型 HyperAdapter]]** — 从实例集合构造任务原型，再由共享超网络生成适配器；不能直接当作逐样本物理控制证据。
-
 ## 混合专家路由与稳定性
 
 - **[[DeepSeekMoE细粒度共享专家架构|DeepSeekMoE]]** — 以细粒度专家和始终激活的共享专家减少知识冗余，但不保证人类定义的物理语义。
@@ -146,3 +134,46 @@ related:
 - **[[ET-BERT-加密流量报文与突发表征|ET-BERT 报文与突发表征]]** — 证明方向、包序和突发是有价值的加密流量观测，但预训练损失不是物理残差。
 - **[[YaTC-多层流量表征|YaTC 多层流量表征]]** — 提供地址随机化、端口置零、方向保留和包级/流级组织的去偏先例。
 - **[[NetMamba-高效流量序列表征|NetMamba 高效流量序列表征]]** — 以线性复杂度状态空间模型支持长 PCAP 序列的高效编码。
+
+## 重定向入口
+
+以下 27 份文件是 2026-07-23 自动提取失败留下的占位稿：正文各节全部为「待补充」，YAML 身份字段由 PDF 元数据自动推断且未经核验（可见孤立数字期刊、2047 年、Unix 时间戳年份、整段摘要写入期刊字段等）。2026-08-07 已清空正文、按对应正式笔记继承已核验的论文身份，只保留按编号或文件名检索的入口；论文结论一律以正式笔记为准，各文件的原始错误值保留在自身「历史状态」一节供追溯。
+
+### PINN 原始方法与训练理论
+
+- **[[1711.10561|1711.10561（重定向）]]** — Raissi 系列 Part I 求解篇的 arXiv 编号入口，指向 [[PINN-数据驱动非线性PDE求解]]。
+- **[[1711.10566|1711.10566（重定向）]]** — Raissi 系列 Part II 发现篇的 arXiv 编号入口，指向 [[PINN-数据驱动非线性PDE发现]]。
+- **[[2001.04536-PINN梯度病态|2001.04536（重定向）]]** — Wang 2021 梯度病态的编号入口，指向 [[PINN梯度流病态与自适应平衡]]。
+- **[[2007.14527-PINN神经切线核|2007.14527（重定向）]]** — Wang 2022 神经切线核的编号入口，指向 [[PINN神经切线核与收敛速率失衡]]。
+- **[[2105.00862-数据与物理帕累托前沿|2105.00862（重定向）]]** — 数据与物理损失折中的编号入口，指向 [[PINN数据与物理表观帕累托前沿]]。
+- **[[2109.01050-PINN失败模式|2109.01050（重定向）]]** — 软正则失败模式的编号入口，指向 [[PINN软正则失败模式与课程训练]]。
+- **[[2408.11104-ConFIG|2408.11104（重定向）]]** — 多目标无冲突训练的编号入口，指向 [[ConFIG-PINN多目标无冲突训练]]。
+- **[[From PINNs to PIKANs- Recent Advances in Physics-Informed Machine Learning|从 PINN 到 PIKAN 英文标题稿（重定向）]]** — 英文标题命名的入口，指向 [[从PINN到PIKAN-物理信息机器学习进展]]。
+- **[[Evolutionary Optimization of Physics-Informed Neural Networks- Evo-PINN Frontiers and Opportunities|Evo-PINN 英文标题稿（重定向）]]** — 英文标题命名的入口，指向 [[Evo-PINN-物理信息神经网络的进化优化]]。
+- **[[Physics-Informed Neural Networks- A Review of Methodological Evolution, Theoretical Foundations, and Interdisciplinary Frontiers Toward Next-Generation Scientific Computing|MDPI PINN 综述英文标题稿（重定向）]]** — 英文标题命名的入口，指向逐篇笔记 [[PINN方法演进与跨学科前沿综述]]。
+
+### 物理域分解与物理专家
+
+- **[[2022-Hu-APINN|2022-Hu（重定向）]]** — 门控软域分解的文件名入口，指向 [[APINN门控软域分解]]。
+- **[[2023-Yan-辅助任务PINN|2023-Yan（重定向）]]** — 辅助任务 PINN 的文件名入口，指向 [[辅助任务PINN共享私有与专家结构]]。
+- **[[2024-Chalapathi-物理硬约束混合专家|2024-Chalapathi（重定向）]]** — 物理硬约束专家的文件名入口，指向 [[物理硬约束混合专家]]。
+
+### 多任务学习与任务适配器
+
+- **[[Asymmetric Multi-task Learning Based on Task Relatedness and Loss|AMTL 英文标题稿（重定向）]]** — 英文标题命名的入口，指向 [[AMTL非对称多任务学习]]。
+- **[[Deep Asymmetric Multi-task Feature Learning|Deep-AMTFL 英文标题稿（重定向）]]** — 英文标题命名的入口，指向 [[Deep-AMTFL深度非对称特征学习]]。
+- **[[AdapterFusion- Non-Destructive Task Composition for Transfer Learning|AdapterFusion 英文标题稿（重定向）]]** — 英文标题命名的入口，指向 [[AdapterFusion非破坏式任务适配器组合]]。
+- **[[MTLoRA- Low-Rank Adaptation Approach for Efficient Multi-Task Learning|MTLoRA 英文标题稿（重定向）]]** — 英文标题命名的入口，指向 [[MTLoRA共享与任务专用低秩适配]]。
+- **[[2024-Ma-MoDULA|2024-Ma（重定向）]]** — 通用与领域专用低秩适配的文件名入口，指向 [[MoDULA通用与领域专用低秩适配]]。
+- **[[2024-Wang-LoRA-Flow|2024-Wang（重定向）]]** — 词元级低秩融合的文件名入口，指向 [[LoRA-Flow词元级动态低秩融合]]。
+- **[[2024-Kong-LoRA-Switch|2024-Kong（重定向）]]** — 动态适配器切换的文件名入口，指向 [[LoRA-Switch动态适配器切换]]。
+
+### 混合专家路由
+
+- **[[BASE Layers- Simplifying Training of Large, Sparse Models|BASE Layers 英文标题稿（重定向）]]** — 英文标题命名的入口，指向 [[BASE-Layers平衡专家分配]]。
+- **[[2022-Dai-StableMoE|2022-Dai（重定向）]]** — 稳定路由的文件名入口，指向 [[StableMoE稳定路由策略]]。
+- **[[2022-Fedus-Switch-Transformer|2022-Fedus（重定向）]]** — 稀疏路由与负载平衡的文件名入口，指向 [[Switch-Transformer稀疏路由与负载平衡]]。
+- **[[2024-Dai-DeepSeekMoE|2024-Dai（重定向）]]** — 细粒度共享专家的文件名入口，指向 [[DeepSeekMoE细粒度共享专家架构]]。
+- **[[2024-Li-MixLoRA|2024-Li（重定向）]]** — 词元级低秩专家混合的文件名入口，指向 [[MixLoRA词元级低秩专家混合]]。
+- **[[2024-Wu-MoLE|2024-Wu（重定向）]]** — 分层低秩专家组合的文件名入口，指向 [[MoLE分层低秩专家组合]]。
+- **[[2024-Panda-稠密反向传播路由|2024-Panda（重定向）]]** — 稠密反向传播路由的文件名入口，指向 [[稠密反向传播改进稀疏专家路由]]。

@@ -1,6 +1,5 @@
 ---
-title: "From PINNs to PIKANs: Recent Advances in Physics-Informed Machine Learning"
-date: 2026-07-23
+title: "From PINNs to PIKANs- Recent Advances in Physics-Informed Machine Learning（重定向）"
 authors:
   - Juan Diego Toscano
   - Vivek Oommen
@@ -10,51 +9,37 @@ authors:
   - Chenxi Wu
   - George Em Karniadakis
 year: 2024
-journal: "Machine Learning for Computational Science and Engineering"
-source_pdf: [[raw/papers/pinn/2410.13228.pdf]]
+date: 2026-07-23
+updated: 2026-08-07
+journal: "arXiv 预印本（cs.LG）"
+source_pdf: "[[raw/papers/pinn/2410.13228.pdf]]"
 tags:
-  - 博弈论
-  - PINN
-  - 网络异常流量检测
+  - 物理信息机器学习
+  - PIKAN
+  - 自适应损失
+  - 域分解
+  - 优化
   - 类型/论文
-key_finding: "待补充"
+status: 重定向
+canonical: "[[从PINN到PIKAN-物理信息机器学习进展]]"
+key_finding: "本文件只是重定向入口，论文结论以 [[从PINN到PIKAN-物理信息机器学习进展]] 为准。"
 ---
 
-# From PINNs to PIKANs: Recent Advances in Physics-Informed Machine Learning
+# From PINNs to PIKANs- Recent Advances in Physics-Informed Machine Learning（重定向）
 
-> 论文来源：PDF内置
-> 识别文件：raw/papers/pinn/2410.13228.pdf
+> **本文件不含论文结论。正式阅读笔记：[[从PINN到PIKAN-物理信息机器学习进展]]**
 
-## 一句话
+## 重定向说明
 
-待补充
+- 对应论文：Juan Diego Toscano、Vivek Oommen、Alan John Varghese、Zongren Zou、Nazanin Ahmadi Daryakenari、Chenxi Wu、George Em Karniadakis，*From PINNs to PIKANs: Recent Advances in Physics-Informed Machine Learning*，arXiv 预印本（cs.LG），2024。
+- 原件：[[raw/papers/pinn/2410.13228.pdf]]
+- 正式笔记：[[从PINN到PIKAN-物理信息机器学习进展]]，其结论已按原件核验。
+- 保留本文件的理由：`From PINNs to PIKANs- Recent Advances in Physics-Informed Machine Learning` 是本仓库既有的检索入口，直接删除会断开按此名检索的路径。
 
-## 结构化摘要
+## 历史状态
 
-### 研究目的
+2026-07-23 由自动提取流程生成，正文各节全部为「待补充」。原 YAML 的论文身份由 PDF 元数据自动推断且未经核验，原值为期刊 `Machine Learning for Computational Science and Engineering`、DOI `10.1007/s44379-025-00015-1`、年份 `2024`。2026-08-07 清空正文，身份字段改为继承已核验的正式笔记 [[从PINN到PIKAN-物理信息机器学习进展]]；原值仅在此保留以便追溯，不作为本论文的出版信息。
 
-待补充：未解析到稳定段落，建议人工确认
+## 文献信息
 
-### 模型架构
-
-modeling) /S /GoTo >> /Border [ 0 0 0 ] /C [ 0 1 0 ] /H /I /Rect [ 500.542 201.491 520.093 211.188 ] >> 1160 0 obj << /Type /Annot /Subtype /Link /A << /D (cite.schiassi2021physics) /S /GoTo >> /Border [ 0 0 0 ] /C [ 0 1
-
-### 实验数据集
-
-待补充：未解析到稳定数据集描述
-
-### 核心结论
-
-待补充：未解析到稳定结论句
-
-### 参考文献要点
-
-待补充：未提取到可用参考要点
-
-## 元数据补全状态
-
-- DOI：10.1007/s44379-025-00015-1
-- 年份：2024
-- 期刊/出版源：Machine Learning for Computational Science and Engineering
-- 全文提取方式：strings
-- 缺失字段：无
+- arXiv：2410.13228

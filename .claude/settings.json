@@ -7,6 +7,9 @@
     "allow": [
       "Bash(cp /Users/bilibili/Downloads/2504.13592v2.pdf /Users/bilibili/personal/note/raw/papers/)",
       "Bash(pdftotext -layout /Users/bilibili/personal/note/raw/papers/2504.13592v2.pdf -)"
+    ],
+    "deny": [
+      "mcp__computer-use"
     ]
   },
   "hooks": {

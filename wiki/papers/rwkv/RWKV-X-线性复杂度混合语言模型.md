@@ -114,3 +114,4 @@ $$
 - arXiv：<https://arxiv.org/abs/2504.21463>
 - 代码：<https://github.com/howard-hou/RWKV-X>
 - PDF SHA-256：`300994f7b46bb8efb2169c9263d87aa3c5b61b7cfcb64357830b6b319585725b`
+- Zotero：现有键 `7S9X52CK` 的父条目题名、作者和年份错误，修复前不得直接导出为正式引用。
