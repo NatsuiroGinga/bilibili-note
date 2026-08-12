@@ -27,8 +27,6 @@ impl ScanConfig {
 
 impl Default for ScanConfig {
     fn default() -> Self {
-        Self::new(
-            NonZeroUsize::new(DEFAULT_BATCH_SIZE).expect("固定默认批大小必须大于零"),
-        )
+        Self::new(NonZeroUsize::new(DEFAULT_BATCH_SIZE).expect("固定默认批大小必须大于零"))
     }
 }

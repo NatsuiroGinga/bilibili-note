@@ -29,10 +29,22 @@ from r2_final_sidecar_candidate_materialize import (
 
 
 CONFIG_SCHEMA_VERSION = "flow_probe_r2_final_tcp_udp_physics_materialization_v1"
-POOL_SCHEMA_VERSION = "flow_probe_r2_final_tcp_udp_physics_pool_v2"
-MAIN_SOURCE_SCHEMA = "flow_probe_r2_ns3_protocol_windows_v2"
+V2_DATASET_VERSION = "r2-final-tcp-udp-physics-v2"
+V3_DATASET_VERSION = "r2-final-tcp-udp-physics-v3"
+V3_MATRIX_SUMMARY_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_parallel_summary_v3"
+POOL_SCHEMA_VERSION = "flow_probe_r2_final_tcp_udp_physics_pool_v3"
+MAIN_SOURCE_SCHEMA = "flow_probe_r2_ns3_protocol_windows_v3"
 TCP_SOURCE_SCHEMA = "flow_probe_r2_ns3_tcp_sender_windows_v2"
-RECEIPT_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_run_receipt_v1"
+RECEIPT_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_run_receipt_v2"
+DIRECTIONAL_SEMANTICS_VERSION = "flow_probe_e2_zeek_directional_windows_v1"
+DIRECTIONAL_COLUMNS = (
+    "orig_bytes",
+    "resp_bytes",
+    "orig_pkts",
+    "resp_pkts",
+    "orig_ip_bytes",
+    "resp_ip_bytes",
+)
 RUN_PATH_PATTERN = re.compile(
     r"^shards/shard-\d{2}/runs/(\d{4})-(tcp|udp)-([0-9a-f]{12})/receipt\.json$"
 )
@@ -51,6 +63,7 @@ MAIN_SOURCE_COLUMNS = (
     "window_duration_s",
     "public_total_packets",
     "public_total_l3_bytes",
+    *DIRECTIONAL_COLUMNS,
     "truth_queue_start_l3_bytes",
     "truth_queue_end_l3_bytes",
     "truth_qdisc_received_l3_bytes",
@@ -79,6 +92,9 @@ MAIN_SOURCE_COLUMNS = (
     "truth_udp_backlog_start_bytes",
     "truth_udp_backlog_end_bytes",
 )
+MAIN_HEADER_SHA256 = hashlib.sha256(
+    (",".join(MAIN_SOURCE_COLUMNS) + "\n").encode("utf-8")
+).hexdigest()
 
 TCP_SOURCE_COLUMNS = (
     "schema_version",
@@ -213,6 +229,12 @@ def _window_schema() -> pa.Schema:
         _field("truth_window_duration_s", pa.float64()),
         _field("public_total_packets", pa.int64()),
         _field("public_total_l3_bytes", pa.int64()),
+        _field("orig_bytes", pa.int64()),
+        _field("resp_bytes", pa.int64()),
+        _field("orig_pkts", pa.int64()),
+        _field("resp_pkts", pa.int64()),
+        _field("orig_ip_bytes", pa.int64()),
+        _field("resp_ip_bytes", pa.int64()),
         _field("public_packet_rate_pps", pa.float64()),
         _field("public_byte_rate_Bps", pa.float64()),
         _field("truth_shared_applicable", pa.bool_()),
@@ -461,7 +483,25 @@ def _window_row(
     duration = float(source_row["window_duration_s"])
     packets = int(source_row["public_total_packets"])
     bytes_count = int(source_row["public_total_l3_bytes"])
+    directional = {name: int(source_row[name]) for name in DIRECTIONAL_COLUMNS}
+    if min(directional.values()) < 0:
+        raise MaterializationError("方向字段不得为负")
+    for prefix in ("orig", "resp"):
+        payload = directional[f"{prefix}_bytes"]
+        packet_count = directional[f"{prefix}_pkts"]
+        ip_bytes = directional[f"{prefix}_ip_bytes"]
+        if ip_bytes < payload:
+            raise MaterializationError("方向IP字节不得小于传输层有效载荷字节")
+        if packet_count == 0 and (payload != 0 or ip_bytes != 0):
+            raise MaterializationError("零包方向不得携带字节计数")
+        if packet_count > 0 and ip_bytes == 0:
+            raise MaterializationError("非零包方向必须携带IP字节")
     transport = str(manifest_row["transport_family"])
+    if transport == "UDP" and any(
+        directional[name] != 0
+        for name in ("resp_bytes", "resp_pkts", "resp_ip_bytes")
+    ):
+        raise MaterializationError("当前单向UDP场景不得携带响应方向流量")
     udp_applicable = _parse_bool(source_row["truth_udp_applicable"], "truth_udp_applicable")
     udp = transport == "UDP"
     if udp_applicable != udp:
@@ -492,6 +532,7 @@ def _window_row(
         "truth_window_duration_s": duration,
         "public_total_packets": packets,
         "public_total_l3_bytes": bytes_count,
+        **directional,
         "public_packet_rate_pps": packets / duration,
         "public_byte_rate_Bps": bytes_count / duration,
         "truth_shared_applicable": True,
@@ -554,6 +595,11 @@ def _window_row(
         raise MaterializationError("队列字节守恒残差不为零")
     if row["truth_queue_balance_residual_packets"] != 0:
         raise MaterializationError("队列包守恒残差不为零")
+    if (
+        row["orig_pkts"] != row["truth_qdisc_received_packets"]
+        or row["orig_ip_bytes"] != row["truth_qdisc_received_l3_bytes"]
+    ):
+        raise MaterializationError("发起方向IPv4观测与瓶颈队列入口不一致")
     return row
 
 
@@ -752,20 +798,63 @@ def _run_roots(index: Mapping[str, Mapping[str, Any]]) -> dict[int, str]:
 def _validate_top_contract(config: Mapping[str, Any], paths: Mapping[str, Path]) -> None:
     state = json.loads(paths["matrix_state"].read_text(encoding="utf-8"))
     summary = json.loads(paths["matrix_summary"].read_text(encoding="utf-8"))
-    source_lock = json.loads(paths["ns3_source_lock"].read_text(encoding="utf-8"))
     contract = dict(config["source_contract"])
-    for name in ("planned_run_count", "completed_run_count", "failed_run_count", "reused_run_count"):
+    count_fields = (
+        "planned_run_count",
+        "completed_run_count",
+        "failed_run_count",
+        "reused_run_count",
+    )
+    for name in count_fields:
         if int(state[name]) != int(contract[name]):
             raise MaterializationError(f"矩阵状态不符合冻结合同：{name}")
     if state.get("status") != "review_pending" or summary.get("status") != "review_pending":
         raise MaterializationError("attempt4 未保持 review_pending")
     if int(summary["valid_pair_count"]) != int(contract["valid_pair_count"]):
         raise MaterializationError("严格配对数量不符合冻结合同")
+
+    dataset_version = str(config.get("dataset_version", ""))
+    expected_manifest_sha256 = str(config["inputs"]["ns3_manifest"]["sha256"])
+    if dataset_version == V3_DATASET_VERSION:
+        if "ns3_source_lock" in paths or "ns3_source_lock" in config["inputs"]:
+            raise MaterializationError("v3 摘要模式不得把 matrix-summary 冒充来源锁")
+        expected_mode = {
+            "schema_version": V3_MATRIX_SUMMARY_SCHEMA,
+            "main_schema_version": MAIN_SOURCE_SCHEMA,
+            "directional_semantics_version": DIRECTIONAL_SEMANTICS_VERSION,
+            "directional_fields": list(DIRECTIONAL_COLUMNS),
+        }
+        for field_name, expected_value in expected_mode.items():
+            if summary.get(field_name) != expected_value:
+                raise MaterializationError(f"v3 矩阵摘要模式不符合冻结合同：{field_name}")
+        for name in count_fields:
+            if name not in summary or int(summary[name]) != int(contract[name]):
+                raise MaterializationError(f"v3 矩阵摘要计数不符合冻结合同：{name}")
+        expected_bindings = {
+            "scenario_source_sha256": contract["scenario_source_sha256"],
+            "contract_sha256": contract["tcp_truth_contract_sha256"],
+            "manifest_sha256": expected_manifest_sha256,
+        }
+        for field_name, expected_value in expected_bindings.items():
+            if summary.get(field_name) != expected_value:
+                raise MaterializationError(f"v3 矩阵摘要来源绑定不符合冻结合同：{field_name}")
+        return
+
+    if dataset_version != V2_DATASET_VERSION:
+        raise MaterializationError(f"不支持的正式物理池数据版本：{dataset_version}")
+    if "ns3_source_lock" not in paths:
+        raise MaterializationError("v2 输入缺少独立 ns-3 来源锁")
+    source_lock = json.loads(paths["ns3_source_lock"].read_text(encoding="utf-8"))
+    if paths["ns3_source_lock"] == paths["matrix_summary"] or any(
+        name in source_lock
+        for name in ("status", "planned_run_count", "completed_run_count", "valid_pair_count")
+    ):
+        raise MaterializationError("矩阵摘要不得冒充 v2 来源锁")
     for field_name in ("scenario_source_sha256", "tcp_truth_contract_sha256"):
         source_name = "contract_sha256" if field_name == "tcp_truth_contract_sha256" else field_name
-        if source_lock[source_name] != contract[field_name]:
+        if source_lock.get(source_name) != contract[field_name]:
             raise MaterializationError(f"来源锁不符合冻结合同：{field_name}")
-    if source_lock["manifest_sha256"] != config["inputs"]["ns3_manifest"]["sha256"]:
+    if source_lock.get("manifest_sha256") != expected_manifest_sha256:
         raise MaterializationError("来源锁未绑定冻结 ns-3 清单")
 
 
@@ -904,6 +993,10 @@ def materialize(config_path: Path, project_root: Path) -> Path:
                 "physics_group_sha256": group,
                 "scenario_source_sha256": config["source_contract"]["scenario_source_sha256"],
                 "contract_sha256": config["source_contract"]["tcp_truth_contract_sha256"],
+                "main_schema_version": MAIN_SOURCE_SCHEMA,
+                "directional_semantics_version": DIRECTIONAL_SEMANTICS_VERSION,
+                "directional_fields": list(DIRECTIONAL_COLUMNS),
+                "main_header_sha256": MAIN_HEADER_SHA256,
                 "main_csv_sha256": main_sha,
                 "tcp_csv_sha256": tcp_sha,
             }
@@ -1039,7 +1132,7 @@ def materialize(config_path: Path, project_root: Path) -> Path:
         contract_semantic = _write_json(contract_path, config)
 
         source_lock = {
-            "schema_version": "flow_probe_r2_final_tcp_udp_physics_source_lock_v2",
+            "schema_version": "flow_probe_r2_final_tcp_udp_physics_source_lock_v3",
             "dataset_version": config["dataset_version"],
             "stage": config["stage"],
             "status": "review_pending",
@@ -1054,6 +1147,10 @@ def materialize(config_path: Path, project_root: Path) -> Path:
                 if "sha256" in spec
             },
             "source_contract": config["source_contract"],
+            "main_schema_version": MAIN_SOURCE_SCHEMA,
+            "directional_semantics_version": DIRECTIONAL_SEMANTICS_VERSION,
+            "directional_fields": list(DIRECTIONAL_COLUMNS),
+            "main_header_sha256": MAIN_HEADER_SHA256,
             "verified_receipts": verified_receipts,
             "verified_files": verified_files,
             "included_splits": list(included_splits),
@@ -1079,9 +1176,13 @@ def materialize(config_path: Path, project_root: Path) -> Path:
             ],
         }
         schema_document = {
-            "schema_version": "flow_probe_r2_final_tcp_udp_physics_schema_v2",
+            "schema_version": "flow_probe_r2_final_tcp_udp_physics_schema_v3",
             "review_status": "review_pending",
             "final_test_visible": False,
+            "main_schema_version": MAIN_SOURCE_SCHEMA,
+            "directional_semantics_version": DIRECTIONAL_SEMANTICS_VERSION,
+            "directional_fields": list(DIRECTIONAL_COLUMNS),
+            "main_header_sha256": MAIN_HEADER_SHA256,
             **schemas,
             "ordering": {
                 "physics_targets_ns3_v2": [
@@ -1105,12 +1206,16 @@ def materialize(config_path: Path, project_root: Path) -> Path:
         schema_semantic = _write_json(schema_path, schema_document)
 
         summary = {
-            "schema_version": "flow_probe_r2_final_tcp_udp_physics_summary_v2",
+            "schema_version": "flow_probe_r2_final_tcp_udp_physics_summary_v3",
             "dataset_version": config["dataset_version"],
             "stage": config["stage"],
             "status": "review_pending",
             "review_status": "review_pending",
             "final_test_visible": False,
+            "main_schema_version": MAIN_SOURCE_SCHEMA,
+            "directional_semantics_version": DIRECTIONAL_SEMANTICS_VERSION,
+            "directional_fields": list(DIRECTIONAL_COLUMNS),
+            "main_header_sha256": MAIN_HEADER_SHA256,
             **actual_counts,
             "verified_receipts": verified_receipts,
             "verified_files": verified_files,
@@ -1143,7 +1248,7 @@ def materialize(config_path: Path, project_root: Path) -> Path:
         state_semantic = _write_json(
             state_path,
             {
-                "schema_version": "flow_probe_r2_final_tcp_udp_physics_state_v2",
+                "schema_version": "flow_probe_r2_final_tcp_udp_physics_state_v3",
                 "status": "review_pending",
                 "review_status": "review_pending",
                 "materialization_completed": True,
@@ -1202,12 +1307,16 @@ def materialize(config_path: Path, project_root: Path) -> Path:
             )
         artifacts.sort(key=lambda item: str(item["relative_path"]))
         artifact_manifest = {
-            "schema_version": "flow_probe_r2_final_tcp_udp_physics_artifact_manifest_v2",
+            "schema_version": "flow_probe_r2_final_tcp_udp_physics_artifact_manifest_v3",
             "dataset_version": config["dataset_version"],
             "stage": config["stage"],
             "status": "review_pending",
             "review_status": "review_pending",
             "final_test_visible": False,
+            "main_schema_version": MAIN_SOURCE_SCHEMA,
+            "directional_semantics_version": DIRECTIONAL_SEMANTICS_VERSION,
+            "directional_fields": list(DIRECTIONAL_COLUMNS),
+            "main_header_sha256": MAIN_HEADER_SHA256,
             "atomic_publication": "same_filesystem_rename_no_overwrite",
             "artifacts": artifacts,
             "artifact_payload_merkle_sha256": _sha256_bytes(

@@ -64,7 +64,10 @@ impl Display for ScreenSourceError {
             Self::MissingExternalMarker {
                 column,
                 source_row_index,
-            } => write!(formatter, "外部标记 {column} 在源行 {source_row_index} 缺失"),
+            } => write!(
+                formatter,
+                "外部标记 {column} 在源行 {source_row_index} 缺失"
+            ),
             Self::InvalidExternalMarker {
                 value,
                 column,
@@ -76,7 +79,10 @@ impl Display for ScreenSourceError {
             Self::MissingIpAddress {
                 column,
                 source_row_index,
-            } => write!(formatter, "内部端点 {column} 在源行 {source_row_index} 缺失"),
+            } => write!(
+                formatter,
+                "内部端点 {column} 在源行 {source_row_index} 缺失"
+            ),
             Self::InvalidIpAddress {
                 value,
                 column,
@@ -180,7 +186,10 @@ pub enum NumericColumn<'a> {
 
 impl<'a> NumericColumn<'a> {
     /// 构造受支持类型的数值列视图。
-    pub fn try_new(column: impl Into<String>, values: &'a dyn Array) -> Result<Self, ScreenSourceError> {
+    pub fn try_new(
+        column: impl Into<String>,
+        values: &'a dyn Array,
+    ) -> Result<Self, ScreenSourceError> {
         if let Some(values) = values.as_any().downcast_ref::<Int32Array>() {
             return Ok(Self::Int32(values));
         }

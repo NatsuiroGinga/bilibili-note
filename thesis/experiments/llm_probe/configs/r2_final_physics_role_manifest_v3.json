@@ -1,0 +1,35 @@
+{
+  "schema_version": "flow_probe_r2_final_physics_role_manifest_v1",
+  "config_schema_version": "flow_probe_r2_final_physics_fit_v1",
+  "final_test_visible": false,
+  "allowed_modes": [
+    "formal"
+  ],
+  "artifact": {
+    "artifact_id": "ns3_tcp_udp_theory_selection_physics_v3",
+    "role": "training_only_privileged_tcp_udp_physics",
+    "path": "runs/data-prepared/r2-final-tcp-udp-physics-v3/physics-targets-ns3-v2.parquet",
+    "sha256": "a4780ccfe92f9b391261bf918cb6d524a2b741e3bf384c91bc2215c25d672c2a",
+    "artifact_payload_merkle_sha256": "f3591ae90c5789b6a0f8345280bed08c63017021f237c7e41d53a586098d03ac",
+    "ready": true,
+    "review_status": "review_pending",
+    "split_id_column": "split_id",
+    "allowed_splits": [
+      "train-fit",
+      "calibration",
+      "validation"
+    ],
+    "companion_artifacts": {
+      "tcp_sender_truth": {
+        "role": "training_only_privileged_tcp_sender_truth",
+        "path": "runs/data-prepared/r2-final-tcp-udp-physics-v3/tcp-sender-truth-v2.parquet",
+        "sha256": "45fc369c0be89b2be0b4dcf8ef5deeb35a26bc089b39f214f8bf31eeb2e4f236"
+      },
+      "udp_window_truth": {
+        "role": "training_only_privileged_udp_window_truth",
+        "path": "runs/data-prepared/r2-final-tcp-udp-physics-v3/udp-window-truth-v2.parquet",
+        "sha256": "f400a189ed89c6455d2cf07ef5bb65aaf25e5cdab7cc9c797830721ed2332b2c"
+      }
+    }
+  }
+}

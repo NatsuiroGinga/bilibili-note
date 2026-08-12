@@ -1,0 +1,162 @@
+{
+  "schema_version": "r1-tail-risk-q0-config-v1",
+  "run_id": "r1-source-time-environment-tail-risk-q0-seed42-v1",
+  "budget_tier": "Q0",
+  "seed": 42,
+  "epochs": 4,
+  "batch_size_sequences": 16,
+  "maximum_sequence_length": 128,
+  "hidden_size": 192,
+  "steps_per_epoch": 183,
+  "total_training_steps": 732,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "checkpoint_interval_steps": 20,
+  "progress_interval_steps": 25,
+  "prediction_progress_interval_rows": 25000,
+  "maximum_concurrent_variants": 3,
+  "conservative_peak_gpu_memory_gib_per_variant": 6.0,
+  "conservative_total_peak_gpu_memory_gib": 18.0,
+  "minimum_free_disk_gib": 10.0,
+  "risk_objective": {
+    "groupdro_eta": 0.01,
+    "beta": 1.0,
+    "rho": 0.2,
+    "lambda": 0.5,
+    "selection_source": "仅配置预注册，不使用目标开发标签"
+  },
+  "context_tail_risk": {
+    "np_alpha": 0.001,
+    "np_delta": 0.05,
+    "position_boundaries": [
+      16,
+      32,
+      64,
+      96
+    ],
+    "valid_length_boundaries": [
+      16,
+      32,
+      64,
+      96
+    ],
+    "tail_start_quantile": 0.95,
+    "minimum_source_benign_per_context": 64,
+    "minimum_gpd_exceedances": 20,
+    "target_prefix_maximum_weight": 0.25,
+    "empirical_smoothing": 1.0,
+    "survival_floor": 1e-12,
+    "stability_perturbation_epsilon": 0.0001,
+    "parameters_selected_from_target_labels": false,
+    "gpd_failure_fallback": "source_empirical_risk"
+  },
+  "evaluation": {
+    "alert_budgets_per_million": [
+      100,
+      1000,
+      10000
+    ],
+    "primary_alert_budget_per_million": 1000,
+    "fixed_recall_grid": [
+      0.8,
+      0.9,
+      0.95
+    ],
+    "environment_probe_max_rows": 200000,
+    "target_labels_connected_after_all_score_seals": true
+  },
+  "comparison_baselines": {
+    "promotion_ap_threshold": 0.038902589823969644,
+    "shared_xgboost": {
+      "name": "共享表格基线 XGBoost",
+      "average_precision": 0.038902589823969644,
+      "same_q0_data_and_legal_field_contract": true
+    },
+    "shared_hgb": {
+      "name": "共享表格基线 HGB",
+      "average_precision": 0.037147851122101574,
+      "same_q0_data_and_legal_field_contract": true
+    },
+    "shared_random_forest": {
+      "name": "共享表格基线随机森林",
+      "average_precision": 0.015572256018043917,
+      "same_q0_data_and_legal_field_contract": true
+    },
+    "dijk_2026_xgboost": {
+      "name": "Dijk 2026 XGBoost 已发表协议约束复现",
+      "average_precision": 0.03469597079642003,
+      "role": "最强已发表协议约束复现参照，不是主晋级门槛"
+    },
+    "other_legal_q0_references": [
+      {
+        "name": "Leoste RF 无 IAT",
+        "average_precision": 0.015073121655584231
+      },
+      {
+        "name": "Leoste RF 含 IAT",
+        "average_precision": 0.011423360215491575
+      },
+      {
+        "name": "K-DELTA",
+        "average_precision": 0.016977277
+      }
+    ],
+    "excluded": [
+      {
+        "name": "Dijk 2024 作者 8 万行示例",
+        "reason": "身份哈希、同年随机切分且数据成员不同，永久禁止进入直接比较"
+      }
+    ]
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "mode": "online"
+  },
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/lspr23-lspr24-bounded-quick-q0-v1/experiments/c12-seed42-q0-2ip-v1/python-cache-v1",
+    "representation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-a-balanced-sequence-pools-q0-seed42-v2-threshold-sentinel-rerun1/frozen-representations",
+    "representation_manifest_schema": "c12-crossyear-receiver-representations-v1",
+    "receiver_checkpoint": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-a-balanced-sequence-pools-q0-seed42-v2-threshold-sentinel-rerun1/shared-receiver/checkpoints/best.pt",
+    "target_prefix_representation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/r1-source-time-environment-tail-risk-q0-seed42-v1/target-prefix-representation",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/r1-source-time-environment-tail-risk-q0-seed42-v1",
+    "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/r1-source-time-environment-tail-risk-q0-seed42-v1"
+  },
+  "variants": [
+    {
+      "key": "ERM",
+      "display_name": "R1-ERM 共享状态评分基线"
+    },
+    {
+      "key": "GROUPDRO",
+      "display_name": "R1-GroupDRO 最坏源时间环境风险"
+    },
+    {
+      "key": "VREX",
+      "display_name": "R1-V-REx 源环境风险外推"
+    },
+    {
+      "key": "CVAR",
+      "display_name": "R1-CVaR 环境内样本尾部风险"
+    },
+    {
+      "key": "TAILRISK",
+      "display_name": "R1-双层尾部风险状态学习"
+    }
+  ],
+  "partition_contract": {
+    "source_train_environment_count": 4,
+    "source_validation_calibration_split": "按父组首次出现时刻中位边界",
+    "environment_split": "各子区按父组首次出现时刻四分位边界",
+    "same_timestamp_split": false,
+    "labels_used_for_partition": false,
+    "environment_or_group_used_as_model_input": false
+  },
+  "target_prefix_label_policy": "冻结接收器编码与风险拟合全程 labels_read=false",
+  "target_development_label_policy": "五组原始概率与十五组 NP/经验/GPD 风险制品全部封存后仅由 evaluate 连接",
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "final_accessed": false
+}

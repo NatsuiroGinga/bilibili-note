@@ -1,0 +1,54 @@
+#!/usr/bin/expect -f
+
+if {$argc != 2} {
+    puts stderr "用法：gpu_rsync_push.exp 本机路径 远端路径"
+    exit 2
+}
+foreach env_name {GPU_SSH_ACTIVE GPU_PWD_ACTIVE} {
+    if {![info exists env($env_name)] || $env($env_name) eq ""} {
+        puts stderr "缺少必需环境变量：$env_name"
+        exit 2
+    }
+}
+
+set timeout -1
+set source_path [lindex $argv 0]
+set destination_path [lindex $argv 1]
+set ssh_words [split $env(GPU_SSH_ACTIVE) " "]
+set port_index [lsearch -exact $ssh_words "-p"]
+if {$port_index < 0 || $port_index + 1 >= [llength $ssh_words]} {
+    puts stderr "GPU_SSH_ACTIVE 缺少端口参数"
+    exit 2
+}
+set port [lindex $ssh_words [expr {$port_index + 1}]]
+set target [lindex $ssh_words end]
+set remote_shell [join [lrange $ssh_words 0 end-1] " "]
+
+log_user 0
+spawn rsync -rt --partial --progress -e $remote_shell -- $source_path "$target:$destination_path"
+expect {
+    -re {(?i)password:} {
+        send -- "$env(GPU_PWD_ACTIVE)\r"
+        exp_continue
+    }
+    -re {(?i)are you sure you want to continue connecting} {
+        send -- "yes\r"
+        exp_continue
+    }
+    -re {([0-9]{1,3})%} {
+        puts "PROGRESS=$expect_out(1,string)%"
+        exp_continue
+    }
+    eof {
+        set status [wait]
+        if {[llength $status] < 4 || [lindex $status 2] != 0} {
+            puts stderr "无法读取 rsync 子进程退出状态"
+            exit 125
+        }
+        set exit_code [lindex $status 3]
+        if {$exit_code != 0} {
+            puts stderr "rsync 同步失败，退出码：$exit_code"
+        }
+        exit $exit_code
+    }
+}

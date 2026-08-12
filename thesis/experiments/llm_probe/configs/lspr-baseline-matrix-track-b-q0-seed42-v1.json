@@ -1,0 +1,122 @@
+{
+  "schema_version": "lspr-baseline-matrix-v1",
+  "track": "B",
+  "display_name": "LSPR共同合同主比较首批Q0",
+  "seed": 42,
+  "evidence_identity": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "final_accessed": false
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "mode": "online"
+  },
+  "selection_rule": {
+    "primary": "target-development PR-AUC",
+    "tie_breakers": ["fixed-alert-budget recall", "malicious F1", "calibration", "efficiency"],
+    "target_labels_for_hyperparameters_or_thresholds": false
+  },
+  "fixed_alert_budgets": [100, 1000, 10000],
+  "packet_interarrival_fields": [
+    "Flow IAT Mean",
+    "Flow IAT Min",
+    "Flow IAT Max",
+    "Flow IAT Stddev",
+    "Fwd IAT Min",
+    "Fwd IAT Max",
+    "Fwd IAT Mean",
+    "Fwd IAT Std",
+    "Fwd IAT Tot",
+    "Bwd IAT Min",
+    "Bwd IAT Max",
+    "Bwd IAT Mean",
+    "Bwd IAT Std",
+    "Bwd IAT Tot"
+  ],
+  "sequence_model": {
+    "input_size": 155,
+    "hidden_size": 384,
+    "num_layers": 6,
+    "num_heads": 8,
+    "dropout": 0.1,
+    "intermediate_size": 1536,
+    "maximum_sequence_length": 128,
+    "bigbird_block_size": 16,
+    "bigbird_random_blocks": 2,
+    "longformer_attention_window": 32
+  },
+  "neural_budget": {
+    "epochs": 2,
+    "steps_per_epoch": 100,
+    "batch_size_sequences": 8,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "checkpoint_interval_steps": 20,
+    "heartbeat_steps": 10,
+    "paper_budget_difference": "共同合同Q0只作候选筛选；正式矩阵另行冻结多种子完整预算"
+  },
+  "model_order": [
+    "leoste2025_rf_with_iat",
+    "leoste2025_rf_without_iat",
+    "leoste_1d_cnn_nearest_text",
+    "dijk2026_xgboost",
+    "dijk2026_gru",
+    "dijk2026_full_attention_transformer",
+    "dijk2026_bigbird",
+    "dijk2026_longformer"
+  ],
+  "models": {
+    "leoste2025_rf_with_iat": {
+      "display_name": "共同合同Leoste随机森林（含包到达间隔）",
+      "replication_class": "common-contract-paper-baseline",
+      "parameters": {"n_estimators": 128, "max_depth": 10, "bootstrap": true, "class_weight": null, "n_jobs": 8},
+      "implementation_differences": ["统一77合法字段、成员、源变换和标签权限"]
+    },
+    "leoste2025_rf_without_iat": {
+      "display_name": "共同合同Leoste随机森林（不含包到达间隔）",
+      "replication_class": "common-contract-paper-baseline",
+      "parameters": {"n_estimators": 128, "max_depth": 10, "bootstrap": true, "class_weight": null, "n_jobs": 8},
+      "implementation_differences": ["从共同77合法字段精确移除14个IAT字段"]
+    },
+    "leoste_1d_cnn_nearest_text": {
+      "display_name": "共同合同Leoste一维卷积最近正文实现",
+      "replication_class": "common-contract-nearest-text-paper-baseline",
+      "learning_rate": 0.001,
+      "parameters": {},
+      "implementation_differences": ["不可恢复的类别嵌入替换为统一155维合法表示", "最近正文实现，不称严格复现"]
+    },
+    "dijk2026_xgboost": {
+      "display_name": "共同合同Dijk XGBoost OP",
+      "replication_class": "common-contract-paper-baseline",
+      "parameters": {"n_estimators": 800, "learning_rate": 0.05, "max_depth": 8, "subsample": 0.8, "colsample_bytree": 0.8, "reg_lambda": 1.0, "min_child_weight": 1.0, "max_bin": 256, "n_jobs": 8},
+      "implementation_differences": ["OP逐流表示，成员与2-IP模型一致", "77合法字段"]
+    },
+    "dijk2026_gru": {
+      "display_name": "共同合同Dijk单向GRU 2-IP",
+      "replication_class": "common-contract-paper-baseline",
+      "parameters": {},
+      "implementation_differences": ["共同2-IP成员、输入和Q0预算"]
+    },
+    "dijk2026_full_attention_transformer": {
+      "display_name": "共同合同Dijk全注意力Transformer 2-IP",
+      "replication_class": "common-contract-paper-baseline",
+      "parameters": {},
+      "implementation_differences": ["共同2-IP成员、输入和Q0预算"]
+    },
+    "dijk2026_bigbird": {
+      "display_name": "共同合同Dijk BigBird 2-IP",
+      "replication_class": "common-contract-paper-baseline",
+      "parameters": {},
+      "implementation_differences": ["块大小16与随机块数2预注册", "共同2-IP成员、输入和Q0预算"]
+    },
+    "dijk2026_longformer": {
+      "display_name": "共同合同Dijk Longformer 2-IP",
+      "replication_class": "common-contract-paper-baseline",
+      "parameters": {},
+      "implementation_differences": ["局部注意力窗口32预注册", "共同2-IP成员、输入和Q0预算"]
+    }
+  }
+}

@@ -1,0 +1,616 @@
+{
+  "audit_version": "lspr24-schema-audit-v1",
+  "source_file_name": "lspr24_v2.parquet",
+  "row_count": 20227356,
+  "row_group_count": 21,
+  "column_count": 101,
+  "schema_sha256": "184f21952f7bff184e711f231bdb8232a3f1d3085bed0939b35d4b9f1b5cf349",
+  "columns": [
+    {
+      "index": 0,
+      "name": "Flow ID",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 1,
+      "name": "SrcIP",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 2,
+      "name": "DstIP",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 3,
+      "name": "SrcPort",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 4,
+      "name": "DstPort",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 5,
+      "name": "Protocol",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 6,
+      "name": "mTimestampStart",
+      "arrow_type": "Int64",
+      "nullable": true
+    },
+    {
+      "index": 7,
+      "name": "mTimestampLast",
+      "arrow_type": "Int64",
+      "nullable": true
+    },
+    {
+      "index": 8,
+      "name": "Flow Duration",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 9,
+      "name": "Flow Bytes/s",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 10,
+      "name": "Flow Packets/s",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 11,
+      "name": "Tot Fwd Pkts",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 12,
+      "name": "Tot Bwd Pkts",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 13,
+      "name": "Total Length of Fwd Packet",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 14,
+      "name": "Total Length of Bwd Packet",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 15,
+      "name": "Fwd Packet Length Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 16,
+      "name": "Fwd Packet Length Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 17,
+      "name": "Fwd Packet Length Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 18,
+      "name": "Fwd Packet Length Std",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 19,
+      "name": "Bwd Packet Length Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 20,
+      "name": "Bwd Packet Length Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 21,
+      "name": "Bwd Packet Length Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 22,
+      "name": "Bwd Packet Length Std",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 23,
+      "name": "Flow IAT Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 24,
+      "name": "Flow IAT Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 25,
+      "name": "Flow IAT Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 26,
+      "name": "Flow IAT Stddev",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 27,
+      "name": "Fwd IAT Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 28,
+      "name": "Fwd IAT Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 29,
+      "name": "Fwd IAT Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 30,
+      "name": "Fwd IAT Std",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 31,
+      "name": "Fwd IAT Tot",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 32,
+      "name": "Bwd IAT Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 33,
+      "name": "Bwd IAT Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 34,
+      "name": "Bwd IAT Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 35,
+      "name": "Bwd IAT Std",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 36,
+      "name": "Bwd IAT Tot",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 37,
+      "name": "Fwd PSH flags",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 38,
+      "name": "Bwd PSH flags",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 39,
+      "name": "Fwd URG flags",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 40,
+      "name": "Bwd URG flags",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 41,
+      "name": "Fwd Header Length",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 42,
+      "name": "Bwd Header Length",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 43,
+      "name": "Fwd Packets/s",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 44,
+      "name": "Bwd Packets/s",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 45,
+      "name": "Packet Length Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 46,
+      "name": "Packet Length Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 47,
+      "name": "Packet Length Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 48,
+      "name": "Packet Length Std",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 49,
+      "name": "Packet Length Variance",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 50,
+      "name": "FIN Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 51,
+      "name": "SYN Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 52,
+      "name": "RST Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 53,
+      "name": "PSH Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 54,
+      "name": "ACK Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 55,
+      "name": "URG Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 56,
+      "name": "CWR Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 57,
+      "name": "ECE Flag Cnt",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 58,
+      "name": "Down/Up Ratio",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 59,
+      "name": "Average Packet Size",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 60,
+      "name": "Fwd Segment Size Avg",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 61,
+      "name": "Bwd Segment Size Avg",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 62,
+      "name": "Fwd Bytes/Bulk Avg",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 63,
+      "name": "Fwd Packet/Bulk Avg",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 64,
+      "name": "Fwd Bulk Rate Avg",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 65,
+      "name": "Bwd Bytes/Bulk Avg",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 66,
+      "name": "Bwd Packet/Bulk Avg",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 67,
+      "name": "Bwd Bulk Rate Avg",
+      "arrow_type": "Int64",
+      "nullable": true
+    },
+    {
+      "index": 68,
+      "name": "Subflow Fwd Packets",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 69,
+      "name": "Subflow Fwd Bytes",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 70,
+      "name": "Subflow Bwd Packets",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 71,
+      "name": "Subflow Bwd Bytes",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 72,
+      "name": "FWD Init Win Bytes",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 73,
+      "name": "Bwd Init Win Bytes",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 74,
+      "name": "Fwd Act Data Pkts",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 75,
+      "name": "Fwd Seg Size Min",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 76,
+      "name": "Active Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 77,
+      "name": "Active Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 78,
+      "name": "Active Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 79,
+      "name": "Active Std",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 80,
+      "name": "Idle Min",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 81,
+      "name": "Idle Mean",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 82,
+      "name": "Idle Max",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 83,
+      "name": "Idle Std",
+      "arrow_type": "Float64",
+      "nullable": true
+    },
+    {
+      "index": 84,
+      "name": "SigID revision",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 85,
+      "name": "Category",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 86,
+      "name": "Severity",
+      "arrow_type": "Int64",
+      "nullable": true
+    },
+    {
+      "index": 87,
+      "name": "Anomaly_event",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 88,
+      "name": "L3/L4 Protocol",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 89,
+      "name": "Int/Ext Dst IP",
+      "arrow_type": "Int32",
+      "nullable": true
+    },
+    {
+      "index": 90,
+      "name": "Conn_state",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 91,
+      "name": "Service",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 92,
+      "name": "External_src",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 93,
+      "name": "External_dst",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 94,
+      "name": "Segment_src",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 95,
+      "name": "Segment_dst",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 96,
+      "name": "Expoid_src",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 97,
+      "name": "Expoid_dst",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 98,
+      "name": "Label_src",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 99,
+      "name": "Label_dst",
+      "arrow_type": "Utf8",
+      "nullable": true
+    },
+    {
+      "index": 100,
+      "name": "Label",
+      "arrow_type": "Int32",
+      "nullable": true
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "schema_version": "candidate-b-physical-time-rwkv-q0-config-v1",
+  "run_id": "candidate-b-physical-time-rwkv-q0-seed42-v1",
+  "budget_tier": "Q0",
+  "seed": 42,
+  "epochs": 4,
+  "batch_size_sequences": 16,
+  "maximum_sequence_length": 128,
+  "input_size": 192,
+  "hidden_size": 192,
+  "state_heads": 6,
+  "state_head_size": 32,
+  "steps_per_epoch": 183,
+  "total_training_steps": 732,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "checkpoint_interval_steps": 20,
+  "progress_interval_steps": 25,
+  "prediction_progress_interval_rows": 25000,
+  "maximum_concurrent_variants": 3,
+  "conservative_peak_gpu_memory_gib_per_variant": 6.0,
+  "conservative_total_peak_gpu_memory_gib": 18.0,
+  "minimum_free_disk_gib": 10.0,
+  "time_transform": {
+    "unit": "microseconds",
+    "transform": "log1p(clipped_delta_t_us / 1000000)",
+    "source_clip_quantile": 0.995,
+    "fit_role": "source-train",
+    "target_statistics_used": false,
+    "source_quartiles_frozen_for_facets": true
+  },
+  "diagnostics": {
+    "time_control_variants": [
+      "B-DELTA-FEATURE",
+      "B-DYG-SPAN",
+      "B-LINEAR-CLIPPED",
+      "B-ROLE-SEPARATED"
+    ],
+    "stable_time_shuffle": {
+      "enabled": true,
+      "scope": "within_sequence",
+      "seed": 42,
+      "model_retraining": false
+    },
+    "fixed_source_median_time": {
+      "enabled": true,
+      "fit_role": "source-train",
+      "model_retraining": false
+    }
+  },
+  "evaluation": {
+    "alert_budgets_per_million": [
+      100,
+      1000,
+      10000
+    ],
+    "fixed_recall_grid": [
+      0.8,
+      0.9,
+      0.95
+    ],
+    "delta_t_quartile_facets": true,
+    "sequence_span_quartile_facets": true,
+    "target_labels_connected_after_all_probability_seals": true
+  },
+  "comparison_thresholds": {
+    "minimum_ap_gain_over_discrete": 0.002,
+    "role_separated_must_strictly_exceed": [
+      "B-DELTA-FEATURE",
+      "B-DYG-SPAN",
+      "B-LINEAR-CLIPPED"
+    ],
+    "high_time_drift_direction_must_match_overall": true,
+    "shared_xgboost_ap": 0.038902589823969644,
+    "time_shuffle_must_reduce_overall_or_preregistered_time_facet_ap": true,
+    "stop_without_frequency_if_not_above_delta_feature_or_dyg_span": true
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "mode": "online",
+    "upload_policy": "aggregate_metrics_and_protocol_metadata_only"
+  },
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/lspr23-lspr24-bounded-quick-q0-v1/experiments/c12-seed42-q0-2ip-v1/python-cache-v1",
+    "representation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-a-balanced-sequence-pools-q0-seed42-v2-threshold-sentinel-rerun1/frozen-representations",
+    "receiver_checkpoint": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-a-balanced-sequence-pools-q0-seed42-v2-threshold-sentinel-rerun1/shared-receiver/checkpoints/best.pt",
+    "target_prefix_representation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/r1-source-time-environment-tail-risk-q0-seed42-v1/target-prefix-representation",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/candidate-b-physical-time-rwkv-q0-seed42-v1",
+    "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/candidate-b-physical-time-rwkv-q0-seed42-v1"
+  },
+  "variants": [
+    {
+      "key": "B-DISCRETE-RWKV",
+      "display_name": "离散步长 RWKV 状态对照",
+      "exact_time_role": "不进入状态核；冻结 phi 仍保留接收器普通时间表征"
+    },
+    {
+      "key": "B-DELTA-FEATURE",
+      "display_name": "显式流间隔普通特征对照",
+      "exact_time_role": "源域归一化 log1p(delta_t_us) 只附加到内容投影"
+    },
+    {
+      "key": "B-DYG-SPAN",
+      "display_name": "DyG-Mamba 式单调跨度控制对照",
+      "exact_time_role": "单调有界跨度函数控制整体旧状态保留"
+    },
+    {
+      "key": "B-LINEAR-CLIPPED",
+      "display_name": "线性裁剪时间衰减对照",
+      "exact_time_role": "无内容依赖的线性裁剪保留率"
+    },
+    {
+      "key": "B-ROLE-SEPARATED",
+      "display_name": "角色分离物理时间 RWKV",
+      "exact_time_role": "指数半群只控制旧状态保留上界，内容只控制定向移除与写入"
+    }
+  ],
+  "model_input_policy": {
+    "allowed": [
+      "frozen_phi",
+      "exact_delta_t_us_by_variant_contract",
+      "valid_mask"
+    ],
+    "forbidden": [
+      "sample_id",
+      "sequence_id",
+      "position",
+      "valid_length",
+      "year_role",
+      "label",
+      "group_key_ref"
+    ]
+  },
+  "target_prefix_label_policy": "冻结表示只读，labels_read=false",
+  "target_development_label_policy": "五组原始概率以及全部稳定时间打乱/固定源中位时间诊断概率封存并哈希后，仅由 evaluate 连接",
+  "frequency_branch_enabled": false,
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "final_accessed": false
+}

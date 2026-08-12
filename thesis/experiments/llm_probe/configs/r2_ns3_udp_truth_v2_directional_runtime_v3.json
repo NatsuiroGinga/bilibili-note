@@ -1,0 +1,15 @@
+{
+  "closure_path": "configs/r2_ns3_udp_truth_v2_directional_field_closure_v3.json",
+  "contract_path": "configs/r2_ns3_tcp_truth_v2_contract.json",
+  "expected_closure_sha256": "922d90d34f5d7c9933e7636ca25f1c3ddfad0fce541712e381bdf639e7d6c5d5",
+  "expected_contract_sha256": "5a76814a332a1d36d293bfdca5f7e26f89490ede9e23bb3d523b8aac6d5578cc",
+  "expected_manifest_sha256": "d867c05013ff9c566d965ec3115bcefe6c905cca69865b042eb81f56e012a111",
+  "expected_scenario_source_sha256": "0123538bb10eba6a69e5057fdd1d3c817a457ede019efc8b4111b9c614311617",
+  "manifest_path": "runs/data-freeze-configs/r2-protocol-v1/ns3-config-manifest.jsonl",
+  "ns3_root": "/root/autodl-tmp/thesis/ns3/ns-3.48",
+  "output_dir": "runs/ns3-data/r2-udp-truth-v3-directional-field-closure-attempt1",
+  "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+  "resume_from_output_dir": null,
+  "scenario_source": "ns3/r2_protocol_dynamics_v2_scenario.cc",
+  "schema_version": "flow_probe_r2_ns3_udp_truth_v2_params_v3"
+}

@@ -1,0 +1,156 @@
+{
+  "schema_version": "lspr-baseline-matrix-v1",
+  "track": "A",
+  "display_name": "LSPR论文协议尽量复现首批Q0",
+  "seed": 42,
+  "evidence_identity": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "final_accessed": false
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "mode": "online"
+  },
+  "fixed_alert_budgets": [100, 1000, 10000],
+  "packet_interarrival_fields": [
+    "Flow IAT Mean",
+    "Flow IAT Min",
+    "Flow IAT Max",
+    "Flow IAT Stddev",
+    "Fwd IAT Min",
+    "Fwd IAT Max",
+    "Fwd IAT Mean",
+    "Fwd IAT Std",
+    "Fwd IAT Tot",
+    "Bwd IAT Min",
+    "Bwd IAT Max",
+    "Bwd IAT Mean",
+    "Bwd IAT Std",
+    "Bwd IAT Tot"
+  ],
+  "sequence_model": {
+    "input_size": 155,
+    "hidden_size": 384,
+    "num_layers": 6,
+    "num_heads": 8,
+    "dropout": 0.1,
+    "intermediate_size": 1536,
+    "maximum_sequence_length": 128,
+    "bigbird_block_size": 16,
+    "bigbird_random_blocks": 2,
+    "longformer_attention_window": 32
+  },
+  "neural_budget": {
+    "epochs": 2,
+    "steps_per_epoch": 100,
+    "batch_size_sequences": 8,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "checkpoint_interval_steps": 20,
+    "heartbeat_steps": 10,
+    "paper_budget_difference": "Q0只验证可运行性，不冒充论文最多50轮、每轮1000批预算"
+  },
+  "model_order": [
+    "dijk2024_rf_visible_full_extension",
+    "leoste2025_rf_with_iat",
+    "leoste2025_rf_without_iat",
+    "leoste_1d_cnn_nearest_text",
+    "dijk2026_xgboost",
+    "dijk2026_gru",
+    "dijk2026_full_attention_transformer",
+    "dijk2026_bigbird",
+    "dijk2026_longformer"
+  ],
+  "models": {
+    "dijk2024_rf_visible_full_extension": {
+      "display_name": "Dijk 2024作者代码参数可见全成员扩展RF（同年4:1与跨年两格）",
+      "replication_class": "author-example-parameter-visible-member-extension-not-paper-reproduction",
+      "parameters": {
+        "n_estimators": 100,
+        "max_depth": null,
+        "bootstrap": true,
+        "class_weight": null,
+        "n_jobs": 8
+      },
+      "implementation_differences": [
+        "不使用作者示例中的身份哈希字段，只使用77个合法字段",
+        "成员从前80000行扩展为当前缓存内全部可见LSPR23成员；Q0不是官方全量",
+        "作者示例不是论文表8，结果永久标记非严格论文复现"
+      ]
+    },
+    "leoste2025_rf_with_iat": {
+      "display_name": "Leoste 2025随机森林（含包到达间隔）独立复现",
+      "replication_class": "paper-constrained-independent-replication",
+      "parameters": {
+        "n_estimators": 128,
+        "max_depth": 10,
+        "bootstrap": true,
+        "class_weight": null,
+        "n_jobs": 8
+      },
+      "implementation_differences": ["77个合法字段而非不可恢复的72字段", "冻结缺失掩码而非LSPR24删NaN", "scikit-learn CPU而非cuML"]
+    },
+    "leoste2025_rf_without_iat": {
+      "display_name": "Leoste 2025随机森林（不含包到达间隔）独立复现",
+      "replication_class": "paper-constrained-independent-replication",
+      "parameters": {
+        "n_estimators": 128,
+        "max_depth": 10,
+        "bootstrap": true,
+        "class_weight": null,
+        "n_jobs": 8
+      },
+      "implementation_differences": ["从77个合法字段精确移除14个IAT字段，不等同论文72字段清单", "scikit-learn CPU而非cuML"]
+    },
+    "leoste_1d_cnn_nearest_text": {
+      "display_name": "Leoste 2025一维卷积神经网络最近正文实现",
+      "replication_class": "nearest-text-independent-implementation",
+      "learning_rate": 0.001,
+      "parameters": {},
+      "implementation_differences": ["8个类别字段、词表与嵌入维度不可恢复，使用统一155维数值表示", "正文未披露池化、激活、随机失活概率、批量和早停耐心", "Q0缩短训练预算"]
+    },
+    "dijk2026_xgboost": {
+      "display_name": "Dijk 2026 XGBoost OP公开配置迁移",
+      "replication_class": "published-model-configuration-transfer",
+      "parameters": {
+        "n_estimators": 800,
+        "learning_rate": 0.05,
+        "max_depth": 8,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 1.0,
+        "min_child_weight": 1.0,
+        "max_bin": 256,
+        "n_jobs": 8
+      },
+      "implementation_differences": ["77合法字段而非83字段", "冻结切分与源变换", "CPU hist", "OP逐流成员与2-IP序列模型共享相同流成员"]
+    },
+    "dijk2026_gru": {
+      "display_name": "Dijk 2026单向GRU公开骨干迁移",
+      "replication_class": "published-backbone-configuration-transfer",
+      "parameters": {},
+      "implementation_differences": ["学习率与批量由本配置冻结", "使用77合法字段与2-IP共同序列", "Q0缩短训练预算"]
+    },
+    "dijk2026_full_attention_transformer": {
+      "display_name": "Dijk 2026全注意力Transformer公开骨干迁移",
+      "replication_class": "published-backbone-configuration-transfer",
+      "parameters": {},
+      "implementation_differences": ["使用可学习位置表示作为明确实现选择", "学习率与批量由本配置冻结", "Q0缩短训练预算"]
+    },
+    "dijk2026_bigbird": {
+      "display_name": "Dijk 2026 BigBird公开骨干迁移",
+      "replication_class": "published-backbone-configuration-transfer",
+      "parameters": {},
+      "implementation_differences": ["块大小16与随机块数2由本配置预注册", "学习率与批量由本配置冻结", "Q0缩短训练预算"]
+    },
+    "dijk2026_longformer": {
+      "display_name": "Dijk 2026 Longformer公开骨干迁移",
+      "replication_class": "published-backbone-configuration-transfer",
+      "parameters": {},
+      "implementation_differences": ["局部注意力窗口32由本配置预注册", "不使用目标标签选择全局注意力位置", "Q0缩短训练预算"]
+    }
+  }
+}

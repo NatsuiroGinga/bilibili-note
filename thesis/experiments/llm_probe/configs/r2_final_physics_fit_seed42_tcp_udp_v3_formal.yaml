@@ -1,0 +1,139 @@
+schema_version: flow_probe_r2_final_physics_fit_v1
+mode: formal
+seed: 42
+
+data:
+  artifact:
+    path: runs/data-prepared/r2-final-tcp-udp-physics-v3/physics-targets-ns3-v2.parquet
+    sha256: a4780ccfe92f9b391261bf918cb6d524a2b741e3bf384c91bc2215c25d672c2a
+  companion_artifacts:
+    tcp_sender_truth:
+      path: runs/data-prepared/r2-final-tcp-udp-physics-v3/tcp-sender-truth-v2.parquet
+      sha256: 45fc369c0be89b2be0b4dcf8ef5deeb35a26bc089b39f214f8bf31eeb2e4f236
+    udp_window_truth:
+      path: runs/data-prepared/r2-final-tcp-udp-physics-v3/udp-window-truth-v2.parquet
+      sha256: f400a189ed89c6455d2cf07ef5bb65aaf25e5cdab7cc9c797830721ed2332b2c
+  artifact_payload_merkle_sha256: f3591ae90c5789b6a0f8345280bed08c63017021f237c7e41d53a586098d03ac
+  role_manifest:
+    path: configs/r2_final_physics_role_manifest_v3.json
+    sha256: 175fad75249b63ba2ec47ed7431a817a6c7b8b5c066dba32f9a5017b49117e9d
+    artifact_id: ns3_tcp_udp_theory_selection_physics_v3
+    expected_role: training_only_privileged_tcp_udp_physics
+    allowed_splits: [train-fit, calibration, validation]
+  sequence_id: sequence_id
+  evaluation_cluster_id: physics_group_sha256
+  window_index: window_index_in_sequence
+  split_id: split_id
+  route_id: route_id
+  route_confidence: route_confidence
+  quic_applicable: null
+  qlog_truth_available: null
+  window_valid: null
+  window_count: 4
+  tcp_supervision:
+    target_granularity: public_network_window
+    sender_aggregation: sum
+    rtt_aggregation: sample_weighted_mean
+    require_complete_sender_set: true
+    ssthresh_unset_value: 4294967295
+  observation_fields:
+    - public_total_packets
+    - public_total_l3_bytes
+    - public_packet_rate_pps
+    - public_byte_rate_Bps
+  observation_scales: [1000, 1000000, 100000, 100000000]
+  truths:
+    shared_conservation:
+      fields:
+        - truth_queue_start_l3_bytes
+        - truth_queue_end_l3_bytes
+        - truth_qdisc_received_l3_bytes
+        - truth_qdisc_dequeued_l3_bytes
+        - truth_qdisc_drop_before_enqueue_l3_bytes
+        - truth_qdisc_drop_after_dequeue_l3_bytes
+      observed_fields:
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+        - truth_shared_observed
+      scales: [1000000, 1000000, 1000000, 1000000, 1000000, 1000000]
+    tcp_dynamics:
+      fields:
+        - truth_tcp_cwnd_start_bytes
+        - truth_tcp_cwnd_end_bytes
+        - truth_tcp_ssthresh_start_bytes
+        - truth_tcp_ssthresh_end_bytes
+        - truth_tcp_bytes_in_flight_start_bytes
+        - truth_tcp_bytes_in_flight_end_bytes
+        - truth_tcp_acked_bytes
+        - truth_tcp_loss_event_count
+        - truth_tcp_timeout_event_count
+        - truth_tcp_rtt_mean_ms
+      observed_fields:
+        - cwnd_start_observed
+        - cwnd_end_observed
+        - ssthresh_start_observed
+        - ssthresh_end_observed
+        - bytes_in_flight_start_observed
+        - bytes_in_flight_end_observed
+        - acked_bytes_observed
+        - loss_event_count_observed
+        - timeout_event_count_observed
+        - rtt_observed
+      scales: [1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 1000000, 100, 100, 1000]
+    udp_dynamics:
+      fields:
+        - truth_udp_planned_app_payload_packets
+        - truth_udp_planned_app_payload_bytes
+        - truth_udp_actual_send_packets
+        - truth_udp_actual_send_bytes
+        - truth_udp_app_drop_packets
+        - truth_udp_app_drop_bytes
+      observed_fields:
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+        - truth_udp_observed
+      scales: [1000, 1000000, 1000, 1000000, 1000, 1000000]
+    quic_dynamics:
+      fields: []
+      observed_fields: []
+      scales: []
+
+model:
+  hidden_dimension: 64
+  representation_dimension: 64
+  layer_count: 2
+  dropout: 0.1
+  residual_dimensions:
+    shared_conservation: 1
+    tcp_dynamics: 4
+    udp_dynamics: 2
+    quic_dynamics: 6
+    unknown_fallback: 1
+
+training:
+  batch_size: 256
+  epochs: 10
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  state_weight: 1.0
+  residual_weight: 0.1
+  max_grad_norm: 1.0
+  save_steps: 20
+  num_workers: 2
+  device: auto
+
+tracking:
+  project: malicious-traffic-llm
+  workspace: mortiswang
+  run_name: r2-tcp-udp-v3-formal-s42-local
+  mode: local
+  tags: [r2-final, physics-fit, tcp-udp-v3, seed-42, local-only]
+
+output_dir: runs/r2-final-physics-fit/tcp-udp-v3-seed-42-formal
+quic_expert_ready_after_fit: false

@@ -39,6 +39,64 @@ auditor = load_module(
 
 
 class R2QuicV3ContractTest(unittest.TestCase):
+    @staticmethod
+    def _closed_direction_stats() -> dict[str, int]:
+        return {
+            "received_packets": 1093,
+            "scheduled_packets": 1092,
+            "random_drop_packets": 1,
+            "queue_drop_packets": 0,
+            "received_bytes": 57281,
+            "scheduled_bytes": 57235,
+            "random_drop_bytes": 46,
+            "queue_drop_bytes": 0,
+            "send_error_bytes": 0,
+            "waiting_bytes_at_shutdown": 0,
+            "in_service_bytes_at_shutdown": 0,
+            "service_backlog_bytes_at_shutdown": 0,
+            "delay_inflight_bytes_at_shutdown": 0,
+        }
+
+    def test_nonzero_loss_accepts_closed_random_drop_statistics(self) -> None:
+        validator = getattr(collector, "validate_work_conserving_direction", None)
+        self.assertIsNotNone(validator, "采集器缺少方向级守恒验证入口")
+        assert validator is not None
+
+        validator(
+            self._closed_direction_stats(),
+            direction_name="client_to_server",
+            loss_percent=0.5,
+            is_v8=True,
+        )
+
+    def test_zero_loss_rejects_random_drop_statistics(self) -> None:
+        validator = getattr(collector, "validate_work_conserving_direction", None)
+        self.assertIsNotNone(validator, "采集器缺少方向级守恒验证入口")
+        assert validator is not None
+
+        with self.assertRaisesRegex(RuntimeError, "字节守恒或关停门禁失败"):
+            validator(
+                self._closed_direction_stats(),
+                direction_name="client_to_server",
+                loss_percent=0.0,
+                is_v8=True,
+            )
+
+    def test_nonzero_loss_still_rejects_byte_imbalance(self) -> None:
+        validator = getattr(collector, "validate_work_conserving_direction", None)
+        self.assertIsNotNone(validator, "采集器缺少方向级守恒验证入口")
+        assert validator is not None
+        stats = self._closed_direction_stats()
+        stats["received_bytes"] += 1
+
+        with self.assertRaisesRegex(RuntimeError, "字节守恒或关停门禁失败"):
+            validator(
+                stats,
+                direction_name="client_to_server",
+                loss_percent=0.5,
+                is_v8=True,
+            )
+
     def test_controller_sigterm_receipt_preserves_raw_exit(self) -> None:
         process = subprocess.Popen(
             [sys.executable, "-c", "import time; time.sleep(60)"]

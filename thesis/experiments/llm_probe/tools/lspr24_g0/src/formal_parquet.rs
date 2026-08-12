@@ -15,8 +15,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 use crate::development_router::{
-    DevelopmentMemberId, DevelopmentSegment, LSPR24_G0_CONTRACT_SHA256,
-    LSPR24_G0_CONTRACT_VERSION,
+    DevelopmentMemberId, DevelopmentSegment, LSPR24_G0_CONTRACT_SHA256, LSPR24_G0_CONTRACT_VERSION,
 };
 use crate::{
     NumericColumn, OutputError, PartialOutput, ScreenSourceError, Sha256Digest,
@@ -24,10 +23,10 @@ use crate::{
 };
 
 /// 正式开发配置模式版本。
-pub const FORMAL_DEVELOPMENT_CONFIG_SCHEMA_VERSION: &str =
-    "lspr24-g0-development-config-v2";
+pub const FORMAL_DEVELOPMENT_CONFIG_SCHEMA_VERSION: &str = "lspr24-g0-development-config-v2";
 const SPLIT_RECEIPT_SCHEMA_VERSION: &str = "lspr24-g0-development-split-v1";
-const SPLIT_ALGORITHM_SPEC: &[u8] = b"lspr24-activity-rank-split-v4\0ceil-40-50-60-80\0source-order-members";
+const SPLIT_ALGORITHM_SPEC: &[u8] =
+    b"lspr24-activity-rank-split-v4\0ceil-40-50-60-80\0source-order-members";
 const BILLION: i64 = 1_000_000_000;
 
 const UNLABELED_COLUMNS: [&str; 10] = [
@@ -104,7 +103,9 @@ impl FormalDevelopmentConfig {
 
     fn validate(&self) -> Result<(), FormalEntryError> {
         if self.schema_version != FORMAL_DEVELOPMENT_CONFIG_SCHEMA_VERSION {
-            return Err(FormalEntryError::Config("开发配置模式版本不匹配".to_owned()));
+            return Err(FormalEntryError::Config(
+                "开发配置模式版本不匹配".to_owned(),
+            ));
         }
         if self.contract_version != LSPR24_G0_CONTRACT_VERSION
             || self.contract_sha256 != LSPR24_G0_CONTRACT_SHA256
@@ -261,8 +262,8 @@ pub fn prepare_unlabeled_development_split(
     stored.receipt_sha256 = stored_receipt_sha256(&stored)?;
     let bytes = serde_json::to_vec(&stored)
         .map_err(|error| FormalEntryError::Receipt(error.to_string()))?;
-    let mut output = PartialOutput::create(&config.split_receipt_path)
-        .map_err(FormalEntryError::Output)?;
+    let mut output =
+        PartialOutput::create(&config.split_receipt_path).map_err(FormalEntryError::Output)?;
     output.write_all(&bytes).map_err(FormalEntryError::Output)?;
     output.commit().map_err(FormalEntryError::Output)?;
     Ok(UnlabeledDevelopmentSplitReceipt { stored })
@@ -273,12 +274,11 @@ pub fn run_formal_development_materialization(
     config: &FormalDevelopmentConfig,
 ) -> Result<FormalDevelopmentMaterializationReceipt, FormalEntryError> {
     config.validate()?;
-    let receipt_bytes = fs::read(&config.split_receipt_path).map_err(|source| {
-        FormalEntryError::Io {
+    let receipt_bytes =
+        fs::read(&config.split_receipt_path).map_err(|source| FormalEntryError::Io {
             path: config.split_receipt_path.clone(),
             source,
-        }
-    })?;
+        })?;
     let stored: StoredSplitReceipt = serde_json::from_slice(&receipt_bytes)
         .map_err(|error| FormalEntryError::Receipt(error.to_string()))?;
     verify_receipt_self_hash(&stored)?;
@@ -511,11 +511,15 @@ fn write_development_rows(
     config: &FormalDevelopmentConfig,
     stored: &StoredSplitReceipt,
 ) -> Result<FormalDevelopmentMaterializationReceipt, FormalEntryError> {
-    let mut projected = UNLABELED_COLUMNS.iter().map(|value| (*value).to_owned()).collect::<Vec<_>>();
+    let mut projected = UNLABELED_COLUMNS
+        .iter()
+        .map(|value| (*value).to_owned())
+        .collect::<Vec<_>>();
     projected.push("Label".to_owned());
     projected.extend(config.feature_columns.iter().cloned());
     let projected_refs = projected.iter().map(String::as_str).collect::<Vec<_>>();
-    let mut output = PartialOutput::create(&config.output_path).map_err(FormalEntryError::Output)?;
+    let mut output =
+        PartialOutput::create(&config.output_path).map_err(FormalEntryError::Output)?;
     let mut output_hasher = Sha256::new();
     let mut member_hasher = Sha256::new();
     member_hasher.update(b"lspr24-g0-development-members-v1\0");
@@ -546,13 +550,11 @@ fn write_development_rows(
                 );
                 let segment = segment_for(values.last_ns, stored.cut_ns);
                 hash_development_member(&mut member_hasher, member, segment);
-                let label = columns.label(row).ok_or(
-                    FormalEntryError::InvalidDevelopmentLabel { source_row_index },
-                )?;
+                let label = columns
+                    .label(row)
+                    .ok_or(FormalEntryError::InvalidDevelopmentLabel { source_row_index })?;
                 if !matches!(label, 0 | 1) {
-                    return Err(FormalEntryError::InvalidDevelopmentLabel {
-                        source_row_index,
-                    });
+                    return Err(FormalEntryError::InvalidDevelopmentLabel { source_row_index });
                 }
                 let row = FormalOutputRow {
                     segment: segment_name(segment),
@@ -697,7 +699,10 @@ struct FeatureBatch<'a> {
 }
 
 impl<'a> FeatureBatch<'a> {
-    fn try_new(batch: &'a RecordBatch, feature_columns: &[String]) -> Result<Self, FormalEntryError> {
+    fn try_new(
+        batch: &'a RecordBatch,
+        feature_columns: &[String],
+    ) -> Result<Self, FormalEntryError> {
         let features = feature_columns
             .iter()
             .map(|column| Ok((column.clone(), numeric_column(batch, column)?)))
@@ -719,7 +724,10 @@ struct FormalBatch<'a> {
 }
 
 impl<'a> FormalBatch<'a> {
-    fn try_new(batch: &'a RecordBatch, feature_columns: &[String]) -> Result<Self, FormalEntryError> {
+    fn try_new(
+        batch: &'a RecordBatch,
+        feature_columns: &[String],
+    ) -> Result<Self, FormalEntryError> {
         Ok(Self {
             unlabeled: UnlabeledBatch::try_new(batch)?,
             label: int32_column(batch, "Label")?,
@@ -759,7 +767,10 @@ impl<'a> FormalBatch<'a> {
 
 type BatchIterator = Box<dyn Iterator<Item = Result<RecordBatch, FormalEntryError>>>;
 
-fn read_projected_batches(path: &Path, columns: &[&str]) -> Result<BatchIterator, FormalEntryError> {
+fn read_projected_batches(
+    path: &Path,
+    columns: &[&str],
+) -> Result<BatchIterator, FormalEntryError> {
     let file = File::open(path).map_err(|source| FormalEntryError::Io {
         path: path.to_path_buf(),
         source,
@@ -846,8 +857,8 @@ fn stored_receipt_sha256(stored: &StoredSplitReceipt) -> Result<Sha256Digest, Fo
         .as_object_mut()
         .ok_or_else(|| FormalEntryError::Receipt("切分收据顶层不是对象".to_owned()))?
         .remove("receipt_sha256");
-    let bytes = serde_json::to_vec(&value)
-        .map_err(|error| FormalEntryError::Receipt(error.to_string()))?;
+    let bytes =
+        serde_json::to_vec(&value).map_err(|error| FormalEntryError::Receipt(error.to_string()))?;
     Ok(sha256_bytes(&bytes))
 }
 
@@ -863,10 +874,12 @@ fn file_sha256(path: &Path) -> Result<Sha256Digest, FormalEntryError> {
     let mut hasher = Sha256::new();
     let mut buffer = [0_u8; 64 * 1024];
     loop {
-        let read = file.read(&mut buffer).map_err(|source| FormalEntryError::Io {
-            path: path.to_path_buf(),
-            source,
-        })?;
+        let read = file
+            .read(&mut buffer)
+            .map_err(|source| FormalEntryError::Io {
+                path: path.to_path_buf(),
+                source,
+            })?;
         if read == 0 {
             break;
         }
@@ -917,7 +930,9 @@ impl Display for FormalEntryError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Config(message) => write!(formatter, "正式开发配置错误：{message}"),
-            Self::Io { path, source } => write!(formatter, "读取 {} 失败：{source}", path.display()),
+            Self::Io { path, source } => {
+                write!(formatter, "读取 {} 失败：{source}", path.display())
+            }
             Self::Parquet(message) => write!(formatter, "Parquet 读取失败：{message}"),
             Self::Schema(message) => write!(formatter, "Parquet 模式错误：{message}"),
             Self::Screen(error) => write!(formatter, "真实源行错误：{error}"),
@@ -925,7 +940,9 @@ impl Display for FormalEntryError {
             Self::CountOverflow => formatter.write_str("正式开发计数溢出"),
             Self::Receipt(message) => write!(formatter, "切分收据错误：{message}"),
             Self::ReceiptHashMismatch => formatter.write_str("切分收据自哈希不匹配"),
-            Self::SplitBindingMismatch { field } => write!(formatter, "切分收据绑定不匹配：{field}"),
+            Self::SplitBindingMismatch { field } => {
+                write!(formatter, "切分收据绑定不匹配：{field}")
+            }
             Self::InvalidDevelopmentLabel { source_row_index } => {
                 write!(formatter, "开发标签非法：源行 {source_row_index}")
             }
@@ -959,7 +976,10 @@ mod hex_digest {
     where
         S: Serializer,
     {
-        let encoded = digest.iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+        let encoded = digest
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>();
         serializer.serialize_str(&encoded)
     }
 
@@ -968,7 +988,11 @@ mod hex_digest {
         D: Deserializer<'de>,
     {
         let encoded = String::deserialize(deserializer)?;
-        if encoded.len() != 64 || !encoded.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase()) {
+        if encoded.len() != 64
+            || !encoded
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+        {
             return Err(D::Error::custom("SHA-256 必须为 64 位小写十六进制"));
         }
         let mut digest = [0_u8; 32];

@@ -11,8 +11,7 @@ use std::path::{Path, PathBuf};
 
 use crate::canonical::{DatasetSemanticHasher, sha256};
 use crate::types::{
-    EndpointRoleOrder, IntegerOverflow, Sha256Digest, SortableRecord, SourceRowIndex,
-    StableSortKey,
+    EndpointRoleOrder, IntegerOverflow, Sha256Digest, SortableRecord, SourceRowIndex, StableSortKey,
 };
 
 const RUN_MAGIC: &[u8; 8] = b"LSPG0R01";
@@ -233,9 +232,8 @@ fn write_run(
         .map_err(|source| io_error("创建排序段", &path, source))?;
     let mut writer = BufWriter::new(file);
     write_all(&mut writer, &path, RUN_MAGIC)?;
-    let row_count = u64::try_from(records.len()).map_err(|_| {
-        ExternalSortError::IntegerOverflow(IntegerOverflow::SortedRowCount)
-    })?;
+    let row_count = u64::try_from(records.len())
+        .map_err(|_| ExternalSortError::IntegerOverflow(IntegerOverflow::SortedRowCount))?;
     write_all(&mut writer, &path, &row_count.to_be_bytes())?;
     for record in records.drain(..) {
         write_record(&mut writer, &path, record)?;
@@ -252,11 +250,10 @@ fn write_record(
     record: SortableRecord,
 ) -> Result<(), ExternalSortError> {
     let (key, payload) = record.into_parts();
-    let payload_length = u32::try_from(payload.len()).map_err(|_| {
-        ExternalSortError::PayloadLengthOverflow {
+    let payload_length =
+        u32::try_from(payload.len()).map_err(|_| ExternalSortError::PayloadLengthOverflow {
             length: payload.len(),
-        }
-    })?;
+        })?;
     write_all(writer, path, key.protected_endpoint_id())?;
     write_all(writer, path, &key.last_ns().to_be_bytes())?;
     write_all(writer, path, &key.start_ns().to_be_bytes())?;
@@ -402,11 +399,7 @@ impl Ord for HeapRecord {
     }
 }
 
-fn io_error(
-    operation: &'static str,
-    path: &Path,
-    source: std::io::Error,
-) -> ExternalSortError {
+fn io_error(operation: &'static str, path: &Path, source: std::io::Error) -> ExternalSortError {
     ExternalSortError::Io {
         operation,
         path: path.to_path_buf(),

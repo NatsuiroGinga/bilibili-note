@@ -1,0 +1,86 @@
+schema_version: flow_probe_e2_hard_domain_run_v1
+
+experiment:
+  seed: 42
+  panel: abd_to_c
+  variants: [E2-A, E2-S, E2-P, E2-X]
+
+data:
+  protocol_dir: runs/data-prepared/tqh-c2-v120-e1-dev-seed42-v1-20260806T092613Z/protocol
+  feature_fields:
+    - duration
+    - orig_bytes
+    - resp_bytes
+    - orig_pkts
+    - resp_pkts
+    - orig_ip_bytes
+    - resp_ip_bytes
+
+physics:
+  root: runs/data-prepared/e2-physics-auxiliary-v1
+  table: runs/data-prepared/e2-physics-auxiliary-v1/e2-physics-auxiliary-v1.parquet
+  sample_key: [sequence_id, window_index_in_sequence, physics_group_sha256]
+  split_column: split_id
+  allowed_splits: [train-fit]
+  protocol_column: transport_family
+  scene_column: evaluation_cluster_id
+  source_domain: ns3
+  feature_columns:
+    - duration
+    - orig_bytes
+    - resp_bytes
+    - orig_pkts
+    - resp_pkts
+    - orig_ip_bytes
+    - resp_ip_bytes
+  state_channels:
+    - name: queue_l3_bytes
+      start_column: truth_queue_start_l3_bytes
+      end_column: truth_queue_end_l3_bytes
+      arrivals_column: truth_qdisc_received_l3_bytes
+      departures_column: truth_qdisc_dequeued_l3_bytes
+      loss_columns:
+        - truth_qdisc_drop_before_enqueue_l3_bytes
+        - truth_qdisc_drop_after_dequeue_l3_bytes
+    - name: queue_packets
+      start_column: truth_queue_start_packets
+      end_column: truth_queue_end_packets
+      arrivals_column: truth_qdisc_received_packets
+      departures_column: truth_qdisc_dequeued_packets
+      loss_columns:
+        - truth_qdisc_drop_before_enqueue_packets
+        - truth_qdisc_drop_after_dequeue_packets
+  state_masks:
+    supervised_points: [0]
+    evaluation_points: [0, 1]
+  boundary_upper_policy: source_physics_train_observed_max
+
+training:
+  hidden_size: 64
+  max_steps: 200
+  batch_size: 128
+  evaluation_batch_size: 1024
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  lambda_state: 1.0
+  lambda_conservation: 0.01
+  lambda_boundary: 0.01
+  constraint_tolerance: 0.05
+  log_steps: 1
+  save_steps: 20
+  device: auto
+  precision: auto
+
+external_distilbert_baseline:
+  source: /root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased
+  revision: 45c032ab32cc946ad88a166f7cb282f58c753c2e
+  manifest_path: /root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased.manifest.json
+  checksums_path: /root/autodl-tmp/thesis/models/distilbert-base-multilingual-cased.checksums.sha256
+  allowed_architectures: [DistilBertForMaskedLM]
+
+tracking:
+  workspace: mortiswang
+  project: malicious-traffic-llm
+  mode: online
+  run_name: e2-hard-domain-seed42
+  tags: [e2-hard-domain, abd-to-c, seed42]

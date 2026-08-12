@@ -78,8 +78,8 @@ pub fn tuple_encode(values: &[CanonicalValue<'_>]) -> Result<Vec<u8>, CanonicalE
     let mut capacity = 0usize;
     for value in values {
         let length = value_length(*value);
-        let _ = u32::try_from(length)
-            .map_err(|_| CanonicalError::FieldLengthOverflow { length })?;
+        let _ =
+            u32::try_from(length).map_err(|_| CanonicalError::FieldLengthOverflow { length })?;
         capacity = capacity
             .checked_add(FIELD_HEADER_BYTES)
             .and_then(|current| current.checked_add(length))
@@ -175,8 +175,8 @@ fn value_length(value: CanonicalValue<'_>) -> usize {
 
 fn encode_value(value: CanonicalValue<'_>, encoded: &mut Vec<u8>) -> Result<(), CanonicalError> {
     let length = value_length(value);
-    let length = u32::try_from(length)
-        .map_err(|_| CanonicalError::FieldLengthOverflow { length })?;
+    let length =
+        u32::try_from(length).map_err(|_| CanonicalError::FieldLengthOverflow { length })?;
     encoded.push(value_tag(value));
     encoded.extend_from_slice(&length.to_be_bytes());
     match value {

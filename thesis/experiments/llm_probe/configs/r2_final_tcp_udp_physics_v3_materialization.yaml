@@ -1,0 +1,44 @@
+schema_version: flow_probe_r2_final_tcp_udp_physics_materialization_v1
+dataset_version: r2-final-tcp-udp-physics-v3
+stage: theory_selection
+status: review_pending
+final_test_visible: false
+
+inputs:
+  ns3_manifest:
+    path: runs/data-freeze-configs/r2-protocol-v1/ns3-config-manifest.jsonl
+    sha256: d867c05013ff9c566d965ec3115bcefe6c905cca69865b042eb81f56e012a111
+  ns3_root:
+    path: runs/ns3-data/r2-protocol-dynamics-v3-formal-attempt1
+    identity: r2-protocol-dynamics-v3-formal-attempt1
+  matrix_state:
+    path: runs/ns3-data/r2-protocol-dynamics-v3-formal-attempt1/matrix-state.json
+    sha256: c7fe39c9b8be9b3551431aa1791a290b766e3fbf5964d738e426ac5ec3de118d
+  matrix_summary:
+    path: runs/ns3-data/r2-protocol-dynamics-v3-formal-attempt1/matrix-summary.json
+    sha256: 5072febe907fcc8dc32f53734cc96006cb49d0c2103b049ace1ad09a46053c72
+  ns3_artifact_manifest:
+    path: runs/ns3-data/r2-protocol-dynamics-v3-formal-attempt1/artifact-manifest.json
+    sha256: aceab0182dc0c4605ce8ff568059c66a44cd07dc1ab71dbc59e3b2da48b84fed
+  field_closure_summary:
+    path: runs/ns3-data/r2-tcp-truth-v3-directional-field-closure-attempt1/summary.json
+    sha256: fa3e87c84fe108ea19e305ae8dc96987d56c4eb742e03d77853a6713c8becc10
+
+source_contract:
+  scenario_source_sha256: 0123538bb10eba6a69e5057fdd1d3c817a457ede019efc8b4111b9c614311617
+  tcp_truth_contract_sha256: 5a76814a332a1d36d293bfdca5f7e26f89490ede9e23bb3d523b8aac6d5578cc
+  planned_run_count: 512
+  completed_run_count: 512
+  failed_run_count: 0
+  reused_run_count: 0
+  valid_pair_count: 256
+
+publication:
+  included_splits: [train-fit, calibration, validation]
+  withheld_splits: [test, unseen-configuration]
+  sequence_length_windows: 4
+  expected_included_runs: 384
+  expected_withheld_runs: 128
+  expected_window_rows: 46080
+  expected_sequence_rows: 11520
+  output_root: runs/data-prepared/r2-final-tcp-udp-physics-v3

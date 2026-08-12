@@ -151,22 +151,26 @@ def build_specs(config: dict[str, Any], phase: str) -> list[ConnectionSpec]:
         profiles = config["field_profiles"]
         seeds = config["field_seeds"]
     else:
-        grid = config["formal_grid"]
-        profiles = []
-        profile_index = 0
-        for delay_ms, jitter_ms, loss_percent, rate_mbit in itertools.product(
-            grid["delay_ms"], grid["jitter_ms"], grid["loss_percent"], grid["rate_mbit"]
-        ):
-            profile_index += 1
-            profiles.append(
-                {
-                    "id": f"p{profile_index:02d}",
-                    "delay_ms": delay_ms,
-                    "jitter_ms": jitter_ms,
-                    "loss_percent": loss_percent,
-                    "rate_mbit": rate_mbit,
-                }
-            )
+        explicit_profiles = config.get("formal_profiles")
+        if explicit_profiles is not None:
+            profiles = explicit_profiles
+        else:
+            grid = config["formal_grid"]
+            profiles = []
+            profile_index = 0
+            for delay_ms, jitter_ms, loss_percent, rate_mbit in itertools.product(
+                grid["delay_ms"], grid["jitter_ms"], grid["loss_percent"], grid["rate_mbit"]
+            ):
+                profile_index += 1
+                profiles.append(
+                    {
+                        "id": f"p{profile_index:02d}",
+                        "delay_ms": delay_ms,
+                        "jitter_ms": jitter_ms,
+                        "loss_percent": loss_percent,
+                        "rate_mbit": rate_mbit,
+                    }
+                )
         seeds = config["formal_seeds"]
     combinations: Iterable[tuple[str, dict[str, Any], int, dict[str, Any]]]
     combinations = itertools.product(implementations, profiles, seeds, config["payloads"])
@@ -347,6 +351,42 @@ def proxy_queue_contract(
     return contract
 
 
+def validate_work_conserving_direction(
+    direction_stats: dict[str, Any],
+    *,
+    direction_name: str,
+    loss_percent: float,
+    is_v8: bool,
+) -> None:
+    zero_loss_requires_no_random_drop = float(loss_percent) == 0.0
+    if (
+        direction_stats["received_packets"]
+        != direction_stats["scheduled_packets"]
+        + direction_stats["random_drop_packets"]
+        + direction_stats["queue_drop_packets"]
+        or direction_stats["received_bytes"]
+        != direction_stats["scheduled_bytes"]
+        + direction_stats["random_drop_bytes"]
+        + direction_stats["queue_drop_bytes"]
+        or (
+            zero_loss_requires_no_random_drop
+            and direction_stats["random_drop_packets"] != 0
+        )
+        or (
+            zero_loss_requires_no_random_drop
+            and direction_stats["random_drop_bytes"] != 0
+        )
+        or (not is_v8 and direction_stats["queue_drop_packets"] != 0)
+        or (not is_v8 and direction_stats["queue_drop_bytes"] != 0)
+        or direction_stats["send_error_bytes"] != 0
+        or direction_stats["waiting_bytes_at_shutdown"] != 0
+        or direction_stats["in_service_bytes_at_shutdown"] != 0
+        or direction_stats["service_backlog_bytes_at_shutdown"] != 0
+        or direction_stats["delay_inflight_bytes_at_shutdown"] != 0
+    ):
+        raise RuntimeError(f"代理 v4 字节守恒或关停门禁失败：{direction_name}")
+
+
 def fixed_endpoint_contract(config: dict[str, Any], spec: ConnectionSpec) -> dict[str, Any]:
     deterministic = config.get("determinism_contract")
     if isinstance(deterministic, dict):
@@ -483,6 +523,7 @@ def client_command(
 
 def collect_connection(
     *,
+    phase: str,
     project_root: Path,
     spec: ConnectionSpec,
     config: dict[str, Any],
@@ -542,7 +583,7 @@ def collect_connection(
         for direction in ("client_to_server", "server_to_client")
     }
     deterministic = config.get("determinism_contract")
-    if isinstance(deterministic, dict):
+    if isinstance(deterministic, dict) and phase == "field":
         direction_seeds_by_target = deterministic.get("direction_seeds_by_target_index")
         frozen_direction_seeds = (
             direction_seeds_by_target[str(spec.index)]
@@ -1019,27 +1060,14 @@ def collect_connection(
                 direction_stats.get("max_datagram_bytes") != directional_maximums[direction_name]
             ):
                 raise RuntimeError(f"代理方向上限不符合 v7 合同：{direction_name}")
-            if schedule_mode == "work_conserving_byte_service_delay_v1" and (
-                direction_stats["received_packets"]
-                != direction_stats["scheduled_packets"]
-                + direction_stats["random_drop_packets"]
-                + direction_stats["queue_drop_packets"]
-                or direction_stats["received_bytes"]
-                != direction_stats["scheduled_bytes"]
-                + direction_stats["random_drop_bytes"]
-                + direction_stats["queue_drop_bytes"]
-                or direction_stats["random_drop_packets"] != 0
-                or direction_stats["random_drop_bytes"] != 0
-                or (not is_v8 and direction_stats["queue_drop_packets"] != 0)
-                or (not is_v8 and direction_stats["queue_drop_bytes"] != 0)
-                or direction_stats["send_error_bytes"] != 0
-                or direction_stats["waiting_bytes_at_shutdown"] != 0
-                or direction_stats["in_service_bytes_at_shutdown"] != 0
-                or direction_stats["service_backlog_bytes_at_shutdown"] != 0
-                or direction_stats["delay_inflight_bytes_at_shutdown"] != 0
-            ):
-                raise RuntimeError(f"代理 v4 字节守恒或关停门禁失败：{direction_name}")
-        if is_v8 and spec.implementation == "aioquic" and spec.index == 12:
+            if schedule_mode == "work_conserving_byte_service_delay_v1":
+                validate_work_conserving_direction(
+                    direction_stats,
+                    direction_name=direction_name,
+                    loss_percent=float(profile["loss_percent"]),
+                    is_v8=is_v8,
+                )
+        if phase == "field" and is_v8 and spec.implementation == "aioquic" and spec.index == 12:
             server_to_client_stats = proxy_stats["directions"]["server_to_client"]
             if (
                 server_to_client_stats["queue_drop_packets"] <= 0
@@ -1207,11 +1235,13 @@ def main() -> int:
         raise RuntimeError("磁盘可用空间低于当前阶段硬门禁")
 
     matrix_specs = build_specs(config, args.phase)
-    expected = 40 if args.phase == "field" else 600
+    default_expected = 40 if args.phase == "field" else 600
+    matrix_contract = config.get("matrix_contract", {})
+    expected = int(matrix_contract.get(f"{args.phase}_expected_connections", default_expected))
     if len(matrix_specs) != expected:
         raise RuntimeError(f"连接矩阵规模错误：{len(matrix_specs)} != {expected}")
     deterministic = config.get("determinism_contract")
-    if isinstance(deterministic, dict):
+    if isinstance(deterministic, dict) and args.phase == "field":
         gate_runs = deterministic.get("gate_runs")
         if gate_runs is None:
             allowed_targets = [int(deterministic["target_connection_index"])]
@@ -1320,6 +1350,7 @@ def main() -> int:
             )
             raise RuntimeError("磁盘可用空间低于正式阶段硬门禁，队列已停止")
         collect_connection(
+            phase=args.phase,
             project_root=project_root,
             spec=spec,
             config=config,

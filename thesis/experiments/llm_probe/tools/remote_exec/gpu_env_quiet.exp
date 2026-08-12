@@ -1,0 +1,71 @@
+#!/usr/bin/expect -f
+
+if {$argc != 1} {
+    puts stderr "用法：gpu_env_quiet.exp 远端命令"
+    exit 2
+}
+foreach env_name {GPU_SSH_ACTIVE GPU_PWD_ACTIVE} {
+    if {![info exists env($env_name)] || $env($env_name) eq ""} {
+        puts stderr "缺少必需环境变量：$env_name"
+        exit 2
+    }
+}
+
+proc emit_redacted {output ssh_command password} {
+    if {$output eq ""} {
+        return
+    }
+    set replacements [list $password "<已脱敏>"]
+    set target [lindex $ssh_command end]
+    lappend replacements $target "<已脱敏目标>"
+    set target_parts [split $target "@"]
+    if {[llength $target_parts] > 1} {
+        lappend replacements [lindex $target_parts end] "<已脱敏主机>"
+    }
+    set port_index [lsearch -exact $ssh_command "-p"]
+    if {$port_index >= 0 && $port_index + 1 < [llength $ssh_command]} {
+        lappend replacements [lindex $ssh_command [expr {$port_index + 1}]] "<已脱敏端口>"
+    }
+    set redacted [string map $replacements $output]
+    puts -nonewline $redacted
+    if {![string match "*\n" $redacted]} {
+        puts ""
+    }
+}
+
+set timeout 30
+set remote_command [lindex $argv 0]
+set ssh_command [split $env(GPU_SSH_ACTIVE) " "]
+log_user 0
+spawn {*}$ssh_command $remote_command
+expect {
+    -re {(?i)are you sure you want to continue connecting} {
+        send -- "yes\r"
+        exp_continue
+    }
+    -re {(?i)password:} {
+        send -- "$env(GPU_PWD_ACTIVE)\r"
+        exp_continue
+    }
+    -re {__CODEX_RESULT_BEGIN__(.*)__CODEX_RESULT_END__} {
+        emit_redacted $expect_out(1,string) $ssh_command $env(GPU_PWD_ACTIVE)
+        exp_continue
+    }
+    eof {
+        emit_redacted $expect_out(buffer) $ssh_command $env(GPU_PWD_ACTIVE)
+        set status [wait]
+        if {[llength $status] < 4 || [lindex $status 2] != 0} {
+            puts stderr "无法读取 SSH 子进程退出状态"
+            exit 125
+        }
+        set exit_code [lindex $status 3]
+        if {$exit_code != 0} {
+            puts stderr "远程命令失败，SSH 退出码：$exit_code"
+        }
+        exit $exit_code
+    }
+    timeout {
+        puts stderr "远程命令等待超时，退出码：124"
+        exit 124
+    }
+}

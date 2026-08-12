@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+set timeout -1
+if {$argc != 1} {
+    puts stderr "用法：gpu-exec.exp <远程命令>"
+    exit 2
+}
+set remote_command [lindex $argv 0]
+set ssh_command [split $env(GPU_SSH) " "]
+spawn {*}$ssh_command $remote_command
+expect {
+    -re {(?i)are you sure you want to continue connecting} {
+        send -- "yes\r"
+        exp_continue
+    }
+    -re {(?i)password:} {
+        send -- "$env(GPU_PWD)\r"
+        exp_continue
+    }
+    eof
+}
+set wait_result [wait]
+exit [lindex $wait_result 3]

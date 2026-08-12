@@ -156,9 +156,10 @@ fn receipt_is_ready(
 }
 
 fn artifacts_match(receipt: &GateReceipt) -> bool {
-    receipt.input_artifacts().iter().all(|artifact| {
-        file_sha256(artifact.path()).ok() == Some(artifact.sha256())
-    })
+    receipt
+        .input_artifacts()
+        .iter()
+        .all(|artifact| file_sha256(artifact.path()).ok() == Some(artifact.sha256()))
 }
 
 fn file_sha256(path: &std::path::Path) -> Result<Sha256Digest, io::Error> {

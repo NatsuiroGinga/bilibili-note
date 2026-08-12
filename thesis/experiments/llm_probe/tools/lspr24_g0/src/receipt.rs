@@ -208,10 +208,7 @@ pub struct GateConfig {
 impl GateConfig {
     /// 创建供库调用方使用的空路径配置。
     #[must_use]
-    pub fn new(
-        contract_version: impl Into<String>,
-        contract_sha256: impl Into<String>,
-    ) -> Self {
+    pub fn new(contract_version: impl Into<String>, contract_sha256: impl Into<String>) -> Self {
         Self {
             schema_version: GATE_CONFIG_SCHEMA_VERSION.to_owned(),
             contract_version: contract_version.into(),
@@ -332,9 +329,9 @@ impl GateReceipt {
     pub(crate) fn computed_sha256(&self) -> Result<Sha256Digest, ReceiptError> {
         let mut value = serde_json::to_value(self)
             .map_err(|error| ReceiptError::Serialization(error.to_string()))?;
-        let object = value.as_object_mut().ok_or_else(|| {
-            ReceiptError::Serialization("收据根节点不是 JSON 对象".to_owned())
-        })?;
+        let object = value
+            .as_object_mut()
+            .ok_or_else(|| ReceiptError::Serialization("收据根节点不是 JSON 对象".to_owned()))?;
         object.remove("receipt_sha256");
         let mut encoded = Vec::new();
         write_canonical_json(&value, &mut encoded)?;
@@ -388,8 +385,8 @@ impl Error for ReceiptError {}
 ///
 /// JSON 无效、存在未知字段或枚举、版本不符、哈希或路径无效时返回错误。
 pub fn parse_gate_config(bytes: &[u8]) -> Result<GateConfig, ReceiptError> {
-    let config: GateConfig = serde_json::from_slice(bytes)
-        .map_err(|error| ReceiptError::Schema(error.to_string()))?;
+    let config: GateConfig =
+        serde_json::from_slice(bytes).map_err(|error| ReceiptError::Schema(error.to_string()))?;
     if config.schema_version != GATE_CONFIG_SCHEMA_VERSION {
         return Err(ReceiptError::Schema(format!(
             "schema_version 必须为 {GATE_CONFIG_SCHEMA_VERSION}"
@@ -412,8 +409,8 @@ pub fn parse_gate_config(bytes: &[u8]) -> Result<GateConfig, ReceiptError> {
 ///
 /// JSON 无效、存在未知字段或枚举、版本不符、哈希或路径无效时返回错误。
 pub fn parse_gate_receipt(bytes: &[u8]) -> Result<GateReceipt, ReceiptError> {
-    let receipt: GateReceipt = serde_json::from_slice(bytes)
-        .map_err(|error| ReceiptError::Schema(error.to_string()))?;
+    let receipt: GateReceipt =
+        serde_json::from_slice(bytes).map_err(|error| ReceiptError::Schema(error.to_string()))?;
     if receipt.schema_version != GATE_RECEIPT_SCHEMA_VERSION {
         return Err(ReceiptError::Schema(format!(
             "schema_version 必须为 {GATE_RECEIPT_SCHEMA_VERSION}"
@@ -497,9 +494,7 @@ where
 fn write_canonical_json(value: &Value, output: &mut Vec<u8>) -> Result<(), ReceiptError> {
     match value {
         Value::Null => output.extend_from_slice(b"null"),
-        Value::Bool(value) => {
-            output.extend_from_slice(if *value { b"true" } else { b"false" })
-        }
+        Value::Bool(value) => output.extend_from_slice(if *value { b"true" } else { b"false" }),
         Value::Number(value) => output.extend_from_slice(value.to_string().as_bytes()),
         Value::String(value) => {
             let encoded = serde_json::to_vec(value)

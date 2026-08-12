@@ -1,0 +1,91 @@
+{
+  "schema_version": "r1-source-environment-q0-config-v1",
+  "run_id": "r1-source-time-environment-robust-state-q0-seed42-v1",
+  "budget_tier": "Q0",
+  "seed": 42,
+  "epochs": 4,
+  "batch_size_sequences": 16,
+  "maximum_sequence_length": 128,
+  "hidden_size": 192,
+  "private_state_size": 32,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "groupdro_eta": 0.01,
+  "checkpoint_interval_steps": 20,
+  "progress_interval_steps": 25,
+  "maximum_concurrent_variants": 3,
+  "conservative_total_peak_gpu_memory_gib": 8.0,
+  "environment_probe_max_rows": 200000,
+  "calibration_alpha": 0.001,
+  "calibration_alpha_grid": [
+    0.0001,
+    0.0005,
+    0.001,
+    0.005
+  ],
+  "fixed_recall_grid": [
+    0.8,
+    0.9,
+    0.95
+  ],
+  "fixed_alert_budget_per_million_grid": [
+    100,
+    1000,
+    10000
+  ],
+  "m1_loss": {
+    "lambda_rec": 0.1,
+    "lambda_diff": 0.01,
+    "lambda_inv": 0.01,
+    "lambda_margin": 0.05,
+    "margin": 1.0,
+    "normalization": "各原始损失先按有效元素均值归一化后加权"
+  },
+  "promotion_thresholds": {
+    "m1_ap_delta_b0": 0.01,
+    "m1_ap_delta_groupdro_minimum": -0.002,
+    "environment_probe_auc_drop": 0.05,
+    "m2_worst_source_fpr_reduction": 0.2,
+    "m2_target_fpm_reduction": 0.1,
+    "m2_recall_drop_maximum": 0.05,
+    "combination_fixed_budget_recall_gain": 0.03,
+    "combination_fixed_recall_fp_reduction": 0.1
+  },
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/lspr23-lspr24-bounded-quick-q0-v1/experiments/c12-seed42-q0-2ip-v1/python-cache-v1",
+    "representation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-a-balanced-sequence-pools-q0-seed42-v2-threshold-sentinel-rerun1/frozen-representations",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/r1-source-time-environment-robust-state-q0-seed42-v1"
+  },
+  "variants": [
+    {
+      "key": "B0",
+      "display_name": "R1-B0 接收因果 Transformer 参数匹配基线",
+      "role": "共同预算基础模型"
+    },
+    {
+      "key": "GROUPDRO",
+      "display_name": "R1-GROUPDRO 源时间环境强基线",
+      "role": "环境稳健强基线"
+    },
+    {
+      "key": "M1",
+      "display_name": "R1-M1 稳定－私有状态分解",
+      "role": "候选机制一"
+    }
+  ],
+  "partition_contract": {
+    "source_train_environment_count": 4,
+    "source_validation_calibration_split": "按父组首次出现时刻中位边界",
+    "environment_split": "各子区按父组首次出现时刻四分位边界",
+    "same_timestamp_split": false,
+    "labels_used_for_partition": false,
+    "environment_or_group_used_as_model_input": false
+  },
+  "target_development_label_policy": "三组概率封存后仅由 evaluate-grid 连接",
+  "target_prefix_used": false,
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "final_accessed": false
+}

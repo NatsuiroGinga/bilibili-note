@@ -6,10 +6,18 @@ rust-version = "1.85"
 publish = false
 description = "LSPR24 G0-D 确定性开发数据物化工具"
 
+[[bin]]
+name = "lspr24_development_wide"
+path = "src/bin/lspr24_development_wide.rs"
+
+[[bin]]
+name = "lspr_crossyear_materialize"
+path = "src/bin/lspr_crossyear_materialize.rs"
+
 [dependencies]
 arrow-array = "55.2.0"
 arrow-schema = "55.2.0"
-parquet = { version = "55.2.0", default-features = false, features = ["arrow"] }
+parquet = { version = "55.2.0", default-features = false, features = ["arrow", "snap"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 sha2 = "0.10.9"

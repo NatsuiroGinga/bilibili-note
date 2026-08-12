@@ -1,0 +1,50 @@
+{
+  "schema_version": "c12-r-reference-replay-q0-v1",
+  "seed": 42,
+  "batch_size_sequences": 16,
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/lspr23-lspr24-bounded-quick-q0-v1/experiments/c12-seed42-q0-2ip-v1/python-cache-v1",
+    "representation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-a-balanced-sequence-pools-q0-seed42-v2-threshold-sentinel-rerun1/frozen-representations",
+    "target_prefix_representation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-b-drift-bounded-control-dual-reference-q0-seed42-v1/shared-target-prefix-representation",
+    "receiver_checkpoint": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-a-balanced-sequence-pools-q0-seed42-v2-threshold-sentinel-rerun1/shared-receiver/checkpoints/best.pt",
+    "dref_run": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/c12-phase-b-drift-bounded-control-dual-reference-q0-seed42-v1/C12-DREF"
+  },
+  "variants": [
+    {
+      "key": "DREF",
+      "display_name": "原始双参照回放"
+    },
+    {
+      "key": "DREF_QUALIFIED_GATE",
+      "display_name": "双参照加源冻结资格门"
+    },
+    {
+      "key": "DREF_QUALIFIED_GATE_CLIP",
+      "display_name": "双参照资格门加单步裁剪"
+    },
+    {
+      "key": "DREF_QUALIFIED_GATE_CLIP_BUDGET",
+      "display_name": "双参照资格门加单步裁剪与累计预算"
+    },
+    {
+      "key": "DREF_QUALIFIED_GATE_CLIP_BUDGET_ROLLBACK",
+      "display_name": "双参照资格门加裁剪、累计预算与回退"
+    },
+    {
+      "key": "DREF_RANDOM_GATE_MATCHED_CLIP",
+      "display_name": "双参照逐序列更新数匹配随机门加单步裁剪"
+    }
+  ],
+  "evaluation": {
+    "primary_metric": "target_development_pr_auc",
+    "alert_budgets_per_million": [100, 1000, 10000],
+    "historical_k_delta_pr_auc": 0.0169772769
+  },
+  "training_performed": false,
+  "new_trainable_parameters": 0,
+  "target_prefix_labels_used": false,
+  "target_development_labels_connected_after_seal": true,
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "final_accessed": false
+}

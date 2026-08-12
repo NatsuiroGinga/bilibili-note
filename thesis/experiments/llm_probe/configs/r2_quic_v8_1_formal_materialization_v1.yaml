@@ -1,0 +1,39 @@
+schema_version: flow_probe_r2_quic_formal_materialization_v1
+dataset_version: r2-quic-v8-1-stratified-pilot120-formal-v1
+stage: theory_selection
+status: ready_waiting_for_v5_finished_120
+final_test_visible: false
+quic_formal_training_enabled: true
+
+input:
+  root: runs/data-raw/r2-quic-v8-1-stratified-pilot120-v5
+  expected_connections: 120
+
+partition:
+  unit: independent_connection_id
+  result_blind: true
+  seed: 42
+  hash_namespace: r2-quic-v8-1-formal-connection-split-v1
+  counts:
+    train-fit: 80
+    calibration: 20
+    validation: 20
+
+window:
+  duration_ns: 100000000
+  sequence_length_windows: 4
+  sequence_stride_windows: 4
+  cross_connection: false
+  partial_tail_policy: drop
+
+truth_contract:
+  deployment_observation_source: deployment_pcap_only
+  qlog_truth_sources: [aioquic_json, quiche_json_seq]
+  shared_queue_truth_sources: [proxy_events_jsonl, proxy_stats_json]
+  qlog_truth_available: true
+  missing_value_policy: values_zero_with_explicit_per_field_observed_mask
+  malicious_labels_present: false
+  final_test_visible: false
+
+qlog_default_time_unit: ms
+output_root: runs/data-prepared/r2-quic-v8-1-stratified-pilot120-formal-v1

@@ -1,0 +1,23 @@
+{
+  "schema_version": "flow_probe_r2_ns3_protocol_dynamics_v3_parallel_template_v1",
+  "readiness": "pending_tcp_directional_field_closure_summary",
+  "static_runtime": {
+    "contract_path": "configs/r2_ns3_tcp_truth_v2_contract.json",
+    "expected_contract_sha256": "5a76814a332a1d36d293bfdca5f7e26f89490ede9e23bb3d523b8aac6d5578cc",
+    "expected_manifest_sha256": "d867c05013ff9c566d965ec3115bcefe6c905cca69865b042eb81f56e012a111",
+    "expected_scenario_source_sha256": "0123538bb10eba6a69e5057fdd1d3c817a457ede019efc8b4111b9c614311617",
+    "field_closure_output_dir": "runs/ns3-data/r2-tcp-truth-v3-directional-field-closure-attempt1",
+    "manifest_path": "runs/data-freeze-configs/r2-protocol-v1/ns3-config-manifest.jsonl",
+    "ns3_root": "/root/autodl-tmp/thesis/ns3/ns-3.48",
+    "output_dir": "runs/ns3-data/r2-protocol-dynamics-v3-formal-attempt1",
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "resume_from_output_dirs": [],
+    "scenario_source": "ns3/r2_protocol_dynamics_v2_scenario.cc",
+    "schema_version": "flow_probe_r2_ns3_protocol_dynamics_v2_parallel_params_v3",
+    "worker_count": 24
+  },
+  "deferred_binding": {
+    "field": "expected_field_closure_summary_sha256",
+    "source": "runs/ns3-data/r2-tcp-truth-v3-directional-field-closure-attempt1/field-closure-summary.json"
+  }
+}

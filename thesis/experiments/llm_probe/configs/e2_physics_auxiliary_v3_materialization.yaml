@@ -1,0 +1,33 @@
+schema_version: flow_probe_e2_physics_auxiliary_materialization_config_v1
+dataset_version: e2-physics-auxiliary-v1-from-r2-v3
+stage: theory_selection
+status: waiting_for_v3_physics_pool
+final_test_visible: false
+
+inputs:
+  physics_table: runs/data-prepared/r2-final-tcp-udp-physics-v3/physics-targets-ns3-v2.parquet
+  directional_table: runs/data-prepared/r2-final-tcp-udp-physics-v3/physics-targets-ns3-v2.parquet
+  ns3_root: runs/ns3-data/r2-protocol-dynamics-v3-formal-attempt1
+
+source_contract:
+  physics_pool_dataset_version: r2-final-tcp-udp-physics-v3
+  physics_pool_config: configs/r2_final_tcp_udp_physics_v3_materialization.yaml
+  physics_sample_key: [sequence_id, window_index_in_sequence, physics_group_sha256]
+  feature_fields:
+    - duration
+    - orig_bytes
+    - resp_bytes
+    - orig_pkts
+    - resp_pkts
+    - orig_ip_bytes
+    - resp_ip_bytes
+  directional_source_policy: use_observed_v3_fields_only
+  proportional_split_forbidden: true
+
+publication:
+  output_root: runs/data-prepared/e2-physics-auxiliary-v1
+  table_name: e2-physics-auxiliary-v1.parquet
+  existing_diagnostic_files_allowed:
+    - missing-source-report.json
+    - run-state.json
+  overwrite_existing_table: false

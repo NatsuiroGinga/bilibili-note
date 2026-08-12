@@ -1,0 +1,14 @@
+{
+  "schema_version": "flow_probe_r2_ns3_udp_truth_v2_field_closure_v1",
+  "expected_manifest_sha256": "d867c05013ff9c566d965ec3115bcefe6c905cca69865b042eb81f56e012a111",
+  "manifest_path": "runs/data-freeze-configs/r2-protocol-v1/ns3-config-manifest.jsonl",
+  "selection_policy": "frozen_manifest_exact_udp_row",
+  "selected_runs": [
+    {
+      "coverage": "low_loss_low_rtt_stable_capacity_8_plus_0_udp",
+      "manifest_index": 1,
+      "physics_group_sha256": "dd83746a955899c9b5c5db2d074e65e0059a73424803090b0cc83f932b550739",
+      "transport_family": "UDP"
+    }
+  ]
+}

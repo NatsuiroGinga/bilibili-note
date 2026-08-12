@@ -1,0 +1,8 @@
+{
+  "schema_version": "lspr24-development-wide-v1",
+  "contract_version": "lspr24-screen-6-2-2-v1",
+  "contract_sha256": "715da51fc8b6d95aea20c02722e7555d3b2e574c4844668f3947e83c8c12cbc0",
+  "parquet_path": "data/raw/lspr24-v1/lspr24_v2.parquet",
+  "run_root": "runs/data-prepared/lspr24-screen-wide-v1",
+  "field_manifest_path": "runs/data-prepared/lspr24-screen-wide-v1/field-manifest.json"
+}

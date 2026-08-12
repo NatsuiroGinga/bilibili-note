@@ -16,16 +16,18 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
+#include <map>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 using namespace ns3;
 
 namespace {
 
-constexpr const char *kMainSchema = "flow_probe_r2_ns3_protocol_windows_v2";
+constexpr const char *kMainSchema = "flow_probe_r2_ns3_protocol_windows_v3";
 constexpr const char *kTcpSchema = "flow_probe_r2_ns3_tcp_sender_windows_v2";
 constexpr const char *kNs3Version = "3.48";
 constexpr const char *kTcpCongestionControl = "ns3::TcpNewReno";
@@ -173,7 +175,8 @@ public:
            "tcp_truth_contract_sha256,split,run_seed,transport_family,"
            "window_index,window_start_s,window_end_s,window_duration_s,"
            "public_total_packets,"
-           "public_total_l3_bytes,truth_queue_start_l3_bytes,"
+           "public_total_l3_bytes,orig_bytes,resp_bytes,orig_pkts,resp_pkts,"
+           "orig_ip_bytes,resp_ip_bytes,truth_queue_start_l3_bytes,"
            "truth_queue_end_l3_bytes,truth_qdisc_received_l3_bytes,"
            "truth_qdisc_enqueued_l3_bytes,truth_qdisc_dequeued_l3_bytes,"
            "truth_qdisc_drop_before_enqueue_l3_bytes,"
@@ -226,6 +229,27 @@ public:
   void Start() {
     Simulator::Schedule(Seconds(m_config.windowSeconds),
                         &WindowCollector::Flush, this);
+  }
+
+  void SetObservationInterface(uint32_t interface) {
+    NS_ABORT_MSG_IF(m_observationInterfaceConfigured,
+                    "瓶颈观测接口重复配置");
+    m_observationInterface = interface;
+    m_observationInterfaceConfigured = true;
+  }
+
+  void OnIpv4Tx(Ptr<const Packet> packet, Ptr<Ipv4>, uint32_t interface) {
+    if (interface != m_observationInterface) {
+      return;
+    }
+    RecordDirectionalPacket(packet, true);
+  }
+
+  void OnIpv4Rx(Ptr<const Packet> packet, Ptr<Ipv4>, uint32_t interface) {
+    if (interface != m_observationInterface) {
+      return;
+    }
+    RecordDirectionalPacket(packet, false);
   }
 
   void RegisterTcpSender(uint32_t senderIndex, uint32_t segmentSize) {
@@ -428,6 +452,32 @@ public:
   }
 
 private:
+  struct DirectionalCounters {
+    uint64_t payloadBytes{0};
+    uint64_t packets{0};
+    uint64_t ipBytes{0};
+  };
+
+  struct TcpFlowKey {
+    uint32_t sourceAddress{0};
+    uint32_t destinationAddress{0};
+    uint16_t sourcePort{0};
+    uint16_t destinationPort{0};
+
+    bool operator<(const TcpFlowKey &other) const {
+      if (sourceAddress != other.sourceAddress) {
+        return sourceAddress < other.sourceAddress;
+      }
+      if (destinationAddress != other.destinationAddress) {
+        return destinationAddress < other.destinationAddress;
+      }
+      if (sourcePort != other.sourcePort) {
+        return sourcePort < other.sourcePort;
+      }
+      return destinationPort < other.destinationPort;
+    }
+  };
+
   struct ResidualAccumulator {
     double numeratorSum{0.0};
     double squaredSum{0.0};
@@ -482,6 +532,77 @@ private:
   SenderState &State(uint32_t senderIndex) {
     NS_ABORT_MSG_IF(senderIndex >= m_states.size(), "TCP 发送者索引越界");
     return m_states[senderIndex];
+  }
+
+  static uint64_t RecordUniqueTcpRange(
+      std::vector<std::pair<uint64_t, uint64_t>> &covered,
+      uint64_t start, uint64_t size) {
+    if (size == 0) {
+      return 0;
+    }
+    const uint64_t end = start + size;
+    NS_ABORT_MSG_IF(end < start, "TCP序列区间发生整数溢出");
+    uint64_t overlap = 0;
+    for (const auto &[coveredStart, coveredEnd] : covered) {
+      const uint64_t intersectionStart = std::max(start, coveredStart);
+      const uint64_t intersectionEnd = std::min(end, coveredEnd);
+      if (intersectionEnd > intersectionStart) {
+        overlap += intersectionEnd - intersectionStart;
+      }
+    }
+    NS_ABORT_MSG_IF(overlap > size, "TCP序列区间覆盖状态不合法");
+
+    covered.emplace_back(start, end);
+    std::sort(covered.begin(), covered.end());
+    std::vector<std::pair<uint64_t, uint64_t>> merged;
+    for (const auto &interval : covered) {
+      if (merged.empty() || interval.first > merged.back().second) {
+        merged.push_back(interval);
+      } else {
+        merged.back().second = std::max(merged.back().second, interval.second);
+      }
+    }
+    covered.swap(merged);
+    return size - overlap;
+  }
+
+  void RecordDirectionalPacket(Ptr<const Packet> packet, bool originator) {
+    NS_ABORT_MSG_IF(!m_observationInterfaceConfigured,
+                    "瓶颈观测接口尚未配置");
+    NS_ABORT_MSG_IF(packet == nullptr, "IPv4方向追踪收到空包");
+    Ptr<Packet> copy = packet->Copy();
+    Ipv4Header ipv4Header;
+    const uint32_t ipv4HeaderBytes = copy->RemoveHeader(ipv4Header);
+    NS_ABORT_MSG_IF(ipv4HeaderBytes == 0,
+                    "IPv4方向追踪无法解析IPv4首部");
+    if (ipv4Header.GetProtocol() != IpProtocolNumber(m_config.transportFamily)) {
+      return;
+    }
+
+    auto &counters = originator ? m_origCounters : m_respCounters;
+    counters.packets += 1;
+    counters.ipBytes += packet->GetSize();
+    if (m_config.transportFamily == "UDP") {
+      UdpHeader udpHeader;
+      NS_ABORT_MSG_IF(copy->RemoveHeader(udpHeader) == 0,
+                      "UDP方向追踪无法解析UDP首部");
+      counters.payloadBytes += copy->GetSize();
+      return;
+    }
+
+    TcpHeader tcpHeader;
+    NS_ABORT_MSG_IF(copy->RemoveHeader(tcpHeader) == 0,
+                    "TCP方向追踪无法解析TCP首部");
+    const uint64_t payloadBytes = copy->GetSize();
+    if (payloadBytes == 0) {
+      return;
+    }
+    const TcpFlowKey flow{
+        ipv4Header.GetSource().Get(), ipv4Header.GetDestination().Get(),
+        tcpHeader.GetSourcePort(), tcpHeader.GetDestinationPort()};
+    auto &coverage = originator ? m_origTcpCoverage : m_respTcpCoverage;
+    counters.payloadBytes += RecordUniqueTcpRange(
+        coverage[flow], tcpHeader.GetSequenceNumber().GetValue(), payloadBytes);
   }
 
   static void RecordResidual(ResidualAccumulator &accumulator,
@@ -650,7 +771,11 @@ private:
                  << ',' << m_windowIndex << ',' << std::fixed
                  << std::setprecision(9) << windowStart << ',' << windowEnd
                  << ',' << m_config.windowSeconds << ',' << receivedPackets
-                 << ',' << receivedBytes << ','
+                 << ',' << receivedBytes << ',' << m_origCounters.payloadBytes
+                 << ',' << m_respCounters.payloadBytes << ','
+                 << m_origCounters.packets << ',' << m_respCounters.packets
+                 << ',' << m_origCounters.ipBytes << ','
+                 << m_respCounters.ipBytes << ','
                  << m_windowStartQueueBytes << ',' << m_currentQueueBytes << ','
                  << receivedBytes << ',' << m_enqueuedBytes << ','
                  << m_dequeuedBytes << ',' << m_dropBeforeBytes << ','
@@ -718,6 +843,8 @@ private:
     m_udpActualBytes = 0;
     m_udpAppDropPackets = 0;
     m_udpAppDropBytes = 0;
+    m_origCounters = DirectionalCounters{};
+    m_respCounters = DirectionalCounters{};
     m_windowIndex += 1;
     if (windowEnd + m_config.windowSeconds <=
         m_config.durationSeconds + 1e-9) {
@@ -751,6 +878,14 @@ private:
   uint64_t m_udpActualBytes{0};
   uint64_t m_udpAppDropPackets{0};
   uint64_t m_udpAppDropBytes{0};
+  bool m_observationInterfaceConfigured{false};
+  uint32_t m_observationInterface{0};
+  DirectionalCounters m_origCounters;
+  DirectionalCounters m_respCounters;
+  std::map<TcpFlowKey, std::vector<std::pair<uint64_t, uint64_t>>>
+      m_origTcpCoverage;
+  std::map<TcpFlowKey, std::vector<std::pair<uint64_t, uint64_t>>>
+      m_respTcpCoverage;
 };
 
 class ProtocolTrafficApplication : public Application {
@@ -1225,6 +1360,21 @@ int main(int argc, char *argv[]) {
   }
 
   WindowCollector collector(config);
+  auto routerIpv4 = router.Get(0)->GetObject<Ipv4L3Protocol>();
+  NS_ABORT_MSG_IF(routerIpv4 == nullptr, "无法取得路由器 Ipv4L3Protocol");
+  const int32_t observationInterface =
+      routerIpv4->GetInterfaceForDevice(routerDevice);
+  NS_ABORT_MSG_IF(observationInterface < 0, "无法定位路由器瓶颈IPv4接口");
+  collector.SetObservationInterface(
+      static_cast<uint32_t>(observationInterface));
+  NS_ABORT_MSG_IF(!routerIpv4->TraceConnectWithoutContext(
+                      "Tx", MakeCallback(&WindowCollector::OnIpv4Tx,
+                                         &collector)),
+                  "无法连接瓶颈IPv4 Tx方向追踪");
+  NS_ABORT_MSG_IF(!routerIpv4->TraceConnectWithoutContext(
+                      "Rx", MakeCallback(&WindowCollector::OnIpv4Rx,
+                                         &collector)),
+                  "无法连接瓶颈IPv4 Rx方向追踪");
   NS_ABORT_MSG_IF(!queueDisc->TraceConnectWithoutContext(
                       "Enqueue", MakeCallback(&WindowCollector::OnEnqueue, &collector)),
                   "无法连接 QueueDisc Enqueue trace");

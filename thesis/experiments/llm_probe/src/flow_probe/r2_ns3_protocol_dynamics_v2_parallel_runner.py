@@ -18,8 +18,9 @@ from flow_probe.r2_ns3_protocol_matrix import ProtocolRunConfig
 from flow_probe.r2_ns3_protocol_runner import _load_manifest
 
 
-PARAMS_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_parallel_params_v2"
-STATE_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_parallel_state_v2"
+PARAMS_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_parallel_params_v3"
+STATE_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_parallel_state_v3"
+SUMMARY_SCHEMA = "flow_probe_r2_ns3_protocol_dynamics_v2_parallel_summary_v3"
 
 
 def _load_reused(
@@ -59,13 +60,22 @@ def _load_reused(
             raise formal.FormalMatrixError("串行来源成功目录不安全")
         receipt = truth._read_json(run_dir / "receipt.json", "串行来源成功收据")
         if (
-            receipt.get("status") != "pass"
+            receipt.get("schema_version") != truth.RECEIPT_SCHEMA
+            or receipt.get("status") != "pass"
             or receipt.get("coverage") != identity
             or receipt.get("physics_group_sha256") != run.physics_group_sha256
             or receipt.get("scenario_source_sha256") != scenario_sha
             or receipt.get("contract_sha256") != contract_sha
+            or receipt.get("main_schema_version") != truth.MAIN_SCHEMA
+            or receipt.get("directional_semantics_version")
+            != truth.DIRECTIONAL_SEMANTICS_VERSION
+            or receipt.get("directional_fields")
+            != list(truth.DIRECTIONAL_COLUMNS)
+            or receipt.get("main_header_sha256") != truth.MAIN_HEADER_SHA256
         ):
-            raise formal.FormalMatrixError("串行来源成功收据绑定不一致")
+            raise formal.FormalMatrixError(
+                "串行来源成功收据不是六方向主模式，禁止复用旧main.csv"
+            )
         for filename, key in (
             ("main.csv", "main_csv_sha256"),
             ("tcp-sender-windows.csv", "tcp_csv_sha256"),
@@ -192,14 +202,14 @@ def _run_from_params(path: Path) -> Mapping[str, object]:
         project_root, params["field_closure_output_dir"], "field_closure_output_dir"
     )
     resume_values = params["resume_from_output_dirs"]
-    if not isinstance(resume_values, list) or len(resume_values) != 2:
-        raise formal.FormalMatrixError("24路续跑必须绑定两个来源目录")
+    if not isinstance(resume_values, list) or len(resume_values) > 2:
+        raise formal.FormalMatrixError("24路运行最多绑定两个同模式续跑来源目录")
     resume_roots = [
         formal._resolve_under(project_root, value, "resume_from_output_dirs")
         for value in resume_values
     ]
     output_root = formal._resolve_under(project_root, params["output_dir"], "output_dir")
-    if output_root != project_root / "runs/ns3-data/r2-protocol-dynamics-v2-formal-attempt3":
+    if output_root != project_root / "runs/ns3-data/r2-protocol-dynamics-v3-formal-attempt1":
         raise formal.FormalMatrixError("24路并行输出身份不符")
     manifest_sha = formal._require_sha(params["expected_manifest_sha256"], "清单哈希")
     scenario_sha = formal._require_sha(params["expected_scenario_source_sha256"], "场景哈希")
@@ -222,7 +232,11 @@ def _run_from_params(path: Path) -> Mapping[str, object]:
     if not executable.is_file() or not os.access(executable, os.X_OK):
         raise formal.FormalMatrixError("已构建v2可执行文件不存在或不可执行")
     runs = _load_manifest(manifest_path)
-    reused = _load_reused(resume_roots, runs, scenario_sha, contract_sha)
+    reused = (
+        _load_reused(resume_roots, runs, scenario_sha, contract_sha)
+        if resume_roots
+        else {}
+    )
     pending = [(index, run) for index, run in enumerate(runs) if index not in reused]
     if output_root.exists() or output_root.is_symlink():
         raise formal.FormalMatrixError("并行输出根已存在，禁止覆盖")
@@ -246,6 +260,10 @@ def _run_from_params(path: Path) -> Mapping[str, object]:
         "completed_run_count": len(reused),
         "failed_run_count": 0,
         "planned_run_count": 512,
+        "run_receipt_schema_version": truth.RECEIPT_SCHEMA,
+        "main_schema_version": truth.MAIN_SCHEMA,
+        "directional_semantics_version": truth.DIRECTIONAL_SEMANTICS_VERSION,
+        "main_header_sha256": truth.MAIN_HEADER_SHA256,
         "started_at": truth._utc_now(),
     }
     truth._write_json_atomic(output_root / "matrix-state.json", global_state)
@@ -317,7 +335,7 @@ def _run_from_params(path: Path) -> Mapping[str, object]:
     if len(all_receipts) != 512 or len(families) != 256:
         raise formal.FormalMatrixError("并行续跑未形成512条运行和256个配对")
     summary = {
-        "schema_version": formal.SUMMARY_SCHEMA,
+        "schema_version": SUMMARY_SCHEMA,
         "status": "review_pending",
         "review_status": "review_pending",
         "planned_run_count": 512,
@@ -331,6 +349,11 @@ def _run_from_params(path: Path) -> Mapping[str, object]:
         "scenario_source_sha256": scenario_sha,
         "contract_sha256": contract_sha,
         "field_closure_summary_sha256": closure_sha,
+        "run_receipt_schema_version": truth.RECEIPT_SCHEMA,
+        "main_schema_version": truth.MAIN_SCHEMA,
+        "directional_semantics_version": truth.DIRECTIONAL_SEMANTICS_VERSION,
+        "directional_fields": list(truth.DIRECTIONAL_COLUMNS),
+        "main_header_sha256": truth.MAIN_HEADER_SHA256,
         "resource_evidence": {"logical_cpu_count": 208, "available_memory_gib": 685},
         "aggregate": dict(aggregate),
         "finished_at": truth._utc_now(),

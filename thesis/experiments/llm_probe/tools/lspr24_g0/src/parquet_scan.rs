@@ -8,15 +8,12 @@ use std::path::{Path, PathBuf};
 use arrow_array::{Array, Int64Array, RecordBatch};
 use arrow_schema::ArrowError;
 use parquet::arrow::ProjectionMask;
-use parquet::arrow::arrow_reader::{
-    ParquetRecordBatchReader, ParquetRecordBatchReaderBuilder,
-};
+use parquet::arrow::arrow_reader::{ParquetRecordBatchReader, ParquetRecordBatchReaderBuilder};
 use parquet::errors::ParquetError;
 
 use crate::config::ScanConfig;
 use crate::input::{
-    InputSchemaError, TIMESTAMP_LAST_COLUMN, TIMESTAMP_START_COLUMN,
-    required_time_column_indices,
+    InputSchemaError, TIMESTAMP_LAST_COLUMN, TIMESTAMP_START_COLUMN, required_time_column_indices,
 };
 
 /// 一条物理源记录的时间值与零基全局行号。
@@ -145,14 +142,16 @@ impl TimeRowReader {
             path: path.to_path_buf(),
             source,
         })?;
-        let builder = ParquetRecordBatchReaderBuilder::try_new(file)
-            .map_err(ScanError::ReadMetadata)?;
-        let time_column_indices = required_time_column_indices(builder.schema())
-            .map_err(ScanError::InputSchema)?;
+        let builder =
+            ParquetRecordBatchReaderBuilder::try_new(file).map_err(ScanError::ReadMetadata)?;
+        let time_column_indices =
+            required_time_column_indices(builder.schema()).map_err(ScanError::InputSchema)?;
         let projection = ProjectionMask::roots(builder.parquet_schema(), time_column_indices);
         let metadata_rows = builder.metadata().file_metadata().num_rows();
-        let expected_rows = u64::try_from(metadata_rows)
-            .map_err(|_| ScanError::NegativeRowCount { actual: metadata_rows })?;
+        let expected_rows =
+            u64::try_from(metadata_rows).map_err(|_| ScanError::NegativeRowCount {
+                actual: metadata_rows,
+            })?;
         let reader = builder
             .with_projection(projection)
             .with_batch_size(config.batch_size())

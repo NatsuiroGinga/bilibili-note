@@ -1,0 +1,341 @@
+{
+  "schema_version": "lspr-published-protocol-replication-v1",
+  "contract_version": "lspr23-lspr24-crossyear-contract-v1",
+  "evidence_identity": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "formal_paper_evidence_candidate": false,
+    "final_accessed": false
+  },
+  "formal_paper_admission_gate": {
+    "same_frozen_members": true,
+    "same_legal_fields": true,
+    "same_label_permissions": true,
+    "same_training_budget": true,
+    "same_metrics": true,
+    "required_seeds": [42, 43, 44],
+    "probabilities_logs_receipts_required": true,
+    "statistical_interval_required": true,
+    "current_visible_runs_admissible": false
+  },
+  "legal_visible_fields": [
+    "Protocol",
+    "Flow Duration",
+    "Flow Bytes/s",
+    "Flow Packets/s",
+    "Tot Fwd Pkts",
+    "Tot Bwd Pkts",
+    "Total Length of Fwd Packet",
+    "Total Length of Bwd Packet",
+    "Fwd Packet Length Min",
+    "Fwd Packet Length Max",
+    "Fwd Packet Length Mean",
+    "Fwd Packet Length Std",
+    "Bwd Packet Length Min",
+    "Bwd Packet Length Max",
+    "Bwd Packet Length Mean",
+    "Bwd Packet Length Std",
+    "Flow IAT Mean",
+    "Flow IAT Min",
+    "Flow IAT Max",
+    "Flow IAT Stddev",
+    "Fwd IAT Min",
+    "Fwd IAT Max",
+    "Fwd IAT Mean",
+    "Fwd IAT Std",
+    "Fwd IAT Tot",
+    "Bwd IAT Min",
+    "Bwd IAT Max",
+    "Bwd IAT Mean",
+    "Bwd IAT Std",
+    "Bwd IAT Tot",
+    "Fwd PSH flags",
+    "Bwd PSH flags",
+    "Fwd URG flags",
+    "Bwd URG flags",
+    "Fwd Header Length",
+    "Bwd Header Length",
+    "Fwd Packets/s",
+    "Bwd Packets/s",
+    "Packet Length Min",
+    "Packet Length Max",
+    "Packet Length Mean",
+    "Packet Length Std",
+    "Packet Length Variance",
+    "FIN Flag Cnt",
+    "SYN Flag Cnt",
+    "RST Flag Cnt",
+    "PSH Flag Cnt",
+    "ACK Flag Cnt",
+    "URG Flag Cnt",
+    "CWR Flag Cnt",
+    "ECE Flag Cnt",
+    "Down/Up Ratio",
+    "Average Packet Size",
+    "Fwd Segment Size Avg",
+    "Bwd Segment Size Avg",
+    "Fwd Bytes/Bulk Avg",
+    "Fwd Packet/Bulk Avg",
+    "Fwd Bulk Rate Avg",
+    "Bwd Bytes/Bulk Avg",
+    "Bwd Packet/Bulk Avg",
+    "Bwd Bulk Rate Avg",
+    "Subflow Fwd Packets",
+    "Subflow Fwd Bytes",
+    "Subflow Bwd Packets",
+    "Subflow Bwd Bytes",
+    "FWD Init Win Bytes",
+    "Bwd Init Win Bytes",
+    "Fwd Act Data Pkts",
+    "Fwd Seg Size Min",
+    "Active Min",
+    "Active Mean",
+    "Active Max",
+    "Active Std",
+    "Idle Min",
+    "Idle Mean",
+    "Idle Max",
+    "Idle Std"
+  ],
+  "packet_interarrival_fields": [
+    "Flow IAT Mean",
+    "Flow IAT Min",
+    "Flow IAT Max",
+    "Flow IAT Stddev",
+    "Fwd IAT Min",
+    "Fwd IAT Max",
+    "Fwd IAT Mean",
+    "Fwd IAT Std",
+    "Fwd IAT Tot",
+    "Bwd IAT Min",
+    "Bwd IAT Max",
+    "Bwd IAT Mean",
+    "Bwd IAT Std",
+    "Bwd IAT Tot"
+  ],
+  "protocols": {
+    "leoste-2025-rf-with-packet-iat": {
+      "protocol_id": "leoste-2025-rf-with-packet-iat",
+      "display_name": "Leoste 2025 随机森林（含包到达间隔）论文约束独立复现",
+      "paper": "Leoste 2025, Comparative Analysis of ML and DL on LSPR23/LSPR24",
+      "replication_class": "paper-constrained-independent-replication",
+      "disclosure_status": "模型超参已披露，字段/切分/预处理不完全等同",
+      "implementation_status": "blocked-no-guessing",
+      "field_view": "legal-fields-with-packet-iat",
+      "model_family": "random-forest",
+      "model_params": {
+        "n_estimators": 128,
+        "max_depth": 10,
+        "bootstrap": true,
+        "class_weight": null
+      },
+      "paper_protocol": {
+        "data": "LSPR23 随机 80/20 训练与同年测试，冻结后直接评价 LSPR24",
+        "labels": "逐流二分类，不重采样",
+        "fields": "101 列筛至 72 字段，包含端口/服务/连接状态/内外方向，删除身份与 Suricata 字段",
+        "preprocessing": "LSPR23 中位数插补，LSPR24 删除含 NaN 行",
+        "model": "cuML Random Forest，128 树，最大深度 10，bootstrap=true",
+        "seeds": "同年报告 10 次运行均值，具体种子未披露",
+        "metrics": "准确率、精确率、召回率、F1"
+      },
+      "implementation_differences": [
+        "使用本课题冻结合法字段而非无法无歧义恢复的论文 72 字段",
+        "排除端口、服务、连接状态和环境身份字段",
+        "使用源训练冻结的数值加缺失掩码表示，而非论文的中位数/删行非对称预处理",
+        "使用本课题冻结切分而非论文随机 80/20",
+        "使用 scikit-learn CPU 随机森林而非 cuML GPU 实现",
+        "历史约束实现仅设计为种子 42 的可见开发门禁；严格模式不启动训练"
+      ],
+      "blocking_reasons": [
+        "论文最终 72 字段清单无法无歧义恢复",
+        "论文具体 10 个随机种子未披露"
+      ],
+      "formal_paper_admission_gate": "方法冻结后须在统一正式冻结成员/合法字段/权限/预算/指标下以种子 42/43/44 重跑"
+    },
+    "leoste-2025-rf-without-packet-iat": {
+      "protocol_id": "leoste-2025-rf-without-packet-iat",
+      "display_name": "Leoste 2025 随机森林（不含包到达间隔）论文约束独立复现",
+      "paper": "Leoste 2025, Comparative Analysis of ML and DL on LSPR23/LSPR24",
+      "replication_class": "paper-constrained-independent-replication",
+      "disclosure_status": "模型超参已披露，字段/切分/预处理不完全等同",
+      "implementation_status": "blocked-no-guessing",
+      "field_view": "legal-fields-without-packet-iat",
+      "model_family": "random-forest",
+      "model_params": {
+        "n_estimators": 128,
+        "max_depth": 10,
+        "bootstrap": true,
+        "class_weight": null
+      },
+      "paper_protocol": {
+        "data": "LSPR23 随机 80/20 训练，冻结后直接评价 LSPR24",
+        "labels": "逐流二分类，不重采样",
+        "fields": "论文 72 字段视图移除包到达间隔特征",
+        "preprocessing": "LSPR23 中位数插补，LSPR24 删除含 NaN 行",
+        "model": "cuML Random Forest，128 树，最大深度 10，bootstrap=true",
+        "seeds": "同年报告 10 次运行均值，具体种子未披露",
+        "metrics": "准确率、精确率、召回率、F1"
+      },
+      "implementation_differences": [
+        "在本课题 77 个合法字段中移除 14 个包到达间隔字段，不等同论文完整 72 字段视图",
+        "排除端口、服务、连接状态和环境身份字段",
+        "使用源训练冻结的数值加缺失掩码表示",
+        "使用本课题冻结切分",
+        "使用 scikit-learn CPU 随机森林",
+        "历史约束实现仅设计为种子 42 的可见开发门禁；严格模式不启动训练"
+      ],
+      "blocking_reasons": [
+        "论文无包到达间隔版本的精确字段 manifest 未公开",
+        "论文具体 10 个随机种子未披露"
+      ],
+      "formal_paper_admission_gate": "方法冻结后须在统一正式冻结成员/合法字段/权限/预算/指标下以种子 42/43/44 重跑"
+    },
+    "leoste-2025-1d-cnn": {
+      "protocol_id": "leoste-2025-1d-cnn",
+      "display_name": "Leoste 2025 一维卷积神经网络原协议复现",
+      "paper": "Leoste 2025, Comparative Analysis of ML and DL on LSPR23/LSPR24",
+      "replication_class": "paper-constrained-independent-replication",
+      "disclosure_status": "关键张量与训练细节未披露",
+      "implementation_status": "blocked-no-guessing",
+      "paper_protocol": {
+        "fields": "72 字段，8 个类别嵌入，拼接为 953 维",
+        "model": "Conv1d 16/32 通道、核 3、随机失活、全连接 64、单输出，约 4080 万参数",
+        "training": "BCE、Adam、学习率 0.001、验证 F1 早停"
+      },
+      "implementation_differences": [],
+      "blocking_reasons": [
+        "8 个类别字段的无歧义清单未取得",
+        "各类别词表、嵌入维度与拼接顺序未披露",
+        "随机失活概率、激活、池化/展平和批量大小未完整披露",
+        "早停耐心、最大轮数和随机种子未披露"
+      ],
+      "formal_paper_admission_gate": "取得作者字段 manifest/实现，或预注册一个明确标注差异的独立复现后再实现"
+    },
+    "dijk-2024-paper-table8-rf": {
+      "protocol_id": "dijk-2024-paper-table8-rf",
+      "display_name": "Dijk 2024 论文表 8 随机森林报告实验",
+      "paper": "Dijk et al. 2024, LSPR23",
+      "replication_class": "paper-reported-experiment-unreproducible",
+      "disclosure_status": "字段、超参、种子和精确切分未披露",
+      "implementation_status": "blocked-no-guessing",
+      "paper_protocol": {
+        "data": "LSPR23，很可能全量但未逐字确认",
+        "split": "训练测试 4:1",
+        "model": "随机森林，称沿用 Känzig 2019 的参数和特征",
+        "metrics": "TP=326836、FP=69、P=0.999、R=0.994、F1=0.997"
+      },
+      "implementation_differences": [],
+      "blocking_reasons": [
+        "论文实际成员与抽样规则未明确",
+        "Känzig 精确输入字段未在本文重列",
+        "随机森林树数、深度、特征采样、类权重和阈值未重列",
+        "随机/时间/分组切分、分层与随机种子未披露"
+      ],
+      "formal_paper_admission_gate": "不能严格复现；只能另建论文约束独立复现并列出全部差异"
+    },
+    "dijk-2024-author-code-example-rf80k": {
+      "protocol_id": "dijk-2024-author-code-example-rf80k",
+      "display_name": "Dijk 2024 作者后续 80k 随机森林代码示例复跑",
+      "paper": "Dijk et al. 2024, LSPR23；后续 GitHub 代码示例",
+      "replication_class": "author-code-example-replay",
+      "disclosure_status": "源码行为已披露，依赖版本未锁且无许可证",
+      "implementation_status": "author-example-runnable",
+      "formal_comparison_forbidden": true,
+      "n_flows": 80000,
+      "text_columns": [
+        "Flow ID",
+        "SrcIP",
+        "DstIP",
+        "Conn_state",
+        "Service",
+        "Segment_src",
+        "Segment_dst",
+        "Expoid_src",
+        "Expoid_dst"
+      ],
+      "paper_protocol": {
+        "fixed_commit": "496cc558713e8a5f46aa0b276b177a7d8835a217",
+        "source_sha256": "171b3b3e73d6424c0aa636b51c68ef2d8172900980ae9d69cc0d566064f9a54d",
+        "data": "CSV 前 80,000 行",
+        "fields": "9 个文本字段 SHA256 后模 1e8，删除原文本；只删除 3 个标签列",
+        "preprocessing": "正负无穷替换为 NaN，不再插补",
+        "split": "test_size=0.2, random_state=42，无分层/分组",
+        "model": "RandomForestClassifier(n_estimators=100, random_state=42)",
+        "metric": "weighted F1"
+      },
+      "implementation_differences": [
+        "作者 requirements.txt 未锁版本，本次运行必须记录实际依赖版本",
+        "本实现增加概率、哈希和资源收据，但不改变拟合输入与模型参数"
+      ],
+      "blocking_reasons": [
+        "无 LICENSE，不能复制或改编作者源码",
+        "身份哈希字段违反本课题正式字段权限",
+        "默认前 80k 与论文表 8 很可能全量成员不同"
+      ],
+      "formal_paper_admission_gate": "原样示例永久禁止进入与本方法的正式胜负表，只作代码示例复现核验"
+    },
+    "dijk-2024-rf-legal-fields": {
+      "protocol_id": "dijk-2024-rf-legal-fields",
+      "display_name": "Dijk 2024 随机森林合法字段论文约束独立复现",
+      "paper": "Dijk et al. 2024, LSPR23",
+      "replication_class": "paper-constrained-independent-replication",
+      "disclosure_status": "论文表 8 模型参数不足，作者后续示例不能反向补写",
+      "implementation_status": "blocked-no-guessing",
+      "paper_protocol": {
+        "data": "LSPR23 逐流二分类，训练测试 4:1",
+        "model": "随机森林"
+      },
+      "implementation_differences": [
+        "正式版本必须使用统一冻结成员与合法字段",
+        "不能把作者后续示例的 100 树参数声称为论文表 8 参数"
+      ],
+      "blocking_reasons": [
+        "共同训练预算尚未随方法正式冻结",
+        "论文未披露可用于表 8 的完整超参"
+      ],
+      "formal_paper_admission_gate": "正式冻结后以共同预算预注册 RF，并明确标为论文约束独立复现"
+    },
+    "dijk-2026-xgboost-op": {
+      "protocol_id": "dijk-2026-xgboost-op",
+      "display_name": "Dijk 2026 XGBoost 原始位置顺序论文约束独立复现",
+      "paper": "Dijk et al. 2026, Flow Sequence Construction",
+      "replication_class": "paper-constrained-independent-replication",
+      "disclosure_status": "模型超参已披露，成员/字段权限/预处理/切分不完全等同",
+      "implementation_status": "blocked-no-guessing",
+      "field_view": "legal-fields-op",
+      "model_family": "xgboost",
+      "model_params": {
+        "n_estimators": 800,
+        "learning_rate": 0.05,
+        "max_depth": 8,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 1.0,
+        "min_child_weight": 1.0,
+        "max_bin": 256
+      },
+      "paper_protocol": {
+        "data": "LSPR23/LSPR24/LSPR25，逐流二分类",
+        "fields": "附录 A 的 83 字段，包含端口与粗粒度内外网字段",
+        "preprocessing": "数值归一化，缺失与缩放器细节未完整披露",
+        "split": "按构造键受控分层验证，种子 42，比例未披露",
+        "sequence": "OP 原始位置顺序",
+        "model": "XGBoost 800 树、学习率 0.05、深度 8、subsample/colsample 0.8 等",
+        "metrics": "AP 主指标、AP lift、F1 与 10000 次序列自助"
+      },
+      "implementation_differences": [
+        "使用本课题冻结 77 个合法字段而非论文 83 字段",
+        "排除端口和粗粒度环境身份字段",
+        "使用源训练冻结的数值加缺失掩码表示",
+        "使用本课题冻结成员与切分",
+        "当前 CPU hist 执行而非论文 GPU hist",
+        "历史约束实现仅设计为种子 42 的可见开发门禁；严格模式不启动训练"
+      ],
+      "blocking_reasons": [
+        "论文公开代码主机不可达",
+        "切分比例、缺失值处理和缩放器细节未完整披露"
+      ],
+      "formal_paper_admission_gate": "方法冻结后须在统一正式冻结成员/合法字段/权限/预算/指标下以种子 42/43/44 重跑"
+    }
+  }
+}

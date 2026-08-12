@@ -54,10 +54,7 @@ pub(crate) fn required_time_column_indices(
     ])
 }
 
-fn required_column_index(
-    schema: &Schema,
-    column: &'static str,
-) -> Result<usize, InputSchemaError> {
+fn required_column_index(schema: &Schema, column: &'static str) -> Result<usize, InputSchemaError> {
     let mut matches = schema
         .fields()
         .iter()
