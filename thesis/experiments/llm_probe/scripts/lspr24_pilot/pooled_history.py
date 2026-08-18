@@ -97,7 +97,10 @@ def main() -> None:
                    y, win, split_w)
 
     print("\n" + "=" * 90, flush=True)
-    print("错误相对下降口径（已裁决为主门槛，参照朱焱雷第三章 16.1%）", flush=True)
+    # 16.1% 是本课题早期先导实验自定的门槛，不是朱焱雷论文中的数字。
+    # 2026-08-17 核对其原件全文搜索 16.1 零命中；其第三章表 3-7 报的是
+    # PGD-20 鲁棒准确率的绝对百分点提升（ET-BERT +12.30、BUPT-CNN +9.30）。
+    print("错误相对下降口径（已裁决为主门槛，本课题自定阈值 16.1%）", flush=True)
     print("=" * 90, flush=True)
     eb = 1 - base
     for nm, ap in [("短历史 lag1-4", short), ("长历史原始拼接", long_cat),

@@ -1,11 +1,12 @@
 [project]
 name = "chapter3-publication-figures"
 version = "0.1.0"
-description = "第三章队列物理约束与有界条件注意力机制图"
+description = "第三章因果前缀跨流聚合与实体级可学池化的机制图与结果图"
 requires-python = ">=3.11,<3.13"
 dependencies = [
     "matplotlib>=3.10,<4",
     "pillow>=11,<13",
+    "numpy>=1.26,<3",
 ]
 
 [dependency-groups]

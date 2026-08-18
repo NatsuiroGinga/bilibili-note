@@ -180,6 +180,40 @@ def assert_prefix_formula_truth():
     assert np.array_equal(actual, expected), f"前缀解析真值不符：{actual.tolist()}"
 
 
+def canonical_sha256(value):
+    payload = json.dumps(
+        value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def sha256_file(path, chunk_size=16 * 1024 * 1024):
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        while True:
+            chunk = fh.read(chunk_size)
+            if not chunk:
+                break
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def sha256_array(value):
+    array = np.ascontiguousarray(value)
+    digest = hashlib.sha256()
+    digest.update(str(array.dtype).encode("ascii"))
+    digest.update(json.dumps(list(array.shape), separators=(",", ":")).encode("ascii"))
+    digest.update(memoryview(array).cast("B"))
+    return digest.hexdigest()
+
+
+def atomic_json_dump(value, path):
+    partial = f"{path}.partial"
+    with open(partial, "w", encoding="utf-8") as fh:
+        json.dump(value, fh, ensure_ascii=False, indent=2, default=str)
+    os.replace(partial, path)
+
+
 # =====================================================================================
 # 常量与路径
 # =====================================================================================
@@ -216,6 +250,11 @@ _parser.add_argument(
     default=f"{ROOT}/configs/ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json",
 )
 _parser.add_argument("--validate-config", action="store_true")
+_parser.add_argument(
+    "--resume",
+    action="store_true",
+    help="显式恢复已失败运行；严格验证已存模型后仅训练缺失单元",
+)
 _args = _parser.parse_args()
 with open(_args.config, encoding="utf-8") as _fh:
     CONFIG = json.load(_fh)
@@ -229,6 +268,7 @@ _required = {
     "xgb_params",
     "effective_config_float_compare",
     "tracking",
+    "checkpoint_resume",
 }
 _missing = sorted(_required - set(CONFIG))
 if _missing:
@@ -272,6 +312,22 @@ if CONFIG.get("artifact_policy") != {
     "persist_target_scores": False,
 }:
     raise SystemExit("制品策略与冻结协议不符")
+EXPECTED_CHECKPOINT_RESUME = {
+    "schema_version": "ch3-xgb-cpa-elp-model-checkpoint-v1",
+    "scientific_signature_version": "ch3-xgb-cpa-elp-scientific-compatibility-v1",
+    "require_explicit_cli": True,
+    "reject_invalid_existing_unit": True,
+    "regenerate_oof_scores_from_models": True,
+    "reuse_target_scores": False,
+    "accepted_legacy_config_sha256": [
+        "b4b6a053e2bb846dd4cfa360dd909b9118a78c67a4a28b91a1ff9349583b13d1"
+    ],
+    "accepted_legacy_script_sha256": [
+        "09796a92eacb60106d03740705ee0b49d3c8da2666074d68fea062b2e80b0f6d"
+    ],
+}
+if CONFIG["checkpoint_resume"] != EXPECTED_CHECKPOINT_RESUME:
+    raise SystemExit("断点恢复合同与冻结协议不符")
 AUTHORIZED_SWANLAB_WORKSPACE = "mortiswang"
 AUTHORIZED_SWANLAB_PROJECT = "ns3-rwkv-lspr24"
 if CONFIG["tracking"].get("workspace") != AUTHORIZED_SWANLAB_WORKSPACE:
@@ -283,9 +339,30 @@ if _args.validate_config:
     raise SystemExit(0)
 
 OUT = os.environ.get("XGB2X2_OUT", f"{ROOT}/runs/diagnostics/{CONFIG['run_id']}")
+RESUME_REQUESTED = bool(_args.resume)
+if RESUME_REQUESTED and not os.path.isdir(OUT):
+    raise SystemExit(f"恢复模式要求已存运行根：{OUT}")
 os.makedirs(OUT, exist_ok=True)
 
 RUN_NAME = str(CONFIG["run_id"])
+CONFIG_FILE_SHA256 = sha256_file(_args.config)
+SCIENTIFIC_CONFIG = {
+    "schema_version": CONFIG["schema_version"],
+    "seed": CONFIG["seed"],
+    "n_fold": CONFIG["n_fold"],
+    "p_grid": CONFIG["p_grid"],
+    "num_boost_round": CONFIG["num_boost_round"],
+    "xgb_params": CONFIG["xgb_params"],
+    "effective_config_float_compare": CONFIG["effective_config_float_compare"],
+    "adapters": CONFIG["adapters"],
+    "adapter_selection_metric": CONFIG["adapter_selection_metric"],
+    "target_fpr_grid": CONFIG["target_fpr_grid"],
+}
+SCIENTIFIC_CONFIG_SHA256 = canonical_sha256(SCIENTIFIC_CONFIG)
+CHECKPOINT_SCHEMA_VERSION = CONFIG["checkpoint_resume"]["schema_version"]
+SCIENTIFIC_SIGNATURE_VERSION = CONFIG["checkpoint_resume"][
+    "scientific_signature_version"
+]
 SEED = int(CONFIG["seed"])
 TARGET_FPR = 0.04
 L = 128                       # 序列长度，与缓存 I/M 的第二维一致
@@ -371,6 +448,9 @@ EFFECTIVE_CONFIG_COMPARISON_POLICY = {
 }
 EFFECTIVE_CONFIG_RECEIPT_PATH = f"{OUT}/effective_config_receipts.json"
 EFFECTIVE_CONFIG_RECEIPTS = []
+EFFECTIVE_CONFIG_BY_TAG = {}
+RESUME_RECEIPT_PATH = f"{OUT}/checkpoint_resume_receipt.json"
+RESUME_EVENTS = []
 
 # ---- 批大小：训练矩阵按批送入 QuantileDMatrix，推理按批调用，二者共同钉住显存 ----
 DM_BATCH = int(os.environ.get("XGB2X2_DM_BATCH", "1000000"))
@@ -436,6 +516,7 @@ def assert_sequence_time_monotonic(t_flow, I, M, tag):
 # =====================================================================================
 log("=" * 116)
 log(f"运行名 {RUN_NAME}  输出目录 {OUT}")
+log(f"启动模式 {'显式断点恢复' if RESUME_REQUESTED else '全新运行'}")
 log("阶段零 环境核验")
 assert_prefix_formula_truth()
 log("  前缀解析真值通过：[1,2,3,4] → [1,1.5,2,2.5]")
@@ -493,12 +574,46 @@ _feature_schema_bytes = json.dumps(
     _feature_schema, ensure_ascii=False, separators=(",", ":")
 ).encode("utf-8")
 _feature_schema_sha = hashlib.sha256(_feature_schema_bytes).hexdigest()
-json.dump(
-    {"schema": _feature_schema, "sha256": _feature_schema_sha},
-    open(f"{OUT}/feature_schema.json", "w"),
-    ensure_ascii=False,
-    indent=2,
-)
+_feature_schema_document = {"schema": _feature_schema, "sha256": _feature_schema_sha}
+_feature_schema_path = f"{OUT}/feature_schema.json"
+if RESUME_REQUESTED and os.path.exists(_feature_schema_path):
+    try:
+        with open(_feature_schema_path, encoding="utf-8") as _fh:
+            _saved_feature_schema = json.load(_fh)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"已存特征模式收据无法解析：{type(exc).__name__}") from exc
+    if _saved_feature_schema != _feature_schema_document:
+        raise SystemExit("已存特征模式收据与当前科学合同不符，拒绝恢复")
+else:
+    atomic_json_dump(_feature_schema_document, _feature_schema_path)
+
+HISTORICAL_EFFECTIVE_RECEIPTS = []
+LEGACY_SELECTION_FROZEN = None
+LEGACY_LAUNCH_HASHES = {}
+if RESUME_REQUESTED:
+    if os.path.isfile(EFFECTIVE_CONFIG_RECEIPT_PATH):
+        try:
+            with open(EFFECTIVE_CONFIG_RECEIPT_PATH, encoding="utf-8") as _fh:
+                HISTORICAL_EFFECTIVE_RECEIPTS = json.load(_fh)
+        except (OSError, json.JSONDecodeError) as exc:
+            raise SystemExit(f"历史有效超参收据无法解析：{type(exc).__name__}") from exc
+        if not isinstance(HISTORICAL_EFFECTIVE_RECEIPTS, list):
+            raise SystemExit("历史有效超参收据必须是列表")
+        EFFECTIVE_CONFIG_RECEIPTS.extend(HISTORICAL_EFFECTIVE_RECEIPTS)
+    _legacy_selection_path = f"{OUT}/selection_frozen_xgb2x2.json"
+    if os.path.isfile(_legacy_selection_path):
+        try:
+            with open(_legacy_selection_path, encoding="utf-8") as _fh:
+                LEGACY_SELECTION_FROZEN = json.load(_fh)
+        except (OSError, json.JSONDecodeError) as exc:
+            raise SystemExit(f"历史选择冻结收据无法解析：{type(exc).__name__}") from exc
+    _legacy_hash_path = f"{ROOT}/runs/launchers/{RUN_NAME}/input-sha256.txt"
+    if os.path.isfile(_legacy_hash_path):
+        with open(_legacy_hash_path, encoding="utf-8") as _fh:
+            for _line in _fh:
+                _parts = _line.strip().split(maxsplit=1)
+                if len(_parts) == 2:
+                    LEGACY_LAUNCH_HASHES[os.path.basename(_parts[1])] = _parts[0]
 
 _tracking = CONFIG["tracking"]
 swanlab.init(
@@ -511,6 +626,8 @@ swanlab.init(
         "p_grid": list(P_GRID),
         "xgboost_version": xgb.__version__,
         "script_sha256": _self_sha,
+        "resume_requested": RESUME_REQUESTED,
+        "scientific_config_sha256": SCIENTIFIC_CONFIG_SHA256,
     },
     mode=_tracking["mode"],
     logdir=f"{OUT}/swanlog",
@@ -561,7 +678,7 @@ def _dig(cfg, path):
     return cur
 
 
-def assert_effective_config(bst, tag):
+def assert_effective_config(bst, tag, origin):
     """从 booster 的实际配置回读有效超参，拦住「参数名写错被静默忽略」。"""
     cfg = json.loads(bst.save_config())
     bad = []
@@ -608,14 +725,17 @@ def assert_effective_config(bst, tag):
                 f"math.isclose(rel_tol={EFFECTIVE_FLOAT_REL_TOL:g}, "
                 f"abs_tol={EFFECTIVE_FLOAT_ABS_TOL:g})"
             )
-    EFFECTIVE_CONFIG_RECEIPTS.append(
-        {
-            "tag": tag,
-            "passed": not bad,
-            "comparison_policy": EFFECTIVE_CONFIG_COMPARISON_POLICY,
-            "checks": checks,
-        }
-    )
+    receipt = {
+        "tag": tag,
+        "origin": origin,
+        "passed": not bad,
+        "xgboost_version": xgb.__version__,
+        "build_use_cuda": _bi.get("USE_CUDA") is True,
+        "comparison_policy": EFFECTIVE_CONFIG_COMPARISON_POLICY,
+        "checks": checks,
+    }
+    EFFECTIVE_CONFIG_RECEIPTS.append(receipt)
+    EFFECTIVE_CONFIG_BY_TAG[tag] = receipt
     receipt_partial = f"{EFFECTIVE_CONFIG_RECEIPT_PATH}.partial"
     with open(receipt_partial, "w", encoding="utf-8") as fh:
         json.dump(EFFECTIVE_CONFIG_RECEIPTS, fh, ensure_ascii=False, indent=2)
@@ -646,9 +766,226 @@ def train_booster(X, y, rows, tag):
     t_tr = time.time() - t0
     log(f"  [{tag}] 训练完成 {N_ROUND} 轮，用时 {t_tr/60:.2f} 分，"
         f"训练后可用显存 {torch.cuda.mem_get_info()[0]/2**30:.2f} GiB")
-    assert_effective_config(bst, tag)
+    assert_effective_config(bst, tag, "trained")
     del dm
     return bst, t_dm, t_tr
+
+
+def source_data_identity():
+    names = ("X23", "y23", "I23", "M23", "E23", "ent23", "t23_flow")
+    files = {}
+    t0 = time.time()
+    for index, name in enumerate(names, start=1):
+        path = f"{CACHE}/{name}.npy"
+        if not os.path.isfile(path):
+            raise SystemExit(f"源年数据身份缺少文件：{path}")
+        files[name] = {
+            "filename": f"{name}.npy",
+            "bytes": os.path.getsize(path),
+            "sha256": sha256_file(path),
+        }
+        beat("源年数据哈希", index, len(names), t0)
+    return {"files": files, "sha256": canonical_sha256(files)}
+
+
+def unit_identity(unit_id, kind, view, rows, holdout_rows=None, fold=None):
+    identity = {
+        "unit_id": unit_id,
+        "kind": kind,
+        "view": view,
+        "input_dim": INPUT_DIMS[view],
+        "fold": fold,
+        "train_rows": {
+            "count": int(len(rows)),
+            "sha256": sha256_array(rows),
+        },
+    }
+    if holdout_rows is not None:
+        identity["holdout_rows"] = {
+            "count": int(len(holdout_rows)),
+            "sha256": sha256_array(holdout_rows),
+        }
+    return identity
+
+
+def write_resume_receipt(status):
+    receipt = {
+        "schema_version": "ch3-xgb-cpa-elp-resume-receipt-v1",
+        "run_id": RUN_NAME,
+        "status": status,
+        "resume_requested": RESUME_REQUESTED,
+        "config_file_sha256": CONFIG_FILE_SHA256,
+        "scientific_config_sha256": SCIENTIFIC_CONFIG_SHA256,
+        "scientific_compatibility_signature": SCIENTIFIC_COMPATIBILITY_SIGNATURE,
+        "source_data_sha256": SOURCE_DATA_IDENTITY["sha256"],
+        "feature_schema_sha256": _feature_schema_sha,
+        "fold_assignment_sha256": FOLD_ASSIGNMENT_SHA256,
+        "target_year_per_sample_scores_reused": False,
+        "units": RESUME_EVENTS,
+        "counts": {
+            "reused": sum(event["action"] == "reused" for event in RESUME_EVENTS),
+            "retrained": sum(event["action"] == "retrained" for event in RESUME_EVENTS),
+            "trained": sum(event["action"] == "trained" for event in RESUME_EVENTS),
+        },
+    }
+    atomic_json_dump(receipt, RESUME_RECEIPT_PATH)
+
+
+def checkpoint_receipt_path(unit_id):
+    return f"{OUT}/checkpoint_{unit_id}.json"
+
+
+def validate_saved_training_receipt(receipt, tag):
+    expected_paths = {
+        ".".join(path) for path in EFFECTIVE_EXACT_EXPECT
+    } | {".".join(path) for path in EFFECTIVE_FLOAT_EXPECT}
+    if receipt.get("tag") != tag or receipt.get("origin") != "trained":
+        raise ValueError("训练收据的单元身份不符")
+    if receipt.get("passed") is not True:
+        raise ValueError("训练收据未通过有效超参核验")
+    if receipt.get("xgboost_version") != "3.2.0":
+        raise ValueError("XGBoost 训练版本收据不符")
+    if receipt.get("build_use_cuda") is not True:
+        raise ValueError("训练收据不能证明 CUDA 构建")
+    if receipt.get("comparison_policy") != EFFECTIVE_CONFIG_COMPARISON_POLICY:
+        raise ValueError("有效超参比较策略不符")
+    checks = receipt.get("checks")
+    if not isinstance(checks, list):
+        raise ValueError("有效超参检查列表缺失")
+    if {item.get("path") for item in checks} != expected_paths:
+        raise ValueError("有效超参检查字段不完整")
+    if any(item.get("passed") is not True for item in checks):
+        raise ValueError("有效超参收据含未通过项")
+
+
+def save_checkpoint(bst, model_path, tag, identity, timing, action):
+    rounds = int(bst.num_boosted_rounds())
+    if rounds != N_ROUND:
+        raise SystemExit(f"{tag} 树数 {rounds} 与冻结值 {N_ROUND} 不符")
+    temporary_model_path = f"{model_path}.partial.json"
+    bst.save_model(temporary_model_path)
+    os.replace(temporary_model_path, model_path)
+    model_sha256 = sha256_file(model_path)
+    training_receipt = EFFECTIVE_CONFIG_BY_TAG[tag]
+    validate_saved_training_receipt(training_receipt, tag)
+    checkpoint = {
+        "schema_version": CHECKPOINT_SCHEMA_VERSION,
+        "unit": identity,
+        "config_file_sha256": CONFIG_FILE_SHA256,
+        "scientific_config_sha256": SCIENTIFIC_CONFIG_SHA256,
+        "scientific_compatibility_signature": SCIENTIFIC_COMPATIBILITY_SIGNATURE,
+        "source_data_sha256": SOURCE_DATA_IDENTITY["sha256"],
+        "feature_schema_sha256": _feature_schema_sha,
+        "fold_assignment_sha256": FOLD_ASSIGNMENT_SHA256,
+        "model": {
+            "filename": os.path.basename(model_path),
+            "sha256": model_sha256,
+            "num_boosted_rounds": rounds,
+        },
+        "device_training_receipt": training_receipt,
+        "timing": timing,
+    }
+    receipt_path = checkpoint_receipt_path(identity["unit_id"])
+    atomic_json_dump(checkpoint, receipt_path)
+    event = {
+        "unit_id": identity["unit_id"],
+        "kind": identity["kind"],
+        "view": identity["view"],
+        "fold": identity["fold"],
+        "action": action,
+        "model_filename": os.path.basename(model_path),
+        "model_sha256": model_sha256,
+        "checkpoint_filename": os.path.basename(receipt_path),
+        "num_boosted_rounds": rounds,
+    }
+    RESUME_EVENTS.append(event)
+    write_resume_receipt("source_models_in_progress")
+    return checkpoint
+
+
+def load_checkpoint(model_path, tag, identity):
+    receipt_path = checkpoint_receipt_path(identity["unit_id"])
+    model_exists = os.path.isfile(model_path)
+    receipt_exists = os.path.isfile(receipt_path)
+    if model_exists != receipt_exists:
+        raise SystemExit(
+            f"{tag} 检查点不完整：模型存在={model_exists}，侧车收据存在={receipt_exists}；"
+            "拒绝覆盖"
+        )
+    if not model_exists:
+        return None
+    try:
+        with open(receipt_path, encoding="utf-8") as fh:
+            checkpoint = json.load(fh)
+        expected = {
+            "schema_version": CHECKPOINT_SCHEMA_VERSION,
+            "unit": identity,
+            "config_file_sha256": CONFIG_FILE_SHA256,
+            "scientific_config_sha256": SCIENTIFIC_CONFIG_SHA256,
+            "scientific_compatibility_signature": SCIENTIFIC_COMPATIBILITY_SIGNATURE,
+            "source_data_sha256": SOURCE_DATA_IDENTITY["sha256"],
+            "feature_schema_sha256": _feature_schema_sha,
+            "fold_assignment_sha256": FOLD_ASSIGNMENT_SHA256,
+        }
+        for key, want in expected.items():
+            if checkpoint.get(key) != want:
+                raise ValueError(f"{key} 不符")
+        model_receipt = checkpoint.get("model", {})
+        if model_receipt.get("filename") != os.path.basename(model_path):
+            raise ValueError("模型文件名不符")
+        model_sha256 = sha256_file(model_path)
+        if model_receipt.get("sha256") != model_sha256:
+            raise ValueError("模型 SHA-256 不符")
+        if model_receipt.get("num_boosted_rounds") != N_ROUND:
+            raise ValueError("收据树数不是 800")
+        validate_saved_training_receipt(checkpoint.get("device_training_receipt", {}), tag)
+        bst = xgb.Booster(params=XGB_PARAMS)
+        bst.load_model(model_path)
+        if int(bst.num_boosted_rounds()) != N_ROUND:
+            raise ValueError("模型实际树数不是 800")
+        assert_effective_config(bst, tag, "loaded_for_resume")
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        raise SystemExit(f"{tag} 已存检查点验证失败：{exc}；拒绝覆盖") from exc
+    event = {
+        "unit_id": identity["unit_id"],
+        "kind": identity["kind"],
+        "view": identity["view"],
+        "fold": identity["fold"],
+        "action": "reused",
+        "model_filename": os.path.basename(model_path),
+        "model_sha256": model_sha256,
+        "checkpoint_filename": os.path.basename(receipt_path),
+        "num_boosted_rounds": N_ROUND,
+    }
+    RESUME_EVENTS.append(event)
+    write_resume_receipt("source_models_in_progress")
+    log(f"  [{tag}] 检查点验证通过，加载并跳过训练，SHA-256={model_sha256}")
+    return bst, checkpoint["timing"]
+
+
+def load_or_train_booster(X, y, rows, tag, model_filename, identity):
+    model_path = f"{OUT}/{model_filename}"
+    receipt_path = checkpoint_receipt_path(identity["unit_id"])
+    if not RESUME_REQUESTED and (os.path.exists(model_path) or os.path.exists(receipt_path)):
+        raise SystemExit(f"{tag} 在全新模式下已有制品，拒绝覆盖")
+    if RESUME_REQUESTED:
+        loaded = load_checkpoint(model_path, tag, identity)
+        if loaded is not None:
+            bst, timing = loaded
+            return bst, timing, "reused"
+    bst, t_dm, t_tr = train_booster(X, y, rows, tag)
+    timing = {
+        "dmatrix_seconds": t_dm,
+        "train_seconds": t_tr,
+        "n_tree": int(bst.num_boosted_rounds()),
+    }
+    action = "retrained" if RESUME_REQUESTED else "trained"
+    save_checkpoint(bst, model_path, tag, identity, timing, action)
+    log(
+        f"  [{tag}] 已原子落盘 {model_path}，树数 {bst.num_boosted_rounds()}，"
+        f"动作={action}"
+    )
+    return bst, timing, action
 
 
 def predict_rows(bst, X, rows, tag):

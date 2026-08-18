@@ -1,63 +1,280 @@
 {
-  "generator": "绘制第三章机制图.py",
-  "python": "3.12.13",
-  "matplotlib": "3.11.1",
-  "pillow": "12.3.0",
-  "font": {
-    "name": "Hiragino Sans GB",
-    "path": "/System/Library/Fonts/Hiragino Sans GB.ttc"
+  "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）",
+  "environment": {
+    "generator": "绘制第三章机制图.py",
+    "python": "3.12.13",
+    "matplotlib": "3.11.1",
+    "pillow": "12.3.0"
   },
-  "evidence_mode": "method_schematic_without_experimental_results",
+  "typography": {
+    "cjk_font_requested": "Heiti SC",
+    "cjk_font_used": "Heiti SC",
+    "cjk_font_path": "/System/Library/Fonts/STHeiti Medium.ttc",
+    "cjk_face_index": 1,
+    "latin_font_used": "Times New Roman",
+    "latin_font_path": "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+    "math_fontset": "stix",
+    "min_font_pt": 8.0,
+    "main_font_pt": 9.0,
+    "main_line_pt": 1.0,
+    "aux_line_pt": 0.5
+  },
+  "grayscale_readable": true,
   "figures": [
     {
       "stem": "图3-1-整体方法框架",
-      "width_mm": 180,
-      "height_mm": 108,
+      "caption": "逐流特征到实体级告警的整体流程；表示层机制一与决策层机制二分别以斜线、反斜线填充标出。",
+      "width_mm": 150.0,
+      "height_mm": 95.0,
+      "png_dpi": 400,
       "outputs": {
         "svg": "图3-1-整体方法框架.svg",
         "pdf": "图3-1-整体方法框架.pdf",
         "png": "图3-1-整体方法框架.png"
-      }
+      },
+      "png_pixels": [
+        2362,
+        1496
+      ],
+      "png_ppi_measured": [
+        400.0,
+        400.0
+      ],
+      "evidence_mode": "method_schematic_without_experimental_results"
     },
     {
-      "stem": "图3-2-四窗口五锚点有限队列示意",
-      "width_mm": 180,
-      "height_mm": 90,
+      "stem": "图3-2-二IP无向对序列构造",
+      "caption": "双向流经无向对键归并到同一实体，键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记。",
+      "width_mm": 150.0,
+      "height_mm": 80.0,
+      "png_dpi": 400,
       "outputs": {
-        "svg": "图3-2-四窗口五锚点有限队列示意.svg",
-        "pdf": "图3-2-四窗口五锚点有限队列示意.pdf",
-        "png": "图3-2-四窗口五锚点有限队列示意.png"
-      }
+        "svg": "图3-2-二IP无向对序列构造.svg",
+        "pdf": "图3-2-二IP无向对序列构造.pdf",
+        "png": "图3-2-二IP无向对序列构造.png"
+      },
+      "png_pixels": [
+        2362,
+        1259
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.7
+      ],
+      "evidence_mode": "method_schematic_without_experimental_results"
     },
     {
-      "stem": "图3-3-双锚点与分段守恒机制",
-      "width_mm": 180,
+      "stem": "图3-3-因果前缀跨流聚合",
+      "caption": "下三角因果掩码与非因果整窗聚合的对照，以及前缀聚合的常数代价增量更新。",
+      "width_mm": 140.0,
+      "height_mm": 95.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-3-因果前缀跨流聚合.svg",
+        "pdf": "图3-3-因果前缀跨流聚合.pdf",
+        "png": "图3-3-因果前缀跨流聚合.png"
+      },
+      "png_pixels": [
+        2204,
+        1496
+      ],
+      "png_ppi_measured": [
+        399.9,
+        400.0
+      ],
+      "evidence_mode": "method_schematic_without_experimental_results"
+    },
+    {
+      "stem": "图3-4-实体级可学Lp池化",
+      "caption": "广义幂平均关于池化指数的单调曲线，标出几何平均、算术平均与上界三个特例。",
+      "width_mm": 140.0,
+      "height_mm": 95.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-4-实体级可学Lp池化.svg",
+        "pdf": "图3-4-实体级可学Lp池化.pdf",
+        "png": "图3-4-实体级可学Lp池化.png"
+      },
+      "png_pixels": [
+        2204,
+        1496
+      ],
+      "png_ppi_measured": [
+        399.9,
+        400.0
+      ],
+      "evidence_mode": "method_schematic_without_experimental_results"
+    },
+    {
+      "stem": "图3-5-跨年度主性能对比",
+      "width_mm": 150,
       "height_mm": 95,
+      "png_dpi": 400,
+      "png_pixels": [
+        2362,
+        1496
+      ],
+      "json_keys": [
+        "cells.C00.fap",
+        "cells.C01.fap",
+        "cells.C10.fap",
+        "cells.C11.fap"
+      ],
+      "caption": "图3-5 LSPR23 训练、LSPR24 零样本评价下的跨年度逐流平均精确率对比。本章 2×2 四格与本课题 XGBoost、逐流 MLP 基线在同一冻结评价池上测得；Dijk 2026 表 5 三行为论文原始数字，协议不完全等同，仅作背景参照，以不同填充图案标出。竖直虚线为随机先验 0.025707。",
       "outputs": {
-        "svg": "图3-3-双锚点与分段守恒机制.svg",
-        "pdf": "图3-3-双锚点与分段守恒机制.pdf",
-        "png": "图3-3-双锚点与分段守恒机制.png"
+        "svg": "图3-5-跨年度主性能对比.svg",
+        "pdf": "图3-5-跨年度主性能对比.pdf",
+        "png": "图3-5-跨年度主性能对比.png"
       }
     },
     {
-      "stem": "图3-4-有界物理条件交叉注意力",
-      "width_mm": 180,
+      "stem": "图3-6-双机制消融交互",
+      "width_mm": 150,
       "height_mm": 100,
+      "png_dpi": 400,
+      "png_pixels": [
+        2362,
+        1574
+      ],
+      "json_keys": [
+        "cells.*.fap",
+        "cells.*.e_lp",
+        "cells.*.dr"
+      ],
+      "caption": "图3-6 因果前缀聚合（A）与实体级 Lp 池化（B）的 2×2 消融，在逐流 AP、实体 AP（Lp 池化）与 DR@4%FPR 三个口径下并列呈现。交互项 Δ = C11 − C10 − C01 + C00；判据一为 Δ > 0（超可加），判据二为 C11 > max(C01, C10)（组合优于最佳单机制）。三个口径结论不一致：实体 AP（Δ = +0.091268）与 DR@4%FPR（Δ = +0.017287）两条判据均通过，逐流 AP（Δ = −0.182777）两条判据均不通过。此处如实并列，不作取舍。",
       "outputs": {
-        "svg": "图3-4-有界物理条件交叉注意力.svg",
-        "pdf": "图3-4-有界物理条件交叉注意力.pdf",
-        "png": "图3-4-有界物理条件交叉注意力.png"
+        "svg": "图3-6-双机制消融交互.svg",
+        "pdf": "图3-6-双机制消融交互.pdf",
+        "png": "图3-6-双机制消融交互.png"
       }
     },
     {
-      "stem": "图3-5-训练与推理流程",
-      "width_mm": 180,
-      "height_mm": 100,
+      "stem": "图3-7-训练稳定性",
+      "width_mm": 110,
+      "height_mm": 85,
+      "png_dpi": 400,
+      "png_pixels": [
+        1732,
+        1338
+      ],
+      "json_keys": [
+        "stability.C00",
+        "stability.C11"
+      ],
+      "caption": "图3-7 基线序列编码器（C00）与完整方法（C11）在种子 42/43/44 下的跨年度逐流 AP。横线为三种子均值，阴影为 ±1σ（ddof=1）。σ 是协议的属性：本图协议为 20000 步、末 5 检查点平均、顺序执行，σ(C00) = 0.023248、σ(C11) = 0.058622。",
       "outputs": {
-        "svg": "图3-5-训练与推理流程.svg",
-        "pdf": "图3-5-训练与推理流程.pdf",
-        "png": "图3-5-训练与推理流程.png"
+        "svg": "图3-7-训练稳定性.svg",
+        "pdf": "图3-7-训练稳定性.pdf",
+        "png": "图3-7-训练稳定性.png"
+      }
+    },
+    {
+      "stem": "图3-8-Lp指数收敛轨迹",
+      "width_mm": 130,
+      "height_mm": 85,
+      "png_dpi": 400,
+      "png_pixels": [
+        2047,
+        1338
+      ],
+      "json_keys": [
+        "cells.C00.p",
+        "cells.C01.p",
+        "cells.C10.p",
+        "cells.C11.p"
+      ],
+      "caption": "图3-8 四格学到的 Lp 池化指数 p 终值。run.log 为顺序执行日志，未记录逐 epoch 轨迹，故本图只有各格终值，不呈现收敛过程。C00 与 C10 未启用 Lp 池化，p 保持初值 2.0，不参与训练；C01 收敛到 0.6069、C11 收敛到 1.2236，均落在 p = 1（算术平均）与 p → ∞（上界）之间的内部值。",
+      "outputs": {
+        "svg": "图3-8-Lp指数收敛轨迹.svg",
+        "pdf": "图3-8-Lp指数收敛轨迹.pdf",
+        "png": "图3-8-Lp指数收敛轨迹.png"
+      }
+    },
+    {
+      "stem": "图3-9-序列长度敏感性",
+      "width_mm": 130,
+      "height_mm": 85,
+      "png_dpi": 400,
+      "png_pixels": [
+        2047,
+        1338
+      ],
+      "json_keys": [
+        "length.16",
+        "length.32",
+        "length.64",
+        "length.128"
+      ],
+      "caption": "图3-9 序列长度 L 的逐流与实体级 AP（本实验已知存在缺陷，仅作趋势参考，不支持「长上下文更好」的结论）。缺陷有三：其一，截断实现取固定 L=128 块的前 L 个位置，逐流覆盖率约 L/128，L=16 时仅约 12.5% 的流被打分；其二，评价集正类基率随 L 改变，四点分母不同不可直接比较；其三，8000 步固定步数预算下各 L 的训练流量预算最多相差 8 倍。",
+      "outputs": {
+        "svg": "图3-9-序列长度敏感性.svg",
+        "pdf": "图3-9-序列长度敏感性.pdf",
+        "png": "图3-9-序列长度敏感性.png"
+      }
+    },
+    {
+      "stem": "图3-10-攻击类别分面",
+      "width_mm": 130,
+      "height_mm": 90,
+      "png_dpi": 400,
+      "png_pixels": [
+        2047,
+        1417
+      ],
+      "json_keys": [
+        "facet.*"
+      ],
+      "caption": "图3-10 按 Category 字段的攻击类别分面（本实验已知存在缺陷，只作定性参考）。缺陷有三：其一，Category 字段对恶意流几乎全空，「(空)」类含 519,138 个正例，占五类正例总数的 99.84%，其余四类各仅 81～452 例；其二，各类按「该类正例 + 全部负例」构造，评价基率相差数个数量级，(a) 的类内 AP 跨类不可比；其三，(b) 给出 AP / 基率 lift 作为可比口径，基率按共享负例池折算，负例池由冻结逐流先验 0.025707 与五类正例合计反推。每类条形上同时标注该类正例数。",
+      "outputs": {
+        "svg": "图3-10-攻击类别分面.svg",
+        "pdf": "图3-10-攻击类别分面.pdf",
+        "png": "图3-10-攻击类别分面.png"
+      }
+    },
+    {
+      "stem": "图3-11-受限观测下的检测能力",
+      "width_mm": 140,
+      "height_mm": 95,
+      "png_dpi": 400,
+      "png_pixels": [
+        2204,
+        1496
+      ],
+      "json_keys": [
+        "curve.C11"
+      ],
+      "caption": "图3-11 完整方法（C11）在每实体只使用按时间前 k 条流时的实体 AP 与 DR@4%FPR，横轴为对数刻度。实体 AP 从 k=1 的 0.299964 升到使用全部流的 0.462988，DR@4%FPR 从 0.4973 升到 0.6955。k=50 时用 2.27% 的流即达到全量 AP 的 98.8%（≥95%）。竖直点线标出实体流数中位 = 2：半数实体仅含 2 条流，故 k > 2 的增益主要来自长尾实体。",
+      "outputs": {
+        "svg": "图3-11-受限观测下的检测能力.svg",
+        "pdf": "图3-11-受限观测下的检测能力.pdf",
+        "png": "图3-11-受限观测下的检测能力.png"
       }
     }
-  ]
+  ],
+  "generators": [
+    {
+      "script": "绘制第三章结果图.py",
+      "evidence_mode": "frozen_experiment_results",
+      "data_source_json": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full/ch3_full_results.json",
+      "data_source_log": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full/run.log",
+      "external_reference_source": "thesis/experiments/llm_probe/tools/ch3_main.py:282,302-304",
+      "figures": [
+        "图3-10-攻击类别分面",
+        "图3-11-受限观测下的检测能力",
+        "图3-5-跨年度主性能对比",
+        "图3-6-双机制消融交互",
+        "图3-7-训练稳定性",
+        "图3-8-Lp指数收敛轨迹",
+        "图3-9-序列长度敏感性"
+      ]
+    }
+  ],
+  "python": "3.12.13",
+  "matplotlib": "3.11.1",
+  "font": {
+    "cjk": "Heiti TC",
+    "latin": "Times New Roman",
+    "math": "STIX (mathtext.fontset=stix)"
+  },
+  "png_dpi": 400
 }

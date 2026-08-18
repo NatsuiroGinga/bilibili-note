@@ -1,1607 +1,933 @@
-"""生成第三章五张方法机制图。
+"""生成第三章四张方法机制示意图（图3-1 ~ 图3-4）。
 
-输出同名 SVG、PDF 和 PNG，不读取任何实验结果。
+本脚本不读取任何实验结果、日志或运行制品，图中一切数值均为方法规格或示意取值，
+对应图件清单中的 `evidence_mode = method_schematic_without_experimental_results`。
+
+生成命令：
+    uv run --project thesis/figures/第三章 python thesis/figures/第三章/绘制第三章机制图.py
 """
 
 from __future__ import annotations
 
-import json
-import os
-from collections.abc import Callable
-from dataclasses import dataclass
 from pathlib import Path
 
-MPL_CACHE = Path("/tmp/chapter3-matplotlib-cache")
-MPL_CACHE.mkdir(parents=True, exist_ok=True)
-os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE))
+import numpy as np
 
-import matplotlib
-
-matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt
-from matplotlib import font_manager
-from matplotlib.figure import Figure
-from matplotlib.patches import Circle, FancyArrowPatch, FancyBboxPatch, Rectangle
-
+import figstyle as fs
+from figstyle import Canvas, FigureSpec, Line
 
 ROOT = Path(__file__).resolve().parent
 
-FONT_CANDIDATES = (
-    Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
-    Path("/System/Library/Fonts/STHeiti Medium.ttc"),
-    Path("/Library/Fonts/Arial Unicode.ttf"),
-)
+EVIDENCE_MODE = "method_schematic_without_experimental_results"
+NO_DATA_NOTE = "本图为方法机制示意，不含任何实验结果数值。"
 
 
-def register_font() -> tuple[str, Path]:
-    """显式注册中文字体，避免依赖全局 Fontconfig 缓存。"""
-
-    for path in FONT_CANDIDATES:
-        if path.exists():
-            font_manager.fontManager.addfont(str(path))
-            return font_manager.FontProperties(fname=str(path)).get_name(), path
-    raise FileNotFoundError("未找到可用的中文字体")
+# ================================================================ 图3-1
 
 
-FONT_NAME, FONT_PATH = register_font()
+def draw_overall_framework() -> Canvas:
+    """整体方法框架：从原始流到实体级告警的两机制流水线。"""
 
-plt.rcParams.update(
-    {
-        "font.family": FONT_NAME,
-        "font.sans-serif": [FONT_NAME],
-        "axes.unicode_minus": False,
-        "mathtext.fontset": "stix",
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-        "svg.fonttype": "none",
-        "figure.facecolor": "white",
-        "savefig.facecolor": "white",
-        "savefig.transparent": False,
-    }
-)
+    cv = fs.canvas(150.0, 95.0)
 
+    left = 0.145
+    right = 0.995
+    span = right - left
+    channel_x = 0.113
+    band_h = 0.185
 
-INK = "#24313A"
-MUTED = "#65737D"
-LIGHT_LINE = "#C8D0D5"
-BLUE = "#2F6B9A"
-BLUE_LIGHT = "#EAF3FA"
-TEAL = "#14866D"
-TEAL_LIGHT = "#E7F5F1"
-VERMILION = "#C84B31"
-VERMILION_LIGHT = "#FBEDEA"
-GOLD = "#A66F00"
-GOLD_LIGHT = "#FFF4D6"
-GRAY = "#7D878E"
-GRAY_LIGHT = "#F1F3F4"
-WHITE = "#FFFFFF"
-
-
-@dataclass(frozen=True)
-class FigureSpec:
-    stem: str
-    width_mm: float
-    height_mm: float
-    draw: Callable[[], Figure]
-
-
-def mm_to_inch(value: float) -> float:
-    return value / 25.4
-
-
-def canvas(width_mm: float, height_mm: float) -> tuple[Figure, plt.Axes]:
-    fig = plt.figure(figsize=(mm_to_inch(width_mm), mm_to_inch(height_mm)), dpi=150)
-    ax = fig.add_axes((0, 0, 1, 1))
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.axis("off")
-    return fig, ax
-
-
-def text(
-    ax: plt.Axes,
-    x: float,
-    y: float,
-    value: str,
-    *,
-    size: float = 8.0,
-    color: str = INK,
-    weight: str = "normal",
-    ha: str = "center",
-    va: str = "center",
-    linespacing: float = 1.2,
-    rotation: float = 0,
-    zorder: int = 10,
-) -> None:
-    prop = font_manager.FontProperties(fname=str(FONT_PATH), size=size, weight=weight)
-    ax.text(
-        x,
-        y,
-        value,
-        color=color,
-        fontproperties=prop,
-        ha=ha,
-        va=va,
-        linespacing=linespacing,
-        rotation=rotation,
-        zorder=zorder,
+    band_y = {"input": 0.775, "repr": 0.475, "decide": 0.175}
+    band_label = (
+        ("input", "输入与序列构造", fs.MUTED),
+        ("repr", "表示层 · 计算侧", fs.M1_EDGE),
+        ("decide", "决策层 · 汇聚侧", fs.M2_EDGE),
     )
-
-
-def rounded_box(
-    ax: plt.Axes,
-    x: float,
-    y: float,
-    width: float,
-    height: float,
-    title: str,
-    *,
-    subtitle: str | None = None,
-    face: str = WHITE,
-    edge: str = INK,
-    title_color: str = INK,
-    subtitle_color: str = MUTED,
-    linewidth: float = 1.0,
-    linestyle: str | tuple = "-",
-    title_size: float = 7.7,
-    subtitle_size: float = 6.2,
-    radius: float = 0.012,
-    zorder: int = 3,
-) -> FancyBboxPatch:
-    patch = FancyBboxPatch(
-        (x, y),
-        width,
-        height,
-        boxstyle=f"round,pad=0.006,rounding_size={radius}",
-        linewidth=linewidth,
-        linestyle=linestyle,
-        edgecolor=edge,
-        facecolor=face,
-        zorder=zorder,
-    )
-    ax.add_patch(patch)
-    if subtitle is None:
-        text(
-            ax,
-            x + width / 2,
-            y + height / 2,
-            title,
-            size=title_size,
-            color=title_color,
-            weight="bold",
-        )
-    else:
-        text(
-            ax,
-            x + width / 2,
-            y + height * 0.64,
-            title,
-            size=title_size,
-            color=title_color,
-            weight="bold",
-        )
-        text(
-            ax,
-            x + width / 2,
-            y + height * 0.30,
-            subtitle,
-            size=subtitle_size,
-            color=subtitle_color,
-        )
-    return patch
-
-
-def pill(
-    ax: plt.Axes,
-    x: float,
-    y: float,
-    width: float,
-    height: float,
-    label: str,
-    *,
-    face: str,
-    edge: str,
-    color: str = INK,
-    size: float = 6.5,
-    weight: str = "bold",
-) -> None:
-    rounded_box(
-        ax,
-        x,
-        y,
-        width,
-        height,
-        label,
-        face=face,
-        edge=edge,
-        title_color=color,
-        title_size=size,
-        linewidth=0.9,
-        radius=height / 2,
-    )
-
-
-def arrow(
-    ax: plt.Axes,
-    start: tuple[float, float],
-    end: tuple[float, float],
-    *,
-    color: str = INK,
-    linewidth: float = 1.15,
-    linestyle: str | tuple = "-",
-    mutation_scale: float = 9,
-    connectionstyle: str = "arc3,rad=0",
-    zorder: int = 5,
-) -> FancyArrowPatch:
-    patch = FancyArrowPatch(
-        start,
-        end,
-        arrowstyle="-|>",
-        mutation_scale=mutation_scale,
-        linewidth=linewidth,
-        linestyle=linestyle,
-        color=color,
-        connectionstyle=connectionstyle,
-        shrinkA=1.5,
-        shrinkB=1.5,
-        zorder=zorder,
-    )
-    ax.add_patch(patch)
-    return patch
-
-
-def line(
-    ax: plt.Axes,
-    xs: list[float],
-    ys: list[float],
-    *,
-    color: str = INK,
-    linewidth: float = 1.0,
-    linestyle: str | tuple = "-",
-    zorder: int = 4,
-) -> None:
-    ax.plot(
-        xs, ys, color=color, linewidth=linewidth, linestyle=linestyle, zorder=zorder
-    )
-
-
-def panel(
-    ax: plt.Axes,
-    x: float,
-    y: float,
-    width: float,
-    height: float,
-    label: str,
-    *,
-    face: str = WHITE,
-    edge: str = LIGHT_LINE,
-    label_width: float = 0.115,
-) -> None:
-    rounded_box(
-        ax, x, y, width, height, "", face=face, edge=edge, linewidth=0.9, radius=0.014
-    )
-    pill(
-        ax,
-        x + 0.012,
-        y + height - 0.055,
-        label_width,
-        0.038,
-        label,
-        face=GRAY_LIGHT,
-        edge=GRAY,
-        size=6.2,
-    )
-
-
-def legend_item(
-    ax: plt.Axes,
-    x: float,
-    y: float,
-    label: str,
-    *,
-    color: str,
-    linestyle: str | tuple = "-",
-    width: float = 0.045,
-) -> None:
-    arrow(
-        ax,
-        (x, y),
-        (x + width, y),
-        color=color,
-        linewidth=1.1,
-        linestyle=linestyle,
-        mutation_scale=7,
-    )
-    text(ax, x + width + 0.008, y, label, size=5.8, color=MUTED, ha="left")
-
-
-def save_figure(spec: FigureSpec, fig: Figure) -> dict[str, object]:
-    outputs: dict[str, str] = {}
-    for suffix in ("svg", "pdf", "png"):
-        path = ROOT / f"{spec.stem}.{suffix}"
-        kwargs: dict[str, object] = {
-            "format": suffix,
-            "facecolor": WHITE,
-            "edgecolor": "none",
-            "bbox_inches": None,
-            "pad_inches": 0,
-        }
-        if suffix == "png":
-            kwargs["dpi"] = 300
-        else:
-            kwargs["metadata"] = {"Title": spec.stem, "Creator": "Matplotlib"}
-        fig.savefig(path, **kwargs)
-        outputs[suffix] = path.name
-    plt.close(fig)
-    return {
-        "stem": spec.stem,
-        "width_mm": spec.width_mm,
-        "height_mm": spec.height_mm,
-        "outputs": outputs,
-    }
-
-
-def draw_overall_framework() -> Figure:
-    fig, ax = canvas(180, 108)
-
-    text(
-        ax,
-        0.018,
-        0.905,
-        "公共前向与生成任务",
-        size=6.7,
-        color=BLUE,
-        weight="bold",
-        ha="left",
-    )
-    text(
-        ax,
-        0.018,
-        0.255,
-        "训练期物理监督",
-        size=6.7,
-        color=GOLD,
-        weight="bold",
-        ha="left",
-    )
-
-    rounded_box(
-        ax,
-        0.02,
-        0.62,
-        0.135,
-        0.20,
-        "GeNIS",
-        subtitle="四窗口公共流量 $x_i$\n分层生成标签 $y_i$",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        title_color=BLUE,
-    )
-    rounded_box(
-        ax,
-        0.02,
-        0.06,
-        0.165,
-        0.15,
-        "ns-3 受控序列",
-        subtitle="$x_i$ + 双锚点 + 通量/$C_{i,k}$",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        title_color=GOLD,
-    )
-
-    rounded_box(
-        ax,
-        0.205,
-        0.60,
-        0.145,
-        0.21,
-        "Qwen 第 1–13 层",
-        subtitle="冻结基座 + S3 适配\n提示末端 $h^{(13)}$",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-        title_color=INK,
-    )
-    pill(
-        ax,
-        0.228,
-        0.765,
-        0.10,
-        0.032,
-        "冻结",
-        face=WHITE,
-        edge=GRAY,
-        color=GRAY,
-        size=5.7,
-    )
-
-    rounded_box(
-        ax,
-        0.395,
-        0.70,
-        0.125,
-        0.14,
-        "五维状态头",
-        subtitle=r"$\hat q_0,\ldots,\hat q_4$",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        title_color=TEAL,
-    )
-    rounded_box(
-        ax,
-        0.565,
-        0.70,
-        0.155,
-        0.14,
-        "九个物理条件词元",
-        subtitle="5 状态 + 4 相邻增量\n共享编码器 $Z_i$",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        title_color=TEAL,
-    )
-
-    rounded_box(
-        ax,
-        0.395,
-        0.47,
-        0.125,
-        0.13,
-        "Qwen 第 14–23 层",
-        subtitle="冻结前向",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-    )
-    rounded_box(
-        ax,
-        0.565,
-        0.45,
-        0.155,
-        0.17,
-        "第 24–27 层",
-        subtitle="4 头交叉注意力\n零门 + 单层 0.1 上界",
-        face=VERMILION_LIGHT,
-        edge=VERMILION,
-        title_color=VERMILION,
-    )
-    rounded_box(
-        ax,
-        0.765,
-        0.47,
-        0.115,
-        0.13,
-        "第 28 层 + LM 头",
-        subtitle="冻结前向",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-        title_size=6.8,
-    )
-    rounded_box(
-        ax,
-        0.915,
-        0.47,
-        0.07,
-        0.13,
-        "结构化\n输出",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        title_color=BLUE,
-        title_size=6.7,
-    )
-
-    arrow(ax, (0.155, 0.715), (0.205, 0.705), color=BLUE, linewidth=1.5)
-    arrow(ax, (0.35, 0.675), (0.395, 0.535), color=BLUE, linewidth=1.5)
-    arrow(ax, (0.52, 0.535), (0.565, 0.535), color=BLUE, linewidth=1.5)
-    arrow(ax, (0.72, 0.535), (0.765, 0.535), color=BLUE, linewidth=1.5)
-    arrow(ax, (0.88, 0.535), (0.915, 0.535), color=BLUE, linewidth=1.5)
-
-    arrow(ax, (0.35, 0.72), (0.395, 0.77), color=TEAL, linewidth=1.5)
-    arrow(ax, (0.52, 0.77), (0.565, 0.77), color=TEAL, linewidth=1.5)
-    arrow(ax, (0.645, 0.70), (0.645, 0.62), color=TEAL, linewidth=1.5)
-
-    rounded_box(
-        ax,
-        0.235,
-        0.26,
-        0.12,
-        0.105,
-        r"$\mathcal{L}_{\mathrm{state}}$",
-        subtitle="双锚点均方误差",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        title_color=GOLD,
-    )
-    rounded_box(
-        ax,
-        0.405,
-        0.26,
-        0.12,
-        0.105,
-        r"$\mathcal{L}_{\mathrm{phy}}$",
-        subtitle="四段控制体残差",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        title_color=GOLD,
-    )
-    rounded_box(
-        ax,
-        0.77,
-        0.26,
-        0.11,
-        0.105,
-        r"$\mathcal{L}_{\mathrm{gen}}$",
-        subtitle="生成词元损失",
-        face=VERMILION_LIGHT,
-        edge=VERMILION,
-        title_color=VERMILION,
-    )
-
-    arrow(ax, (0.185, 0.135), (0.235, 0.31), color=GOLD, linestyle=(0, (4, 2)))
-    arrow(ax, (0.185, 0.12), (0.405, 0.31), color=GOLD, linestyle=(0, (4, 2)))
-    arrow(ax, (0.295, 0.365), (0.435, 0.70), color=GOLD, linestyle=(0, (4, 2)))
-    arrow(ax, (0.465, 0.365), (0.475, 0.70), color=TEAL, linestyle=(0, (4, 2)))
-    arrow(ax, (0.95, 0.47), (0.85, 0.365), color=VERMILION, linestyle=(0, (4, 2)))
-    arrow(
-        ax,
-        (0.77, 0.31),
-        (0.68, 0.45),
-        color=VERMILION,
-        linestyle=(0, (4, 2)),
-        connectionstyle="arc3,rad=-0.1",
-    )
-    arrow(
-        ax,
-        (0.77, 0.30),
-        (0.50, 0.70),
-        color=VERMILION,
-        linestyle=(0, (4, 2)),
-        connectionstyle="arc3,rad=-0.17",
-    )
-
-    text(
-        ax,
-        0.205,
-        0.232,
-        "特权真值只进入损失，不进入部署前向",
-        size=5.8,
-        color=GOLD,
-        ha="left",
-    )
-    legend_item(ax, 0.025, 0.03, "前向路径", color=BLUE)
-    legend_item(ax, 0.205, 0.03, "物理状态前向", color=TEAL)
-    legend_item(ax, 0.425, 0.03, "生成梯度", color=VERMILION, linestyle=(0, (4, 2)))
-    legend_item(ax, 0.60, 0.03, "状态/物理监督", color=GOLD, linestyle=(0, (4, 2)))
-    pill(
-        ax,
-        0.84,
-        0.01,
-        0.135,
-        0.036,
-        "冻结参数不更新",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-        color=GRAY,
-        size=5.7,
-    )
-
-    return fig
-
-
-def draw_queue_icon(ax: plt.Axes, x: float, y: float, label: str) -> None:
-    ax.add_patch(
-        Rectangle(
-            (x - 0.027, y - 0.055),
-            0.054,
-            0.11,
-            facecolor=WHITE,
-            edgecolor=TEAL,
-            linewidth=1.0,
-            zorder=4,
-        )
-    )
-    for offset in (-0.0275, 0, 0.0275):
-        line(
-            ax,
-            [x - 0.027, x + 0.027],
-            [y + offset, y + offset],
-            color=LIGHT_LINE,
-            linewidth=0.55,
-            zorder=5,
-        )
-    ax.add_patch(
-        Rectangle(
-            (x - 0.023, y - 0.050),
-            0.046,
+    for key, label, color in band_label:
+        fs.box(
+            cv,
             0.018,
-            facecolor=TEAL_LIGHT,
-            edgecolor="none",
-            zorder=4,
+            band_y[key],
+            0.058,
+            band_h,
+            face=fs.SHADE,
+            edge=fs.HAIRLINE,
+            linewidth=0.7,
+            radius=0.010,
+            zorder=2,
         )
+        fs.text(
+            cv,
+            0.047,
+            band_y[key] + band_h / 2.0,
+            label,
+            size=fs.MAIN_FONT_PT,
+            color=color,            rotation=90.0,
+        )
+
+    def row(count: int, gap: float) -> tuple[float, list[float]]:
+        width = (span - gap * (count - 1)) / count
+        centers = [left + width / 2.0 + i * (width + gap) for i in range(count)]
+        return width, centers
+
+    w4, c4 = row(4, 0.036)
+    w3, c3 = row(3, 0.050)
+
+    # --- 第一带：输入与序列构造
+    input_boxes = (
+        (
+            Line("原始流记录", fs.MAIN_FONT_PT, "cjk", fs.INK),
+            Line("83 维 CICFlowMeter 特征", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+        ),
+        (
+            Line("按 2-IP 无向对分组", fs.MAIN_FONT_PT, "cjk", fs.INK),
+            Line(r"$e=\chi(a,b)$", fs.MIN_FONT_PT, "math", fs.MUTED),
+        ),
+        (
+            Line("组内按时间升序", fs.MAIN_FONT_PT, "cjk", fs.INK),
+            Line(r"$t_1<t_2<\cdots<t_n$", fs.MIN_FONT_PT, "math", fs.MUTED),
+        ),
+        (
+            Line("切分非重叠序列", fs.MAIN_FONT_PT, "cjk", fs.INK),
+            Line("尾块补零并掩码", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+            Line(r"$L=128$", fs.MIN_FONT_PT, "math", fs.MUTED),
+        ),
     )
-    text(ax, x, y - 0.077, label, size=6.2, color=TEAL, weight="bold")
+    for cx, lines in zip(c4, input_boxes, strict=True):
+        fs.box(cv, cx - w4 / 2.0, band_y["input"], w4, band_h, lines)
+
+    # --- 第二带：表示层
+    repr_boxes = (
+        (
+            (
+                Line("逐流编码器", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line(r"$f:\ x_t\mapsto h_t$", fs.MIN_FONT_PT, "math", fs.MUTED),
+            ),
+            None,
+        ),
+        (
+            (
+                Line("因果前缀跨流聚合", fs.MAIN_FONT_PT, "cjk", fs.M1_EDGE),
+                Line(r"$\mathrm{ctx}_t$", fs.MIN_FONT_PT, "math", fs.M1_EDGE),
+            ),
+            "机制一",
+        ),
+        (
+            (
+                Line("表示拼接", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line(r"$[\,h_t,\ \mathrm{ctx}_t\,]$", fs.MIN_FONT_PT, "math", fs.MUTED),
+            ),
+            None,
+        ),
+        (
+            (
+                Line("输出头", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line("逐流分数", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+                Line(r"$s_f$", fs.MIN_FONT_PT, "math", fs.MUTED),
+            ),
+            None,
+        ),
+    )
+    for cx, (lines, tag) in zip(c4, repr_boxes, strict=True):
+        highlight = tag is not None
+        fs.box(
+            cv,
+            cx - w4 / 2.0,
+            band_y["repr"],
+            w4,
+            band_h,
+            lines,
+            face=fs.M1_FACE if highlight else fs.WHITE,
+            edge=fs.M1_EDGE if highlight else fs.MUTED,
+            linewidth=1.4 if highlight else fs.MAIN_LINE_PT,
+            hatch=fs.M1_HATCH if highlight else None,
+        )
+        if tag:
+            fs.pill(
+                cv,
+                cx,
+                band_y["repr"] + band_h,
+                0.098,
+                0.052,
+                tag,
+                face=fs.WHITE,
+                edge=fs.M1_EDGE,
+                color=fs.M1_EDGE,
+            )
+
+    # --- 第三带：决策层
+    decide_boxes = (
+        (
+            (
+                Line("实体内分数集合", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line(r"$\{s_f\}_{f\in e}$", fs.MIN_FONT_PT, "math", fs.MUTED),
+            ),
+            None,
+        ),
+        (
+            (
+                Line("实体级可学 Lp 池化", fs.MAIN_FONT_PT, "cjk", fs.M2_EDGE),
+                Line(
+                    r"$S_e=\left(\frac{1}{n}\sum_f s_f^{\,p}\right)^{1/p}$",
+                    fs.MIN_FONT_PT,
+                    "math",
+                    fs.M2_EDGE,
+                ),
+            ),
+            "机制二",
+        ),
+        (
+            (
+                Line("实体级告警", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line("按实体分数排序输出", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+            ),
+            None,
+        ),
+    )
+    for cx, (lines, tag) in zip(c3, decide_boxes, strict=True):
+        highlight = tag is not None
+        fs.box(
+            cv,
+            cx - w3 / 2.0,
+            band_y["decide"],
+            w3,
+            band_h,
+            lines,
+            face=fs.M2_FACE if highlight else fs.WHITE,
+            edge=fs.M2_EDGE if highlight else fs.MUTED,
+            linewidth=1.4 if highlight else fs.MAIN_LINE_PT,
+            hatch=fs.M2_HATCH if highlight else None,
+        )
+        if tag:
+            fs.pill(
+                cv,
+                cx,
+                band_y["decide"] + band_h,
+                0.098,
+                0.052,
+                tag,
+                face=fs.WHITE,
+                edge=fs.M2_EDGE,
+                color=fs.M2_EDGE,
+            )
+
+    # --- 带内箭头
+    for key, centers, width in (
+        ("input", c4, w4),
+        ("repr", c4, w4),
+        ("decide", c3, w3),
+    ):
+        cy = band_y[key] + band_h / 2.0
+        for a, b in zip(centers, centers[1:], strict=False):
+            fs.arrow(cv, (a + width / 2.0 + 0.004, cy), (b - width / 2.0 - 0.004, cy))
+
+    # --- 跨带换行走线
+    for upper, lower in (("input", "repr"), ("repr", "decide")):
+        y_top = band_y[upper]
+        y_mid = (band_y[upper] + band_y[lower] + band_h) / 2.0
+        y_bot = band_y[lower] + band_h / 2.0
+        fs.routed_arrow(
+            cv,
+            [
+                (c4[-1], y_top),
+                (c4[-1], y_mid),
+                (channel_x, y_mid),
+                (channel_x, y_bot),
+                (left - 0.004, y_bot),
+            ],
+            color=fs.RULE,
+        )
+
+    fs.footnote(cv, NO_DATA_NOTE, y=0.075)
+    return cv
 
 
-def draw_four_window_queue() -> Figure:
-    fig, ax = canvas(180, 90)
-    xs = [0.08, 0.29, 0.50, 0.71, 0.92]
-    window_faces = [BLUE_LIGHT, TEAL_LIGHT, BLUE_LIGHT, TEAL_LIGHT]
+# ================================================================ 图3-2
 
-    text(
-        ax,
-        0.025,
-        0.93,
-        "四个连续时间窗",
-        size=7.0,
-        color=BLUE,
-        weight="bold",
+
+def draw_entity_key_sequence() -> Canvas:
+    """二 IP 无向对序列构造：归并、排序、非重叠切分与掩码。"""
+
+    cv = fs.canvas(150.0, 80.0)
+
+    panel_top = 0.115
+    panel_h = 0.79
+    fs.panel(cv, 0.012, panel_top, 0.245, panel_h, "(a) 原始流记录")
+    fs.panel(cv, 0.277, panel_top, 0.345, panel_h, "(b) 无向对实体键")
+    fs.panel(cv, 0.642, panel_top, 0.346, panel_h, "(c) 排序与非重叠切分")
+
+    # --- (a) 五条原始流，源宿方向与时间顺序均无序
+    flows = (
+        (r"$f_1:\ A\rightarrow B,\ t=1.2$", "e1"),
+        (r"$f_2:\ B\rightarrow A,\ t=0.8$", "e1"),
+        (r"$f_3:\ B\rightarrow C,\ t=1.9$", "e2"),
+        (r"$f_4:\ A\rightarrow B,\ t=2.7$", "e1"),
+        (r"$f_5:\ B\rightarrow A,\ t=3.5$", "e1"),
+    )
+    row_h = 0.098
+    row_top = 0.735
+    row_y: list[float] = []
+    for index, (label, group) in enumerate(flows):
+        cy = row_top - index * (row_h + 0.020)
+        row_y.append(cy)
+        fs.box(
+            cv,
+            0.026,
+            cy - row_h / 2.0,
+            0.218,
+            row_h,
+            (Line(label, fs.MIN_FONT_PT, "math", fs.INK),),
+            edge=fs.M1_EDGE if group == "e1" else fs.RULE,
+            linewidth=fs.MAIN_LINE_PT,
+        )
+    fs.text(
+        cv,
+        0.026,
+        0.155,
+        "A、B、C 表示主机 IP",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
         ha="left",
     )
-    text(
-        ax,
-        0.975,
-        0.93,
-        "五个边界队列锚点",
-        size=7.0,
-        color=TEAL,
-        weight="bold",
+
+    # --- (b) 归并规则与两个实体键
+    fs.box(
+        cv,
+        0.288,
+        0.700,
+        0.322,
+        0.105,
+        (
+            Line(
+                r"$\chi(a,b)=\mathrm{sortlex}\{\mathrm{srcIP},\,\mathrm{dstIP}\}$",
+                fs.MIN_FONT_PT,
+                "math",
+                fs.INK,
+            ),
+        ),
+        face=fs.SHADE,
+        edge=fs.MUTED,
+    )
+    fs.text(
+        cv,
+        0.449,
+        0.646,
+        "取字典序较小者在前，方向被抹去",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+    )
+    fs.box(
+        cv,
+        0.288,
+        0.385,
+        0.322,
+        0.150,
+        (
+            Line(r"$e_1=\{A,\ B\}$", fs.MAIN_FONT_PT, "math", fs.M1_EDGE),
+            Line("A→B 与 B→A 归为同一键", fs.MIN_FONT_PT, "cjk", fs.M1_EDGE),
+        ),
+        face=fs.M1_FACE,
+        edge=fs.M1_EDGE,
+        linewidth=1.4,
+    )
+    fs.box(
+        cv,
+        0.288,
+        0.205,
+        0.322,
+        0.115,
+        (Line(r"$e_2=\{B,\ C\}$", fs.MAIN_FONT_PT, "math", fs.MUTED),),
+        edge=fs.RULE,
+    )
+    for cy, (_, group) in zip(row_y, flows, strict=True):
+        target = 0.460 if group == "e1" else 0.2625
+        fs.arrow(
+            cv,
+            (0.248, cy),
+            (0.284, target),
+            color=fs.M1_EDGE if group == "e1" else fs.RULE,
+            linewidth=0.8,
+            head=6.0,
+            connectionstyle="arc3,rad=0.08",
+        )
+
+    # --- (c) 同键内按时间升序，再切成非重叠块
+    fs.text(
+        cv,
+        0.660,
+        0.760,
+        "同一实体键内按时间升序",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+        ha="left",
+    )
+    chip_w = 0.070
+    chip_x = [0.660 + i * (chip_w + 0.014) for i in range(4)]
+    for x, label in zip(chip_x, ("0.8", "1.2", "2.7", "3.5"), strict=True):
+        fs.box(
+            cv,
+            x,
+            0.630,
+            chip_w,
+            0.088,
+            (Line(rf"$t={label}$", fs.MIN_FONT_PT, "math", fs.INK),),
+            edge=fs.M1_EDGE,
+        )
+    fs.arrow(cv, (0.660, 0.596), (0.976, 0.596), color=fs.RULE, linewidth=0.8, head=6.0)
+    fs.text(cv, 0.818, 0.560, "时间升序", size=fs.MIN_FONT_PT, color=fs.MUTED)
+
+    fs.text(
+        cv,
+        0.660,
+        0.487,
+        "切成长度 L 的非重叠块",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+        ha="left",
+    )
+    grid_x = 0.660
+    grid_w = 0.316
+    cw = grid_w / 8.0
+    ch = cv.square_dy(cw)
+    grid_y = 0.335
+    for index in range(8):
+        padded = index >= 6
+        fs.cell(
+            cv,
+            grid_x + index * cw,
+            grid_y,
+            cw,
+            ch,
+            face=fs.WHITE if padded else fs.M1_FACE,
+            edge=fs.RULE if padded else fs.M1_EDGE,
+            linewidth=0.7,
+            hatch=None if padded else fs.M1_HATCH,
+        )
+        fs.text(
+            cv,
+            grid_x + (index + 0.5) * cw,
+            grid_y - 0.062,
+            "0" if padded else "1",
+            size=fs.MIN_FONT_PT,
+            color=fs.MUTED,
+        )
+    fs.polyline(
+        cv,
+        [(grid_x + 4 * cw, grid_y - 0.028), (grid_x + 4 * cw, grid_y + ch + 0.028)],
+        color=fs.INK,
+        linewidth=fs.MAIN_LINE_PT,
+    )
+    fs.text(
+        cv,
+        grid_x + 2 * cw,
+        grid_y + ch + 0.052,
+        "块 1",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+    )
+    fs.text(
+        cv,
+        grid_x + 6 * cw,
+        grid_y + ch + 0.052,
+        "块 2（尾块补零）",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+    )
+    fs.text(
+        cv,
+        grid_x - 0.008,
+        grid_y - 0.062,
+        "掩码",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
         ha="right",
     )
-
-    for index in range(4):
-        left = xs[index]
-        right = xs[index + 1]
-        ax.add_patch(
-            FancyBboxPatch(
-                (left + 0.01, 0.31),
-                right - left - 0.02,
-                0.50,
-                boxstyle="round,pad=0.004,rounding_size=0.01",
-                facecolor=window_faces[index],
-                edgecolor=LIGHT_LINE,
-                linewidth=0.75,
-                zorder=1,
-            )
-        )
-        text(
-            ax,
-            (left + right) / 2,
-            0.78,
-            f"$\\mathcal{{W}}_{index}$",
-            size=7.2,
-            color=BLUE,
-            weight="bold",
-        )
-        arrow(
-            ax,
-            ((left + right) / 2 - 0.055, 0.68),
-            ((left + right) / 2 - 0.055, 0.60),
-            color=BLUE,
-            linewidth=1.0,
-        )
-        text(
-            ax, (left + right) / 2 - 0.055, 0.715, f"$A_{index}$", size=6.2, color=BLUE
-        )
-        arrow(
-            ax,
-            ((left + right) / 2 + 0.01, 0.56),
-            ((left + right) / 2 + 0.075, 0.56),
-            color=TEAL,
-            linewidth=1.0,
-        )
-        text(
-            ax, (left + right) / 2 + 0.045, 0.605, f"$O_{index}$", size=6.2, color=TEAL
-        )
-        arrow(
-            ax,
-            ((left + right) / 2 - 0.02, 0.57),
-            ((left + right) / 2 - 0.075, 0.50),
-            color=GOLD,
-            linewidth=0.9,
-            linestyle=(0, (3, 2)),
-        )
-        text(
-            ax,
-            (left + right) / 2 - 0.065,
-            0.465,
-            f"$L^-_{index}$",
-            size=6.0,
-            color=GOLD,
-        )
-        rounded_box(
-            ax,
-            left + 0.03,
-            0.345,
-            right - left - 0.06,
-            0.065,
-            f"$C_{index}$  容量字节预算",
-            face=WHITE,
-            edge=BLUE,
-            title_color=BLUE,
-            title_size=5.8,
-            linewidth=0.7,
-        )
-
-    line(ax, [xs[0], xs[-1]], [0.86, 0.86], color=INK, linewidth=1.0)
-    for index, x in enumerate(xs):
-        ax.add_patch(
-            Circle(
-                (x, 0.86),
-                0.011,
-                facecolor=TEAL,
-                edgecolor=WHITE,
-                linewidth=0.7,
-                zorder=7,
-            )
-        )
-        text(ax, x, 0.895, f"$t_{index}$", size=5.8, color=MUTED)
-        draw_queue_icon(ax, x, 0.56, f"$q_{index}=Q_{index}/S$")
-
-    rounded_box(
-        ax,
-        0.07,
-        0.10,
-        0.42,
-        0.12,
-        r"$S=\max_k C_k$",
-        subtitle="同一序列共享字节尺度，锚点状态无量纲",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-        title_color=INK,
-    )
-    rounded_box(
-        ax,
-        0.53,
-        0.10,
-        0.40,
-        0.12,
-        "$Q_{k+1}-Q_k=A_k-O_k-L^-_k$",
-        subtitle="当前正式矩阵 $L^+=0$；每个窗口独立记账",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        title_color=GOLD,
-        title_size=7.0,
-    )
-    text(
-        ax,
-        0.5,
-        0.035,
-        "图标只表示窗口、边界和事件口径，不表示实验队列数值或轨迹。",
-        size=5.7,
-        color=MUTED,
-    )
-    return fig
-
-
-def draw_dual_anchor_conservation() -> Figure:
-    fig, ax = canvas(180, 95)
-    panel(
-        ax,
-        0.025,
-        0.08,
-        0.455,
-        0.84,
-        "(a) 只有差分约束",
-        face="#FAFBFC",
-        label_width=0.15,
-    )
-    panel(
-        ax,
-        0.52,
-        0.08,
-        0.455,
-        0.84,
-        "(b) 双锚点 + 分段守恒",
-        face="#FAFBFC",
-        label_width=0.19,
+    fs.text(
+        cv,
+        0.818,
+        0.175,
+        "正文取 L = 128，图中缩略为 4",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
     )
 
-    left_xs = [0.07, 0.16, 0.25, 0.34, 0.43]
-    base = [0.33, 0.42, 0.38, 0.54, 0.50]
-    trajectories = [
-        ([value + 0.16 for value in base], BLUE, r"$\hat q+c_2$"),
-        (base, TEAL, r"$\hat q$"),
-        ([value - 0.14 for value in base], GRAY, r"$\hat q+c_1$"),
-    ]
-    for values, color, label in trajectories:
-        line(ax, left_xs, values, color=color, linewidth=1.35)
-        for x, y in zip(left_xs, values, strict=True):
-            ax.add_patch(
-                Circle(
-                    (x, y),
-                    0.0085,
-                    facecolor=WHITE,
-                    edgecolor=color,
-                    linewidth=1.0,
-                    zorder=6,
+    fs.footnote(cv, NO_DATA_NOTE, y=0.048)
+    return cv
+
+
+# ================================================================ 图3-3
+
+
+def draw_causal_prefix_aggregation() -> Canvas:
+    """因果前缀跨流聚合：下三角掩码、非因果整窗对照与增量更新。"""
+
+    cv = fs.canvas(140.0, 95.0)
+
+    steps = 8
+    grid_w = 0.245
+    cw = grid_w / steps
+    ch = cv.square_dy(cw)
+    grid_x = 0.105
+
+    def draw_matrix(bottom: float, causal: bool) -> None:
+        for r in range(steps):  # r 自上而下，对应查询位置 t
+            t = r + 1
+            y = bottom + (steps - 1 - r) * ch
+            for c in range(steps):
+                i = c + 1
+                active = (i <= t) if causal else True
+                fs.cell(
+                    cv,
+                    grid_x + c * cw,
+                    y,
+                    cw,
+                    ch,
+                    face=(fs.M1_FACE if causal else fs.SHADE) if active else fs.WHITE,
+                    edge=fs.RULE,
+                    linewidth=0.5,
+                    hatch=(fs.M1_HATCH if causal else fs.M2_HATCH) if active else None,
                 )
+            fs.text(
+                cv,
+                grid_x - 0.012,
+                y + ch / 2.0,
+                str(t),
+                size=fs.MIN_FONT_PT,
+                color=fs.MUTED,
+                ha="right",
             )
-        text(ax, 0.445, values[-1], label, size=5.9, color=color, ha="left")
-
-    for index, x in enumerate(left_xs):
-        text(ax, x, 0.205, f"$t_{index}$", size=5.6, color=MUTED)
-    arrow(ax, (0.095, 0.34), (0.095, 0.49), color=GRAY, linewidth=0.9, mutation_scale=7)
-    text(ax, 0.11, 0.415, "平移 $c$", size=5.7, color=GRAY, ha="left")
-    rounded_box(
-        ax,
-        0.09,
-        0.70,
-        0.33,
-        0.105,
-        r"$r_k(\hat q+c)=r_k(\hat q)$",
-        subtitle="轨迹绝对位置不可由差分残差单独确定",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-        title_color=INK,
-    )
-    text(ax, 0.252, 0.135, "相同相邻差分 → 相同四段残差", size=6.1, color=MUTED)
-
-    right_xs = [0.565, 0.66, 0.755, 0.85, 0.945]
-    right_ys = [0.34, 0.42, 0.39, 0.57, 0.52]
-    line(ax, right_xs, right_ys, color=TEAL, linewidth=1.5)
-    for index, (x, y) in enumerate(zip(right_xs, right_ys, strict=True)):
-        is_anchor = index in {0, 3}
-        face = GOLD if is_anchor else WHITE
-        edge = GOLD if is_anchor else TEAL
-        ax.add_patch(
-            Circle(
-                (x, y), 0.012, facecolor=face, edgecolor=edge, linewidth=1.2, zorder=7
+        for c in range(steps):
+            fs.text(
+                cv,
+                grid_x + (c + 0.5) * cw,
+                bottom + steps * ch + 0.022,
+                str(c + 1),
+                size=fs.MIN_FONT_PT,
+                color=fs.MUTED,
             )
+        fs.text(
+            cv,
+            grid_x - 0.050,
+            bottom + steps * ch / 2.0,
+            "查询位置 t",
+            size=fs.MIN_FONT_PT,
+            color=fs.INK,
+            rotation=90.0,
         )
-        text(
-            ax,
-            x,
-            y + 0.055,
-            f"$q_{index}$",
-            size=6.0,
-            color=edge,
-            weight="bold" if is_anchor else "normal",
-        )
-        text(ax, x, 0.205, f"$t_{index}$", size=5.6, color=MUTED)
-
-    pill(
-        ax,
-        0.535,
-        0.72,
-        0.12,
-        0.046,
-        "初始锚点 $q_0$",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        color=GOLD,
-        size=5.8,
-    )
-    pill(
-        ax,
-        0.815,
-        0.72,
-        0.14,
-        0.046,
-        "内部锚点 $q_a$",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        color=GOLD,
-        size=5.8,
-    )
-    arrow(
-        ax,
-        (0.595, 0.72),
-        (0.565, 0.365),
-        color=GOLD,
-        linewidth=0.9,
-        linestyle=(0, (3, 2)),
-    )
-    arrow(
-        ax,
-        (0.885, 0.72),
-        (0.85, 0.595),
-        color=GOLD,
-        linewidth=0.9,
-        linestyle=(0, (3, 2)),
-    )
-
-    for index in range(4):
-        midpoint = (right_xs[index] + right_xs[index + 1]) / 2
-        pill(
-            ax,
-            midpoint - 0.025,
-            0.27,
-            0.05,
-            0.04,
-            f"$r_{index}$",
-            face=TEAL_LIGHT if index < 3 else BLUE_LIGHT,
-            edge=TEAL if index < 3 else BLUE,
-            color=TEAL if index < 3 else BLUE,
-            size=5.8,
+        fs.text(
+            cv,
+            grid_x + grid_w / 2.0,
+            bottom + steps * ch + 0.058,
+            "被聚合位置 i",
+            size=fs.MIN_FONT_PT,
+            color=fs.INK,
         )
 
-    line(ax, [0.565, 0.85], [0.14, 0.14], color=TEAL, linewidth=1.0)
-    line(ax, [0.565, 0.565], [0.13, 0.15], color=TEAL, linewidth=1.0)
-    line(ax, [0.85, 0.85], [0.13, 0.15], color=TEAL, linewidth=1.0)
-    text(ax, 0.7075, 0.11, "前段累计漂移受 $q_0,q_a$ 限制", size=5.5, color=TEAL)
-    line(ax, [0.85, 0.945], [0.14, 0.14], color=BLUE, linewidth=1.0)
-    line(ax, [0.945, 0.945], [0.13, 0.15], color=BLUE, linewidth=1.0)
-    text(ax, 0.8975, 0.11, "后段", size=5.5, color=BLUE)
+    upper_bottom = 0.545
+    lower_bottom = 0.110
+    draw_matrix(upper_bottom, causal=True)
+    draw_matrix(lower_bottom, causal=False)
 
-    rounded_box(
-        ax,
-        0.57,
-        0.785,
-        0.37,
-        0.065,
-        r"$\mathcal{L}_{\mathrm{state}}(q_0,q_a)+\lambda_p\,\mathrm{mean}_k\,r_k^2$",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        title_color=TEAL,
-        title_size=6.3,
+    fs.text(
+        cv,
+        0.050,
+        upper_bottom + steps * ch + 0.104,
+        "(a) 因果前缀掩码：仅 i ≤ t 参与",
+        size=fs.MAIN_FONT_PT,
+        color=fs.INK,        ha="left",
     )
-    text(
-        ax,
-        0.75,
-        0.045,
-        "图中以 $a=3$ 说明机制；实际内部锚点由 seed 与 group_id 固定分配。",
-        size=5.6,
-        color=MUTED,
+    fs.text(
+        cv,
+        0.050,
+        lower_bottom + steps * ch + 0.104,
+        "(b) 非因果整窗聚合（对照）",
+        size=fs.MAIN_FONT_PT,
+        color=fs.INK,        ha="left",
     )
-    return fig
-
-
-def draw_bounded_cross_attention() -> Figure:
-    fig, ax = canvas(180, 100)
-
-    panel(ax, 0.02, 0.11, 0.21, 0.80, "物理条件", face="#FAFBFC")
-    panel(ax, 0.255, 0.11, 0.16, 0.80, "共享编码", face="#FAFBFC")
-    panel(ax, 0.44, 0.11, 0.30, 0.80, "单层交叉注意力", face="#FAFBFC")
-    panel(ax, 0.765, 0.11, 0.215, 0.80, "有界残差注入", face="#FAFBFC")
-
-    q_xs = [0.035, 0.072, 0.109, 0.146, 0.183]
-    for index, x in enumerate(q_xs):
-        pill(
-            ax,
-            x,
-            0.69,
-            0.032,
-            0.07,
-            rf"$\hat q_{index}$",
-            face=TEAL_LIGHT,
-            edge=TEAL,
-            color=TEAL,
-            size=5.7,
-        )
-    delta_xs = [0.047, 0.09, 0.133, 0.176]
-    for index, x in enumerate(delta_xs):
-        pill(
-            ax,
-            x,
-            0.54,
-            0.038,
-            0.07,
-            rf"$\Delta q_{index}$",
-            face=BLUE_LIGHT,
-            edge=BLUE,
-            color=BLUE,
-            size=5.4,
-        )
-    text(ax, 0.125, 0.81, "5 个绝对状态", size=6.2, color=TEAL, weight="bold")
-    text(ax, 0.125, 0.655, "4 个有符号增量", size=6.2, color=BLUE, weight="bold")
-    rounded_box(
-        ax,
-        0.05,
-        0.27,
-        0.15,
-        0.13,
-        "九个标量 $v_{i,n}$",
-        subtitle="无队列真值、无攻击标签",
-        face=WHITE,
-        edge=TEAL,
-        title_color=TEAL,
+    fs.pill(
+        cv,
+        grid_x + grid_w - 0.052,
+        upper_bottom - 0.042,
+        0.108,
+        0.050,
+        "本章采用",
+        face=fs.WHITE,
+        edge=fs.M1_EDGE,
+        color=fs.M1_EDGE,
     )
-    arrow(ax, (0.125, 0.54), (0.125, 0.40), color=TEAL, linewidth=1.2)
-
-    rounded_box(
-        ax,
-        0.28,
-        0.61,
-        0.11,
-        0.17,
-        "类型 + 位置嵌入",
-        subtitle=r"$e_{\mathrm{type}}$ / $e_n$",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        title_color=BLUE,
-        title_size=6.5,
-    )
-    rounded_box(
-        ax,
-        0.28,
-        0.37,
-        0.11,
-        0.15,
-        "两层 MLP",
-        subtitle="SiLU，跨层共享",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        title_color=TEAL,
-    )
-    pill(
-        ax,
-        0.285,
-        0.22,
-        0.10,
-        0.075,
-        r"$Z_i\in\mathbb{R}^{9\times256}$",
-        face=WHITE,
-        edge=TEAL,
-        color=TEAL,
-        size=5.9,
-    )
-    arrow(ax, (0.20, 0.335), (0.28, 0.445), color=TEAL, linewidth=1.2)
-    arrow(ax, (0.335, 0.61), (0.335, 0.52), color=BLUE, linewidth=1.0)
-    arrow(ax, (0.335, 0.37), (0.335, 0.295), color=TEAL, linewidth=1.0)
-
-    pill(
-        ax,
-        0.465,
-        0.79,
-        0.052,
-        0.045,
-        "$H^{(l)}$",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        color=BLUE,
-        size=6.2,
-    )
-    pill(
-        ax,
-        0.535,
-        0.79,
-        0.052,
-        0.045,
-        "$W_Q^{(l)}$",
-        face=WHITE,
-        edge=BLUE,
-        color=BLUE,
-        size=5.8,
-    )
-    arrow(ax, (0.517, 0.812), (0.535, 0.812), color=BLUE, mutation_scale=7)
-    pill(
-        ax,
-        0.61,
-        0.79,
-        0.052,
-        0.045,
-        "$Q^{(l)}$",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        color=BLUE,
-        size=6.2,
-    )
-    arrow(ax, (0.587, 0.812), (0.61, 0.812), color=BLUE, mutation_scale=7)
-
-    pill(
-        ax,
-        0.465,
-        0.24,
-        0.052,
-        0.045,
-        "$Z_i$",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        color=TEAL,
-        size=6.2,
-    )
-    pill(
-        ax,
-        0.535,
-        0.28,
-        0.052,
-        0.045,
-        "$W_K^{(l)}$",
-        face=WHITE,
-        edge=TEAL,
-        color=TEAL,
-        size=5.8,
-    )
-    pill(
-        ax,
-        0.535,
-        0.20,
-        0.052,
-        0.045,
-        "$W_V^{(l)}$",
-        face=WHITE,
-        edge=TEAL,
-        color=TEAL,
-        size=5.8,
-    )
-    arrow(ax, (0.517, 0.262), (0.535, 0.302), color=TEAL, mutation_scale=7)
-    arrow(ax, (0.517, 0.262), (0.535, 0.222), color=TEAL, mutation_scale=7)
-    pill(
-        ax,
-        0.61,
-        0.28,
-        0.052,
-        0.045,
-        "$K^{(l)}$",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        color=TEAL,
-        size=6.2,
-    )
-    pill(
-        ax,
-        0.61,
-        0.20,
-        0.052,
-        0.045,
-        "$V^{(l)}$",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        color=TEAL,
-        size=6.2,
-    )
-    arrow(ax, (0.587, 0.302), (0.61, 0.302), color=TEAL, mutation_scale=7)
-    arrow(ax, (0.587, 0.222), (0.61, 0.222), color=TEAL, mutation_scale=7)
-
-    rounded_box(
-        ax,
-        0.555,
-        0.46,
-        0.15,
-        0.17,
-        "4 头缩放点积注意力",
-        subtitle="单头维度 64\n查询为生成位置",
-        face=VERMILION_LIGHT,
-        edge=VERMILION,
-        title_color=VERMILION,
-        title_size=6.4,
-    )
-    for head in range(4):
-        ax.add_patch(
-            Circle(
-                (0.578 + head * 0.033, 0.48),
-                0.012,
-                facecolor=WHITE,
-                edgecolor=VERMILION,
-                linewidth=0.8,
-                zorder=7,
-            )
-        )
-        text(ax, 0.578 + head * 0.033, 0.48, str(head + 1), size=4.7, color=VERMILION)
-    arrow(ax, (0.636, 0.79), (0.63, 0.63), color=BLUE, linewidth=1.1)
-    arrow(ax, (0.636, 0.325), (0.61, 0.46), color=TEAL, linewidth=1.0)
-    arrow(ax, (0.636, 0.245), (0.65, 0.46), color=TEAL, linewidth=1.0)
-    pill(
-        ax,
-        0.605,
-        0.675,
-        0.06,
-        0.045,
-        "$W_O^{(l)}$",
-        face=WHITE,
-        edge=VERMILION,
-        color=VERMILION,
-        size=5.8,
-    )
-    arrow(ax, (0.63, 0.63), (0.635, 0.675), color=VERMILION, mutation_scale=7)
-    pill(
-        ax,
-        0.675,
-        0.675,
-        0.045,
-        0.045,
-        "$u^{(l)}$",
-        face=VERMILION_LIGHT,
-        edge=VERMILION,
-        color=VERMILION,
-        size=6.0,
-    )
-    arrow(ax, (0.665, 0.697), (0.675, 0.697), color=VERMILION, mutation_scale=7)
-    text(ax, 0.59, 0.145, r"$l\in\{24,25,26,27\}$，四层参数独立", size=5.7, color=MUTED)
-
-    rounded_box(
-        ax,
-        0.79,
-        0.66,
-        0.165,
-        0.12,
-        "方向归一化",
-        subtitle=r"$u/(\Vert u\Vert_2+\varepsilon)$",
-        face=VERMILION_LIGHT,
-        edge=VERMILION,
-        title_color=VERMILION,
-    )
-    rounded_box(
-        ax,
-        0.79,
-        0.46,
-        0.165,
-        0.12,
-        "零初始化门",
-        subtitle=r"$m\,\rho\tanh(\alpha_l)\,\mathrm{stopgrad}\Vert h\Vert_2$",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        title_color=GOLD,
-        subtitle_size=5.2,
-    )
-    rounded_box(
-        ax,
-        0.79,
-        0.25,
-        0.165,
-        0.12,
-        "残差相加",
-        subtitle=r"$\tilde h^{(l)}=h^{(l)}+\delta^{(l)}$",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        title_color=BLUE,
-    )
-    arrow(ax, (0.72, 0.697), (0.79, 0.72), color=VERMILION, linewidth=1.2)
-    arrow(ax, (0.872, 0.66), (0.872, 0.58), color=VERMILION, linewidth=1.0)
-    arrow(ax, (0.872, 0.46), (0.872, 0.37), color=VERMILION, linewidth=1.0)
-    pill(
-        ax,
-        0.78,
-        0.14,
-        0.085,
-        0.06,
-        r"$\alpha_l=0\Rightarrow\delta=0$",
-        face=WHITE,
-        edge=GOLD,
-        color=GOLD,
-        size=5.5,
-    )
-    pill(
-        ax,
-        0.87,
-        0.14,
-        0.095,
-        0.06,
-        r"$\Vert\delta\Vert_2\leq0.1\Vert h\Vert_2$",
-        face=WHITE,
-        edge=VERMILION,
-        color=VERMILION,
-        size=5.2,
+    fs.pill(
+        cv,
+        grid_x + grid_w - 0.044,
+        lower_bottom - 0.042,
+        0.124,
+        0.050,
+        "本章不采用",
+        face=fs.WHITE,
+        edge=fs.M2_EDGE,
+        color=fs.M2_EDGE,
     )
 
-    return fig
-
-
-def draw_training_inference_flow() -> Figure:
-    fig, ax = canvas(180, 100)
-    panel(
-        ax,
-        0.02,
-        0.52,
-        0.96,
-        0.44,
-        "(a) 训练期：公开标签 + 特权物理监督",
-        face="#FAFBFC",
-        label_width=0.24,
-    )
-    panel(
-        ax,
-        0.02,
-        0.05,
-        0.96,
-        0.40,
-        "(b) 推理期：仅用部署可观测字段",
-        face="#FAFBFC",
-        label_width=0.22,
-    )
-
-    rounded_box(
-        ax,
-        0.045,
-        0.68,
-        0.12,
-        0.13,
-        "GeNIS 批次",
-        subtitle="$x_i,y_i$",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        title_color=BLUE,
-    )
-    rounded_box(
-        ax,
-        0.045,
-        0.535,
-        0.12,
-        0.105,
-        "ns-3 批次",
-        subtitle="$x_i,q,A,O,L^-,C$",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        title_color=GOLD,
-        subtitle_size=5.4,
-    )
-    rounded_box(
-        ax,
-        0.215,
-        0.66,
-        0.14,
-        0.145,
-        "冻结 Qwen + S3",
-        subtitle="提示前向\n第 13 层状态源",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-    )
-    rounded_box(
-        ax,
-        0.405,
-        0.66,
-        0.15,
-        0.145,
-        r"新增结构 $\Psi$",
-        subtitle="状态头 + 条件编码\n4 层有界注入",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        title_color=TEAL,
-    )
-    rounded_box(
-        ax,
-        0.61,
-        0.70,
-        0.10,
-        0.095,
-        r"$\mathcal{L}_{\mathrm{gen}}$",
-        face=VERMILION_LIGHT,
-        edge=VERMILION,
-        title_color=VERMILION,
-    )
-    rounded_box(
-        ax,
-        0.61,
-        0.565,
-        0.10,
-        0.095,
-        r"$\mathcal{L}_{\mathrm{state}}+\lambda_p\mathcal{L}_{\mathrm{phy}}$",
-        face=GOLD_LIGHT,
-        edge=GOLD,
-        title_color=GOLD,
-        title_size=5.7,
-    )
-    rounded_box(
-        ax,
-        0.765,
-        0.625,
-        0.13,
-        0.14,
-        "梯度累加与裁剪",
-        subtitle=r"AdamW 只更新 $\Psi$" + "\n冻结参数无梯度",
-        face=WHITE,
-        edge=VERMILION,
-        title_color=VERMILION,
-    )
-    pill(
-        ax,
-        0.915,
-        0.66,
-        0.05,
-        0.075,
-        "202 步",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-        color=INK,
-        size=6.0,
+    # --- 右栏：定义式、增量更新、与双向聚合的分界
+    col_x = 0.435
+    col_w = 0.552
+    fs.box(
+        cv,
+        col_x,
+        0.640,
+        col_w,
+        0.290,
+        (
+            Line("前缀聚合的定义", fs.MAIN_FONT_PT, "cjk", fs.M1_EDGE),
+            Line(
+                r"$\mathrm{ctx}_t=\dfrac{\sum_{i\leq t} h_i}{\sum_{i\leq t} m_i}$",
+                fs.MAIN_FONT_PT,
+                "math",
+                fs.INK,
+            ),
+            Line("按前缀内有效流数归一化", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+            Line("掩码标记补零位置，不参与计数", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+        ),
+        face=fs.M1_FACE,
+        edge=fs.M1_EDGE,
+        linewidth=1.4,
     )
 
-    arrow(ax, (0.165, 0.745), (0.215, 0.735), color=BLUE, linewidth=1.35)
-    arrow(ax, (0.165, 0.59), (0.215, 0.69), color=BLUE, linewidth=1.0)
-    arrow(ax, (0.355, 0.735), (0.405, 0.735), color=TEAL, linewidth=1.35)
-    arrow(ax, (0.555, 0.735), (0.61, 0.748), color=VERMILION, linewidth=1.1)
-    arrow(
-        ax,
-        (0.555, 0.69),
-        (0.61, 0.612),
-        color=GOLD,
-        linewidth=1.0,
-        linestyle=(0, (3, 2)),
+    fs.box(cv, col_x, 0.330, col_w, 0.272, face=fs.WHITE, edge=fs.MUTED)
+    fs.text(
+        cv,
+        col_x + 0.018,
+        0.560,
+        "增量更新：单步只需常数次向量运算",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,        ha="left",
     )
-    arrow(
-        ax,
-        (0.165, 0.585),
-        (0.61, 0.612),
-        color=GOLD,
-        linewidth=1.0,
-        linestyle=(0, (3, 2)),
-        connectionstyle="arc3,rad=-0.08",
+    node_w = 0.128
+    node_h = 0.082
+    node_y = 0.442
+    fs.box(
+        cv,
+        col_x + 0.022,
+        node_y,
+        node_w,
+        node_h,
+        (Line(r"$\mathrm{ctx}_{t-1}$", fs.MIN_FONT_PT, "math", fs.INK),),
+        edge=fs.RULE,
     )
-    arrow(ax, (0.71, 0.748), (0.765, 0.72), color=VERMILION, linewidth=1.1)
-    arrow(
-        ax,
-        (0.71, 0.612),
-        (0.765, 0.67),
-        color=GOLD,
-        linewidth=1.0,
-        linestyle=(0, (3, 2)),
+    fs.box(
+        cv,
+        col_x + 0.212,
+        node_y,
+        node_w,
+        node_h,
+        (Line(r"$+\,h_t,\ +\,m_t$", fs.MIN_FONT_PT, "math", fs.INK),),
+        edge=fs.M1_EDGE,
     )
-    arrow(ax, (0.895, 0.695), (0.915, 0.695), color=INK, linewidth=1.0)
-    text(
-        ax,
-        0.47,
-        0.545,
-        "物理梯度只直达状态头；生成梯度在门离开零点后到达全部新增结构",
-        size=5.5,
-        color=MUTED,
+    fs.box(
+        cv,
+        col_x + 0.402,
+        node_y,
+        node_w,
+        node_h,
+        (Line(r"$\mathrm{ctx}_t$", fs.MIN_FONT_PT, "math", fs.INK),),
+        edge=fs.RULE,
+    )
+    fs.arrow(
+        cv,
+        (col_x + 0.022 + node_w + 0.006, node_y + node_h / 2.0),
+        (col_x + 0.212 - 0.006, node_y + node_h / 2.0),
+        head=6.0,
+    )
+    fs.arrow(
+        cv,
+        (col_x + 0.212 + node_w + 0.006, node_y + node_h / 2.0),
+        (col_x + 0.402 - 0.006, node_y + node_h / 2.0),
+        head=6.0,
+    )
+    fs.text(
+        cv,
+        col_x + 0.022,
+        0.386,
+        "无需重扫历史，单步计算量为",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
+    )
+    fs.text(
+        cv,
+        col_x + 0.418,
+        0.386,
+        r"$O(D)$",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
     )
 
-    rounded_box(
-        ax,
-        0.045,
-        0.19,
-        0.115,
-        0.12,
-        "公共流量 $x_i$",
-        subtitle="协议/方向/长度\n间隔/端口/标志位",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        title_color=BLUE,
-        subtitle_size=5.2,
-    )
-    rounded_box(
-        ax,
-        0.205,
-        0.19,
-        0.12,
-        0.12,
-        "提示预填充",
-        subtitle="一次计算 $h^{(13)}$",
-        face=GRAY_LIGHT,
-        edge=GRAY,
-    )
-    rounded_box(
-        ax,
-        0.37,
-        0.19,
-        0.12,
-        0.12,
-        "状态与条件",
-        subtitle="5 锚点 → 9 词元",
-        face=TEAL_LIGHT,
-        edge=TEAL,
-        title_color=TEAL,
-    )
-    rounded_box(
-        ax,
-        0.535,
-        0.19,
-        0.14,
-        0.12,
-        "贪心缓存解码",
-        subtitle="复用条件 $K/V$\n每新词元执行 4 层注入",
-        face=VERMILION_LIGHT,
-        edge=VERMILION,
-        title_color=VERMILION,
-        subtitle_size=5.2,
-    )
-    rounded_box(
-        ax,
-        0.72,
-        0.19,
-        0.12,
-        0.12,
-        "分层 JSON 输出",
-        subtitle="恶意性/家族/子类/证据",
-        face=BLUE_LIGHT,
-        edge=BLUE,
-        title_color=BLUE,
-        subtitle_size=5.2,
-    )
-    rounded_box(
-        ax,
-        0.865,
-        0.16,
-        0.10,
-        0.17,
-        "禁止进入推理",
-        subtitle="队列真值\n通量与容量\n场景/攻击真值",
-        face=WHITE,
-        edge=VERMILION,
-        title_color=VERMILION,
+    fs.box(
+        cv,
+        col_x,
+        0.108,
+        col_w,
+        0.186,
+        (
+            Line("与双向整窗聚合的分界", fs.MAIN_FONT_PT, "cjk", fs.M2_EDGE),
+            Line(
+                "Vision-RWKV（ICLR 2025）式 (5) 对整窗双向归一化；",
+                fs.MIN_FONT_PT,
+                "cjk",
+                fs.MUTED,
+            ),
+            Line(
+                "本章限制为严格因果，位置 t 不可见任何 i > t。",
+                fs.MIN_FONT_PT,
+                "cjk",
+                fs.MUTED,
+            ),
+        ),
+        face=fs.M2_FACE,
+        edge=fs.M2_EDGE,
+        linewidth=fs.MAIN_LINE_PT,
         linestyle=(0, (4, 2)),
-        subtitle_size=5.1,
     )
-    line(ax, [0.875, 0.955], [0.175, 0.315], color=VERMILION, linewidth=1.4)
 
-    for start, end, color in (
-        ((0.16, 0.25), (0.205, 0.25), BLUE),
-        ((0.325, 0.25), (0.37, 0.25), TEAL),
-        ((0.49, 0.25), (0.535, 0.25), TEAL),
-        ((0.675, 0.25), (0.72, 0.25), VERMILION),
-    ):
-        arrow(ax, start, end, color=color, linewidth=1.25)
+    fs.footnote(cv, NO_DATA_NOTE, y=0.040)
+    return cv
 
-    pill(
-        ax,
-        0.20,
-        0.085,
-        0.18,
-        0.055,
-        "无真实队列输入",
-        face=WHITE,
-        edge=TEAL,
-        color=TEAL,
-        size=5.8,
+
+# ================================================================ 图3-4
+
+
+def _power_mean(scores: np.ndarray, p: np.ndarray) -> np.ndarray:
+    """广义幂平均 M_p，在对数域计算以避免大指数下的数值溢出。"""
+
+    log_s = np.log(scores)[None, :]
+    weighted = np.exp(p[:, None] * log_s).mean(axis=1)
+    return np.exp(np.log(weighted) / p)
+
+
+def draw_learnable_lp_pooling() -> Canvas:
+    """实体级可学 Lp 池化：幂平均关于 p 的单调性与三个特例。"""
+
+    cv = fs.canvas(140.0, 95.0)
+
+    # 示意分数，仅用于画出单调曲线形状，与任何实验结果无关。
+    scores = np.array([0.10, 0.25, 0.40, 0.85])
+    geo = float(np.exp(np.log(scores).mean()))
+    ari = float(scores.mean())
+    top = float(scores.max())
+
+    chip_w = 0.086
+    chip_h = 0.078
+    chip_y = 0.885
+    for index, cx in enumerate((0.075, 0.175, 0.275, 0.375)):
+        fs.box(
+            cv,
+            cx,
+            chip_y,
+            chip_w,
+            chip_h,
+            (Line(rf"$s_{index + 1}$", fs.MIN_FONT_PT, "math", fs.INK),),
+            edge=fs.RULE,
+        )
+    fs.text(
+        cv,
+        0.075,
+        0.838,
+        "实体内逐流分数（示意取值）",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
     )
-    pill(
-        ax,
-        0.405,
-        0.085,
-        0.18,
-        0.055,
-        "状态由模型预测",
-        face=WHITE,
-        edge=TEAL,
-        color=TEAL,
-        size=5.8,
+    fs.arrow(
+        cv, (0.470, chip_y + chip_h / 2.0), (0.524, chip_y + chip_h / 2.0), head=6.0
     )
-    pill(
-        ax,
-        0.61,
-        0.085,
-        0.18,
-        0.055,
-        "条件通路不可删除",
-        face=WHITE,
-        edge=VERMILION,
-        color=VERMILION,
-        size=5.8,
+    fs.box(
+        cv,
+        0.530,
+        chip_y - 0.014,
+        0.245,
+        chip_h + 0.028,
+        (
+            Line(
+                r"$M_p(s)=\left(\frac{1}{n}\sum_f s_f^{\,p}\right)^{1/p}$",
+                fs.MIN_FONT_PT,
+                "math",
+                fs.M2_EDGE,
+            ),
+        ),
+        face=fs.M2_FACE,
+        edge=fs.M2_EDGE,
+        linewidth=1.4,
     )
-    return fig
+    fs.arrow(
+        cv, (0.781, chip_y + chip_h / 2.0), (0.835, chip_y + chip_h / 2.0), head=6.0
+    )
+    fs.box(
+        cv,
+        0.841,
+        chip_y,
+        0.118,
+        chip_h,
+        (Line(r"$S_e$", fs.MIN_FONT_PT, "math", fs.INK),),
+        edge=fs.M2_EDGE,
+    )
+
+    ax = cv.fig.add_axes((0.115, 0.175, 0.845, 0.570))
+    p = np.geomspace(0.04, 120.0, 900)
+    ax.plot(p, _power_mean(scores, p), color=fs.M2_EDGE, linewidth=1.6, zorder=6)
+    ax.axhline(geo, color=fs.INK, linewidth=0.8, linestyle=(0, (1, 2)), zorder=4)
+    ax.axhline(top, color=fs.INK, linewidth=0.8, linestyle=(0, (5, 3)), zorder=4)
+    ax.axvline(1.0, color=fs.RULE, linewidth=0.8, linestyle=(0, (4, 2, 1, 2)), zorder=3)
+    ax.plot(
+        [1.0],
+        [ari],
+        marker="o",
+        markersize=4.5,
+        markerfacecolor=fs.WHITE,
+        markeredgecolor=fs.INK,
+        markeredgewidth=1.0,
+        zorder=7,
+    )
+
+    ax.set_xscale("log")
+    ax.set_xlim(0.04, 120.0)
+    ax.set_ylim(geo - 0.10, top + 0.10)
+    ax.set_xticks([0.1, 1.0, 10.0, 100.0])
+    ax.set_xticklabels(["0.1", "1", "10", "100"])
+    ax.set_yticks([])
+    ax.set_xlabel(
+        fs.checked("池化指数 p（对数刻度）", fs.MAIN_FONT_PT),
+        fontsize=fs.MAIN_FONT_PT,
+        color=fs.INK,
+    )
+    ax.set_ylabel(
+        fs.checked("实体级聚合分数（示意）", fs.MAIN_FONT_PT),
+        fontsize=fs.MAIN_FONT_PT,
+        color=fs.INK,
+    )
+    ax.tick_params(axis="x", labelsize=fs.MIN_FONT_PT, colors=fs.MUTED)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_color(fs.RULE)
+
+    marks = (
+        ("几何平均", r"$p\to 0$", 0.050, geo, "left", 0.022, -0.058),
+        ("算术平均", r"$p=1$", 1.30, ari, "left", -0.052, -0.112),
+        ("上界 max", r"$p\to\infty$", 108.0, top, "right", 0.030, -0.062),
+    )
+    for cn_label, math_label, x, y, ha, dy_cn, dy_math in marks:
+        ax.annotate(
+            fs.checked(cn_label),
+            xy=(x, y + dy_cn),
+            fontsize=fs.MIN_FONT_PT,
+            color=fs.INK,
+            ha=ha,
+            va="center",
+        )
+        ax.annotate(
+            fs.checked(math_label),
+            xy=(x, y + dy_math),
+            fontsize=fs.MIN_FONT_PT,
+            color=fs.MUTED,
+            ha=ha,
+            va="center",
+        )
+    ax.annotate(
+        fs.checked("单调不减"),
+        xy=(6.0, 0.5 * (ari + top)),
+        xytext=(2.6, geo - 0.045),
+        fontsize=fs.MIN_FONT_PT,
+        color=fs.M2_EDGE,
+        ha="left",
+        arrowprops={
+            "arrowstyle": "-|>",
+            "color": fs.M2_EDGE,
+            "linewidth": 0.8,
+            "shrinkA": 2.0,
+            "shrinkB": 2.0,
+        },
+    )
+
+    fs.box(
+        cv,
+        0.556,
+        0.212,
+        0.396,
+        0.152,
+        (
+            Line("指数的参数化与学习", fs.MIN_FONT_PT, "cjk", fs.M2_EDGE),
+            Line(
+                r"$p=\exp(p_{\log}),\quad p\in(0,\infty)$",
+                fs.MIN_FONT_PT,
+                "math",
+                fs.INK,
+            ),
+            Line("由序列级辅助损失驱动学习", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+        ),
+        face=fs.WHITE,
+        edge=fs.M2_EDGE,
+        linewidth=fs.MAIN_LINE_PT,
+    )
+
+    fs.footnote(
+        cv,
+        "曲线由示意分数 0.10 / 0.25 / 0.40 / 0.85 生成，纵轴无实验数值。",
+        y=0.038,
+    )
+    return cv
 
 
-def validate_outputs(entries: list[dict[str, object]]) -> None:
-    from xml.etree import ElementTree
+# ================================================================ 入口
 
-    from PIL import Image
 
-    for entry in entries:
-        outputs = entry["outputs"]
-        assert isinstance(outputs, dict)
-        svg_path = ROOT / str(outputs["svg"])
-        pdf_path = ROOT / str(outputs["pdf"])
-        png_path = ROOT / str(outputs["png"])
-
-        ElementTree.parse(svg_path)
-        if not pdf_path.read_bytes().startswith(b"%PDF"):
-            raise ValueError(f"PDF 文件头无效: {pdf_path}")
-        with Image.open(png_path) as image:
-            image.verify()
+SPECS = (
+    FigureSpec(
+        "图3-1-整体方法框架",
+        150.0,
+        95.0,
+        draw_overall_framework,
+        "逐流特征到实体级告警的整体流程；表示层机制一与决策层机制二分别以斜线、反斜线填充标出。",
+    ),
+    FigureSpec(
+        "图3-2-二IP无向对序列构造",
+        150.0,
+        80.0,
+        draw_entity_key_sequence,
+        "双向流经无向对键归并到同一实体，键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记。",
+    ),
+    FigureSpec(
+        "图3-3-因果前缀跨流聚合",
+        140.0,
+        95.0,
+        draw_causal_prefix_aggregation,
+        "下三角因果掩码与非因果整窗聚合的对照，以及前缀聚合的常数代价增量更新。",
+    ),
+    FigureSpec(
+        "图3-4-实体级可学Lp池化",
+        140.0,
+        95.0,
+        draw_learnable_lp_pooling,
+        "广义幂平均关于池化指数的单调曲线，标出几何平均、算术平均与上界三个特例。",
+    ),
+)
 
 
 def main() -> None:
-    import PIL
-
-    specs = [
-        FigureSpec("图3-1-整体方法框架", 180, 108, draw_overall_framework),
-        FigureSpec("图3-2-四窗口五锚点有限队列示意", 180, 90, draw_four_window_queue),
-        FigureSpec(
-            "图3-3-双锚点与分段守恒机制", 180, 95, draw_dual_anchor_conservation
-        ),
-        FigureSpec(
-            "图3-4-有界物理条件交叉注意力", 180, 100, draw_bounded_cross_attention
-        ),
-        FigureSpec("图3-5-训练与推理流程", 180, 100, draw_training_inference_flow),
-    ]
-
-    entries = [save_figure(spec, spec.draw()) for spec in specs]
-    validate_outputs(entries)
-
-    manifest = {
-        "generator": Path(__file__).name,
-        "python": f"{__import__('sys').version_info.major}.{__import__('sys').version_info.minor}.{__import__('sys').version_info.micro}",
-        "matplotlib": matplotlib.__version__,
-        "pillow": PIL.__version__,
-        "font": {"name": FONT_NAME, "path": str(FONT_PATH)},
-        "evidence_mode": "method_schematic_without_experimental_results",
-        "figures": entries,
-    }
-    (ROOT / "图件清单.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
+    entries = [fs.save_figure(ROOT, spec, spec.draw()) for spec in SPECS]
+    report = fs.verify_outputs(ROOT, entries)
+    manifest = fs.write_manifest(
+        ROOT,
+        Path(__file__).name,
+        entries,
+        evidence_mode=EVIDENCE_MODE,
     )
-    for entry in entries:
-        print(f"{entry['stem']}: {entry['width_mm']} mm × {entry['height_mm']} mm")
+    print(
+        f"中文字体：{fs.CJK_FONT.family}"
+        f"（{fs.CJK_FONT.path}，face {fs.CJK_FONT.face_index}）"
+    )
+    print(f"西文字体：{fs.LATIN_FONT.family}（{fs.LATIN_FONT.path}）")
+    for line in report:
+        print(line)
+    print(f"图件清单：{manifest}")
 
 
 if __name__ == "__main__":

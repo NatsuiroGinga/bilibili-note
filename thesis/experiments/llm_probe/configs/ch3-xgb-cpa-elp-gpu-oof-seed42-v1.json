@@ -40,5 +40,19 @@
     "persist_final_models": true,
     "persist_oof_scores": false,
     "persist_target_scores": false
+  },
+  "checkpoint_resume": {
+    "schema_version": "ch3-xgb-cpa-elp-model-checkpoint-v1",
+    "scientific_signature_version": "ch3-xgb-cpa-elp-scientific-compatibility-v1",
+    "require_explicit_cli": true,
+    "reject_invalid_existing_unit": true,
+    "regenerate_oof_scores_from_models": true,
+    "reuse_target_scores": false,
+    "accepted_legacy_config_sha256": [
+      "b4b6a053e2bb846dd4cfa360dd909b9118a78c67a4a28b91a1ff9349583b13d1"
+    ],
+    "accepted_legacy_script_sha256": [
+      "09796a92eacb60106d03740705ee0b49d3c8da2666074d68fea062b2e80b0f6d"
+    ]
   }
 }

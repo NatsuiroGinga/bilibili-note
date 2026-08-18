@@ -46,8 +46,31 @@
 - 查询式：`2023 2024 2025 label shift anomaly detection time series domain adaptation paper`
 - 查询式：`2023 2024 2025 causal invariant domain adaptation nonstationary time series paper`
 - 高相关命中：NeurIPS 2024 *Towards Reliable Model Selection for Unsupervised Domain Adaptation*；2025/2026 *Time Series Domain Adaptation via Latent Invariant Causal Mechanism*；2025 *Bi-level Unbalanced Optimal Transport for Partial Domain Adaptation*；2023 *Context-aware Domain Adaptation for Time Series Anomaly Detection*。
-- 当前证据等级：仅完成正式页/摘要初筛，尚未下载、全文核验、去重或纳入计数；不得据此形成公式或有效性论断。
-- 初步排序影响：尚未改变“部分传输必须增加稀有恶意质量保护”和“无标签门禁不能依赖单一代理分数”的前两项判断；因果机制候选是否保留必须等全文核验，不得提前晋级。
+- 当前证据等级：4 篇均已完成正式页去重、公开全文下载与逐篇方法/实验/局限核验；EnsV 正文与补充材料合计只计 1 篇。精确原件、哈希和裁决见检查点三。
+- 排序影响：无标签选模可作为停机/回滚的一项证据，但多数类预测共识会遮蔽稀有恶意排序崩塌，不能独立充当门禁；双层非平衡传输仍缺少恶意质量下限，强化第一候选的实质改造边界；潜在因果全模型与上下文窗口适应均依赖弱序列骨干或强结构假设，结合真实 Q0 结果后不进入前三候选。
+
+### 2026-08-12 真实实验硬证据与候选约束
+
+- 共同 XGBoost 的目标开发 PR-AUC 为 `0.03890259`，Dijk 约束 XGBoost 为 `0.0368559`。
+- 1D-CNN 为 `0.0176996`；候选 B 最佳离散 RWKV 为 `0.01920596`，角色分离物理时间变体为 `0.01012302`。
+- C12 最佳 K-DELTA 为 `0.01697728`；C12-R 六格均不超过 `0.00927448`，且源冻结阈值下恶意召回均为 `0`；R1 最佳 GroupDRO 为 `0.0128779`。
+- 证据解释：树模型显著领先全部小型序列模型，当前优先修复跨年可迁移表示与排序，不在弱排序器上继续叠加时间衰减、门控、回退或阈值；C12-R 的局部预算改善伴随 PR-AUC 下降，纯决策校准不得作为主创新；候选 B 的时间机制确实改变输出但恶化排序，时间/频率分支暂缓。
+- 方案硬约束：第一候选保留 XGBoost 强锚，研究“稀有恶意质量保护的非对称部分传输 + 无标签负迁移停机/回滚”；第二候选为“XGBoost 分数或叶表示 + 有界 RWKV 残差”；第三候选的谱分类头校正只有在不使用目标标签且非单调地改变排序时才保留，纯单调校准直接淘汰。全部仍为“实验待证”。
+
+### 2026-08-12 第三轮窄查重与停止裁决
+
+- 查询式：`2023 2024 2025 "gradient boosted trees" domain adaptation transfer learning paper`
+- 查询式：`2023 2024 2025 XGBoost leaf representation domain adaptation paper`
+- 查询式：`2023 2024 2025 minority class protected mass partial optimal transport domain adaptation`
+- 查询式：`2023 2024 2025 unsupervised domain adaptation ranking model selection without target labels rare class`
+- 查询式：`2023 2024 2025 XGBoost RWKV residual hybrid tabular time series paper`
+- 查询式：`2023 2024 2025 gradient boosting leaf embedding neural residual domain adaptation`
+- 查询式：`2023 2024 2025 spectral classifier head unsupervised domain adaptation minority rare class`
+- 查询式：`2023 2024 2025 label alignment regularization anomaly ranking domain shift`
+- 高相关新增：ICML 2025 *PROTOCOL: Partial Optimal Transport-enhanced Contrastive Learning for Imbalanced Multi-view Clustering*。该文已把部分传输、渐进质量、非平衡类别边缘与少数类表示再平衡组合，因此“质量约束”或“少数类再平衡”本身也不能作为原创。
+- 去重与排除：未检出 2023–2026 年把 XGBoost 叶表示、RWKV 有界残差与无标签跨年度域适应同构组合起来的正式原论文；命中的树流式增量学习、分布值梯度提升和监督适应不满足本任务的无标签目标前缀合同，不纳入全文集合。谱头检索回到已核验的标签对齐正则，未发现改变第三候选边界的新机制。
+- 排序结果：PROTOCOL 收紧但不推翻第一候选；第一候选的独立性必须落在“有标签源恶意质量下限 + 源/目标非对称支持拒绝 + XGBoost 叶/分数锚 + 只用目标前缀的停机回滚”，而非普通 POT/UOT、渐进质量或通用少数类再平衡。第二、第三候选排序不变。
+- 停止裁决：第二轮与第三轮均未改变前三名次；第三轮仅收紧第一候选原创边界。直接全文达到 12 篇，安全/异常与域适应理论覆盖达到任务门槛，停止继续扩展检索。
 
 ## 全文核验记录
 
@@ -136,6 +159,89 @@
 
 - 检查点状态：新增 7 篇均完成全文核验；其中 6 篇为 2023–2025 正式论文、1 个原件以 2022 预印本对应 2023 期刊版。下一步执行第二轮受控查重，重点搜索稀有类部分传输、无标签负迁移选择、标签移位与因果/不变时间序列迁移。
 
+### 检查点三：新增全文 8–11
+
+#### 8. EnsV：只用无标签目标预测的域适应模型选择
+
+- 题录：Hao Hu 等，*Towards Reliable Model Selection for Unsupervised Domain Adaptation: A Transferability-Based Approach*，NeurIPS 2024 数据集与基准赛道，DOI `10.52202/079017-4316`。
+- 正式来源：https://papers.nips.cc/paper_files/paper/2024/hash/f50cebc22663df45ce619645bfabb3b3-Abstract-Datasets_and_Benchmarks_Track.html；官方源码：https://github.com/LHXXHB/EnsV 。
+- 原件：正文 `raw/papers/methodology/2024-Hu-EnsV-Reliable-UDA-Model-Selection.pdf`，21 页，SHA-256 `b862cc17aaa0cfe0c213c8739df8dd52f8883effc6d750ed8ec64f08597cdc76`；补充材料 `raw/papers/methodology/2024-Hu-EnsV-Reliable-UDA-Model-Selection-Supplement.pdf`，8 页，SHA-256 `f62cec09c4381ff483091009820ffe2d72b5a811230d0e1a90539acc78284fa5`。两文件按一篇论文计数。
+- 证据等级：正式会议正文和补充材料均已核验；`wiki`/Zotero 待补。
+- 理论与方法：命题以负对数似然和预测映射不完全相同为条件，由 Jensen 不等式得到“预测集成损失小于成员平均损失，因而小于最差成员损失”。EnsV 把候选模型在无标签目标样本上的预测集成作为角色模型，再按目标预测相似度选择候选；不需要源数据、目标标签或额外训练。
+- 可复用点：适合作为适应候选池的一个停机/回滚证据，并可把共同 XGBoost 强锚纳入候选池，避免选择器只在弱神经模型之间比较。
+- 关键限制：理论只保证集成在负对数似然下优于最差成员，不保证所选模型改善 PR-AUC、预算召回或逼近最佳成员；正文明确列出“集成本身次优”“一个好模型被多个坏模型淹没”“模型过于相似”“候选池被差模型支配”等失败条件。低基率二分类中，多数良性预测共识还可能遮蔽恶意排序崩塌。
+- 与本任务关系：不能把 EnsV 单独作为安全门禁，必须联合源恶意排序保持、传输未匹配质量、目标前缀扰动稳定性和预测率包络；门禁输出只决定停机/回滚，不能用目标开发标签调参。
+- 资源：论文生成候选模型使用单张 16GB RTX TITAN；已有候选预测之后，EnsV 本身仅需目标预测矩阵上的低成本计算，RTX 5090 不是瓶颈。
+
+#### 9. LCA：潜在不变因果机制的时间序列域适应
+
+- 题录：Ruichu Cai 等，*Time Series Domain Adaptation via Latent Invariant Causal Mechanism*，`arXiv:2502.16637`，2025；正式发表于 IEEE TPAMI 2026，DOI `10.1109/TPAMI.2025.3642245`，页 3622–3639。
+- 正式/作者来源：https://arxiv.org/abs/2502.16637；官方源码：https://github.com/DMIRLAB-Group/LCA 。
+- 原件：`raw/papers/methodology/2025-Cai-LCA-Latent-Causal-Time-Series-Domain-Adaptation.pdf`，19 页，SHA-256 `4eb3d5ce629536eef421514552b13eb6ee353c82aef6d5d0bd78b618f8197fa6`。
+- 证据等级：作者公开全文，已核验假设、可辨识性、目标函数、实验和资源；`wiki`/Zotero 待补。
+- 理论假设：观测 `x_t=g(z_t)` 来自可逆非线性混合；源/目标潜在条件转移可变，但潜在因果结构满足 `A^S=A^T`。可辨识结论还要求充分历史变化、条件独立、稀疏因果作用及无潜在混杂等条件，结论只到置换与逐分量可逆变换。
+- 方法：变分证据下界联合重构与预测；以潜在转移雅可比的 `L1` 范数促进稀疏；阈值化源/目标因果结构后用异或掩码定位不一致边，并以停止梯度的目标结构对齐源结构；总目标由任务、重构、KL、稀疏与结构对齐五项组成。
+- 可复用点：提供“只迁移稳定结构而不是所有表征”的理论参照，也可派生为只读诊断：检查 XGBoost 叶/分数在跨年无标签前缀中的条件转移是否满足近似稳定结构。
+- 关键限制：上述可逆混合、无混杂、充足历史变化与稳定稀疏结构在 77 个工程字段及非连续流量样本上尚未成立；论文任务为常规时间序列分类/预测，模型选择协议沿用目标验证做法，不能直接迁入严格无标签前缀合同；实验使用 24GB GTX 3090。
+- 候选裁决：当前 XGBoost `0.03890259` 明显高于所有小型序列模型，完整 LCA 会以弱神经骨干替换强树锚且训练复杂，因此不进入前三候选。只保留为因果/不变迁移覆盖与失败诊断，不据文献宣称本任务有效。
+
+#### 10. BUOT：样本—类别双层非平衡最优传输
+
+- 题录：Chen 等，*Bi-level Unbalanced Optimal Transport for Partial Domain Adaptation*，`arXiv:2506.08020`，2025；Pattern Recognition 174:112998，2026，DOI `10.1016/j.patcog.2025.112998`。
+- 正式来源：ScienceDirect 期刊页与作者公开预印本；截至本轮检索未发现作者正式页指向的可信官方源码，Papers with Code 亦未列实现。
+- 原件：`raw/papers/methodology/2025-Chen-BUOT-Bilevel-Unbalanced-Optimal-Transport.pdf`，32 页，SHA-256 `3b54835d81ea6b22cedc23f0e1c8fa59bc2ea7c4b97338f726029b733e48b376`。
+- 证据等级：作者公开全文与正式期刊元数据交叉核验，已核验公式、算法、消融和复杂度；`wiki`/Zotero 待补。
+- 方法：以样本传输计划 `Γ_1` 与类别传输计划 `Γ_2` 相互引导；非平衡最优传输放松边缘约束，使离群样本获得较小质量；标签感知成本对同类使用预测差异平方、异类使用预测和平方；定理 1 将四阶张量运算化为矩阵乘法，样本与类别更新复杂度分别降为 `O(nK^2)` 和 `O(n^2K)`；恢复的两层边缘形成源权重，联合加权源交叉熵与目标熵训练。
+- 同任务缺陷：论文部分域设定是目标标签集合为源标签集合的真子集，目的是丢弃源私有类；其类级权重会伤害目标少数类，样本级预测权重又易受伪标签错误影响。作者用双层耦合缓解两者，但仍以暖启动后的目标伪标签构造标签感知成本。
+- 与本任务关系：低基率二分类中，无约束非平衡质量会优先保留廉价良性匹配并丢弃稀有恶意质量，和原任务目标相反。因此候选必须加入源恶意质量下限、支持拒绝松弛、XGBoost 叶/分数强锚与无标签负迁移停机；普通 UOT、BUOT 或双层耦合本身均不是原创。
+- 消融参照：论文分别比较仅权重、仅对齐、联合两者，以及普通 OT/UOT、标签感知成本和运行时间，可转化为本任务的“无保护传输—恶意质量保护—保护加停机”递进对照。
+
+#### 11. ContexTDA：面向异常域适应的上下文窗口策略
+
+- 题录：Kwei-Herng Lai 等，*Context-aware Domain Adaptation for Time Series Anomaly Detection*，SDM 2023，页 676–684，DOI `10.1137/1.9781611977653.ch76`，`arXiv:2304.07453`。
+- 正式来源：https://epubs.siam.org/doi/10.1137/1.9781611977653.ch76；公开全文：https://arxiv.org/abs/2304.07453 。Papers with Code 截至本轮未列实现，也未发现作者官方源码。
+- 原件：`raw/papers/attack-detection/2023-Lai-Context-Aware-Domain-Adaptation-Time-Series-Anomaly.pdf`，13 页，SHA-256 `7619779959bc398433686d65b6d6f2928d67b6a77ec4be05fe3480a648a69dc4`。
+- 证据等级：正式会议元数据与公开全文交叉核验，已核验定义、奖励、推断、实验与消融；`wiki`/Zotero 待补。
+- 方法：把源/目标 LSTM 编码拼接为马尔可夫决策过程状态，动作是下一时间点两域上下文窗口长度；奖励为源加权分类损失、源/目标重构损失、对齐损失与负号域判别损失的组合倒数；DQN 选择窗口，异常分数为源分类器置信度与目标重构误差乘积。
+- 同任务缺陷：论文明确指出普通 MMD/对抗联合在上下文不匹配时会造成异常少数分布负迁移，且随机逐实例选择会破坏时间依赖。这直接支持“不可把普通 DANN/MMD 作为原创”和“少数异常必须单独保护”。
+- 关键限制：奖励依赖四个损失及多组超参数，正文调参建议使用源/目标相似性和异常行为相似性等事后信息；评价为宏平均 F1 与 ROC-AUC，不是 PR-AUC/固定预算召回；异常率为 4.1%–15.0%，远高于本任务低基率；使用完整目标序列联合训练而非严格因果前缀；若 LSPR 行不构成连续同实体序列，窗口动作的语义不成立。
+- 候选裁决：候选 B 时间机制已经改变输出但显著恶化排序，且所有小型序列模型落后 XGBoost，因此不再提出上下文窗口、时间衰减或强化学习采样主候选。该文只作为异常少数负迁移和目标时序约束的安全边界。
+
+- 检查点状态：第二轮 4 篇全部完成全文核验，正文与补充材料文件合计 5 份但论文计数为 4。至此本任务新增全文为 11 篇；连同已复用的 DANN、Courty OT、BBSE、JCPOT、加权保形、TTA-AD、RTTAD、CANDI、OWAD、SoTTA、FOIL、DIVERSIFY，停止条件中的直接全文数量与安全/异常覆盖均已满足。下一步只进行一轮针对树锚/叶表示传输和稀有排序的窄查重；若不改变前三排序即停止扩展。
+
+### 检查点四：新增全文 12 与检索停止
+
+#### 12. PROTOCOL：不平衡无监督聚类中的渐进部分传输
+
+- 题录：Xuqian Xue、Yiming Lei、Qi Cai、Hongming Shan、Junping Zhang，*PROTOCOL: Partial Optimal Transport-enhanced Contrastive Learning for Imbalanced Multi-view Clustering*，ICML 2025，PMLR 267:70105–70119，`arXiv:2506.12408`。
+- 正式来源：https://proceedings.mlr.press/v267/xue25c.html；正式页链接的官方源码：https://github.com/Scarlett125/PROTOCOL ，核验时 HEAD 为 `e17f095b38c81251caccdc4456696060b126882a`。
+- 原件：`raw/papers/methodology/2025-Xue-PROTOCOL-Imbalanced-Partial-Optimal-Transport.pdf`，15 页，SHA-256 `06e9a44e413def93ecc0943dd3fbcadde5584dab2a3e01aae5583741a092b1fa`。
+- 证据等级：PMLR 正式全文，已核验目标、公式、算法、消融和官方源码；`wiki`/Zotero 待补。
+- 方法：在无监督多视图聚类中，以部分传输自标注矩阵 `T` 连接样本与潜在簇；目标由预测负对数代价、类别边缘加权 KL 和总传输质量组成。传输质量 `λ` 以 S 形日程从高置信样本逐渐扩到困难样本；未分配质量由虚拟簇吸收，采用熵正则缩放算法求解。
+- 第二机制：POT 伪标签进一步驱动特征级对数几率调整和类别级类别敏感对比学习，显式提高尾类在成对学习和优化中的权重。表 5 分离 Base、POT、自标注加类别再平衡；正文还按头/中/尾类报告聚类结果。
+- 原创边界：该文说明“部分传输 + 渐进质量约束 + 非平衡类别边缘 + 少数类再平衡”已有正式先例。候选一不能把这些宽泛构件作为原创，只能主张任务特定的源恶意真标签质量下限、跨年源/目标非对称支持拒绝、固定 XGBoost 强排序锚与无标签负迁移停机组合。
+- 不可直接迁移：论文没有源—目标域、有标签源恶意类、攻击污染或因果前缀；以视觉多视图聚类的 ACC/NMI/Purity 评价；渐进日程按训练进度而非支持证据增加质量，可能把错误目标伪簇逐步纳入。完整网络需 200 轮重构预训练、50–100 轮一致性与 50–100 轮不平衡学习，和本任务优先在固定树叶表示上做小规模传输不同。
+- 候选关系：不改变第一候选排名，但新增硬消融：普通 POT、渐进 POT、带源恶意质量下限的非对称 POT，以及后者加停机；若渐进 POT 已达到同等增益，则本任务的恶意质量保护机制未获独立支持。
+
+- 检查点状态：新增 12 篇直接全文全部核验完成；检查点按 4、3、4、1 篇落盘，最后 1 篇是停止前窄查重揭示的原创边界材料。检索停止，转入 `wiki`、索引、Zotero、参考书目与候选文档闭合。
+
+## 证据链闭合记录
+
+### `raw → wiki → 索引`
+
+- 12 篇全文均有原件与结构化笔记；EnsV 补充材料合并到正文笔记，不重复计篇。
+- 方法论文笔记 10 篇写入 `wiki/papers/methodology/`，安全/异常论文笔记 2 篇写入 `wiki/papers/attack-detection/`。
+- 方法索引、攻击检测索引与外部资源索引均已追加；7 个官方源码仓库记录精确 HEAD、许可证状态、依赖/复现风险与本课题边界。
+- 参考书目写入 `.Codex/docs/RWKV/2026-08-12-跨年度迁移学习候选方案调研/references.bib`，共 12 条。
+
+### Zotero 去重、导入与键
+
+- 导入前以 12 个完整题名逐条查询，均无命中；随后通过 Zotero Connector 一次性导入 12 条，并再次逐题名查询确认每篇唯一命中。
+- RAINCOAT `RVX6ZR6X`；ACON `7JVIMR49`；标签对齐正则 `BNQVGJ6Q`；迁移分数 `G322Z8X6`。
+- PPOT `X4FIBAVC`；WARMPOT `3NCT6JX8`；DI-NIDS `UCJ2SKNL`；EnsV `AR53AZ34`。
+- LCA `P7VT37J7`；BUOT `LHAIR4ZV`；ContexTDA `EU4B756L`；PROTOCOL `GL8RQF4U`。
+- 导入目标是 Zotero 根文库；当前 CLI 没有把已有条目移入指定集合的安全接口，因此未伪称已进入 `RWKV-跨年度理论融合-20260811` 集合。条目与键已经闭合，集合归类作为非阻断性人工整理项。
+
 ## 综合发现
 
 待阶段五填写。
@@ -150,7 +256,7 @@
 
 ## 下一检查点
 
-### 2026-08-12 中断恢复检查点
+### 2026-08-12 中断恢复检查点（已被检查点三取代）
 
 - 已完成：规则与路线恢复；本地综述/C12 邻近工作/Zotero 盘点；两轮联网检索；7 篇新增全文逐篇核验；两次按 3–4 篇落盘的检查点；7 个原件哈希核验。
 - 已验收原件：RAINCOAT、ACON、标签对齐正则、迁移分数、原型部分最优传输、WARMPOT、DI-NIDS，精确路径和 SHA-256 见上文各条。

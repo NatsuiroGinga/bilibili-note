@@ -30,6 +30,12 @@ related:
 
 ## 二次评估论文
 
+- **[[published-baseline/GeNIS-二分类与多分类发布基线|GeNIS 二分类与多分类发布基线]]** — 60 秒发布方随机划分上二分类与四分类已近 100%，但无场景留出、逐类召回、跨种子统计或源码。
+- **[[published-baseline/GeNIS-XGBoost机器遗忘|GeNIS 上的 XGBoost 机器遗忘]]** — 核验 0.01% 单分片有利删除下约 7.96 倍加速，以及多分片成本、JSD 和集成稀释缺口。
+- **[[published-baseline/GeNIS-跨网络迁移评估|GeNIS 跨网络迁移评估]]** — 统一 HERA 60 秒字段后，同域 F1 近 100%，但不含 GeNIS 的训练组合在 GeNIS 上最好仅 67.05%。
+- **[[GeNIS-网络靶场综述引用核验|GeNIS 网络靶场综述 B 类引用]]** — 只把 GeNIS 作为 Airbus CyberRange 数据生成实例，无数据实验，明确排除出实际使用基线。
+- **[[published-baseline/GeNIS-多头注意力残差密集网络动态采样|GeNIS 多头注意力残差网络与动态采样]]** — 十三分类随机协议宏 F1 0.9805–0.9909，但窗口标签与样本数错位、无消融和跨场景验证。
+- **[[GeNIS-JavaScript恶意软件论文仅引用核验|GeNIS 在 JavaScript 恶意软件论文中的 B 类引用]]** — 只把 GeNIS 作为仿真网络流量数据构建实例；实验全部使用 JavaScript 脚本。
 - **[[LSPR24/Leoste-2025-LSPR23到LSPR24跨年泛化|LSPR23 到 LSPR24 跨年泛化基线]]** — 随机森林与一维卷积神经网络在 LSPR24 上最佳 F1 均约 18.4%；包到达间隔使随机森林 F1 提高 16.21 个百分点、卷积神经网络提高 4.64 个百分点。
 - **[[LSPR24/Dijk-2026-LSPR23到LSPR25序列构造跨年评估|LSPR23 到 LSPR25 序列构造跨年评估]]** — 八种序列构造与三类模型族的统一比较；`LSPR23→LSPR24` 时同年选优 Transformer 的平均精确率从 0.9964 降至 0.0742，2-IP 的跨年中位退化最小。
 - **[[LSPR24/DiGennaro-2026-LSPR23仅引用-KRONOS-SDN实验|Di Gennaro 2026：LSPR23 仅引用排除核验]]** — 全文只把 LSPR23 列为传统基准，实验完全使用 KRONOS-SDN；作为 B 类排除证据，不计入 LSPR 直接使用研究。
@@ -38,6 +44,9 @@ related:
 
 ## QUIC 动力学与安全数据
 
+- **[[quic/INDEX|QUIC 流量数据与检测论文索引]]** — QUIC 子域内容地图，同时收录下列公开数据与两篇 QUIC 上的检测方法论文。
+- **[[quic/2022-AlBakhat-QUIC流量入侵检测机器学习方法|Al-Bakhat 2022：QUIC C2 统计指纹]]** — 逐流准确率 97.22%–99.67%，但 SMOTE 与归一化先于 70/30 划分执行，测试集恶意侧约三分之二为合成样本，只能作存在性证据。
+- **[[quic/2025-Kadi-QUIC时代入侵检测机器学习适配|Kadi 2025：QUIC 时代 IDS 适配]]** — QUIC 包类型 one-hot 与 spin bit 的流级特征工程；八模型 AUC 全部为 1.00，作者自陈可能过拟合且仿真数据未必迁移到真实条件。
 - **[[quic/QUIC-MedNetCom蜂窝网络qlog数据集|QUIC-MedNetCom]]** — 89 个蜂窝网络 qlog；字段完整子集可提供包号、ACK、端点丢包、RTT、在途字节和拥塞窗口，是 R2 首选动力学教师。
 - **[[quic/QUIC互操作运行器与公开qlog归档|QUIC 互操作运行器]]** — 持续产生现代 QUIC 双端日志、PCAP、密钥和可选 qlog；必须冻结运行、哈希与字段 manifest 后使用。
 - **[[quic/EPIQ-QUIC实现多样性qlog数据集|EPIQ 2020]]** — 15 种旧 QUIC/HTTP3 实现的原始 qlog，适合实现差异与模式兼容诊断。
@@ -46,6 +55,20 @@ related:
 - **[[quic/QUIC隐蔽信道流量数据集|QUIC 隐蔽信道数据集]]** — 正常、ASCII 与 AES Retry Token 隐蔽信道 CSV，可作窄域安全诊断，不含端点状态。
 - **[[quic/MonroeQL聚合性能数据及公开性边界|MonroeQL]]** — 论文描述 qlog 聚合性能特征，但官方仓未公开真实数据，不能作为可复现实验依赖。
 - **[[quic/qlog与解密PCAP的观测边界|qlog 与解密 PCAP 的观测边界]]** — 说明端点状态真值与线上解密帧的理论差别，约束 R2 教师和推理输入。
+
+## 跨年度漂移、演习环境与 NetFlow 时序（2026-08-13 补全）
+
+- **[[2024-Hynek-CESNET-TLS-Year22跨年度TLS流量数据集|CESNET-TLS-Year22 跨年度 TLS 数据集]]** — 100 Gbps 骨干线路上采集 2022 全年 TLS 流、180 个服务标签；「每周训练测其后 8 周」协议给出受控漂移测量：T+1 周 96.3%、T+8 周 90.5%，同期无漂移验证 97.2%；第 10 周监控软件升级造成人为漂移，作者建议拆成第 1–9 周与第 11–52 周两段使用。
+- **[[2025-Luay-NetFlow数据集时序分析NF3|NF3：NetFlow 数据集时序分析]]** — 把 UNSW-NB15、BoT-IoT、ToN-IoT、CSE-CIC-IDS2018 重转为带毫秒起止时间戳与四类 IAT 统计的 NetFlow 版本；四集恶意占比 5.40%/38.98%/12.93%/99.7%，NF3-BoT-IoT 良性流仅 51,989 条（0.3%）。全文只做数据刻画，未训练任何检测模型。
+- **[[2025-Kern-StealthCup规避导向IDS基准CTF|StealthCup：规避导向的 IDS 基准 CTF]]** — 52 名职业渗透测试者分 12 队攻击同一 IT/OT 测试床、触发告警即扣分；32 个实际使用的攻击技术中 11 个未被任何 IDS 配置告警，Wazuh 默认配置误报率 67.86%–95.30%，两种商业方案误报率 0.00% 但漏报更多。
+- **[[2026-ElMahdaouy-上下文感知NetFlow入侵检测综述|上下文感知 NetFlow 入侵检测综述]]** — 把「逐流独立同分布假设」列为流级 NIDS 首要方法论缺陷，并把上下文建模整理为时序、图、多模态、多分辨率四维；明确把「每主机滑窗聚合」列为多分辨率维度的独立路线（Table 4）。
+
+## Locked Shields 演习环境的跨年度与对抗证据
+
+以下两篇原件在 `raw/papers/datasets/locked-shields-related/`，本目录暂无子索引，统一在此登记。
+
+- **[[locked-shields-related/2023-Gehri-LockedShields跨环境C2检测泛化|Gehri 2023：跨环境 C2 检测泛化]]** — 五份 Locked Shields 数据上逐流随机森林跨年度/跨国家大幅退化（LS17 训练测 LS21B 的 F1 仅 0.215），但把逐流预测按主机计数聚合后，在未训练过的 Country B 仍检出 39 台受感染主机中约 33 台、误报 119/3185：表示层失败可由决策层聚合挽回。
+- **[[locked-shields-related/2021-SchroederdeWitt-AI-NIDS博弈不动点与规避攻击|AI-NIDS 博弈不动点与规避攻击]]** — Locked Shields 2017–2019 百万级流特征上 LightGBM 同年 ROC-AUC 0.985–0.996，跨年 AUC 下降且误报率显著上升（2018 自身验证误报 0.8%，换 2017 验证升至 5%）；据此提出攻防共演化不动点与 Whitelisting Hell 假说。
 
 ## 数据协议与跨域评测
 

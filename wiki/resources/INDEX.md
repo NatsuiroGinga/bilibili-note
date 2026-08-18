@@ -56,6 +56,7 @@ tags:
 | 资源 | 类型 | 状态 | 笔记 |
 | --- | --- | --- | --- |
 | LSPR24 Zenodo 官方数据发布页（DOI 10.5281/zenodo.14900873） | 数据集发布页 | 已核验文件、大小、MD5、许可与版本关系 | [[LSPR24-Zenodo数据发布页]] |
+| TQH-C2 Zenodo 数据集（概念 DOI 10.5281/zenodo.21330094） | 版本化数据集 | 已核验 5 版、v1.2.0 实际 48 单元/152,765 流、错引 DOI 风险与截止 2026-08-12 的外部使用审计 | [[TQH-C2-Zenodo数据集版本与外部使用审计]] |
 | Network traffic foundation models: A systematic review（Computer Networks 2026, 卷 276, 111998, DOI 10.1016/j.comnet.2026.111998） | 系统综述 | **阻塞：ScienceDirect 返回 403，需手动下载** | [[流量基础模型系统综述-2026]] |
 
 ## 四、RWKV 官方与社区资源
@@ -88,3 +89,17 @@ tags:
 3. 加载 `wangtz/NetMamba` 的 `pre-train.pth` 实测参数量，验证"26.19MB ≈ 6.5M 参数"的推论。
 4. 核对 `snlucsb/netFound-640M-base` 的 711.8M 与 643.8M 差额构成。
 5. 向 NetMamba、YaTC、TrafficLLM 作者确认许可证（三者均无 LICENSE）。
+
+## 八、跨年度迁移学习官方研究源码（2026-08-12）
+
+| 资源 | 精确提交 | 许可证 | 本课题用途 | 笔记 |
+| --- | --- | --- | --- | --- |
+| mims-harvard/Raincoat | `624795a7be4de45d265642ada58f28fbe0111237` | MIT | 时频表示与 Sinkhorn 纠正强基线 | [[mims-harvard-Raincoat官方源码]] |
+| iLearn-Lab/NeurIPS24-ACON | `98db37cd7142827c49304e22ef05a6a60706cb63` | 未声明 | 时频互学习与相关子空间对抗近邻 | [[iLearn-Lab-ACON官方源码]] |
+| EhsanEI/lar | `d695e9f2ba7652547bc1270be77a5a68ac65bb4a` | 待复核 | 普通谱分类头正则基线 | [[EhsanEI-LAR官方源码]] |
+| JayD2106/WARMPOT | `7638632740070de340dddf12eccdd917ace7b6f9` | MIT | 普通非对称部分传输与源边缘权重基线 | [[JayD2106-WARMPOT官方源码]] |
+| LHXXHB/EnsV | `b0bb1d1181d6796516335fa4d88391e81eb49a95` | MIT | 无标签停机门禁的一项预测共识信号 | [[LHXXHB-EnsV官方源码]] |
+| DMIRLAB-Group/LCA | `45c091fca909ac13675c6ddac7e0464f0a186355` | 未声明 | 潜在因果结构诊断来源，暂不实施完整模型 | [[DMIRLAB-LCA官方源码]] |
+| Scarlett125/PROTOCOL | `e17f095b38c81251caccdc4456696060b126882a` | 未声明 | 渐进部分质量与尾类再平衡原创边界 | [[Scarlett125-PROTOCOL官方源码]] |
+
+上述仓库均只读核验，未执行训练。旧 CUDA/PyTorch 环境、未声明许可证和侵入式依赖改动分别记录在逐仓库笔记中。
