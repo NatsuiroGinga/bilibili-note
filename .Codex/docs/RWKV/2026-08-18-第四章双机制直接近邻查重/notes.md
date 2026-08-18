@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-18
 - **代理映射**：`ch4_dual_mechanism_novelty_literature_resume_sol_max → gpt-5.6-sol → effort=max`
-- **状态**：阶段二检查点 `2819dfb` 后续；第一批 7 篇全文核验完成，第二批原件与知识层已落盘，等待根代理提交。
+- **状态**：阶段二检查点 `2819dfb` 后续；前两批证据已提交为 `b71bf3b`、`7f8a027`。当前已全文核验 10 篇独立工作、11 份全文制品；第三批 DFM、SIM 标记 TDAE 与 Slips 的原件、知识层和 Zotero 条目已完成，待批次提交。
 
 ## 一、任务合同摘要
 
@@ -67,8 +67,9 @@
 ### Zotero 当前状态
 
 - 本地接口与连接器已恢复；当前选中“我的文库”根层级。
-- BBSE `V7UEB83M`、王世谦等 `SM7C8GX6`、İnan `9VG8ZBDJ` 已存在；本轮导入 PseudoCal `3K3ALH8S`、IW-GAE `6W5EVQE7`、Better Practices `2PK7SRWC`。
-- 六个条目的子项检查均为空，不能声称 Zotero 已附 PDF；仓库 `raw` 与 `wiki` 是全文和论断证据源。
+- BBSE `V7UEB83M`、王世谦等 `SM7C8GX6`、İnan `9VG8ZBDJ`、PseudoCal `3K3ALH8S`、IW-GAE `6W5EVQE7`、Better Practices `2PK7SRWC` 已在前两批核验。
+- 本批新增 DFM `XPQH2ENC`、SIM 标记 TDAE `A7W3F3TH`、Slips `G4VRGMXX`。前两者无子项；Slips 只有 BibTeX 说明笔记 `D9H475DC`，没有 PDF 附件。
+- 不能声称 Zotero 已附全文；仓库 `raw` 与 `wiki` 是全文和论断证据源。
 
 ## 五、检索日志模板
 
@@ -197,8 +198,8 @@ Zotero 状态：
 
 1. 标签移位最大似然、统一视角等原件已在 `raw`，但索引中仍有部分缺全文笔记，后续须补笔记而非重复下载；
 2. NIDES 官方网页全文已核验，但 SRI PDF 端口不可达，尚无本地原件；
-3. PseudoCal 与 IW-GAE 的正式全文、笔记和 Zotero 条目已经补齐；
-4. 王世谦等长短周期用户异常检测的全文、笔记和 Zotero 条目已经补齐；
+3. PseudoCal、IW-GAE、DFM 的正式／作者全文、笔记和 Zotero 条目已经补齐；
+4. 王世谦等、SIM 标记 TDAE 与 Slips 的全文、笔记和 Zotero 条目已经补齐；
 5. Zotero 已恢复，但本轮条目均未关联 PDF 子附件。
 
 ## 十一、第一轮联网检索日志
@@ -253,7 +254,7 @@ Zotero 状态：
 
 1. NIDES 统计组件或正式技术报告；
 2. BBSE 正文与补充材料；
-3. 标签移位量化的分布特征匹配；
+3. 标签移位量化的分布特征匹配；**已完成**；
 4. 2024 年长期／短期特征用户异常检测；
 5. 2026 年非平稳时间序列的折外校准、泄漏安全与固定告警预算论文；
 6. 重要性加权分组准确率估计；
@@ -272,9 +273,9 @@ Zotero 状态：
 
 ## 十三、当前检查点
 
-- **已完成**：任务合同、馆藏盘点、A／B／C 四组窄查询，以及第一批 7 篇独立工作的全文裁决。
-- **下一步**：完成 DFM 与 NIDES 原件，追踪实体折外选窗、实体预算和失配回退引用链。
-- **未关闭疑点**：是否存在 D3、长实体假阳直接机制、NIDES 原件和 DFM 完整全文。
+- **已完成**：任务合同、馆藏盘点、A／B／C 窄查询，以及 10 篇独立工作的全文裁决。DFM 下载阻塞已关闭；SIM 标记 TDAE 与 Slips 已完成原件、笔记和 Zotero 链。
+- **下一步**：接收 NIDES 人工原件；追踪实体 OOF 选窗、实体预算与失配触发回退的两轮窄查询。
+- **未关闭疑点**：是否存在 D3、长实体假阳直接机制、目标缓冲区与评价后段是否有严格时间隔离、NIDES 原件。
 
 ## 十四、第一批全文逐篇登记
 
@@ -341,6 +342,35 @@ Zotero 状态：
 - **支持**：安全领域实体双时间尺度为 B 的 D2 强近邻。
 - **不能支持**：长期画像不是未衰减全历史；窗口不由源实体 OOF 选择；无目标前缀冻结与长实体假阳实验。
 
+### F8：SIM 标记网络流量的 TTL 时序深度自编码器
+
+- **题录**：Babe Haiba、Najat Rafalia，2026，*Computers* 15(2):107；DOI `10.3390/computers15020107`。
+- **原件**：`raw/papers/attack-detection/2026-Haiba-SIM-Tagged-TTL-Anomaly.pdf`；19页；SHA `ef72675dbcebca9df573cecadf1ed7772f03c0f1d938339a784f11b0430a96b5`；出版社 CC BY 静态原件。
+- **证据**：物理第7页固定 `L=64`、步长16，Conv1D＋LSTM 在同一窗口内建模局部与较长依赖；第7—9页按合成 `SIM_tag` 做五折 GroupKFold；第7、9—10页从目标环境良性缓冲区按 `1-α` 分位数设 FAR 预算阈值；第14页允许漂移时滚动重标定；第15—16页给身份合成与数据面异常局限。
+- **关键边界**：算法1先在测试窗计算分数，却没有把目标良性缓冲区列成独立输入或写明与最终评价窗的时间隔离；正文和表注声称“缓冲区标定后目标评价”。据此只能判为流程强近邻，不能认定实现了严格先导段与冻结后段。
+- **支持**：A、B、C 均为 D2。它同时占用实体分组滑窗、源一类训练、目标良性缓冲区分位阈值和显式误报预算。
+- **不能支持**：窗长固定而非源实体 OOF 选择；只有单一有界窗口而非完整历史＋近期双通道；阈值全局而非实体专属；无类别先验、BBSE 失配回退和冻结后段。
+- **知识与 Zotero**：`wiki/papers/attack-detection/2026-Haiba-SIM实体分组窗与目标缓冲区阈值.md`；`A7W3F3TH`，无附件。
+
+### F9：Slips 主机时间窗证据聚合
+
+- **题录**：Sebastian Garcia 等10人，2026，`arXiv:2608.11979v1 [cs.CR]`；DataCite DOI `10.48550/arXiv.2608.11979`；尚未同行评审。
+- **原件**：`raw/papers/attack-detection/2026-Garcia-Slips-Behavioral-Evidence-Aggregation.pdf`；12页；SHA `1db7c86a6708152ec0208ac8fe2066e2ce22026447049312d943af98f2a5d6f3`。
+- **证据**：物理第2—3页按源IP建默认一小时画像；第5—6页分别给逐流 SGDClassifier、多流双向 GRU 与固定证据融合，`s_i=t_i c_i`、`S_{p,w}=Σ_i s_i`；第7页固定阈值15／小时；第10页表3给流级与画像窗级指标和局限。
+- **支持**：B 为 D2，A 为 D1，C 为 D0。主机有界窗、多个独立检测器与画像窗级加性决策均明确已有。
+- **不能支持**：无未衰减全历史通道、源实体 OOF 选窗、目标前缀标定、预算先验、冻结后段或融合消融；完整 PCAP 回放与晚到数据回填不证明严格因果输出冻结。
+- **结果边界**：画像窗级 Slips `F1=0.3268`、召回率 `0.1953`，Suricata 为 `0.1925/0.1065`，二者 FPR 均为0；数据仅含两份恶意与一份良性 PCAP，作者明确称为架构演示。
+- **知识与 Zotero**：`wiki/papers/attack-detection/2026-Garcia-Slips主机时间窗证据聚合.md`；`G4VRGMXX`，只有说明笔记子项，无 PDF。
+
+### F10：DFM 稳健标签漂移量化
+
+- **题录**：Dussap、Blanchard、Chérief-Abdellatif，2023，ECML PKDD Research Track，LNCS 14173:69—85；DOI `10.1007/978-3-031-43424-2_5`；arXiv `2306.04376v2`。
+- **原件**：`raw/papers/methodology/2023-Dussap-DFM-Robust-Label-Shift.pdf`；30页作者预印本；SHA `7e608f675d458d02a495970d78935d4cf5106853019ece4b8404d31d3d60a96c`。
+- **证据**：物理第5页式（P）定义分布特征匹配与 soft-DFM；第6页命题1证明 BBSE 是分类器独热输出映射下的特例；第7—8页定理1给精确标签漂移误差界；第9—10页定理2与推论1给失配／未知类污染边界；第10页明确不期待 BBSE 有一般污染稳健性；第11—14页给 QP、RFFM 与实验；第15页建议在控制数据上检查偏差／漂移。
+- **支持**：A 为 D2，C 为 D1，B 为 D0。它直接支撑 PBC 的 BBSE 分支只能条件使用，并提供未知类污染的替代估计器压力基线。
+- **不能支持**：没有可观测的预注册失配触发器、自动回退、实体先验／预算、时间先导段和冻结后段；softRFFM 只在污染表征远离源类等条件下更稳健。
+- **知识与 Zotero**：`wiki/papers/methodology/2023-Dussap-DFM稳健标签漂移量化.md`；`XPQH2ENC`，无附件。
+
 ## 十五、第二轮查询与下载日志
 
 ### Q-A2：BBSE 失配、无标签目标校准与域适应选模
@@ -355,7 +385,27 @@ Zotero 状态：
 - **结果**：新增 B 的 D2 两篇；“安全实体长短期画像”明确已有三十年谱系。仍未命中源实体分组 OOF 选近期窗、未衰减全历史与有界近期窗并行、长实体假阳三者同现。
 - **下一查询**：从 NIDES 引用与近期内部威胁／邮件用户画像做前后向追踪；检索 entity-grouped OOF window selection。
 
-## 十六、恢复检查点（2026-08-18 20:20）
+### Q-A3／Q-B4：实体分组窗口与实体误报预算交叉查询
+
+- **查询式**：`"entity-level" "false alarm budget" anomaly detection calibration threshold`；`"host-level" threshold calibration "false positive rate" intrusion detection`；`"GroupKFold" "window length" anomaly detection user behavior`；`"leave-one-user-out" window selection anomaly detection`。
+- **来源**：MDPI 正式页、arXiv 正式页、作者／出版社开放 PDF；检索日期 2026-08-18。
+- **命中与全文**：
+  - Haiba、Rafalia 2026 的 SIM 标记 TDAE：按合成实体 GroupKFold，固定窗，目标良性缓冲区分位阈值与 FAR 预算；A／B／C 均新增 D2。
+  - Garcia 等 2026 的 Slips：主机时间窗、逐流与多流模型、可追溯证据后期聚合；B 新增 D2，但属预印本 E2。
+  - GUARDIAN 的留一用户身份验证窗、医疗／脑电的 GroupKFold 窗口、专利式主机 FPR 等因任务或证据等级不符排除，不进入强结论。
+- **关键裁决**：GroupKFold 与实体窗同现已经有安全论文，但“用源实体折外预测选择候选窗长”仍未命中。目标环境良性缓冲区按误报预算取分位阈值也已出现，PBC 只能在实体专属预算／先验、严格时间隔离、失配回退和冻结上区分。
+- **本轮新增 D2／D3**：D2 两篇，D3 为0；连续无新增计数重置为0。
+- **下一查询**：精确检索 `GroupKFold`／`leave-one-device-out` 与 `window selection`／`history length selection` 同现且选择发生在源域；精确检索 target burn-in／pilot threshold frozen prospective evaluation。
+
+### Q-A4：DFM 失配鲁棒引用链
+
+- **查询链**：BBSE→DFM 正式 Springer 题录→arXiv v2 全文→标签漂移污染、未知类与核均值几何条件。
+- **结果**：DFM 证明 BBSE 是分布特征匹配的特例，并明确其低维输出特征没有一般未知类污染稳健性；高斯核 softRFFM 的优势要求污染表征与源类近似正交。
+- **本轮新增 D2／D3**：A 新增 D2 一篇，D3 为0。
+- **关键裁决**：DFM 提供失配边界与替代估计器，而不是可直接部署的诊断触发回退。PBC 仍须自行冻结可观测门、失败阈值和不依赖标签漂移的回退。
+- **下一查询**：寻找把失配统计量显式接到“采用／拒绝先验校正”分支、并在独立目标后段冻结评价的工作。
+
+## 十六、恢复检查点（2026-08-18 20:20，历史；已由第十七节更新）
 
 - **完成比例**：约65%。
 - **全文计数**：7篇独立工作、8份全文制品；6篇已完整落仓库，NIDES 官方全文已读但 raw 待人工。
@@ -363,3 +413,13 @@ Zotero 状态：
 - **raw／wiki／Zotero**：6篇有 raw，6篇有 wiki，6篇有规范 Zotero 条目；所有 Zotero 条目无 PDF 子附件。
 - **精确阻塞**：NIDES SRI PDF 端口超时；DFM 下载尚未形成有效 PDF；第二轮实体折外选窗与实体预算引用链未完。
 - **下一步**：完成 DFM，接收 NIDES 人工原件，继续两组边界检索；不等待文献任务完成即可运行第四章快速实验。
+
+## 十七、恢复检查点（2026-08-18 20:40）
+
+- **完成比例**：约82%。
+- **全文计数**：10篇独立工作、11份全文制品；9篇已形成 raw＋wiki＋Zotero 链，NIDES 官方52页全文已读但原始文件待人工。
+- **新增 D2／D3**：本检查点新增 Haiba（A／B／C 均D2）、Slips（B为D2）、DFM（A为D2）；累计 A 有3篇D2，B有4篇D2，C有2篇D2；D3为0。
+- **raw／wiki／Zotero**：本批新增3份 raw、3份 wiki、2个方向索引与3个规范题录；DFM `XPQH2ENC`、Haiba `A7W3F3TH` 无子项，Slips `G4VRGMXX` 只有说明笔记而无PDF。
+- **最新裁决**：PBC 的“目标良性缓冲区＋分位阈值＋显式FAR预算”已有直接网络实体强近邻；DTEP 的“实体分组＋固定窗”和“主机窗＋多检测器后期融合”均已存在。尚可区分的是精确的信息与选择合同，不是这些宽泛构件。
+- **精确阻塞**：仅 NIDES 原始 PDF／SHA／Zotero 链需人工补齐；DFM 与 MDPI 403 已通过合法开放替代入口关闭。
+- **下一步**：执行两轮更窄的 OOF 选窗与冻结回退检索；由于本轮新增 D2，停止条件计数从0开始。实验不等待本任务完成。
