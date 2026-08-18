@@ -27,6 +27,8 @@
 
 ## 工具顺序与不阻塞原则
 
-- 结构研读时先用 `paper-miner`，起草时使用 `ml-paper-writing` 的论断门与证据优先原则，随后用 `citation-verification` 核验，最后才使用 `writing-anti-ai`。
+- 完整链路为：`results-analysis` → `results-report` → `paper-miner`（仅提取结构与论证模式）→ `ml-paper-writing` 的论断门与证据优先原则 → `citation-verification` 核验 → `writing-anti-ai` → `paper-self-review`。前两步未产出分析制品时，结果只能写「实验待证」，不得写入 `W4 结果接入`。
+- 图件与结果表先用 `publication-chart-skill` 定图型、信息密度与配套表，渲染规格按根 `AGENTS.md` 的「学位论文图件合同」执行：最大宽 `155 mm`、中文黑体、图内最小 `8 pt`、`PDF` + `PNG` 600 dpi、灰度可读、重写 `图件清单.json`。历史 `180 mm` 与 Hiragino Sans GB 已判定为缺陷，不再沿用。落点与命名仍为 `../figures/第N章/` 与「图N-M-中文说明」。
 - `nature-writing`、`nature-polishing`、`nature-response`、`nature-data` 和会议 LaTeX 模板当前不用于中文学位论文正文。仅在明确的英文投稿或真实审稿场景下按需启用。
 - 写作、引用整理和图表排版不得阻塞已满足数据与运行门禁的真实实验；正文只记录已核验结论，不复制长日志。
+- **每章定稿后必须执行 `paper-self-review`，这是链路的最后一步，也是硬门禁。** 未出自审报告的章节记为「未定稿」，不得据其内容更新路线总控，不得作为后续章节的既定前提，也不得进入合稿。六项检查内容、与上游技能的三处差异、以及报告落点见根 `AGENTS.md`「章节定稿自审门禁」。其中论断审计一项最关键：**凡无法指向具体制品路径或已核验文献的主张，一律弱化或删除**。
