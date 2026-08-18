@@ -1,8 +1,8 @@
 # 第四章双机制直接近邻查重过程笔记
 
 - **日期**：2026-08-18
-- **代理映射**：`ch4_dual_mechanism_novelty_literature_sol_max → gpt-5.6-sol → effort=max`
-- **状态**：初始框架，等待根代理提交；提交确认前只读检索，不二次编辑。
+- **代理映射**：`ch4_dual_mechanism_novelty_literature_resume_sol_max → gpt-5.6-sol → effort=max`
+- **状态**：阶段二检查点 `2819dfb` 后续；第一批 7 篇全文核验完成，第二批原件与知识层已落盘，等待根代理提交。
 
 ## 一、任务合同摘要
 
@@ -64,12 +64,11 @@
 - `wiki/papers/attack-detection/INDEX.md`
 - `wiki/papers/methodology/INDEX.md`
 
-### Zotero 首检
+### Zotero 当前状态
 
-- 本地接口偏好：已启用；
-- 桌面端／本地接口：未运行，`127.0.0.1:23119` 拒绝连接；
-- 当前允许表述：`Zotero 待恢复`；
-- 当前禁止表述：`已查重 Zotero`、`已导入`、`已附全文`。
+- 本地接口与连接器已恢复；当前选中“我的文库”根层级。
+- BBSE `V7UEB83M`、王世谦等 `SM7C8GX6`、İnan `9VG8ZBDJ` 已存在；本轮导入 PseudoCal `3K3ALH8S`、IW-GAE `6W5EVQE7`、Better Practices `2PK7SRWC`。
+- 六个条目的子项检查均为空，不能声称 Zotero 已附 PDF；仓库 `raw` 与 `wiki` 是全文和论断证据源。
 
 ## 五、检索日志模板
 
@@ -196,11 +195,11 @@ Zotero 状态：
 
 ### 已确认的本地缺口
 
-1. 标签移位最大似然、统一视角等原件已在 `raw`，但索引中未见相应全文笔记，须先补笔记而非重复下载；
-2. NIDES 短期行为对长期画像的经典原件未在本地命中文件名；
-3. 目标域无标签校准、域适应模型选择与校准的 2024 直接近邻未在本地命中；
-4. 实体全历史＋近期窗口融合的 2024 用户异常检测论文未在本地命中；
-5. Zotero 桌面端未运行，本轮未完成 Zotero 去重。
+1. 标签移位最大似然、统一视角等原件已在 `raw`，但索引中仍有部分缺全文笔记，后续须补笔记而非重复下载；
+2. NIDES 官方网页全文已核验，但 SRI PDF 端口不可达，尚无本地原件；
+3. PseudoCal 与 IW-GAE 的正式全文、笔记和 Zotero 条目已经补齐；
+4. 王世谦等长短周期用户异常检测的全文、笔记和 Zotero 条目已经补齐；
+5. Zotero 已恢复，但本轮条目均未关联 PDF 子附件。
 
 ## 十一、第一轮联网检索日志
 
@@ -273,6 +272,94 @@ Zotero 状态：
 
 ## 十三、当前检查点
 
-- **已完成**：任务合同、概念词表、查询家族、登记模板、证据纪律、433 个本地 PDF／495 个笔记文件的盘点，以及 A／B／C 四组窄查询。
-- **下一步**：下载 P0 核心全文，逐篇核对页码、公式、时序与标签权限；同时恢复 Zotero 本地接口并查重。
-- **未关闭疑点**：2026 年核心近邻的合法全文可得性；实体分组折外选窗是否已有直接先例；Zotero 桌面端尚未运行。
+- **已完成**：任务合同、馆藏盘点、A／B／C 四组窄查询，以及第一批 7 篇独立工作的全文裁决。
+- **下一步**：完成 DFM 与 NIDES 原件，追踪实体折外选窗、实体预算和失配回退引用链。
+- **未关闭疑点**：是否存在 D3、长实体假阳直接机制、NIDES 原件和 DFM 完整全文。
+
+## 十四、第一批全文逐篇登记
+
+### F1：基于长短周期特征的用户异常行为检测
+
+- **题录**：王世谦、白宏坤、贾一博、卜飞飞、黄勇，2025，《郑州大学学报（理学版）》57(6)，65—73、参考文献续至82；DOI `10.13705/j.issn.1671-6841.2024077`。
+- **原件**：`raw/papers/attack-detection/2025-Wang-LMIM-Long-Short-Period-User-Anomaly-Detection.pdf`；10页；SHA-256 `626da14439a62c1893b71588f0c905997fdb40f17e0defabc9613837b0bafaaa`。
+- **证据**：物理第4至5页／印刷68—69页式（1）至（3）为周级长期多孤立森林；物理第5页式（4）至（7）为5、10、15分钟三个独立 GRU；物理第6页／印刷70页式（8）按两个模型各自准确率加权晚融合。
+- **支持**：用户实体、长短周期并用、两个模型晚融合，B 为 D2。
+- **不能支持**：长期仅在1—6周中选4周，不是全历史；窗口按普通实验选，不是源实体 OOF；数据以正常样本为主，10%异常由人工扰动合成，拆分的时间／实体隔离不清；无单独 LSPIF、MTWG、LMIM 完整融合消融。
+- **知识与 Zotero**：`wiki/papers/attack-detection/2025-Wang-LMIM长短周期用户异常检测.md`；`SM7C8GX6`，无附件。
+
+### F2：Proximity-based explainable anomaly detection for time-series data with calibration, leakage safety
+
+- **题录**：Ebubekir İnan，2026，*Internet of Things* 37:101920；DOI `10.1016/j.iot.2026.101920`，PII `S2542660526000508`。
+- **原件**：`raw/papers/attack-detection/2026-Inan-Proximity-Anomaly-Calibration-Leakage-Safety.pdf`；28页；SHA-256 `b6974fa21684ade2de4a3323e283d06e9ef9448b16ea3e32683c44381c50b38b`。
+- **证据**：物理第4页式（2）至（3）为因果滚动 MAD；第5页式（11）至（13）为融合；第5至6页说明监督等渗／无标签经验分布标定；第9至11页用每序列连续70/15/15划分和1%告警预算；第26至27页算法给出完整流程。
+- **关键边界**：标定集先决定 `k_fit`，后段再按全部后段分数重选恰好 `k_fit` 个；`τ_fit` 只作诊断。因此冻结的是告警数，不是可在线执行的数值阈值。
+- **支持**：A、C 为 D2；独立标定、时序切分、固定预算和折外分数均已有强近邻。
+- **不能支持**：无网络实体键、类别先验、BBSE 失配回退、源实体 OOF 选窗，也没有真正冻结的后段数值阈值。
+- **知识与 Zotero**：`wiki/papers/attack-detection/2026-Inan-邻近异常检测校准与泄漏安全.md`；`9VG8ZBDJ`，无附件。
+
+### F3：BBSE 正文与附录
+
+- **题录**：Lipton、Wang、Smola，2018，ICML，PMLR 80:3122—3130；稳定标识 `pmlr-v80-lipton18a`。
+- **原件**：正文 `raw/papers/methodology/2018-Lipton-BBSE-Label-Shift.pdf`，9页，SHA `f0b042df501321fc422fc14d733f857723df6e7e9d8635ef84c90d26d5480cee`；含附录版本 `raw/papers/methodology/2018-Lipton-BBSE-Label-Shift-Supplement.pdf`，11页，SHA `4ea2ca7b44133eaec9429351efc742b6b01a7c2d4bf14f12d46cd038e88be8fd`。
+- **证据**：正文物理第2至3页给标签移位、支持集与混淆矩阵可逆假设及 `ŵ=Ĉ^{-1}_{ŷ,y} μ̂_ŷ`；正文第5页算法1独立拆分源数据。含附录版本物理第10页用重加权源特征与无标签目标特征的核均值差诊断标签移位近似，并提出最小奇异值选黑盒与数据复用偏差。
+- **支持**：A 的无标签先验估计与条件诊断为 D1。
+- **不能支持**：附录没有规定失配后自动切换的基线；无目标时间先导段、实体预算和冻结后段。
+- **知识与 Zotero**：`wiki/papers/methodology/2018-Lipton-BBSE标签移位.md`；`V7UEB83M`，无附件。
+
+### F4：PseudoCal
+
+- **题录**：Hu、Liang、Wang、Foo，2024，ICML，PMLR 235:19304—19326；稳定标识 `pmlr-v235-hu24i`。
+- **原件**：`raw/papers/methodology/2024-Hu-PseudoCal-Unsupervised-Domain-Calibration.pdf`；23页；SHA `0e19d94c0e7d51831dbde522efefb69bc231e5258ee0101176c0cfca8af97f47`。
+- **证据**：物理第4页分解目标温度缩放损失并给跨伪标签簇混合公式；第5页固定域适应模型、默认 `λ=0.65`；第8页消融与模型质量边界；第9页局限；第14页算法1。
+- **支持**：A 的无标签目标后处理校准为 D1。
+- **不能支持**：使用整个目标域作传导式校准，无因果先导段、实体预算、类别先验、BBSE 回退和冻结后段。
+- **知识与 Zotero**：`wiki/papers/methodology/2024-Hu-PseudoCal无监督目标域伪校准.md`；`3K3ALH8S`，无附件。
+
+### F5：IW-GAE
+
+- **题录**：Joo、Klabjan，2024，ICML，PMLR 235:22509—22529；稳定标识 `pmlr-v235-joo24a`。
+- **原件**：`raw/papers/methodology/2024-Joo-IW-GAE-Calibration-Model-Selection.pdf`；21页；SHA `ed06be67071fd6426f9212ccfbbe2d3ae2a2ef49299363d33b8a7cc8bef7aace`。
+- **证据**：物理第2页假设协变量移位且无概念移位；第3页式（2）按置信度分组并同时服务校准与选模；第5页式（8）至（13）优化重要性权重；第17页算法只显式拆源训练／验证；第21页承认非可识别性。
+- **支持**：A 的无标签校准、C 的无标签选模＋校准均为 D1。
+- **不能支持**：组是置信度组而非网络实体；无时间先导段、固定误报预算、标签移位诊断／回退或源实体 OOF。
+- **知识与 Zotero**：`wiki/papers/methodology/2024-Joo-IW-GAE重要性加权组准确率.md`；`6W5EVQE7`，无附件。
+
+### F6：Better Practices for Domain Adaptation
+
+- **题录**：Ericsson、Li、Hospedales，2023，AutoML，PMLR 224:4/1—25；稳定标识 `pmlr-v224-ericsson23a`，arXiv `2309.03879`。
+- **原件**：`raw/papers/methodology/2023-Ericsson-Better-Practices-Domain-Adaptation.pdf`；25页；SHA `681b18b0d6f886c6e9448c2dd8358ce8dd979e3e66c6629c66daa0366e15aa7a`。
+- **证据**：物理第3页判目标测试标签调参为错误；第5、7页要求目标训练／验证／测试分离并显示独立验证更可靠；第8至10页显示适应可能低于源模型；第14页算法与60/20/20切分。
+- **支持**：C 的独立评价纪律为 D1；为失配时保留源模型提供动机。
+- **不能支持**：普通随机切分而非时间因果先导段；无 A／B 具体机制和确定性回退触发器。
+- **知识与 Zotero**：`wiki/papers/methodology/2023-Ericsson-域适应更佳实践.md`；`2PK7SRWC`，无附件。
+
+### F7：NIDES Statistical Component
+
+- **题录**：Harold S. Javitz、Alfonso Valdes，1994，SRI International，*The NIDES Statistical Component: Description and Justification*；无 DOI；稳定官方页 <https://www.csl.sri.com/papers/2sri/>。
+- **全文状态**：SRI 官方网页索引可读取 52 个物理页，PDF 精确入口 <https://www.csl.sri.com/papers/2sri/2sri.pdf>；本机 HTTP／HTTPS 均连接超时，raw、SHA、wiki 与 Zotero 待人工原件后补。
+- **证据**：物理第5至8页说明按用户、组、远程主机和系统维护充分统计画像；第20至21页直接比较约200条记录的短期行为与30天半衰期长期画像；第41至42页说明历史从首次行为开始但以指数权重降低旧记录影响。
+- **支持**：安全领域实体双时间尺度为 B 的 D2 强近邻。
+- **不能支持**：长期画像不是未衰减全历史；窗口不由源实体 OOF 选择；无目标前缀冻结与长实体假阳实验。
+
+## 十五、第二轮查询与下载日志
+
+### Q-A2：BBSE 失配、无标签目标校准与域适应选模
+
+- **查询链**：BBSE 正文→官方补充材料→核均值失配；PseudoCal、IW-GAE 与 Better Practices 的正式 PMLR 页面、算法、附录和引用链。
+- **结果**：新增 A 的 D1 三篇、C 的 D1 两篇；没有新增 D3。BBSE 提供诊断但不提供回退，PseudoCal 和 IW-GAE 使用完整无标签目标域而非因果先导段。
+- **下一查询**：DFM 的目标污染／标签移位失配鲁棒保证；固定实体误报预算与拒绝适应。
+
+### Q-B3：NIDES 与近期用户长短周期近邻
+
+- **查询链**：SRI NIDES 官方报告、2025 年王世谦等全文，以及二者关于实体键、时间尺度、融合与窗口选择的直接比较。
+- **结果**：新增 B 的 D2 两篇；“安全实体长短期画像”明确已有三十年谱系。仍未命中源实体分组 OOF 选近期窗、未衰减全历史与有界近期窗并行、长实体假阳三者同现。
+- **下一查询**：从 NIDES 引用与近期内部威胁／邮件用户画像做前后向追踪；检索 entity-grouped OOF window selection。
+
+## 十六、恢复检查点（2026-08-18 20:20）
+
+- **完成比例**：约65%。
+- **全文计数**：7篇独立工作、8份全文制品；6篇已完整落仓库，NIDES 官方全文已读但 raw 待人工。
+- **新增 D2／D3**：A 新增 D2 1篇（İnan）；B 新增 D2 2篇（NIDES、王世谦等）；C 新增 D2 1篇（İnan）；D3 为0。
+- **raw／wiki／Zotero**：6篇有 raw，6篇有 wiki，6篇有规范 Zotero 条目；所有 Zotero 条目无 PDF 子附件。
+- **精确阻塞**：NIDES SRI PDF 端口超时；DFM 下载尚未形成有效 PDF；第二轮实体折外选窗与实体预算引用链未完。
+- **下一步**：完成 DFM，接收 NIDES 人工原件，继续两组边界检索；不等待文献任务完成即可运行第四章快速实验。
