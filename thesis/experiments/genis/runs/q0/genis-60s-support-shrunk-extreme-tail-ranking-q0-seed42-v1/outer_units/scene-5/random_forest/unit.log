@@ -1,0 +1,7 @@
+METHOD_FINISHED scene=5 model=random_forest method=uniform-balanced fit_seconds=45.366 elapsed_seconds=85.137
+METHOD_FINISHED scene=5 model=random_forest method=sample-cvar-tail fit_seconds=45.668 elapsed_seconds=131.128
+METHOD_FINISHED scene=5 model=random_forest method=groupdro-max-scene fit_seconds=2.437 elapsed_seconds=133.901
+METHOD_FINISHED scene=5 model=random_forest method=sagawa-small-group-adjusted fit_seconds=2.445 elapsed_seconds=136.663
+METHOD_FINISHED scene=5 model=random_forest method=unshrunk-scene-tail fit_seconds=47.403 elapsed_seconds=184.447
+METHOD_FINISHED scene=5 model=random_forest method=support-shrunk-scene-tail fit_seconds=46.669 elapsed_seconds=231.466
+METHOD_FINISHED scene=5 model=random_forest method=shuffled-scene-support-tail fit_seconds=46.310 elapsed_seconds=278.137

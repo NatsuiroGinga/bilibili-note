@@ -1,0 +1,60 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cpu",
+  "evaluation_unit_index_within_outer_model": 4,
+  "fit_seconds": 29.777989700436592,
+  "method": "unshrunk-scene-tail",
+  "metrics": {
+    "average_precision": 0.9998494015914763,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 14.801110083256244,
+    "false_positives": 8,
+    "macro_f1_at_fixed_budget": 0.6437782602590156,
+    "malicious_rows": 51021,
+    "recall_at_fixed_budget": 0.732855098880853,
+    "standardized_partial_roc_auc": 0.7492908528038542,
+    "threshold": 0.32,
+    "true_positives": 37391
+  },
+  "model": "random_forest",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "7ea672bb1d3db5d8add58c32c1fb64cfea404f7ad5251cf87b4f524e944ac272",
+    "persisted": false
+  },
+  "outer_test_scene": 1,
+  "peak_rss_gib": 1.6558265686035156,
+  "predict_seconds": 0.24543344601988792,
+  "shared_oof_summary_sha256": "dd66945c1fadce07b8c7e95c16200c109eb51cab5742f64fd9a7aec1a6467905",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 56426,
+  "train_rows": 306651,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.11025684983729048,
+      "scene_weights": {
+        "2": 0.9992559878299666,
+        "3": 0.9971548737945581,
+        "4": 0.9972953320820512,
+        "5": 0.9971527566211162,
+        "6": 0.9999233470709409,
+        "7": 1.0092399390501814,
+        "8": 0.9999777635511855
+      }
+    },
+    "multiplier_sha256": "54a2cd5d72bf787249042c9fc56900627b7d87dc4e2889f99a07722c11f7c35e",
+    "multiplier_summary": {
+      "maximum": 4.004735390882301,
+      "mean": 1.0000000000000002,
+      "median": 0.9988671859773393,
+      "minimum": 0.9987243858008297,
+      "q25": 0.998726506311184,
+      "q75": 1.0008309319476547,
+      "std": 0.02084090912266775
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.27478559937128033
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "rows": 294844,
+  "schema_version": "genis-support-tail-q0-status-v1",
+  "screening_only": true,
+  "stage": "prepare",
+  "state": "DATA_GATE_PASSED",
+  "updated_at_epoch": 1786547478.1382341
+}

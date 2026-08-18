@@ -1,0 +1,58 @@
+{
+  "calibration_count": 5478,
+  "calibration_keyset_sha256": "fdba541e24684f2f20945b461354572ae6cfe315214dfb572e92d52f5b1273a7",
+  "hash_domain": "genis-corrected-v2-benign-split",
+  "modulo": 10,
+  "outer_fold_pairwise_intersections": {
+    "1": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    },
+    "2": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    },
+    "3": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    },
+    "4": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    },
+    "5": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    },
+    "6": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    },
+    "7": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    },
+    "8": {
+      "calibration_test": 0,
+      "train_calibration": 0,
+      "train_test": 0
+    }
+  },
+  "pairwise_intersections": {
+    "calibration_test": 0,
+    "train_calibration": 0,
+    "train_test": 0
+  },
+  "stable_key_is_atomic": true,
+  "test_count": 5405,
+  "test_keyset_sha256": "3d0608598282a8a3f8b97e0ca874c83bf9a9b337713e6e3673e27114ad5074d5",
+  "train_count": 16266,
+  "train_keyset_sha256": "af9fe8fb783e6776c9e37ee63e077a072339a2b8d4e236fe17af3006fe841726"
+}

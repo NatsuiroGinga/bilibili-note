@@ -1,0 +1,38 @@
+{
+  "calibration_actual_false_positives": 2,
+  "calibration_allowed_false_positives": 2,
+  "calibration_benign_rows": 2885,
+  "device": "cpu",
+  "fit_seconds": 13.825026784092188,
+  "metrics": {
+    "average_precision": 0.9999999999999999,
+    "benign_rows": 5096,
+    "confusion_matrix_at_0.5": [
+      [
+        5096,
+        0
+      ],
+      [
+        0,
+        67530
+      ]
+    ],
+    "false_alerts_per_10000_benign": 13.736263736263735,
+    "false_positives": 7,
+    "macro_f1": 1.0,
+    "malicious_f1": 1.0,
+    "malicious_precision": 1.0,
+    "malicious_recall": 1.0,
+    "malicious_rows": 67530,
+    "recall_at_fixed_budget": 1.0,
+    "threshold": 0.18666666666666668,
+    "true_positives": 67530
+  },
+  "model": "random_forest",
+  "model_sha256": "528a4a65bbbcc4d39a6ac09af898ce8981380497793a7bb467fc26b71ddadeff",
+  "outer_test_scene": 3,
+  "predict_seconds": 0.11751461587846279,
+  "train_benign_rows": 17166,
+  "train_malicious_rows": 273876,
+  "train_rows": 291042
+}

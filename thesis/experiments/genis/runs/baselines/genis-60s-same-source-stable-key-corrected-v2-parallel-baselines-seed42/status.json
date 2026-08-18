@@ -1,0 +1,12 @@
+{
+  "completed_units": 16,
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "official_test_accessed": false,
+  "schema_version": "genis-corrected-track-b-status-v2",
+  "screening_only": true,
+  "stage": "parallel-corrected-v2-complete",
+  "state": "FINISHED",
+  "total_units": 16,
+  "updated_at_epoch": 1786562107.629078
+}

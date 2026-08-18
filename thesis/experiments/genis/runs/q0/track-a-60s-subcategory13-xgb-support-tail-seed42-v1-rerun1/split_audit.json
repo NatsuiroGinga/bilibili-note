@@ -1,0 +1,246 @@
+{
+  "all_partitions_have_all_classes": true,
+  "duplicate_rows": 0,
+  "intersections": {
+    "calibration__q0_eval": 0,
+    "fit__calibration": 0,
+    "fit__q0_eval": 0
+  },
+  "label_conflicts": 0,
+  "per_class": {
+    "benign-admin": {
+      "calibration": {
+        "groups": 642,
+        "row_ratio": 0.2,
+        "rows": 642
+      },
+      "fit": {
+        "groups": 1926,
+        "row_ratio": 0.6,
+        "rows": 1926
+      },
+      "q0_eval": {
+        "groups": 642,
+        "row_ratio": 0.2,
+        "rows": 642
+      }
+    },
+    "benign-background": {
+      "calibration": {
+        "groups": 1646,
+        "row_ratio": 0.20002430428970713,
+        "rows": 1646
+      },
+      "fit": {
+        "groups": 4937,
+        "row_ratio": 0.5999513914205857,
+        "rows": 4937
+      },
+      "q0_eval": {
+        "groups": 1646,
+        "row_ratio": 0.20002430428970713,
+        "rows": 1646
+      }
+    },
+    "benign-user": {
+      "calibration": {
+        "groups": 2057,
+        "row_ratio": 0.20007781344227216,
+        "rows": 2057
+      },
+      "fit": {
+        "groups": 6168,
+        "row_ratio": 0.5999416399182959,
+        "rows": 6168
+      },
+      "q0_eval": {
+        "groups": 2056,
+        "row_ratio": 0.19998054663943196,
+        "rows": 2056
+      }
+    },
+    "bruteforce-ftp": {
+      "calibration": {
+        "groups": 535,
+        "row_ratio": 0.2,
+        "rows": 535
+      },
+      "fit": {
+        "groups": 1605,
+        "row_ratio": 0.6,
+        "rows": 1605
+      },
+      "q0_eval": {
+        "groups": 535,
+        "row_ratio": 0.2,
+        "rows": 535
+      }
+    },
+    "bruteforce-smb": {
+      "calibration": {
+        "groups": 1601,
+        "row_ratio": 0.2000999875015623,
+        "rows": 1601
+      },
+      "fit": {
+        "groups": 4800,
+        "row_ratio": 0.5999250093738283,
+        "rows": 4800
+      },
+      "q0_eval": {
+        "groups": 1600,
+        "row_ratio": 0.19997500312460942,
+        "rows": 1600
+      }
+    },
+    "bruteforce-ssh": {
+      "calibration": {
+        "groups": 750,
+        "row_ratio": 0.2,
+        "rows": 750
+      },
+      "fit": {
+        "groups": 2250,
+        "row_ratio": 0.6,
+        "rows": 2250
+      },
+      "q0_eval": {
+        "groups": 750,
+        "row_ratio": 0.2,
+        "rows": 750
+      }
+    },
+    "dos-hulk": {
+      "calibration": {
+        "groups": 7526,
+        "row_ratio": 0.2000212618933716,
+        "rows": 7526
+      },
+      "fit": {
+        "groups": 22575,
+        "row_ratio": 0.5999840535799713,
+        "rows": 22575
+      },
+      "q0_eval": {
+        "groups": 7525,
+        "row_ratio": 0.19999468452665708,
+        "rows": 7525
+      }
+    },
+    "dos-icmp": {
+      "calibration": {
+        "groups": 10486,
+        "row_ratio": 0.20000381468271378,
+        "rows": 10486
+      },
+      "fit": {
+        "groups": 31457,
+        "row_ratio": 0.5999923706345724,
+        "rows": 31457
+      },
+      "q0_eval": {
+        "groups": 10486,
+        "row_ratio": 0.20000381468271378,
+        "rows": 10486
+      }
+    },
+    "dos-pushack": {
+      "calibration": {
+        "groups": 10529,
+        "row_ratio": 0.2,
+        "rows": 10529
+      },
+      "fit": {
+        "groups": 31587,
+        "row_ratio": 0.6,
+        "rows": 31587
+      },
+      "q0_eval": {
+        "groups": 10529,
+        "row_ratio": 0.2,
+        "rows": 10529
+      }
+    },
+    "dos-slowloris": {
+      "calibration": {
+        "groups": 8277,
+        "row_ratio": 0.20000966580479906,
+        "rows": 8277
+      },
+      "fit": {
+        "groups": 24829,
+        "row_ratio": 0.5999806683904019,
+        "rows": 24829
+      },
+      "q0_eval": {
+        "groups": 8277,
+        "row_ratio": 0.20000966580479906,
+        "rows": 8277
+      }
+    },
+    "dos-udp": {
+      "calibration": {
+        "groups": 10486,
+        "row_ratio": 0.20000381468271378,
+        "rows": 10486
+      },
+      "fit": {
+        "groups": 31457,
+        "row_ratio": 0.5999923706345724,
+        "rows": 31457
+      },
+      "q0_eval": {
+        "groups": 10486,
+        "row_ratio": 0.20000381468271378,
+        "rows": 10486
+      }
+    },
+    "recon-dns": {
+      "calibration": {
+        "groups": 4,
+        "row_ratio": 0.25,
+        "rows": 4
+      },
+      "fit": {
+        "groups": 9,
+        "row_ratio": 0.5625,
+        "rows": 9
+      },
+      "q0_eval": {
+        "groups": 3,
+        "row_ratio": 0.1875,
+        "rows": 3
+      }
+    },
+    "recon-nmap": {
+      "calibration": {
+        "groups": 4434,
+        "row_ratio": 0.2,
+        "rows": 4434
+      },
+      "fit": {
+        "groups": 13302,
+        "row_ratio": 0.6,
+        "rows": 13302
+      },
+      "q0_eval": {
+        "groups": 4434,
+        "row_ratio": 0.2,
+        "rows": 4434
+      }
+    }
+  },
+  "ratios": {
+    "calibration": 0.2,
+    "fit": 0.6,
+    "q0_eval": 0.2
+  },
+  "rows": {
+    "calibration": 58973,
+    "fit": 176902,
+    "q0_eval": 58969
+  },
+  "schema_version": "genis-q0-split-audit-v1",
+  "seed": 42,
+  "unique_groups": 294844
+}

@@ -1,0 +1,60 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cpu",
+  "evaluation_unit_index_within_outer_model": 4,
+  "fit_seconds": 44.36357922665775,
+  "method": "unshrunk-scene-tail",
+  "metrics": {
+    "average_precision": 0.9997055142270947,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 11.100832562442184,
+    "false_positives": 6,
+    "macro_f1_at_fixed_budget": 0.09940134932699252,
+    "malicious_rows": 67530,
+    "recall_at_fixed_budget": 0.02952761735524952,
+    "standardized_partial_roc_auc": 0.5076786003239054,
+    "threshold": 0.4633333333333333,
+    "true_positives": 1994
+  },
+  "model": "random_forest",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "7ea672bb1d3db5d8add58c32c1fb64cfea404f7ad5251cf87b4f524e944ac272",
+    "persisted": false
+  },
+  "outer_test_scene": 4,
+  "peak_rss_gib": 1.8168716430664062,
+  "predict_seconds": 0.16035919822752476,
+  "shared_oof_summary_sha256": "72202a104f4b8ed469a74ca3eff3077796e2af26edcf7838335d54f51dfa1ffa",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 72935,
+  "train_rows": 290142,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.11080601820013414,
+      "scene_weights": {
+        "1": 1.004688729544444,
+        "2": 0.9975593821607669,
+        "3": 0.9930920307614933,
+        "5": 0.9931626952430185,
+        "6": 0.9992119315004148,
+        "7": 1.013192716792562,
+        "8": 0.9990925139973007
+      }
+    },
+    "multiplier_sha256": "066ef9ed254609af03291c1dbc11d1c21d5088356528231f2dc2ff44d559d9c2",
+    "multiplier_summary": {
+      "maximum": 4.064137045880878,
+      "mean": 1.0,
+      "median": 0.9987309258044469,
+      "minimum": 0.9942583279033314,
+      "q25": 0.9943290753739253,
+      "q75": 1.0002658581662327,
+      "std": 0.04336852260294086
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.2752311815440407
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "method_count": 7,
+  "model": "random_forest",
+  "oof": {
+    "fold_assignment_sha256": "29660fdca9cc12ff7d57b4cfbde41838aa40bea30a137e93c6c9689da8f42ed4",
+    "fold_count": 2,
+    "folds": [
+      {
+        "device": "cpu",
+        "fit_benign_rows": 8113,
+        "fit_malicious_rows": 145043,
+        "fit_rows": 153156,
+        "fold": 0,
+        "predict_benign_rows": 8153,
+        "predict_malicious_rows": 145342,
+        "predict_rows": 153495
+      },
+      {
+        "device": "cpu",
+        "fit_benign_rows": 8153,
+        "fit_malicious_rows": 145342,
+        "fit_rows": 153495,
+        "fold": 1,
+        "predict_benign_rows": 8113,
+        "predict_malicious_rows": 145043,
+        "predict_rows": 153156
+      }
+    ],
+    "model": "random_forest",
+    "oof_scores_sha256": "c189a9924e5f6f118c9417390a3a6fd52ec0267f3836bbc02bc7dfe0ef6e12ac",
+    "outer_test_scene": 1,
+    "scores_persisted": false
+  },
+  "oof_reused_by_all_methods": true,
+  "outer_test_scene": 1,
+  "persistent_features": false,
+  "persistent_fold_memberships": false,
+  "persistent_labels": false,
+  "persistent_probabilities": false,
+  "persistent_sample_weights": false,
+  "persistent_stable_keys": false,
+  "risk": {
+    "benign_logit_quantile": -0.08615313786846004,
+    "lambda_support": 55717.0,
+    "loss_summary": {
+      "maximum": 2.799802092796826,
+      "mean": 0.00013294443720574372,
+      "median": 1.3236066536877387e-06,
+      "minimum": 1.3236066536877387e-06,
+      "q25": 1.3236066536877387e-06,
+      "q75": 1.3236066536877387e-06,
+      "std": 0.00849268338335039
+    },
+    "losses_sha256": "045500bf3d66ae8d30c77e6b4848eb7c0d609b57a0e2998abfdc0a65bbff04e2",
+    "parent_risk": {
+      "authtest": 0.0005538051689538806,
+      "disrupt": 8.117363719087487e-05
+    },
+    "per_sample_losses_persisted": false,
+    "raw_risk": {
+      "2": 0.0002963947311591293,
+      "3": 1.5910245652863338e-05,
+      "4": 3.467277489166968e-05,
+      "5": 1.5627418444532623e-05,
+      "6": 0.00038540031878178004,
+      "7": 0.0016238454249586454,
+      "8": 0.0003926560886611978
+    },
+    "shrinkage_coefficient": {
+      "2": 0.5,
+      "3": 0.5479240874017217,
+      "4": 0.5479240874017217,
+      "5": 0.5489122954734976,
+      "6": 0.17713517744531906,
+      "7": 0.07062434321362446,
+      "8": 0.2185225184790384
+    },
+    "shrunk_risk": {
+      "2": 0.00018878418417500207,
+      "3": 4.541425294166865e-05,
+      "4": 5.569469465218973e-05,
+      "5": 4.519451179921215e-05,
+      "6": 0.0005239747459359933,
+      "7": 0.0006293760592463557,
+      "8": 0.0005185904660777428
+    },
+    "support": {
+      "2": 55717,
+      "3": 67530,
+      "4": 67530,
+      "5": 67800,
+      "6": 11994,
+      "7": 4234,
+      "8": 15580
+    }
+  }
+}

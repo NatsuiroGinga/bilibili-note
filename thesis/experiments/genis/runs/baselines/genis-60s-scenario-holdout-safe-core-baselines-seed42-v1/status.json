@@ -1,0 +1,12 @@
+{
+  "completed_fits": 16,
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "official_test_accessed": false,
+  "schema_version": "genis-scenario-holdout-baseline-status-v1",
+  "screening_only": true,
+  "stage": "scenario-holdout-baselines-complete",
+  "state": "FINISHED",
+  "total_fits": 16,
+  "updated_at_epoch": 1786559846.1977062
+}

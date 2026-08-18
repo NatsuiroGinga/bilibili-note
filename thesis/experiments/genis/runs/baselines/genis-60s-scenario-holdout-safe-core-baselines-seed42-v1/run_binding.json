@@ -1,0 +1,11 @@
+{
+  "code_sha256": "7a12d50091fa57a91cfdca76c203be30d27c70fa3017ade8e10f7eb61ea805ce",
+  "config_sha256": "bc7bca920c59083398d78ecd85ab3cc6617739ec66e03907cf6bdc13134b6a2f",
+  "final_accessed": false,
+  "flows_archive_sha256": "72033b5e3df6e45cda9a339985194d8232c437c243a5037a62ebeff457489b30",
+  "formal_paper_evidence": false,
+  "official_test_accessed": false,
+  "persistent_feature_artifacts": false,
+  "scenarios_archive_sha256": "8a56adc70d4400786b774012c69af1d5264d6733986d5a6d5d500e66b57cf246",
+  "screening_only": true
+}

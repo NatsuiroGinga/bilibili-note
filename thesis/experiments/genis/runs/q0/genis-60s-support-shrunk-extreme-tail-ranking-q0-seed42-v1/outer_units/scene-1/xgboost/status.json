@@ -1,0 +1,6 @@
+{
+  "completed_methods": 7,
+  "model": "xgboost",
+  "outer_test_scene": 1,
+  "state": "FINISHED"
+}

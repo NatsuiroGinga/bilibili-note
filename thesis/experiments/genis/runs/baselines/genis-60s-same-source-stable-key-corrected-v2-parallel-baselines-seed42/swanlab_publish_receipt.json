@@ -1,0 +1,11 @@
+{
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "official_test_accessed": false,
+  "parallel": true,
+  "project": "malicious-traffic-llm",
+  "run_name": "GeNIS同源稳定键隔离corrected-v2并行强基线-种子42",
+  "screening_only": true,
+  "uploaded_scalar_count": 192,
+  "workspace": "mortiswang"
+}

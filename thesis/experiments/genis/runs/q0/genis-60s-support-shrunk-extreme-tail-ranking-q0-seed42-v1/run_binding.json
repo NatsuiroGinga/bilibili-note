@@ -1,0 +1,17 @@
+{
+  "archive_sha256": "8a56adc70d4400786b774012c69af1d5264d6733986d5a6d5d500e66b57cf246",
+  "code_sha256": "46cda0d5f6d34651bde425f3ce279146b8676d7428b1a86f27bbf914f4bfb437",
+  "config_sha256": "a9d6842c3340c3ccf0202723b6cf3396fe60be03a5d101f6815409a44a30f366",
+  "contract_version": "support-shrunk-tail-ranking-q0-v1",
+  "corrected_v2_config_sha256": "45a5d3e94b41c20fe95da9e488cce1f47b13a81f9267e7e35c0c40af96f8aca7",
+  "corrected_v2_module_sha256": "e734f78c87d515eea53ad35c47ef41268e651cb74b732681c51122d1a3afa5c9",
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "max_outer_concurrency": 2,
+  "max_xgboost_concurrency": 1,
+  "memory_admission_gate": false,
+  "official_test_accessed": false,
+  "screening_only": true,
+  "total_evaluation_units": 112,
+  "unrelated_gpu_processes_allowed": true
+}

@@ -1,0 +1,97 @@
+{
+  "method_count": 7,
+  "model": "random_forest",
+  "oof": {
+    "fold_assignment_sha256": "81b72273c098d7d7d3c88f92662080e03a84e69d7e33cde0a95efe557c08ce2c",
+    "fold_count": 2,
+    "folds": [
+      {
+        "device": "cpu",
+        "fit_benign_rows": 8113,
+        "fit_malicious_rows": 137022,
+        "fit_rows": 145135,
+        "fold": 0,
+        "predict_benign_rows": 8153,
+        "predict_malicious_rows": 136854,
+        "predict_rows": 145007
+      },
+      {
+        "device": "cpu",
+        "fit_benign_rows": 8153,
+        "fit_malicious_rows": 136854,
+        "fit_rows": 145007,
+        "fold": 1,
+        "predict_benign_rows": 8113,
+        "predict_malicious_rows": 137022,
+        "predict_rows": 145135
+      }
+    ],
+    "model": "random_forest",
+    "oof_scores_sha256": "e1583ea112b445066ee1205472c329f3f61270fdb1146150cdfc2410c24f6141",
+    "outer_test_scene": 4,
+    "scores_persisted": false
+  },
+  "oof_reused_by_all_methods": true,
+  "outer_test_scene": 4,
+  "persistent_features": false,
+  "persistent_fold_memberships": false,
+  "persistent_labels": false,
+  "persistent_probabilities": false,
+  "persistent_sample_weights": false,
+  "persistent_stable_keys": false,
+  "risk": {
+    "benign_logit_quantile": 1.0668516805562709,
+    "lambda_support": 51021.0,
+    "loss_summary": {
+      "maximum": 2.5897219257844317,
+      "mean": 0.0005565684649855963,
+      "median": 4.192780627438702e-06,
+      "minimum": 4.192780627438702e-06,
+      "q25": 4.192780627438702e-06,
+      "q75": 4.192780627438702e-06,
+      "std": 0.015796963320035575
+    },
+    "losses_sha256": "8f447eef2ce4577d8eb1e421156e6018493dea4232b40500e514a1d329de65e2",
+    "parent_risk": {
+      "authtest": 0.0010790001423144698,
+      "disrupt": 0.00048792037109265376
+    },
+    "per_sample_losses_persisted": false,
+    "raw_risk": {
+      "1": 0.0015689797490034006,
+      "2": 0.0006191083795417177,
+      "3": 2.1594425762847992e-05,
+      "5": 3.105987405697525e-05,
+      "6": 0.0008396859141409631,
+      "7": 0.002696161415779966,
+      "8": 0.0008237545724081878
+    },
+    "shrinkage_coefficient": {
+      "1": 0.5,
+      "2": 0.5219977889786206,
+      "3": 0.5696282612546499,
+      "5": 0.5706062059736915,
+      "6": 0.19033563437276838,
+      "7": 0.07662654963351732,
+      "8": 0.23393042146514317
+    },
+    "shrunk_risk": {
+      "1": 0.001028450060048027,
+      "2": 0.0005564002214435737,
+      "3": 0.00022228793367650557,
+      "5": 0.0002272329362198703,
+      "6": 0.001033450116880636,
+      "7": 0.0012029176309010757,
+      "8": 0.0010192904385691827
+    },
+    "support": {
+      "1": 51021,
+      "2": 55717,
+      "3": 67530,
+      "5": 67800,
+      "6": 11994,
+      "7": 4234,
+      "8": 15580
+    }
+  }
+}

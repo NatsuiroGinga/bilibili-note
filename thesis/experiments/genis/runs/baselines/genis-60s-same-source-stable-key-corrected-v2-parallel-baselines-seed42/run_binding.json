@@ -1,0 +1,13 @@
+{
+  "archive_sha256": "8a56adc70d4400786b774012c69af1d5264d6733986d5a6d5d500e66b57cf246",
+  "code_sha256": "e734f78c87d515eea53ad35c47ef41268e651cb74b732681c51122d1a3afa5c9",
+  "config_sha256": "45a5d3e94b41c20fe95da9e488cce1f47b13a81f9267e7e35c0c40af96f8aca7",
+  "contract_version": "corrected-v2",
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "max_concurrency": 3,
+  "official_test_accessed": false,
+  "parallel_execution": true,
+  "persistent_derived_data": false,
+  "screening_only": true
+}

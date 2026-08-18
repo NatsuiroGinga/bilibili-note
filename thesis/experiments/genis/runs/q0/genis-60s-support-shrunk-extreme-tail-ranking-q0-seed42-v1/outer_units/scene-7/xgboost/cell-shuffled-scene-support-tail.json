@@ -1,0 +1,92 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cuda:0",
+  "evaluation_unit_index_within_outer_model": 6,
+  "fit_seconds": 2.4117041528224945,
+  "method": "shuffled-scene-support-tail",
+  "metrics": {
+    "average_precision": 0.9985494935602806,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 11.100832562442184,
+    "false_positives": 6,
+    "macro_f1_at_fixed_budget": 0.8551469802891039,
+    "malicious_rows": 4234,
+    "recall_at_fixed_budget": 0.6931979215871517,
+    "standardized_partial_roc_auc": 0.6977217256545644,
+    "threshold": 0.860579252243042,
+    "true_positives": 2935
+  },
+  "model": "xgboost",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "cbdb1cfd01536174f8bb96a0904895860030f845134e2c707d4f85f37c1c42c5",
+    "persisted": false
+  },
+  "outer_test_scene": 7,
+  "peak_rss_gib": 1.8900222778320312,
+  "predict_seconds": 0.004060991108417511,
+  "shared_oof_summary_sha256": "6ab50e330627cbe5c2a3eb87ed168bafa8712a911ec8e3ec2d05c058d60ca16e",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 9639,
+  "train_rows": 353438,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.11077056630211748,
+      "scene_weights": {
+        "1": 1.0004767515564637,
+        "2": 1.0002025718690615,
+        "3": 1.001374818801,
+        "4": 1.0004176837057932,
+        "5": 1.000411213631004,
+        "6": 0.99859545750515,
+        "8": 0.9985215029315286
+      }
+    },
+    "multiplier_sha256": "36a392ac0b7ad20f965714e955458c7beab56e851b15599daec1ee45bb6a2a4e",
+    "multiplier_summary": {
+      "maximum": 4.003781344444768,
+      "mean": 0.9999999999999998,
+      "median": 0.9979412580646064,
+      "minimum": 0.9958695216802372,
+      "q25": 0.9978401293660482,
+      "q75": 0.9988012580443212,
+      "std": 0.04667618047055201
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.27542131402132686,
+    "shuffle_seed": 42,
+    "shuffled_parent_risk": {
+      "authtest": 0.0007169149686020997,
+      "disrupt": 0.0009875607164448006
+    },
+    "shuffled_raw_risk": {
+      "1": 0.0009568777933762582,
+      "2": 0.0008851296722380489,
+      "3": 0.0011791967091842183,
+      "4": 0.0009464238653199161,
+      "5": 0.0009449267470453649,
+      "6": 0.0007454940511846057,
+      "8": 0.0006949138443084811
+    },
+    "shuffled_shrunk_risk": {
+      "1": 0.0009728942113774385,
+      "2": 0.0009363451943414248,
+      "3": 0.001092562692879869,
+      "4": 0.0009650208448336178,
+      "5": 0.0009641584064366095,
+      "6": 0.0007219773294665764,
+      "8": 0.0007121072275120877
+    },
+    "shuffled_support": {
+      "1": 51021,
+      "2": 55717,
+      "3": 67530,
+      "4": 67530,
+      "5": 67800,
+      "6": 11994,
+      "8": 15580
+    }
+  }
+}

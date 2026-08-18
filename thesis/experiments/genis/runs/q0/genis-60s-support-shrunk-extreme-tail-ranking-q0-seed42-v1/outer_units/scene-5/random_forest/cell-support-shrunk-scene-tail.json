@@ -1,0 +1,60 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cpu",
+  "evaluation_unit_index_within_outer_model": 5,
+  "fit_seconds": 46.6691366173327,
+  "method": "support-shrunk-scene-tail",
+  "metrics": {
+    "average_precision": 0.9996999453686726,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 9.250693802035153,
+    "false_positives": 5,
+    "macro_f1_at_fixed_budget": 0.9997501897378982,
+    "malicious_rows": 67800,
+    "recall_at_fixed_budget": 1.0,
+    "standardized_partial_roc_auc": 0.5440218451468659,
+    "threshold": 0.5466666666666666,
+    "true_positives": 67800
+  },
+  "model": "random_forest",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "7ea672bb1d3db5d8add58c32c1fb64cfea404f7ad5251cf87b4f524e944ac272",
+    "persisted": false
+  },
+  "outer_test_scene": 5,
+  "peak_rss_gib": 1.8900222778320312,
+  "predict_seconds": 0.19222131930291653,
+  "shared_oof_summary_sha256": "df8eb8782a7435e3afb260c11daa40c21d76ac9de1d0297e76f225ee38810309",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 73205,
+  "train_rows": 289872,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.11060945837808056,
+      "scene_weights": {
+        "1": 1.0020213266487161,
+        "2": 0.9987587686514742,
+        "3": 0.9960991281939797,
+        "4": 0.99627589950616,
+        "6": 1.0018489806658328,
+        "7": 1.0029888420835347,
+        "8": 1.0020070542503032
+      }
+    },
+    "multiplier_sha256": "35a7a6d2a7b21f7550a5febd3203b9da6d28792b668eb7a242c50e30f2cb570b",
+    "multiplier_summary": {
+      "maximum": 4.014881307138143,
+      "mean": 0.9999999999999998,
+      "median": 0.9985047960033581,
+      "minimum": 0.9958458318612575,
+      "q25": 0.996022558222565,
+      "q75": 1.0017522556012335,
+      "std": 0.043913679132474424
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.27524606743625235
+  }
+}

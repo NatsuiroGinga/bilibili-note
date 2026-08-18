@@ -1,0 +1,11 @@
+{
+  "aggregate_only": true,
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "official_test_accessed": false,
+  "project": "malicious-traffic-llm",
+  "run_name": "GeNIS支持量收缩跨场景极端尾部排序Q0-种子42",
+  "screening_only": true,
+  "uploaded_scalar_count": 281,
+  "workspace": "mortiswang"
+}

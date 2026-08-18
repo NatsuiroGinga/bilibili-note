@@ -1,0 +1,60 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cuda:0",
+  "evaluation_unit_index_within_outer_model": 4,
+  "fit_seconds": 2.3212348334491253,
+  "method": "unshrunk-scene-tail",
+  "metrics": {
+    "average_precision": 0.9985767509213299,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 9.250693802035153,
+    "false_positives": 5,
+    "macro_f1_at_fixed_budget": 0.627433006247876,
+    "malicious_rows": 11994,
+    "recall_at_fixed_budget": 0.4599799899949975,
+    "standardized_partial_roc_auc": 0.558632902973394,
+    "threshold": 0.9307601451873779,
+    "true_positives": 5517
+  },
+  "model": "xgboost",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "cbdb1cfd01536174f8bb96a0904895860030f845134e2c707d4f85f37c1c42c5",
+    "persisted": false
+  },
+  "outer_test_scene": 6,
+  "peak_rss_gib": 1.8554229736328125,
+  "predict_seconds": 0.00744248740375042,
+  "shared_oof_summary_sha256": "1c20f8a01e840b24c17c19bcde7a000320bc22a7193849fa9f693679c16956b8",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 17399,
+  "train_rows": 345678,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.11024744966672045,
+      "scene_weights": {
+        "1": 1.0054582342071892,
+        "2": 0.9977241754631483,
+        "3": 0.9972074387141695,
+        "4": 0.9972484211475402,
+        "5": 0.9972259240756222,
+        "7": 1.003657689177103,
+        "8": 1.001478117215228
+      }
+    },
+    "multiplier_sha256": "a6b51db1c147467bc6043f5487a3bae97849b6a469c628742973ce0d33348648",
+    "multiplier_summary": {
+      "maximum": 4.026373822182808,
+      "mean": 1.0000000000000004,
+      "median": 0.9979055379983323,
+      "minimum": 0.9978466242738968,
+      "q25": 0.9978630150722958,
+      "q75": 0.9984680153939732,
+      "std": 0.023876915225723605
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.2748198308905495
+  }
+}

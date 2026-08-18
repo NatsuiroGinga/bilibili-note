@@ -1,0 +1,64 @@
+{
+  "archive_sha256": "8a56adc70d4400786b774012c69af1d5264d6733986d5a6d5d500e66b57cf246",
+  "duplicate_observation_count": 176030,
+  "duplicate_weighting": "one_stable_key_one_row",
+  "feature_count": 67,
+  "feature_fields_sha256": "d68975ecb92f9625a5758291769edf3da0b49da975ed2f100e96f3aa9aa3ec64",
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "header_sha256": "234d8bbdccf5b11d5459346aa2e3d2102ccccb55b324ae25eb9faf7e45868305",
+  "official_test_accessed": false,
+  "permanently_excluded_fields": [
+    "IdleTime"
+  ],
+  "persistent_derived_data": false,
+  "raw_row_count": 544585,
+  "representative_policy": "每个稳定键选择(observation_sha256,source_member)字典序最小观测",
+  "screening_only": true,
+  "source_rows": {
+    "3-scenarios/scenarios-60-sec/scenario-1-disrupt.csv": {
+      "benign": 25275,
+      "malicious": 51021,
+      "rows": 76296
+    },
+    "3-scenarios/scenarios-60-sec/scenario-2-disrupt.csv": {
+      "benign": 25913,
+      "malicious": 55717,
+      "rows": 81630
+    },
+    "3-scenarios/scenarios-60-sec/scenario-3-disrupt.csv": {
+      "benign": 25271,
+      "malicious": 67530,
+      "rows": 92801
+    },
+    "3-scenarios/scenarios-60-sec/scenario-4-disrupt.csv": {
+      "benign": 25270,
+      "malicious": 67530,
+      "rows": 92800
+    },
+    "3-scenarios/scenarios-60-sec/scenario-5-disrupt.csv": {
+      "benign": 25352,
+      "malicious": 67800,
+      "rows": 93152
+    },
+    "3-scenarios/scenarios-60-sec/scenario-6-authtest.csv": {
+      "benign": 25286,
+      "malicious": 11994,
+      "rows": 37280
+    },
+    "3-scenarios/scenarios-60-sec/scenario-7-authtest.csv": {
+      "benign": 25445,
+      "malicious": 4234,
+      "rows": 29679
+    },
+    "3-scenarios/scenarios-60-sec/scenario-8-authtest.csv": {
+      "benign": 25367,
+      "malicious": 15580,
+      "rows": 40947
+    }
+  },
+  "unique_benign_key_count": 27149,
+  "unique_malicious_key_count": 341406,
+  "unique_stable_key_count": 368555,
+  "variant_observation_count": 62867
+}

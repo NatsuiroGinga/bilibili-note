@@ -1,0 +1,60 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cpu",
+  "evaluation_unit_index_within_outer_model": 5,
+  "fit_seconds": 54.02830949239433,
+  "method": "support-shrunk-scene-tail",
+  "metrics": {
+    "average_precision": 0.9980298829088208,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 9.250693802035153,
+    "false_positives": 5,
+    "macro_f1_at_fixed_budget": 0.7712474615688772,
+    "malicious_rows": 4234,
+    "recall_at_fixed_budget": 0.5354274917335853,
+    "standardized_partial_roc_auc": 0.6537274709952603,
+    "threshold": 0.52,
+    "true_positives": 2267
+  },
+  "model": "random_forest",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "7ea672bb1d3db5d8add58c32c1fb64cfea404f7ad5251cf87b4f524e944ac272",
+    "persisted": false
+  },
+  "outer_test_scene": 7,
+  "peak_rss_gib": 1.9923820495605469,
+  "predict_seconds": 0.08990982733666897,
+  "shared_oof_summary_sha256": "90c892da29cade6e732d5d8d0c7c0eb79b82f1afa2d501ef5b96643f75462726",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 9639,
+  "train_rows": 353438,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.11037613420363707,
+      "scene_weights": {
+        "1": 1.0023052615345616,
+        "2": 0.9993564040810844,
+        "3": 0.9973592057009915,
+        "4": 0.9975079869232047,
+        "5": 0.9973727150116856,
+        "6": 1.0027631426774366,
+        "8": 1.0033352840710346
+      }
+    },
+    "multiplier_sha256": "954655238c42b221486ac412deeba20fabae52146941cace7d9a35575d8d0954",
+    "multiplier_summary": {
+      "maximum": 4.014367650254247,
+      "mean": 1.0,
+      "median": 0.9973722513369823,
+      "minimum": 0.997223490360127,
+      "q25": 0.9972369978325459,
+      "q75": 0.9992204169720772,
+      "std": 0.03481062483986301
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.2750549988083989
+  }
+}

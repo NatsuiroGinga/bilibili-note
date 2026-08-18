@@ -1,0 +1,10 @@
+{
+  "code_sha256": "778201985f418c3eeb59d43d1394a0af5b50e42d3edefd2975e0dcd3784bf5b9",
+  "config_sha256": "590607e6b22e23edf1d3e363cb2f8837cfd2d10b5b36e42c3f533b09f2032adb",
+  "contract_version": "genis-q0-track-a-60s-subcategory13-v1",
+  "data_manifest_sha256": "e8b6125fa0d95d3390607acd1f824eb5fdbc06483fd0f712563d5005be7aff22",
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "schema_version": "genis-support-tail-q0-contract-receipt-v1",
+  "screening_only": true
+}

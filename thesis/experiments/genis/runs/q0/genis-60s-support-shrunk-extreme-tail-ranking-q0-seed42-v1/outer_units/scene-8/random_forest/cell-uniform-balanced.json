@@ -1,0 +1,48 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cpu",
+  "evaluation_unit_index_within_outer_model": 0,
+  "fit_seconds": 49.58188997581601,
+  "method": "uniform-balanced",
+  "metrics": {
+    "average_precision": 0.9994436385271185,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 9.250693802035153,
+    "false_positives": 5,
+    "macro_f1_at_fixed_budget": 0.8628609808036327,
+    "malicious_rows": 15580,
+    "recall_at_fixed_budget": 0.8404364569961489,
+    "standardized_partial_roc_auc": 0.646330107824299,
+    "threshold": 0.5233333333333333,
+    "true_positives": 13094
+  },
+  "model": "random_forest",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "7ea672bb1d3db5d8add58c32c1fb64cfea404f7ad5251cf87b4f524e944ac272",
+    "persisted": false
+  },
+  "outer_test_scene": 8,
+  "peak_rss_gib": 1.9923820495605469,
+  "predict_seconds": 0.13268817402422428,
+  "shared_oof_summary_sha256": "3b4389c32fa3fbf62233d0e6fba94ac4aa7e9ac8ddf093eb5b567a7d1788dd2b",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 20985,
+  "train_rows": 342092,
+  "weight_summary": {
+    "mechanism": "none",
+    "multiplier_sha256": "c4491fb4774ecf9e19699beea1803ac9962137dbc6fdd2d54ca5ae03a6975b72",
+    "multiplier_summary": {
+      "maximum": 1.0,
+      "mean": 1.0,
+      "median": 1.0,
+      "minimum": 1.0,
+      "q25": 1.0,
+      "q75": 1.0,
+      "std": 0.0
+    },
+    "per_sample_weights_persisted": false
+  }
+}

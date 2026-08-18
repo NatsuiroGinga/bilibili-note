@@ -1,0 +1,60 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cuda:0",
+  "evaluation_unit_index_within_outer_model": 4,
+  "fit_seconds": 2.3743768483400345,
+  "method": "unshrunk-scene-tail",
+  "metrics": {
+    "average_precision": 0.999395740575851,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 9.250693802035153,
+    "false_positives": 5,
+    "macro_f1_at_fixed_budget": 0.6854197773825513,
+    "malicious_rows": 15580,
+    "recall_at_fixed_budget": 0.5905006418485238,
+    "standardized_partial_roc_auc": 0.6537203750830586,
+    "threshold": 0.9197822213172913,
+    "true_positives": 9200
+  },
+  "model": "xgboost",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "cbdb1cfd01536174f8bb96a0904895860030f845134e2c707d4f85f37c1c42c5",
+    "persisted": false
+  },
+  "outer_test_scene": 8,
+  "peak_rss_gib": 1.9323997497558594,
+  "predict_seconds": 0.00576874241232872,
+  "shared_oof_summary_sha256": "dbd83b26d308d92315268cd454c6e605789aa3d508c90b9968d8139d63d8f341",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 20985,
+  "train_rows": 342092,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.1107564540669462,
+      "scene_weights": {
+        "1": 1.0126852081467845,
+        "2": 0.9952249413668608,
+        "3": 0.9937681899236196,
+        "4": 0.9938120666146156,
+        "5": 0.9938101739763194,
+        "6": 0.999894172565719,
+        "7": 1.0108052474060814
+      }
+    },
+    "multiplier_sha256": "b32a1ace4c4f2561555d822409cf542e4ef493255a33ddf0ffdad452db631ac2",
+    "multiplier_summary": {
+      "maximum": 4.061072859982672,
+      "mean": 1.0000000000000004,
+      "median": 0.9952741185882048,
+      "minimum": 0.9952040047373666,
+      "q25": 0.9952493211447759,
+      "q75": 0.9969380936631134,
+      "std": 0.0387963133092754
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.2750395019311953
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cuda:0",
+  "evaluation_unit_index_within_outer_model": 5,
+  "fit_seconds": 1.8341947235167027,
+  "method": "support-shrunk-scene-tail",
+  "metrics": {
+    "average_precision": 0.9993839645259395,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 9.250693802035153,
+    "false_positives": 5,
+    "macro_f1_at_fixed_budget": 0.09941393450269051,
+    "malicious_rows": 67530,
+    "recall_at_fixed_budget": 0.02952761735524952,
+    "standardized_partial_roc_auc": 0.5111618521375617,
+    "threshold": 0.8284329175949097,
+    "true_positives": 1994
+  },
+  "model": "xgboost",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "cbdb1cfd01536174f8bb96a0904895860030f845134e2c707d4f85f37c1c42c5",
+    "persisted": false
+  },
+  "outer_test_scene": 4,
+  "peak_rss_gib": 1.8116416931152344,
+  "predict_seconds": 0.015376873314380646,
+  "shared_oof_summary_sha256": "48af330f082c1f79d07618a574b687ffdd0143aaf295c5a7e473735d46fdd2b5",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 72935,
+  "train_rows": 290142,
+  "weight_summary": {
+    "group_tail": {
+      "eta": 0.1253996628343993,
+      "scene_weights": {
+        "1": 1.0212272692516036,
+        "2": 0.9400540425002607,
+        "3": 0.9192904752117146,
+        "5": 0.9197512351091227,
+        "6": 1.053576418342839,
+        "7": 1.0658298217292541,
+        "8": 1.0802707378552054
+      }
+    },
+    "multiplier_sha256": "aa0ff4db151103944054a3cd37290f74395eed5294def8c3a9044245d60ee2a0",
+    "multiplier_summary": {
+      "maximum": 4.49417485633357,
+      "mean": 1.0000000000000002,
+      "median": 0.9530521102832836,
+      "minimum": 0.9323413209284396,
+      "q25": 0.9342509866758141,
+      "q75": 1.042848822579318,
+      "std": 0.17244000405919258
+    },
+    "per_sample_weights_persisted": false,
+    "sample_eta": 0.28362826141331077
+  }
+}

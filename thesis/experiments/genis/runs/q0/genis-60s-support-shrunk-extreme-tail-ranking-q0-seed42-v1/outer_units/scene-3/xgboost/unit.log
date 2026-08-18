@@ -1,0 +1,7 @@
+METHOD_FINISHED scene=3 model=xgboost method=uniform-balanced fit_seconds=2.041 elapsed_seconds=5.944
+METHOD_FINISHED scene=3 model=xgboost method=sample-cvar-tail fit_seconds=2.026 elapsed_seconds=8.022
+METHOD_FINISHED scene=3 model=xgboost method=groupdro-max-scene fit_seconds=2.036 elapsed_seconds=10.106
+METHOD_FINISHED scene=3 model=xgboost method=sagawa-small-group-adjusted fit_seconds=1.565 elapsed_seconds=11.720
+METHOD_FINISHED scene=3 model=xgboost method=unshrunk-scene-tail fit_seconds=1.973 elapsed_seconds=13.740
+METHOD_FINISHED scene=3 model=xgboost method=support-shrunk-scene-tail fit_seconds=2.242 elapsed_seconds=16.027
+METHOD_FINISHED scene=3 model=xgboost method=shuffled-scene-support-tail fit_seconds=1.994 elapsed_seconds=18.073

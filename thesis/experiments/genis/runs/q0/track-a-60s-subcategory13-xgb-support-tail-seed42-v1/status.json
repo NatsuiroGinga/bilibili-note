@@ -1,0 +1,11 @@
+{
+  "failure": "第 1 行含不可解析数值",
+  "failure_type": "GeNISQ0Error",
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "schema_version": "genis-support-tail-q0-status-v1",
+  "screening_only": true,
+  "stage": "prepare",
+  "state": "FAILED",
+  "updated_at_epoch": 1786546967.925882
+}

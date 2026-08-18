@@ -1,0 +1,57 @@
+{
+  "calibration_actual_false_positives": 5,
+  "calibration_allowed_false_positives": 5,
+  "calibration_benign_rows": 5478,
+  "device": "cuda:0",
+  "evaluation_unit_index_within_outer_model": 2,
+  "fit_seconds": 2.2464661691337824,
+  "method": "groupdro-max-scene",
+  "metrics": {
+    "average_precision": 0.9982285488373822,
+    "benign_rows": 5405,
+    "false_alerts_per_10000_benign": 9.250693802035153,
+    "false_positives": 5,
+    "macro_f1_at_fixed_budget": 0.7008834906202661,
+    "malicious_rows": 15580,
+    "recall_at_fixed_budget": 0.6132220795892169,
+    "standardized_partial_roc_auc": 0.5839619835686786,
+    "threshold": 0.9257808923721313,
+    "true_positives": 9554
+  },
+  "model": "xgboost",
+  "model_summary": {
+    "configured_estimators": 300,
+    "parameters_sha256": "cbdb1cfd01536174f8bb96a0904895860030f845134e2c707d4f85f37c1c42c5",
+    "persisted": false
+  },
+  "outer_test_scene": 8,
+  "peak_rss_gib": 1.9323997497558594,
+  "predict_seconds": 0.007154487073421478,
+  "shared_oof_summary_sha256": "dbd83b26d308d92315268cd454c6e605789aa3d508c90b9968d8139d63d8f341",
+  "split_receipt_sha256": "7b2dcdf21f8b4f68f668e20071f3f51790118fa8541273cee149dd4b4926827c",
+  "test_rows": 20985,
+  "train_rows": 342092,
+  "weight_summary": {
+    "multiplier_sha256": "3848a1885c73e4fbeb4ff5f6915e2fb981d2b39acf268fdbfa64a9956494d7b7",
+    "multiplier_summary": {
+      "maximum": 6.386115521059957,
+      "mean": 1.0000000000000004,
+      "median": 0.0,
+      "minimum": 0.0,
+      "q25": 0.0,
+      "q75": 0.0,
+      "std": 2.320800620703975
+    },
+    "per_sample_weights_persisted": false,
+    "selected_scene": 1,
+    "selection_scores": {
+      "1": 0.0025795044589209492,
+      "2": 0.0002575335531827874,
+      "3": 6.258276626143686e-05,
+      "4": 6.845738767197219e-05,
+      "5": 6.820398715366111e-05,
+      "6": 0.0008811143777703348,
+      "7": 0.002330779091004422
+    }
+  }
+}

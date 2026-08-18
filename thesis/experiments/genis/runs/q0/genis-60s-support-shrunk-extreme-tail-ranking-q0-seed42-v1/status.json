@@ -1,0 +1,13 @@
+{
+  "candidate_advanced": false,
+  "completed_evaluation_units": 112,
+  "final_accessed": false,
+  "formal_paper_evidence": false,
+  "official_test_accessed": false,
+  "schema_version": "genis-support-shrunk-tail-ranking-q0-status-v1",
+  "screening_only": true,
+  "stage": "support-shrunk-tail-ranking-q0-complete",
+  "state": "FINISHED",
+  "total_evaluation_units": 112,
+  "updated_at_epoch": 1786566277.8609605
+}
