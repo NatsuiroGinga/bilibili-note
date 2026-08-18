@@ -1,0 +1,110 @@
+{
+  "schema_version": "ch4-xgb-dtep-fixed-dyadic-q0-v1",
+  "run_id": "ch4-xgb-dtep-fixed-dyadic-q0-seed42-v1",
+  "seed": 42,
+  "screening_only": true,
+  "formal": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "parent_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+  "parent_eval_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
+  "parent_bucket_run_id": "ch4-xgb-long-entity-bucket-diagnostic-seed42-v1",
+  "cells": {
+    "Q00": {
+      "display_name": "XGBoost 块内长证据对照",
+      "view": "semantic168",
+      "input_dim": 168,
+      "power_mean_p": 1.0
+    },
+    "Q10": {
+      "display_name": "XGBoost 块内长证据＋固定二进近期混合",
+      "view": "fixed_dyadic251",
+      "input_dim": 251,
+      "power_mean_p": 1.0
+    }
+  },
+  "sequence_length": 128,
+  "complete_dyadic_scales": [1, 2, 4, 8, 16, 32, 64, 128],
+  "recent_scales": [2, 4, 8, 16, 32, 64],
+  "recent_scale_weights": [0.16666666666666666, 0.16666666666666666, 0.16666666666666666, 0.16666666666666666, 0.16666666666666666, 0.16666666666666666],
+  "recent_channel_dim": 83,
+  "n_fold": 3,
+  "num_boost_round": 800,
+  "xgb_params": {
+    "tree_method": "hist",
+    "device": "cuda",
+    "max_depth": 8,
+    "eta": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "lambda": 1.0,
+    "max_bin": 256,
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "seed": 42,
+    "nthread": 32
+  },
+  "effective_config_float_compare": {
+    "rel_tol": 1e-7,
+    "abs_tol": 1e-12
+  },
+  "source_gate": {
+    "fold_delta_operator": ">",
+    "fold_delta_threshold": 0.0,
+    "pooled_delta_operator": ">",
+    "pooled_delta_threshold": 0.0,
+    "reuse_parent_q00_metrics": false,
+    "q00_metric_source": "same_run_retrain_due_parent_data_hash_unavailable",
+    "train_same_run_q00_efficiency_reference": true
+  },
+  "target_fpr_grid": [0.01, 0.02, 0.04],
+  "entity_flow_count_buckets": [
+    {"name": "1-2", "lower": 1, "upper": 2},
+    {"name": "3-10", "lower": 3, "upper": 10},
+    {"name": "11-100", "lower": 11, "upper": 100},
+    {"name": "101-1000", "lower": 101, "upper": 1000},
+    {"name": "1001+", "lower": 1001, "upper": null}
+  ],
+  "target_gate": {
+    "overall_ap_min_delta": 0.0,
+    "long_bucket_strict_min_delta": 0.0,
+    "short_bucket_min_delta": -0.01,
+    "combined_short_min_delta": 0.0,
+    "dr_0.01_min_delta": -0.01,
+    "dr_0.02_min_delta": -0.01,
+    "dr_0.04_min_delta": 0.0,
+    "minimum_nonnegative_dr_points": 2
+  },
+  "efficiency_gate": {
+    "max_q10_to_q00_ratio": 2.0,
+    "max_host_peak_gib": 65.0,
+    "max_gpu_peak_gib": 24.0,
+    "max_recent_state_flows": 64,
+    "require_same_device": true,
+    "require_same_batch": true,
+    "require_same_prediction_backend": true
+  },
+  "predict_batch": 1000000,
+  "dmatrix_batch": 500000,
+  "sequence_batch": 1024,
+  "gpu_need_gib": 20.0,
+  "gpu_floor_gib": 10.0,
+  "estimated_peak_host_gib": 58.2,
+  "estimated_peak_gpu_gib": 18.0,
+  "artifact_policy": {
+    "persist_source_q10_models": true,
+    "persist_aggregate_json": true,
+    "persist_status_log_manifest_resource": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_derived_matrices": false,
+    "persist_bucket_membership": false,
+    "persist_target_models": false
+  },
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  }
+}
