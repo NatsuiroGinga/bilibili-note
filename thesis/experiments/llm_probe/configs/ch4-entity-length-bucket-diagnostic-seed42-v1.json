@@ -1,0 +1,94 @@
+{
+  "schema_version": "ch4-entity-length-bucket-diagnostic-config-v1",
+  "run_id": "ch4-entity-length-bucket-diagnostic-seed42-v1",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "lspr23_zip": "/root/autodl-tmp/thesis/experiments/llm_probe/data/raw/lspr23-v1/ls23pr_flows.zip",
+    "lspr24_schema_parquet": "/root/autodl-tmp/thesis/experiments/llm_probe/data/raw/lspr24-v1/lspr24_v2.parquet",
+    "frozen_results_json": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full/ch3_full_results.json",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-entity-length-bucket-diagnostic-seed42-v1"
+  },
+  "required_dependency_versions": {
+    "safetensors": "0.8.0"
+  },
+  "excluded_feature_columns": [
+    "Flow ID",
+    "SrcIP",
+    "DstIP",
+    "mTimestampStart",
+    "mTimestampLast",
+    "SigID revision",
+    "Category",
+    "Severity",
+    "Anomaly_event",
+    "Conn_state",
+    "Service",
+    "Segment_src",
+    "Segment_dst",
+    "Expoid_src",
+    "Expoid_dst",
+    "Label_src",
+    "Label_dst",
+    "Label"
+  ],
+  "seed": 42,
+  "hidden_size": 192,
+  "sequence_length": 128,
+  "batch_size": 64,
+  "learning_rate": 0.002,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "training_steps": 20000,
+  "snapshot_interval_steps": 1000,
+  "averaged_snapshot_count": 5,
+  "auxiliary_loss_weight": 1.0,
+  "target_fpr": 0.04,
+  "global_metric_absolute_tolerance": 0.001,
+  "normalization_sample_absolute_tolerance": 0.00001,
+  "normalization_sample_indices": [
+    0,
+    1,
+    2,
+    127,
+    128,
+    1024,
+    100000,
+    1000000,
+    16000000
+  ],
+  "entity_length_buckets": [
+    {
+      "name": "1-2",
+      "minimum": 1,
+      "maximum": 2
+    },
+    {
+      "name": "3-10",
+      "minimum": 3,
+      "maximum": 10
+    },
+    {
+      "name": "11-100",
+      "minimum": 11,
+      "maximum": 100
+    },
+    {
+      "name": "101-1000",
+      "minimum": 101,
+      "maximum": 1000
+    },
+    {
+      "name": "1001+",
+      "minimum": 1001,
+      "maximum": null
+    }
+  ],
+  "underpowered_positive_entity_threshold": 20,
+  "estimated_peak_gpu_memory_gib": 16,
+  "estimated_peak_cpu_memory_gib": 32,
+  "estimated_wall_clock_minutes": 20,
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "persist_per_flow_scores": false
+}

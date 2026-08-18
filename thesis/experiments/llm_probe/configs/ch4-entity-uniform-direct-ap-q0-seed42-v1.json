@@ -1,0 +1,120 @@
+{
+  "schema_version": "ch4-entity-uniform-direct-ap-q0-config-v1",
+  "run_id": "ch4-entity-uniform-direct-ap-q0-seed42-v1-rerun2",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "lspr23_zip": "/root/autodl-tmp/thesis/experiments/llm_probe/data/raw/lspr23-v1/ls23pr_flows.zip",
+    "lspr23_zip_member": "ls23pr_v1.csv",
+    "archived_c11_checkpoint": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-entity-length-bucket-diagnostic-seed42-v1/model_package/checkpoints/C11/step-20000.safetensors",
+    "diagnostic_results": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-entity-length-bucket-diagnostic-seed42-v1/aggregate-results.json",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/ch4-entity-uniform-direct-ap-q0-seed42-v1-rerun2"
+  },
+  "input_contract": {
+    "lspr23_zip_sha256": "4c39f29a2e99ec58f6c167863d49d944ab5e46dc78a28afe78cc57ba85cd2885",
+    "lspr23_zip_bytes": 1925103715,
+    "lspr23_csv_uncompressed_bytes": 10588252004,
+    "lspr23_flow_count": 16353511,
+    "lspr23_entity_count": 150680,
+    "lspr23_positive_entity_count": 239,
+    "lspr24_flow_count": 20227356,
+    "lspr24_entity_count": 47115,
+    "lspr24_positive_entity_count": 752,
+    "source_columns": ["SrcIP", "DstIP", "Label"],
+    "entity_definition": "unordered-2-ip"
+  },
+  "required_dependency_versions": {
+    "safetensors": "0.8.0"
+  },
+  "seed": 42,
+  "feature_count": 83,
+  "hidden_size": 192,
+  "dropout": 0.1,
+  "parameter_count": 90242,
+  "sequence_length": 128,
+  "entity_batch_size": 64,
+  "positive_entities_per_batch": 32,
+  "negative_entities_per_batch": 32,
+  "entity_flow_budget": 128,
+  "physical_entity_microbatch": 8,
+  "training_steps": 20000,
+  "snapshot_steps": [16000, 17000, 18000, 19000, 20000],
+  "learning_rate": 0.002,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "flow_positive_weight": 8.9438,
+  "entity_positive_weight": 19.8687,
+  "auxiliary_loss_weight": 1.0,
+  "soap": {
+    "moving_rate": 0.9,
+    "margin": 1.0,
+    "denominator_floor": 0.000001,
+    "loss_weight": 1.0,
+    "zero_gradient_failure_steps": 100,
+    "denominator_floor_failure_fraction": 0.05
+  },
+  "lp_gate": {
+    "p_values": [0.5, 1.0, 1.223554, 2.0],
+    "k_values": [32, 64, 128],
+    "repetitions": 32,
+    "queue_size": 64,
+    "positive_count": 32,
+    "negative_count": 32,
+    "spearman_median_minimum": 0.98,
+    "spearman_minimum": 0.95,
+    "entity_ap_max_absolute_difference": 0.01,
+    "score_absolute_error_p95_maximum": 0.02,
+    "gradient_cosine_median_minimum": 0.95,
+    "gradient_cosine_minimum": 0.9,
+    "gradient_relative_l2_median_maximum": 0.15,
+    "independent_bag_cosine_median_minimum": 0.95,
+    "k_monotonic_slack": 0.01
+  },
+  "entity_length_buckets": [
+    {"name": "1-2", "minimum": 1, "maximum": 2},
+    {"name": "3-10", "minimum": 3, "maximum": 10},
+    {"name": "11-100", "minimum": 11, "maximum": 100},
+    {"name": "101-1000", "minimum": 101, "maximum": 1000},
+    {"name": "1001+", "minimum": 1001, "maximum": null}
+  ],
+  "target_fpr": 0.04,
+  "historical_c11_entity_ap": 0.462988,
+  "historical_reproduction_tolerance": 0.02,
+  "xgboost_n1_entity_ap_anchor": 0.523326,
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch4-entity-uniform-direct-ap-q0-seed42-v1-rerun2",
+    "mode": "cloud",
+    "tags": ["chapter4", "entity-ap", "q0", "seed42", "strict-2x2", "rerun2"],
+    "lifecycle": "independent-process-per-cell-and-aggregate",
+    "orchestrator_imports_swanlab": false,
+    "preinit_commands": ["swanlab ping", "swanlab verify"],
+    "init_401_retry": {
+      "maximum_retries": 1,
+      "requires_new_process": true
+    }
+  },
+  "failed_run_provenance": {
+    "run_id": "ch4-entity-uniform-direct-ap-q0-seed42-v1-rerun1",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/ch4-entity-uniform-direct-ap-q0-seed42-v1-rerun1",
+    "failure_state": "TRAINING_FAILED_M0R1",
+    "actual_failure_stage": "training-M0R1-soap-state-index",
+    "completed_cells": ["M0R0", "M1R0"],
+    "target_labels_read": false,
+    "reuse_artifacts": false,
+    "reuse_blocked_reason": "rerun1 缺少四格完成汇总、选择封存与目标评估，不能满足完整恢复合同"
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_gib": 18,
+    "minimum_admitted_host_memory_gib": 40,
+    "estimated_peak_rss_gib": 36,
+    "estimated_single_cell_minutes_minimum": 30,
+    "estimated_single_cell_minutes_maximum": 45
+  },
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "persist_per_flow_scores": false,
+  "automatic_mixed_precision": false,
+  "hyperparameter_search_count": 0
+}

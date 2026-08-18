@@ -1,0 +1,168 @@
+{
+  "schema_version": "genis-inmemory-baseline-qualification-config-v1",
+  "contract_version": "genis-60s-trainonly-inmemory-qualification-v1",
+  "run_id": "genis-60s-trainonly-inmemory-baseline-qualification-seed42-v1",
+  "seed": 42,
+  "data": {
+    "version": "GeNIS-v1.0.0",
+    "archive_path": "/root/autodl-tmp/thesis/raw/datasets/GeNIS-2025/4-preprocessed.zip",
+    "archive_bytes": 599956349,
+    "archive_sha256": "50c696a8ccbc4320a559711d58092e1f5552e6971725eeb208cd2398e6cf7db8",
+    "allowed_member": "4-preprocessed/genis-60-sec-train.csv",
+    "member_sha256": "8768f8557635b337797cc4ba1da76d51ab257436212ac036320397eb7c6a47d3",
+    "forbidden_members": [
+      "4-preprocessed/genis-60-sec-test.csv",
+      "4-preprocessed/genis-5-sec-train.csv",
+      "4-preprocessed/genis-5-sec-test.csv",
+      "4-preprocessed/genis-10-sec-train.csv",
+      "4-preprocessed/genis-10-sec-test.csv",
+      "4-preprocessed/genis-30-sec-train.csv",
+      "4-preprocessed/genis-30-sec-test.csv"
+    ],
+    "expected_rows": 294844,
+    "expected_columns": 87,
+    "header_sha256": "df7635c0133b9dd81555ec56a842231b26f00ebc0753b9b73e198fc48cdf6477",
+    "ordered_fields_sha256": "69677552483994dcbf884086f529f14d6f8b243c71b8da2d8c31651a8617c308",
+    "label_columns": [
+      "BinaryLabel",
+      "CategoryLabel",
+      "SubCategoryLabel"
+    ],
+    "class_order": [
+      "benign-admin",
+      "benign-background",
+      "benign-user",
+      "bruteforce-ftp",
+      "bruteforce-smb",
+      "bruteforce-ssh",
+      "dos-hulk",
+      "dos-icmp",
+      "dos-pushack",
+      "dos-slowloris",
+      "dos-udp",
+      "recon-dns",
+      "recon-nmap"
+    ]
+  },
+  "feature_budgets": {
+    "paper84-v1": {
+      "fields": [
+        "Dport", "SynAck", "Seq", "Max", "sHops", "TcpRtt", "DIntPktMin", "Mean",
+        "DstPkts", "DstTCPBase", "sTtl", "Sport", "TotBytes", "DIntPktAct", "DstLoss",
+        "SrcWin", "SAppBytes", "Rate", "DstBytes", "SrcPkts", "Min", "DstRate", "AckDat",
+        "sMaxPktSz", "SIntPktMax", "Loss", "DIntPkt", "SrcLoad", "SrcRate", "DIntPktMax",
+        "SrcBytes", "TotAppByte", "sMinPktSz", "Sum", "SIntPktMin", "sTos", "dMeanPktSz",
+        "TotPkts", "SIntPkt", "DAppBytes", "SIntPktAct", "PCRatio", "DstWin", "dMinPktSz",
+        "SrcJitAct", "Offset", "dMaxPktSz", "sMeanPktSz", "DstJitter", "pLoss", "SrcJitter",
+        "Dur", "Load", "Ssaddr", "RunTime", "Sdaddr", "DstJitAct", "SIntPktIdl", "SrcLoss",
+        "DstLoad", "SrcTCPBase", "Proto_arp", "Proto_icmp", "Proto_ipv6-icmp", "Proto_tcp",
+        "Proto_udp", "Flgs_e", "Flgs_e *", "Flgs_e d", "Flgs_e g", "Flgs_e r", "Flgs_e s",
+        "Flgs_eU", "State_CLO", "State_CON", "State_ECO", "State_FIN", "State_INT", "State_NRS",
+        "State_REQ", "State_RST", "State_TST", "State_URH", "State_URHPRO"
+      ]
+    },
+    "safe76-v1": {
+      "excluded": [
+        "Dport", "Sport", "Seq", "DstTCPBase", "SrcTCPBase", "Offset", "Ssaddr", "Sdaddr"
+      ]
+    }
+  },
+  "boolean_one_hot_fields": [
+    "Proto_arp", "Proto_icmp", "Proto_ipv6-icmp", "Proto_tcp", "Proto_udp", "Flgs_e",
+    "Flgs_e *", "Flgs_e d", "Flgs_e g", "Flgs_e r", "Flgs_e s", "Flgs_eU", "State_CLO",
+    "State_CON", "State_ECO", "State_FIN", "State_INT", "State_NRS", "State_REQ", "State_RST",
+    "State_TST", "State_URH", "State_URHPRO"
+  ],
+  "splits": {
+    "fold_count": 5,
+    "row_stratified": {
+      "id": "row-stratified-5fold-v1",
+      "hash_domain": "genis-row-cv-v1"
+    },
+    "observation_grouped": {
+      "id": "observation-hash-grouped-5fold-v1",
+      "hash_domain": "genis-group-cv-v1",
+      "required_intersection": 0
+    }
+  },
+  "models": {
+    "xgboost": {
+      "n_estimators": 300,
+      "max_depth": 8,
+      "learning_rate": 0.1,
+      "subsample": 1.0,
+      "colsample_bytree": 0.9,
+      "min_child_weight": 1,
+      "reg_lambda": 1.0,
+      "tree_method": "hist",
+      "device": "cuda",
+      "nthread": 8
+    },
+    "random_forest": {
+      "n_estimators": 300,
+      "max_depth": null,
+      "max_features": "sqrt",
+      "min_samples_leaf": 1,
+      "bootstrap": true,
+      "class_weight": null,
+      "n_jobs": 8
+    }
+  },
+  "metrics": {
+    "alert_fpr": 0.005,
+    "minimum_supported_class_rows": 20,
+    "labels": 13
+  },
+  "gates": {
+    "strong_baseline_macro_f1": 0.97,
+    "material_field_delta": 0.01,
+    "material_row_split_delta": 0.01
+  },
+  "runtime": {
+    "progress_rows": 50000,
+    "heartbeat_seconds": 60,
+    "estimated_peak_memory_gib": 8,
+    "minimum_free_disk_gib": 10,
+    "maximum_concurrent_cells": 1,
+    "fit_count": 40,
+    "estimated_wall_minutes": {
+      "minimum": 20,
+      "maximum": 60
+    },
+    "estimated_state": {
+      "paper84_matrix_bytes": 99067584,
+      "safe76_is_column_index_view": true,
+      "observation_hash_bytes": 9435008,
+      "fold_vector_bytes": 294844,
+      "maximum_python_group_keys": 294844,
+      "maximum_history_per_group": 1,
+      "temporary_disk_gib": 2,
+      "total_io_gib_estimate": 5
+    }
+  },
+  "paths": {
+    "run_root": "../genis/runs/baselines/genis-60s-trainonly-inmemory-baseline-qualification-seed42-v1"
+  },
+  "evidence": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "official_test_accessed": false,
+    "final_accessed": false
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "mode": "online",
+    "run_name": "GeNIS60秒训练成员内无物化强基线资格矩阵-种子42",
+    "allowed_upload_fields": [
+      "macro_f1", "weighted_f1", "macro_recall", "min_supported_class_f1",
+      "malicious_pr_auc", "recall_at_fpr_0.005", "fpr_at_threshold",
+      "false_alerts_per_10000_benign", "fit_seconds", "predict_seconds",
+      "peak_rss_gib"
+    ],
+    "forbidden_uploads": [
+      "per_sample_probability", "labels", "observation_hashes", "file_paths",
+      "credentials", "models"
+    ]
+  }
+}

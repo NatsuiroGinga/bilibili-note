@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+set timeout -1
+if {$argc != 2} {
+    puts stderr "用法：gpu-rsync-pull.exp <服务器路径> <本机路径>"
+    exit 2
+}
+set remote_path [lindex $argv 0]
+set local_path [lindex $argv 1]
+set ssh_command [split $env(GPU_SSH) " "]
+set remote_host [lindex $ssh_command end]
+set remote_shell [join [lrange $ssh_command 0 end-1] " "]
+spawn rsync -rtv --partial --progress -e $remote_shell \
+    "$remote_host:$remote_path" $local_path
+expect {
+    -re {(?i)are you sure you want to continue connecting} {
+        send -- "yes\r"
+        exp_continue
+    }
+    -re {(?i)password:} {
+        send -- "$env(GPU_PWD)\r"
+        exp_continue
+    }
+    eof
+}
+set wait_result [wait]
+exit [lindex $wait_result 3]

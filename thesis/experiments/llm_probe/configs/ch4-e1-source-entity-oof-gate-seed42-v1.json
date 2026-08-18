@@ -1,0 +1,82 @@
+{
+  "schema_version": "ch4-e1-source-entity-oof-gate-config-v1",
+  "run_id": "ch4-e1-source-entity-oof-gate-seed42-v1",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-e1-source-entity-oof-gate-seed42-v1"
+  },
+  "input_contract": {
+    "allowed_arrays": ["X23", "y23", "I23", "M23", "E23"],
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "positive_entity_count": 239,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "entity_code_minimum": 0,
+    "entity_code_maximum": 150679
+  },
+  "fold_contract": {
+    "count": 3,
+    "assignment": "seeded-stratified-entity-round-robin",
+    "map_to_sequences_via": "E23",
+    "map_to_flows_via": ["I23", "M23"],
+    "require_each_entity_once_oof": true,
+    "require_train_holdout_entity_disjoint": true
+  },
+  "cells": {
+    "C00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "C11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "training": {
+    "seed": 42,
+    "hidden_size": 192,
+    "dropout": 0.1,
+    "parameter_count": 90242,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.002,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "selection_metric": "holdout_flow_average_precision",
+    "selection_rule": "single_epoch_argmax_earliest_tie"
+  },
+  "evaluation": {
+    "c00_entity_aggregation": "maximum",
+    "c11_entity_aggregation": "fold_learned_p",
+    "p_diagnostic_grid": [0.5, 1.0, 2.0, 4.0, 8.0],
+    "saturation_threshold": 0.995,
+    "decision_rule": "saturated_else_delta_pooled_gt_fold_delta_range_else_weak"
+  },
+  "artifact_policy": {
+    "persist_selected_checkpoint_per_cell_fold": true,
+    "persist_inflight_epoch_checkpoint": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false,
+    "aggregate_tracking_only": true
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch4-e1-source-entity-oof-gate-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter4", "source-oof", "entity-fold", "seed42", "screening"]
+  },
+  "resource_contract": {
+    "serial_minimum_free_gpu_memory_gib": 10,
+    "serial_minimum_cgroup_available_memory_gib": 40,
+    "parallel_minimum_free_gpu_memory_gib": 24,
+    "parallel_minimum_cgroup_available_memory_gib": 65,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_training_units": 2,
+    "adaptive_parallelism": true,
+    "parallelism_policy": "parallel_2_if_gpu_ge_24_gib_and_cgroup_available_ge_65_gib_else_serial_1_if_gpu_ge_10_gib_and_cgroup_available_ge_40_gib_else_block"
+  },
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "target_year_arrays_read": 0
+}

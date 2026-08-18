@@ -1,0 +1,102 @@
+{
+  "schema_version": "genis-corrected-track-b-config-v2",
+  "contract_version": "corrected-v2",
+  "run_id": "genis-60s-same-source-stable-key-corrected-v2-parallel-baselines-seed42",
+  "seed": 42,
+  "data": {
+    "scenarios_archive": {
+      "path": "/root/autodl-tmp/thesis/raw/datasets/GeNIS-2025/3-scenarios.zip",
+      "bytes": 491738368,
+      "sha256": "8a56adc70d4400786b774012c69af1d5264d6733986d5a6d5d500e66b57cf246"
+    },
+    "scenario_members": {
+      "1": "3-scenarios/scenarios-60-sec/scenario-1-disrupt.csv",
+      "2": "3-scenarios/scenarios-60-sec/scenario-2-disrupt.csv",
+      "3": "3-scenarios/scenarios-60-sec/scenario-3-disrupt.csv",
+      "4": "3-scenarios/scenarios-60-sec/scenario-4-disrupt.csv",
+      "5": "3-scenarios/scenarios-60-sec/scenario-5-disrupt.csv",
+      "6": "3-scenarios/scenarios-60-sec/scenario-6-authtest.csv",
+      "7": "3-scenarios/scenarios-60-sec/scenario-7-authtest.csv",
+      "8": "3-scenarios/scenarios-60-sec/scenario-8-authtest.csv"
+    }
+  },
+  "feature_gate": {
+    "scope": "每个外层折仅使用训练良性分区和其余七个恶意场景",
+    "metric": "directionless_roc_auc",
+    "block_auc_gte": 0.98,
+    "on_block": "fail_before_training_without_field_removal"
+  },
+  "feature_budget": {
+    "id": "corrected-causal-core67-v2",
+    "fields": [
+      "Dur", "RunTime", "Mean", "StdDev", "Sum", "Min", "Max",
+      "NStrok", "sNStrok", "dNStrok", "TotPkts", "SrcPkts", "DstPkts",
+      "TotBytes", "SrcBytes", "DstBytes", "TotAppByte", "SAppBytes", "DAppBytes",
+      "PCRatio", "Load", "SrcLoad", "DstLoad", "Loss", "SrcLoss", "DstLoss",
+      "pLoss", "Retrans", "SrcRetra", "DstRetra", "pRetran", "SrcGap", "DstGap",
+      "Rate", "SrcRate", "DstRate", "SIntPkt", "SIntPktMin", "SIntPktMax",
+      "SIntDist", "SIntPktAct", "SIntActDist", "SIntPktIdl", "SIntIdlDist",
+      "DIntPkt", "DIntPktMin", "DIntPktMax", "DIntDist", "DIntPktAct",
+      "DIntActDist", "DIntPktIdl", "DIntIdlDist", "SrcJitter", "SrcJitAct",
+      "DstJitter", "DstJitAct", "SrcWin", "DstWin", "TcpRtt", "SynAck", "AckDat",
+      "sMeanPktSz", "dMeanPktSz", "sMaxPktSz", "dMaxPktSz", "sMinPktSz", "dMinPktSz"
+    ],
+    "permanently_excluded_fields": ["IdleTime"]
+  },
+  "partition": {
+    "hash_domain": "genis-corrected-v2-benign-split",
+    "modulo": 10,
+    "train_buckets": [0, 1, 2, 3, 4, 5],
+    "calibration_buckets": [6, 7],
+    "test_buckets": [8, 9],
+    "representative_policy": "每个稳定键选择(observation_sha256,source_member)字典序最小观测"
+  },
+  "parallel": {
+    "enabled": true,
+    "max_concurrency": 3,
+    "total_unit_count": 16,
+    "total_cpu_thread_budget": 16,
+    "unit_identity": "outer_scene_x_model",
+    "stable_result_order": ["outer_test_scene", "model"]
+  },
+  "models": {
+    "xgboost": {
+      "n_estimators": 300,
+      "max_depth": 8,
+      "learning_rate": 0.1,
+      "subsample": 1.0,
+      "colsample_bytree": 0.9,
+      "min_child_weight": 1,
+      "reg_lambda": 1.0,
+      "nthread": 8
+    },
+    "random_forest": {
+      "n_estimators": 300,
+      "max_depth": null,
+      "max_features": "sqrt",
+      "min_samples_leaf": 1,
+      "n_jobs": 4
+    }
+  },
+  "evaluation": {
+    "outer_scene_count": 8,
+    "budget_fp_per_10000": 10,
+    "threshold_source": "calibration_benign_only",
+    "test_attack_source": "outer_held_scene",
+    "test_benign_source": "same_archive_hash_test_partition"
+  },
+  "paths": {
+    "run_root": "../genis/runs/baselines/genis-60s-same-source-stable-key-corrected-v2-parallel-baselines-seed42"
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "run_name": "GeNIS同源稳定键隔离corrected-v2并行强基线-种子42"
+  },
+  "evidence": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "official_test_accessed": false,
+    "final_accessed": false
+  }
+}

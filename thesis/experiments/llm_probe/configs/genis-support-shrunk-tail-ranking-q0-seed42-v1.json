@@ -1,0 +1,71 @@
+{
+  "schema_version": "genis-support-shrunk-tail-ranking-q0-config-v1",
+  "contract_version": "support-shrunk-tail-ranking-q0-v1",
+  "run_id": "genis-60s-support-shrunk-extreme-tail-ranking-q0-seed42-v1",
+  "seed": 42,
+  "corrected_v2": {
+    "module_path": "src/flow_probe/genis_scenario_holdout_corrected_v2.py",
+    "module_sha256": "e734f78c87d515eea53ad35c47ef41268e651cb74b732681c51122d1a3afa5c9",
+    "config_path": "configs/genis-scenario-holdout-corrected-v2-parallel-seed42.json",
+    "config_sha256": "45a5d3e94b41c20fe95da9e488cce1f47b13a81f9267e7e35c0c40af96f8aca7"
+  },
+  "oof": {
+    "fold_count": 2,
+    "hash_domain": "genis-support-shrunk-tail-ranking-q0-oof-v1",
+    "stable_key_atomic": true,
+    "sharing_scope": "outer_scene_x_model_all_seven_methods",
+    "fit_policy": "每折使用另一折的训练良性和全部七个训练可见攻击场景拟合"
+  },
+  "tail": {
+    "benign_logit_quantile": 0.999,
+    "probability_clip": 1e-06,
+    "tau_score": 1.0,
+    "alpha_group": 0.25,
+    "tau_group": 0.1,
+    "alpha_sample": 0.25,
+    "tau_sample": 0.25,
+    "support_lambda": "median_visible_scene_support",
+    "scene_prior": "uniform"
+  },
+  "methods": [
+    "uniform-balanced",
+    "sample-cvar-tail",
+    "groupdro-max-scene",
+    "sagawa-small-group-adjusted",
+    "unshrunk-scene-tail",
+    "support-shrunk-scene-tail",
+    "shuffled-scene-support-tail"
+  ],
+  "parallel": {
+    "enabled": true,
+    "max_outer_concurrency": 2,
+    "max_xgboost_concurrency": 1,
+    "random_forest_n_jobs": 4,
+    "total_evaluation_units": 112,
+    "unit_identity": "method_x_model_x_outer_scene",
+    "unrelated_gpu_processes_allowed": true,
+    "memory_admission_gate": false
+  },
+  "evaluation": {
+    "outer_scene_count": 8,
+    "budget_fp_per_10000": 10,
+    "partial_auc_max_fpr": 0.001,
+    "threshold_source": "calibration_benign_only",
+    "test_attack_source": "outer_held_scene",
+    "test_benign_source": "corrected_v2_same_archive_hash_test_partition"
+  },
+  "paths": {
+    "run_root": "../genis/runs/q0/genis-60s-support-shrunk-extreme-tail-ranking-q0-seed42-v1"
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "run_name": "GeNIS支持量收缩跨场景极端尾部排序Q0-种子42"
+  },
+  "evidence": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "official_test_accessed": false,
+    "final_accessed": false
+  }
+}

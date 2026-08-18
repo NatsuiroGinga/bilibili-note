@@ -1,0 +1,56 @@
+{
+  "run_name": "crossyear-entity-level-eval-q0-seed42-v1",
+  "display_name": "跨年度实体级评价与决策层适应-Q0筛选",
+  "research_route": "RWKV",
+  "contract": ".Codex/docs/RWKV/candidates/任务方案册-跨年度实体级评价与决策层适应.md",
+  "plan": ".Codex/docs/RWKV/2026-08-12-跨年度实体级评价Q0实施计划.md",
+  "dataset_root": "runs/data-prepared/lspr23-lspr24-bounded-quick-q0-v1",
+  "output_root": "runs/candidates/crossyear-entity-level-eval-q0-seed42-v1",
+  "training_role": "source-train",
+  "calibration_role": "target-prefix",
+  "evaluation_role": "target-development",
+  "forbidden_role": "LSPR24 最后 20% 最终封存区（本运行不得读取、计数或哈希）",
+  "entity_key": {
+    "name": "group_key_ref_2ip_undirected_keyed",
+    "column": "group_key_ref",
+    "preferred_alternative_not_available": "源 IP 未进入冻结有界缓存",
+    "used_for": "分组、聚合、分簇自助与实体标签统计",
+    "never_used_for": "特征、编码、计数、分桶、阈值选择"
+  },
+  "features": {
+    "definition": "x_value(77)+x_missing(77)+log1p(max(delta_t_us,0))",
+    "dimension": 155,
+    "note": "与共享 XGBoost 锚 runs/baselines/lspr-crossyear-tabular-q0-seed42-v2 完全一致"
+  },
+  "b0_xgboost": {
+    "learning_rate": 0.05,
+    "max_depth": 8,
+    "n_estimators": 800,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_lambda": 1.0,
+    "min_child_weight": 1.0,
+    "max_bin": 256,
+    "objective": "binary:logistic",
+    "tree_method": "hist",
+    "source": "Dijk 2026 SSRN 6597680 第 5.6 节（PDF 第 24 页）"
+  },
+  "preregistered": {
+    "alignment_gate": {"flow_ap_target": 0.2416, "tolerance": 0.05},
+    "main_gate": {"entity_fpr_max": 0.04, "entity_recall_pass": 0.50, "entity_recall_reject": 0.20},
+    "aggregation_n": [1, 5, 10, 100],
+    "seeds": [42, 43, 44],
+    "bootstrap": {"unit": "entity", "paired": true, "n": 1000},
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "final_accessed": false
+  },
+  "memory_admission": {
+    "estimated_peak_gib": 8,
+    "rationale": "三个角色共同输入合计约 0.41 GiB，XGBoost DMatrix 与预测缓冲约 0.4 GiB，其余为 Arrow 批次瞬时占用；按 20 倍冗余申报"
+  },
+  "swanlab": {
+    "enabled": false,
+    "reason": "本轮用户未授权 SwanLab 目的地；按 llm_probe 局部规则不得在未确认工作区与项目名时上报"
+  }
+}

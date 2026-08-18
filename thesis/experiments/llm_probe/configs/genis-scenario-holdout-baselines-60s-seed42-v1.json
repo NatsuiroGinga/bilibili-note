@@ -1,0 +1,88 @@
+{
+  "schema_version": "genis-scenario-holdout-baseline-config-v1",
+  "contract_version": "attack_scenario_holdout_with_disjoint_benign_pool_v1",
+  "run_id": "genis-60s-scenario-holdout-safe-core-baselines-seed42-v1",
+  "seed": 42,
+  "data": {
+    "flows_archive": {
+      "path": "/root/autodl-tmp/thesis/raw/datasets/GeNIS-2025/2-flows.zip",
+      "bytes": 380755720,
+      "sha256": "72033b5e3df6e45cda9a339985194d8232c437c243a5037a62ebeff457489b30"
+    },
+    "scenarios_archive": {
+      "path": "/root/autodl-tmp/thesis/raw/datasets/GeNIS-2025/3-scenarios.zip",
+      "bytes": 491738368,
+      "sha256": "8a56adc70d4400786b774012c69af1d5264d6733986d5a6d5d500e66b57cf246"
+    },
+    "benign_members": [
+      "2-flows/flows-60-sec/benign-admin-activity.csv",
+      "2-flows/flows-60-sec/benign-background-activity.csv",
+      "2-flows/flows-60-sec/benign-user-activity.csv"
+    ],
+    "scenario_members": {
+      "1": "3-scenarios/scenarios-60-sec/scenario-1-disrupt.csv",
+      "2": "3-scenarios/scenarios-60-sec/scenario-2-disrupt.csv",
+      "3": "3-scenarios/scenarios-60-sec/scenario-3-disrupt.csv",
+      "4": "3-scenarios/scenarios-60-sec/scenario-4-disrupt.csv",
+      "5": "3-scenarios/scenarios-60-sec/scenario-5-disrupt.csv",
+      "6": "3-scenarios/scenarios-60-sec/scenario-6-authtest.csv",
+      "7": "3-scenarios/scenarios-60-sec/scenario-7-authtest.csv",
+      "8": "3-scenarios/scenarios-60-sec/scenario-8-authtest.csv"
+    }
+  },
+  "feature_budget": {
+    "id": "safe-core68-v1",
+    "fields": [
+      "Dur", "RunTime", "IdleTime", "Mean", "StdDev", "Sum", "Min", "Max",
+      "NStrok", "sNStrok", "dNStrok", "TotPkts", "SrcPkts", "DstPkts",
+      "TotBytes", "SrcBytes", "DstBytes", "TotAppByte", "SAppBytes", "DAppBytes",
+      "PCRatio", "Load", "SrcLoad", "DstLoad", "Loss", "SrcLoss", "DstLoss",
+      "pLoss", "Retrans", "SrcRetra", "DstRetra", "pRetran", "SrcGap", "DstGap",
+      "Rate", "SrcRate", "DstRate", "SIntPkt", "SIntPktMin", "SIntPktMax",
+      "SIntDist", "SIntPktAct", "SIntActDist", "SIntPktIdl", "SIntIdlDist",
+      "DIntPkt", "DIntPktMin", "DIntPktMax", "DIntDist", "DIntPktAct",
+      "DIntActDist", "DIntPktIdl", "DIntIdlDist", "SrcJitter", "SrcJitAct",
+      "DstJitter", "DstJitAct", "SrcWin", "DstWin", "TcpRtt", "SynAck", "AckDat",
+      "sMeanPktSz", "dMeanPktSz", "sMaxPktSz", "dMaxPktSz", "sMinPktSz", "dMinPktSz"
+    ]
+  },
+  "models": {
+    "xgboost": {
+      "n_estimators": 300,
+      "max_depth": 8,
+      "learning_rate": 0.1,
+      "subsample": 1.0,
+      "colsample_bytree": 0.9,
+      "min_child_weight": 1,
+      "reg_lambda": 1.0,
+      "nthread": 8
+    },
+    "random_forest": {
+      "n_estimators": 300,
+      "max_depth": null,
+      "max_features": "sqrt",
+      "min_samples_leaf": 1,
+      "n_jobs": 8
+    }
+  },
+  "evaluation": {
+    "outer_scene_count": 8,
+    "budget_fp_per_10000": 10,
+    "benign_test_hash_domain": "genis-benign-test-v1",
+    "benign_calibration_hash_domain": "genis-benign-cf-v1"
+  },
+  "paths": {
+    "run_root": "../genis/runs/baselines/genis-60s-scenario-holdout-safe-core-baselines-seed42-v1"
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "run_name": "GeNIS60秒跨场景留出安全核心强基线-种子42"
+  },
+  "evidence": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "official_test_accessed": false,
+    "final_accessed": false
+  }
+}

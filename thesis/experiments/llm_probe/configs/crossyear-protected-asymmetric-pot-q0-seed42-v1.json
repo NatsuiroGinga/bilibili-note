@@ -1,0 +1,101 @@
+{
+  "schema_version": "crossyear-protected-asymmetric-pot-q0-config-v1",
+  "run_id": "crossyear-rare-mass-protected-asymmetric-pot-q0-seed42-v1-rerun2",
+  "budget_tier": "Q0",
+  "seed": 42,
+  "input_dimension": 155,
+  "input_definition": "x_value(77)+x_missing(77)+log1p(delta_t_us)",
+  "xgboost": {
+    "n_estimators": 300,
+    "max_depth": 8,
+    "learning_rate": 0.08,
+    "subsample": 0.8,
+    "colsample_bytree": 0.9,
+    "objective": "binary:logistic",
+    "eval_metric": "logloss",
+    "n_jobs": 4,
+    "tree_method": "hist",
+    "device": "cuda",
+    "verbosity": 1
+  },
+  "prototypes": {
+    "malicious_maximum": 128,
+    "benign_maximum": 512,
+    "target_maximum": 1024,
+    "leaf_hash_dimension": 64,
+    "cluster_batch_size": 4096,
+    "source_fit_maximum_per_class": 100000,
+    "target_fit_maximum": 131072
+  },
+  "transport": {
+    "mass_grid": [0.6, 0.8],
+    "epsilon_grid": [0.03, 0.1],
+    "tau_ratio_grid": [2.0, 4.0],
+    "rho_plus_grid": [0.5, 0.8],
+    "tau_target": 1.0,
+    "symmetric_tau": 1.0,
+    "maximum_iterations": 500,
+    "convergence_tolerance": 1e-7,
+    "malicious_dual_iterations": 40,
+    "cost_leaf_weight": 0.75,
+    "cost_score_weight": 0.25,
+    "correction_weight": 0.5,
+    "correction_logit_bound": 1.3862943611198906,
+    "maximum_slack_ratio": 0.05,
+    "minimum_effective_malicious_prototypes": 8.0,
+    "support_radius_quantile": 0.95
+  },
+  "source_selection": {
+    "chronological_rounds": 4,
+    "harmful_ap_drop": 0.003,
+    "gate_quantile_lower": 0.05,
+    "gate_quantile_upper": 0.95,
+    "harmful_detection_minimum": 0.8,
+    "false_rollback_maximum": 0.2,
+    "regret_reduction_minimum": 0.5
+  },
+  "evaluation": {
+    "alert_budgets_per_million": [100, 1000, 10000],
+    "ece_bins": 15,
+    "promotion_absolute_pr_auc": 0.043902589823969644,
+    "promotion_relative_to_gpu_anchor": 0.005,
+    "mechanism_minimum_pr_auc_gain": 0.002,
+    "maximum_budget_recall_drop": 0.002,
+    "minimum_budget_recall_gain": 0.005,
+    "weak_signal_definition": "完整方案严格高于同轮 GPU 锚但增量小于 0.005"
+  },
+  "resources": {
+    "minimum_free_gpu_memory_gib": 8.0,
+    "maximum_process_memory_gib": 8.0,
+    "minimum_free_disk_gib": 10.0,
+    "maximum_disk_usage_fraction": 0.8,
+    "heartbeat_seconds": 60,
+    "expected_runtime_hours": [1.0, 3.0]
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "mode": "online",
+    "upload_policy": "aggregate_metrics_and_protocol_metadata_only"
+  },
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "cache_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/lspr23-lspr24-bounded-quick-q0-v1/experiments/c12-seed42-q0-2ip-v1/python-cache-v1/cache-manifest.json",
+    "shared_cpu_xgboost_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/baselines/lspr-crossyear-tabular-q0-seed42-v2/xgboost",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/crossyear-rare-mass-protected-asymmetric-pot-q0-seed42-v1-rerun2",
+    "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/crossyear-rare-mass-protected-asymmetric-pot-q0-seed42-v1-rerun2"
+  },
+  "variants": [
+    {"key": "B0_XGB_ANCHOR", "display_name": "共享 XGBoost 强锚", "run_name": "crossyear-tl1-xgb-anchor-seed42-rerun2"},
+    {"key": "U1_FULL_OT", "display_name": "全量对称最优传输", "run_name": "crossyear-tl1-full-ot-seed42-rerun2"},
+    {"key": "U2_ASYM_POT_NO_FLOOR", "display_name": "无恶意质量保护的非对称部分传输", "run_name": "crossyear-tl1-asym-pot-no-floor-seed42-rerun2"},
+    {"key": "M1_PROTECTED_ASYM_POT", "display_name": "恶意质量保护的非对称部分传输", "run_name": "crossyear-tl1-protected-asym-pot-seed42-rerun2"},
+    {"key": "M1_M2_SAFE_ROLLBACK", "display_name": "恶意质量保护非对称部分传输加无标签回滚", "run_name": "crossyear-tl1-protected-asym-pot-gated-seed42-rerun2"}
+  ],
+  "target_prefix_labels_available": false,
+  "target_labels_used_for_tuning": false,
+  "target_labels_opened_after_all_probability_seals": true,
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "final_accessed": false
+}

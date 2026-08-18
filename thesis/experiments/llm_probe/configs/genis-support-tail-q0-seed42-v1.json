@@ -1,0 +1,290 @@
+{
+  "schema_version": "genis-support-tail-q0-config-v1",
+  "contract_version": "genis-q0-track-a-60s-subcategory13-v1",
+  "run_id": "track-a-60s-subcategory13-xgb-support-tail-seed42-v1",
+  "seed": 42,
+  "data": {
+    "version": "GeNIS-v1.0.0",
+    "doi": "10.5281/zenodo.14919237",
+    "archive_path": "/root/autodl-tmp/thesis/raw/datasets/GeNIS-2025/4-preprocessed.zip",
+    "archive_md5": "1856f231354cf4928e40ba606080a9b2",
+    "allowed_member": "4-preprocessed/genis-60-sec-train.csv",
+    "member_sha256": "8768f8557635b337797cc4ba1da76d51ab257436212ac036320397eb7c6a47d3",
+    "forbidden_members": [
+      "4-preprocessed/genis-60-sec-test.csv",
+      "4-preprocessed/genis-5-sec-train.csv",
+      "4-preprocessed/genis-5-sec-test.csv",
+      "4-preprocessed/genis-10-sec-train.csv",
+      "4-preprocessed/genis-10-sec-test.csv",
+      "4-preprocessed/genis-30-sec-train.csv",
+      "4-preprocessed/genis-30-sec-test.csv"
+    ],
+    "expected_rows": 294844,
+    "expected_columns": 87,
+    "header_sha256": "df7635c0133b9dd81555ec56a842231b26f00ebc0753b9b73e198fc48cdf6477",
+    "ordered_fields_sha256": "69677552483994dcbf884086f529f14d6f8b243c71b8da2d8c31651a8617c308",
+    "label_columns": [
+      "BinaryLabel",
+      "CategoryLabel",
+      "SubCategoryLabel"
+    ],
+    "class_order": [
+      "benign-admin",
+      "benign-background",
+      "benign-user",
+      "bruteforce-ftp",
+      "bruteforce-smb",
+      "bruteforce-ssh",
+      "dos-hulk",
+      "dos-icmp",
+      "dos-pushack",
+      "dos-slowloris",
+      "dos-udp",
+      "recon-dns",
+      "recon-nmap"
+    ]
+  },
+  "feature_budget": {
+    "id": "safe76-v1",
+    "excluded": [
+      "Dport",
+      "Sport",
+      "Seq",
+      "DstTCPBase",
+      "SrcTCPBase",
+      "Offset",
+      "Ssaddr",
+      "Sdaddr"
+    ],
+    "fields": [
+      "SynAck",
+      "Max",
+      "sHops",
+      "TcpRtt",
+      "DIntPktMin",
+      "Mean",
+      "DstPkts",
+      "sTtl",
+      "TotBytes",
+      "DIntPktAct",
+      "DstLoss",
+      "SrcWin",
+      "SAppBytes",
+      "Rate",
+      "DstBytes",
+      "SrcPkts",
+      "Min",
+      "DstRate",
+      "AckDat",
+      "sMaxPktSz",
+      "SIntPktMax",
+      "Loss",
+      "DIntPkt",
+      "SrcLoad",
+      "SrcRate",
+      "DIntPktMax",
+      "SrcBytes",
+      "TotAppByte",
+      "sMinPktSz",
+      "Sum",
+      "SIntPktMin",
+      "sTos",
+      "dMeanPktSz",
+      "TotPkts",
+      "SIntPkt",
+      "DAppBytes",
+      "SIntPktAct",
+      "PCRatio",
+      "DstWin",
+      "dMinPktSz",
+      "SrcJitAct",
+      "dMaxPktSz",
+      "sMeanPktSz",
+      "DstJitter",
+      "pLoss",
+      "SrcJitter",
+      "Dur",
+      "Load",
+      "RunTime",
+      "DstJitAct",
+      "SIntPktIdl",
+      "SrcLoss",
+      "DstLoad",
+      "Proto_arp",
+      "Proto_icmp",
+      "Proto_ipv6-icmp",
+      "Proto_tcp",
+      "Proto_udp",
+      "Flgs_e",
+      "Flgs_e *",
+      "Flgs_e d",
+      "Flgs_e g",
+      "Flgs_e r",
+      "Flgs_e s",
+      "Flgs_eU",
+      "State_CLO",
+      "State_CON",
+      "State_ECO",
+      "State_FIN",
+      "State_INT",
+      "State_NRS",
+      "State_REQ",
+      "State_RST",
+      "State_TST",
+      "State_URH",
+      "State_URHPRO"
+    ],
+    "fill_missing": false,
+    "scale": false,
+    "feature_selection": false,
+    "resampling": false,
+    "additional_encoding": false
+  },
+  "classes": [
+    "benign-admin",
+    "benign-background",
+    "benign-user",
+    "bruteforce-ftp",
+    "bruteforce-smb",
+    "bruteforce-ssh",
+    "dos-hulk",
+    "dos-icmp",
+    "dos-pushack",
+    "dos-slowloris",
+    "dos-udp",
+    "recon-dns",
+    "recon-nmap"
+  ],
+  "split": {
+    "unit": "raw_non_label_observation_hash_group",
+    "ratios": {
+      "fit": 0.6,
+      "calibration": 0.2,
+      "q0_eval": 0.2
+    },
+    "crossfit_folds": 3,
+    "stratification": "subcategory13_group_row_count_greedy",
+    "group_intersections_required": 0
+  },
+  "xgboost": {
+    "fixed": {
+      "objective": "multi:softprob",
+      "num_class": 13,
+      "tree_method": "hist",
+      "device": "cuda",
+      "n_estimators": 100,
+      "learning_rate": 0.2,
+      "gamma": 0.01,
+      "subsample": 1.0,
+      "min_child_weight": 1,
+      "reg_lambda": 1.0,
+      "eval_metric": "mlogloss",
+      "random_state": 42
+    },
+    "grid": {
+      "max_depth": [
+        4,
+        8,
+        12,
+        16
+      ],
+      "colsample_bytree": [
+        0.8,
+        0.9
+      ]
+    },
+    "selection_metric": "calibration_macro_f1",
+    "tie_break": [
+      "shallower_max_depth",
+      "smaller_colsample_bytree"
+    ],
+    "prediction_interface": "Booster.predict(DMatrix)"
+  },
+  "weighting": {
+    "alpha": 0.005,
+    "class_weight_cap": 20.0,
+    "tail_weight": 5.0,
+    "combined_weight_cap": 20.0,
+    "normalize_each_variant_to_row_mean_one": true,
+    "tail_rule": "benign_score_gte_q_fit_or_malicious_score_lte_q_fit"
+  },
+  "variants": {
+    "B0": "强 XGBoost 均匀权重基线",
+    "S1": "类别支持权重 XGBoost",
+    "T1": "固定预算尾部难例 XGBoost",
+    "ST": "类别支持与预算尾部联合 XGBoost"
+  },
+  "gates": {
+    "baseline_macro_f1_minimum": 0.97,
+    "near_saturation": {
+      "recall_minimum": 0.995,
+      "macro_f1_minimum": 0.99
+    },
+    "promotion": {
+      "recall_gain_vs_B0_minimum": 0.005,
+      "macro_f1_delta_vs_B0_minimum": -0.001,
+      "fpr_maximum": 0.005,
+      "recall_gain_vs_best_single_minimum": 0.002
+    },
+    "single_mechanism": {
+      "recall_gain_vs_B0_minimum": 0.005,
+      "macro_f1_delta_vs_B0_minimum": -0.001,
+      "fpr_maximum": 0.005
+    },
+    "minimum_support_for_tail_class_summary": 20
+  },
+  "runtime": {
+    "estimated_peak_memory_gib": 8,
+    "xgboost_threads": 8,
+    "progress_rows": 50000,
+    "progress_interval_seconds": 60,
+    "maximum_concurrent_experiments": 1,
+    "minimum_free_disk_gib": 10,
+    "parser_batch_rows": 50000,
+    "estimated_state": {
+      "row_count": 294844,
+      "feature_matrix_bytes": 89632576,
+      "all_split_feature_matrices_bytes": 89632576,
+      "observation_hash_bytes_per_row": 32,
+      "observation_hash_bytes": 9435008,
+      "label_bytes": 294844,
+      "maximum_python_group_keys": 294844,
+      "maximum_history_per_group": 1,
+      "peak_process_memory_gib": 8,
+      "temporary_disk_gib": 2,
+      "total_io_gib_estimate": 5
+    }
+  },
+  "paths": {
+    "output_root": "../genis/runs/q0/track-a-60s-subcategory13-xgb-support-tail-seed42-v1"
+  },
+  "evidence": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "final_accessed": false
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "mode": "online",
+    "run_name": "GeNIS60秒十三类-类别支持与固定预算尾部联合-Q0-种子42",
+    "allowed_upload_fields": [
+      "recall_at_fpr_0.005",
+      "fpr_at_threshold",
+      "false_alerts_per_10000_benign",
+      "macro_f1",
+      "macro_recall",
+      "min_supported_class_f1",
+      "malicious_pr_auc",
+      "multiclass_log_loss"
+    ],
+    "forbidden_uploads": [
+      "per_sample_probability",
+      "labels",
+      "observation_hashes",
+      "file_paths",
+      "credentials",
+      "models"
+    ]
+  }
+}

@@ -1,0 +1,215 @@
+{
+  "schema_version": "tqhc2-strict-crossmember-q0-config-v1",
+  "contract_version": "tqhc2-strict-crossmember-q0-v1",
+  "run_id": "tqhc2-strict-crossmember-low-fpr-residual-admission-q0-seed42-v1",
+  "seed": 42,
+  "feature_fields": [
+    "duration",
+    "orig_bytes",
+    "resp_bytes",
+    "orig_pkts",
+    "resp_pkts",
+    "orig_ip_bytes",
+    "resp_ip_bytes"
+  ],
+  "protocols": {
+    "ab_to_c": {
+      "display_name": "A+B→C",
+      "source_members": ["A", "B"]
+    },
+    "abd_to_c": {
+      "display_name": "A+B+D→C",
+      "source_members": ["A", "B", "D"]
+    }
+  },
+  "identities": [
+    {"key": "T0", "display_name": "XGBoost强树锚"},
+    {"key": "B", "display_name": "容量匹配残差基座"},
+    {"key": "M1", "display_name": "1%锚带残差排序"},
+    {"key": "M2", "display_name": "留一成员经验准入与强树回退"},
+    {"key": "M1_M2", "display_name": "1%锚带残差排序与留一成员经验准入完整方法"},
+    {"key": "RND", "display_name": "等准入数量确定性随机门"},
+    {"key": "SHUF", "display_name": "捕获级打乱成员标签对照"},
+    {"key": "OPEN", "display_name": "完整残差始终启用对照"},
+    {"key": "HGB", "display_name": "HistGradientBoosting强树基线"},
+    {"key": "PAIRWISE_PAUC", "display_name": "线性1%部分AUC成对排名近似"},
+    {"key": "CORAL", "display_name": "仅源成员Deep CORAL"},
+    {"key": "DANN", "display_name": "仅源成员DANN"},
+    {"key": "GROUPDRO", "display_name": "源成员GroupDRO"},
+    {"key": "VREX", "display_name": "源成员风险方差V-REx"},
+    {"key": "CVAR", "display_name": "固定最坏10%样本损失条件风险价值"},
+    {"key": "ENSEMBLE", "display_name": "普通深度集成"},
+    {"key": "SELECTIVENET", "display_name": "具有预测头选择头辅助头的SelectiveNet"}
+  ],
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "raw_root": "/root/autodl-tmp/thesis/raw/datasets/TQH-C2-v1.2.0",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/candidates/tqhc2-strict-crossmember-low-fpr-residual-admission-q0-seed42-v1",
+    "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/tqhc2-strict-crossmember-low-fpr-residual-admission-q0-seed42-v1"
+  },
+  "resources": {
+    "minimum_free_disk_gib": 2.0,
+    "recommended_available_memory_gib": 16.0,
+    "required_gpu": true,
+    "expected_peak_gpu_memory_gib": 4.0,
+    "maximum_identity_concurrency": 1,
+    "heartbeat_seconds": 60,
+    "expected_runtime_hours": [4.0, 7.0],
+    "expected_persistent_artifacts_gib": 1.0
+  },
+  "training": {
+    "device": "cuda",
+    "optimizer": "AdamW",
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "batch_size": 256,
+    "epoch_candidates": [10, 25, 50, 100],
+    "selection_folds": 4,
+    "selection_metric": "mean_npauc_0_01",
+    "maximum_configs_per_family": 4
+  },
+  "xgboost": {
+    "fixed": {
+      "learning_rate": 0.05,
+      "n_estimators": 800,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "reg_lambda": 1.0,
+      "n_jobs": 4
+    },
+    "grid": [
+      {"max_depth": 4, "min_child_weight": 1},
+      {"max_depth": 4, "min_child_weight": 5},
+      {"max_depth": 6, "min_child_weight": 1},
+      {"max_depth": 6, "min_child_weight": 5}
+    ]
+  },
+  "hist_gradient_boosting": {
+    "fixed": {"max_iter": 800, "learning_rate": 0.05},
+    "grid": [
+      {"max_leaf_nodes": 15, "l2_regularization": 0.0},
+      {"max_leaf_nodes": 15, "l2_regularization": 1.0},
+      {"max_leaf_nodes": 31, "l2_regularization": 0.0},
+      {"max_leaf_nodes": 31, "l2_regularization": 1.0}
+    ]
+  },
+  "pairwise_pauc_approximation": {
+    "display_name": "线性1%部分AUC成对排名近似",
+    "implementation_fidelity": "pairwise_ranking_approximation",
+    "original_structural_svm_claimed": false,
+    "beta": 0.01,
+    "c_grid": [0.01, 0.1, 1.0, 10.0],
+    "epochs": 100,
+    "maximum_pairs_per_batch": 4096
+  },
+  "candidate": {
+    "network": [7, 32, 16, 1],
+    "activation": "ReLU",
+    "preprocessing": "log1p_then_source_train_median_iqr",
+    "delta_odds_bound": 10.0,
+    "lambda_delta": 0.001,
+    "beta": 0.01,
+    "lambda_rank": 1.0,
+    "temperature": 1.0,
+    "maximum_positive_per_pair_batch": 64,
+    "maximum_hard_negative_per_pair_batch": 64,
+    "maximum_pairs_per_batch": 4096,
+    "lambda_min": "-1/K",
+    "u_ext_limit": 0.005,
+    "maximum_delta_e_limit": 0.005,
+    "kappa_quantile": 0.75,
+    "closed_gate_output": "bitwise_equal_anchor"
+  },
+  "neural_baselines": {
+    "coral": {
+      "grid": [
+        {"objective_weight": 0.0, "epochs": 50},
+        {"objective_weight": 0.1, "epochs": 50},
+        {"objective_weight": 1.0, "epochs": 50},
+        {"objective_weight": 10.0, "epochs": 50}
+      ],
+      "zero_weight_is_diagnostic_only": true,
+      "target_batch_semantics": "another_source_member_only"
+    },
+    "dann": {
+      "grid": [
+        {"objective_weight": 0.1, "epochs": 50, "progressive_schedule": false},
+        {"objective_weight": 0.3, "epochs": 50, "progressive_schedule": false},
+        {"objective_weight": 1.0, "epochs": 50, "progressive_schedule": false},
+        {"objective_weight": 1.0, "epochs": 50, "progressive_schedule": true}
+      ],
+      "target_batch_semantics": "another_source_member_only"
+    },
+    "groupdro": {
+      "group_definition": "source_member",
+      "grid": [
+        {"objective_weight": 0.01, "epochs": 50},
+        {"objective_weight": 0.05, "epochs": 50},
+        {"objective_weight": 0.1, "epochs": 50},
+        {"objective_weight": 0.2, "epochs": 50}
+      ]
+    },
+    "vrex": {
+      "group_definition": "source_member",
+      "grid": [
+        {"objective_weight": 0.1, "epochs": 50},
+        {"objective_weight": 1.0, "epochs": 50},
+        {"objective_weight": 10.0, "epochs": 50},
+        {"objective_weight": 100.0, "epochs": 50}
+      ]
+    },
+    "cvar": {
+      "tail_fraction": 0.1,
+      "grid": [
+        {"objective_weight": 0.0, "learning_rate": 0.0003, "epochs": 50},
+        {"objective_weight": 0.0, "learning_rate": 0.001, "epochs": 50},
+        {"objective_weight": 0.0, "learning_rate": 0.003, "epochs": 50},
+        {"objective_weight": 0.0, "learning_rate": 0.01, "epochs": 50}
+      ]
+    },
+    "selective": {
+      "target_source_coverage": 0.75,
+      "required_heads": ["prediction", "selection", "auxiliary"],
+      "grid": [
+        {"objective_weight": 1.0, "auxiliary_weight": 0.1, "epochs": 50},
+        {"objective_weight": 1.0, "auxiliary_weight": 0.3, "epochs": 50},
+        {"objective_weight": 1.0, "auxiliary_weight": 0.5, "epochs": 50},
+        {"objective_weight": 1.0, "auxiliary_weight": 1.0, "epochs": 50}
+      ]
+    },
+    "erm_ensemble": {
+      "member_count_equals_source_member_count": true,
+      "seed_offset": 1000,
+      "uses_anchor": false,
+      "uses_gate": false
+    }
+  },
+  "decision_thresholds": {
+    "m1_npauc_gain": 0.02,
+    "m1_recall_gain": 0.05,
+    "m1_minimum_nonnegative_captures": 9,
+    "m2_admission_rate": [0.1, 0.9],
+    "m2_open_relative_excess_fpr_reduction": 0.25,
+    "m2_absolute_fpr_reduction": 0.005,
+    "m2_maximum_recall_loss": 0.01,
+    "full_maximum_fpr": 0.02,
+    "full_minimum_c2_recall": 0.05,
+    "full_minimum_macro_f1": 0.2,
+    "full_npauc_gain_over_best_baseline": 0.01,
+    "full_recall_gain_over_best_baseline": 0.03,
+    "full_maximum_capture_drop": 0.01
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "malicious-traffic-llm",
+    "run_name": "TQH-C2严格跨成员低误报残差准入Q0-seed42",
+    "mode": "online",
+    "upload_policy": "aggregate_scalars_and_resource_curves_only"
+  },
+  "evidence": {
+    "screening_only": true,
+    "formal_paper_evidence": false,
+    "formal_final_role_created": false,
+    "final_accessed": false
+  }
+}
