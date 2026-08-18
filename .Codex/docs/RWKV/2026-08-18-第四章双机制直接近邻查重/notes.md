@@ -2,7 +2,7 @@
 
 - **日期**：2026-08-18
 - **代理映射**：`ch4_dual_mechanism_novelty_literature_resume_sol_max → gpt-5.6-sol → effort=max`
-- **状态**：阶段二检查点 `2819dfb` 后续；前两批证据已提交为 `b71bf3b`、`7f8a027`。当前已全文核验 10 篇独立工作、11 份全文制品；第三批 DFM、SIM 标记 TDAE 与 Slips 的原件、知识层和 Zotero 条目已完成，待批次提交。
+- **状态**：阶段二检查点 `2819dfb` 后续；前三批证据已提交为 `b71bf3b`、`7f8a027`、`c8b6e45`。当前已全文核验 14 篇独立工作、15 份全文制品；13 篇已有原件、知识层与 Zotero 链。CBAM 命中后又完成两轮无新增 D2／D3 的精确查询，停止条件已满足。
 
 ## 一、任务合同摘要
 
@@ -423,3 +423,84 @@ Zotero 状态：
 - **最新裁决**：PBC 的“目标良性缓冲区＋分位阈值＋显式FAR预算”已有直接网络实体强近邻；DTEP 的“实体分组＋固定窗”和“主机窗＋多检测器后期融合”均已存在。尚可区分的是精确的信息与选择合同，不是这些宽泛构件。
 - **精确阻塞**：仅 NIDES 原始 PDF／SHA／Zotero 链需人工补齐；DFM 与 MDPI 403 已通过合法开放替代入口关闭。
 - **下一步**：执行两轮更窄的 OOF 选窗与冻结回退检索；由于本轮新增 D2，停止条件计数从0开始。实验不等待本任务完成。
+
+## 十八、第三至第五轮窄查询与新增全文登记
+
+### Q-B5：多尺度近期窗与源侧嵌套实体选择
+
+- **查询式**：`"out-of-fold" "window length" anomaly detection network`；`"leave-one-device-out" "window selection" anomaly detection`；`"grouped cross-validation" "sliding window" intrusion detection`；`"GroupKFold" "history length" anomaly detection`；`"leave-one-host-out" "window length" anomaly detection`；`"leave-one-device-out" "sliding window" "intrusion detection"`；`"out-of-fold predictions" "window size" anomaly detection`；`"nested cross-validation" "window size" intrusion detection`。
+- **来源**：Frontiers 正式页面与开放 PDF、出版社页面、arXiv 与作者页面；检索日期 2026-08-18。
+- **结果**：新增 El-Hajj 与 Zeineddine 2026 为 B 的 D2。DCS 控制器日志论文命中“按设备固定窗、1—60分钟选窗、时间切分”，但 PDF 受 ScienceDirect 403 阻塞，只保留 E1 待补。其余命中为医疗、活动识别或普通固定窗，排除。
+- **关键裁决**：多尺度滚动特征与 LOEO 外层评价内的嵌套特征选择已同现；仍未命中“内层按源实体分组的折外预测只选择一个近期窗长”。
+
+### F11：多尺度主机行为与 LOEO 嵌套选择
+
+- **题录**：Mohammed El-Hajj、Mohammad Al Jawad Zeineddine，2026，*Frontiers in Artificial Intelligence* 9:1811692；DOI `10.3389/frai.2026.1811692`。
+- **原件**：`raw/papers/attack-detection/2026-El-Hajj-Malware-MultiScale-LOEO-MLOps.pdf`；37页；SHA-256 `43cbce9d182a4f20b1809ed8b1f2bdd76e1c44fee9f2ea34e43c4c372f062656`。
+- **证据**：物理第8页按虚拟机每秒聚合；第9页并行计算1、5、10、30秒滚动统计并在外层 LOEO 内嵌套选特征；第9至10页说明104次留一实验，内层却是样本90/10分层切分；第19、22、25页给消融、模型结果和时间切分压力测试。
+- **支持／不能支持**：B 为 D2，A 为 D1，C 为 D0。它占用多尺度近期表示与源侧嵌套选择，但选择混合多窗特征而非窗长，内层非实体分组，也无未衰减全历史、目标先导或冻结后段。
+- **知识与 Zotero**：`wiki/papers/attack-detection/2026-El-Hajj-多尺度主机行为与LOEO嵌套选择.md`；`ZI3CIXI3`，无附件。
+
+### Q-A5：独立先导、冻结校正与失配回退
+
+- **查询式**：`("target pilot" OR "burn-in") threshold frozen "false alarm" anomaly detection`；`"calibration buffer" "frozen threshold" intrusion detection`；`"benign buffer" quantile threshold prospective evaluation anomaly`；`label shift misspecification test fallback calibration`；随后沿标签移位确认与预测校正的引用链追踪。
+- **来源**：arXiv 官方 PDF、ICML 2026 假设检验研讨会题录与作者版本；检索日期 2026-08-18。
+- **结果**：新增 Choi 两篇 E2 预印本，A 与 C 均为 D2。第一篇明确把 BBSE／MLLS 权重估计放在与测试流不相交的先导批次；第二篇明确用上界确认校正、下界反驳校正并回到源预测。
+- **关键裁决**：“独立先导估计→冻结校正→后续结果确认”和“证据反驳后回到源预测”已分别被一般理论直接占用；PBC 只能在实体预算、BBSE 假设诊断、先导内部估计／确认拆分及独立最终后段上区分。
+
+### F12：标签移位校正的任意时点有效确认
+
+- **题录**：Seungjin Choi，2026，ICML 2026 Workshop on Hypothesis Testing；arXiv `2606.14028v1`，DOI `10.48550/arXiv.2606.14028`。
+- **原件**：`raw/papers/methodology/2026-Choi-Anytime-Valid-Label-Shift-Confirmation.pdf`；11页；SHA-256 `5e6c3aee6dedc0d912511089857bfb3173c43f20889556ca9c126fd12f500043`。
+- **证据**：物理第3页定义 `e_i=w(Y_i)/Z_w(X_i)` 与 `M_t=∏e_i`；第4至5页明确用独立先导批次固定 BBSE／MLLS 权重，再把后续目标带标签流只用于确认；第5至7页给算法和失配实验。
+- **支持／不能支持**：A、C 为 D2，B 为 D0。它直接占用先导—冻结—后续确认时序，但不提供实体阈值、无标签后段决策或失败自动回退；需要后续目标标签，且确认对象是预指定权重的预测优越性。
+- **结果边界**：在源方差低估系数 `c=2` 与 `c=4` 时，错误确认率升至36.45%与90.65%，说明源预测失准会破坏直觉上的“安全确认”。
+- **知识与 Zotero**：`wiki/papers/methodology/2026-Choi-标签移位校正的任意时点有效确认.md`；`AU3UCISV`，无附件。
+
+### F13：预指定预测校正的双边序贯证据
+
+- **题录**：Seungjin Choi，2026，arXiv `2608.08174v1 [stat.ME]`，DOI `10.48550/arXiv.2608.08174`；截至核验日为预印本。
+- **原件**：`raw/papers/methodology/2026-Choi-Anytime-Valid-Predictive-Corrections.pdf`；49页；SHA-256 `2792fd8b4d1510acf59ee1ae36be7129256afc2d14394495e876aa920e7a0c24`。
+- **证据**：物理第4、7至10页冻结校正并定义校正／源预测似然比；第19至20页以 `M_t>1/α` 确认、`M_t<α` 反驳并回到源预测；第21至23页限定倒数下界与自适应 tilt 的保证；第25至31页给标签移位、子群、混合与容忍区特例；第34至39页给失配、机制混淆和结果边界。
+- **支持／不能支持**：A、C 为 D2，B 为 D0。它占用冻结校正与双边回退的一般机制，但只比较两个完全指定的预测分布，需要后续目标标签，且不能直接检验 BBSE 类条件不变假设；无实体预算和独立最终评价段。
+- **知识与 Zotero**：`wiki/papers/methodology/2026-Choi-预指定预测校正的双边序贯证据.md`；`32WRX9MB`，无附件。
+
+### Q-A6／Q-B6：实体专属阈值与精确组合补漏
+
+- **查询式**：`"source-entity" "out-of-fold" "window length" anomaly detection`；`"leave-one-entity-out" "window length" selection intrusion detection`；`"nested" "leave-one-host-out" "window size" network anomaly detection`；`"entity-specific" "false alarm budget" calibration anomaly detection`；`"per-device" "false alarm rate" threshold calibration anomaly detection`；`"per-host" quantile threshold calibration intrusion detection`；`"pilot set" "frozen threshold" prospective anomaly detection`；`"label shift" "fallback to source" prediction correction`。
+- **结果**：首组没有新增 D2；第二组补获 CBAM 期刊全文。CBAM 此前只在本地博士论文笔记中被列为阻塞项，现由 MDPI 官方静态开放入口关闭。智能电表欠计量论文 `10.3390/smartcities9070110` 只提供设备不交叉标定与固定跨数据集阈值的 D1 边界，领域与同实体目标先导不符，不纳入核心矩阵。POEM（NeurIPS 2024）持续在测试流更新模型，是冻结后段的 D0 边界。
+
+### F14：CBAM 主机上下文异常与实体专属阈值
+
+- **题录**：Henry Clausen、Gudmund Grov、David Aspinall，2021，*Computers* 10(6):79；DOI `10.3390/computers10060079`。
+- **原件**：`raw/papers/attack-detection/2021-Clausen-CBAM-Contextual-Network-Anomaly.pdf`；28页；SHA-256 `14ef5edcac9520d71c37d0dc063be83cb52f0fee4ca5188e415bc03cac227395`。
+- **证据**：物理第4至5页按主机用 `α=8 s` 与 `β=25` 切短会话；第6至8页双向 LSTM 与会话异常分数；第9页从训练期良性会话为每台主机分别取99.9%分位阈值；第11至12页给时间切分；第16至18页给长期稳定性和稀疏主机假阳；第22页表6为双向／单向消融。
+- **支持／不能支持**：A 为 D2，B、C 为 D1。它直接占用实体专属分位阈值与短期上下文，但阈值来自源训练期，不是目标先导；双向层读取同会话未来流，LANL 甚至用后14天训练、前13天测试；无全历史、实体 OOF 选窗、先验校正或回退。
+- **结果边界**：数据少的两台主机假阳约0.40%／0.42%，高于约0.1%平均；双向层把不足5条流的短会话假阳从1.6%降到0.09%（UGR）和1.7%降到0.13%（CICIDS），但该增益不可迁移为因果 DTEP 证据。
+- **知识与 Zotero**：`wiki/papers/attack-detection/2021-Clausen-CBAM主机上下文异常与实体阈值.md`；`KKPJ3WQL`，无附件。
+
+### Q-S1／Q-S2：CBAM 后的停止条件验证
+
+- **第一轮查询式**：`"per-host threshold" "calibration period" held-out intrusion detection`；`"host-specific threshold" target calibration network anomaly detection`；`"entity-specific threshold" "target domain" anomaly detection holdout`；`"calibration period" freeze "per-host" anomaly detection`。
+- **第二轮查询式**：`"source validation" "target pilot" frozen threshold intrusion detection`；`"leave-one-host-out" "hyperparameter selection" sliding window intrusion detection`；`"out-of-fold" "host-specific threshold" network anomaly detection`；`"grouped cross-validation" "window length selection" network intrusion detection`。
+- **结果**：两轮均无新增 D2／D3。命中多为产品文档、专利、非安全领域或普通主机阈值；没有一篇同时满足目标因果先导、实体专属预算、失配诊断回退与冻结后段，也没有一篇在源实体 OOF 上选择单一近期窗。
+- **停止计数**：CBAM 命中后连续无新增 D2／D3 为2，满足预注册停止条件。此结果只支持“当前检索尚未命中”，不支持“世界上不存在”。
+
+### 待补全文：DCS 控制器日志异常检测
+
+- **完整题名**：*An automated unsupervised anomaly detection framework for DCS controller logs in nuclear power plants*。
+- **作者／年份**：Jiajun Cai、Sheng Zheng、Caike Zhang、Xinyu Dai、Xiaozhou Ye、Xiaolong Li／2026。
+- **来源**：*Nuclear Engineering and Design* 446 (2026) 114567；DOI `10.1016/j.nucengdes.2025.114567`；PII `S0029549325007447`。
+- **下载页**：<https://www.sciencedirect.com/science/article/pii/S0029549325007447>。
+- **阻塞**：页面显示可访问，但 PDF 路由及带签名下载均返回403；Elsevier API 元数据显示 `openaccess=false`，作者主页和合法预印本未命中。
+- **为何需要**：页面可核信息显示其在14台设备上比较1至60分钟窗、以 F1 选48分钟窗并做时间切分，还主动承认选择偏差并把嵌套／留一设备列为未来工作；原件可用于精确裁定“设备窗长选择”是否达到 DTEP 的源实体 OOF 要求。原件未到前只作 E1，不进入强结论。
+
+## 十九、最终恢复检查点（2026-08-18）
+
+- **完成比例**：约97%；14篇独立工作、15份全文制品完成核验，13篇已有 raw＋wiki＋Zotero 完整链。
+- **累计等级**：A 有6篇 D2（İnan、Haiba、DFM、两篇 Choi、CBAM）；B 有5篇 D2（王世谦等、NIDES、Haiba、Slips、El-Hajj）；C 有4篇 D2（İnan、Haiba、两篇 Choi）；D3 为0。
+- **DTEP 裁决**：双时间尺度、实体窗口、多窗滚动、晚融合、GroupKFold、LOEO 外层与嵌套特征选择均属已有机制；可保留的是“未衰减全历史因果前缀＋有界近期窗＋源实体 OOF 只选窗长＋长实体假阳分面”的精确任务化耦合，实验待证。
+- **PBC 裁决**：实体分位阈值、目标良性缓冲区、标签移位估计与失配边界、独立先导冻结、双边确认／反驳和回到源预测均已有；可保留的是实体预算／先验、先导内部 BBSE 假设诊断与预注册回退、完全独立后段的精确组合，实验待证。
+- **联合算法裁决**：一般“源／先导→固定校正→后续确认”已由 Choi 直接占用，训练—标定—评价三段不能作为第三项原创；潜在空间只在 DTEP 源实体选窗与 PBC 实体决策分支受同一严格时序合同共同约束。
+- **阻塞**：NIDES 官方52页原件／SHA／Zotero 链，DCS 论文 PDF；两者均已给人工下载精确信息。实验不等待。
+- **下一步**：根代理提交本批精确文件；若人工原件到达，另开补链批次，不再重复已完成查询。
