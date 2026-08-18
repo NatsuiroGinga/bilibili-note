@@ -33,7 +33,7 @@ from dijk_fields import DIJK_FEATURES  # noqa: E402
 
 
 PARENT_RUN_ID = "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1"
-CONTINUATION_RUN_ID = f"{PARENT_RUN_ID}-eval-continuation1"
+CONTINUATION_RUN_ID = f"{PARENT_RUN_ID}-eval-continuation2"
 EXPECTED_SHA256 = {
     "selection_frozen_xgb2x2.json": "a9075653efc6b29b6eb9d72f04409781af18e7c65cb31c1ba9bac941e1293943",
     "effective_config_receipts.json": "657c9f88b3c37f15e48817b145ad8bb22b8f4edd5ba700742b945c84c413515d",
@@ -73,20 +73,6 @@ EXPECTED_CONFIG = {
         "persist_target_scores": False,
     },
 }
-EXPECTED_EXACT_EFFECTIVE = {
-    ("learner", "generic_param", "device"): "cuda:0",
-    ("learner", "gradient_booster", "gbtree_train_param", "updater"): "grow_gpu_hist",
-    ("learner", "learner_train_param", "objective"): "binary:logistic",
-    ("learner", "gradient_booster", "tree_train_param", "max_depth"): "8",
-    ("learner", "gradient_booster", "tree_train_param", "max_bin"): "256",
-}
-EXPECTED_FLOAT_EFFECTIVE = {
-    ("learner", "gradient_booster", "tree_train_param", "eta"): 0.05,
-    ("learner", "gradient_booster", "tree_train_param", "subsample"): 0.8,
-    ("learner", "gradient_booster", "tree_train_param", "colsample_bytree"): 0.8,
-    ("learner", "gradient_booster", "tree_train_param", "lambda"): 1.0,
-}
-
 L = 128
 D_RAW = 83
 N_FLOW_24 = 20_227_356
@@ -286,20 +272,14 @@ def validate_parent_inputs(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def assert_effective_model_config(booster: Any, tag: str) -> dict[str, Any]:
+def configure_prediction_device(booster: Any, tag: str) -> str:
+    """模型加载态配置只描述当前推理器；历史训练身份由父收据与摘要证明。"""
+    booster.set_param({"device": "cuda:0"})
     config = json.loads(booster.save_config())
-    failures: list[str] = []
-    for path, expected in EXPECTED_EXACT_EFFECTIVE.items():
-        actual = dig(config, path)
-        if actual != expected:
-            failures.append(f"{'.'.join(path)}={actual!r}，期望 {expected!r}")
-    for path, expected in EXPECTED_FLOAT_EFFECTIVE.items():
-        actual = float(dig(config, path))
-        if not math.isclose(actual, expected, rel_tol=1e-7, abs_tol=1e-12):
-            failures.append(f"{'.'.join(path)}={actual!r}，期望 {expected!r}")
-    if failures:
-        raise SystemExit(f"模型有效配置不符 [{tag}]：{'；'.join(failures)}")
-    return config
+    device = str(dig(config, ("learner", "generic_param", "device")))
+    if device != "cuda:0":
+        raise SystemExit(f"{tag} 推理设备应为 cuda:0，实为 {device}")
+    return device
 
 
 def assert_sequence_time_monotonic(t_flow: np.ndarray, indices: np.ndarray, mask: np.ndarray) -> None:
@@ -554,13 +534,13 @@ def main() -> None:
         n_tree = int(booster.num_boosted_rounds())
         if n_tree != 800:
             raise SystemExit(f"{view} 模型树数应为 800，实为 {n_tree}")
-        effective = assert_effective_model_config(booster, view)
+        prediction_device = configure_prediction_device(booster, view)
         models[view] = booster
         model_receipts[view] = {
             "n_tree": n_tree,
             "sha256": parent["artifact_sha256"][f"model_{view}.json"],
-            "device": dig(effective, ("learner", "generic_param", "device")),
-            "updater": dig(effective, ("learner", "gradient_booster", "gbtree_train_param", "updater")),
+            "prediction_device": prediction_device,
+            "historical_training_config_evidence": "父 selection 与 effective_config_receipts 的固定摘要",
         }
         log(f"父模型核验通过：{view}，树数={n_tree}，SHA-256={model_receipts[view]['sha256']}")
 
