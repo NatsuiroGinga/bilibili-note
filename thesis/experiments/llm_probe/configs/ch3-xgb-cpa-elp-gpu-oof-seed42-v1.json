@@ -1,0 +1,44 @@
+{
+  "schema_version": "ch3-xgb-cpa-elp-gpu-oof-v1",
+  "run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+  "seed": 42,
+  "screening_only": false,
+  "formal_paper_evidence_candidate": true,
+  "independent_test": false,
+  "n_fold": 3,
+  "p_grid": [0.5, 1.0, 2.0, 4.0, 8.0],
+  "num_boost_round": 800,
+  "xgb_params": {
+    "tree_method": "hist",
+    "device": "cuda",
+    "max_depth": 8,
+    "eta": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "lambda": 1.0,
+    "max_bin": 256,
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "seed": 42,
+    "nthread": 32
+  },
+  "effective_config_float_compare": {
+    "rel_tol": 1e-7,
+    "abs_tol": 1e-12
+  },
+  "adapters": ["mean166", "semantic168"],
+  "adapter_selection_metric": "lspr23_entity_oof_ap_with_max_pooling",
+  "target_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  },
+  "artifact_policy": {
+    "persist_fold_models": true,
+    "persist_final_models": true,
+    "persist_oof_scores": false,
+    "persist_target_scores": false
+  }
+}
