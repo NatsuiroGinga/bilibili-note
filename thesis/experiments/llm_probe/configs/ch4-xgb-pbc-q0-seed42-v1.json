@@ -1,0 +1,47 @@
+{
+  "schema_version": "ch4-xgb-pbc-q0-v1",
+  "run_id": "ch4-xgb-pbc-q0-seed42-v1",
+  "seed": 42,
+  "screening_only": true,
+  "formal": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "parent_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+  "parent_eval_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
+  "base_view": "semantic168",
+  "power_mean_p": 1.0,
+  "pilot_time_fractions": [0.1, 0.2, 0.3, 0.5],
+  "entity_fpr_budgets": [0.01, 0.02, 0.04],
+  "budget_provenance": {
+    "0.01": "预注册保守敏感性，不是安全标准",
+    "0.02": "预注册保守敏感性，不是安全标准",
+    "0.04": "Gehri 同源经验工作点，不是安全标准"
+  },
+  "bbse_source_fpr_grid": [0.001, 0.002, 0.005, 0.01, 0.02, 0.04, 0.08],
+  "bbse_min_tpr_fpr_separation": 0.05,
+  "bbse_min_confusion_singular_value": 0.03,
+  "bbse_prior_margin": 0.000001,
+  "mismatch_dkw_alpha": 0.01,
+  "time_unit_per_second": 1000000.0,
+  "expected_time_span_hours": [24.0, 48.0],
+  "predict_batch": 2000000,
+  "sequence_batch": 2048,
+  "gpu_need_gib": 11.0,
+  "gpu_floor_gib": 8.0,
+  "estimated_peak_host_gib": 58,
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  },
+  "artifact_policy": {
+    "persist_aggregate_json": true,
+    "persist_status_log_manifest_resource": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_derived_matrices": false,
+    "persist_label_details": false,
+    "persist_new_models": false
+  }
+}
