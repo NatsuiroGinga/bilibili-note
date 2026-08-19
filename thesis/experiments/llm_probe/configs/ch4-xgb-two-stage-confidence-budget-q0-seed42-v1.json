@@ -1,0 +1,58 @@
+{
+  "schema_version": "ch4-xgb-two-stage-confidence-budget-q0-v1",
+  "run_id": "ch4-xgb-two-stage-confidence-budget-q0-seed42-v1",
+  "display_name": "双段先导置信预算告警 Q0",
+  "seed": 42,
+  "screening_only": true,
+  "formal": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "zero_training": true,
+  "parent_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+  "parent_eval_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
+  "parent_recovery_proof": {
+    "schema_version": "ch3-xgb-parent-recovery-proof-v1",
+    "requires_parent_incomplete": true,
+    "original_manifest_expected": false
+  },
+  "base_view": "semantic168",
+  "power_mean_p": 1.0,
+  "target_score_calls": 1,
+  "segment_time_fractions": {
+    "selection_end": 0.1,
+    "confirmation_end": 0.2
+  },
+  "candidate_fpr_grid": [0.001, 0.002, 0.005, 0.01, 0.02, 0.04, 0.08],
+  "entity_fpr_budgets": [0.01, 0.02, 0.04],
+  "budget_provenance": {
+    "0.01": "预注册保守敏感性，不是安全标准",
+    "0.02": "预注册保守敏感性，不是安全标准",
+    "0.04": "Gehri 同源经验工作点，不是安全标准"
+  },
+  "familywise_alpha": 0.05,
+  "multiple_candidate_correction": "bonferroni_within_budget",
+  "fpr_upper_bound": "clopper_pearson_one_sided_exact",
+  "alert_statistic": "max_running_entity_mean",
+  "time_unit_per_second": 1000000.0,
+  "expected_time_span_hours": [140.0, 144.0],
+  "predict_batch": 2000000,
+  "sequence_batch": 2048,
+  "gpu_need_gib": 11.0,
+  "gpu_floor_gib": 8.0,
+  "estimated_peak_host_gib": 58,
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  },
+  "artifact_policy": {
+    "persist_aggregate_json": true,
+    "persist_status_log_manifest_resource": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_derived_matrices": false,
+    "persist_label_details": false,
+    "persist_new_models": false
+  }
+}
