@@ -3,7 +3,7 @@
 - **日期**：2026-08-19
 - **代理映射**：`xgboost_tree_adaptation_literature_sol_max → gpt-5.6-sol → effort=max`
 - **研究路线**：`RESEARCH_ROUTE=RWKV`
-- **当前状态**：累计 19 篇候选全文已逐页或逐节核验；继续 T1／T2 在最新 `D2` 后的停止条件查询。
+- **当前状态**：累计 20 篇候选全文已逐页或逐节核验；T1 已满足停止条件，T2 从 Anctil 等（2026）`D2` 后重新计两轮无新增。
 
 ## 一、既有证据的去重边界
 
@@ -365,3 +365,42 @@ T1／T2 同构等级：
 - **T2 最高等级**：`D2`，无 `D3`。TAP-GPPS 占用无标签目标先验＋目标约束阈值，Hung 占用树分数＋固定假阳率验证阈值＋隔离测试；尚缺目标因果先导、实体工作量预算、失配诊断／预注册回退和冻结后段的联合合同。
 - **人工补件**：无。MDPI 页面限流与 PMC PDF 下载挑战已由 Europe PMC／PMC 正式全文 XML 解锁，不影响全文级裁决。
 - **下一查询**：以 TreeText-CTS 与 Hung 为最新 `D2` 起点，T1、T2 各执行两轮新的直接短语与同义词查询；若连续两轮无新增 `D2／D3`，即满足扩展停止条件。
+
+## 十六、停止条件窄查询与新增全文
+
+### Q11：T1 第五轮——冻结多尺度窗口 XGBoost
+
+- **查询式**：`"frozen XGBoost" "multi-scale" window summaries entity`；`"per-window XGBoost" multiscale time series`；`"powers-of-two windows" XGBoost patient entity`；`"fixed multi-resolution" XGBoost causal history`。
+- **结果**：只重复命中 TreeText-CTS；另有时序预测、混合深度模型和单窗工作，均未新增 T1 `D2／D3`。这是 TreeText-CTS 后第一轮无新增。
+
+### Q12：T1 第六轮——网络实体严格因果幂次窗
+
+- **查询式**：`"1 2 4 8 16 32" XGBoost network intrusion`；`dyadic XGBoost host profile network security`；`"strictly causal" multiwindow XGBoost entity history`；`site:arxiv.org XGBoost multiscale entity history 2025 2026`。
+- **结果**：只重复命中 Pinchuk、主机展平 XGBoost 和 VAE–GRU–XGBoost 等既有／边界项；没有新增 T1 `D2／D3`。这是连续第二轮无新增，T1 检索满足停止条件。
+
+### Q13：T2 第三轮——固定假阳率、标签漂移与因果校准窗
+
+- **查询式**：`"validation-based threshold calibration" XGBoost "fixed-FAR" held-out test`；`"target pilot" XGBoost "false alarm rate" fallback`；`"source-only" XGBoost EM BBSE threshold label shift`；`"causal calibration window" tree classifier unlabeled target`。
+- **结果**：重复命中 Hung 与 TAP-GPPS；未新增 T2 `D2／D3`。这是 Hung 后第一轮无新增。
+
+### Q14：T2 第四轮——先导前缀、部署校准与源阈值回退
+
+- **查询式**：`"pilot prefix" classifier prior correction freeze`；`"deployment calibration window" XGBoost alert budget`；`"fallback to source threshold" XGBoost shift`；`"time-disjoint" XGBoost threshold calibration`。
+- **新增 `D2`**：Anctil、Hauguel 与 Noel（2026）。其批次隔离校准协议对 XGBoost 原始分数拟合等渗回归，在校准批次选固定特异度阈值，再原样应用于未见测试批次。
+- **不能支持**：批次随机留出而非目标时间先导；校准需要癌症／对照标签；无目标先验估计、失配诊断或源阈值回退。因此只刷新同类 D2，不触及 D3。
+
+### 16.1 Anctil、Hauguel 与 Noel（2026），批次隔离树分数校准
+
+- **题录／全文**：Nicolas Anctil、Pierrick Hauguel 与 Louis-Philippe Noel，*Metabolomic Profiling of Dried Blood Spots for Breast Cancer Detection: A Multi-Classifier Validation Study in 2,734 Participants*，medRxiv，DOI [`10.64898/2026.04.24.26351695`](https://doi.org/10.64898/2026.04.24.26351695)，v1，2026-04-27；工作副本 `/tmp/manifold-pdf-extract/xgb-tree-audit/2026-Metabolomic-XGB-Calibration.pdf`，26 页，E2。
+- **页码与协议**：物理 pp.8—9 的第 3.7—3.8 节给 22 棵、深度 2 的正则化 XGBoost，并规定每次把 20% 分析批次留作测试，再从其余训练批次拿 30% 作同时与拟合／测试批次隔离的校准分区；在校准分数上拟合等渗回归并选择目标特异度阈值。物理 p.14 第 4.5 节把阈值原样迁移到未见测试批次，表 4 同列 XGBoost、逻辑回归与固定 95% 特异度下的灵敏度；同时把测试集选阈值的 oracle 明确标成乐观上界。
+- **支持点**：XGBoost 原始分数、组／批次隔离的带标签等渗校准、固定特异度预算和未见组测试在同一预印本中出现；为 PBC 提供比普通随机验证更严格的树分数预算基线。
+- **不能支持点**：校准批次来自训练候选池且随机留出，不是部署目标域的时间因果先导；依赖校准标签，不估先验，不设失配诊断／源阈值回退，也没有实体告警工作量。
+- **裁定**：T1 `D0`，T2 `D2`；作为“带标签、组隔离固定特异度”强基线，不能与无标签 PBC 放在同一信息预算层。Zotero 未入库。
+
+## 十七、20 篇全文组恢复检查点
+
+- **完成量**：累计 20 篇全文；E3 为 10 篇，E2 为 10 篇。
+- **T1**：最高 `D2`、无 `D3`，TreeText-CTS 后连续两轮无新增，扩展检索已停止。
+- **T2**：最高 `D2`、无 `D3`；最新近邻为 Anctil 等的“树分数＋组隔离校准＋固定特异度＋未见组测试”，还需连续两轮无新增查询。
+- **人工补件**：无。新增预印本可由 medRxiv 官方 PDF 逐页核验。
+- **下一查询**：只继续 T2，聚焦“时间有序目标校准段／先导段＋冻结树＋固定 FAR 或 Top-k＋失配回退”，并避免重复普通验证阈值文献。
