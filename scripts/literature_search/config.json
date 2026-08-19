@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "input_glob": "wiki/papers/**/*.md",
+  "index_path": ".cache/literature-search/index.sqlite3",
+  "model_name": "intfloat/multilingual-e5-small",
+  "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
+  "batch_size": 16,
+  "chunk_max_chars": 400,
+  "chunk_overlap_chars": 80,
+  "rrf_constant": 60,
+  "default_top_k": 10,
+  "online_limit": 5,
+  "online_timeout_seconds": 8.0
+}

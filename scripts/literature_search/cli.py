@@ -1,0 +1,161 @@
+from __future__ import annotations
+
+import argparse
+import json
+import sqlite3
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence
+
+from .build import build_index
+from .config import REPO_ROOT, SearchConfig, load_config
+from .evaluate import evaluate_queries
+from .search import search_local
+from .status import index_status
+from .storage import connect, get_metadata
+
+
+def _print_json(value: object) -> None:
+    print(json.dumps(value, ensure_ascii=False, indent=2))
+
+
+def _print_results(results: Sequence[Dict[str, object]]) -> None:
+    for item in results:
+        print(f"{item['rank']}. {item['title']}")
+        print(f"   笔记：{item['note_path']}")
+        print(f"   原件：{item.get('source_pdf') or '未记录'}")
+        print(f"   页码：{item.get('page_hint') or '当前分块未提取'}")
+        print(
+            "   排名：词法={lexical} 向量={vector} 融合分={fusion}".format(
+                lexical=item.get("lexical_rank") or "-",
+                vector=item.get("vector_rank") or "-",
+                fusion=(
+                    f"{item['fusion_score']:.8f}"
+                    if item.get("fusion_score") is not None
+                    else "-"
+                ),
+            )
+        )
+        print(f"   片段：{item['snippet']}")
+
+
+def _index_config(connection: sqlite3.Connection, fallback: SearchConfig) -> SearchConfig:
+    metadata = get_metadata(connection)
+    saved = metadata.get("config")
+    return SearchConfig.from_dict(saved) if isinstance(saved, dict) else fallback
+
+
+def _add_common(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--repo-root", type=Path, default=REPO_ROOT, help="仓库根目录")
+    parser.add_argument("--config", type=Path, default=None, help="配置 JSON 路径")
+    parser.add_argument("--index", default=None, help="覆盖索引路径")
+
+
+def make_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="关键词与向量混合文献检索")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    build_parser = subparsers.add_parser("build", help="构建或原子重建索引")
+    _add_common(build_parser)
+    build_parser.add_argument("--lexical-only", action="store_true", help="只构建词法索引")
+    build_parser.add_argument("--model-cache", type=Path, default=None, help="模型缓存目录")
+    build_parser.add_argument("--offline", action="store_true", help="禁止模型联网下载")
+    build_parser.add_argument("--json", action="store_true", help="输出 JSON")
+
+    query_parser = subparsers.add_parser("query", help="查询本地索引")
+    _add_common(query_parser)
+    query_parser.add_argument("text", help="查询文本")
+    query_parser.add_argument(
+        "--mode", choices=["lexical", "vector", "hybrid"], default="hybrid"
+    )
+    query_parser.add_argument("--top-k", type=int, default=None)
+    query_parser.add_argument("--model-cache", type=Path, default=None)
+    query_parser.add_argument("--offline", action="store_true")
+    query_parser.add_argument("--json", action="store_true")
+
+    status_parser = subparsers.add_parser("status", help="显示索引状态")
+    _add_common(status_parser)
+    status_parser.add_argument("--json", action="store_true")
+
+    evaluate_parser = subparsers.add_parser("evaluate", help="运行冻结真实查询对照")
+    _add_common(evaluate_parser)
+    evaluate_parser.add_argument(
+        "--queries",
+        type=Path,
+        default=Path(__file__).resolve().parent / "evaluation_queries.json",
+    )
+    evaluate_parser.add_argument("--model-cache", type=Path, default=None)
+    evaluate_parser.add_argument("--offline", action="store_true")
+    return parser
+
+
+def _paths(args: argparse.Namespace) -> tuple[Path, SearchConfig, Path]:
+    repo_root = args.repo_root.expanduser().resolve()
+    config = load_config(args.config)
+    index_path = config.resolve_index_path(repo_root, args.index)
+    return repo_root, config, index_path
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    args = make_parser().parse_args(argv)
+    try:
+        repo_root, config, index_path = _paths(args)
+        if args.command == "build":
+            result = build_index(
+                repo_root,
+                index_path,
+                config,
+                lexical_only=args.lexical_only,
+                cache_folder=args.model_cache,
+                local_files_only=args.offline,
+            )
+            if args.json:
+                _print_json(result)
+            else:
+                print(
+                    f"索引完成：{result['note_count']} 篇笔记，{result['chunk_count']} 个分块，"
+                    f"{result['vector_count']} 个向量，耗时 {result['build_seconds']} 秒"
+                )
+                print(f"索引路径：{result['index_path']}")
+            return 0
+        if args.command == "status":
+            result = index_status(repo_root, index_path, config)
+            _print_json(result)
+            return 0 if result["exists"] else 1
+        if not index_path.exists():
+            raise RuntimeError(f"索引不存在：{index_path}；请先运行 build")
+        connection = connect(index_path, readonly=True)
+        try:
+            actual_config = _index_config(connection, config)
+            if args.command == "evaluate":
+                result = evaluate_queries(
+                    connection,
+                    args.queries,
+                    actual_config,
+                    cache_folder=args.model_cache,
+                    local_files_only=args.offline,
+                )
+                _print_json(result)
+                return 0
+            top_k = args.top_k or actual_config.default_top_k
+            if top_k <= 0:
+                raise ValueError("top-k 必须为正数")
+            results = search_local(
+                connection,
+                args.text,
+                args.mode,
+                top_k,
+                actual_config,
+                cache_folder=args.model_cache,
+                local_files_only=args.offline,
+            )
+        finally:
+            connection.close()
+        if args.json:
+            _print_json({"scope": "local", "mode": args.mode, "results": results})
+        else:
+            _print_results(results)
+        return 0
+    except (RuntimeError, ValueError, OSError, sqlite3.Error, json.JSONDecodeError) as error:
+        print(f"错误：{error}", file=sys.stderr)
+        return 2

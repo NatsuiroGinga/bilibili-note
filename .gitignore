@@ -61,6 +61,7 @@ output/pdf-md/
 .Codex/tools/**/node_modules/
 
 # 实验缓存与本地下载制品
+.cache/literature-search/
 thesis/experiments/__pycache__/
 thesis/experiments/llm_probe/**/*/target/
 thesis/experiments/llm_probe/**/*/__pycache__/
