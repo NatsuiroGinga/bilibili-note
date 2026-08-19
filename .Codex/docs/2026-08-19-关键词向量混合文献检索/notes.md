@@ -24,6 +24,20 @@
 - 倒数排名融合原始论文或可信技术来源中的公式与常用常数来源。
 - BM25 参数与字符 n-gram 范围的直接或任务化依据。
 
+## 已核验外部合同
+
+- Hugging Face `intfloat/multilingual-e5-small`：MIT，117,654,272 参数，384 维，支持中英文在内的 100 种语言；所有查询与段落须分别加 `query: `、`passage: ` 前缀；最多 512 token。固定修订 `614241f622f53c4eeff9890bdc4f31cfecc418b3`，实际所需权重和分词配置约 488 MB。
+- Sentence Transformers：Context7 `/huggingface/sentence-transformers` 核验到构造器支持 `revision`、`cache_folder`、`local_files_only`；编码接口支持 `batch_size` 与 `normalize_embeddings`。实现使用模型卡直接示例中的 `encode`，自行加入 E5 前缀。
+- RRF 原始论文第 1 页公式为各通道 `1 / (k + rank)` 求和，`k=60` 经先导后冻结且后续验证未改。本仓库直接使用该值，不以本地对照集调参。
+- OpenAlex 当前 `/works` 支持 `search` 与 `search.semantic`；语义检索按官方文档要求 API 密钥，单页 `per_page` 范围 1–100。
+- Semantic Scholar Academic Graph `/graph/v1/paper/search` 接受纯文本 `query`、`limit` 和逗号分隔 `fields`；可匿名使用，若设置密钥则必须以 `x-api-key` 请求头传递。
+- Crossref `/works?query.bibliographic=` 可作 DOI/题录核验；公共池无需认证，提供 `mailto` 时使用礼貌池。2025-12 起官方文档列出的公共/礼貌池速率分别为每秒 5/10，请求并发上限分别为 1/3。本实现每次查询只发一条 Crossref 请求。
+- Codex 官方文档确认仓库根 `.agents/skills/<name>/SKILL.md` 会被扫描，技能可由描述隐式匹配；技能变化通常自动发现，未出现时重启 Codex。
+
+## 规则冲突裁决
+
+- `raw/AGENTS.md` 要求提及外部论文时下载原件并写笔记，但父任务明确禁止本实现触碰 `raw/`、`wiki/` 和 Zotero。故 RRF 与模型资料只作为当前实现依据记录在过程文档，未执行入库；交付时必须显式保留此未关闭证据治理项。
+
 ## 边界
 
 - 本任务不新增或修改任何论文笔记、原始 PDF、资源笔记或 Zotero 条目。
