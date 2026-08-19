@@ -3,7 +3,7 @@
 - **日期**：2026-08-19
 - **代理映射**：`xgboost_tree_adaptation_literature_sol_max → gpt-5.6-sol → effort=max`
 - **研究路线**：`RESEARCH_ROUTE=RWKV`
-- **当前状态**：首批 15 篇候选全文已逐页核验；继续 T1／T2 直接同构窄查询与近期补漏。
+- **当前状态**：累计 19 篇候选全文已逐页或逐节核验；继续 T1／T2 在最新 `D2` 后的停止条件查询。
 
 ## 一、既有证据的去重边界
 
@@ -286,3 +286,82 @@ T1／T2 同构等级：
 - **人工补件**：无；未遇到必须依赖付费全文才能裁决的候选。
 - **持久化边界**：本任务不拥有 `raw/`、`wiki/` 或 Zotero 写权限，故仅记录公开全文入口、工作副本和“未入库”状态；不把临时工作副本冒充仓库原件。
 - **下一查询**：T1 直接检索 `powers of two／dyadic windows＋XGBoost＋entity／network history` 与 `AfterImage＋XGBoost`；T2 直接检索 `tree scores／XGBoost＋unlabeled target prior correction／pilot period／false-positive budget／fallback`，并单独覆盖 2025—2026。
+
+## 十三、直接同构窄查询日志
+
+### Q5：T1 第一轮——二进窗与网络实体 XGBoost
+
+- **查询式**：`"powers of two" "XGBoost" time series classification`；`"dyadic windows" XGBoost classification`；`"multi-scale" XGBoost network intrusion host history`；`"AfterImage" XGBoost network intrusion`。
+- **结果**：没有新增 T1 `D2／D3`；命中多为深度时序模型、普通静态 XGBoost 或图模型。Kitsune／AfterImage 仍是网络实体多尺度特征器，不是原论文中的 XGBoost 方法。
+- **Zotero 状态**：只读去重，无写入。
+
+### Q6：T1 第二轮——实体尾随窗与多分辨率聚合
+
+- **查询式**：`("XGBoost" OR "gradient boosting") "multi-window" temporal features entity`；`XGBoost "sliding windows" "network intrusion detection" host feature`；`XGBoost "multiple time windows" network traffic classification`；`XGBoost "multi-resolution" temporal aggregation entity history`。
+- **新增 `D2`**：Pinchuk（2026）。该文明确使用多个实体键、无前视尾随窗口聚合和 XGBoost；因此重置 T1 的连续无新增计数。
+- **排除**：普通滑窗切分、神经网络编码器后接 XGBoost、没有实体截止时间的静态统计。
+
+### Q7：T1 第三轮——无前视实体历史
+
+- **查询式**：`"no-lookahead" XGBoost "entity history" windows`；`"entity history" XGBoost multi-scale windows`；`"trailing windows" XGBoost device_id history`；`dyadic temporal features "gradient boosted trees"`。
+- **结果**：仅重复命中 Pinchuk（2026），没有新增 T1 `D2／D3`；这是其后的第一轮无新增。
+
+### Q8：T1 第四轮——固定幂次尺度
+
+- **查询式**：`"1, 2, 4, 8, 16" XGBoost window history`；`"2, 4, 8, 16" XGBoost temporal aggregation`；`"time aggregation" XGBoost "network intrusion"`；`2025 2026 XGBoost host history "strictly before"`。
+- **新增 `D2`**：TreeText-CTS（2026）。该文以患者为实体，在 `{1,2,4,8,16,32,48}` 小时尺度生成统计并通过冻结 XGBoost；因此再次重置 T1 的连续无新增计数。
+- **边界线索**：Cotroneo 等网络检测延迟研究比较 5 秒至 30 分钟单一聚合间隔并分别训练 XGBoost／Extra Trees；不是并列多尺度实体前缀，暂不升级为直接近邻。
+
+### Q9：T2 第一轮——树分数、标签漂移与目标约束
+
+- **查询式**：`XGBoost "label shift" EM calibration target`；`random forest "prior probability shift" unlabeled target calibration`；`tree classifier scores target pilot prior correction fallback`；`XGBoost threshold calibration "false positive budget" target`。
+- **新增 `D2`**：TAP-GPPS（Asiaee 与 Aryan，2026）。它在校准源模型上用无标签目标数据估计组条件先验、修正后验并选择满足目标人口统计平等约束的分组阈值；实验明确包含 XGBoost。
+- **不能支持**：没有时间因果先导、实体告警预算或自动失配回退。
+
+### Q10：T2 第二轮——先导／校准期与固定假阳率
+
+- **查询式**：`"pilot period" XGBoost threshold calibration`；`"calibration period" random forest "false positive rate" threshold`；`XGBoost "held-out calibration" "false positive rate" threshold`；`"unlabeled target" XGBoost "prior shift"`。
+- **新增 `D2`**：Hung（2026）。正式全文明确用验证集选择固定假阳率阈值，再在隔离的未见攻击族测试集评价 XGBoost／随机森林；因此重置 T2 的连续无新增计数。
+- **边界线索**：OULAD 早期预警工作用容量 `Top-x%` 固定工作量，但最终模型为直方图梯度提升且无目标适应；TAN-IDS 用 5% 带标签目标样本微调 XGBoost，但随机拆分且改变模型。二者不升级为 T2 直接近邻。
+
+## 十四、增量全文核验：直接近邻
+
+### 14.1 Pinchuk（2026），实体时间聚合＋XGBoost
+
+- **题录／全文**：Mykola Pinchuk，*Time Aggregation Features for XGBoost Models*，[arXiv `2601.10019`](https://arxiv.org/abs/2601.10019)，v1，2026-01-15；工作副本 `/tmp/manifold-pdf-extract/xgb-tree-audit/2026-TimeAggregationXGB.pdf`，17 页，E2。
+- **页码与公式**：物理 p.2 规定滚动尾部训练／验证／测试和无前视约束，小时 `H` 的特征只用 `<H` 的数据；物理 p.3 以 `device_ip`、`device_id`、`app_id`、`site_id` 为实体，按实体／窗口生成 `log(1+impressions)` 与平滑点击率 `(C+α)/(I+α+β)`，其中 `α=1,β=10`。物理 p.4 表 2 给 `(1,6,24)`、`(1,3,6,12,24)`、`(1,6,24,48,168)` 和 `(1,2,4,8,16,24,48,96,168)` 小时窗，表 3 比较尾随、隔一小时、桶化、日历和事件计数窗；物理 p.12 重列聚合公式。
+- **支持点**：实体时间截止、多组固定尺度统计和单一 XGBoost 已在同一方法中出现，是 T1 最直接的表格树近邻之一。
+- **不能支持点**：点击率特征依赖延迟标签；物理 p.11 说明同一折中验证／测试时点可使用更早小时的点击标签。最大窗口组不是纯二进序列；尺度组由同一数据集两折结果比较，不是源实体折外选择后跨域冻结；任务不是网络安全。
+- **裁定**：T1 `D2`，T2 `D0`。只用计数的无前视多窗 XGBoost 属同信息强基线；点击率版本必须单列为“延迟标签可用”层级。Zotero 未入库。
+
+### 14.2 Lee 等（2026），TreeText-CTS
+
+- **题录／全文**：Kwanhyung Lee 等，*TreeText-CTS: Compact, Source-Traceable Tree-Path Evidence for Irregular Clinical Time-Series Prediction*，[arXiv `2605.20292`](https://arxiv.org/abs/2605.20292)，v1，2026-05-19；工作副本 `/tmp/manifold-pdf-extract/xgb-tree-audit/2026-TreeTextCTS-v1.pdf`，27 页，E2。
+- **页码与公式**：物理 pp.3—4 以患者为实体，在预测时点 `t` 的 `[t-W,t]` 窗内计算最近值、均值、标准差、最小值、最大值、计数、净变化、距最近观测时间和缺失率；每个 `W` 单独训练 XGBoost，式（2）的叶分数只由训练集估计。物理 p.5 指定 `W={1,2,4,8,16,32,48}` 小时，并把树清单、谓词与缓存对验证／测试冻结；式（6）说明 XGBoost 与缓存固定，选择器和语言模型继续学习。物理 p.7 表 3 给多窗口 XGBoost 均值／最大值控制项；附录物理 p.12 表 A2／A4 给任务观察期与患者级拆分。
+- **支持点**：患者实体、多尺度统计、仅训练集拟合并冻结的 XGBoost 和验证／测试冻结清单同现；固定幂次尺度与树模型不能再单独主张新颖。
+- **不能支持点**：每个窗口是独立 XGBoost，最终预测器为证据选择器与语言模型，不是把所有尺度统计拼接给一个 XGBoost；保留全部尺度，未做源实体折外尺度子集选择；临床任务而非网络逐流。
+- **裁定**：T1 `D2`，T2 `D0`；其多窗口 XGBoost 均值／最大值是结构强基线，完整语言模型组件不属于同预算树基线。Zotero 未入库。
+
+### 14.3 Asiaee 与 Aryan（2026），TAP-GPPS
+
+- **题录／全文**：Amir Asiaee 与 Kaveh Aryan，*Fairness Under Group-Conditional Prior Probability Shift: Invariance, Drift, and Target-Aware Post-Processing*，[arXiv `2602.05144`](https://arxiv.org/abs/2602.05144)，v1，2026-02-05；工作副本 `/tmp/manifold-pdf-extract/xgb-tree-audit/2026-TAP-GPPS.pdf`，15 页，E2。
+- **页码与公式**：物理 p.3 定义组条件先验漂移 `P_t(X|Y,A)=P_s(X|Y,A)`；物理 pp.5—6 的式（20）—（21）用组内新旧先验比校正后验，第 5.2 节用 EM 或 BBSE 从无标签目标估计组先验，第 5.3 节按目标接受率／人口统计平等约束选择组阈值。物理 p.7 算法 1 串联源模型校准、目标先验估计、后验修正、二分阈值和约束风险选择；实验包括逻辑回归、XGBoost、MLP，并把源模型、无修正阈值和带标签目标 oracle 分开。物理 p.8 的局限明确承认保证依赖 GPPS 与敏感属性。
+- **支持点**：校准源树、无标签目标先验、目标约束阈值和隔离测试在同一框架中出现；树特定的无标签先验校正与目标阈值约束不是空白。
+- **不能支持点**：预算是群体接受率／公平约束，不是网络实体告警或假阳率预算；无因果时间先导、失配诊断与自动回退，且目标漂移为受控构造。
+- **裁定**：T1 `D0`，T2 `D2`；已校准 XGBoost＋TAP-GPPS EM／BBSE 与无修正阈值是强基线，敏感属性不可用时只作条件性基线。Zotero 未入库。
+
+### 14.4 Hung（2026），IoT 树分数固定假阳率阈值
+
+- **题录／全文**：Ruei-Jan Hung，*An Explainable XGBoost-Based Framework for IoT Attack Detection with Unseen Attack Family Evaluation*，*Sensors* 26(10):3005，DOI [`10.3390/s26103005`](https://doi.org/10.3390/s26103005)，PMC `PMC13210460`；[PMC 正式全文](https://pmc.ncbi.nlm.nih.gov/articles/PMC13210460/)，E3。工作副本为 `/tmp/manifold-pdf-extract/xgb-tree-audit/2026-Sensors-IoT-XGB.xml`；正式 JATS 不提供连续物理页码，故以章节锚定。
+- **章节与协议**：第 3.4 节把每轮 200 万训练预算拆为 170 万拟合、30 万验证，验证集用于阈值校准，并审计拟合／验证／测试零重叠；第 3.6 节以验证宏平均 F1、MCC 和近似 `FAR=0.01` 共同选择 XGBoost 配置，明确不使用最终未见攻击族测试标签；第 4.4 节在每轮验证集选择接近目标假阳率的阈值，再用于隔离的未见攻击族测试，目标覆盖 `0.001—0.05`；第 4.5 节另以验证集假阳性／假阴性代价选择阈值。
+- **支持点**：XGBoost／随机森林分数、固定假阳率预算、独立验证阈值和隔离测试已在网络安全正式全文中同现，是 PBC 的直接决策层强基线。
+- **不能支持点**：验证集是同一基准内随机划分，不是部署目标域的因果时间先导；未估目标先验，没有条件失配诊断或源阈值回退；第 5 节明确实部署仍需持续校准监测。
+- **裁定**：T1 `D0`，T2 `D2`；验证固定假阳率 XGBoost／随机森林是强预算基线，但不能据此声称目标先导适应或真实部署假阳率保证。Zotero 未入库。
+
+## 十五、19 篇全文组恢复检查点
+
+- **完成量**：累计 19 篇全文；E3 为 10 篇，E2 为 9 篇。四篇新增文献的题名、作者、版本／DOI 与全文位置均已由 arXiv、PMC 或出版社元数据核验。
+- **T1 最高等级**：`D2`，无 `D3`。Pinchuk 最接近“实体历史多窗统计＋单一 XGBoost”，TreeText-CTS 最接近“固定幂次尺度＋训练集冻结 XGBoost”；尚缺网络逐流严格前缀、源实体折外尺度选择／冻结和同一最终树骨干的完整同现。
+- **T2 最高等级**：`D2`，无 `D3`。TAP-GPPS 占用无标签目标先验＋目标约束阈值，Hung 占用树分数＋固定假阳率验证阈值＋隔离测试；尚缺目标因果先导、实体工作量预算、失配诊断／预注册回退和冻结后段的联合合同。
+- **人工补件**：无。MDPI 页面限流与 PMC PDF 下载挑战已由 Europe PMC／PMC 正式全文 XML 解锁，不影响全文级裁决。
+- **下一查询**：以 TreeText-CTS 与 Hung 为最新 `D2` 起点，T1、T2 各执行两轮新的直接短语与同义词查询；若连续两轮无新增 `D2／D3`，即满足扩展停止条件。
