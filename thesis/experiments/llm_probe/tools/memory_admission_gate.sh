@@ -19,9 +19,13 @@ SAFETY_MARGIN="${MEMORY_SAFETY_MARGIN:-1.3}"   # 预计峰值需留 30% 余量
 # ---- 1. 读取容器真实内存上限，禁止使用 free ----
 CGROUP_MAX=""
 CGROUP_CUR=""
+CGROUP_RECLAIMABLE=0
 if [ -r /sys/fs/cgroup/memory.max ]; then                 # cgroup v2
   CGROUP_MAX=$(cat /sys/fs/cgroup/memory.max)
   CGROUP_CUR=$(cat /sys/fs/cgroup/memory.current 2>/dev/null || echo 0)
+  if [ -r /sys/fs/cgroup/memory.stat ]; then
+    CGROUP_RECLAIMABLE=$(awk '$1 == "inactive_file" {print $2; found=1} END {if (!found) print 0}' /sys/fs/cgroup/memory.stat)
+  fi
 elif [ -r /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then  # cgroup v1
   CGROUP_MAX=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
   CGROUP_CUR=$(cat /sys/fs/cgroup/memory/memory.usage_in_bytes 2>/dev/null || echo 0)
@@ -34,11 +38,14 @@ fi
 
 LIMIT_GIB=$(awk -v b="$CGROUP_MAX" 'BEGIN{printf "%.2f", b/1073741824}')
 USED_GIB=$(awk -v b="$CGROUP_CUR" 'BEGIN{printf "%.2f", b/1073741824}')
-AVAIL_GIB=$(awk -v l="$LIMIT_GIB" -v u="$USED_GIB" 'BEGIN{printf "%.2f", l-u}')
+RECLAIMABLE_GIB=$(awk -v b="$CGROUP_RECLAIMABLE" 'BEGIN{printf "%.2f", b/1073741824}')
+EFFECTIVE_USED_GIB=$(awk -v c="$CGROUP_CUR" -v r="$CGROUP_RECLAIMABLE" 'BEGIN{v=c-r; if (v<0) v=0; printf "%.2f", v/1073741824}')
+AVAIL_GIB=$(awk -v m="$CGROUP_MAX" -v c="$CGROUP_CUR" -v r="$CGROUP_RECLAIMABLE" 'BEGIN{v=m-c+r; if (v>m) v=m; printf "%.2f", v/1073741824}')
 NEEDED_GIB=$(awk -v p="$ESTIMATED_PEAK_GIB" -v m="$SAFETY_MARGIN" 'BEGIN{printf "%.2f", p*m}')
 
 echo "[准入门禁] 运行=$RUN_NAME"
-echo "[准入门禁] cgroup 上限=${LIMIT_GIB} GiB  已用=${USED_GIB} GiB  可用=${AVAIL_GIB} GiB"
+echo "[准入门禁] cgroup 上限=${LIMIT_GIB} GiB  当前=${USED_GIB} GiB  可回收页缓存=${RECLAIMABLE_GIB} GiB"
+echo "[准入门禁] 有效已用=${EFFECTIVE_USED_GIB} GiB  有效可用=${AVAIL_GIB} GiB"
 echo "[准入门禁] 预计峰值=${ESTIMATED_PEAK_GIB} GiB  含 ${SAFETY_MARGIN}× 余量后需要=${NEEDED_GIB} GiB"
 
 # ---- 2. 跨运行并发检查：任何 flow_probe 进程都算占用 ----
