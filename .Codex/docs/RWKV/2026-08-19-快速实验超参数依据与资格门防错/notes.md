@@ -80,7 +80,16 @@
 
 ### 4.1 超参依据收据
 
-`parameter_id`、`value`、`role_semantics`、`provenance_class`、`source_title`、`source_path_or_doi`、`page_or_formula`、`source_value`、`transformation`、`applicability_assumptions`、`target_labels_seen`、`sensitivity_required`、`owner`、`frozen_at`、`supersedes`、`status`。
+所有未由冻结数据、接口合同或已证明公式唯一决定的数值均视为魔法数字。每个数值必须在注册表中占一行，并同时提供四块依据：
+
+1. `literature_evidence`：直接文献题名、DOI／原件、页码／公式、原文支持对象与本项目差异；
+2. `derivation_evidence`：公式、输入量、计算器哈希、精确结果、取整规则和误差界；
+3. `empirical_evidence`：冻结真实数据无标签统计或仅源侧实验的制品路径、哈希、样本单位、标签权限与结果；
+4. `applicability_boundary`：适用数据版本、统计单位、角色、取值范围、独立性／交换性条件和失效触发器。
+
+通用字段为：`parameter_id`、`config_json_pointer`、`value`、`unit`、`role_semantics`、`provenance_class`、`target_labels_seen`、`sensitivity_required`、`owner`、`frozen_at`、`supersedes`、四块依据各自的 `status`，以及总状态 `verified/unverified/rejected`、`freeze_eligible`、`missing_evidence`。
+
+只有四块依据均为 `passed` 且总状态为 `verified` 时，`freeze_eligible` 才能为真。`not_applicable` 不能用于绕过缺失的文献、推导或真实／源侧证据；如果某类证据确实不适用，该数值就不是可冻结的科学超参数，必须移出实验配置或由无自由度的接口／数据常量替代。
 
 ### 4.2 无标签资格收据
 
@@ -97,3 +106,14 @@
 3. 功效设计中的 `q`、`β`，以及选择段尾部最小支持数 `h` 尚未冻结。
 4. 实体之间的独立性只是比逐流更可信，尚未被本课题验证；若实体仍有主机关联，应按簇或有效样本量重新定义风险单位。
 5. 完整 D3 直接近邻检索仍在并行进行；它约束原创措辞，不应阻塞已通过资格与统计门的 Q0。
+
+## 六、`10%/10%/80%` 的魔法数字反例登记
+
+| 依据轴 | 核验结果 | 裁定 |
+| --- | --- | --- |
+| 直接文献 | 现有直接方法文献支持样本拆分、误差控制和独立确认的一般原则，没有给出 LSPR24 完整实体 `10%/10%/80%` 比例 | `missing` |
+| 数学／统计推导 | 冻结前没有从 Clopper–Pearson 风险界、功效或选择尾部分辨率反推两个先导段规模 | `missing` |
+| 真实数据／源侧实验 | 冻结前没有资格收据；事后无标签真实数据诊断显示选择、确认均为 `0` | `failed` |
+| 适用边界 | 旧 PBC 的无标签流前缀与新方案的完整实体选择／确认角色不等价；全局时间比例也与实体活动集中区错位 | `failed` |
+
+总状态为 `rejected`，`freeze_eligible=false`。该比例不能因来自旧实验、写入恢复卡或已经实现而恢复资格；只有新方案版本重新取得四块完整依据后才能形成新的冻结候选。
