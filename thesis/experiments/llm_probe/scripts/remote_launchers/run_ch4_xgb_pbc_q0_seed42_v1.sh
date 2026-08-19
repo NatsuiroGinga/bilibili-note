@@ -3,8 +3,9 @@ source ~/.bashrc >/dev/null 2>&1 || true
 set -Eeuo pipefail
 
 readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
-readonly RUN_ID=ch4-xgb-pbc-q0-seed42-v1
+readonly RUN_ID=ch4-xgb-pbc-q0-seed42-v1-rerun2
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch4_xgb_pbc_q0.py"
+readonly RECOVERY_TOOL_PATH="$PROJECT_ROOT/tools/build_ch3_xgb_parent_recovery_proof.py"
 readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch4-xgb-pbc-q0-seed42-v1.json"
 readonly PARENT_CONFIG_PATH="$PROJECT_ROOT/configs/ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json"
 readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch4_xgb_pbc_q0_seed42_v1.sh"
@@ -12,6 +13,8 @@ readonly PARENT_RUN_ID=ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1
 readonly PARENT_EVAL_ID="${PARENT_RUN_ID}-eval-continuation2"
 readonly PARENT_RUN_ROOT="$PROJECT_ROOT/runs/diagnostics/$PARENT_RUN_ID"
 readonly PARENT_EVAL_ROOT="$PROJECT_ROOT/runs/diagnostics/$PARENT_EVAL_ID"
+readonly RECOVERY_ROOT="$PROJECT_ROOT/runs/recovery/${PARENT_RUN_ID}-for-${RUN_ID}-v1"
+readonly RECOVERY_PROOF_PATH="$RECOVERY_ROOT/parent-recovery-proof.json"
 readonly RUN_ROOT="$PROJECT_ROOT/runs/candidates/$RUN_ID"
 readonly LAUNCH_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"
 readonly STATUS_PATH="$RUN_ROOT/status.json"
@@ -26,24 +29,25 @@ write_status() {
 }
 
 write_resource_receipt() {
-    local memory_max=$1 memory_current=$2 available_gib=$3 disk_available_mib=$4
-    local gpu_free_mib=$5 admission_exit=$6 passed=$7
+    local memory_max=$1 memory_current=$2 reclaimable_bytes=$3 available_gib=$4
+    local disk_available_mib=$5 gpu_free_mib=$6 admission_exit=$7 passed=$8
     local partial="$RUN_ROOT/resource-receipt.json.partial.$$"
-    printf '{"schema_version":"ch4-xgb-pbc-q0-resource-v1","estimated_peak_gib":%s,"cgroup_memory_max_bytes":%s,"cgroup_memory_current_bytes":%s,"cgroup_available_gib":%s,"disk_available_mib":%s,"gpu_free_mib":%s,"memory_admission_exit":%s,"passed":%s}\n' \
-        "$ESTIMATED_PEAK_GIB" "$memory_max" "$memory_current" "$available_gib" \
+    printf '{"schema_version":"ch4-xgb-pbc-q0-resource-v2","estimated_peak_gib":%s,"cgroup_memory_max_bytes":%s,"cgroup_memory_current_bytes":%s,"cgroup_inactive_file_bytes":%s,"cgroup_effective_available_gib":%s,"disk_available_mib":%s,"gpu_free_mib":%s,"memory_admission_exit":%s,"passed":%s}\n' \
+        "$ESTIMATED_PEAK_GIB" "$memory_max" "$memory_current" "$reclaimable_bytes" "$available_gib" \
         "$disk_available_mib" "$gpu_free_mib" "$admission_exit" "$passed" > "$partial"
     mv -f -- "$partial" "$RUN_ROOT/resource-receipt.json"
 }
 
 resource_gate() {
-    local memory_max memory_current available_gib disk_available_mib gpu_free_mib admission_exit
+    local memory_max memory_current reclaimable_bytes available_gib disk_available_mib gpu_free_mib admission_exit
     memory_max=$(< /sys/fs/cgroup/memory.max)
     memory_current=$(< /sys/fs/cgroup/memory.current)
+    reclaimable_bytes=$(awk '$1 == "inactive_file" {print $2; found=1} END {if (!found) print 0}' /sys/fs/cgroup/memory.stat)
     if [[ -z "$memory_max" || "$memory_max" == max ]]; then
         write_status failed resource_gate cgroup_limit_unavailable 12
         return 12
     fi
-    available_gib=$(awk -v m="$memory_max" -v c="$memory_current" 'BEGIN {printf "%.2f", (m-c)/1073741824}')
+    available_gib=$(awk -v m="$memory_max" -v c="$memory_current" -v r="$reclaimable_bytes" 'BEGIN {v=m-c+r; if (v>m) v=m; printf "%.2f", v/1073741824}')
     disk_available_mib=$(df -Pk "$PROJECT_ROOT" | awk 'NR==2 {printf "%d", $4/1024}')
     gpu_free_mib=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | awk 'NR==1 {print $1}')
 
@@ -53,30 +57,30 @@ resource_gate() {
     admission_exit=$?
     set -e
     if [[ "$admission_exit" -ne 0 ]]; then
-        write_resource_receipt "$memory_max" "$memory_current" "$available_gib" \
+        write_resource_receipt "$memory_max" "$memory_current" "$reclaimable_bytes" "$available_gib" \
             "$disk_available_mib" "$gpu_free_mib" "$admission_exit" false
         write_status failed resource_gate memory_admission_failed "$admission_exit"
         return "$admission_exit"
     fi
     if ! awk -v a="$available_gib" 'BEGIN {exit !(a >= 58.0)}'; then
-        write_resource_receipt "$memory_max" "$memory_current" "$available_gib" \
+        write_resource_receipt "$memory_max" "$memory_current" "$reclaimable_bytes" "$available_gib" \
             "$disk_available_mib" "$gpu_free_mib" "$admission_exit" false
         write_status failed resource_gate host_memory_insufficient 10
         return 10
     fi
     if [[ "$disk_available_mib" -lt 30720 ]]; then
-        write_resource_receipt "$memory_max" "$memory_current" "$available_gib" \
+        write_resource_receipt "$memory_max" "$memory_current" "$reclaimable_bytes" "$available_gib" \
             "$disk_available_mib" "$gpu_free_mib" "$admission_exit" false
         write_status failed resource_gate disk_insufficient 13
         return 13
     fi
     if [[ "$gpu_free_mib" -lt 11264 ]]; then
-        write_resource_receipt "$memory_max" "$memory_current" "$available_gib" \
+        write_resource_receipt "$memory_max" "$memory_current" "$reclaimable_bytes" "$available_gib" \
             "$disk_available_mib" "$gpu_free_mib" "$admission_exit" false
         write_status failed resource_gate gpu_memory_insufficient 14
         return 14
     fi
-    write_resource_receipt "$memory_max" "$memory_current" "$available_gib" \
+    write_resource_receipt "$memory_max" "$memory_current" "$reclaimable_bytes" "$available_gib" \
         "$disk_available_mib" "$gpu_free_mib" "$admission_exit" true
 }
 
@@ -106,7 +110,15 @@ run_tool() {
         --parent-run-root "$PARENT_RUN_ROOT" \
         --parent-eval-root "$PARENT_EVAL_ROOT" \
         --parent-config "$PARENT_CONFIG_PATH" \
+        --parent-recovery-proof "$RECOVERY_PROOF_PATH" \
         --out "$RUN_ROOT" "$@"
+}
+
+build_recovery_proof() {
+    uv run --no-sync python "$RECOVERY_TOOL_PATH" \
+        --parent-run-root "$PARENT_RUN_ROOT" \
+        --parent-config "$PARENT_CONFIG_PATH" \
+        --out "$RECOVERY_ROOT"
 }
 
 worker() {
@@ -161,13 +173,13 @@ for command in uv swanlab flock nvidia-smi sha256sum rg nohup setsid; do
         exit 69
     }
 done
-for path in "$TOOL_PATH" "$CONFIG_PATH" "$PARENT_CONFIG_PATH" "$SCRIPT_PATH"; do
+for path in "$TOOL_PATH" "$RECOVERY_TOOL_PATH" "$CONFIG_PATH" "$PARENT_CONFIG_PATH" "$SCRIPT_PATH"; do
     [[ -s "$path" ]] || {
         printf '生产文件缺失：%s\n' "$path" >&2
         exit 67
     }
 done
-for name in selection_frozen_xgb2x2.json effective_config_receipts.json manifest.json model_semantic168.json model_oof_semantic168_fold0.json model_oof_semantic168_fold1.json model_oof_semantic168_fold2.json; do
+for name in status.json selection_frozen_xgb2x2.json effective_config_receipts.json model_raw83.json model_semantic168.json model_oof_semantic168_fold0.json model_oof_semantic168_fold1.json model_oof_semantic168_fold2.json; do
     [[ -r "$PARENT_RUN_ROOT/$name" && -s "$PARENT_RUN_ROOT/$name" ]] || {
         printf '父运行制品缺失或不可读：%s\n' "$PARENT_RUN_ROOT/$name" >&2
         exit 66
@@ -194,13 +206,20 @@ if [[ -e "$RUN_ROOT" || -e "$LAUNCH_ROOT" ]]; then
     printf '同名运行目录已存在，禁止覆盖：%s\n' "$RUN_ROOT" >&2
     exit 73
 fi
+if [[ -e "$RECOVERY_ROOT" ]]; then
+    printf '同名恢复证明目录已存在，禁止覆盖：%s\n' "$RECOVERY_ROOT" >&2
+    exit 73
+fi
 
+build_recovery_proof
 run_tool --validate-inputs
 mkdir -p "$RUN_ROOT" "$LAUNCH_ROOT"
-sha256sum "$TOOL_PATH" "$CONFIG_PATH" "$PARENT_CONFIG_PATH" "$SCRIPT_PATH" \
+sha256sum "$TOOL_PATH" "$RECOVERY_TOOL_PATH" "$CONFIG_PATH" "$PARENT_CONFIG_PATH" "$SCRIPT_PATH" \
+    "$RECOVERY_PROOF_PATH" \
+    "$PARENT_RUN_ROOT/status.json" \
     "$PARENT_RUN_ROOT/selection_frozen_xgb2x2.json" \
     "$PARENT_RUN_ROOT/effective_config_receipts.json" \
-    "$PARENT_RUN_ROOT/manifest.json" \
+    "$PARENT_RUN_ROOT/model_raw83.json" \
     "$PARENT_RUN_ROOT/model_semantic168.json" \
     "$PARENT_RUN_ROOT/model_oof_semantic168_fold0.json" \
     "$PARENT_RUN_ROOT/model_oof_semantic168_fold1.json" \

@@ -38,7 +38,7 @@ from ch3_xgb_cpa_elp_eval_continuation import (  # noqa: E402
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN_ID = "ch4-xgb-pbc-q0-seed42-v1"
+RUN_ID = "ch4-xgb-pbc-q0-seed42-v1-rerun2"
 N_FLOW_23 = 16_353_511
 N_ENTITY_23 = 150_680
 N_POS_ENTITY_23 = 239
@@ -53,6 +53,24 @@ EXPECTED_PARENT_RESULT_SHA256 = (
 EXPECTED_PARENT_EVAL_MANIFEST_SHA256 = (
     "f6b66cc94ef09b169ff29ce317464109bc701fa109875f6e9b7d09c889516115"
 )
+PARENT_RECOVERY_PROOF_SCHEMA_VERSION = "ch3-xgb-parent-recovery-proof-v1"
+PARENT_RECOVERY_PROOF_FILENAME = "parent-recovery-proof.json"
+PARENT_RECOVERY_ARTIFACTS = (
+    "selection_frozen_xgb2x2.json",
+    "effective_config_receipts.json",
+    "model_raw83.json",
+    "model_semantic168.json",
+    "model_oof_semantic168_fold0.json",
+    "model_oof_semantic168_fold1.json",
+    "model_oof_semantic168_fold2.json",
+)
+PARENT_RECOVERY_EFFECTIVE_TAGS = {
+    "raw83/final",
+    "semantic168/final",
+    "semantic168/fold0",
+    "semantic168/fold1",
+    "semantic168/fold2",
+}
 METHODS = (
     "source_frozen",
     "pilot_quantile",
@@ -125,6 +143,16 @@ def parse_args() -> argparse.Namespace:
         default=ROOT / "configs/ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json",
     )
     parser.add_argument(
+        "--parent-recovery-proof",
+        type=Path,
+        default=(
+            ROOT
+            / "runs/recovery"
+            / f"{PARENT_RUN_ID}-for-{RUN_ID}-v1"
+            / PARENT_RECOVERY_PROOF_FILENAME
+        ),
+    )
+    parser.add_argument(
         "--out",
         type=Path,
         default=ROOT / "runs/candidates" / RUN_ID,
@@ -145,6 +173,11 @@ def validate_config(config: dict[str, Any]) -> None:
         "independent_test": False,
         "parent_run_id": PARENT_RUN_ID,
         "parent_eval_run_id": CONTINUATION_RUN_ID,
+        "parent_recovery_proof": {
+            "schema_version": PARENT_RECOVERY_PROOF_SCHEMA_VERSION,
+            "requires_parent_incomplete": True,
+            "original_manifest_expected": False,
+        },
         "base_view": "semantic168",
         "power_mean_p": 1.0,
         "pilot_time_fractions": [0.1, 0.2, 0.3, 0.5],
@@ -188,7 +221,7 @@ def validate_config(config: dict[str, Any]) -> None:
         raise SystemExit("DKW 显著性水平必须位于 (0,1)")
     if not 0 < float(config["bbse_prior_margin"]) < 0.5:
         raise SystemExit("BBSE 先验内点余量必须位于 (0,0.5)")
-    if config.get("expected_time_span_hours") != [24.0, 48.0]:
+    if config.get("expected_time_span_hours") != [140.0, 144.0]:
         raise SystemExit("目标时间跨度门与冻结合同不符")
     tracking = config.get("tracking", {})
     if tracking != {
@@ -246,24 +279,63 @@ def validate_inputs(args: argparse.Namespace, config: dict[str, Any]) -> dict[st
     if parent_result.get("isolation", {}).get("target_scores_persisted") is not False:
         raise SystemExit("父评价逐流分数持久化声明异常")
 
-    parent_manifest_path = args.parent_run_root.resolve() / "manifest.json"
-    if not parent_manifest_path.is_file():
-        raise SystemExit(f"父运行清单缺失：{parent_manifest_path}")
-    parent_manifest = load_json(parent_manifest_path)
-    if parent_manifest.get("run_id") != PARENT_RUN_ID:
-        raise SystemExit("父运行清单身份不符")
-    manifest_files = parent_manifest.get("files", {})
-    oof_hashes: dict[str, str] = {}
-    for fold in range(N_FOLD):
-        name = f"model_oof_semantic168_fold{fold}.json"
+    proof_path = args.parent_recovery_proof.resolve()
+    if proof_path.name != PARENT_RECOVERY_PROOF_FILENAME or not proof_path.is_file():
+        raise SystemExit(f"父恢复证明缺失或文件名不符：{proof_path}")
+    if args.parent_run_root.resolve() in proof_path.parents:
+        raise SystemExit("父恢复证明不得位于父运行目录内")
+    proof = load_json(proof_path)
+    if proof.get("schema_version") != PARENT_RECOVERY_PROOF_SCHEMA_VERSION:
+        raise SystemExit("父恢复证明模式版本不符")
+    if proof.get("parent_run_id") != PARENT_RUN_ID:
+        raise SystemExit("父恢复证明运行身份不符")
+    if Path(str(proof.get("parent_run_root", ""))).resolve() != args.parent_run_root.resolve():
+        raise SystemExit("父恢复证明中的父运行路径不符")
+    if proof.get("does_not_assert_parent_completion") is not True:
+        raise SystemExit("父恢复证明错误声明父运行已完成")
+    parent_state = proof.get("parent_state", {})
+    historical_status = parent_state.get("historical_status", {})
+    if (
+        parent_state.get("complete") is not False
+        or historical_status.get("state") != "running"
+        or historical_status.get("stage") != "source_selection"
+        or historical_status.get("exit_code") is not None
+        or parent_state.get("missing_completion_artifacts")
+        != ["xgb_cpa_elp_results.json", "manifest.json"]
+    ):
+        raise SystemExit("父恢复证明未保留已核验的中断事实")
+    parent_status_path = args.parent_run_root.resolve() / "status.json"
+    if (
+        not parent_status_path.is_file()
+        or historical_status.get("filename") != parent_status_path.name
+        or historical_status.get("sha256") != sha256_file(parent_status_path)
+        or historical_status.get("bytes") != parent_status_path.stat().st_size
+    ):
+        raise SystemExit("父实际状态与恢复证明不符")
+    for name in parent_state["missing_completion_artifacts"]:
+        if (args.parent_run_root.resolve() / name).exists():
+            raise SystemExit(f"父运行出现证明声明缺失的完成制品：{name}")
+    proof_artifacts = proof.get("artifacts", {})
+    artifact_hashes: dict[str, str] = {}
+    for name in PARENT_RECOVERY_ARTIFACTS:
         path = args.parent_run_root.resolve() / name
-        receipt = manifest_files.get(name, {})
+        receipt = proof_artifacts.get(name, {})
         if not path.is_file() or not receipt:
-            raise SystemExit(f"父折外模型或清单项缺失：{name}")
+            raise SystemExit(f"父恢复证明或实际制品缺失：{name}")
         actual = sha256_file(path)
         if actual != receipt.get("sha256") or path.stat().st_size != receipt.get("bytes"):
-            raise SystemExit(f"父折外模型与清单不符：{name}")
-        oof_hashes[name] = actual
+            raise SystemExit(f"父制品与恢复证明不符：{name}")
+        if name.startswith("model_") and receipt.get("num_boosted_rounds") != N_TREE:
+            raise SystemExit(f"父恢复证明中的模型树数不是 {N_TREE}：{name}")
+        artifact_hashes[name] = actual
+    effective_summary = proof.get("effective_config_receipts", {})
+    if (
+        effective_summary.get("receipt_count") != 11
+        or effective_summary.get("all_passed") is not True
+        or set(effective_summary.get("required_dependency_tags", []))
+        != PARENT_RECOVERY_EFFECTIVE_TAGS
+    ):
+        raise SystemExit("父恢复证明中的有效配置收据摘要不符")
 
     required_cache = (
         "X23",
@@ -287,8 +359,9 @@ def validate_inputs(args: argparse.Namespace, config: dict[str, Any]) -> dict[st
 
     parent["parent_eval_root"] = str(parent_eval_root)
     parent["parent_eval_sha256"] = eval_hashes
-    parent["parent_manifest_sha256"] = sha256_file(parent_manifest_path)
-    parent["oof_model_sha256"] = oof_hashes
+    parent["parent_recovery_proof_path"] = str(proof_path)
+    parent["parent_recovery_proof_sha256"] = sha256_file(proof_path)
+    parent["recovery_artifact_sha256"] = artifact_hashes
     return parent
 
 
@@ -1225,7 +1298,7 @@ def main() -> None:
             "p": parent["p_selection"]["semantic168"],
             "parent_artifact_sha256": parent["artifact_sha256"],
             "parent_eval_sha256": parent["parent_eval_sha256"],
-            "parent_manifest_sha256": parent["parent_manifest_sha256"],
+            "parent_recovery_proof_sha256": parent["parent_recovery_proof_sha256"],
             "source_oof_models": source_model_receipts,
             "target_final_model": final_model_receipt,
         },

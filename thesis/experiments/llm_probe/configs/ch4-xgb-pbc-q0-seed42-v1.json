@@ -1,6 +1,6 @@
 {
   "schema_version": "ch4-xgb-pbc-q0-v1",
-  "run_id": "ch4-xgb-pbc-q0-seed42-v1",
+  "run_id": "ch4-xgb-pbc-q0-seed42-v1-rerun2",
   "seed": 42,
   "screening_only": true,
   "formal": false,
@@ -8,6 +8,11 @@
   "independent_test": false,
   "parent_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
   "parent_eval_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
+  "parent_recovery_proof": {
+    "schema_version": "ch3-xgb-parent-recovery-proof-v1",
+    "requires_parent_incomplete": true,
+    "original_manifest_expected": false
+  },
   "base_view": "semantic168",
   "power_mean_p": 1.0,
   "pilot_time_fractions": [0.1, 0.2, 0.3, 0.5],
@@ -23,7 +28,7 @@
   "bbse_prior_margin": 0.000001,
   "mismatch_dkw_alpha": 0.01,
   "time_unit_per_second": 1000000.0,
-  "expected_time_span_hours": [24.0, 48.0],
+  "expected_time_span_hours": [140.0, 144.0],
   "predict_batch": 2000000,
   "sequence_batch": 2048,
   "gpu_need_gib": 11.0,
