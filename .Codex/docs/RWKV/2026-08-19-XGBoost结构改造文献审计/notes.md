@@ -3,7 +3,7 @@
 - **日期**：2026-08-19
 - **代理映射**：`xgboost_tree_adaptation_literature_sol_max → gpt-5.6-sol → effort=max`
 - **研究路线**：`RESEARCH_ROUTE=RWKV`
-- **当前状态**：规则与既有审计恢复完成；开始本地与 Zotero 去重盘点。
+- **当前状态**：首批 15 篇候选全文已逐页核验；继续 T1／T2 直接同构窄查询与近期补漏。
 
 ## 一、既有证据的去重边界
 
@@ -153,3 +153,136 @@ T1／T2 同构等级：
 - **下一篇全文**：TSF、DrCIF、gcForest、AXGB、Niculescu-Mizil–Caruana、Saerens、MIForests、GPBoost；Kitsune 仅核对多衰减尺度。
 - **未关闭疑点**：T1 是否有网络／实体 XGBoost 直接近邻；T2 是否有树分数＋目标先导预算／先验诊断回退的完整链；区间森林能否在统一实体历史合同下成为可执行强基线。
 - **人工补件**：暂无新增；所有首批核心候选已有公开全文入口。
+
+## 十、全文核验检查点：区间、多粒度与漂移树
+
+### 10.1 Deng 等（2013），Time Series Forest
+
+- **题录／全文**：Deng, Runger, Tuv, Vladimir，*A Time Series Forest for Classification and Feature Extraction*，*Information Sciences* 239:142—153，DOI `10.1016/j.ins.2013.02.030`；[arXiv 全文](https://arxiv.org/abs/1302.2277)，工作副本 `/tmp/manifold-pdf-extract/xgb-tree-audit/2013-TSF.pdf`，E2。
+- **页码与公式**：物理 p.5 的式（1）—（3）定义区间均值、标准差和最小二乘斜率；同页明确写明 Rodríguez 等只考虑长度为 2 的幂的区间，把候选空间从 `O(M²)` 降为 `O(M log M)`。物理 pp.13—14 的表 2 明确将 `interRF` 定义为“500 棵随机森林作用于长度为 2 的幂的区间特征”。
+- **支持点**：固定二进区间统计与随机森林已在同一正式工作中出现，且有可直接复现的比较项；TSF 自身则在每个树节点随机采样 `O(M)` 个区间候选。
+- **不能支持点**：每个样本是等长完整时间序列，不是同一网络实体的逐事件严格历史前缀；分类器不是 XGBoost；没有源实体折外选尺度、跨域冻结或决策回退。
+- **裁定**：T1 `D2`，T2 `D0`；`interRF` 是必须纳入的结构强基线。Zotero 未入库。
+
+### 10.2 Middlehurst 等（2020），Canonical Interval Forest
+
+- **题录／全文**：*The Canonical Interval Forest (CIF) Classifier for Time Series Classification*，IEEE Big Data 2020，DOI `10.1109/BIGDATA50022.2020.9378424`；[arXiv 全文](https://arxiv.org/abs/2008.09172)，工作副本 `2020-CIF.pdf`，E2。
+- **页码与算法**：物理 pp.1—2 说明 TSF 的三种区间统计并引入 catch22；物理 p.3 的算法 1 对每棵树随机抽取 `k` 个区间，并从 25 个候选特征中随机选 `a=8` 个，默认 `r=500` 棵树、`k≈√(d·m)`。
+- **支持点**：随机窗、统计特征子集和多变量维度选择可直接借鉴为“树前窗口／尺度选择”基线。
+- **不能支持点**：区间依赖完整样本的相位位置，不是实体在线历史；无固定二进尺度、XGBoost、域冻结或预算校正。
+- **裁定**：T1 `D2`，T2 `D0`；在统一历史输入与计算预算可实现时属于强结构基线。Zotero 未入库。
+
+### 10.3 Middlehurst 等（2021），DrCIF／HIVE-COTE 2.0
+
+- **题录／全文**：*HIVE-COTE 2.0: a new meta ensemble for time series classification*，*Machine Learning*，DOI `10.1007/s10994-021-06057-9`；[arXiv 全文](https://arxiv.org/abs/2104.07551)，工作副本 `2021-HC2-DrCIF.pdf`，E2。
+- **页码与算法**：印刷 pp.11—13 的第 3.2 节与算法 3：DrCIF 在原始序列、一阶差分和周期图三种表示上各取随机区间，以 7 个基本统计加 catch22 构成 29 个候选特征池；每棵树选 `a=10` 个特征，默认 `r=500`。
+- **支持点**：多表示、多区间、多统计与森林在一个模型中联合；比只用均值／方差／斜率的 TSF 更强。
+- **不能支持点**：完整定长序列分类；不保证实体因果前缀，不是 XGBoost，不含目标先导适应。
+- **裁定**：T1 `D2`，T2 `D0`；若统一数据合同和预算可行，属于强结构基线。Zotero 未入库。
+
+### 10.4 Cabello 等（2023），r-STSF
+
+- **题录／全文**：*Fast, Accurate and Interpretable Time Series Classification Through Randomization*，*Data Mining and Knowledge Discovery*，DOI `10.1007/s10618-023-00978-w`；[arXiv 全文](https://arxiv.org/abs/2105.14876)，工作副本 `2023-rSTSF.pdf`，E2。
+- **页码与算法**：物理 pp.13—17 的第 4 节及算法 1—2：在原始、周期图、导数和自回归四种表示上，用九种聚合函数；随机切点递归搜索子区间，以 Fisher 分数监督选择区间特征，再训练随机化树集成。
+- **支持点**：监督式窗口选择与多表示聚合已经是成熟的树模型时间序列结构，不可把“自动选窗＋统计＋树”作为新颖表述。
+- **不能支持点**：用训练标签搜索完整序列区间；不是网络实体严格历史、固定二进尺度或 XGBoost，也不涉及跨域冻结。
+- **裁定**：T1 `D2`，T2 `D0`；强结构基线，尤其用于检验固定二进尺度是否只是较弱离散化。Zotero 未入库。
+
+### 10.5 Zhou 与 Feng（2017），gcForest
+
+- **题录／全文**：*Deep Forest: Towards an Alternative to Deep Neural Networks*，IJCAI 2017，DOI `10.24963/ijcai.2017/497`；[会议正式页](https://www.ijcai.org/proceedings/2017/497)，工作副本 `2017-gcForest.pdf`，E3。
+- **页码与算法**：会议印刷 pp.3554—3555／物理 pp.2—3：多粒度扫描把多个滑窗中的原始特征送入随机森林和完全随机森林，每个窗口输出类别向量；示例窗长 100／200／300，默认尺度为特征维数的 `⌊d/16⌋、⌊d/8⌋、⌊d/4⌋`；级联深度按验证性能停止。
+- **支持点**：多窗序列片段到森林类别向量的结构已存在。
+- **不能支持点**：窗口扫描整个样本，不是实体时间前缀；不是 XGBoost；验证停止也不是源实体折外尺度合同。
+- **裁定**：T1 `D2`，T2 `D0`；计算预算允许时为次强结构基线。Zotero 未入库。
+
+### 10.6 Montiel 等（2020），Adaptive XGBoost
+
+- **题录／全文**：*Adaptive XGBoost for Evolving Data Streams*，[arXiv `2005.07353`](https://arxiv.org/abs/2005.07353)，工作副本 `2020-AXGB.pdf`，E2。
+- **页码与公式**：物理 pp.2—3：非重叠小批缓冲区训练新的弱树成员；集成满时采用推入或替换策略。式（5）令训练窗大小按 `W(i)=min(W_min·2^i,W_max)` 倍增；ADWIN 监测分类准确率并在漂移时重置窗口及替换成员。
+- **支持点**：XGBoost 在数据流中可通过动态训练批窗与成员替换适应漂移；“二进增长窗口”不是特征历史尺度。
+- **不能支持点**：需要持续标签和模型更新；与冻结骨干、无标签先导、冻结后段评价冲突。
+- **裁定**：T1 `D1`，T2 `D0`；只可作为标签可达的漂移上界／独立信息预算基线。Zotero 未入库。
+
+### 10.7 Gomes 等（2017），Adaptive Random Forest
+
+- **题录／全文**：*Adaptive Random Forests for Evolving Data Stream Classification*，*Machine Learning*，DOI `10.1007/s10994-017-5642-8`；[DOI 正式页](https://doi.org/10.1007/s10994-017-5642-8)，作者稿工作副本 `2017-ARF.pdf`，E3。
+- **页码与算法**：物理 pp.2—3 说明每棵树配置预警／漂移监测器；物理 pp.7—8 的算法 1—2 采用测试后训练、Poisson(6) 在线袋装，预警时生长后台树，确认漂移时替换主树，并按在线准确率加权投票。
+- **支持点**：标签漂移检测、后台树和模型替换是成熟的持续在线树适应机制。
+- **不能支持点**：每个实例标签在线可用且骨干持续改变，不满足 PBC 的信息权限与冻结合同；没有历史尺度特征。
+- **裁定**：T1 `D0`，T2 `D0`；仅在单列“目标标签可用”层级中作为漂移强基线。Zotero 未入库。
+
+## 十一、全文核验检查点：校准、先验、实体与预算
+
+### 11.1 Niculescu-Mizil 与 Caruana（2005），树分数校准
+
+- **题录／全文**：*Predicting Good Probabilities with Supervised Learning*，ICML 2005，DOI `10.1145/1102351.1102430`；作者公开全文工作副本 `2005-Calibration.pdf`，E3。
+- **页码与公式**：物理 p.2 的式（1）—（2）给逻辑校准的 S 形映射与似然目标，式（6）给等渗回归；两者均要求与训练数据独立的带标签校准集。物理 pp.3—8 表明提升树分数常呈 S 形失真；小校准集下逻辑校准更稳，数据足够时等渗回归追平或超过。
+- **支持点**：XGBoost／提升树必须与标准逻辑校准、等渗回归比较，且校准数据应隔离。
+- **不能支持点**：不能支撑无标签目标校准、先验估计、实体预算或诊断回退。
+- **裁定**：T1 `D0`，T2 `D1`；强概率校准基线。Zotero 未入库。
+
+### 11.2 Zadrozny 与 Elkan（2002），等渗回归概率映射
+
+- **题录／全文**：*Transforming Classifier Scores into Accurate Multiclass Probability Estimates*，KDD 2002，DOI `10.1145/775047.775151`；[DOI 正式页](https://doi.org/10.1145/775047.775151)，工作副本 `2002-ZadroznyElkan.pdf`，E3。
+- **页码与算法**：物理 pp.3—4：对排序分数以 PAV 算法学习单调分段常数映射；模型若在训练集过拟合，映射应在独立带标签样本上训练；无排序信息时只能退化到基率。
+- **支持点**：任意树排序分数到概率的标准非参数基线。
+- **不能支持点**：不处理无标签目标先验、因果先导、预算和条件回退。
+- **裁定**：T1 `D0`，T2 `D1`；强概率校准基线。Zotero 未入库。
+
+### 11.3 Saerens、Latinne 与 Decaestecker（2002），无标签新先验修正
+
+- **题录／全文**：*Adjusting the Outputs of a Classifier to New a Priori Probabilities: A Simple Procedure*，*Neural Computation* 14(1):21—41，DOI `10.1162/089976602753284446`；[DOI 正式页](https://doi.org/10.1162/089976602753284446)，作者公开全文工作副本 `2002-SaerensPriorShift.pdf`，E3。
+- **页码与公式**：物理 p.5 的式（4）以新旧先验比重加权冻结分类器后验并归一化；物理 pp.7—8 的式（9）从训练先验初始化，在无标签新数据上以 EM 交替估计后验与新先验；物理 pp.9—10 的式（12）—（13）定义似然比检验。物理 pp.18—19 明确指出，仅在先验变化显著时才应执行重调，否则可能降低准确率。
+- **支持点**：冻结模型、无标签目标样本、先验校正、条件诊断和“不修正”回退已在一个经典方法中同现；该方法与分类器家族无关，可直接实例化到已校准的树分数。
+- **不能支持点**：假设类条件分布不变且模型后验足够准确；没有目标时间因果先导段、实体告警预算、参数冻结后在不相交后段评价，也没有树模型专属设计。
+- **裁定**：T1 `D0`，T2 `D2`，是本轮最强 PBC 直接近邻和必须实现的先验校正强基线。Zotero 未入库。
+
+### 11.4 Leistner 等（2010），MIForests
+
+- **题录／全文**：*MIForests: Multiple-Instance Learning with Randomized Trees*，ECCV 2010，DOI `10.1007/978-3-642-15567-3_3`；[DOI 正式页](https://doi.org/10.1007/978-3-642-15567-3_3)，作者稿工作副本 `2010-MIForests.pdf`，E3。
+- **页码与算法**：物理 pp.4—5 将袋内实例标签视为隐变量，以确定性退火迭代训练随机森林；式（1）—（2）规定正袋至少一个正实例，袋预测可取实例后验最大值。物理 p.8 的算法 1 反复重估实例标签；p.9 给顺序袋的在线扩展。
+- **支持点**：实体／袋标签可直接进入随机森林训练，而非只能先手工聚合。
+- **不能支持点**：袋关系不是时间历史；“正袋至少一正例”未必符合主机／实体攻击标签；无多尺度、XGBoost 或目标先导校正。
+- **裁定**：T1 `D1`，T2 `D0`；仅在实体标签语义满足多示例假设时作为条件性基线。Zotero 未入库。
+
+### 11.5 Sigrist（2022），GPBoost
+
+- **题录／全文**：*Gaussian Process Boosting*，JMLR 23(232):1—46；[JMLR 正式全文页](https://jmlr.org/papers/v23/20-322.html)，工作副本 `2022-GPBoost.pdf`，E3。
+- **页码与公式**：物理 pp.1—4；式（1）以 `y=F(X)+Zb+ε` 联合树提升和分组随机效应／高斯过程，表 1 对比混合效应树、MERF 与相关方法。
+- **支持点**：树提升显式建模同一组／实体相关性已有成熟统计路径。
+- **不能支持点**：主要目标是回归／概率混合效应，不把严格历史、多窗统计送入 XGBoost，也不做目标先导预算校正。
+- **裁定**：T1 `D1`，T2 `D0`；相关结构的基础部件，不是当前任务的直接强基线。Zotero 未入库。
+
+### 11.6 Mirsky 等（2018），Kitsune／AfterImage
+
+- **题录／全文**：*Kitsune: An Ensemble of Autoencoders for Online Network Intrusion Detection*，NDSS 2018，DOI `10.14722/ndss.2018.23204`；[NDSS 正式页](https://www.ndss-symposium.org/ndss-paper/kitsune-an-ensemble-of-autoencoders-for-online-network-intrusion-detection/)，工作副本 `2018-Kitsune.pdf`，E3。
+- **页码与公式**：物理 pp.5—7。式（6）定义衰减 `d_λ(t)=2^{-λt}`；增量统计按来源 MAC-IP、来源 IP、双向 IP 通道和套接字聚合。表 2 明确每个时间窗 23 个统计，并在 100 ms、500 ms、1.5 s、10 s、1 min 五个尺度重复，合计 115 维；每个新包在线更新，复杂度 `O(1)`。
+- **支持点**：网络实体／通道的严格在线多尺度统计不是空白；均值、方差、计数、抖动、协方差和相关性等可作为树前特征器。
+- **不能支持点**：尺度是指数衰减而非固定二进窗；下游为自动编码器集成，不是 XGBoost；没有源实体折外尺度选择或目标决策校正。
+- **裁定**：T1 `D2`，T2 `D0`；`AfterImage 特征＋XGBoost` 应作为明确标注的“组合强基线”，不能误称为该论文原方法。Zotero 未入库。
+
+### 11.7 Xu 等（2012），Greedy Miser
+
+- **题录／全文**：*Greedy Miser: Learning under Test-time Budgets*，ICML 2012；[会议公开全文](https://icml.cc/2012/papers/661.pdf)，工作副本 `2012-GreedyMiser.pdf`，E3。
+- **页码与公式**：物理 pp.1—3；式（3）把树评估成本与首次特征获取成本纳入测试代价，式（4）在预算 `B` 下优化损失，式（5）把特征获取成本写入树分裂目标。
+- **支持点**：若不同历史尺度具有明确提取成本，可借鉴为成本感知的尺度／特征选择。
+- **不能支持点**：预算是推理计算与特征成本，不是误报率、实体告警量或目标先导分位预算；无漂移回退。
+- **裁定**：T1 `D1`，T2 `D0`；只属成本约束基础部件。Zotero 未入库。
+
+### 11.8 Chen 等（2023），主机特征展平＋XGBoost
+
+- **题录／全文**：*A Host-Based Network Intrusion Detection System with Feature Flattening and a Two-stage Classifier*，[arXiv `2306.09451`](https://arxiv.org/abs/2306.09451)，工作副本 `2023-HostFlatteningXGB.pdf`，E2。
+- **页码与算法**：物理 pp.6—11：将 BERT 得到的主机事件／消息矩阵展平并与流特征拼接，以抽样和主成分分析减维；用 XGBoost 比较矩阵尺寸并选择 `15×50`，再以两阶段 XGBoost 完成二分类和多分类。
+- **支持点**：主机侧表示与流特征拼接后进入 XGBoost 已有实例。
+- **不能支持点**：矩阵是静态主机日志表示，不是同一实体历史统计、固定多尺度或严格因果先导；未做预算／先验校正。
+- **裁定**：T1 `D0`，T2 `D0`；只作边界证据，不列核心强基线。Zotero 未入库。
+
+## 十二、15 篇全文组恢复检查点
+
+- **完成量**：15／15 篇候选全文已取得、转文本并逐页定位；按本任务证据定义，E3 为 9 篇，E2 为 6 篇。E2 均为可核验预印本，未与 E3 混写。
+- **T1 最高等级**：`D2`。`interRF` 占用固定二进区间统计＋随机森林；Kitsune 占用网络实体／通道＋因果在线五尺度统计；r-STSF／CIF／DrCIF 占用监督或随机区间、统计与森林。尚无一篇同时满足实体严格前缀、固定二进尺度、XGBoost、源实体折外选择与冻结。
+- **T2 最高等级**：`D2`。Saerens 等占用冻结分类器、无标签新数据、先验校正、显著性诊断与不校正回退；尚缺目标因果先导、实体告警预算、后段隔离和冻结评价。
+- **人工补件**：无；未遇到必须依赖付费全文才能裁决的候选。
+- **持久化边界**：本任务不拥有 `raw/`、`wiki/` 或 Zotero 写权限，故仅记录公开全文入口、工作副本和“未入库”状态；不把临时工作副本冒充仓库原件。
+- **下一查询**：T1 直接检索 `powers of two／dyadic windows＋XGBoost＋entity／network history` 与 `AfterImage＋XGBoost`；T2 直接检索 `tree scores／XGBoost＋unlabeled target prior correction／pilot period／false-positive budget／fallback`，并单独覆盖 2025—2026。
