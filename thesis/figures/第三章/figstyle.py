@@ -18,7 +18,9 @@ from pathlib import Path
 from typing import Literal, Sequence
 from xml.etree import ElementTree
 
-MPL_CACHE = Path("/tmp/chapter3-matplotlib-cache")
+# 缓存落在本模块同级目录而非 /tmp：仓库规则禁止把配置、状态与中间制品写入 /tmp。
+# 该目录只存 matplotlib 的字体索引，可再生，已在根 .gitignore 登记。
+MPL_CACHE = Path(__file__).resolve().parent / ".mplcache"
 MPL_CACHE.mkdir(parents=True, exist_ok=True)
 os.environ.setdefault("MPLCONFIGDIR", str(MPL_CACHE))
 

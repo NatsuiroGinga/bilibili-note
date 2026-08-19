@@ -30,8 +30,8 @@ from typing import Any, Sequence
 
 ROOT = Path(__file__).resolve().parent
 
-# figstyle 会在导入期把 MPLCONFIGDIR 指向 /tmp。本仓库禁止写 /tmp，故先占位到
-# 图件目录下的本地缓存，使 figstyle 的 setdefault 不再生效。
+# 在导入 figstyle 之前占位 MPLCONFIGDIR，指向图件目录下的本地缓存。
+# figstyle 自 2026-08-19 起默认也指向同一路径，此处保留为防御性设置，两者取值一致。
 os.environ.setdefault("MPLCONFIGDIR", str(ROOT / ".mplcache"))
 (ROOT / ".mplcache").mkdir(parents=True, exist_ok=True)
 

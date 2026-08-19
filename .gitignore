@@ -60,6 +60,10 @@ output/pdf-md/
 .superpowers/
 .Codex/tools/**/node_modules/
 
+# 绘图工具缓存（可再生，不含实验数据）
+thesis/figures/**/.mplcache/
+thesis/figures/**/__pycache__/
+
 # 实验缓存与本地下载制品
 thesis/experiments/__pycache__/
 thesis/experiments/llm_probe/**/*/target/
