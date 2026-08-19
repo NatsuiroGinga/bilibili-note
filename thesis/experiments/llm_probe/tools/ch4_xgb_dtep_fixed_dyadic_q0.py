@@ -41,7 +41,7 @@ from ch3_xgb_cpa_elp_eval_continuation import (  # noqa: E402
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-RUN_ID = "ch4-xgb-dtep-fixed-dyadic-q0-seed42-v1"
+RUN_ID = "ch4-xgb-dtep-fixed-dyadic-q0-seed42-v1-rerun1"
 PARENT_BUCKET_RUN_ID = "ch4-xgb-long-entity-bucket-diagnostic-seed42-v1"
 N_FLOW_23 = 16_353_511
 N_ENTITY_23 = 150_680

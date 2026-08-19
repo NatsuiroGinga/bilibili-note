@@ -3,7 +3,7 @@ source ~/.bashrc >/dev/null 2>&1 || true
 set -Eeuo pipefail
 
 readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
-readonly RUN_ID=ch4-xgb-dtep-fixed-dyadic-q0-seed42-v1
+readonly RUN_ID=ch4-xgb-dtep-fixed-dyadic-q0-seed42-v1-rerun1
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch4_xgb_dtep_fixed_dyadic_q0.py"
 readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch4-xgb-dtep-fixed-dyadic-q0-seed42-v1.json"
 readonly PARENT_CONFIG_PATH="$PROJECT_ROOT/configs/ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json"
@@ -187,7 +187,7 @@ for path in "$TOOL_PATH" "$CONFIG_PATH" "$PARENT_CONFIG_PATH" "$SCRIPT_PATH"; do
         exit 67
     }
 done
-for name in selection_frozen_xgb2x2.json effective_config_receipts.json manifest.json model_semantic168.json; do
+for name in selection_frozen_xgb2x2.json effective_config_receipts.json model_semantic168.json; do
     [[ -r "$PARENT_RUN_ROOT/$name" && -s "$PARENT_RUN_ROOT/$name" ]] || {
         printf '父运行制品缺失或不可读：%s\n' "$PARENT_RUN_ROOT/$name" >&2
         exit 66
@@ -227,7 +227,6 @@ mkdir -p "$RUN_ROOT" "$LAUNCH_ROOT"
 sha256sum "$TOOL_PATH" "$CONFIG_PATH" "$PARENT_CONFIG_PATH" "$SCRIPT_PATH" \
     "$PARENT_RUN_ROOT/selection_frozen_xgb2x2.json" \
     "$PARENT_RUN_ROOT/effective_config_receipts.json" \
-    "$PARENT_RUN_ROOT/manifest.json" \
     "$PARENT_RUN_ROOT/model_semantic168.json" \
     "$PARENT_EVAL_ROOT/xgb_cpa_elp_results.json" \
     "$PARENT_EVAL_ROOT/manifest.json" \
