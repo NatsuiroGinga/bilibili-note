@@ -72,6 +72,7 @@
 | --- | --- | --- |
 | 机制构思 | 新研究机制、模型结构、公式、数据合同，或实质改变冻结行为 | `research-ideation` → `brainstorming`（仅此情形，常规启动与重复运行不得借此重开冻结合同） |
 | 文献 | 多篇论文、预计超 30 分钟或可能上下文压缩的调研 | `planning-with-files` 先建 `task_plan.md` 与 `notes.md` → `literature-reviewer` 代理 → `citation-verification` |
+| 文献检索入口 | 文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文请求 | `literature-hybrid-search`：先查本地混合索引，再按证据缺口决定是否扩展在线候选 |
 | 实现 | 非平凡实现或缺陷修复 | `writing-plans` → `subagent-driven-development` → `daily-coding` |
 | **第三方 API** | **首次使用某库、或对签名/属性/参数名有任何不确定** | **`npx ctx7@latest library <名称> "<查什么>"` → `npx ctx7@latest docs <libraryId> "<查什么>"`**（强制，先查后写）；等价入口 `find-docs` 技能或 `plugin:context7` MCP。记录库名、目标机实际安装版本、查询来源与核验到的签名 |
 | 调试 | 缺陷、异常行为、运行失败 | `systematic-debugging` 与 `bug-detective` 并用，一次只改一个变量 |
@@ -117,6 +118,14 @@
 1. **英文投稿技能停用**：本仓库是中文学位论文，`nature-writing`、`nature-polishing`、`nature-response`、`nature-data`、`latex-conference-template-organizer` 与会议 LaTeX 模板一律不用；`/mine-writing-patterns` 入口禁用，`paper-miner` 只用于读结构。仅在明确的英文投稿或真实审稿场景下才可启用。
 2. **分析门禁只卡结论，不卡实验**：`results-analysis` 的 blocker-first 门禁（锁定分析单元、主指标、种子/折数、来源、比较族）**作用于"把结果写入正文或路线总控"这一步**，不得用于阻塞已满足数据与运行门禁的实验启动。格式化、重复静态检查、归档与非阻断性审查同样不得延迟实验。
 3. **图表按下述学位论文图件合同产出**：`publication-chart-skill` 负责图型选择、信息密度与配套表；渲染规格按本合同执行。历史图件的 `180 mm` 宽与 Hiragino Sans GB 字体已判定为缺陷（A4 版心不足 180 mm、该字体非中文学位论文常规），不再沿用。
+
+### 本地混合文献检索路由（强制）
+
+- 遇到“文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文、主题论文”等请求，先运行 `python3 -m scripts.literature_search status --json`，再用 `python3 -m scripts.literature_search query "查询" --scope local --mode hybrid --json` 检索 `wiki/papers/**/*.md`。
+- 索引不存在或 `stale=true` 时，按 `scripts/literature_search/README.md` 构建；模型依赖不可用时可先用 `--mode lexical`，但必须明确向量通道未运行。
+- 只有本地证据不足、用户明确要求近期或外部工作、或需要验证 DOI/题录时，才改用 `--scope all`；`all` 必须同时保留本地结果和在线来源状态，任一在线来源失败不得丢弃本地结果。
+- OpenAlex、Semantic Scholar 和 Crossref 的返回一律视为外部题录或摘要候选。候选没有本地全文原件与结构化全文笔记前，不得升级为全文证据、写入论文结论或冒充已读全文。
+- 该入口只检索和报告，不自动写入 `raw/`、`wiki/` 或 Zotero；需要正式纳入时继续执行 `raw/AGENTS.md` 与 `wiki/AGENTS.md` 的全文入库工作流。
 
 **学位论文图件合同（2026-08-13 重定，规格取自实测朱焱雷学位论文原件）**
 

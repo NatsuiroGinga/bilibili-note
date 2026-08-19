@@ -32,6 +32,27 @@ python3 -m scripts.literature_search status --json
 .cache/literature-search/venv/bin/python -m scripts.literature_search evaluate
 ```
 
+## 在线候选
+
+`query` 使用统一范围：
+
+- `--scope local`：只返回本地全文笔记证据，默认值。
+- `--scope online`：只返回外部题录或摘要候选及来源状态。
+- `--scope all`：分区返回本地证据与外部候选，二者不混排分数。
+
+```bash
+python3 -m scripts.literature_search query \
+  "normality shift anomaly detection" --scope all --mode lexical --json
+```
+
+可选环境变量只从进程环境读取，不写入索引或输出：
+
+- `OPENALEX_API_KEY`：启用 OpenAlex `search.semantic`；缺失时尝试普通 `search` 并标记降级。
+- `SEMANTIC_SCHOLAR_API_KEY`：以 `x-api-key` 头发送；缺失时使用公共接口。
+- `CROSSREF_MAILTO`：进入 Crossref 礼貌池。
+
+每次查询对每个来源至多发出一次请求。HTTP 403、429、超时、网络或 JSON 错误都会记录为来源级失败；`scope=all` 仍返回本地结果。所有在线结果均标记为未核全文候选，不自动写入 `raw/`、`wiki/` 或 Zotero。
+
 macOS 受限沙箱若禁止默认字节码缓存，可在命令前设置：
 
 ```bash

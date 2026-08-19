@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from .build import build_index
 from .config import REPO_ROOT, SearchConfig, load_config
 from .evaluate import evaluate_queries
+from .online import discover_online
 from .search import search_local
 from .status import index_status
 from .storage import connect, get_metadata
@@ -37,6 +38,23 @@ def _print_results(results: Sequence[Dict[str, object]]) -> None:
             )
         )
         print(f"   片段：{item['snippet']}")
+
+
+def _print_online(result: Dict[str, object]) -> None:
+    print("在线来源状态：")
+    for provider, status in result["provider_status"].items():
+        print(f"- {provider}: {json.dumps(status, ensure_ascii=False)}")
+    print("外部候选：")
+    for position, item in enumerate(result["results"], start=1):
+        print(f"{position}. [{item['provider']}] {item['title']}")
+        print(f"   证据：{item['evidence_level']}")
+        print(f"   URL：{item.get('url') or '未记录'}")
+        print(f"   DOI/arXiv：{item.get('doi') or '-'} / {item.get('arxiv_id') or '-'}")
+        print(
+            f"   本地：wiki={item['has_wiki']} raw={item['has_raw']} "
+            f"Zotero={item['zotero_status']}"
+        )
+    print(result["evidence_warning"])
 
 
 def _index_config(connection: sqlite3.Connection, fallback: SearchConfig) -> SearchConfig:
@@ -68,7 +86,12 @@ def make_parser() -> argparse.ArgumentParser:
     query_parser.add_argument(
         "--mode", choices=["lexical", "vector", "hybrid"], default="hybrid"
     )
+    query_parser.add_argument(
+        "--scope", choices=["local", "online", "all"], default="local"
+    )
     query_parser.add_argument("--top-k", type=int, default=None)
+    query_parser.add_argument("--online-limit", type=int, default=None)
+    query_parser.add_argument("--online-timeout", type=float, default=None)
     query_parser.add_argument("--model-cache", type=Path, default=None)
     query_parser.add_argument("--offline", action="store_true")
     query_parser.add_argument("--json", action="store_true")
@@ -122,12 +145,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             result = index_status(repo_root, index_path, config)
             _print_json(result)
             return 0 if result["exists"] else 1
-        if not index_path.exists():
+        if args.command == "query" and args.scope != "online" and not index_path.exists():
             raise RuntimeError(f"索引不存在：{index_path}；请先运行 build")
-        connection = connect(index_path, readonly=True)
+        connection = connect(index_path, readonly=True) if index_path.exists() else None
         try:
-            actual_config = _index_config(connection, config)
+            actual_config = _index_config(connection, config) if connection else config
             if args.command == "evaluate":
+                if connection is None:
+                    raise RuntimeError(f"索引不存在：{index_path}；请先运行 build")
                 result = evaluate_queries(
                     connection,
                     args.queries,
@@ -137,9 +162,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 )
                 _print_json(result)
                 return 0
+            if args.command == "query" and args.scope == "online":
+                online = discover_online(
+                    args.text,
+                    args.online_limit or actual_config.online_limit,
+                    args.online_timeout or actual_config.online_timeout_seconds,
+                    repo_root,
+                    connection=connection,
+                )
+                if args.json:
+                    _print_json({"scope": "online", "online": online})
+                else:
+                    _print_online(online)
+                return 0
             top_k = args.top_k or actual_config.default_top_k
             if top_k <= 0:
                 raise ValueError("top-k 必须为正数")
+            if connection is None:
+                raise RuntimeError(f"索引不存在：{index_path}；请先运行 build")
             results = search_local(
                 connection,
                 args.text,
@@ -149,12 +189,27 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 cache_folder=args.model_cache,
                 local_files_only=args.offline,
             )
+            online = None
+            if args.scope == "all":
+                online = discover_online(
+                    args.text,
+                    args.online_limit or actual_config.online_limit,
+                    args.online_timeout or actual_config.online_timeout_seconds,
+                    repo_root,
+                    connection=connection,
+                )
         finally:
-            connection.close()
+            if connection is not None:
+                connection.close()
         if args.json:
-            _print_json({"scope": "local", "mode": args.mode, "results": results})
+            output = {"scope": args.scope, "mode": args.mode, "local_results": results}
+            if online is not None:
+                output["online"] = online
+            _print_json(output)
         else:
             _print_results(results)
+            if online is not None:
+                _print_online(online)
         return 0
     except (RuntimeError, ValueError, OSError, sqlite3.Error, json.JSONDecodeError) as error:
         print(f"错误：{error}", file=sys.stderr)
