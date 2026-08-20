@@ -111,3 +111,16 @@ def load_config(path: Optional[Path] = None) -> SearchConfig:
     config_path = path or DEFAULT_CONFIG_PATH
     data = json.loads(config_path.read_text(encoding="utf-8"))
     return SearchConfig.from_dict(data)
+
+
+def resolve_model_reference(
+    model_name: str,
+    model_revision: str,
+    cache_folder: Optional[Path],
+    local_files_only: bool,
+) -> str:
+    if not local_files_only or cache_folder is None:
+        return model_name
+    repository_dir = "models--" + model_name.replace("/", "--")
+    snapshot = cache_folder / repository_dir / "snapshots" / model_revision
+    return str(snapshot) if snapshot.is_dir() else model_name

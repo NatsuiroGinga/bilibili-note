@@ -12,7 +12,7 @@
 uv sync --project scripts/literature_search --locked
 ```
 
-模型使用 `intfloat/multilingual-e5-small` 固定修订，首次完整构建会下载约 488 MB 到项目缓存。默认在 Apple 芯片上使用 MPS，MPS 不可用或发生运行时错误时自动回退 CPU；也可用 `--device cpu` 强制 CPU。可用 `--model-cache` 指定缓存目录，或在缓存准备好后加 `--offline` 禁止网络。
+模型使用 `intfloat/multilingual-e5-small` 固定修订，首次完整构建会下载约 488 MB 到项目缓存。默认在 Apple 芯片上使用 MPS，MPS 不可用或发生运行时错误时自动回退 CPU；也可用 `--device cpu` 强制 CPU。可用 `--model-cache` 指定缓存目录；在缓存准备好后加 `--offline` 时，工具会将模型标识解析为该固定修订的本地快照路径，避免底层库再发起元数据请求。
 
 ## 命令
 

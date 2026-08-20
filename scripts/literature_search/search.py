@@ -6,7 +6,7 @@ from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
 import numpy as np
 
-from .config import SearchConfig
+from .config import SearchConfig, resolve_model_reference
 from .embeddings import EmbeddingBackend, vector_scores
 from .lexical import lexical_search
 from .ranking import RankedPaper, aggregate_chunks, aggregate_papers, reciprocal_rank_fusion
@@ -193,7 +193,12 @@ def search_local(
     if mode != "lexical":
         if backend is None:
             backend = EmbeddingBackend(
-                config.model_name,
+                resolve_model_reference(
+                    config.model_name,
+                    config.model_revision,
+                    cache_folder,
+                    local_files_only,
+                ),
                 config.model_revision,
                 cache_folder=cache_folder,
                 local_files_only=local_files_only,
@@ -367,7 +372,12 @@ def search_federated(
     query_vector = None
     if mode != "lexical":
         backend = EmbeddingBackend(
-            config.model_name,
+            resolve_model_reference(
+                config.model_name,
+                config.model_revision,
+                cache_folder,
+                local_files_only,
+            ),
             config.model_revision,
             cache_folder=cache_folder,
             local_files_only=local_files_only,

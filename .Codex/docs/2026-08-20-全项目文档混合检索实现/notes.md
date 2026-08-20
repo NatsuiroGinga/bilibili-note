@@ -63,3 +63,11 @@
 - collection：`papers=500`、`research-notes=749`、`plans=199`、`reports=182`、`route-control=19`、`recovery=5`、`experiment-receipts=19`、`thesis-chapters=18`、`output-deliverables=12`。
 - 最终排除 83 份：归档、备份或敏感路径 43，忽略目录 13，`INDEX.md` 19，论文合同失败 3，项目私有地址内容 5。
 - 最终 collection 迁移可在增量收据中见：两份历史路线文档从 `output-deliverables` 转入 `recovery`，规则文件转入 `route-control`，`thesis-chapters` 仅保留 18 份正文。
+
+## 真实 E5 向量与混合查询收据
+
+- 从仓库现有论文笔记、路线总控、第四章恢复卡、实施笔记、真实聚合 `summary.json`、论文正文和 `output` 交付物各选 1 份，以符号链接建立 `/tmp/project-doc-search-real-mini/`；没有创建人工语料。
+- 默认模型 `intfloat/multilingual-e5-small@614241f...` 离线构建 7 个文档、120 个分块，生成 120 个 384 维 `float32` 归一化向量，CPU 耗时 9.081 秒，索引 819200 字节。
+- `all --mode hybrid` 查询在 `paper/project/experiment/thesis` 四个分区均返回 `vector_block`：恢复卡向量分 0.898250，实验收据 0.879612，正文 0.867048，论文笔记 0.857757。进程端到端耗时 8.44 秒，包含模型加载。
+- 第二次原子构建耗时 0.023 秒，`reused=120`、`reembedded=0`，7 个文档全部 `unchanged`，证明项目、实验和正文分块共用增量向量复用合同。
+- 初次使用默认模型标识时，底层库在禁网环境仍尝试元数据解析。实现已在 `--offline` 且固定修订快照存在时自动改用本地快照路径；随后使用默认生产配置离线构建成功。

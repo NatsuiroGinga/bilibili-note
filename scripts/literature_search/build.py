@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from .config import SearchConfig
+from .config import SearchConfig, resolve_model_reference
 from .documents import (
     chunk_note,
     excluded_summary,
@@ -87,7 +87,12 @@ def _write_vectors(
     vector_device_fallback = None
     if pending:
         backend = EmbeddingBackend(
-            config.model_name,
+            resolve_model_reference(
+                config.model_name,
+                config.model_revision,
+                cache_folder,
+                local_files_only,
+            ),
             config.model_revision,
             cache_folder=cache_folder,
             local_files_only=local_files_only,
