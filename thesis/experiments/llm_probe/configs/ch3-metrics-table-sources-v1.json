@@ -1,0 +1,79 @@
+{
+  "schema_version": "ch3-metrics-table-sources-v1",
+  "roots": {
+    "main": "主仓库 thesis/experiments/llm_probe/runs",
+    "ch4_worktree": "ch4 工作树 thesis/experiments/llm_probe/runs"
+  },
+  "models": [
+    {"display_name": "随机森林", "root": "main", "available": true,
+     "relative_path": "diagnostics/ch3-baselines-full/trees_results.json",
+     "source_schema": "baselines_full", "cell": "models.random_forest_dijk2024",
+     "differentiable": false, "config_type": "论文约束独立复现", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-baselines-full", "notes": "原文未披露字段与超参，配置按树集成常用做法设定"},
+
+    {"display_name": "XGBoost", "root": "main", "available": true,
+     "relative_path": "diagnostics/ch3-baselines-full/trees_results.json",
+     "source_schema": "baselines_full", "cell": "models.xgboost_dijk2026",
+     "differentiable": false, "config_type": "已发表配置重跑", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-baselines-full", "notes": ""},
+
+    {"display_name": "一维卷积网络（主干重建）", "root": "main", "available": true,
+     "relative_path": "diagnostics/ch3-baselines-full/neural_results.json",
+     "source_schema": "baselines_full", "cell": "models.cnn_leoste2025",
+     "differentiable": true, "config_type": "论文约束独立复现", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-baselines-full", "notes": "仅保留卷积主干，宽度按本章输入维度设定"},
+
+    {"display_name": "门控循环网络", "root": "main", "available": true,
+     "relative_path": "diagnostics/ch3-baselines-full/neural_results.json",
+     "source_schema": "baselines_full", "cell": "models.gru_dijk2026",
+     "differentiable": true, "config_type": "已发表配置重跑", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-baselines-full", "notes": ""},
+
+    {"display_name": "全注意力网络", "root": "main", "available": true,
+     "relative_path": "diagnostics/ch3-baselines-full/neural_results.json",
+     "source_schema": "baselines_full", "cell": "models.transformer_dijk2026",
+     "differentiable": true, "config_type": "已发表配置重跑", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-baselines-full", "notes": ""},
+
+    {"display_name": "多层感知机＋CPA-ELP", "root": "main", "available": true,
+     "relative_path": "diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json",
+     "source_schema": "fairsel_2x2", "cell": "C11",
+     "differentiable": true, "config_type": "本章方法", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-2x2-fairsel", "notes": "主口径用学到的指数"},
+
+    {"display_name": "XGBoost＋CPA-ELP", "root": "main", "available": true,
+     "relative_path": "diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2/xgb_cpa_elp_results.json",
+     "source_schema": "xgb_cpa_elp", "cell": "C11",
+     "differentiable": false, "config_type": "本章机制外挂树集成", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2", "notes": "机制以输入端编码与外部聚合落地"},
+
+    {"display_name": "ResMLP2＋CPA-ELP", "root": "ch4_worktree", "available": true,
+     "relative_path": "diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
+     "source_schema": "protocol_a_v1", "cell": "C11",
+     "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1", "notes": "N-01"},
+
+    {"display_name": "TabM4＋CPA-ELP", "root": "main", "available": false,
+     "relative_path": "diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
+     "source_schema": "protocol_a_v1", "cell": "C11",
+     "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "单次运行直接可比",
+     "run_id": "ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1",
+     "pending_reason": "运行已完成 exit_code=0，但制品仅存服务器，两个本地 runs 根均无；拉回后重跑本工具即自动填入",
+     "notes": "N-02"},
+
+    {"display_name": "RWKV-7＋CPA-ELP", "root": "main", "available": false,
+     "relative_path": "", "source_schema": "protocol_a_v1", "cell": "C11",
+     "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "未运行",
+     "run_id": "", "pending_reason": "N-08 由 Codex 子代理实现中，尚无运行身份与制品", "notes": ""},
+
+    {"display_name": "GRANDE", "root": "main", "available": false,
+     "relative_path": "", "source_schema": "protocol_a_v1", "cell": "C11",
+     "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "未运行",
+     "run_id": "", "pending_reason": "计划已冻结，尚无运行制品", "notes": ""},
+
+    {"display_name": "骨干专属论文配方模型", "root": "main", "available": false,
+     "relative_path": "", "source_schema": "protocol_a_v1", "cell": "C11",
+     "differentiable": true, "config_type": "论文配方", "evidence_level": "未运行",
+     "run_id": "", "pending_reason": "N-05 设计已冻结、效果待实验", "notes": ""}
+  ]
+}
