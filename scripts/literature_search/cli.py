@@ -10,6 +10,7 @@ from typing import Dict, Optional, Sequence
 from .build import build_index
 from .config import REPO_ROOT, SearchConfig, load_config
 from .evaluate import evaluate_queries
+from .lint_notes import lint_paths
 from .online import discover_online
 from .search import search_local
 from .status import index_status
@@ -134,6 +135,11 @@ def make_parser() -> argparse.ArgumentParser:
     evaluate_parser.add_argument(
         "--device", choices=["auto", "cpu", "mps"], default="auto"
     )
+    lint_parser = subparsers.add_parser("lint", help="检查论文笔记检索合同")
+    lint_parser.add_argument("paths", nargs="+", type=Path, help="待检查 Markdown 路径")
+    lint_parser.add_argument("--repo-root", type=Path, default=REPO_ROOT, help="仓库根目录")
+    lint_parser.add_argument("--strict", action="store_true", help="对旧模板也执行严格检查")
+    lint_parser.add_argument("--json", action="store_true", help="输出 JSON")
     return parser
 
 
@@ -153,6 +159,11 @@ def _model_cache(args: argparse.Namespace, repo_root: Path) -> Path:
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = make_parser().parse_args(argv)
     try:
+        if args.command == "lint":
+            repo_root = args.repo_root.expanduser().resolve()
+            result = lint_paths(repo_root, args.paths, strict=args.strict)
+            _print_json(result)
+            return 0 if result["valid"] else 1
         repo_root, config, index_path = _paths(args)
         if args.command == "build":
             result = build_index(

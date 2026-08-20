@@ -33,6 +33,10 @@ uv run --project scripts/literature_search --locked \
 # 冻结对照集
 uv run --project scripts/literature_search --locked \
   python -m scripts.literature_search evaluate --offline
+
+# 论文笔记合同检查
+uv run --project scripts/literature_search --locked \
+  python -m scripts.literature_search lint wiki/papers/目标笔记.md --strict --json
 ```
 
 `build --json` 与 `status --json` 会输出当前语料相对索引的 `added`、`changed`、`deleted`、`unchanged`，以及 `excluded`、`excluded_reasons`、`embedding_contract_changed` 和 `stale_reasons`。构建收据另含向量块级的 `reused` 与 `reembedded`。
@@ -103,3 +107,11 @@ uv run --project scripts/literature_search --locked \
 - 索引和模型缓存都不应提交 Git。
 
 `status` 会按当前索引合同重新扫描合法论文笔记并计算来源清单哈希；`stale=true` 时，`stale_reasons` 会指出来源新增、修改、删除或嵌入合同变化。
+
+## 笔记 lint
+
+- `paper-note-search/v1` 笔记自动进入严格模式；`--strict` 可对任意笔记强制执行同一合同。
+- 严格模式检查 YAML 类型、DOI/arXiv 或题名年份身份、`raw/papers/` 原件、全文核验、页码锚点、支持/不能支持分区和关系字段，错误时退出码为 1。
+- 旧模板默认使用兼容报告模式：缺失的新字段和分区只产生警告，YAML 无法解析等基础错误仍会失败。
+- lint 只读文件并输出 `auto_modified=false`，不会自动修复或批量重写旧笔记。
+- 可执行示例与入库清单位于 `.agents/skills/indexed-paper-reading/references/`。
