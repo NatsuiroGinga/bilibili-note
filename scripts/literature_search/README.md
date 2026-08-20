@@ -58,6 +58,8 @@ uv run --project scripts/literature_search --locked \
 
 `local` 保留为 `paper` 的兼容别名；`online` 仍只返回外部候选。`--collection` 可在所选作用域内进一步过滤，参数可重复。默认只查询 `current/active/completed`；只有历史追溯请求才使用 `--include-history` 解锁 `superseded/rejected/archive`。
 
+`--scope all` 仅用于明确跨域问题，并按 `paper/project/experiment/thesis` 证据泳道分组输出和使用。联邦 RRF 的全局排名只用于发现，不是证据权重或多数投票：运行事实优先原始 `experiment` 收据，当前裁决优先路线合同或恢复卡，外部机制依据只接受 `paper` 全文，`thesis` 只定位当前表述；同一事实的多份报告不得重复加权。
+
 ## 论文身份与元数据
 
 - YAML 由 PyYAML 的 `safe_load` 解析，标量与列表都会进入规范字段；无效 YAML 不再用逐行字符串解析器猜测。
