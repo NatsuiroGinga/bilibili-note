@@ -19,18 +19,21 @@
 
     {"display_name": "一维卷积网络（主干重建）", "root": "main", "available": true,
      "relative_path": "diagnostics/ch3-baselines-full/neural_results.json",
+     "selection_relative_path": "diagnostics/ch3-baselines-full/selection_frozen_neural.json",
      "source_schema": "baselines_full", "cell": "models.cnn_leoste2025",
      "differentiable": true, "config_type": "论文约束独立复现", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-baselines-full", "notes": "仅保留卷积主干，宽度按本章输入维度设定"},
 
     {"display_name": "门控循环网络", "root": "main", "available": true,
      "relative_path": "diagnostics/ch3-baselines-full/neural_results.json",
+     "selection_relative_path": "diagnostics/ch3-baselines-full/selection_frozen_neural.json",
      "source_schema": "baselines_full", "cell": "models.gru_dijk2026",
      "differentiable": true, "config_type": "已发表配置重跑", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-baselines-full", "notes": ""},
 
     {"display_name": "全注意力网络", "root": "main", "available": true,
      "relative_path": "diagnostics/ch3-baselines-full/neural_results.json",
+     "selection_relative_path": "diagnostics/ch3-baselines-full/selection_frozen_neural.json",
      "source_schema": "baselines_full", "cell": "models.transformer_dijk2026",
      "differentiable": true, "config_type": "已发表配置重跑", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-baselines-full", "notes": ""},
@@ -49,12 +52,16 @@
 
     {"display_name": "ResMLP2＋CPA-ELP", "root": "ch4_worktree", "available": true,
      "relative_path": "diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
+     "curve_receipt_relative_path": "diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves-receipt.json",
+     "curve_artifact_relative_path": "diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves.npz",
      "source_schema": "protocol_a_v1", "cell": "C11",
      "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1", "notes": "N-01"},
 
     {"display_name": "TabM4＋CPA-ELP", "root": "main", "available": false,
      "relative_path": "diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
+     "curve_receipt_relative_path": "diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves-receipt.json",
+     "curve_artifact_relative_path": "diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves.npz",
      "source_schema": "protocol_a_v1", "cell": "C11",
      "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1",
@@ -64,7 +71,7 @@
     {"display_name": "RWKV-7＋CPA-ELP", "root": "main", "available": false,
      "relative_path": "", "source_schema": "protocol_a_v1", "cell": "C11",
      "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "未运行",
-     "run_id": "", "pending_reason": "N-08 由 Codex 子代理实现中，尚无运行身份与制品", "notes": ""},
+     "run_id": "", "pending_reason": "实现已就绪但尚未运行，无结果制品", "notes": ""},
 
     {"display_name": "GRANDE", "root": "main", "available": false,
      "relative_path": "", "source_schema": "protocol_a_v1", "cell": "C11",
