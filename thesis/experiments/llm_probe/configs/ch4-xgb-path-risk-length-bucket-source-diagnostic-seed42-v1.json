@@ -1,0 +1,80 @@
+{
+  "schema_version": "ch4-xgb-path-risk-length-bucket-source-diagnostic-v1",
+  "run_id": "ch4-xgb-path-risk-length-bucket-lspr23-diagnostic-seed42-v1",
+  "display_name": "路径最大条件风险与漏检轨迹源年零训练诊断",
+  "seed": 42,
+  "screening_only": true,
+  "formal": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "source_year": "LSPR23",
+  "source_year_only": true,
+  "zero_training": true,
+  "parent_m1_run_id": "ch4-xgb-entity-path-max-tong-same-model-q0-seed42-v1",
+  "parent_m1_summary": {
+    "relative_path": "runs/diagnostics/ch4-xgb-entity-path-max-tong-same-model-q0-seed42-v1/summary.json",
+    "sha256": "2e4bbfe044b9ce9407090af765220fc7bc5829188cadcdfb33284002f633d462",
+    "schema_version": "ch4-xgb-entity-path-max-tong-same-model-summary-v1",
+    "run_id": "ch4-xgb-entity-path-max-tong-same-model-q0-seed42-v1",
+    "simultaneous_round_count": 6
+  },
+  "comparison_operator": ">",
+  "entity_fpr_budget": 0.04,
+  "allowed_arrays": ["X23", "y23", "I23", "M23", "E23", "ent23", "t23_flow"],
+  "target_year_arrays_read": 0,
+  "models_trained": 0,
+  "oof_models_loaded": 3,
+  "sequence_batch": 2048,
+  "methods": ["B0_first", "B1_all_source", "M1_path_max_tong_same_model_crosscal"],
+  "length_buckets": [
+    {"name": "1-2", "minimum": 1, "maximum": 2},
+    {"name": "3-10", "minimum": 3, "maximum": 10},
+    {"name": "11-100", "minimum": 11, "maximum": 100},
+    {"name": "101-1000", "minimum": 101, "maximum": 1000},
+    {"name": "1001+", "minimum": 1001, "maximum": null}
+  ],
+  "missed_path_quantiles": [0.75, 0.9, 0.95],
+  "length_usage": "sealed_path_offline_bucketing_only",
+  "expected_parent_aggregate": {
+    "B0_first": {
+      "negative_entities": 150441,
+      "positive_entities": 239,
+      "false_positive_entities": 6017,
+      "detected_positive_entities": 232,
+      "entity_fpr": 0.03999574584056208,
+      "detection_rate": 0.9707112970711297
+    },
+    "B1_all_source": {
+      "negative_entities": 150441,
+      "positive_entities": 239,
+      "false_positive_entities": 7329,
+      "detected_positive_entities": 236,
+      "entity_fpr": 0.04871677268829641,
+      "detection_rate": 0.9874476987447699
+    },
+    "M1_path_max_tong_same_model_crosscal": {
+      "negative_entities": 150441,
+      "positive_entities": 239,
+      "false_positive_entities": 5583,
+      "detected_positive_entities": 235,
+      "entity_fpr": 0.03711089397172313,
+      "detection_rate": 0.9832635983263598
+    }
+  },
+  "resource_contract": {
+    "estimated_peak_host_gib": 17,
+    "minimum_available_host_gib": 17,
+    "minimum_free_gpu_memory_gib": 0,
+    "runtime_gpu_floor_gib": 0,
+    "minimum_free_disk_gib": 30
+  },
+  "artifact_policy": {
+    "persist_aggregate_results": true,
+    "persist_input_resource_status_log_manifest": true,
+    "persist_entity_keys": false,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false,
+    "persist_new_models": false
+  }
+}
