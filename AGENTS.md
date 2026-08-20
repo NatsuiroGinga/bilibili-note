@@ -121,7 +121,7 @@
 
 ### 本地混合文献检索路由（强制）
 
-- 遇到“文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文、主题论文”等请求，先运行 `python3 -m scripts.literature_search status --json`，再用 `python3 -m scripts.literature_search query "查询" --scope local --mode hybrid --json` 检索 `wiki/papers/**/*.md`。
+- 遇到“文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文、主题论文”等请求，先运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search status --json`，再用 `uv run --project scripts/literature_search --locked python -m scripts.literature_search query "查询" --scope local --mode hybrid --offline --json` 检索 `wiki/papers/**/*.md`。
 - 索引不存在或 `stale=true` 时，按 `scripts/literature_search/README.md` 构建；模型依赖不可用时可先用 `--mode lexical`，但必须明确向量通道未运行。
 - 只有本地证据不足、用户明确要求近期或外部工作、或需要验证 DOI/题录时，才改用 `--scope all`；`all` 必须同时保留本地结果和在线来源状态，任一在线来源失败不得丢弃本地结果。
 - OpenAlex、Semantic Scholar 和 Crossref 的返回一律视为外部题录或摘要候选。候选没有本地全文原件与结构化全文笔记前，不得升级为全文证据、写入论文结论或冒充已读全文。
