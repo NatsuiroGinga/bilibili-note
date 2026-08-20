@@ -27,7 +27,9 @@ from torch.nn import functional as F
 
 SCHEMA_VERSION = "ch3-rwkv7-field-aware-protocol-a-2x2-config-v1"
 RESULT_SCHEMA_VERSION = "ch3-rwkv7-field-aware-protocol-a-2x2-results-v1"
-RUN_ID = "ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1"
+LEGACY_RUN_ID = "ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1"
+RERUN_RUN_ID = f"{LEGACY_RUN_ID}-rerun1"
+RUN_ID = LEGACY_RUN_ID
 SOURCE_ARRAYS = ("X23", "y23", "I23", "M23", "E23", "T23")
 TARGET_ARRAYS = ("X24", "y24", "I24", "M24", "s24", "d24", "t24")
 ADAPTER_ORDER = ("R0", "R1", "R2")
@@ -124,7 +126,11 @@ def expected_cells() -> dict[str, dict[str, bool]]:
 
 
 def validate_config(config: Mapping[str, Any]) -> None:
-    if config.get("schema_version") != SCHEMA_VERSION or config.get("run_id") != RUN_ID:
+    run_id = config.get("run_id")
+    if config.get("schema_version") != SCHEMA_VERSION or run_id not in {
+        LEGACY_RUN_ID,
+        RERUN_RUN_ID,
+    }:
         raise ValueError("配置模式或运行身份不符")
     if config.get("source_arrays") != list(SOURCE_ARRAYS):
         raise ValueError("源年数组白名单不符")
@@ -152,7 +158,8 @@ def validate_config(config: Mapping[str, Any]) -> None:
         "positive_entity_count_24": 752,
     }:
         raise ValueError("输入形状合同不符")
-    training = config.get("training", {})
+    training = dict(config.get("training", {}))
+    training.pop("maximum_gpu_hours", None)
     expected_training = {
         "seed": 42,
         "batch_size": 64,
@@ -166,7 +173,6 @@ def validate_config(config: Mapping[str, Any]) -> None:
         "dropout": 0.1,
         "validation_fraction": 0.1,
         "time_tail_fraction": 0.15,
-        "maximum_gpu_hours": 4.5,
         "actual_parallelism": 1,
         "precision": "float32",
     }
@@ -256,6 +262,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--validate-config", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--resource-receipt")
+    parser.add_argument("--migrate-from-run-root")
     parser.add_argument("--publish-only", action="store_true")
     parser.add_argument("--authorized-swanlab-workspace")
     parser.add_argument("--authorized-swanlab-project")
@@ -724,6 +731,236 @@ def load_arrays(cache_root: Path, names: Sequence[str]) -> dict[str, np.ndarray]
     return arrays
 
 
+def migration_contract(config: Mapping[str, Any]) -> dict[str, Any]:
+    """移除唯一允许变化的运行身份字段和已撤销时长字段。"""
+    value = json.loads(json.dumps(config, ensure_ascii=False))
+    value["run_id"] = "<RUN_ID>"
+    value["paths"]["output_root"] = "<RUN_ID_DERIVED_OUTPUT_ROOT>"
+    value["swanlab"]["group"] = "<RUN_ID_DERIVED_GROUP>"
+    value["training"].pop("maximum_gpu_hours", None)
+    value["resource_contract"].pop("maximum_gpu_hours", None)
+    value["resource_contract"].pop("first_adapter_epoch_recalibration", None)
+    value["resource_contract"].pop("first_enlarged_capacity_epoch_recalibration", None)
+    return value
+
+
+def optimizer_state_signature(state: Mapping[str, Any]) -> list[dict[str, Any]]:
+    signature = []
+    for group in state["param_groups"]:
+        signature.append(
+            {
+                **{key: value for key, value in group.items() if key != "params"},
+                "parameter_slots": len(group["params"]),
+            }
+        )
+    return signature
+
+
+def migrate_legacy_checkpoint(
+    config: Mapping[str, Any], config_path: Path, source_root: Path
+) -> None:
+    if config["run_id"] != RERUN_RUN_ID:
+        raise RuntimeError("检查点迁移只允许写入 rerun1 运行身份")
+    output_root = Path(config["paths"]["output_root"])
+    receipt_path = output_root / "checkpoint-migration-receipt.json"
+    task_key = "adapter-R0-K0-C00"
+    target_inflight = output_root / "inflight" / f"{task_key}.pt"
+    target_epoch = (
+        output_root / "checkpoints" / "epochs" / task_key / "epoch-01.pt"
+    )
+    if receipt_path.is_file():
+        receipt = load_json(receipt_path)
+        valid = (
+            receipt.get("scientific_contract_equal") is True
+            and target_inflight.is_file()
+            and target_epoch.is_file()
+            and receipt.get("target_inflight_sha256") == sha256_file(target_inflight)
+            and receipt.get("target_epoch_checkpoint_sha256")
+            == sha256_file(target_epoch)
+        )
+        if not valid:
+            raise RuntimeError("既有检查点迁移收据或目标制品校验失败")
+        return
+    if target_inflight.exists() or target_epoch.exists():
+        raise RuntimeError("迁移收据缺失但目标检查点已存在，拒绝覆盖")
+
+    source_config_path = source_root / "config.json"
+    legacy_config_path = config_path.with_name(f"{LEGACY_RUN_ID}.json")
+    source_inflight = source_root / "inflight" / f"{task_key}.pt"
+    source_epoch = (
+        source_root / "checkpoints" / "epochs" / task_key / "epoch-01.pt"
+    )
+    for path in (
+        source_config_path,
+        legacy_config_path,
+        source_inflight,
+        source_epoch,
+    ):
+        if not path.is_file():
+            raise FileNotFoundError(f"迁移源制品缺失：{path}")
+    source_config = load_json(source_config_path)
+    legacy_config = load_json(legacy_config_path)
+    if source_config.get("run_id") != LEGACY_RUN_ID:
+        raise RuntimeError("迁移源运行身份不符")
+    if source_config != legacy_config:
+        raise RuntimeError("旧运行冻结配置与旧生产配置内容不一致")
+    if migration_contract(source_config) != migration_contract(config):
+        raise RuntimeError("旧、新配置存在非白名单科学合同差异")
+
+    source_inventory = data_inventory(Path(config["paths"]["cache_root"]), SOURCE_ARRAYS)
+    inflight = torch.load(source_inflight, map_location="cpu", weights_only=False)
+    old_identity = inflight.get("identity", {})
+    required_identity = {
+        "run_id": LEGACY_RUN_ID,
+        "config_sha256": sha256_file(legacy_config_path),
+        "source_data_inventory_sha256": source_inventory["sha256"],
+        "task_key": task_key,
+        "adapter_key": "R0",
+        "capacity_key": "K0",
+        "cell": "C00",
+    }
+    if any(old_identity.get(key) != value for key, value in required_identity.items()):
+        raise RuntimeError("旧在途检查点身份、配置或源数据清单不符")
+    launcher_hash_path = (
+        source_root.parents[1]
+        / "launchers"
+        / LEGACY_RUN_ID
+        / "input-sha256.txt"
+    )
+    if not launcher_hash_path.is_file():
+        raise FileNotFoundError(f"旧启动输入摘要缺失：{launcher_hash_path}")
+    launcher_hashes = {
+        path: digest
+        for digest, path in (
+            line.split(maxsplit=1)
+            for line in launcher_hash_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        )
+    }
+    old_tool_hashes = [
+        digest
+        for path, digest in launcher_hashes.items()
+        if path.endswith("/tools/ch3_rwkv7_field_aware_protocol_a_2x2.py")
+    ]
+    if old_tool_hashes != [old_identity.get("code_sha256")]:
+        raise RuntimeError("旧在途代码摘要与旧启动输入摘要不符")
+    if not (
+        inflight.get("complete_step") is True
+        and inflight.get("complete_epoch") is True
+        and int(inflight.get("epoch", 0)) == 1
+        and int(inflight.get("step", 0)) == 1000
+        and len(inflight.get("history", [])) == 1
+        and inflight["history"][0].get("epoch") == 1
+        and int(inflight.get("best_epoch", 0)) == 1
+    ):
+        raise RuntimeError("旧在途检查点不是已完成的第1轮第1000步")
+    for key in (
+        "model",
+        "optimizer",
+        "generator_state",
+        "torch_rng_state",
+        "cuda_rng_state_all",
+        "numpy_rng_state",
+        "python_rng_state",
+        "history",
+        "best_state",
+        "gradient_gate",
+    ):
+        if key not in inflight:
+            raise RuntimeError(f"旧在途检查点缺少恢复状态：{key}")
+
+    model = build_model(config, "R0", "K0", "C00")
+    expected_state = model.state_dict()
+    if set(inflight["model"]) != set(expected_state) or any(
+        inflight["model"][name].shape != tensor.shape
+        or inflight["model"][name].dtype != tensor.dtype
+        for name, tensor in expected_state.items()
+    ):
+        raise RuntimeError("旧检查点模型键、形状或精度与 rerun1 不符")
+    optimizer, optimizer_groups = make_optimizer(config, model)
+    if optimizer_state_signature(inflight["optimizer"]) != optimizer_state_signature(
+        optimizer.state_dict()
+    ):
+        raise RuntimeError("旧检查点优化器参数组或超参数与 rerun1 不符")
+    del model, optimizer
+
+    source_epoch_sha256 = sha256_file(source_epoch)
+    if inflight.get("best_epoch_weight_sha256") != source_epoch_sha256:
+        raise RuntimeError("旧最佳轮权重摘要与第1轮检查点不符")
+    new_identity = {
+        **old_identity,
+        "run_id": RERUN_RUN_ID,
+        "config_sha256": sha256_file(config_path),
+        "code_sha256": sha256_file(Path(__file__).resolve()),
+        "source_data_inventory_sha256": source_inventory["sha256"],
+    }
+    gradient_sources = []
+    for filename in (
+        f"gradient-first-step-{task_key}.json",
+        f"gradient-{task_key}.json",
+    ):
+        source_path = source_root / "receipts" / filename
+        if not source_path.is_file():
+            raise FileNotFoundError(f"迁移源梯度收据缺失：{source_path}")
+        gradient_sources.append((filename, load_json(source_path)))
+
+    migrated_epoch = torch.load(source_epoch, map_location="cpu", weights_only=False)
+    migrated_epoch["identity"] = new_identity
+    atomic_torch(target_epoch, migrated_epoch)
+    inflight["identity"] = new_identity
+    inflight["best_epoch_weight_sha256"] = sha256_file(target_epoch)
+    atomic_torch(target_inflight, inflight)
+
+    migrated_receipts = []
+    for filename, value in gradient_sources:
+        value["identity"] = new_identity
+        target_path = output_root / "receipts" / filename
+        atomic_json(target_path, value)
+        migrated_receipts.append(
+            {"filename": filename, "sha256": sha256_file(target_path)}
+        )
+
+    atomic_json(
+        receipt_path,
+        {
+            "schema_version": "ch3-rwkv7-checkpoint-migration-receipt-v1",
+            "source_run_id": LEGACY_RUN_ID,
+            "target_run_id": RERUN_RUN_ID,
+            "source_inflight_path": str(source_inflight),
+            "source_inflight_sha256": sha256_file(source_inflight),
+            "source_epoch_checkpoint_sha256": source_epoch_sha256,
+            "target_inflight_sha256": sha256_file(target_inflight),
+            "target_epoch_checkpoint_sha256": sha256_file(target_epoch),
+            "source_data_inventory_sha256": source_inventory["sha256"],
+            "completed_epoch": 1,
+            "completed_step": 1000,
+            "resume_from_epoch": 2,
+            "optimizer_groups": optimizer_groups,
+            "allowed_differences": [
+                "run_id及其派生output_root与SwanLab分组",
+                "删除maximum_gpu_hours",
+                "删除首轮预算重校准字段",
+                "删除运行时长停止实现",
+            ],
+            "preserved_state": [
+                "model",
+                "optimizer",
+                "generator_state",
+                "torch_rng_state",
+                "cuda_rng_state_all",
+                "numpy_rng_state",
+                "python_rng_state",
+                "history",
+                "best_state",
+                "gradient_gate",
+            ],
+            "migrated_receipts": migrated_receipts,
+            "scientific_contract_equal": True,
+            "created_at_unix": time.time(),
+        },
+    )
+
+
 def source_split(
     source: Mapping[str, np.ndarray], config: Mapping[str, Any]
 ) -> tuple[np.ndarray, np.ndarray, dict[str, int]]:
@@ -893,12 +1130,6 @@ def gradient_receipt(model: nn.Module, require_elp: bool) -> dict[str, Any]:
     }
 
 
-class BudgetLimit(RuntimeError):
-    def __init__(self, message: str, elapsed_seconds: float) -> None:
-        super().__init__(message)
-        self.elapsed_seconds = elapsed_seconds
-
-
 def train_candidate(
     config: Mapping[str, Any],
     task_key: str,
@@ -911,8 +1142,6 @@ def train_candidate(
     train_rows: np.ndarray,
     validation_rows: np.ndarray,
     loss_weights: tuple[float, float],
-    consumed_seconds: float,
-    reserve_equivalent_runs: int,
     device: torch.device,
     resume: bool,
 ) -> dict[str, Any]:
@@ -1228,17 +1457,6 @@ def train_candidate(
                 "python_rng_state": random.getstate(),
             },
         )
-        estimated_run_seconds = elapsed * int(training["epochs"]) / epoch
-        projected = consumed_seconds + estimated_run_seconds * (
-            1 + reserve_equivalent_runs
-        )
-        if projected > float(training["maximum_gpu_hours"]) * 3600:
-            raise BudgetLimit(
-                f"{task_key} 含后续{reserve_equivalent_runs}个等价单元的投影累计"
-                f" {projected / 3600:.3f} GPU小时，"
-                f"超过 {training['maximum_gpu_hours']} GPU小时停止门",
-                elapsed,
-            )
         log(f"{task_key} epoch={epoch} 验证逐流AP={validation_ap:.8f}")
     if best_state is None or gradient_gate is None:
         raise RuntimeError(f"{task_key} 未产生可选检查点")
@@ -1587,7 +1805,6 @@ def evaluate_target(
     selections: Mapping[str, Mapping[str, Any]],
     adapter_key: str,
     capacity_key: str,
-    source_training_seconds: float,
     target_inventory: Mapping[str, Any],
     target: Mapping[str, np.ndarray],
 ) -> tuple[dict[str, Any], dict[str, np.ndarray], dict[str, int]]:
@@ -1619,17 +1836,6 @@ def evaluate_target(
             target_consumed_seconds += float(
                 cell_result["target"]["evaluation_seconds"]
             )
-            completed = len(cells)
-            projected = source_training_seconds + (
-                target_consumed_seconds / completed * len(CELL_ORDER)
-            )
-            if projected > float(config["training"]["maximum_gpu_hours"]) * 3600:
-                raise BudgetLimit(
-                    f"目标评价按已完成{completed}格投影累计"
-                    f" {projected / 3600:.3f} GPU小时，超过"
-                    f" {config['training']['maximum_gpu_hours']} GPU小时停止门",
-                    target_consumed_seconds,
-                )
             continue
         model = build_model(config, adapter_key, capacity_key, cell).to(device)
         checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
@@ -1698,16 +1904,6 @@ def evaluate_target(
             curves[f"{cell}__{name}"] = values
         del model, checkpoint, flow_scores, seen, main_scores, maximum_scores
         torch.cuda.empty_cache()
-        completed = len(cells)
-        projected = source_training_seconds + (
-            target_consumed_seconds / completed * len(CELL_ORDER)
-        )
-        if projected > float(config["training"]["maximum_gpu_hours"]) * 3600:
-            raise BudgetLimit(
-                f"目标评价按已完成{completed}格投影累计 {projected / 3600:.3f} GPU小时，"
-                f"超过 {config['training']['maximum_gpu_hours']} GPU小时停止门",
-                target_consumed_seconds,
-            )
     if calls + reused != 4:
         raise RuntimeError("目标四格评价次数不符")
     return cells, curves, {"calls_this_process": calls, "receipts_reused": reused, **entity_stats}
@@ -1788,8 +1984,6 @@ def run_experiment(
                 train_rows,
                 validation_rows,
                 weights,
-                consumed,
-                len(ADAPTER_ORDER) - adapter_index - 1 + 3,
                 device,
                 args.resume,
             )
@@ -1821,52 +2015,24 @@ def run_experiment(
         capacity_blocks: list[dict[str, Any]] = []
         for current_capacity in ("K1", "K2"):
             task_key = f"capacity-{current_capacity}-{adapter_key}-C00"
-            try:
-                selection = train_candidate(
-                    config,
-                    task_key,
-                    adapter_key,
-                    current_capacity,
-                    "C00",
-                    output_root,
-                    run_identity,
-                    source,
-                    train_rows,
-                    validation_rows,
-                    weights,
-                    consumed,
-                    3,
-                    device,
-                    args.resume,
-                )
-            except BudgetLimit as error:
-                consumed += error.elapsed_seconds
-                capacity_blocks.append(
-                    {
-                        "capacity_key": current_capacity,
-                        "reason": str(error),
-                        "capacity_upper_bound_not_verified_due_to_resource_cap": True,
-                    }
-                )
-                log(str(error))
-                torch.cuda.empty_cache()
-                break
+            selection = train_candidate(
+                config,
+                task_key,
+                adapter_key,
+                current_capacity,
+                "C00",
+                output_root,
+                run_identity,
+                source,
+                train_rows,
+                validation_rows,
+                weights,
+                device,
+                args.resume,
+            )
             capacity_selections[current_capacity] = selection
             consumed += float(selection["training_seconds"])
-        maximum_seconds = float(config["training"]["maximum_gpu_hours"]) * 3600
-        eligible_capacity_keys = tuple(
-            key
-            for key in CAPACITY_ORDER
-            if key in capacity_selections
-            and consumed
-            + 3 * float(capacity_selections[key]["training_seconds"])
-            <= maximum_seconds
-        )
-        if not eligible_capacity_keys:
-            raise BudgetLimit(
-                "容量筛选后没有候选能在剩余预算内完成协议A三格",
-                consumed,
-            )
+        eligible_capacity_keys = tuple(capacity_selections)
         capacity_key = choose_candidate(
             capacity_selections,
             eligible_capacity_keys,
@@ -1912,8 +2078,6 @@ def run_experiment(
                 train_rows,
                 validation_rows,
                 weights,
-                consumed,
-                len(CELL_ORDER[1:]) - cell_index - 1,
                 device,
                 args.resume,
             )
@@ -1961,7 +2125,6 @@ def run_experiment(
         selections,
         adapter_key,
         capacity_key,
-        source_training_seconds,
         target_inventory,
         target,
     )
@@ -2055,7 +2218,6 @@ def run_experiment(
             "source_training_wall_seconds": source_training_seconds,
             "target_stage_wall_seconds": target_seconds,
             "gpu_hours": (source_training_seconds + target_seconds) / 3600.0,
-            "maximum_gpu_hours": config["training"]["maximum_gpu_hours"],
             "peak_process_rss_mib": process_peak_rss_mib(),
             "launcher_admission_receipt": load_json(Path(args.resource_receipt))
             if args.resource_receipt
@@ -2141,14 +2303,24 @@ def publish_aggregate(config: Mapping[str, Any], args: argparse.Namespace) -> No
 
 
 def main() -> int:
+    global RUN_ID
     args = parse_args()
     config_path = Path(args.config).resolve()
     config = load_json(config_path)
+    RUN_ID = str(config.get("run_id", ""))
     validate_config(config)
     if args.validate_config:
         print("配置核验通过")
         return 0
     try:
+        if args.migrate_from_run_root:
+            if not args.resume or args.publish_only:
+                raise RuntimeError("检查点迁移必须与 --resume 计算入口共同使用")
+            migrate_legacy_checkpoint(
+                config,
+                config_path,
+                Path(args.migrate_from_run_root).resolve(),
+            )
         if args.publish_only:
             publish_aggregate(config, args)
         else:

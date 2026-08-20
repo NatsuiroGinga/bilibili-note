@@ -5,11 +5,12 @@ set -Eeuo pipefail
 umask 027
 
 readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
-readonly RUN_ID=ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1
-readonly SCREEN_NAME=ch3-rwkv7-field-aware-protocol-a-s42-v1
-readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1.json"
+readonly RUN_ID=${RWKV_RUN_ID:-ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1}
+readonly SCREEN_NAME=${RWKV_SCREEN_NAME:-ch3-rwkv7-field-aware-protocol-a-s42-v1}
+readonly CONFIG_PATH="$PROJECT_ROOT/configs/${RUN_ID}.json"
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch3_rwkv7_field_aware_protocol_a_2x2.py"
-readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_rwkv7_field_aware_protocol_a_2x2_seed42_v1.sh"
+readonly SCRIPT_PATH=${RWKV_SCRIPT_PATH:-$PROJECT_ROOT/scripts/remote_launchers/run_ch3_rwkv7_field_aware_protocol_a_2x2_seed42_v1.sh}
+readonly MIGRATE_FROM_RUN_ROOT=${RWKV_MIGRATE_FROM_RUN_ROOT:-}
 readonly MEMORY_GATE_PATH="$PROJECT_ROOT/tools/memory_admission_gate.sh"
 readonly OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$RUN_ID"
 readonly LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"
@@ -20,7 +21,6 @@ readonly SWANLAB_PROJECT=ns3-rwkv-lspr24
 readonly GPU_FREE_MIN_MIB=20480
 readonly CGROUP_AVAILABLE_MIN_BYTES=42949672960
 readonly DISK_FREE_MIN_KIB=26214400
-readonly MAXIMUM_GPU_SECONDS=16200
 
 cd "$PROJECT_ROOT"
 source tools/env/activate.sh
@@ -57,7 +57,6 @@ valid = (
     and config["capacities"]["K0"]["capacity_claim_allowed"] is False
     and config["capacities"]["K1"]["parameter_counts"]["R0"] == 5126978
     and config["capacities"]["K2"]["parameter_counts"]["R0"] == 8900354
-    and config["training"]["maximum_gpu_hours"] == 4.5
     and config["training"]["actual_parallelism"] == 1
     and config["target_year_arrays_read_before_selection_frozen"] == 0
     and list(config["cells"]) == ["C00", "C01", "C10", "C11"]
@@ -115,7 +114,7 @@ value = {
     "cgroup_limit_bytes": int(sys.argv[3]), "cgroup_current_bytes_at_admission": int(sys.argv[4]),
     "cgroup_available_bytes_at_admission": int(sys.argv[5]), "disk_available_kib": int(sys.argv[6]),
     "disk_used_percent": int(sys.argv[7]), "actual_parallel_runs_at_admission": 1,
-    "minimum_free_gpu_memory_mib": 20480, "maximum_gpu_seconds": 16200,
+    "minimum_free_gpu_memory_mib": 20480,
     "resource_measurement_contended": False, "fair_efficiency_evidence": True,
 }
 temporary = path.with_name(path.name + f".partial.{os.getpid()}")
@@ -173,6 +172,10 @@ run_logged() {
 
 worker() {
     local resume_flag=${1:-} monitor_pid= code=0
+    local -a migration_args=()
+    if [[ -n "$MIGRATE_FROM_RUN_ROOT" ]]; then
+        migration_args=(--migrate-from-run-root "$MIGRATE_FROM_RUN_ROOT")
+    fi
     exec 9> "$LAUNCHER_ROOT/worker.lock"
     flock -n 9 || { printf '同名运行锁已占用。\n' >&2; return 75; }
     trap '[[ -n ${monitor_pid:-} ]] && kill "$monitor_pid" 2>/dev/null || true; launcher_status interrupted signal received 130; exit 130' HUP INT TERM
@@ -183,9 +186,10 @@ worker() {
     launcher_status running source_selection source_selection_started null
     resource_monitor &
     monitor_pid=$!
-    if run_logged "$OUTPUT_ROOT/run${resume_flag:+-resume}.log" timeout --signal=TERM --kill-after=300s "${MAXIMUM_GPU_SECONDS}s" \
+    if run_logged "$OUTPUT_ROOT/run${resume_flag:+-resume}.log" \
         uv run --no-sync python "$TOOL_PATH" --config "$CONFIG_PATH" \
-        --resource-receipt "$RESOURCE_RECEIPT" ${resume_flag:+--resume}; then
+        --resource-receipt "$RESOURCE_RECEIPT" ${resume_flag:+--resume} \
+        "${migration_args[@]}"; then
         code=0
     else
         code=$?
@@ -194,7 +198,10 @@ worker() {
     wait "$monitor_pid" 2>/dev/null || true
     monitor_pid=
     finalize_resources
-    (( code == 0 )) || return "$code"
+    if (( code != 0 )); then
+        launcher_status failed runtime "experiment_exit_${code}" "$code"
+        return "$code"
+    fi
     uv run --no-sync swanlab ping > "$OUTPUT_ROOT/swanlab-ping.log" 2>&1
     uv run --no-sync swanlab verify > "$OUTPUT_ROOT/swanlab-verify.log" 2>&1
     run_logged "$OUTPUT_ROOT/publish.log" uv run --no-sync python "$TOOL_PATH" \
@@ -216,7 +223,7 @@ elif [[ $# -ne 0 ]]; then
     printf '仅接受可选参数 --resume。\n' >&2
     exit 64
 fi
-for command in rg uv swanlab screen flock nvidia-smi sha256sum timeout; do
+for command in rg uv swanlab screen flock nvidia-smi sha256sum; do
     command -v "$command" >/dev/null 2>&1 || { printf '缺少命令：%s\n' "$command" >&2; exit 69; }
 done
 for path in "$CONFIG_PATH" "$TOOL_PATH" "$SCRIPT_PATH" "$MEMORY_GATE_PATH"; do
@@ -240,9 +247,16 @@ raise SystemExit(0 if status.get("state") == "complete" and status.get("exit_cod
         exit 0
     fi
     resume_flag=--resume
-elif [[ "$resume_flag" == --resume ]]; then
+elif [[ "$resume_flag" == --resume && -z "$MIGRATE_FROM_RUN_ROOT" ]]; then
     printf '输出根不存在，不能恢复。\n' >&2
     exit 73
+fi
+if [[ -n "$MIGRATE_FROM_RUN_ROOT" ]]; then
+    [[ -s "$MIGRATE_FROM_RUN_ROOT/inflight/adapter-R0-K0-C00.pt" ]] || {
+        printf '迁移源在途检查点不存在：%s\n' "$MIGRATE_FROM_RUN_ROOT" >&2
+        exit 73
+    }
+    resume_flag=--resume
 fi
 mkdir -p -- "$LAUNCHER_ROOT" "$OUTPUT_ROOT"
 validate_static_contract
