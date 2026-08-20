@@ -6,6 +6,11 @@
   "license": "MIT",
   "implementation_role": "official-pytorch-postpaper",
   "files": {
+    ".gitattributes": {
+      "role": "保持上游原始字节并禁用文本差异正规化",
+      "modified": true,
+      "sha256": "64210af0dd0b77d4247f32526293c9daa95e061f691b214cd67a0a355533200c"
+    },
     "upstream_GRANDE.py": {
       "upstream_path": "GRANDE/GRANDE.py",
       "modified": false,
