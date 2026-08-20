@@ -1,0 +1,147 @@
+{
+  "schema_version": "ch3-rwkv7-source-oof-gate-config-v1",
+  "run_id": "ch3-rwkv7-cpa-elp-source-oof-gate-seed42-v1",
+  "model_key": "rwkv7",
+  "display_name": "等参数RWKV-7时间混合与CPA-ELP源年资格门",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-cpa-elp-source-oof-gate-seed42-v1",
+    "mlp_reference_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-e1-source-entity-oof-gate-seed42-v1",
+    "xgb_parent_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "xgb_recovery_proof": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/recovery/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-for-ch4-xgb-pbc-q0-seed42-v1-v1/parent-recovery-proof.json",
+    "xgb_input_sha256_receipt": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1/input-sha256.txt"
+  },
+  "seed": 42,
+  "allowed_arrays": ["X23", "y23", "I23", "M23", "E23"],
+  "fold_count": 3,
+  "batch_size": 64,
+  "epochs": 20,
+  "steps_per_epoch": 1000,
+  "learning_rate": 0.002,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "auxiliary_loss_weight": 1.0,
+  "input_contract": {
+    "allowed_arrays": ["X23", "y23", "I23", "M23", "E23"],
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "positive_entity_count": 239,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "entity_code_minimum": 0,
+    "entity_code_maximum": 150679
+  },
+  "fold_contract": {
+    "count": 3,
+    "assignment": "seeded-stratified-entity-round-robin",
+    "map_to_sequences_via": "E23",
+    "map_to_flows_via": ["I23", "M23"],
+    "require_each_entity_once_oof": true,
+    "require_train_holdout_entity_disjoint": true
+  },
+  "cells": {
+    "C00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "C11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "candidate": {
+    "residual_blocks": 0,
+    "residual_affine_layers": 0,
+    "hidden_size": 112,
+    "head_size": 16,
+    "lora_size": 8,
+    "time_mix_blocks": 1,
+    "state_scope": "within_sequence_only",
+    "sequence_length": 128,
+    "activation": "relu",
+    "dropout": 0.1,
+    "inference_batch_size": 512,
+    "parameter_formula": "6C^2+6Cr+(D+16)C+2",
+    "parameter_count": 91730,
+    "reference_parameter_count": 90242,
+    "parameter_tolerance_fraction": 0.02,
+    "official_repository": "BlinkDL/RWKV-LM",
+    "official_source_commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+    "official_license": "Apache-2.0",
+    "operator_backend": "pytorch_recursive_reference",
+    "official_cuda_kernel_used": false
+  },
+  "training": {
+    "seed": 42,
+    "hidden_size": 112,
+    "dropout": 0.1,
+    "parameter_count": 91730,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.002,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "positive_weight_scope": "train_rows_reachable_labels_only",
+    "selection_metric": "holdout_flow_average_precision",
+    "selection_rule": "single_epoch_argmax_earliest_tie",
+    "selection_evidence_scope": "source_screening_not_independent_oof"
+  },
+  "evaluation": {
+    "c00_entity_aggregation": "maximum",
+    "c11_entity_aggregation": "fold_learned_p",
+    "p_diagnostic_grid": [0.5, 1.0, 2.0, 4.0, 8.0],
+    "flow_average_precision": true,
+    "entity_average_precision": true,
+    "dr_fpr_grid": [0.01, 0.02, 0.04, 0.08],
+    "alert_budget_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "mlp_reference_c00_pooled": 0.5109066464488172,
+    "mlp_reference_c11_pooled": 0.5447784766847485,
+    "qualification_primary_metric_only": "entity_average_precision",
+    "qualification_rule": "candidate_c11_gt_xgb_and_candidate_c11_gt_c00_and_all_fold_c11_gt_c00_and_at_least_two_fold_c11_gt_xgb"
+  },
+  "parent_contract": {
+    "mlp_run_id": "ch4-e1-source-entity-oof-gate-seed42-v1",
+    "xgb_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "xgb_adapter": "semantic168",
+    "xgb_p": 1.0,
+    "xgb_recovery_proof_schema": "ch3-xgb-parent-recovery-proof-v1",
+    "historical_xgb_per_array_hash_persisted": false
+  },
+  "artifact_policy": {
+    "persist_selected_checkpoint_per_cell_fold": true,
+    "persist_inflight_epoch_checkpoint": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false,
+    "aggregate_tracking_only": true
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch3-rwkv7-cpa-elp-source-oof-gate-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "rwkv7", "cpa-elp", "source-oof", "entity-fold", "seed42", "screening"]
+  },
+  "resource_contract": {
+    "serial_minimum_free_gpu_memory_gib": 12,
+    "serial_minimum_cgroup_available_memory_gib": 40,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_training_units": 1,
+    "adaptive_parallelism": false,
+    "parallelism_policy": "serial_only_for_pytorch_recursive_reference"
+  },
+  "plan_deviation": {
+    "candidate_outside_original_whitelist": true,
+    "multi_metric_continuation_added": true,
+    "source_screening_only": true,
+    "does_not_change_chapter3_body_verdict": true
+  },
+  "rwkv8_exclusion": {
+    "implemented": false,
+    "reverse_operator_has_backward": false,
+    "formal_paper_frozen": false,
+    "stable_training_contract_frozen": false,
+    "verdict": "excluded_from_this_round"
+  },
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "target_year_arrays_read": 0
+}
