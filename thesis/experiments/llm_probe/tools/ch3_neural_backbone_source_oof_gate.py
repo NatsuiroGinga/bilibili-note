@@ -187,8 +187,10 @@ def validate_config(config: dict[str, Any]) -> None:
         "weight_decay": 0.01,
         "gradient_clip_norm": 1.0,
         "auxiliary_loss_weight": 1.0,
+        "positive_weight_scope": "train_rows_reachable_labels_only",
         "selection_metric": "holdout_flow_average_precision",
         "selection_rule": "single_epoch_argmax_earliest_tie",
+        "selection_evidence_scope": "source_screening_not_independent_oof",
     }
     if training != expected_training:
         raise ValueError("训练预算或选择规则不是冻结值")
@@ -228,6 +230,7 @@ def validate_config(config: dict[str, Any]) -> None:
         "xgb_adapter": "semantic168",
         "xgb_p": 1.0,
         "xgb_recovery_proof_schema": "ch3-xgb-parent-recovery-proof-v1",
+        "historical_xgb_per_array_hash_persisted": False,
     }:
         raise ValueError("父基线身份合同不符")
     artifacts = config["artifact_policy"]
@@ -431,28 +434,31 @@ def require_manifest_file(root: Path, manifest: dict[str, Any], name: str) -> Pa
     return path
 
 
-def parse_source_hash_receipt(path: Path) -> dict[str, str]:
+def parse_historical_xgb_launcher_hash_receipt(path: Path) -> dict[str, str]:
     if not path.is_file():
-        raise RuntimeError(f"XGBoost 父输入摘要收据不存在：{path}")
+        raise RuntimeError(f"XGBoost 历史启动器摘要收据不存在：{path}")
+    expected_names = {
+        "ch3_xgb_cpa_elp_entity_oof.py",
+        "ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json",
+        "run_ch3_xgb_cpa_elp_gpu_oof_seed42_v1.sh",
+    }
     hashes: dict[str, str] = {}
     for raw_line in path.read_text(encoding="utf-8").splitlines():
         fields = raw_line.strip().split(maxsplit=1)
         if len(fields) != 2:
-            continue
+            raise RuntimeError("XGBoost 历史启动器摘要收据含无效行")
         digest, raw_name = fields
         name = Path(raw_name.lstrip("* ")).name
-        array_name = name.removesuffix(".npy")
-        if array_name not in ALLOWED_ARRAYS:
-            continue
         if (
-            array_name in hashes
+            name not in expected_names
+            or name in hashes
             or len(digest) != 64
             or any(character not in "0123456789abcdefABCDEF" for character in digest)
         ):
-            raise RuntimeError(f"XGBoost 父输入摘要收据含重复或无效项：{array_name}")
-        hashes[array_name] = digest
-    if tuple(name for name in ALLOWED_ARRAYS if name in hashes) != ALLOWED_ARRAYS:
-        raise RuntimeError("XGBoost 父输入摘要收据未完整列出五个源年数组")
+            raise RuntimeError(f"XGBoost 历史启动器摘要收据含重复或无效项：{name}")
+        hashes[name] = digest.lower()
+    if set(hashes) != expected_names:
+        raise RuntimeError("XGBoost 历史启动器摘要收据未完整列出父工具、配置和启动器")
     return hashes
 
 
@@ -609,17 +615,17 @@ def validate_parent_baselines(
     ):
         raise RuntimeError("XGBoost 父恢复证明不能证明冻结源年三折模型完整")
 
-    parent_hashes = parse_source_hash_receipt(Path(paths["xgb_input_sha256_receipt"]))
-    current_hashes = {
-        name: input_identity["files"][name]["sha256"] for name in ALLOWED_ARRAYS
-    }
-    if parent_hashes != current_hashes:
-        raise RuntimeError("XGBoost 父五数组摘要与本次源年输入不符")
+    historical_launcher_hashes = parse_historical_xgb_launcher_hash_receipt(
+        Path(paths["xgb_input_sha256_receipt"])
+    )
 
     receipt = {
         "schema_version": "ch3-neural-backbone-source-baseline-receipt-v1",
         "target_year_arrays_read": 0,
-        "source_data_sha256": input_identity["combined_sha256"],
+        "current_candidate_and_mlp_e1_source_data_sha256": input_identity[
+            "combined_sha256"
+        ],
+        "historical_xgb_per_array_hash_persisted": False,
         "mlp": {
             "run_id": parent_contract["mlp_run_id"],
             "aggregate_sha256": sha256_file(mlp_aggregate_path),
@@ -639,9 +645,31 @@ def validate_parent_baselines(
             "run_id": parent_contract["xgb_run_id"],
             "selection_sha256": sha256_file(selection_path),
             "recovery_proof_sha256": sha256_file(recovery_path),
-            "input_sha256_receipt_sha256": sha256_file(
+            "effective_config_receipts_sha256": recovery_artifacts[
+                "effective_config_receipts.json"
+            ]["sha256"],
+            "source_fold_models": {
+                name: {
+                    "sha256": recovery_artifacts[name]["sha256"],
+                    "num_boosted_rounds": recovery_artifacts[name][
+                        "num_boosted_rounds"
+                    ],
+                }
+                for name in required_models
+            },
+            "historical_launcher_input_sha256_receipt_sha256": sha256_file(
                 Path(paths["xgb_input_sha256_receipt"])
             ),
+            "historical_launcher_tool_config_script_hashes": historical_launcher_hashes,
+            "historical_xgb_per_array_hash_persisted": False,
+            "historical_xgb_current_array_cryptographic_identity_claimed": False,
+            "current_arrays_match_mlp_e1_input_identity": True,
+            "source_cohort_evidence": [
+                "frozen_parent_tool_config_and_launcher_hash_receipt",
+                "exact_source_fold_statistics",
+                "selection_and_effective_config_receipts",
+                "parent_recovery_proof_with_model_hashes_and_tree_counts",
+            ],
             "adapter": parent_contract["xgb_adapter"],
             "p": parent_contract["xgb_p"],
             "C11_pooled": xgb_pooled,
@@ -764,6 +792,7 @@ def unit_identity(
     fold: int,
     train_rows: np.ndarray,
     holdout_rows: np.ndarray,
+    training_label_balance: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "cell": cell,
@@ -773,6 +802,56 @@ def unit_identity(
         "fold_assignment_sha256": fold_sha256,
         "train_sequences": {"count": len(train_rows), "sha256": sha256_array(train_rows)},
         "holdout_sequences": {"count": len(holdout_rows), "sha256": sha256_array(holdout_rows)},
+        "training_label_balance": training_label_balance,
+    }
+
+
+def training_label_balance(
+    y: np.ndarray,
+    I: np.ndarray,
+    M: np.ndarray,
+    train_rows: np.ndarray,
+    chunk_size: int = 20_000,
+) -> dict[str, Any]:
+    train_sequence_count = int(len(train_rows))
+    train_effective_flow_count = 0
+    train_positive_flow_count = 0
+    train_positive_sequence_count = 0
+    for start in range(0, train_sequence_count, chunk_size):
+        rows = train_rows[start : start + chunk_size]
+        indices = np.asarray(I[rows])
+        valid = np.asarray(M[rows]) > 0.5
+        if np.any(valid.sum(axis=1) == 0):
+            raise RuntimeError("训练折含无有效流的序列")
+        labels = np.asarray(y)[indices[valid]]
+        positive = labels > 0.5
+        train_effective_flow_count += int(labels.size)
+        train_positive_flow_count += int(positive.sum())
+        positive_by_position = np.zeros(valid.shape, dtype=np.bool_)
+        positive_by_position[valid] = positive
+        train_positive_sequence_count += int(positive_by_position.any(axis=1).sum())
+    train_negative_flow_count = train_effective_flow_count - train_positive_flow_count
+    train_negative_sequence_count = train_sequence_count - train_positive_sequence_count
+    if min(
+        train_positive_flow_count,
+        train_negative_flow_count,
+        train_positive_sequence_count,
+        train_negative_sequence_count,
+    ) <= 0:
+        raise RuntimeError("训练折逐流或序列标签缺少正类或负类")
+    return {
+        "scope": "train_rows_reachable_labels_only",
+        "train_sequences": train_sequence_count,
+        "train_positive_sequences": train_positive_sequence_count,
+        "train_negative_sequences": train_negative_sequence_count,
+        "train_effective_flows": train_effective_flow_count,
+        "train_positive_flows": train_positive_flow_count,
+        "train_negative_flows": train_negative_flow_count,
+        "flow_positive_weight": train_negative_flow_count / train_positive_flow_count,
+        "sequence_positive_weight": (
+            train_negative_sequence_count / train_positive_sequence_count
+        ),
+        "holdout_labels_used_for_weights": False,
     }
 
 
@@ -892,6 +971,7 @@ def train_or_resume_unit(
     gM: torch.Tensor,
     positive_weight: torch.Tensor,
     sequence_positive_weight: float,
+    label_balance: dict[str, Any],
     resume: bool,
 ) -> tuple[ResidualMlpBackbone, dict[str, Any], str]:
     checkpoint_path, inflight_path, receipt_path = unit_paths(output_root, cell, fold)
@@ -1080,6 +1160,7 @@ def train_or_resume_unit(
         "encoded_effective_flows": encoded_effective_flows,
         "optimizer_steps": training["epochs"] * training["steps_per_epoch"],
         "sequences_per_step": training["batch_size"],
+        "training_label_balance": label_balance,
     }
     atomic_torch(
         checkpoint_path,
@@ -1390,6 +1471,9 @@ def train_unit(config: dict[str, Any], args: argparse.Namespace, config_path: Pa
     holdout_entities = np.unique(np.asarray(context["E"])[holdout_rows])
     if np.intersect1d(train_entities, holdout_entities).size != 0:
         raise RuntimeError(f"{cell}/fold{fold} 训练与留出实体相交")
+    label_balance = training_label_balance(
+        context["y"], context["I"], context["M"], train_rows
+    )
     identity = unit_identity(
         context["config_sha"],
         context["input_identity"]["combined_sha256"],
@@ -1398,6 +1482,7 @@ def train_unit(config: dict[str, Any], args: argparse.Namespace, config_path: Pa
         fold,
         train_rows,
         holdout_rows,
+        label_balance,
     )
     checkpoint_path, _, receipt_path = unit_paths(output_root, cell, fold)
     selected = validate_selected_checkpoint(
@@ -1429,6 +1514,7 @@ def train_unit(config: dict[str, Any], args: argparse.Namespace, config_path: Pa
                 "encoded_effective_flows": selection["encoded_effective_flows"],
                 "optimizer_steps": selection["optimizer_steps"],
                 "sequences_per_step": selection["sequences_per_step"],
+                "training_label_balance": selection["training_label_balance"],
             },
             resource=(previous_status or {}).get("resource", {}),
         )
@@ -1441,15 +1527,10 @@ def train_unit(config: dict[str, Any], args: argparse.Namespace, config_path: Pa
     gy = torch.from_numpy(np.asarray(context["y"])).to(device)
     gI = torch.from_numpy(np.asarray(context["I"])).to(device)
     gM = torch.from_numpy(np.asarray(context["M"])).to(device)
-    positive_rate = float(np.asarray(context["y"]).mean())
-    positive_weight = torch.tensor([(1.0 - positive_rate) / positive_rate], device=device)
-    sequence_labels = (
-        np.asarray(context["y"])[np.asarray(context["I"])]
-        * (np.asarray(context["M"]) > 0.5)
-    ).max(axis=1) > 0
-    sequence_positive_weight = float(
-        (1.0 - sequence_labels.mean()) / max(sequence_labels.mean(), 1e-8)
+    positive_weight = torch.tensor(
+        [label_balance["flow_positive_weight"]], device=device
     )
+    sequence_positive_weight = float(label_balance["sequence_positive_weight"])
     write_unit_status(output_root, cell, fold, "running", "training", None, "训练或恢复折单元")
     _, selection, action = train_or_resume_unit(
         config,
@@ -1465,6 +1546,7 @@ def train_unit(config: dict[str, Any], args: argparse.Namespace, config_path: Pa
         gM,
         positive_weight,
         sequence_positive_weight,
+        label_balance,
         args.resume,
     )
     wall_seconds = time.time() - started
@@ -1488,6 +1570,7 @@ def train_unit(config: dict[str, Any], args: argparse.Namespace, config_path: Pa
             "encoded_effective_flows": selection["encoded_effective_flows"],
             "optimizer_steps": selection["optimizer_steps"],
             "sequences_per_step": selection["sequences_per_step"],
+            "training_label_balance": selection["training_label_balance"],
         },
         resource=resource_snapshot(),
     )
@@ -1531,6 +1614,10 @@ def aggregate(config: dict[str, Any], args: argparse.Namespace, config_path: Pat
     entity_results: dict[str, np.ndarray] = {}
     grid_results: list[dict[str, Any]] = []
     resume_events: list[dict[str, Any]] = []
+    training_balances: dict[int, dict[str, Any]] = {}
+    for fold in range(fold_count):
+        train_rows = np.flatnonzero(fold_of_sequence != fold).astype(np.int64, copy=False)
+        training_balances[fold] = training_label_balance(y, I, M, train_rows)
     for cell in CELL_ORDER:
         flow_scores = np.full(contract["flow_count"], np.nan, dtype=np.float32)
         seen = np.zeros(contract["flow_count"], dtype=np.bool_)
@@ -1550,6 +1637,7 @@ def aggregate(config: dict[str, Any], args: argparse.Namespace, config_path: Pat
                 fold,
                 train_rows,
                 holdout_rows,
+                training_balances[fold],
             )
             identity = {**identity, "schema_version": "ch3-neural-backbone-source-unit-identity-v1"}
             checkpoint_path, _, receipt_path = unit_paths(output_root, cell, fold)
@@ -1596,6 +1684,7 @@ def aggregate(config: dict[str, Any], args: argparse.Namespace, config_path: Pat
                     "encoded_sequences": selection["encoded_sequences"],
                     "encoded_effective_flows": selection["encoded_effective_flows"],
                     "sequences_per_step": selection["sequences_per_step"],
+                    "training_label_balance": selection["training_label_balance"],
                     "resource": status.get("resource"),
                 }
             )
@@ -1715,6 +1804,14 @@ def aggregate(config: dict[str, Any], args: argparse.Namespace, config_path: Pat
             "screening_only": True,
             "formal_paper_evidence": False,
             "independent_test": False,
+            "holdout_epoch_selection_used": True,
+            "selection_bias_free_independent_oof_claimed": False,
+            "historical_xgb_per_array_hash_persisted": False,
+            "historical_xgb_current_array_cryptographic_identity_claimed": False,
+            "qualification_evidence_limitations": [
+                "historical_xgb_per_array_hash_not_persisted",
+                "holdout_epoch_selection_bias",
+            ],
         },
         "input": {
             "arrays": list(ALLOWED_ARRAYS),

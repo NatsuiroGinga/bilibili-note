@@ -74,6 +74,9 @@ valid = (
     and config["paths"]["xgb_parent_root"] == sys.argv[6]
     and config["paths"]["xgb_recovery_proof"] == sys.argv[7]
     and config["paths"]["xgb_input_sha256_receipt"] == sys.argv[8]
+    and config["parent_contract"]["historical_xgb_per_array_hash_persisted"] is False
+    and config["training"]["positive_weight_scope"] == "train_rows_reachable_labels_only"
+    and config["training"]["selection_evidence_scope"] == "source_screening_not_independent_oof"
     and resources["serial_minimum_free_gpu_memory_gib"] == 10
     and resources["serial_minimum_cgroup_available_memory_gib"] == 40
     and resources["parallel_minimum_free_gpu_memory_gib"] == 24
@@ -358,6 +361,7 @@ required += [f"receipts/unit-{cell}-fold{fold}.json" for cell in ("C00", "C11") 
 required += [f"units/{cell}-fold{fold}/status.json" for cell in ("C00", "C11") for fold in range(3)]
 resource = result["resource"]
 verdict = result["mechanical_verdict"]
+xgb = result["baselines"]["xgb"]
 valid = (
     status.get("state") == "complete"
     and status.get("exit_code") == 0
@@ -368,6 +372,23 @@ valid = (
     and result["input"]["target_year_arrays_read"] == 0
     and result["model"]["model_key"] == "resmlp2"
     and result["model"]["parameter_count"] == 89796
+    and result["evidence"]["holdout_epoch_selection_used"] is True
+    and result["evidence"]["selection_bias_free_independent_oof_claimed"] is False
+    and result["evidence"]["historical_xgb_per_array_hash_persisted"] is False
+    and result["evidence"]["qualification_evidence_limitations"] == [
+        "historical_xgb_per_array_hash_not_persisted",
+        "holdout_epoch_selection_bias",
+    ]
+    and result["baselines"]["historical_xgb_per_array_hash_persisted"] is False
+    and xgb["historical_xgb_per_array_hash_persisted"] is False
+    and xgb["historical_xgb_current_array_cryptographic_identity_claimed"] is False
+    and xgb["current_arrays_match_mlp_e1_input_identity"] is True
+    and len(xgb["effective_config_receipts_sha256"]) == 64
+    and len(xgb["source_fold_models"]) == 3
+    and all(
+        len(model["sha256"]) == 64 and model["num_boosted_rounds"] == 800
+        for model in xgb["source_fold_models"].values()
+    )
     and sum(bool(verdict[key]) for key in ("source_qualified", "source_rejected", "invalid")) == 1
     and verdict["invalid"] is False
     and result["artifact_policy"]["per_flow_scores_persisted"] is False
@@ -381,6 +402,15 @@ valid = (
     and resource["sequences_per_step"] == 64
     and resource["encoded_sequences"] == 7680000
     and resource["encoded_effective_flows"] > 0
+    and all(
+        unit["training_label_balance"]["scope"] == "train_rows_reachable_labels_only"
+        and unit["training_label_balance"]["holdout_labels_used_for_weights"] is False
+        and unit["training_label_balance"]["train_sequences"] > 0
+        and unit["training_label_balance"]["train_effective_flows"] > 0
+        and unit["training_label_balance"]["flow_positive_weight"] > 0
+        and unit["training_label_balance"]["sequence_positive_weight"] > 0
+        for units in result["cells"].values() for unit in units
+    )
     and all(unit["wall_seconds"] is not None and unit["resource"] for units in result["cells"].values() for unit in units)
     and all((root / name).is_file() for name in required)
 )

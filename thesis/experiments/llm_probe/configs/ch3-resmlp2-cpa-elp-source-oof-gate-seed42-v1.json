@@ -69,8 +69,10 @@
     "weight_decay": 0.01,
     "gradient_clip_norm": 1.0,
     "auxiliary_loss_weight": 1.0,
+    "positive_weight_scope": "train_rows_reachable_labels_only",
     "selection_metric": "holdout_flow_average_precision",
-    "selection_rule": "single_epoch_argmax_earliest_tie"
+    "selection_rule": "single_epoch_argmax_earliest_tie",
+    "selection_evidence_scope": "source_screening_not_independent_oof"
   },
   "evaluation": {
     "c00_entity_aggregation": "maximum",
@@ -85,7 +87,8 @@
     "xgb_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
     "xgb_adapter": "semantic168",
     "xgb_p": 1.0,
-    "xgb_recovery_proof_schema": "ch3-xgb-parent-recovery-proof-v1"
+    "xgb_recovery_proof_schema": "ch3-xgb-parent-recovery-proof-v1",
+    "historical_xgb_per_array_hash_persisted": false
   },
   "artifact_policy": {
     "persist_selected_checkpoint_per_cell_fold": true,
