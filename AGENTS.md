@@ -122,13 +122,15 @@
 ### 本地混合项目检索路由（强制）
 
 - 遇到项目内检索请求，先运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search status --json`。文献、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文使用 `--scope paper`；当前路线、状态、计划和决策追溯使用 `--scope project`；运行指标和资源收据使用 `--scope experiment`；正文、小节和公开表述使用 `--scope thesis`；只有明确跨域问题才使用 `--scope all`。本地查询默认加 `--mode hybrid --offline --json`。
+- 用户问题涉及“数据集是否适合模型、机制选择、研究路线、跨文档实验判断、项目状态综合或文献依据”时，属于研究判断而非精确查找；在形成研究结论前必须先执行 `status --json`，再按唯一作用域执行 `--mode hybrid --offline --json` 查询。精确代码、行号和已知字面量核验只能在混合检索结果之后用 `rg` 补充，不能代替语义发现。问题由精确查找扩大为研究判断时，必须重新执行本路由，不得沿用前一工具的结果。
 - `local` 只作为 `paper` 的兼容别名。结果必须核对 `scope`、`collection`、`authority`、`status`、`evidence_level` 和原路径；项目、实验和正文结果不得冒充论文全文证据。需要缩小范围时重复使用 `--collection`，只有显式历史追溯才使用 `--include-history`。
-- 索引不存在或 `stale=true` 时，按 `scripts/literature_search/README.md` 构建；模型依赖不可用时可先用 `--mode lexical`，但必须明确向量通道未运行。
+- 索引不存在或 `stale=true` 时，先按 `scripts/literature_search/README.md` 增量或完整构建，构建成功后重新检查状态；只有模型依赖确实不可用时才允许降级为 `--mode lexical`，并在答复中明确向量通道未运行。研究判断答复至少记录检索收据：`scope`、`mode`、索引 `manifest/hash` 或 `built_at`、`stale=false` 与关键命中路径。检索实现若未机械拒绝陈旧索引，调用者仍不得把陈旧结果用于研究结论。
 - 只有论文本地证据不足、用户明确要求近期或外部工作、或需要验证 DOI/题录时，才允许 `paper/all` 查询移除 `--offline`；`all` 必须保留各本地作用域分区和在线来源状态，任一在线来源失败不得丢弃本地结果。项目、实验和正文作用域默认不联网。
 - OpenAlex、Semantic Scholar、Crossref、Hugging Face Papers 和 Google Scholar 的返回一律视为外部题录或摘要候选。Google Scholar 请求必须调用 `$google-scholar`，程序化检索固定使用 JSON；`clusterId`、引用数和排序只作发现元数据。候选没有本地全文原件与结构化全文笔记前，不得升级为全文证据、写入论文结论或冒充已读全文。
 - `scope=all` 的 GitHub 结果只进入 `code_candidates`，HF 模型、数据集和 Space 只进入 `hub_candidates`，均不得进入论文 RRF。HF Papers 可作为论文候选来源，但未有本地全文前仍是未核候选。
 - 需要 Google Scholar 或学术搜索时调用 `$google-scholar`；需要源码时优先调用已安装的官方 `github:github`；需要 HF 模型、数据集、Space 或论文关联时调用已安装的 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。skills.sh 上第三方 GitHub 技能采用量较低且来源弱于官方插件，不重复安装。所有调用只读；正式纳入仍按 `raw/` 原件、`wiki/` 全文笔记和 Zotero 题录的流程晋级。
 - 该入口只检索和报告，不自动写入 `raw/`、`wiki/` 或 Zotero；需要正式纳入时继续执行 `raw/AGENTS.md` 与 `wiki/AGENTS.md` 的全文入库工作流。
+- 子代理任务简报若可能产出研究判断，必须携带本节的触发条件、作用域选择、陈旧索引处置与最小检索收据规则。七篇文档等小样本构建只能标为“架构验证”，不得称为“全项目向量物化”；后者须以全允许语料的构建收据另行证明。`real-user-query-v1` 始终是独立验收集，不得用于 BM25、RRF、阈值或其他检索参数调节。
 
 **学位论文图件合同（2026-08-13 重定，规格取自实测朱焱雷学位论文原件）**
 

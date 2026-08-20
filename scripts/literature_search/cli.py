@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import sqlite3
 import sys
+import time
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, Optional, Sequence
+from typing import Dict, Iterator, Optional, Sequence
 
 from .build import build_index
 from .config import REPO_ROOT, SearchConfig, load_config
@@ -156,6 +159,19 @@ def make_parser() -> argparse.ArgumentParser:
     query_parser.add_argument(
         "--device", choices=["auto", "cpu", "mps"], default="auto"
     )
+    query_parser.add_argument(
+        "--no-auto-build",
+        action="store_false",
+        dest="auto_build",
+        help="索引不存在或陈旧时拒绝查询，不自动构建",
+    )
+    query_parser.set_defaults(auto_build=True)
+    query_parser.add_argument(
+        "--auto-build-device",
+        choices=["auto", "cpu", "mps"],
+        default="auto",
+        help="自动构建的嵌入设备，auto 在 Apple 芯片上优先 MPS 后回退 CPU",
+    )
     query_parser.add_argument("--json", action="store_true")
 
     status_parser = subparsers.add_parser("status", help="显示索引状态")
@@ -195,6 +211,62 @@ def _model_cache(args: argparse.Namespace, repo_root: Path) -> Path:
     return value if value.is_absolute() else repo_root / value
 
 
+@contextmanager
+def _index_build_lock(index_path: Path) -> Iterator[None]:
+    lock_path = index_path.with_suffix(index_path.suffix + ".build.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+") as handle:
+        try:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print(f"索引构建中，等待锁：{lock_path}", file=sys.stderr)
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
+def _build_if_needed(
+    repo_root: Path,
+    index_path: Path,
+    config: SearchConfig,
+    args: argparse.Namespace,
+) -> Optional[Dict[str, object]]:
+    with _index_build_lock(index_path):
+        status = index_status(repo_root, index_path, config)
+        if status["exists"] and not status["stale"]:
+            return None
+        reasons = "、".join(status["stale_reasons"])
+        rebuild_kind = (
+            "全量重嵌入"
+            if "embedding_contract_changed" in status["stale_reasons"]
+            else "增量构建"
+        )
+        print(
+            f"索引需要{rebuild_kind}（{reasons}）；预计耗时：未知（无可比历史记录）",
+            file=sys.stderr,
+        )
+        started = time.monotonic()
+        result = build_index(
+            repo_root,
+            index_path,
+            config,
+            cache_folder=_model_cache(args, repo_root),
+            local_files_only=args.offline,
+            device=args.auto_build_device,
+        )
+        elapsed = round(time.monotonic() - started, 3)
+        final_status = index_status(repo_root, index_path, config)
+        if not final_status["exists"] or final_status["stale"]:
+            final_reasons = "、".join(final_status["stale_reasons"])
+            raise RuntimeError(f"自动构建后索引仍不可用（{final_reasons}），拒绝查询")
+        result["auto_build_kind"] = rebuild_kind
+        result["auto_build_elapsed_seconds"] = elapsed
+        print(f"索引自动构建完成，实际耗时：{elapsed} 秒", file=sys.stderr)
+        return result
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = make_parser().parse_args(argv)
     try:
@@ -205,15 +277,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return 0 if result["valid"] else 1
         repo_root, config, index_path = _paths(args)
         if args.command == "build":
-            result = build_index(
-                repo_root,
-                index_path,
-                config,
-                lexical_only=args.lexical_only,
-                cache_folder=_model_cache(args, repo_root),
-                local_files_only=args.offline,
-                device=args.device,
-            )
+            with _index_build_lock(index_path):
+                result = build_index(
+                    repo_root,
+                    index_path,
+                    config,
+                    lexical_only=args.lexical_only,
+                    cache_folder=_model_cache(args, repo_root),
+                    local_files_only=args.offline,
+                    device=args.device,
+                )
             if args.json:
                 _print_json(result)
             else:
@@ -227,8 +300,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             result = index_status(repo_root, index_path, config)
             _print_json(result)
             return 0 if result["exists"] else 1
-        if args.command == "query" and args.scope != "online" and not index_path.exists():
-            raise RuntimeError(f"索引不存在：{index_path}；请先运行 build")
+        if args.command == "query" and args.scope != "online":
+            status = index_status(repo_root, index_path, config)
+            auto_build_result = None
+            if not status["exists"] or status["stale"]:
+                if args.auto_build:
+                    auto_build_result = _build_if_needed(
+                        repo_root, index_path, config, args
+                    )
+                else:
+                    reasons = "、".join(status["stale_reasons"])
+                    raise RuntimeError(
+                        f"索引不可用（{reasons}）；已使用 --no-auto-build，拒绝查询"
+                    )
         connection = connect(index_path, readonly=True) if index_path.exists() else None
         try:
             actual_config = _index_config(connection, config) if connection else config
@@ -326,6 +410,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 output["local_results_by_scope"] = results_by_scope
             if online is not None:
                 output["online"] = online
+            if auto_build_result is not None:
+                output["auto_build"] = auto_build_result
             _print_json(output)
         else:
             if len(results_by_scope) > 1:
