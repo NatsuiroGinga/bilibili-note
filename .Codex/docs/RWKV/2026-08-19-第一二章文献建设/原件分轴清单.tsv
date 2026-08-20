@@ -1,0 +1,447 @@
+轴	笔记深度(2深/1浅/0无)	原件路径	笔记题名
+A	0	raw/papers/1-s2.0-S2352340925002197-main (2).pdf	
+A	2	raw/papers/1-s2.0-S2352340925002197-main.pdf	GeNIS：用于网络入侵检测与分类的模块化数据集
+A	2	raw/papers/Network_Intrusion_Detection_Packet_Classification_with_the_HIKARI-2021_Dataset_a_study_on_ML_Algorithms.pdf	使用 HIKARI-2021 数据集的网络入侵流量包分类：机器学习算法研究
+A	2	raw/papers/attack-detection/2021-Clausen-CBAM-Contextual-Network-Anomaly.pdf	CBAM: A Contextual Model for Network Anomaly Detection
+A	2	raw/papers/attack-detection/2026-Garcia-Slips-Behavioral-Evidence-Aggregation.pdf	Slips: Behavioral Evidence Aggregation for Network Security
+A	2	raw/papers/attack-detection/2026-Haiba-SIM-Tagged-TTL-Anomaly.pdf	Unsupervised TTL-Based Deep Learning for Anomaly Detection in SIM-Tagged Network Traffic
+A	1	raw/papers/attack-detection/encrypted/2016-Anderson-Identifying-Encrypted-Malware-Contextual-Flow.pdf	Identifying Encrypted Malware Traffic with Contextual Flow Data
+A	2	raw/papers/attack-detection/encrypted/2016-Hu-BAYWATCH-Beaconing-Detection-DSN.pdf	BAYWATCH: Robust Beaconing Detection to Identify Infected Hosts in Large-Scale Enterprise Networks
+A	0	raw/papers/attack-detection/encrypted/2019-Kanzig-ML-Detection-CC-Channels-CyCon-SLIDES.pdf	
+A	2	raw/papers/attack-detection/encrypted/2019-Kanzig-ML-Detection-CC-Channels-CyCon.pdf	Machine Learning-based Detection of C&C Channels with a Focus on the Locked Shields Cyber Defense Exercise
+A	1	raw/papers/attack-detection/encrypted/2020-Novo-Flow-Based-Detection-Proxy-Evasion-Encrypted-C2.pdf	Flow-based Detection and Proxy-based Evasion of Encrypted Malware C2 Traffic
+A	1	raw/papers/attack-detection/encrypted/2022-Lichy-RF-Beats-CNN-GRU-Encrypted-Malware.pdf	When a RF Beats a CNN and GRU, Together—A Comparison of Deep Learning and Classical Machine Learning Approaches for Encrypted Malware Traffic Classification
+A	1	raw/papers/attack-detection/encrypted/2022-Xavier-Tweaking-Metasploit-Encrypted-C2.pdf	Tweaking Metasploit to Evade Encrypted C2 Traffic Detection
+A	2	raw/papers/attack-detection/encrypted/2023-Cui-CBSeq-Encrypted-Malware.pdf	CBSeq: A Channel-Level Behavior Sequence for Encrypted Malware Traffic Detection
+A	1	raw/papers/attack-detection/encrypted/2023-Fu-HyperVision-Unknown-Encrypted-Malicious-Traffic.pdf	Flow Interaction Graph Analysis: Unknown Encrypted Malicious Traffic Detection
+A	1	raw/papers/attack-detection/encrypted/2023-Wang-Feature-Mining-Encrypted-Malicious-Traffic.pdf	Feature Mining for Encrypted Malicious Traffic Detection with Deep Learning and Other Machine Learning Algorithms
+A	2	raw/papers/attack-detection/encrypted/2023-Zhang-Aggregation-Beaconing-Detection-ACSAC.pdf	Global Analysis with Aggregation-based Beaconing Detection across Large Campus Networks
+A	1	raw/papers/attack-detection/encrypted/2024-Zhou-ETGuard.pdf	ETGuard: Malicious Encrypted Traffic Detection in Blockchain-Based Power Grid Systems
+A	2	raw/papers/attack-detection/encrypted/2025-Gupta-C2-Beaconing-Time-Series-ARES.pdf	C2 Beaconing Detection via AI-Based Time-Series Analysis
+A	2	raw/papers/datasets/1-s2.0-S2214212624001492-main.pdf	LSPR23 数据集发布、Suricata 评价与随机森林复现
+A	1	raw/papers/datasets/2018_Macia-Fernandez_UGR16_Dataset_AuthorVersion.pdf	UGR’16：用于评估基于周期平稳性的网络入侵检测系统的新数据集
+A	2	raw/papers/datasets/2024-Hynek-CESNET-TLS-Year22.pdf	CESNET-TLS-Year22: A year-spanning TLS network traffic dataset from backbone lines
+A	1	raw/papers/datasets/2024_Puccetti_ROSPaCe.pdf	ROSPaCe：基于 ROS2 信息物理系统的时序入侵检测数据集
+A	1	raw/papers/datasets/2025_Camacho_UGR16_Data_Quality_Tools.pdf	用于增强网络异常检测基准的数据质量工具
+A	1	raw/papers/datasets/2025_Meier_LSPR24_Blue-Team-Automation.pdf	Next Steps in Cyber Blue Team Automation：LSPR24 数据集发布与蓝队自动化展望
+A	1	raw/papers/datasets/2026-Mayer-Engineering-cyber-ranges-survey.pdf	GeNIS 在网络靶场技术综述中的引用核验
+A	2	raw/papers/datasets/VisQUIC-Exploring-QUIC-Dynamics-arXiv2410.03728v6.pdf	VisQUIC：面向加密流量分析的大规模 QUIC 数据集
+A	2	raw/papers/datasets/WEB-IDS23-Technical-Report-arXiv2502.03909v1.pdf	WEB-IDS23：网络入侵检测数据集生成技术报告
+A	1	raw/papers/datasets/data-protocol/2017-Cruz-Open-Set-Intrusion-Recognition.pdf	开放集入侵识别：未知攻击的测试协议
+A	1	raw/papers/datasets/data-protocol/2021-Shapira-FlowPic.pdf	FlowPic：先按会话切分再生成重叠流量图
+A	1	raw/papers/datasets/data-protocol/2022-Apruzzese-XeNIDS-Cross-Evaluation.pdf	XeNIDS：机器学习网络入侵检测的跨网络交叉评估
+A	2	raw/papers/datasets/data-protocol/2022-Arp-Dos-and-Donts-ML-Computer-Security.pdf	Dos and Don'ts of Machine Learning in Computer Security
+A	2	raw/papers/datasets/data-protocol/2022-Jacobs-AI-ML-Network-Security-Emperor-No-Clothes-CCS.pdf	AI/ML for Network Security: The Emperor has no Clothes
+A	1	raw/papers/datasets/data-protocol/2024-Cantone-Cross-Dataset-Generalization-NIDS.pdf	机器学习 NIDS 的跨数据集泛化研究
+A	1	raw/papers/datasets/data-protocol/2024-Flood-Bad-Design-Smells-NIDS-Datasets.pdf	Bad Design Smells：NIDS 基准数据集的设计气味
+A	1	raw/papers/datasets/data-protocol/2025-Zhao-Sweet-Danger-Encrypted-Traffic-Evaluation.pdf	Sweet Danger：加密流量表征学习的泄漏与公平评测
+A	2	raw/papers/datasets/locked-shields-related/2021-SchroederdeWitt-Fixed-Points-Cyber-Space-AI-NIDS-arXiv2111.12197.pdf	Fixed Points in Cyber Space: Rethinking Optimal Evasion Attacks in the Age of AI-NIDS
+A	2	raw/papers/datasets/locked-shields-related/2023-Gehri-Towards-Generalizing-ML-C2-Detection-CyCon.pdf	Towards Generalizing Machine Learning Models to Detect Command and Control Attack Traffic
+A	2	raw/papers/datasets/published-baseline/2023-Finamore-TCBench-FlowPic复现.pdf	TCBench：可复现的 mini-FlowPic 同输入基线
+A	2	raw/papers/datasets/published-baseline/2024-Matousek-Experience-Report-JA4-Fingerprints-Malware-Detection.pdf	Experience Report: Using JA4+ Fingerprints for Malware Detection in Encrypted Traffic
+A	2	raw/papers/datasets/published-baseline/2025-Burgetova-Towards-Identification-Network-Applications-Encrypted-Traffic.pdf	Towards identification of network applications in encrypted traffic
+A	2	raw/papers/datasets/published-baseline/2025-Shukla-GeNIS-MHSA-RDB-dynamic-sampling.pdf	GeNIS 多头注意力残差密集网络与动态采样
+A	2	raw/papers/datasets/published-baseline/2026-Silva-Generalizing-across-Networks-GeNIS.pdf	GeNIS 跨网络迁移评估
+A	2	raw/papers/datasets/published-baseline/2511.08660v1-GeNIS-binary-multiclass-classification.pdf	GeNIS 二分类与多分类发布基线
+A	2	raw/papers/datasets/published-baseline/2606.19220v1-XGBoost-machine-unlearning-GeNIS.pdf	GeNIS 上的 XGBoost 机器遗忘
+A	2	raw/papers/datasets/quic/2022-AlBakhat-Intrusion-Detection-QUIC-Traffic-CDMA.pdf	Intrusion Detection on QUIC Traffic: A Machine Learning Approach
+A	2	raw/papers/datasets/quic/2023-Luxemburk-Encrypted-Traffic-Classification-QUIC-Case-TMA.pdf	Encrypted traffic classification: the QUIC case
+A	2	raw/papers/datasets/quic/2025-Kadi-Adapting-to-Evolution-IDS-QUIC-Era-TNSM.pdf	Adapting to the Evolution: Enhancing Intrusion Detection Through Machine Learning in the QUIC Protocol Era
+A	1	raw/papers/datasets/quic/Automating-QUIC-Interoperability-Testing-Seemann-Iyengar-2020.pdf	QUIC 互操作运行器与公开 qlog 归档
+A	0	raw/papers/datasets/quic/Does-It-Spin-QUIC-Spin-Bit-IMC-2023.pdf	QUIC 旋转位公开测量数据集
+A	1	raw/papers/datasets/quic/Experimental-Assessment-QUIC-Congestion-Control-Cellular-2021.pdf	QUIC-MedNetCom：蜂窝网络中的 QUIC 拥塞控制 qlog 数据集
+A	0	raw/papers/datasets/quic/Explainable-Machine-Learning-MonroeQL-2023.pdf	MonroeQL 聚合性能数据及公开性边界
+A	0	raw/papers/datasets/quic/H23Q-HTTP3-Security-Public-Dataset-arXiv2208.06722-verified.pdf	
+A	1	raw/papers/datasets/quic/H23Q-HTTP3-Security-Public-Dataset-arXiv2208.06722.pdf	H23Q：HTTP/3 与 QUIC 攻击数据集
+A	1	raw/papers/datasets/quic/Same-Standards-Different-Decisions-QUIC-Implementation-Diversity-2020.pdf	EPIQ 2020：QUIC 与 HTTP/3 实现多样性 qlog 数据集
+A	0	raw/papers/datasets/quic/Steganography-in-the-QUIC-Communication-Protocol-2026.pdf	QUIC 隐蔽信道流量数据集
+A	0	raw/papers/datasets/quic/Visualizing-QUIC-and-HTTP3-with-qlog-and-qvis-2020.pdf	qlog 与解密 PCAP 的 QUIC 观测边界
+A	2	raw/papers/datasets/quic/citing/2022-Chaudhary-YouTube-QUIC-vs-Middleboxes.pdf	未在原件中定位（原件首页缺失，见下方「原件状态」；文件名记为 Chaudhary, YouTube QUIC vs Middleboxes）
+A	2	raw/papers/datasets/quic/citing/2023-Caiazza-Energy-Consumption-HTTP-Versions-PMC.pdf	未在原件中定位（原件题名页缺失，见下方「原件状态」；文件名记为 Caiazza, Energy Consumption HTTP Versions, PMC）
+A	2	raw/papers/datasets/quic/citing/2023-Peng-QUIC-vs-TCP-Cloud-Control-Systems-SoftCOM.pdf	Performance Evaluation of QUIC Vs. TCP for Cloud Control Systems
+A	2	raw/papers/datasets/quic/citing/2024-Muecke-ReACKed-QUICer-Instant-ACK-QUIC-Handshakes-IMC.pdf	ReACKed QUICer: Measuring the Performance of Instant Acknowledgments in QUIC Handshakes
+A	2	raw/papers/datasets/quic/task-landscape/2021-Smith-Website-Fingerprinting-in-the-Age-of-QUIC-PoPETs.pdf	Website Fingerprinting in the Age of QUIC
+A	2	raw/papers/datasets/quic/task-landscape/2021-Zhan-Website-Fingerprinting-on-Early-QUIC-Traffic.pdf	Website Fingerprinting on Early QUIC Traffic
+A	2	raw/papers/datasets/quic/task-landscape/2022-Chatzoglou-Revisiting-QUIC-Attacks-IJIS.pdf	Revisiting QUIC attacks: a comprehensive review on QUIC security and a hands-on study
+A	2	raw/papers/datasets/quic/task-landscape/2022-Wang-CoMPS-Connection-Migration-Traffic-Splitting-Privacy-PoPETs.pdf	Leveraging strategic connection migration-powered traffic splitting for privacy
+A	2	raw/papers/datasets/quic/task-landscape/2023-Siby-Evaluating-Practical-QUIC-WF-Defenses-PoPETs.pdf	Evaluating practical QUIC website fingerprinting defenses for the masses
+A	2	raw/papers/datasets/quic/task-landscape/2024-How-Resilient-is-QUIC-to-Security-and-Privacy-Attacks.pdf	How Resilient is QUIC to Security and Privacy Attacks?
+A	2	raw/papers/datasets/quic/task-landscape/2025-Luxemburk-Universal-Embedding-QUIC-Domain-Recognition-Pretraining.pdf	Universal Embedding Function for Traffic Classification via QUIC Domain Recognition Pretraining: A Transfer Learning Success
+A	2	raw/papers/datasets/quic/task-landscape/2026-Binary-and-System-Integrated-Analysis-Securing-QUIC.pdf	A Binary and System Integrated Analysis Approach for Securing the QUIC Protocol
+A	2	raw/papers/datasets/quic/task-landscape/2026-Lee-QUICstep-Connection-Migration-Censorship-Circumvention-PoPETs.pdf	QUICstep: Evaluating connection migration based QUIC censorship circumvention
+A	0	raw/papers/methodology/1992-Wolpert-Stacked-Generalization.pdf	
+A	0	raw/papers/methodology/2007-van-der-Laan-Super-Learner.pdf	
+A	0	raw/papers/methodology/2010-Polley-Super-Learner-Dissertation.pdf	
+A	2	raw/papers/methodology/2018-Shen-SWEM-Baseline-Needs-More-Love-Pooling.pdf	Baseline Needs More Love: On Simple Word-Embedding-Based Models and Associated Pooling Mechanisms
+A	0	raw/papers/methodology/2019-Ke-DeepGBM.pdf	
+A	2	raw/papers/methodology/2022-Grinsztajn-Why-Tree-Based-Models-Outperform-Deep-Learning-Tabular.pdf	Why do tree-based models still outperform deep learning on tabular data?
+A	2	raw/papers/methodology/2022-ShwartzZiv-Tabular-Deep-Learning-Is-Not-All-You-Need.pdf	Tabular Data: Deep Learning is Not All You Need
+A	0	raw/papers/pinn/pcap/2022-Lin-ET-BERT加密流量表征.pdf	ET-BERT 加密流量报文与突发表征
+A	0	raw/papers/pinn/pcap/2023-Zhao-YaTC多层流量表征.pdf	YaTC 多层流量表征
+A	0	raw/papers/pinn/pcap/2024-Wang-NetMamba流量表征.pdf	
+A	2	raw/papers/pinn/protocol-adaptive/2023-Luxemburk-QUIC-Classification.pdf	Encrypted traffic classification: the QUIC case
+A	1	raw/papers/rwkv/2024_Wang_NetMamba_网络流量分类.pdf	NetMamba: Efficient Network Traffic Classification via Pre-training Unidirectional Mamba
+A	1	raw/papers/rwkv/2026_Kulatilleke_MambaNetBurst_字节级流量分类.pdf	MambaNetBurst: Direct Byte-level Network Traffic Classification without Tokenization or Pretraining
+A	2	raw/papers/rwkv/2026_Sharma_PLM-NIDS_RWKV协议语言网络入侵检测.pdf	PLM-NIDS：基于 RWKV 协议语言模型的无深度包检测网络入侵检测
+A	2	raw/papers/traffic-foundation-models/2025_TrafficFormer_SP2025_清华.pdf	TrafficFormer: An Efficient Pre-trained Model for Traffic Data
+A	2	raw/papers/traffic-foundation-models/2202.06335_ET-BERT_加密流量预训练.pdf	ET-BERT: A Contextualized Datagram Representation with Pre-training Transformers for Encrypted Traffic Classification
+A	2	raw/papers/traffic-foundation-models/2310.17025_netFound_协议感知流量基础模型.pdf	netFound: Principled Design for Network Foundation Models
+A	2	raw/papers/traffic-foundation-models/2402.03646_Lens_流量T5基础模型.pdf	Lens: A Knowledge-Guided Foundation Model for Network Traffic
+A	2	raw/papers/traffic-foundation-models/2403.10319_NetBench_流量基准.pdf	NetBench: A Large-Scale and Comprehensive Network Traffic Benchmark Dataset for Foundation Models
+A	2	raw/papers/traffic-foundation-models/2405.11449_NetMamba_高效流量分类状态空间.pdf	NetMamba: Efficient Network Traffic Classification via Pre-training Unidirectional Mamba
+A	2	raw/papers/traffic-foundation-models/2509.23089_Demystifying_网络基础模型批评.pdf	Demystifying Network Foundation Models：网络基础模型的内在表征评测
+A	1	raw/papers/traffic-foundation-models/2601.00357_Traffic-MoE.pdf	Traffic-MoE: A Sparse Foundation Model for Network Traffic Security Analysis
+A	2	raw/papers/traffic-foundation-models/2601.21792_NetMamba+_改进版.pdf	NetMamba+: A Framework of Pre-trained Models for Efficient and Accurate Network Traffic Classification
+A	2	raw/papers/traffic-foundation-models/2601.22494_Nethira.pdf	Nethira: A Heterogeneity-Aware Hierarchical Pre-trained Model for Network Traffic Classification
+A	2	raw/papers/traffic-foundation-models/2603.10051_FlowSem-MAE_协议原生表格MAE.pdf	Where Do Flow Semantics Reside? A Protocol-Native Tabular Pretraining Paradigm for Encrypted Traffic Classification（FlowSem-MAE）
+B	0	raw/papers/attack-detection/2022-Layeghy-DI-NIDS-Domain-Invariant.pdf	DI-NIDS: Domain Invariant Network Intrusion Detection System
+B	2	raw/papers/attack-detection/2023-Gong-SoTTA-Noisy-Streams.pdf	SoTTA：噪声测试流上的筛选式鲁棒测试时适应
+B	2	raw/papers/attack-detection/2023-Han-OWAD-Normality-Shift.pdf	OWAD：开放世界异常检测中的正常性漂移检测、解释与适应
+B	0	raw/papers/attack-detection/2023-Lai-Context-Aware-Domain-Adaptation-Time-Series-Anomaly.pdf	Context-aware Domain Adaptation for Time Series Anomaly Detection
+B	2	raw/papers/attack-detection/2024-Kim-TTA-AD-New-Normals.pdf	When Model Meets New Normals: Test-Time Adaptation for Unsupervised Time-Series Anomaly Detection
+B	2	raw/papers/attack-detection/2025-Gupta-NetGuard-Generative-Active-Adaptation-NIDS.pdf	NetGuard：面向漂移与不均衡网络入侵检测的生成式主动适应
+B	2	raw/papers/attack-detection/2025-Su-RTTDP-Realistic-Test-Time-Poisoning.pdf	RTTDP：现实测试时数据投毒与防御
+B	2	raw/papers/attack-detection/2026-El-Hajj-Malware-MultiScale-LOEO-MLOps.pdf	Advanced behavioral malware detection: a comprehensive MLOps framework with federated learning and real-time drift detection
+B	2	raw/papers/attack-detection/2026-Huang-RTTAD-Risk-Aware-Test-Time-Adaptation.pdf	When Normality Shifts: Risk-Aware Test-Time Adaptation for Unsupervised Tabular Anomaly Detection
+B	2	raw/papers/attack-detection/2026-Inan-Proximity-Anomaly-Calibration-Leakage-Safety.pdf	Proximity-based explainable anomaly detection for time-series data with calibration, leakage safety
+B	0	raw/papers/attack-detection/2026-Kim-CANDI-Curated-TTA-arXiv-v1.pdf	
+B	2	raw/papers/attack-detection/2026-Kim-CANDI-Curated-TTA.pdf	CANDI: Curated Test-Time Adaptation for Multivariate Time-Series Anomaly Detection Under Distribution Shift
+B	2	raw/papers/attack-detection/drift/2019-Pendlebury-TESSERACT-Space-Time-Bias-Malware.pdf	TESSERACT: Eliminating Experimental Bias in Malware Classification across Space and Time
+B	2	raw/papers/attack-detection/drift/2023-Malekghaini-DL-Encrypted-Traffic-Classification-Data-Drift.pdf	Deep learning for encrypted traffic classification in the face of data drift: An empirical study
+B	2	raw/papers/attack-detection/entity-granularity/2012-Dainotti-Issues-Future-Directions-Traffic-Classification-IEEE-Network.pdf	Issues and Future Directions in Traffic Classification
+B	1	raw/papers/attack-detection/entity-granularity/2022-Clausen-Traffic-Microstructures-Network-Anomaly-Detection-PhD-Edinburgh.pdf	Traffic microstructures and network anomaly detection
+B	2	raw/papers/attack-detection/entity-granularity/2023-Garcia-Towards-Better-Labeling-Process-Network-Security-Datasets-arXiv2305.01337.pdf	Towards a better labeling process for network security datasets
+B	2	raw/papers/attack-detection/entity-granularity/2024-Li-End-to-End-NIDS-Contrastive-Learning-IPpair-Granularity-Sensors.pdf	End-to-End Network Intrusion Detection Based on Contrastive Learning
+B	2	raw/papers/attack-detection/open-set/2022-Luxemburk-Fine-grained-TLS-Services-Reject-Option-arXiv2202.11984.pdf	Fine-grained TLS services classification with reject option
+B	2	raw/papers/datasets/LSPR24/2025_Leoste_Comparative_Analysis_ML_DL_LSPR23_LSPR24.pdf	LSPR23 到 LSPR24 的随机森林与一维卷积神经网络跨年泛化
+B	1	raw/papers/datasets/LSPR24/2026_DiGennaro_Hierarchical_Hybrid_SDN_IDS.pdf	LSPR23 仅作背景引用：KRONOS-SDN 未知攻击检测实验
+B	2	raw/papers/datasets/LSPR24/ssrn-6597680.pdf	LSPR23 到 LSPR25 的流序列构造同年与跨年评估
+B	2	raw/papers/datasets/analog-benchmarks/2025-StealthCup-Evasion-CTF-IDS-Benchmark-arXiv2511.17761.pdf	StealthCup: Realistic, Multi-Stage, Evasion-Focused CTF for Benchmarking IDS
+B	2	raw/papers/datasets/analog-benchmarks/2025-Temporal-Analysis-NetFlow-Datasets-NIDS-arXiv2503.04404.pdf	Temporal Analysis of NetFlow Datasets for Network Intrusion Detection Systems
+B	2	raw/papers/datasets/analog-benchmarks/2026-Contextualized-NetFlow-NIDS-Survey-arXiv2602.05594.pdf	Deep Learning for Contextualized NetFlow-Based Network Intrusion Detection: Methods, Data, Evaluation and Deployment
+B	0	raw/papers/methodology/2010-Ben-David-Impossibility-Theorems-Domain-Adaptation.pdf	
+B	0	raw/papers/methodology/2013-Narasimhan-Partial-AUC.pdf	
+B	0	raw/papers/methodology/2016-Courty-Optimal-Transport-Domain-Adaptation.pdf	用于域适配的最优传输
+B	0	raw/papers/methodology/2016-Ganin-Domain-Adversarial-Training.pdf	域对抗神经网络训练
+B	0	raw/papers/methodology/2018-Boracchi-QuantTree-Change-Detection.pdf	QuantTree：多变量数据流变化检测直方图
+B	0	raw/papers/methodology/2018-Lipton-BBSE-Label-Shift-Supplement.pdf	
+B	1	raw/papers/methodology/2018-Lipton-BBSE-Label-Shift.pdf	利用黑盒预测器检测并校正标签移位
+B	0	raw/papers/methodology/2018-Tong-Neyman-Pearson-Classification.pdf	纽曼—皮尔逊分类算法与接收者操作特征
+B	0	raw/papers/methodology/2019-Azizzadenesheli-RLLS.pdf	
+B	0	raw/papers/methodology/2019-Redko-JCPOT-Target-Shift.pdf	目标移位下的多源最优传输域适配
+B	0	raw/papers/methodology/2019-Scott-Generalized-Neyman-Pearson-Domain-Adaptation.pdf	
+B	0	raw/papers/methodology/2019-Tibshirani-Conformal-Covariate-Shift.pdf	协变量移位下的保形预测
+B	0	raw/papers/methodology/2020-Alexandari-MLLS-Calibration.pdf	
+B	0	raw/papers/methodology/2020-Garg-Unified-Label-Shift.pdf	
+B	0	raw/papers/methodology/2020-Garg-Unified-View-Label-Shift-Estimation.pdf	
+B	0	raw/papers/methodology/2020-Sagawa-GroupDRO.pdf	面向群体移位的分布鲁棒神经网络
+B	0	raw/papers/methodology/2021-Ahuja-Invariance-Information-Bottleneck.pdf	不变性原理与信息瓶颈的分布外泛化
+B	0	raw/papers/methodology/2021-Duchi-Namkoong-Uniform-Performance-DRO.pdf	通过分布鲁棒优化学习均匀性能模型
+B	0	raw/papers/methodology/2021-Krueger-Risk-Extrapolation.pdf	通过风险外推实现分布外泛化
+B	0	raw/papers/methodology/2021-Zhai-DORO.pdf	DORO：分布与异常值鲁棒优化
+B	2	raw/papers/methodology/2022-Kim-RevIN-Reversible-Instance-Normalization-ICLR.pdf	Reversible Instance Normalization for Accurate Time-Series Forecasting against Distribution Shift
+B	2	raw/papers/methodology/2023-Dussap-DFM-Robust-Label-Shift.pdf	Label Shift Quantification with Robustness Guarantees via Distribution Feature Matching
+B	1	raw/papers/methodology/2023-Ericsson-Better-Practices-Domain-Adaptation.pdf	域适应的更佳实践：模型选择、验证切分与安全基线
+B	0	raw/papers/methodology/2023-Hanneke-Limits-Model-Selection-Transfer.pdf	
+B	1	raw/papers/methodology/2023-He-RAINCOAT-Time-Series-Domain-Adaptation.pdf	Domain Adaptation for Time Series Under Feature and Label Shifts
+B	0	raw/papers/methodology/2023-Lu-Mixup-Domain-Generalization-Selection.pdf	
+B	0	raw/papers/methodology/2023-Stucchi-Kernel-QuantTree.pdf	Kernel QuantTree：核化非参数变化检测
+B	0	raw/papers/methodology/2024-Angelopoulos-Conformal-Risk-Control.pdf	保形风险控制
+B	0	raw/papers/methodology/2024-Farinhas-Nonexchangeable-Conformal-Risk-Control.pdf	非交换条件下的保形风险控制
+B	0	raw/papers/methodology/2024-Han-Temporal-Model-Selection.pdf	
+B	0	raw/papers/methodology/2024-Hu-EnsV-Reliable-UDA-Model-Selection-Supplement.pdf	
+B	1	raw/papers/methodology/2024-Hu-EnsV-Reliable-UDA-Model-Selection.pdf	Towards Reliable Model Selection for Unsupervised Domain Adaptation: An Empirical Study and A Certified Baseline
+B	1	raw/papers/methodology/2024-Hu-PseudoCal-Unsupervised-Domain-Calibration.pdf	PseudoCal：无监督域适应中的目标域伪校准
+B	0	raw/papers/methodology/2024-Imani-Label-Alignment-Regularization.pdf	Label Alignment Regularization for Distribution Shift
+B	2	raw/papers/methodology/2024-Joo-IW-GAE-Calibration-Model-Selection.pdf	IW-GAE：重要性加权组准确率估计用于无监督域适应校准与选模
+B	0	raw/papers/methodology/2024-Klivans-Testable-Learning-Distribution-Shift.pdf	
+B	1	raw/papers/methodology/2024-Liu-ACON-Time-Series-Domain-Adaptation.pdf	Boosting Transferability and Discriminability for Time Series Domain Adaptation
+B	2	raw/papers/methodology/2024-Liu-FOIL-Time-Series-OOD-Invariant-Learning.pdf	FOIL：用不变学习实现分布外时间序列预测
+B	0	raw/papers/methodology/2024-Lu-DIVERSIFY-Time-Series-OOD.pdf	DIVERSIFY：时间序列分布外检测与泛化
+B	0	raw/papers/methodology/2024-Pham-Nonstationary-Domain-Generalization.pdf	非平稳域泛化：理论与自适应不变表示学习
+B	0	raw/papers/methodology/2024-Yang-Prototypical-Partial-Optimal-Transport.pdf	Prototypical Partial Optimal Transport for Universal Domain Adaptation
+B	0	raw/papers/methodology/2024-Yang-Transfer-Score-UDA-Evaluation.pdf	Can We Evaluate Domain Adaptation Models Without Target-Domain Labels?
+B	0	raw/papers/methodology/2025-Almeida-High-Probability-Risk-Control-Covariate-Shift.pdf	协变量移位下的高概率风险控制
+B	0	raw/papers/methodology/2025-Cai-LCA-Latent-Causal-Time-Series-Domain-Adaptation.pdf	Time Series Domain Adaptation via Latent Invariant Causal Mechanism
+B	1	raw/papers/methodology/2025-Chen-BUOT-Bilevel-Unbalanced-Optimal-Transport.pdf	Bi-level Unbalanced Optimal Transport for Partial Domain Adaptation
+B	1	raw/papers/methodology/2025-Naram-WARMPOT-Partial-Domain-Adaptation.pdf	Theoretical Performance Guarantees for Partial Domain Adaptation via Partial Optimal Transport
+B	1	raw/papers/methodology/2025-Xue-PROTOCOL-Imbalanced-Partial-Optimal-Transport.pdf	PROTOCOL: Partial Optimal Transport-enhanced Contrastive Learning for Imbalanced Multi-view Clustering
+B	2	raw/papers/methodology/2026-Choi-Anytime-Valid-Label-Shift-Confirmation.pdf	Anytime-Valid Confirmation of Label-Shift Corrections
+B	2	raw/papers/methodology/2026-Choi-Anytime-Valid-Predictive-Corrections.pdf	Anytime-Valid Evidence for Prespecified Predictive Corrections
+B	2	raw/papers/methodology/multiple-instance/2000-Lee-Stolfo-Framework-Constructing-Features-Models-IDS-TISSEC.pdf	A Framework for Constructing Features and Models for Intrusion Detection Systems
+B	2	raw/papers/methodology/multiple-instance/2012-Bilge-DISCLOSURE-Botnet-C2-NetFlow-ACSAC.pdf	DISCLOSURE: Detecting Botnet Command and Control Servers Through Large-Scale NetFlow Analysis
+B	2	raw/papers/methodology/multiple-instance/2013-Yen-Beehive-Enterprise-Log-Analysis-ACSAC.pdf	Beehive: Large-Scale Log Analysis for Detecting Suspicious Activity in Enterprise Networks
+B	2	raw/papers/methodology/multiple-instance/2014-Gulcehre-Learned-Norm-Pooling-ECMLPKDD.pdf	Learned-Norm Pooling for Deep Feedforward and Recurrent Neural Networks
+B	2	raw/papers/methodology/multiple-instance/2016-Bartos-Optimized-Invariant-Representation-USENIX.pdf	Optimized Invariant Representation of Network Traffic for Detecting Unseen Malware Variants
+B	2	raw/papers/methodology/multiple-instance/2016-Pevny-Discriminative-Models-Tree-Structure-MIL-AISec.pdf	Discriminative models for multi-instance problems with tree-structure
+B	2	raw/papers/methodology/multiple-instance/2016-Pevny-Neural-Network-Formalism-Multiple-Instance.pdf	Using Neural Network Formalism to Solve Multiple-Instance Problems
+B	2	raw/papers/methodology/multiple-instance/2016-Wieting-Universal-Paraphrastic-Sentence-Embeddings-ICLR.pdf	Towards Universal Paraphrastic Sentence Embeddings
+B	2	raw/papers/methodology/multiple-instance/2017-Prasse-Malware-Detection-Encrypted-Network-Traffic-Neural-Networks-ECML.pdf	Malware Detection by Analysing Encrypted Network Traffic with Neural Networks
+B	2	raw/papers/methodology/multiple-instance/2017-Prasse-Malware-Detection-Network-Traffic-Neural-Networks-SPW.pdf	Malware Detection by Analysing Network Traffic with Neural Networks
+B	2	raw/papers/methodology/multiple-instance/2018-Ilse-Attention-Deep-Multiple-Instance-Learning.pdf	Attention-based Deep Multiple Instance Learning
+B	2	raw/papers/methodology/multiple-instance/2021-Lo-EGraphSAGE-GNN-NIDS.pdf	E-GraphSAGE: A Graph Neural Network based Intrusion Detection System for IoT
+B	1	raw/papers/methodology/multiple-instance/2023-Zhu-MIDAM-Stochastic-Pooling-ICML.pdf	Provable Multi-instance Deep AUC Maximization with Stochastic Pooling
+B	1	raw/papers/methodology/multiple-instance/2024-Li-Size-Invariance-ICML.pdf	Size-Invariance Matters: Rethinking Metrics and Losses for Imbalanced Multi-object Salient Object Detection
+B	0	raw/papers/methodology/multiple-instance/2026-Contextualized-NetFlow-DL-NIDS-Survey.pdf	
+B	1	raw/papers/methodology/ranking/2008-Carterette-statAP-SIGIR.pdf	Evaluation Over Thousands of Queries
+B	1	raw/papers/methodology/ranking/2019-Revaud-AP-GeM-ICCV.pdf	Learning With Average Precision: Training Image Retrieval With a Listwise Loss
+B	1	raw/papers/methodology/ranking/2021-Qi-SOAP-AUPRC-NeurIPS.pdf	Stochastic Optimization of Areas Under Precision-Recall Curves with Provable Convergence
+B	1	raw/papers/methodology/ranking/2022-Wang-FCCO-SOX-ICML.pdf	Finite-Sum Coupled Compositional Stochastic Optimization: Theory and Applications
+B	1	raw/papers/methodology/ranking/2023-Yao-GeM-SmoothAP-IET.pdf	Learning global image representation with generalized‐mean pooling and smoothed average precision for large‐scale CBIR
+B	2	raw/papers/methodology/soc-alert-operations/2021-Ho-Hopper-Lateral-Movement-USENIXSec.pdf	Hopper: Modeling and Detecting Lateral Movement
+B	2	raw/papers/methodology/soc-alert-operations/2022-Alahmadi-99-Percent-False-Positives-SOC-Analysts-USENIXSec.pdf	99% False Positives: A Qualitative Study of SOC Analysts' Perspectives on Security Alarms
+B	0	raw/papers/pinn/network-calculus-boundary/2021-Gibbs-Adaptive-Conformal-Shift.pdf	分布漂移下的自适应共形推断
+B	1	raw/papers/pinn/protocol-adaptive/2017-Guo-Neural-Network-Calibration.pdf	现代神经网络置信度校准与温度缩放
+B	1	raw/papers/pinn/protocol-adaptive/2019-Ovadia-Uncertainty-Dataset-Shift.pdf	分布漂移下预测不确定性与事后校准失效
+C	2	raw/papers/attack-detection/2024-Chen-Joint-SSM-Detrending-Anomaly-Detection.pdf	联合选择性状态空间模型与去趋势的稳健时间序列异常检测
+C	2	raw/papers/attack-detection/2025-Wang-LMIM-Long-Short-Period-User-Anomaly-Detection.pdf	基于长短周期特征的用户异常行为检测
+C	2	raw/papers/attack-detection/2026-COMET-Codebook-Memory-Time-Series-Anomaly-Detection.pdf	COMET：基于代码本的在线自适应多尺度时间序列异常检测
+C	2	raw/papers/attack-detection/early-detection/2024-Horowicz-ECHO-Timely-Encrypted-Traffic-Classification-arXiv2406.01852v3.pdf	Non-uniformity is All You Need: Efficient and Timely Encrypted Traffic Classification With ECHO
+C	0	raw/papers/methodology/2017-Siffer-SPOT-EVT-Anomaly-Streams.pdf	利用极值理论检测数据流异常
+C	1	raw/papers/methodology/2019-Geifman-SelectiveNet.pdf	SelectiveNet：集成拒识选项的深度选择性预测
+C	2	raw/papers/methodology/2021-Wu-Keogh-Current-TSAD-Benchmarks-Flawed.pdf	Current Time Series Anomaly Detection Benchmarks are Flawed and are Creating the Illusion of Progress
+C	2	raw/papers/methodology/2022-Audibert-Do-DNNs-Contribute-Multivariate-Time-Series-Anomaly-Detection.pdf	Do Deep Neural Networks Contribute to Multivariate Time Series Anomaly Detection?
+C	2	raw/papers/methodology/2022-Kim-Rigorous-Evaluation-Time-Series-Anomaly-Detection.pdf	Towards a Rigorous Evaluation of Time-series Anomaly Detection
+C	2	raw/papers/methodology/2023-Zeng-Are-Transformers-Effective-Time-Series-Forecasting.pdf	Are Transformers Effective for Time Series Forecasting?
+C	2	raw/papers/methodology/2024-Dyg-Mamba-Continuous-Time-Dynamic-Graph.pdf	DyG-Mamba：动态图上的连续状态空间建模
+C	0	raw/papers/methodology/2024-Sun-Online-Adaptive-Anomaly-Thresholding.pdf	基于置信序列的在线自适应异常阈值
+C	2	raw/papers/methodology/2024-Zhang-UP2ME-Univariate-Pretraining-Multivariate-Finetuning.pdf	UP2ME：逐变量预训练到多变量图微调
+C	0	raw/papers/methodology/2025_Ebihara_FIRMBOUND_Optimal_Stopping.pdf	通过序贯概率比检验学习有限时域早期分类的最优停止
+C	0	raw/papers/pinn/network-calculus-boundary/2017-Cuturi-Soft-DTW.pdf	软动态时间规整中的可微软最小运算
+C	0	raw/papers/pinn/network-calculus-boundary/2018-Mensch-Differentiable-Dynamic-Programming.pdf	结构预测中的可微动态规划
+C	0	raw/papers/pinn/network-calculus-boundary/2021-Stankeviciute-Conformal-Time-Series.pdf	多步时间序列的共形预测
+C	0	raw/papers/rwkv/2021-Schlag-Fast-Weight-Programmers-DeltaNet-supplement.pdf	
+C	2	raw/papers/rwkv/2021-Schlag-Fast-Weight-Programmers-DeltaNet.pdf	线性 Transformer 是快速权重编程器：DeltaNet 原始状态更新
+C	2	raw/papers/rwkv/2023_Peng_RWKV_Reinventing_RNNs_for_the_Transformer_Era.pdf	RWKV：面向 Transformer 时代的循环语言模型
+C	2	raw/papers/rwkv/2024-Yang-Parallel-DeltaNet.pdf	并行 DeltaNet：沿序列维并行化 Delta 规则线性 Transformer
+C	0	raw/papers/rwkv/2024_Dong_Decision-RWKV.pdf	使用 Decision-RWKV 优化机器人操作：面向终身学习的循环序列建模方法
+C	2	raw/papers/rwkv/2024_Goldstein_GoldFinch_RWKV_Transformer_Hybrid.pdf	GoldFinch: High Performance RWKV/Transformer Hybrid with Linear Pre-Fill and Extreme KV-Cache Compression
+C	1	raw/papers/rwkv/2024_Hou_RWKV-TS_时间序列.pdf	RWKV-TS：超越传统循环神经网络的时间序列任务模型
+C	0	raw/papers/rwkv/2024_Jiang_Explainable_Lightweight_Weakly_Supervised_Video_Anomaly_Detection.pdf	
+C	0	raw/papers/rwkv/2024_Peng_Eagle_and_Finch_RWKV5_RWKV6.pdf	Eagle and Finch: RWKV with Matrix-Valued States and Dynamic Recurrence
+C	2	raw/papers/rwkv/2025-Yang-Gated-DeltaNet.pdf	门控 DeltaNet：以门控遗忘结合 Delta 规则
+C	1	raw/papers/rwkv/2025_Hou_RWKV-X_A_Linear_Complexity_Hybrid_Language_Model.pdf	RWKV-X：线性复杂度混合语言模型
+C	2	raw/papers/rwkv/2025_Peng_RWKV7_Goose_Expressive_Dynamic_State_Evolution.pdf	RWKV-7 Goose：具有表达性动态状态演化的序列建模
+C	2	raw/papers/rwkv/2025_Yang_BlackGoose_Rimer_RWKV7_Time_Series.pdf	BlackGoose Rimer: Harnessing RWKV-7 as a Simple yet Superior Replacement for Transformers in Large-Scale Time Series Modeling
+C	2	raw/papers/rwkv/2025_Yang_FRWKV_Frequency-Domain_Linear_Attention_Long-Term_Forecasting.pdf	FRWKV：面向长期时间序列预测的频域线性注意力
+C	1	raw/papers/rwkv/2026_Hao_Pre-trained_Multi-scale_RWKV-GCN_Multivariate_Forecasting.pdf	预训练多尺度 RWKV-GCN 的多变量时间序列预测
+C	2	raw/papers/rwkv/2026_Yang_FRWKV_Plus_Frequency-Space_Linear_Time_Series.pdf	FRWKV+：面向频率空间预测的周期感知自适应门控
+C	2	raw/papers/rwkv/2026_线性RNN可并行性理论.pdf	Why Are Linear RNNs More Parallelizable?
+C	2	raw/papers/rwkv/RWKV-TS_Adaptive_Long-range_Prompt_for_Multiple_Time_Series_Tasks.pdf	RWKV-TS+：面向多种时序任务的自适应长程提示
+C	2	raw/papers/rwkv/Spatio-Temporal_Weighted_Graph_Reason_Learning_for_Multivariate_Time-Series_Anomaly_Detection.pdf	STWGRL：面向多变量时序异常检测的时空加权图推理学习
+D	1	raw/papers/attack-detection/2211.10833.pdf	2211.10833
+D	1	raw/papers/attack-detection/2411.10918.pdf	INVARLLM: LLM-assisted Physical Invariant Extraction for Cyber-Physical Systems Anomaly Detection
+D	1	raw/papers/attack-detection/2504.13592v2.pdf	Varnish: Cache-Aware Load Balancing for CDN Edge Proxies in Telco Networks
+D	1	raw/papers/attack-detection/2507.03051.pdf	Improving LLM Reasoning for Vulnerability Detection via Group Relative Policy Optimization
+D	2	raw/papers/attack-detection/2508.17901.pdf	Riemannian Optimization for LoRA on the Stiefel Manifold
+D	1	raw/papers/attack-detection/2512.09485.pdf	Advancing LLM-Based Security Automation with Customized Group Relative Policy Optimization for Zero-Touch Networks
+D	1	raw/papers/attack-detection/2601.04443.pdf	Large Language Models for Detecting Cyberattacks on Smart Grid Protective Relays
+D	1	raw/papers/attack-detection/2602.00513.pdf	Minerva: Reinforcement Learning with Verifiable Rewards for Cyber Threat Intelligence LLMs
+D	1	raw/papers/attack-detection/2602.06996.pdf	Curriculum-Learned Vanishing Stacked Residual PINNs for Hyperbolic PDE State Reconstruction
+D	1	raw/papers/attack-detection/2604.03790.pdf	Systematic Integration of Digital Twins and Constrained LLMs for Interpretable Cyber-Physical Anomaly Detection
+D	1	raw/papers/attack-detection/2605.15254.pdf	Curriculum Learning of Physics-Informed Neural Networks based on Spatial Correlation
+D	1	raw/papers/attack-detection/2605.19263.pdf	From Simple to Complex: Curriculum-Guided Physics-Informed Neural Networks via Gaussian Mixture Models
+D	2	raw/papers/attack-detection/2605.29317.pdf	FoRA: Fisher-orthogonal Rank Adaptation for Parameter-Efficient Fine-Tuning
+D	1	raw/papers/attack-detection/Enhancing_Intrusion_Detection_in_Electric_Networks_Using_Physics-Informed_Random_Forest.pdf	Enhancing Intrusion Detection in Electric Networks Using Physics-Informed Random Forest
+D	1	raw/papers/attack-detection/Stability_analysis_and_impulsive_control_of_bifurcation_and_chaos_in_fluid_flow_model_for_TCP_AQM_networks.pdf	Stability Analysis and Impulsive Control of Bifurcation and Chaos in Fluid Flow Model for TCP/AQM Networks
+D	1	raw/papers/attack-detection/physics-informed-graph-convolutional-recurrent-network-for-cyber-attack-detection-in-chemical-process-networks.pdf	Physics-Informed Graph Convolutional Recurrent Network for Cyber-Attack Detection in Chemical Process Networks
+D	1	raw/papers/attack-detection/robust-industrial-iot-security-leveraging-parallel-physics-informed-neural-networks-to-combat-false-data-injection.pdf	Robust Industrial IoT Security Leveraging Parallel Physics-Informed Neural Networks to Combat False Data Injection
+D	1	raw/papers/attack-detection/课程式学习.pdf	A Closer Look at Curriculum Adversarial Training: From an Online Perspective
+D	0	raw/papers/cdn-ops/2401.15839v1.pdf	2401.15839v1
+D	0	raw/papers/cdn-ops/Proactive_Video_Push_CDN-P2P_VoD.pdf	Proactive Video Push for Optimizing Bandwidth Consumption in Hybrid CDN-P2P VoD Systems
+D	0	raw/papers/cdn-ops/atc24-zhang-rui-xiao.pdf	atc24-zhang-rui-xiao
+D	0	raw/papers/cdn-ops/nsdi22-paper-zhou.pdf	nsdi22-paper-zhou
+D	0	raw/papers/cdn-ops/北斗资源上下线&踢点逻辑.pdf	北斗资源上下线&踢点逻辑
+D	0	raw/papers/cdn-ops/视频CDN技术.pdf	视频CDN技术
+D	1	raw/papers/datasets/citation-only/2025-Ikni-JavaScript-malware-synthetic-dataset.pdf	GeNIS 在 JavaScript 恶意软件合成数据论文中的仅引用核验
+D	2	raw/papers/deepseek/2512.24880v2.pdf	mHC: Manifold-Constrained Hyper-Connections
+D	1	raw/papers/deepseek/2601.07372_Engram-DeepSeek.pdf	2601.07372_Engram-DeepSeek
+D	1	raw/papers/game/2022_Navon_Multi-Task_Learning_as_a_Bargaining_Game.pdf	Multi-Task Learning as a Bargaining Game
+D	1	raw/papers/game/2023_Shamsian_Auxiliary_Learning_as_an_Asymmetric_Bargaining_Game.pdf	Auxiliary Learning as an Asymmetric Bargaining Game
+D	1	raw/papers/game/2026_Martinez_Stackelberg_Coupling_of_Online_Representation_Learning_and_RL.pdf	Stackelberg Coupling of Online Representation Learning and Reinforcement Learning
+D	0	raw/papers/game/2109.12286v1 1.pdf	2109.12286v1 1
+D	0	raw/papers/game/2109.12286v1.pdf	2109.12286v1
+D	1	raw/papers/game/2211.01508_2022_Partially-Observable_Security_Games_for_Automating_Attack-Defense_Analysis.pdf	Partially-Observable Security Games for Automating Attack-Defense Analysis
+D	0	raw/papers/game/2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_in_a_Noisy_Security_Game.pdf	2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_in_a_Noisy_Security_Game
+D	1	raw/papers/game/2603.09587_2026_Game-Theoretic_Modeling_of_Stealthy_Intrusion_Defense_Against_MDP-Based_Attackers.pdf	Game-Theoretic Modeling of Stealthy Intrusion Defense against MDP-Based Attackers
+D	0	raw/papers/game/2605.07854_2026_Adversarial_Decision-Making_for_Moving_Target_Defense.pdf	Zero-determinant Strategy for Moving Target Defense: Existence, Performance, and Computation
+D	0	raw/papers/game/commitEC06.pdf	commitEC06
+D	0	raw/papers/game/dobss-2008_pita-etal_Bayesian_Stackelberg_Game.pdf	dobss-2008_pita-etal_Bayesian_Stackelberg_Game
+D	0	raw/papers/game/game-theoretic_MTD_2017_security_games.pdf	game-theoretic_MTD_2017_security_games
+D	0	raw/papers/game/klp_game_theoretic_foundations_2014.pdf	klp_game_theoretic_foundations_2014
+D	1	raw/papers/game/korzhyk-2010_complexity-Optimal-Stackelberg-Strategies.pdf	Complexity of Computing Optimal Stackelberg Strategies in Security Resource Allocation Games
+D	0	raw/papers/game/massive-security-games_2009_kiekintveld_mixed_resource.pdf	massive-security-games_2009_kiekintveld_mixed_resource
+D	0	raw/papers/game/moving-target-defense-NIST-2013_investigating-application.pdf	Investigating the Application of Moving Target Defenses to Network Security
+D	0	raw/papers/game/mtd-gamefor-web-2016_Bayesian-Stackelberg.pdf	mtd-gamefor-web-2016_Bayesian-Stackelberg
+D	0	raw/papers/game/mtd-signal-model_2015_Bayesian_Persuasion.pdf	main.pdf
+D	0	raw/papers/game/mtd-timing_2019_model.pdf	mtd-timing_2019_model
+D	1	raw/papers/game/s10207-025-01012-4_2025_Enhancing_Network_Security_Through_Integration_of_Game_Theory_in_SDN.pdf	Enhancing network security through integration of game theory in software-defined networking framework
+D	1	raw/papers/game/s10207-025-01026-y_2025_Detecting_Malicious_Nodes_using_Game_Theory_and_Reinforcement_Learning_in_SDNs.pdf	Detecting malicious nodes using game theory and reinforcement learning in software-defined networks
+D	1	raw/papers/game/s11227-025-07821-7_2025_A_Robust_and_Scalable_Intrusion_Detection_Framework_for_SDN_with_GAN-based_Approach.pdf	A robust and scalable intrusion detection framework for SDN with GAN-CL-STO
+D	1	raw/papers/game/s40747-024-01553-6_2024_PPSO_and_Bayesian_Game_for_Intrusion_Detection_in_WSN.pdf	PPSO and Bayesian game for intrusion detection in WSN from a macro perspective
+D	1	raw/papers/game/stackelberg-vs-nash_2011_kiekintveld.pdf	stackelberg-vs-nash_2011_kiekintveld
+D	1	raw/papers/grpo/2402.03300.pdf	2402.03300
+D	0	raw/papers/grpo/2503.20783.pdf	Understanding R1-Zero-Like Training: A Critical Perspective
+D	1	raw/papers/grpo/2504.13592v2 (1).pdf	Improving Generalization in Intent Detection: GRPO with Reward-Based Curriculum Sampling
+D	0	raw/papers/grpo/2505.07686.pdf	S-GRPO: Early Exit via Reinforcement Learning in Reasoning Models
+D	0	raw/papers/grpo/2505.11595.pdf	Stepwise Guided Policy Optimization: Coloring your Incorrect Reasoning in GRPO
+D	1	raw/papers/grpo/2508.02833.pdf	TIC-GRPO: Provable and Efficient Optimization for Reinforcement Learning from Human Feedback
+D	0	raw/papers/grpo/2509.18851.pdf	NGRPO: Negative-enhanced Group Relative Policy Optimization
+D	0	raw/papers/grpo/2509.24203.pdf	Group-Relative REINFORCE Is Secretly an Off-Policy Algorithm: Demystifying Some Myths About GRPO and Its Friends
+D	0	raw/papers/grpo/2510.19807.pdf	Scaf-GRPO: Scaffolded Group Relative Policy Optimization for Enhancing LLM Reasoning
+D	1	raw/papers/grpo/2511.03527.pdf	2511.03527
+D	0	raw/papers/grpo/2512.15347.pdf	2512.15347
+D	0	raw/papers/grpo/2601.03895.pdf	Adaptive-Boundary-Clipping GRPO: Ensuring Bounded Ratios for Stable and Generalizable Training
+D	0	raw/papers/grpo/2601.09085.pdf	MMR-GRPO: Accelerating GRPO-Style Training through Diversity-Aware Reward Reweighting
+D	0	raw/papers/grpo/2601.22478.pdf	2601.22478
+D	0	raw/papers/grpo/2601.23135.pdf	Why GRPO Needs Normalization: A Local-Curvature Perspective on Adaptive Gradients
+D	0	raw/papers/grpo/2602.05863.pdf	Constrained Group Relative Policy Optimization
+D	0	raw/papers/grpo/2605.11538.pdf	Taming Extreme Tokens: Covariance-Aware GRPO with Gaussian-Kernel Advantage Reweighting
+D	1	raw/papers/llm/2605.12460v1.pdf	Multi-Stream LLMs: Unblocking Language Models with Parallel Streams of Thoughts, Inputs and Outputs
+D	2	raw/papers/manifold/2510.01938v2.pdf	StelLA: Subspace Learning in Low-rank Adaptation using Stiefel Manifold
+D	2	raw/papers/manifold/2606.03483v1.pdf	Analyzing Stream Collapse in Hyper-Connections: From Diagnosis to Mitigation
+D	2	raw/papers/manifold/2607.18130v1.pdf	Manifold-Constrained Hyper-Connections for Parameter-Efficient Finetuning
+D	2	raw/papers/manifold/AdversarialMultiTaskLearning-ACL2017.pdf	Adversarial Multi-task Learning for Text Classification
+D	2	raw/papers/manifold/BayesSim-RSS2019.pdf	BayesSim: Adaptive Domain Randomization Via Probabilistic Inference for Robotics Simulators
+D	2	raw/papers/manifold/DomainSeparationNetworks-NeurIPS2016.pdf	Domain Separation Networks
+D	2	raw/papers/manifold/DynamicsRandomization-ICRA2018.pdf	DynamicsRandomization-ICRA2018
+D	1	raw/papers/manifold/LatentODE-NeurIPS2019.pdf	Latent Ordinary Differential Equations for Irregularly-Sampled Time Series
+D	2	raw/papers/manifold/NewtonianVAE-CVPR2021.pdf	NewtonianVAE: Proportional Control and Goal Identification From Pixels via Physical Latent Spaces
+D	0	raw/papers/manifold/PDEformer-2402.12652.pdf	PDEformer-2402.12652
+D	2	raw/papers/manifold/PITT-2305.08757.pdf	PITT: Physics Informed Token Transformer for Solving Partial Differential Equations
+D	2	raw/papers/manifold/PhyDNet-CVPR2020.pdf	Disentangling Physical Dynamics From Unknown Factors for Unsupervised Video Prediction
+D	2	raw/papers/manifold/REPA-P-2605.20780.pdf	Learning to Think in Physics: Breaking Shortcut Learning in Scientific Diffusion via Representation Alignment
+D	2	raw/papers/manifold/Recon-ICLR2023.pdf	Recon: Reducing Conflicting Gradients from the Root for Multi-Task Learning
+D	2	raw/papers/manifold/UPOSI-RSS2017.pdf	Preparing for the Unknown: Learning a Universal Policy with Online System Identification
+D	0	raw/papers/methodology/2009_Bengio_Curriculum_Learning.pdf	课程学习
+D	0	raw/papers/methodology/2017_Achiam_Constrained_Policy_Optimization.pdf	约束策略优化
+D	0	raw/papers/methodology/2019-Cotter-Constraint-Generalization.pdf	
+D	0	raw/papers/methodology/2019-Cotter-Two-Player-Games-Constrained-Optimization.pdf	
+D	2	raw/papers/methodology/2019-Dacrema-Are-We-Really-Making-Much-Progress.pdf	Are We Really Making Much Progress? A Worrying Analysis of Recent Neural Recommendation Approaches
+D	0	raw/papers/methodology/2020_Klink_Self-Paced_Deep_Reinforcement_Learning.pdf	自步深度强化学习
+D	0	raw/papers/methodology/2022_Polosky_Constrained_Offline_Policy_Optimization.pdf	约束离线策略优化
+D	2	raw/papers/methodology/2024-Hu-SAM-Decoding-Suffix-Automaton.pdf	SAM Decoding：基于后缀自动机的推测解码
+D	1	raw/papers/methodology/Obsidian-AI-v1.0.0.pdf	Obsidian + Claude Code：用AI重建你的第二大脑
+D	1	raw/papers/pinn/1711.10561.pdf	PINN 引文链与恶意流量检测理论映射
+D	1	raw/papers/pinn/1711.10566.pdf	1711.10566（重定向）
+D	0	raw/papers/pinn/2001.04536-PINN梯度病态.pdf	Understanding and Mitigating Gradient Flow Pathologies in Physics-Informed Neural Networks
+D	0	raw/papers/pinn/2007.14527-PINN神经切线核.pdf	2007.14527-PINN神经切线核（重定向）
+D	1	raw/papers/pinn/2016-Lee-非对称多任务学习.pdf	Asymmetric Multi-task Learning Based on Task Relatedness and Loss
+D	1	raw/papers/pinn/2018-Lee-深度非对称多任务特征学习.pdf	Deep Asymmetric Multi-task Feature Learning（重定向）
+D	1	raw/papers/pinn/2021-KarimiMahabadi-HyperFormer.pdf	Parameter-efficient Multi-task Fine-tuning for Transformers via Shared Hypernetworks
+D	1	raw/papers/pinn/2021-Lewis-BASE-Layers.pdf	BASE Layers- Simplifying Training of Large, Sparse Models（重定向）
+D	1	raw/papers/pinn/2021-Pfeiffer-AdapterFusion.pdf	AdapterFusion: Non-Destructive Task Composition for Transfer Learning
+D	1	raw/papers/pinn/2022-Alayrac-Flamingo.pdf	Flamingo: a Visual Language Model for Few-Shot Learning
+D	1	raw/papers/pinn/2022-Dai-StableMoE.pdf	StableMoE: Stable Routing Strategy for Mixture of Experts
+D	1	raw/papers/pinn/2022-Fedus-Switch-Transformer.pdf	Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity
+D	1	raw/papers/pinn/2022-Hu-APINN.pdf	Augmented Physics-Informed Neural Networks: A Gating Network-Based Soft Domain Decomposition Methodology
+D	1	raw/papers/pinn/2023-Yan-辅助任务PINN.pdf	Auxiliary-Tasks Learning for Physics-Informed Neural Network-Based Partial Differential Equations Solving
+D	1	raw/papers/pinn/2023-Zhang-ControlNet.pdf	Adding Conditional Control to Text-to-Image Diffusion Models
+D	1	raw/papers/pinn/2023-Zhang-LLaMA-Adapter.pdf	LLaMA-Adapter: Efficient Fine-tuning of Large Language Models with Zero-initialized Attention
+D	1	raw/papers/pinn/2023-Zhao-Prototype-HyperAdapter.pdf	Prototype-based HyperAdapter for Sample-Efficient Multi-task Tuning
+D	1	raw/papers/pinn/2024-Agiza-MTLoRA.pdf	MTLoRA: A Low-Rank Adaptation Approach for Efficient Multi-Task Learning
+D	1	raw/papers/pinn/2024-Chalapathi-物理硬约束混合专家.pdf	2024-Chalapathi-物理硬约束混合专家（重定向）
+D	1	raw/papers/pinn/2024-Dai-DeepSeekMoE.pdf	2024-Dai-DeepSeekMoE（重定向）
+D	1	raw/papers/pinn/2024-Kong-LoRA-Switch.pdf	LoRA-Switch: Boosting the Efficiency of Dynamic LLM Adapters via System-Algorithm Co-design
+D	1	raw/papers/pinn/2024-Li-MixLoRA.pdf	MixLoRA: Enhancing Large Language Models Fine-Tuning with LoRA-based Mixture of Experts
+D	1	raw/papers/pinn/2024-Lv-HyperLoRA.pdf	HyperLoRA: Efficient Cross-task Generalization via Constrained Low-Rank Adapters Generation
+D	1	raw/papers/pinn/2024-Ma-MoDULA.pdf	2024-Ma-MoDULA（重定向）
+D	1	raw/papers/pinn/2024-Panda-稠密反向传播路由.pdf	Dense Backpropagation Improves Routing for Sparsely-Gated Mixture-of-Experts
+D	1	raw/papers/pinn/2024-Wang-LoRA-Flow.pdf	LoRA-Flow: Dynamic LoRA Fusion for Large Language Models in Generative Tasks
+D	1	raw/papers/pinn/2024-Wu-MoLE.pdf	Mixture of LoRA Experts
+D	0	raw/papers/pinn/2105.00862-数据与物理帕累托前沿.pdf	2105.00862-数据与物理帕累托前沿（重定向）
+D	1	raw/papers/pinn/2109.01050-PINN失败模式.pdf	2109.01050-PINN失败模式（重定向）
+D	0	raw/papers/pinn/2408.11104-ConFIG.pdf	ConFIG: Towards Conflict-Free Training of Physics Informed Neural Networks
+D	1	raw/papers/pinn/2410.13228.pdf	From PINNs to PIKANs: Recent Advances in Physics-Informed Machine Learning
+D	1	raw/papers/pinn/2501.06572.pdf	Evolutionary Optimization of Physics-Informed Neural Networks- Evo-PINN Frontiers and Opportunities（重定向）
+D	0	raw/papers/pinn/Lopez-Paz-2016-广义蒸馏与特权信息.pdf	Unifying Distillation and Privileged Information
+D	1	raw/papers/pinn/MDPI-ApplSci-2025-15-8092-PINN综述.pdf	Physics-Informed Neural Networks: A Review of Methodological Evolution, Theoretical Foundations, and Interdisciplinary Frontiers Toward Next-Generation Scientific Computing
+D	0	raw/papers/pinn/Provodin-2024-重新思考特权信息知识迁移.pdf	Rethinking Knowledge Transfer in Learning Using Privileged Information
+D	0	raw/papers/pinn/Vapnik-Izmailov-2015-特权信息学习与知识迁移.pdf	Learning Using Privileged Information: Similarity Control and Knowledge Transfer
+D	1	raw/papers/pinn/Yang-2022-理解特权特征蒸馏.pdf	Toward Understanding Privileged Features Distillation in Learning-to-Rank
+D	0	raw/papers/pinn/algorithms-15-00447-交通网络PINN.pdf	Physics-Informed Neural Networks Based Traffic State Estimation: An Application to Traffic Network
+D	2	raw/papers/pinn/multiscale-observability-closure/2008-Liebeherr-Bandwidth-Estimation.pdf	A System Theoretic Approach to Bandwidth Estimation
+D	2	raw/papers/pinn/multiscale-observability-closure/2010-Habib-Queue-Inferencing.pdf	Efficient Computation of Queueing Delay at a Network Port from Output Link Packet Traces
+D	2	raw/papers/pinn/multiscale-observability-closure/2012-Bouillard-Hidden-Anomaly.pdf	Hidden Anomaly Detection in Telecommunication Networks
+D	2	raw/papers/pinn/multiscale-observability-closure/2020-Raissi-HFM.pdf	Hidden Fluid Mechanics: Learning Velocity and Pressure Fields from Flow Visualizations
+D	2	raw/papers/pinn/multiscale-observability-closure/2020-Stiller-GatedPINN.pdf	Large-scale Neural Solvers for Partial Differential Equations
+D	2	raw/papers/pinn/multiscale-observability-closure/2021-Krishnapriyan-PINN-Failure-Modes.pdf	Characterizing possible failure modes in physics-informed neural networks
+D	2	raw/papers/pinn/multiscale-observability-closure/2021-Wang-Gradient-Pathologies.pdf	Understanding and Mitigating Gradient Flow Pathologies in Physics-Informed Neural Networks
+D	2	raw/papers/pinn/multiscale-observability-closure/2021-Yang-BPINN.pdf	B-PINNs: Bayesian Physics-Informed Neural Networks for Forward and Inverse PDE Problems with Noisy Data
+D	2	raw/papers/pinn/multiscale-observability-closure/2022-Patel-cvPINN.pdf	Thermodynamically Consistent Physics-Informed Neural Networks for Hyperbolic Systems
+D	2	raw/papers/pinn/multiscale-observability-closure/2022-Taghizadeh-Explicit-Closure.pdf	Explicit Physics-Informed Neural Networks for Nonlinear Closure: The Case of Transport in Tissues
+D	2	raw/papers/pinn/multiscale-observability-closure/2022-Usama-Traffic-Network-PINN.pdf	Physics-Informed Neural Networks (PINNs)-Based Traffic State Estimation: An Application to Traffic Network
+D	2	raw/papers/pinn/multiscale-observability-closure/2023-Hu-APINN.pdf	Augmented Physics-Informed Neural Networks (APINNs): A Gating Network-Based Soft Domain Decomposition Methodology
+D	2	raw/papers/pinn/multiscale-observability-closure/2023-McClenny-SA-PINN.pdf	Self-Adaptive Physics-Informed Neural Networks
+D	2	raw/papers/pinn/multiscale-observability-closure/2023-Perez-Adaptive-BPINN.pdf	Adaptive Weighting of Bayesian Physics Informed Neural Networks for Multitask and Multiscale Forward and Inverse Problems
+D	2	raw/papers/pinn/multiscale-observability-closure/2023-Rohrhofer-Apparent-Pareto-Front.pdf	Data vs. Physics: The Apparent Pareto Front of Physics-Informed Neural Networks
+D	2	raw/papers/pinn/multiscale-observability-closure/2024-Cen-DFVM.pdf	Deep Finite Volume Method for Partial Differential Equations
+D	2	raw/papers/pinn/multiscale-observability-closure/2024-Dolean-Multilevel-FBPINN.pdf	Multilevel Domain Decomposition-Based Architectures for Physics-Informed Neural Networks
+D	2	raw/papers/pinn/multiscale-observability-closure/2024-Wang-Cauchy-PINN-Difficulty.pdf	Understanding the Difficulty of Solving Cauchy Problems with PINNs
+D	2	raw/papers/pinn/multiscale-observability-closure/2025-Du-PRED.pdf	PRED: Performance-oriented Random Early Detection for Consistently Stable Performance in Datacenters
+D	2	raw/papers/pinn/multiscale-observability-closure/2025-Raghunathan-QuASI.pdf	A Layered Formal Methods Approach to Answering Queue-related Queries
+D	0	raw/papers/pinn/network-calculus-boundary/2002-Burchard-Statistical-Service-Guarantees.pdf	端到端统计有效服务曲线
+D	0	raw/papers/pinn/network-calculus-boundary/2008-Liebeherr-System-Theoretic-Bandwidth-Estimation.pdf	带宽估计的最小加系统论方法
+D	0	raw/papers/pinn/network-calculus-boundary/2010-Luebben-Foundation-Stochastic-Bandwidth.pdf	随机服务网络的带宽估计基础
+D	0	raw/papers/pinn/network-calculus-boundary/2012-Bouillard-Hidden-Anomaly-Network-Calculus.pdf	基于自适应到达约束曲线的隐藏异常检测
+D	0	raw/papers/pinn/network-calculus-boundary/2014-Luebben-Stochastic-Bandwidth-Random-Service.pdf	随机服务网络中的统计带宽估计
+D	0	raw/papers/pinn/network-calculus-boundary/2019-Geyer-DeepTMA.pdf	DeepTMA：用图网络选择网络演算竞争模型
+D	0	raw/papers/pinn/network-calculus-boundary/2019-Geyer-Robustness-DeepTMA.pdf	DeepTMA 竞争模型预测的分布外稳健性
+D	0	raw/papers/pinn/network-calculus-boundary/2021-Jacobs-Network-Calculus-Anomaly-Detection.pdf	网络演算数据流模型与异常检测特征
+D	0	raw/papers/pinn/network-calculus-boundary/2023-Luebben-TAILING-Delay-Quantiles.pdf	TAILING：面向分组时延尾部的分位数预测
+D	0	raw/papers/pinn/network-calculus-boundary/2024-Jiang-Network-Calculus-Revisit.pdf	面向时间敏感网络的网络演算边界重审
+D	0	raw/papers/pinn/network-calculus-boundary/2024-Podina-Conformalized-PINN.pdf	共形化物理信息神经网络
+D	0	raw/papers/pinn/network-calculus-boundary/2025-Jiang-Packetization-Impact.pdf	分组化对网络演算分析的影响
+D	0	raw/papers/pinn/network-calculus-boundary/2025-Yu-Conformal-PINN.pdf	物理信息神经网络的局部共形不确定性框架
+D	1	raw/papers/pinn/paper_0dd9fd2db26952889e10293d9209c0bf.pdf	Scientific Machine Learning through Physics-Informed Neural Networks: Where we are and What's next
+D	1	raw/papers/pinn/paper_390db51220335dc4b705f12f777ef9eb.pdf	Physics-informed neural networks for PDE problems: a comprehensive review
+D	1	raw/papers/pinn/paper_520fcb7d7e085e3081e0ab5f0c5b4dd5.pdf	Understanding Physics-Informed Neural Networks: Techniques, Applications, Trends, and Challenges
+D	0	raw/papers/pinn/paper_b002d83866255ef3bd48ae3819cf2520.pdf	
+D	1	raw/papers/pinn/paper_ced7ef2c6ebf5b388931d1671a9e9520.pdf	Physics-informed neural networks (PINNs) for fluid mechanics: A review
+D	2	raw/papers/pinn/pcap/1995-Paxson-广域流量非泊松性.pdf	广域流量中的泊松建模失效
+D	0	raw/papers/pinn/pcap/2000-Misra-TCP-AQM流体模型.pdf	TCP 与主动队列管理的流体动力学模型
+D	1	raw/papers/pinn/pcap/2001-LeBoudec-Thiran-网络演算.pdf	Network Calculus：到达曲线、服务曲线与确定性队列边界
+D	2	raw/papers/pinn/pcap/2003-Hohn-分组到达聚类过程.pdf	分组到达的聚类点过程模型
+D	1	raw/papers/pinn/pcap/2004-Appenzeller-路由器缓存定容.pdf	Sizing Router Buffers：带宽时延积定容的适用边界
+D	0	raw/papers/pinn/pcap/2010-Habib-输出链路轨迹队列推断.pdf	由输出链路包轨迹反演队列时延
+D	0	raw/papers/pinn/pcap/2018-DeVaere-QUIC-TCP被动时延测量.pdf	QUIC 与 TCP 的被动时延可观测性
+D	0	raw/papers/pinn/pcap/2018-Vardoyan-TCP-CUBIC流体模型.pdf	TCP Reno 与 CUBIC 的时滞流体模型
+D	0	raw/papers/pinn/pcap/2022-Alaoui-二维TCP-AQM流体模型.pdf	二维 TCP/AQM 流体模型
+D	0	raw/papers/pinn/pcap/2022-Ferriol-RouteNet-Erlang.pdf	RouteNet-Erlang 复杂网络性能建模
+D	0	raw/papers/pinn/pcap/2023-Helm-网络演算辅助GNN.pdf	网络演算辅助的时延分位数预测
+D	0	raw/papers/pinn/pcap/2023-Zhang-网络演算增强时延预测.pdf	网络演算增强的图神经网络时延预测
+D	0	raw/papers/pinn/pcap/2025-Du-PRED-DCTCP流体模型.pdf	PRED 数据中心队列显式建模与稳定控制
+D	0	raw/papers/pinn/pcap/2025-Raghunathan-QuASI队列可辨识性.pdf	QuASI 粗粒度计数下的队列可辨识性
+D	1	raw/papers/pinn/protocol-adaptive/2015-RFC7567-主动队列管理建议.pdf	RFC 7567：主动队列管理与突发相关的缓存边界
+D	1	raw/papers/pinn/protocol-adaptive/2017-RFC8238-数据中心基准术语.pdf	RFC 8238：数据中心微突发与缓存测量术语
+D	2	raw/papers/pinn/protocol-adaptive/2020-Stiller-GatedPINN.pdf	Large-scale Neural Solvers for Partial Differential Equations
+D	2	raw/papers/pinn/protocol-adaptive/2021-Ahn-Nested-Mixture-of-Experts.pdf	Nested Mixture of Experts: Cooperative and Competitive Learning of Hybrid Dynamical System
+D	2	raw/papers/pinn/protocol-adaptive/2021-Poli-Neural-Hybrid-Automata.pdf	Neural Hybrid Automata: Learning Dynamics with Multiple Modes and Stochastic Transitions
+D	2	raw/papers/pinn/protocol-adaptive/2021-Qian-Latent-Hybridisation-Model.pdf	Integrating Expert ODEs into Neural ODEs: Pharmacology and Disease Progression
+D	1	raw/papers/pinn/protocol-adaptive/2021-RFC8999-QUIC-Invariants.pdf	RFC 8999：QUIC 版本无关属性与最小线图像
+D	1	raw/papers/pinn/protocol-adaptive/2021-RFC9000-QUIC-Transport.pdf	RFC 9000：QUIC 传输与旋转位可观测边界
+D	0	raw/papers/pinn/protocol-adaptive/2021-RFC9001-QUIC-TLS.pdf	RFC 9001：QUIC 加密与传输状态隐藏边界
+D	1	raw/papers/pinn/protocol-adaptive/2021-RFC9002-QUIC丢失检测与拥塞控制.pdf	RFC 9002：QUIC 丢失检测、拥塞控制与发送节奏
+D	2	raw/papers/pinn/protocol-adaptive/2022-Bischof-MoE-PINN.pdf	Mixture-of-Experts-Ensemble Meta-Learning for Physics-Informed Neural Networks
+D	0	raw/papers/pinn/protocol-adaptive/2022-RFC9287-QUIC-Bit-Greasing.pdf	RFC 9287：QUIC 固定位随机化与识别边界
+D	1	raw/papers/pinn/protocol-adaptive/2022-RFC9312-QUIC-Manageability.pdf	RFC 9312：QUIC 被动管理与测量边界
+D	2	raw/papers/pinn/protocol-adaptive/2023-Bajaj-Physics-Fails.pdf	Recipes for when Physics Fails: Recovering Robust Learning of Physics Informed Neural Networks
+D	0	raw/papers/pinn/protocol-adaptive/2024-Gahtan-VisQUIC.pdf	
+D	2	raw/papers/pinn/protocol-adaptive/2025-Feng-RPLPO.pdf	How to Re-enable PDE Loss for Physical Systems Modeling Under Partial Observation
+D	2	raw/papers/pinn/protocol-adaptive/2025-Ghanem-Partial-Physics-Neural-ODE.pdf	Learning Physics Informed Neural ODEs with Partial Measurements
+D	0	raw/papers/pinn/wang24b-柯西问题PINN困难性.pdf	Understanding the Difficulty of Solving Cauchy Problems with PINNs
+D	1	raw/papers/pinn/基于物理信息的神经网络：最新进展与展望.pdf	基于物理信息的神经网络：最新进展与展望
+D	2	raw/papers/rwkv/1-s2.0-S0360544224028433-main.pdf	多尺度 RWKV 结合二维时序卷积网络的短期光伏功率预测
+D	0	raw/papers/rwkv/2024_Debenedetti_AgentDojo_提示注入评估.pdf	AgentDojo: A Dynamic Environment to Evaluate Prompt Injection Attacks and Defenses for LLM Agents
+D	2	raw/papers/rwkv/2024_Duan_Vision-RWKV_视觉双向扫描.pdf	Vision-RWKV: Efficient and Scalable Visual Perception with RWKV-Like Architectures
+D	2	raw/papers/rwkv/2024_He_PointRWKV_点云序列化.pdf	PointRWKV: Efficient RWKV-Like Model for Hierarchical Point Cloud Learning
+D	2	raw/papers/rwkv/2025-Zhou-WKV-Sharing-Random-Shuffle-RWKV-Pansharpening-NeurIPS.pdf	WKV-sharing embraced random shuffle RWKV high-order modeling for pan-sharpening
+D	2	raw/papers/rwkv/2025_Chen_Quantum-Enhanced_Channel_Mixing_RWKV_Time_Series.pdf	QuantumRWKV：面向时间序列预测的量子增强通道混合
+D	2	raw/papers/rwkv/2025_Goldstein_RADLADS_Rapid_Attention_Distillation_to_Linear_Attention_Decoders.pdf	RADLADS：大规模快速注意力蒸馏到线性注意力解码器
+D	1	raw/papers/rwkv/2026_Ilic_自回归语言模型记忆签名.pdf	自回归语言模型中的记忆签名
+D	2	raw/papers/rwkv/2026_Multigrain_语义原型扫描重排序_全色锐化.pdf	Multigrain-aware Semantic Prototype Scanning and Tri-Token Prompt Learning Embraced High-Order RWKV for Pan-Sharpening
+D	2	raw/papers/rwkv/Monthly_Service_Prediction_for_4G_5G_Systems_A_Short_Time_Series-Based_Neural_Network_Solution.pdf	4G/5G 系统月度业务预测：一种基于短时间序列的神经网络方案
+D	2	raw/papers/rwkv/electricity-07-00058-v2.pdf	RWKV-CVM：面向多变量电力负荷预测的门控跨变量混合
+D	2	raw/papers/rwkv/engproc-97-00026.pdf	面向长期电力负荷预测的并行处理架构 MP-RWKV
+REF	1	raw/papers/attack-detection/朱焱雷.pdf	面向加密流量分类的博弈对抗防御与高效训练方法研究
+X	0	raw/papers/proceedings/2025-ARES-LNCS15993-Proceedings-Part-II.pdf	
