@@ -96,12 +96,15 @@ uv run --project scripts/literature_search --locked \
 - `CROSSREF_MAILTO`：进入 Crossref 礼貌池。
 - `GITHUB_TOKEN`：可选 GitHub REST 认证；缺失时只查询公开仓库并记录较低配额。
 - `HF_TOKEN`：可选 Hugging Face 公开读取认证；缺失时使用匿名公开 API。
+- `GOOGLE_SCHOLAR_MODE`：可选 `lookup` 或 `search`，默认传统关键词检索 `lookup`。`search` 仅在本机已有 Scholar 认证状态时执行，不会自动登录或静默回退。
 
-三个来源并发执行，但 Crossref 通过进程内锁保持单飞。HTTP 429 或 503 只有在响应提供数值型 `Retry-After` 且等待不超过本次超时时才退避并重试一次；403、超时、网络或 JSON 错误直接记录为来源级失败。在线候选按 DOI、arXiv、规范题名加年份依次跨来源去重，保留 `providers` 和各来源记录。
+在线来源并发执行，但 Crossref 通过进程内锁保持单飞。HTTP 429 或 503 只有在响应提供数值型 `Retry-After` 且等待不超过本次超时时才退避并重试一次；403、超时、网络或 JSON 错误直接记录为来源级失败。在线候选按 DOI、arXiv、规范题名加年份依次跨来源去重，保留 `providers` 和各来源记录。
 
 每个来源状态记录认证、延迟、缓存、限流、重试、退避、去重和降级原因。当前没有查询缓存，状态固定标记 `cache_kind=none`；后续若实现持久缓存，必须另行冻结过期和失效合同。`--offline` 会把全部在线来源标为 `skipped_offline`。`scope=all` 始终保留本地结果。所有在线结果均标记为未核全文候选，不自动写入 `raw/`、`wiki/` 或 Zotero。
 
 GitHub 候选返回规范仓库 URL、`owner/name`、描述、主页、许可证、星数、归档状态、更新时间与默认分支，普通命中固定为 `unverified_code_candidate`。HF Papers 按 arXiv、DOI、题名与其他论文来源去重；HF 模型、数据集和 Space 独立返回仓库类型、任务、下载、点赞、更新时间、门控、许可证和 arXiv 关联。只有 Hub 元数据显式包含 arXiv 关联时标为 `paper_linked_candidate`，普通命中固定为 `unverified_hub_candidate`。本工具不自动下载、登录、上传、索引或认领任何外部候选。
+
+Google Scholar 通过本机 `scholar` 命令的参数列表调用，程序化查询固定使用 `--json`，禁止 shell 拼接。默认执行传统 `lookup`；缺命令、缺认证、限流、验证码、超时、非零退出或 JSON 错误只会使该来源降级。Scholar 候选固定标记 `unverified_external_candidate`；`clusterId`、引用数、期刊、排名和 PDF 发现链接只保存在 `provider_records` 中，不能升级为全文证据。工具不会运行 `scholar auth`、下载 PDF 或向 `raw/`、`wiki/`、Zotero 写入内容。
 
 ## 可再生制品
 

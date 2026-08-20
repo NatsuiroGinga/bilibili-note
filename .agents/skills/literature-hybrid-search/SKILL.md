@@ -1,6 +1,6 @@
 ---
 name: literature-hybrid-search
-description: 用户请求文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文时使用。
+description: 用户请求 Google Scholar、学术搜索、文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文时使用。
 ---
 
 # 混合文献检索
@@ -17,13 +17,15 @@ description: 用户请求文献检索、相关工作、直接近邻、引用核�
 4. 只有本地结果不足、用户要求近期外部工作、源码、模型、数据集、Space 或 DOI/题录核验时，移除 `--offline` 并将同一命令改为 `--scope all`。
 5. 先报告最终证据块对应的本地笔记、其他视图、原件和页码；在线结果单列为“未核全文候选”，同时报告各来源认证、缓存、延迟、限流、去重和失败状态。OpenAlex 缺密钥时只报告 `skipped_missing_key`，不把跳过写成普通搜索回退。
 6. 若用户决定正式纳入外部候选，停止本技能并转入仓库规定的原件下载、全文核验和知识库写回流程。
-7. 需要源码语义核验时调用现有 `github:github` 技能；需要 HF 模型、数据集、Space 或论文关联时调用现有 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。只读核验候选，不自动下载、登录、上传、索引或认领。
+7. 用户请求 Google Scholar 或学术搜索时调用 `$google-scholar`，程序化检索固定使用 `--json`，默认传统 `lookup`；只有既有认证或功能明确支持时才允许 `search`。需要源码语义核验时调用现有 `github:github` 技能；需要 HF 模型、数据集、Space 或论文关联时调用现有 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。只读核验候选，不自动下载、登录、上传、索引或认领。
 
 ## 边界
 
 - 不自动修改 `raw/`、`wiki/`、论文正文或 Zotero。
 - 不因在线 API 失败丢弃本地结果。
-- 不把 OpenAlex、Semantic Scholar 或 Crossref 的摘要、题录和搜索排序写成论文结论。
+- 不把 OpenAlex、Semantic Scholar、Crossref、Hugging Face Papers 或 Google Scholar 的摘要、题录和搜索排序写成论文结论。Google Scholar 的 `clusterId`、引用数和排名只作发现元数据，候选固定标记为 `unverified_external_candidate`。
+- Google Scholar 缺命令、缺认证、限流、验证码、超时或 JSON 错误时只记录来源降级，不以其他来源结果伪装成功，也不自动运行登录或 PDF 下载。
+- 外部候选正式纳入必须继续执行 `raw/` 原件、`wiki/` 全文核验笔记和 Zotero 题录流程。
 - GitHub `code_candidates` 与 HF `hub_candidates` 独立报告，不进入论文 RRF；普通搜索结果只能标为未核代码或 Hub 候选。
 - 本机已有官方 GitHub 插件与 Hugging Face 技能，不安装来源和采用量更弱的第三方 GitHub 技能。
 - 不根据负例查询的返回分数临时设置拒答阈值；可靠拒答门必须使用独立开发集冻结。

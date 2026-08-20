@@ -3,7 +3,9 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import sqlite3
+import subprocess
 import threading
 import time
 import urllib.error
@@ -18,7 +20,13 @@ from .documents import normalize_lexical
 
 
 USER_AGENT = "note-literature-search/0.1 (local academic metadata discovery)"
-PAPER_PROVIDER_ORDER = ("openalex", "semantic_scholar", "crossref", "huggingface_papers")
+PAPER_PROVIDER_ORDER = (
+    "openalex",
+    "semantic_scholar",
+    "crossref",
+    "huggingface_papers",
+    "google_scholar",
+)
 PROVIDER_ORDER = (*PAPER_PROVIDER_ORDER, "github", "huggingface_hub")
 RETRYABLE_HTTP_STATUS = {403, 429, 503}
 CROSSREF_SINGLEFLIGHT = threading.Lock()
@@ -463,6 +471,205 @@ def search_huggingface_papers(query: str, limit: int, timeout: float) -> Provide
         return _failure(provider, failure, bool(token), started)
 
 
+def _scholar_status(
+    state: str,
+    ok: bool,
+    authenticated: bool,
+    started: float,
+    mode: str,
+) -> Dict[str, object]:
+    status = _base_status(state, ok, authenticated, started)
+    status.update(
+        {
+            "command_mode": mode,
+            "machine_readable": True,
+            "verification_status": "unverified_external_candidate",
+        }
+    )
+    return status
+
+
+def _scholar_failure_state(output: str) -> Tuple[str, str, bool]:
+    normalized = output.casefold()
+    if any(marker in normalized for marker in ("captcha", "not a robot", "unusual traffic")):
+        return "failed_captcha", "Google Scholar 要求验证码", False
+    if any(
+        marker in normalized
+        for marker in ("rate limit", "rate-limit", "too many requests", "429")
+    ):
+        return "failed_rate_limited", "Google Scholar 触发限流", True
+    if any(
+        marker in normalized
+        for marker in ("auth", "cookie", "login", "unauthorized", "forbidden", "401")
+    ):
+        return "failed_missing_auth", "Google Scholar 认证不可用", False
+    if any(marker in normalized for marker in ("unknown command", "unsupported", "not supported")):
+        return "failed_unsupported_mode", "scholar 不支持请求的检索模式", False
+    return "failed", "scholar 命令执行失败", False
+
+
+def _scholar_items(payload: object) -> List[Mapping[str, Any]]:
+    if isinstance(payload, list):
+        values = payload
+    elif isinstance(payload, Mapping):
+        if "results" in payload:
+            values = payload["results"]
+        elif "data" in payload:
+            values = payload["data"]
+        else:
+            raise ValueError("Scholar JSON 缺少 results/data")
+    else:
+        raise ValueError("Scholar JSON 根节点必须是数组或对象")
+    if not isinstance(values, list):
+        raise ValueError("Scholar JSON 结果字段不是数组")
+    return [item for item in values if isinstance(item, Mapping)]
+
+
+def _scholar_authors(value: object) -> List[str]:
+    if isinstance(value, str):
+        return [
+            name.strip()
+            for name in re.split(r"\s*(?:,|;|\band\b)\s*", value)
+            if name.strip()
+        ]
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes)):
+        return [str(name).strip() for name in value if str(name).strip()]
+    return []
+
+
+def _scholar_year(value: object) -> Optional[int]:
+    match = re.search(r"(?:19|20)\d{2}", str(value or ""))
+    return int(match.group(0)) if match else None
+
+
+def _identifier_from_scholar_urls(
+    url: Optional[str], pdf_url: Optional[str]
+) -> Tuple[Optional[str], Optional[str]]:
+    values = [value for value in (url, pdf_url) if value]
+    doi = next(
+        (
+            _clean_doi(match.group(0).rstrip(".,;)]}"))
+            for value in values
+            if (match := re.search(r"10\.\d{4,9}/[-._;()/:A-Z0-9]+", value, re.I))
+        ),
+        None,
+    )
+    arxiv_id = next(
+        (
+            _clean_arxiv(match.group(1))
+            for value in values
+            if (match := re.search(r"arxiv\.org/(?:abs|pdf)/([^?#]+)", value, re.I))
+        ),
+        None,
+    )
+    return doi, arxiv_id
+
+
+def search_google_scholar(query: str, limit: int, timeout: float) -> ProviderResponse:
+    provider = "google_scholar"
+    started = time.perf_counter()
+    executable = shutil.which("scholar")
+    requested_mode = os.environ.get("GOOGLE_SCHOLAR_MODE", "lookup").strip().casefold()
+    mode = requested_mode if requested_mode in {"lookup", "search"} else "lookup"
+    cookies_available = (Path.home() / ".google-scholar" / "cookies").is_file()
+    if executable is None:
+        status = _scholar_status(
+            "unavailable_missing_command", False, cookies_available, started, mode
+        )
+        status["degradation_reason"] = "scholar 命令不在 PATH 中"
+        return ProviderResponse(provider, status, [])
+    if requested_mode not in {"lookup", "search"}:
+        status = _scholar_status("failed_invalid_mode", False, cookies_available, started, mode)
+        status["degradation_reason"] = "GOOGLE_SCHOLAR_MODE 只能是 lookup 或 search"
+        return ProviderResponse(provider, status, [])
+    if mode == "search" and not cookies_available:
+        status = _scholar_status("skipped_missing_auth", False, False, started, mode)
+        status["degradation_reason"] = "Scholar Labs search 需要既有认证状态"
+        return ProviderResponse(provider, status, [])
+
+    try:
+        process = subprocess.run(
+            [executable, mode, query, "--json"],
+            capture_output=True,
+            check=False,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        status = _scholar_status("failed_timeout", False, cookies_available, started, mode)
+        status["degradation_reason"] = "scholar 命令执行超时"
+        return ProviderResponse(provider, status, [])
+    except OSError:
+        status = _scholar_status(
+            "unavailable_command_error", False, cookies_available, started, mode
+        )
+        status["degradation_reason"] = "scholar 命令无法启动"
+        return ProviderResponse(provider, status, [])
+
+    if process.returncode != 0:
+        state, reason, rate_limited = _scholar_failure_state(
+            f"{process.stdout}\n{process.stderr}"
+        )
+        status = _scholar_status(state, False, cookies_available, started, mode)
+        status.update(
+            {
+                "exit_code": process.returncode,
+                "rate_limited": rate_limited,
+                "degradation_reason": reason,
+            }
+        )
+        return ProviderResponse(provider, status, [])
+
+    try:
+        payload = json.loads(process.stdout)
+        items = _scholar_items(payload)
+    except (json.JSONDecodeError, ValueError):
+        status = _scholar_status("failed_invalid_json", False, cookies_available, started, mode)
+        status["degradation_reason"] = "scholar 返回的 JSON 无法解析"
+        return ProviderResponse(provider, status, [])
+
+    candidates = []
+    for item in items[:limit]:
+        title = str(item.get("title") or "").strip()
+        if not title:
+            continue
+        url = str(item.get("url") or "").strip() or None
+        pdf_url = str(item.get("pdfUrl") or item.get("pdf_url") or "").strip() or None
+        doi, arxiv_id = _identifier_from_scholar_urls(url, pdf_url)
+        cluster_id = (
+            str(item.get("clusterId") or item.get("cluster_id") or "").strip()
+            or None
+        )
+        candidate = _candidate(
+            provider,
+            title,
+            _scholar_authors(item.get("authors")),
+            _scholar_year(item.get("year")),
+            url,
+            doi,
+            arxiv_id,
+            bool(item.get("snippet")),
+            cluster_id,
+        )
+        candidate["verification_status"] = "unverified_external_candidate"
+        candidate["provider_records"][0].update(
+            {
+                "cluster_id": cluster_id,
+                "citations": item.get("citations"),
+                "journal": item.get("journal"),
+                "position": item.get("position"),
+                "pdf_url": pdf_url,
+                "metadata_role": "discovery_only",
+                "verification_status": "unverified_external_candidate",
+            }
+        )
+        candidates.append(candidate)
+
+    status = _scholar_status("ok", True, cookies_available, started, mode)
+    status["result_count"] = len(candidates)
+    return ProviderResponse(provider, status, candidates)
+
+
 def _hf_license(tags: Sequence[str], card_data: object) -> Optional[str]:
     for tag in tags:
         if tag.startswith("license:"):
@@ -658,6 +865,7 @@ def discover_online(
         "semantic_scholar": search_semantic_scholar,
         "crossref": search_crossref,
         "huggingface_papers": search_huggingface_papers,
+        "google_scholar": search_google_scholar,
         "github": search_github,
         "huggingface_hub": search_huggingface_hub,
     }

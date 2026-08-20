@@ -124,9 +124,9 @@
 - 遇到“文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文、主题论文”等请求，先运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search status --json`，再用 `uv run --project scripts/literature_search --locked python -m scripts.literature_search query "查询" --scope local --mode hybrid --offline --json` 检索 `wiki/papers/**/*.md`。
 - 索引不存在或 `stale=true` 时，按 `scripts/literature_search/README.md` 构建；模型依赖不可用时可先用 `--mode lexical`，但必须明确向量通道未运行。
 - 只有本地证据不足、用户明确要求近期或外部工作、或需要验证 DOI/题录时，才改用 `--scope all`；`all` 必须同时保留本地结果和在线来源状态，任一在线来源失败不得丢弃本地结果。
-- OpenAlex、Semantic Scholar 和 Crossref 的返回一律视为外部题录或摘要候选。候选没有本地全文原件与结构化全文笔记前，不得升级为全文证据、写入论文结论或冒充已读全文。
+- OpenAlex、Semantic Scholar、Crossref、Hugging Face Papers 和 Google Scholar 的返回一律视为外部题录或摘要候选。Google Scholar 请求必须调用 `$google-scholar`，程序化检索固定使用 JSON；`clusterId`、引用数和排序只作发现元数据。候选没有本地全文原件与结构化全文笔记前，不得升级为全文证据、写入论文结论或冒充已读全文。
 - `scope=all` 的 GitHub 结果只进入 `code_candidates`，HF 模型、数据集和 Space 只进入 `hub_candidates`，均不得进入论文 RRF。HF Papers 可作为论文候选来源，但未有本地全文前仍是未核候选。
-- 需要源码时优先调用已安装的官方 `github:github`；需要 HF 模型、数据集、Space 或论文关联时调用已安装的 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。skills.sh 上第三方 GitHub 技能采用量较低且来源弱于官方插件，不重复安装。所有调用只读；正式纳入仍转 `indexed-paper-reading`。
+- 需要 Google Scholar 或学术搜索时调用 `$google-scholar`；需要源码时优先调用已安装的官方 `github:github`；需要 HF 模型、数据集、Space 或论文关联时调用已安装的 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。skills.sh 上第三方 GitHub 技能采用量较低且来源弱于官方插件，不重复安装。所有调用只读；正式纳入仍按 `raw/` 原件、`wiki/` 全文笔记和 Zotero 题录的流程晋级。
 - 该入口只检索和报告，不自动写入 `raw/`、`wiki/` 或 Zotero；需要正式纳入时继续执行 `raw/AGENTS.md` 与 `wiki/AGENTS.md` 的全文入库工作流。
 
 **学位论文图件合同（2026-08-13 重定，规格取自实测朱焱雷学位论文原件）**
