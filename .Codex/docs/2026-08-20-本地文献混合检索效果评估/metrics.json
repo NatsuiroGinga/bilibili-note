@@ -1,0 +1,82 @@
+{
+  "positive_query_count": 14,
+  "negative_query_count": 2,
+  "total_relevance_judgments": 17,
+  "modes": {
+    "lexical": {
+      "macro_recall_at_5": 0.9404761904761905,
+      "macro_recall_at_10": 0.9761904761904762,
+      "micro_recall_at_5": 0.8823529411764706,
+      "micro_recall_at_10": 0.9411764705882353,
+      "mrr_at_10": 0.7619047619047619,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "latency_ms": {
+        "count": 16,
+        "mean": 20.421377557795495,
+        "median": 21.589687559753656,
+        "p95": 42.85290651023388,
+        "min": 0.7147081196308136,
+        "max": 48.464749939739704
+      },
+      "relevant_top10_source_pdf_nonempty": 16,
+      "relevant_top10_source_pdf_existing": 6,
+      "relevant_top10_page_hint_nonempty": 8,
+      "negative_query_return_counts": [
+        3,
+        10
+      ],
+      "negative_query_abstention_count": 0
+    },
+    "vector": {
+      "macro_recall_at_5": 0.9047619047619048,
+      "macro_recall_at_10": 0.9761904761904762,
+      "micro_recall_at_5": 0.8823529411764706,
+      "micro_recall_at_10": 0.9411764705882353,
+      "mrr_at_10": 0.8214285714285714,
+      "hit_rate_at_5": 0.9285714285714286,
+      "hit_rate_at_10": 1.0,
+      "latency_ms": {
+        "count": 16,
+        "mean": 65.988851536531,
+        "median": 42.963854502886534,
+        "p95": 214.0885725384578,
+        "min": 35.39475006982684,
+        "max": 245.15829095616937
+      },
+      "relevant_top10_source_pdf_nonempty": 16,
+      "relevant_top10_source_pdf_existing": 6,
+      "relevant_top10_page_hint_nonempty": 6,
+      "negative_query_return_counts": [
+        10,
+        10
+      ],
+      "negative_query_abstention_count": 0
+    },
+    "hybrid": {
+      "macro_recall_at_5": 0.9761904761904762,
+      "macro_recall_at_10": 0.9761904761904762,
+      "micro_recall_at_5": 0.9411764705882353,
+      "micro_recall_at_10": 0.9411764705882353,
+      "mrr_at_10": 0.8630952380952381,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "latency_ms": {
+        "count": 16,
+        "mean": 76.68872905196622,
+        "median": 65.20764552988112,
+        "p95": 132.70397891756147,
+        "min": 40.03774980083108,
+        "max": 242.42641730234027
+      },
+      "relevant_top10_source_pdf_nonempty": 16,
+      "relevant_top10_source_pdf_existing": 6,
+      "relevant_top10_page_hint_nonempty": 8,
+      "negative_query_return_counts": [
+        10,
+        10
+      ],
+      "negative_query_abstention_count": 0
+    }
+  }
+}
