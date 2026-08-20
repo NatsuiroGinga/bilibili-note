@@ -41,13 +41,26 @@ uv run --project scripts/literature_search --locked \
 
 - YAML 由 PyYAML 的 `safe_load` 解析，标量与列表都会进入规范字段；无效 YAML 不再用逐行字符串解析器猜测。
 - `paper_id` 优先使用规范 DOI，其次使用去版本号后的规范 arXiv 标识，最后使用规范题名和年份。
-- `note_id` 是仓库相对路径。一篇论文可以对应多个笔记视图；索引保存 `paper_id -> note_id` 关系，为查询层按论文聚合并列出视图提供稳定接口。
+- `note_id` 是仓库相对路径。一篇论文可以对应多个笔记视图；查询默认按 `paper_id` 聚合，每条结果的 `note_views` 保留全部视图，`note_path` 指向最终证据块所在视图。
 - 当前论文 DOI 和 arXiv 标识只读取 YAML 的 `doi`、`arxiv_id`。正文 DOI 仅保存为 `cited_dois`，不会参与当前论文身份生成。
 - `title_zh`、`authors`、`year`、`aliases`、`tags`、`key_finding`、`tasks`、`datasets`、`methods`、`metrics`、`supports` 和 `cannot_support` 保存为结构化列，同时进入可检索的元数据分块。旧笔记的单数 `task/dataset/method/metric` 会兼容映射到对应复数字段。
 
 ## 增量构建
 
 构建仍先写同目录临时 SQLite 文件，提交成功后再原子替换目标索引。若旧索引存在，构建器只读打开旧库，并且仅在稳定分块键和嵌入合同哈希同时相等时复制原始 `float32` 向量字节。稳定分块键包含规范笔记路径、标题、块位置、文本哈希和嵌入合同哈希；合同包含模型、修订、查询与文档前缀、解析和分块版本及字符预算。模式迁移、模型或分块合同变化会使旧向量整体失效。
+
+## 结果解释
+
+- 词法和向量通道先分别从分块聚合到笔记，再按 `paper_id` 聚合到论文；RRF 使用论文级排名，不会因同一论文存在多个笔记而重复占位。
+- 每条结果同时输出 `lexical_block`、`vector_block` 和 `evidence_block`，以及两个通道的排名、原始分数和 RRF 贡献。
+- 混合模式的最终证据块来自 RRF 贡献更大的通道；贡献相同时固定选择词法通道。`snippet/page_hint/note_path` 都与 `evidence_block` 一致，不再无条件优先词法片段。
+- JSON 输出保留全部结构；文本输出显示论文身份、视图、最终证据通道、块号和标题。
+
+## 冻结评估
+
+`evaluate` 支持一条查询对应多个相关论文，并报告 Recall@5/10、MRR@10、nDCG@10、论文级去重、查询延迟、页码、原件存在性、负例返回数和词法/向量独有相关项。查询可选提供 `relevant_chunk_ids` 或 `relevant_chunk_keys` 作为块级真值；没有真实块标注时，块命中返回 `null`，不会用相关笔记路径冒充块级真值。
+
+当前没有经独立开发集冻结的可靠拒答门。负例只报告返回数量，不使用冻结测试查询事后选择阈值。
 
 ## 在线候选
 
@@ -65,11 +78,13 @@ uv run --project scripts/literature_search --locked \
 
 可选环境变量只从进程环境读取，不写入索引或输出：
 
-- `OPENALEX_API_KEY`：启用 OpenAlex `search.semantic`；缺失时尝试普通 `search` 并标记降级。
+- `OPENALEX_API_KEY`：启用 OpenAlex `search.semantic`；缺失时直接标记 `skipped_missing_key`，不发出普通搜索请求。
 - `SEMANTIC_SCHOLAR_API_KEY`：以 `x-api-key` 头发送；缺失时使用公共接口。
 - `CROSSREF_MAILTO`：进入 Crossref 礼貌池。
 
-每次查询对每个来源至多发出一次请求。HTTP 403、429、超时、网络或 JSON 错误都会记录为来源级失败；`scope=all` 仍返回本地结果。所有在线结果均标记为未核全文候选，不自动写入 `raw/`、`wiki/` 或 Zotero。
+三个来源并发执行，但 Crossref 通过进程内锁保持单飞。HTTP 429 或 503 只有在响应提供数值型 `Retry-After` 且等待不超过本次超时时才退避并重试一次；403、超时、网络或 JSON 错误直接记录为来源级失败。在线候选按 DOI、arXiv、规范题名加年份依次跨来源去重，保留 `providers` 和各来源记录。
+
+每个来源状态记录认证、延迟、缓存、限流、重试、退避、去重和降级原因。当前没有查询缓存，状态固定标记 `cache_kind=none`；后续若实现持久缓存，必须另行冻结过期和失效合同。`--offline` 会把全部在线来源标为 `skipped_offline`。`scope=all` 始终保留本地结果。所有在线结果均标记为未核全文候选，不自动写入 `raw/`、`wiki/` 或 Zotero。
 
 ## 可再生制品
 

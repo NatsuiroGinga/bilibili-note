@@ -5,7 +5,7 @@ import json
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Dict, Optional, Sequence
 
 from .build import build_index
 from .config import REPO_ROOT, SearchConfig, load_config
@@ -16,6 +16,9 @@ from .status import index_status
 from .storage import connect, get_metadata
 
 
+DEFAULT_MODEL_CACHE = Path(".cache/literature-search/model-cache")
+
+
 def _print_json(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, indent=2))
 
@@ -23,7 +26,11 @@ def _print_json(value: object) -> None:
 def _print_results(results: Sequence[Dict[str, object]]) -> None:
     for item in results:
         print(f"{item['rank']}. {item['title']}")
+        print(f"   论文身份：{item['paper_id']}")
         print(f"   笔记：{item['note_path']}")
+        if int(item.get("note_view_count") or 0) > 1:
+            paths = "、".join(str(view["note_path"]) for view in item["note_views"])
+            print(f"   笔记视图：{paths}")
         print(f"   原件：{item.get('source_pdf') or '未记录'}")
         print(f"   页码：{item.get('page_hint') or '当前分块未提取'}")
         print(
@@ -37,6 +44,13 @@ def _print_results(results: Sequence[Dict[str, object]]) -> None:
                 ),
             )
         )
+        print(
+            "   证据：通道={channel} 块={chunk} 标题={heading}".format(
+                channel=item["evidence_channel"],
+                chunk=item["evidence_block"]["chunk_id"],
+                heading=item["evidence_block"].get("heading") or "-",
+            )
+        )
         print(f"   片段：{item['snippet']}")
 
 
@@ -46,7 +60,7 @@ def _print_online(result: Dict[str, object]) -> None:
         print(f"- {provider}: {json.dumps(status, ensure_ascii=False)}")
     print("外部候选：")
     for position, item in enumerate(result["results"], start=1):
-        print(f"{position}. [{item['provider']}] {item['title']}")
+        print(f"{position}. [{'/'.join(item['providers'])}] {item['title']}")
         print(f"   证据：{item['evidence_level']}")
         print(f"   URL：{item.get('url') or '未记录'}")
         print(f"   DOI/arXiv：{item.get('doi') or '-'} / {item.get('arxiv_id') or '-'}")
@@ -78,6 +92,9 @@ def make_parser() -> argparse.ArgumentParser:
     build_parser.add_argument("--lexical-only", action="store_true", help="只构建词法索引")
     build_parser.add_argument("--model-cache", type=Path, default=None, help="模型缓存目录")
     build_parser.add_argument("--offline", action="store_true", help="禁止模型联网下载")
+    build_parser.add_argument(
+        "--device", choices=["auto", "cpu", "mps"], default="auto", help="向量计算设备"
+    )
     build_parser.add_argument("--json", action="store_true", help="输出 JSON")
 
     query_parser = subparsers.add_parser("query", help="查询本地索引")
@@ -93,7 +110,12 @@ def make_parser() -> argparse.ArgumentParser:
     query_parser.add_argument("--online-limit", type=int, default=None)
     query_parser.add_argument("--online-timeout", type=float, default=None)
     query_parser.add_argument("--model-cache", type=Path, default=None)
-    query_parser.add_argument("--offline", action="store_true")
+    query_parser.add_argument(
+        "--offline", action="store_true", help="禁止模型下载与在线来源网络请求"
+    )
+    query_parser.add_argument(
+        "--device", choices=["auto", "cpu", "mps"], default="auto"
+    )
     query_parser.add_argument("--json", action="store_true")
 
     status_parser = subparsers.add_parser("status", help="显示索引状态")
@@ -109,6 +131,9 @@ def make_parser() -> argparse.ArgumentParser:
     )
     evaluate_parser.add_argument("--model-cache", type=Path, default=None)
     evaluate_parser.add_argument("--offline", action="store_true")
+    evaluate_parser.add_argument(
+        "--device", choices=["auto", "cpu", "mps"], default="auto"
+    )
     return parser
 
 
@@ -117,6 +142,12 @@ def _paths(args: argparse.Namespace) -> tuple[Path, SearchConfig, Path]:
     config = load_config(args.config)
     index_path = config.resolve_index_path(repo_root, args.index)
     return repo_root, config, index_path
+
+
+def _model_cache(args: argparse.Namespace, repo_root: Path) -> Path:
+    override = getattr(args, "model_cache", None)
+    value = override.expanduser() if override else repo_root / DEFAULT_MODEL_CACHE
+    return value if value.is_absolute() else repo_root / value
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -129,8 +160,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 index_path,
                 config,
                 lexical_only=args.lexical_only,
-                cache_folder=args.model_cache,
+                cache_folder=_model_cache(args, repo_root),
                 local_files_only=args.offline,
+                device=args.device,
             )
             if args.json:
                 _print_json(result)
@@ -157,8 +189,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     connection,
                     args.queries,
                     actual_config,
-                    cache_folder=args.model_cache,
+                    cache_folder=_model_cache(args, repo_root),
                     local_files_only=args.offline,
+                    device=args.device,
+                    repo_root=repo_root,
                 )
                 _print_json(result)
                 return 0
@@ -169,6 +203,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     args.online_timeout or actual_config.online_timeout_seconds,
                     repo_root,
                     connection=connection,
+                    offline=args.offline,
                 )
                 if args.json:
                     _print_json({"scope": "online", "online": online})
@@ -186,8 +221,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args.mode,
                 top_k,
                 actual_config,
-                cache_folder=args.model_cache,
+                cache_folder=_model_cache(args, repo_root),
                 local_files_only=args.offline,
+                device=args.device,
             )
             online = None
             if args.scope == "all":
@@ -197,6 +233,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                     args.online_timeout or actual_config.online_timeout_seconds,
                     repo_root,
                     connection=connection,
+                    offline=args.offline,
                 )
         finally:
             if connection is not None:

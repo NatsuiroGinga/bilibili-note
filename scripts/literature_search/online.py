@@ -4,9 +4,12 @@ import json
 import os
 import re
 import sqlite3
+import threading
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -15,6 +18,9 @@ from .documents import normalize_lexical
 
 
 USER_AGENT = "note-literature-search/0.1 (local academic metadata discovery)"
+PROVIDER_ORDER = ("openalex", "semantic_scholar", "crossref")
+RETRYABLE_HTTP_STATUS = {429, 503}
+CROSSREF_SINGLEFLIGHT = threading.Lock()
 
 
 @dataclass(frozen=True)
@@ -24,12 +30,41 @@ class ProviderResponse:
     candidates: List[Dict[str, object]]
 
 
+@dataclass(frozen=True)
+class RequestReceipt:
+    payload: Dict[str, Any]
+    headers: Mapping[str, str]
+    retry_count: int
+    backoff_seconds: float
+
+
+class RequestFailure(Exception):
+    def __init__(
+        self, error: Exception, retry_count: int = 0, backoff_seconds: float = 0.0
+    ) -> None:
+        super().__init__(str(error))
+        self.error = error
+        self.retry_count = retry_count
+        self.backoff_seconds = backoff_seconds
+
+
+def _retry_after_seconds(error: urllib.error.HTTPError, timeout: float) -> Optional[float]:
+    value = error.headers.get("Retry-After") if error.headers else None
+    if value is None:
+        return None
+    try:
+        seconds = float(value)
+    except ValueError:
+        return None
+    return seconds if 0.0 < seconds <= timeout else None
+
+
 def _request_json(
     url: str,
     params: Mapping[str, object],
     headers: Optional[Mapping[str, str]],
     timeout: float,
-) -> Tuple[Dict[str, Any], Mapping[str, str]]:
+) -> RequestReceipt:
     encoded = urllib.parse.urlencode(
         {key: value for key, value in params.items() if value is not None}
     )
@@ -37,12 +72,67 @@ def _request_json(
     request.add_header("User-Agent", USER_AGENT)
     for key, value in (headers or {}).items():
         request.add_header(key, value)
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-        return payload, dict(response.headers.items())
+    retry_count = 0
+    backoff_seconds = 0.0
+    while True:
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+                if not isinstance(payload, dict):
+                    raise ValueError("JSON 响应根节点不是对象")
+                return RequestReceipt(
+                    payload,
+                    {key.casefold(): value for key, value in response.headers.items()},
+                    retry_count,
+                    backoff_seconds,
+                )
+        except urllib.error.HTTPError as error:
+            delay = _retry_after_seconds(error, timeout)
+            if error.code in RETRYABLE_HTTP_STATUS and retry_count == 0 and delay:
+                time.sleep(delay)
+                retry_count = 1
+                backoff_seconds = delay
+                continue
+            raise RequestFailure(error, retry_count, backoff_seconds) from error
+        except (
+            urllib.error.URLError,
+            TimeoutError,
+            ValueError,
+            json.JSONDecodeError,
+        ) as error:
+            raise RequestFailure(error, retry_count, backoff_seconds) from error
 
 
-def _failure(provider: str, error: Exception, degraded: bool = True) -> ProviderResponse:
+def _base_status(
+    state: str,
+    ok: bool,
+    authenticated: bool,
+    started: float,
+) -> Dict[str, object]:
+    return {
+        "state": state,
+        "ok": ok,
+        "authenticated": authenticated,
+        "latency_ms": round((time.perf_counter() - started) * 1000.0, 3),
+        "cache_kind": "none",
+        "cache_hit": False,
+        "rate_limited": False,
+        "retry_count": 0,
+        "backoff_seconds": 0.0,
+        "degraded": not ok,
+        "degradation_reason": None if ok else state,
+        "result_count": 0,
+    }
+
+
+def _failure(
+    provider: str,
+    failure: RequestFailure,
+    authenticated: bool,
+    started: float,
+) -> ProviderResponse:
+    error = failure.error
+    http_status = error.code if isinstance(error, urllib.error.HTTPError) else None
     if isinstance(error, urllib.error.HTTPError):
         detail = f"HTTP {error.code}"
     elif isinstance(error, urllib.error.URLError):
@@ -51,11 +141,18 @@ def _failure(provider: str, error: Exception, degraded: bool = True) -> Provider
         detail = "请求超时"
     else:
         detail = f"响应错误：{type(error).__name__}"
-    return ProviderResponse(
-        provider,
-        {"ok": False, "degraded": degraded, "result_count": 0, "error": detail},
-        [],
+    status = _base_status("failed", False, authenticated, started)
+    status.update(
+        {
+            "http_status": http_status,
+            "rate_limited": http_status == 429,
+            "retry_count": failure.retry_count,
+            "backoff_seconds": failure.backoff_seconds,
+            "degradation_reason": detail,
+            "error": detail,
+        }
     )
+    return ProviderResponse(provider, status, [])
 
 
 def _clean_doi(value: Optional[str]) -> Optional[str]:
@@ -69,7 +166,7 @@ def _clean_arxiv(value: Optional[str]) -> Optional[str]:
     if not value:
         return None
     value = re.sub(r"^https?://arxiv\.org/(?:abs|pdf)/", "", value.strip(), flags=re.I)
-    return value.removesuffix(".pdf") or None
+    return re.sub(r"v\d+$", "", value.removesuffix(".pdf"), flags=re.I).lower() or None
 
 
 def _candidate(
@@ -86,9 +183,13 @@ def _candidate(
 ) -> Dict[str, object]:
     return {
         "provider": provider,
+        "providers": [provider],
         "provider_id": provider_id,
+        "provider_records": [
+            {"provider": provider, "provider_id": provider_id, "url": url}
+        ],
         "title": title.strip(),
-        "authors": [name for name in authors if name][:8],
+        "authors": [name for name in authors if name],
         "year": year,
         "url": url,
         "doi": _clean_doi(doi),
@@ -103,19 +204,21 @@ def _candidate(
 def search_openalex(query: str, limit: int, timeout: float) -> ProviderResponse:
     provider = "openalex"
     api_key = os.environ.get("OPENALEX_API_KEY")
-    semantic = bool(api_key)
+    started = time.perf_counter()
+    if not api_key:
+        status = _base_status("skipped_missing_key", False, False, started)
+        status["degradation_reason"] = "OPENALEX_API_KEY 未设置"
+        return ProviderResponse(provider, status, [])
     params: Dict[str, object] = {
         "per_page": limit,
         "select": "id,doi,display_name,publication_year,authorships,primary_location,ids,abstract_inverted_index",
         "api_key": api_key,
-        "search.semantic" if semantic else "search": query,
+        "search.semantic": query,
     }
     try:
-        payload, _ = _request_json(
-            "https://api.openalex.org/works", params, None, timeout
-        )
+        receipt = _request_json("https://api.openalex.org/works", params, None, timeout)
         candidates = []
-        for item in payload.get("results", []):
+        for item in receipt.payload.get("results", []):
             authors = [
                 entry.get("author", {}).get("display_name", "")
                 for entry in item.get("authorships", [])
@@ -135,31 +238,24 @@ def search_openalex(query: str, limit: int, timeout: float) -> ProviderResponse:
                     item.get("id"),
                 )
             )
-        return ProviderResponse(
-            provider,
+        status = _base_status("ok", True, True, started)
+        status.update(
             {
-                "ok": True,
-                "degraded": not semantic,
-                "semantic": semantic,
+                "semantic": True,
                 "result_count": len(candidates),
-                "message": (
-                    "已使用 OpenAlex 语义检索"
-                    if semantic
-                    else "未设置 OPENALEX_API_KEY，已回退普通作品检索"
-                ),
-            },
-            candidates,
+                "retry_count": receipt.retry_count,
+                "backoff_seconds": receipt.backoff_seconds,
+            }
         )
-    except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as error:
-        response = _failure(provider, error)
-        if not api_key:
-            response.status["message"] = "普通作品检索也不可用；OpenAlex 当前语义检索需要 API 密钥"
-        return response
+        return ProviderResponse(provider, status, candidates)
+    except RequestFailure as failure:
+        return _failure(provider, failure, True, started)
 
 
 def search_semantic_scholar(query: str, limit: int, timeout: float) -> ProviderResponse:
     provider = "semantic_scholar"
     api_key = os.environ.get("SEMANTIC_SCHOLAR_API_KEY")
+    started = time.perf_counter()
     headers = {"x-api-key": api_key} if api_key else None
     params = {
         "query": query,
@@ -167,14 +263,14 @@ def search_semantic_scholar(query: str, limit: int, timeout: float) -> ProviderR
         "fields": "paperId,title,abstract,url,externalIds,year,venue,authors",
     }
     try:
-        payload, response_headers = _request_json(
+        receipt = _request_json(
             "https://api.semanticscholar.org/graph/v1/paper/search",
             params,
             headers,
             timeout,
         )
         candidates = []
-        for item in payload.get("data", []):
+        for item in receipt.payload.get("data", []):
             external = item.get("externalIds") or {}
             candidates.append(
                 _candidate(
@@ -189,19 +285,18 @@ def search_semantic_scholar(query: str, limit: int, timeout: float) -> ProviderR
                     item.get("paperId"),
                 )
             )
-        return ProviderResponse(
-            provider,
+        status = _base_status("ok", True, bool(api_key), started)
+        status.update(
             {
-                "ok": True,
-                "degraded": False,
-                "authenticated": bool(api_key),
                 "result_count": len(candidates),
-                "rate_limit_remaining": response_headers.get("x-ratelimit-remaining"),
-            },
-            candidates,
+                "retry_count": receipt.retry_count,
+                "backoff_seconds": receipt.backoff_seconds,
+                "rate_limit_remaining": receipt.headers.get("x-ratelimit-remaining"),
+            }
         )
-    except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as error:
-        return _failure(provider, error)
+        return ProviderResponse(provider, status, candidates)
+    except RequestFailure as failure:
+        return _failure(provider, failure, bool(api_key), started)
 
 
 def _crossref_year(item: Mapping[str, Any]) -> Optional[int]:
@@ -218,17 +313,17 @@ def _crossref_year(item: Mapping[str, Any]) -> Optional[int]:
 def search_crossref(query: str, limit: int, timeout: float) -> ProviderResponse:
     provider = "crossref"
     mailto = os.environ.get("CROSSREF_MAILTO")
+    started = time.perf_counter()
     params = {"query.bibliographic": query, "rows": limit, "mailto": mailto}
     try:
-        payload, response_headers = _request_json(
-            "https://api.crossref.org/works", params, None, timeout
-        )
+        with CROSSREF_SINGLEFLIGHT:
+            receipt = _request_json("https://api.crossref.org/works", params, None, timeout)
         candidates = []
-        for item in (payload.get("message") or {}).get("items", []):
+        for item in (receipt.payload.get("message") or {}).get("items", []):
             titles = item.get("title") or []
             authors = [
-                " ".join(part for part in (a.get("given"), a.get("family")) if part)
-                for a in item.get("author", [])
+                " ".join(part for part in (author.get("given"), author.get("family")) if part)
+                for author in item.get("author", [])
             ]
             candidates.append(
                 _candidate(
@@ -244,20 +339,24 @@ def search_crossref(query: str, limit: int, timeout: float) -> ProviderResponse:
                     evidence_label="外部题录核验候选（未核全文）",
                 )
             )
-        return ProviderResponse(
-            provider,
+        status = _base_status("ok", True, bool(mailto), started)
+        status.update(
             {
-                "ok": True,
-                "degraded": False,
                 "polite_pool": bool(mailto),
+                "singleflight": True,
                 "result_count": len(candidates),
-                "rate_limit": response_headers.get("x-rate-limit-limit"),
-                "rate_limit_interval": response_headers.get("x-rate-limit-interval"),
-            },
-            candidates,
+                "retry_count": receipt.retry_count,
+                "backoff_seconds": receipt.backoff_seconds,
+                "rate_limit": receipt.headers.get("x-rate-limit-limit"),
+                "rate_limit_interval": receipt.headers.get("x-rate-limit-interval"),
+            }
         )
-    except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as error:
-        return _failure(provider, error)
+        return ProviderResponse(provider, status, candidates)
+    except RequestFailure as failure:
+        response = _failure(provider, failure, bool(mailto), started)
+        response.status["polite_pool"] = bool(mailto)
+        response.status["singleflight"] = True
+        return response
 
 
 def _local_inventory(
@@ -304,31 +403,111 @@ def _annotate_local(candidate: Dict[str, object], inventory: Sequence[Dict[str, 
     candidate["zotero_status"] = "未检查（任务边界禁止访问 Zotero）"
 
 
+def _candidate_key(candidate: Mapping[str, object]) -> str:
+    if candidate.get("doi"):
+        return f"doi:{candidate['doi']}"
+    if candidate.get("arxiv_id"):
+        return f"arxiv:{candidate['arxiv_id']}"
+    title = normalize_lexical(str(candidate.get("title") or ""))
+    if title:
+        return f"title:{title}|year:{candidate.get('year') or 'unknown'}"
+    return f"provider:{candidate['provider']}:{candidate.get('provider_id') or 'unknown'}"
+
+
+def _merge_candidates(
+    responses: Sequence[ProviderResponse],
+) -> Tuple[List[Dict[str, object]], Dict[str, Tuple[int, int]]]:
+    merged: Dict[str, Dict[str, object]] = {}
+    provider_counts: Dict[str, List[int]] = {
+        provider: [0, 0] for provider in PROVIDER_ORDER
+    }
+    for response in responses:
+        for candidate in response.candidates:
+            key = _candidate_key(candidate)
+            existing = merged.get(key)
+            if existing is None:
+                merged[key] = candidate
+                provider_counts[response.provider][0] += 1
+                continue
+            provider_counts[response.provider][1] += 1
+            existing["providers"] = list(
+                dict.fromkeys([*existing["providers"], *candidate["providers"]])
+            )
+            existing["provider_records"] = [
+                *existing["provider_records"],
+                *candidate["provider_records"],
+            ]
+            existing["authors"] = list(
+                dict.fromkeys([*existing["authors"], *candidate["authors"]])
+            )
+            for field in ("year", "url", "doi", "arxiv_id"):
+                if not existing.get(field) and candidate.get(field):
+                    existing[field] = candidate[field]
+            if candidate["evidence_level"] == "外部摘要候选（未核全文）":
+                existing["evidence_level"] = candidate["evidence_level"]
+    return list(merged.values()), {
+        provider: (counts[0], counts[1]) for provider, counts in provider_counts.items()
+    }
+
+
 def discover_online(
     query: str,
     limit: int,
     timeout: float,
     repo_root: Path,
     connection: Optional[sqlite3.Connection] = None,
+    offline: bool = False,
 ) -> Dict[str, object]:
     if limit < 1 or limit > 100:
         raise ValueError("在线结果数必须在 1 到 100 之间")
     if timeout <= 0:
         raise ValueError("在线超时必须为正数")
-    responses = [
-        search_openalex(query, limit, timeout),
-        search_semantic_scholar(query, limit, timeout),
-        search_crossref(query, limit, timeout),
-    ]
+    providers = {
+        "openalex": search_openalex,
+        "semantic_scholar": search_semantic_scholar,
+        "crossref": search_crossref,
+    }
+    responses_by_provider: Dict[str, ProviderResponse] = {}
+    if offline:
+        for provider in PROVIDER_ORDER:
+            status = _base_status("skipped_offline", False, False, time.perf_counter())
+            status["degradation_reason"] = "命令启用了 --offline"
+            responses_by_provider[provider] = ProviderResponse(provider, status, [])
+    else:
+        with ThreadPoolExecutor(max_workers=len(providers)) as executor:
+            futures = {
+                executor.submit(function, query, limit, timeout): provider
+                for provider, function in providers.items()
+            }
+            for future in as_completed(futures):
+                provider = futures[future]
+                try:
+                    responses_by_provider[provider] = future.result()
+                except Exception as error:
+                    failure = RequestFailure(error)
+                    responses_by_provider[provider] = _failure(
+                        provider, failure, False, time.perf_counter()
+                    )
+    responses = [responses_by_provider[provider] for provider in PROVIDER_ORDER]
+    raw_candidate_count = sum(len(response.candidates) for response in responses)
+    candidates, deduplication = _merge_candidates(responses)
     inventory = _local_inventory(connection, repo_root)
-    candidates: List[Dict[str, object]] = []
+    for candidate in candidates:
+        _annotate_local(candidate, inventory)
     for response in responses:
-        for candidate in response.candidates:
-            _annotate_local(candidate, inventory)
-            candidates.append(candidate)
+        new_count, duplicate_count = deduplication[response.provider]
+        response.status["deduplicated_new_count"] = new_count
+        response.status["deduplicated_duplicate_count"] = duplicate_count
     return {
         "provider_status": {response.provider: response.status for response in responses},
         "results": candidates,
+        "raw_candidate_count": raw_candidate_count,
         "candidate_count": len(candidates),
+        "deduplicated_count": raw_candidate_count - len(candidates),
+        "cache": {
+            "kind": "none",
+            "persistent": False,
+            "message": "本轮未实现查询缓存；每次调用都会重新请求可用来源。",
+        },
         "evidence_warning": "在线结果仅为题录或摘要候选，未核全文，不得直接写入论文结论。",
     }
