@@ -1,33 +1,61 @@
-"""生成第三章七张实验结果图（图3-5 ~ 图3-11）。
+"""生成第三章五张实验结果图（图3-6、图3-8、图3-9、图3-11、图3-12）。
 
-唯一数据源（不得从别处取数）：
-  thesis/experiments/llm_probe/runs/diagnostics/ch3-full/ch3_full_results.json
-  thesis/experiments/llm_probe/runs/diagnostics/ch3-full/run.log
+2026-08-18 重绘。原图3-5 ~ 图3-11 七幅与正文冲突，已裁决以正文为准重绘图件：正文
+数字是基准，一个不许改；图跟数据走，不得为对齐图面改动任何数值。本脚本据此只保留
+承担论证增量、且数据能追溯到本机制品的四幅重绘图，加上不在冲突之列的图3-12。撤下
+三幅的理由见 WITHDRAWN 常量，同时写进 图件清单.json：
+  图3-5  六方法三指标共 18 个数与表 3-7 逐格重复，且随机森林、发表配置一维卷积网络
+         与发表配置门控循环网络三行在本机没有结果制品，无法记录数据来源键路径。
+  图3-7  全图只承载六个标量，正文已逐一写出；其完整方法一组与图3-9 第 128 档同源。
+  图3-10 七行两指标共 14 个点估计全部落在表 3-6 内，且该子集只占全部正例的 0.164%，
+         正文自身两度限定其读法，单独配图会抬高它在读者视觉里的权重。
 
-外部参照常量（Dijk 2026 表 5、XGBoost、逐流 MLP、随机先验）来自同族冻结脚本
-thesis/experiments/llm_probe/tools/ch3_main.py 第 282、302-304 行，在图内与清单中显式标注来源。
+每幅图绘制前先用本机制品复现正文印刷读数，任何一项超差立即报错停止，不画图。
+落盘前还要过一道遮挡自检：渲染后按显示坐标把每个数据标记与曲线折点同图例框、注记框
+逐一做包含判定，任何数据元素落在不透明框内或被框沿压到标记边缘即报错，须改版面，
+不得删点、不得改坐标范围、不得改任何数值。
 
-输出 PNG(400 ppi) + PDF + SVG，落 thesis/figures/第三章/，并把本脚本负责的条目合并进 图件清单.json。
-执行：uv run --project thesis/figures/第三章 python thesis/figures/第三章/绘制第三章结果图.py
+2026-08-19 修订四处：图3-6 改绘为式 (3-30) 的 2×2 交互分解（原「跨骨干机制增益与判读
+带宽」画的是五个骨干，与正文 3.6.4 节唯一那处引用不符，已撤下；跨骨干读数由表 3-2
+承载）；图3-9 的图例、图3-11 的注记、图3-12 的图例改位，各自解除一处数据遮挡。
+
+各图数据源（互相独立，不得混用）：
+  图3-6  diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json 的
+         cells.{C00,C01,C10,C11}.e_lp 与 interaction.e_lp（多层感知机骨干）
+  图3-8  diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json 的 selection.*.val_ap_history
+  图3-9  四档长度的逐流读数取自 .Codex/docs/RWKV/2026-08-17-第三章XGBoost基线对照与门槛
+         测算.md 第九节（产出该实验的运行目录未同步到本机）；第 128 档与 ch3-full 的
+         stability.C11 交叉核对，核对不过即报错
+  图3-11 diagnostics/ch3-full/ch3_full_results.json 的 curve.C11
+  图3-12 diagnostics/dijk-repro/cache/{ent24_local.npy,y24.npy} 与
+         diagnostics/ch3-alert-budget-curve/{entity_scores.npy,entity_scores_rows.json,
+         alert_budget_curves.json}，详见 load_alert_budget_curve()
+
+字体、版面上限、导出与实测 ppi 自检一律由 figstyle 提供，本文件不硬编码字体路径。
+输出 PNG(400 ppi) + PDF + SVG，落 thesis/figures/第三章/，条目合并进 图件清单.json。
+执行：uv run --no-sync --project thesis/figures/第三章 python thesis/figures/第三章/绘制第三章结果图.py
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import re
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+# figstyle 负责字体解析（SimHei / Times New Roman / Cambria Math）、合同常量与交付自检。
+# 导入即完成 matplotlib 后端与字体链设置，本文件不得再覆盖 font.family 与 mathtext.*。
+import figstyle as fs
 import matplotlib
-
-matplotlib.use("Agg")
-
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import font_manager
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
@@ -35,101 +63,138 @@ logging.basicConfig(level=logging.WARNING, format="%(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parents[2]
-RUN_DIR = REPO / "thesis/experiments/llm_probe/runs/diagnostics/ch3-full"
-JSON_PATH = RUN_DIR / "ch3_full_results.json"
-LOG_PATH = RUN_DIR / "run.log"
+DIAG = REPO / "thesis/experiments/llm_probe/runs/diagnostics"
 MANIFEST_PATH = ROOT / "图件清单.json"
 
-# 学位论文图件合同：中文黑体。macOS 无 SimHei，按黑体族优先级回退到华文黑体。
-CJK_FONT_CANDIDATES = (
-    Path("/System/Library/Fonts/STHeiti Medium.ttc"),
-    Path("/System/Library/Fonts/STHeiti Light.ttc"),
-    Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
-    Path("/Library/Fonts/Arial Unicode.ttf"),
+# 旧协议运行：图3-11 的受限观测曲线、图3-9 的第 128 档交叉核对、图3-6 的判读带宽都取自这里
+FULL_PATH = DIAG / "ch3-full/ch3_full_results.json"
+# 图3-6、图3-8 的主口径运行：公平选择协议下的 2×2 四格（多层感知机骨干）
+FAIRSEL_PATH = DIAG / "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json"
+# 图3-9 四档长度逐流读数的落盘出处（运行目录未同步到本机，读数以本文件第九节为准）
+LENGTH_LEDGER = REPO / ".Codex/docs/RWKV/2026-08-17-第三章XGBoost基线对照与门槛测算.md"
+
+# 图3-12 独立数据源：告警预算曲线专项复算产物
+ALERT_RUN_DIR = DIAG / "ch3-alert-budget-curve"
+ALERT_JSON_PATH = ALERT_RUN_DIR / "alert_budget_curves.json"
+ALERT_SCORES_PATH = ALERT_RUN_DIR / "entity_scores.npy"
+ALERT_ROWS_PATH = ALERT_RUN_DIR / "entity_scores_rows.json"
+DIJK_CACHE_DIR = DIAG / "dijk-repro/cache"
+ALERT_ENT24_PATH = DIJK_CACHE_DIR / "ent24_local.npy"
+ALERT_Y24_PATH = DIJK_CACHE_DIR / "y24.npy"
+
+# ---------------------------------------------------------------------------
+# 正文冻结数值。每一项对应正文 3.6 节的印刷读数，绘图前逐项复现，超差直接报错。
+# ---------------------------------------------------------------------------
+
+# 表 3-3 与 3.6.4：多层感知机骨干上 2×2 四格的实体平均精确率（主口径百分数），
+# 以及式 (3-30) 的分解读数（个百分点）。四格与三项增量、交互项都逐项复现。
+INTERACTION_FROZEN = {
+    "C00": 33.50,
+    "C01": 40.85,
+    "C10": 38.60,
+    "C11": 51.84,
+    "gain_cpa": 5.10,
+    "gain_elp": 7.35,
+    "gain_sum": 12.45,
+    "gain_both": 18.34,
+    "interaction": 5.89,
+}
+# 表 3-2 表注：四个神经骨干的可训练参数量都落在 90,242 的正负 2% 以内
+NPAR_ANCHOR = 90242
+NPAR_TOL = 0.02
+# 表 3-7 表头：目标年度评价实体数
+N_ENT_FROZEN = 47115
+
+# 表 3-4 与 3.6.5：两个启用可学池化的配置，选中轮次与该轮的指数取值
+LP_FROZEN: dict[str, tuple[int, float]] = {"C01": (14, 0.5233), "C11": (10, 1.0562)}
+LP_INIT = 2.0  # 式 (3-11) 的初值
+
+# 表 3-5：四档序列长度的逐流平均精确率三次取值、均值与取值波动（百分数与个百分点）
+LENGTH_FROZEN: tuple[tuple[int, tuple[float, float, float], float, float], ...] = (
+    (16, (0.241938, 0.260196, 0.183522), 22.86, 4.01),
+    (32, (0.406520, 0.273421, 0.207112), 29.57, 10.16),
+    (64, (0.313038, 0.294242, 0.403543), 33.69, 5.84),
+    (128, (0.231571, 0.189229, 0.305084), 24.20, 5.86),
 )
-LATIN_FONT_CANDIDATES = (Path("/System/Library/Fonts/Supplemental/Times New Roman.ttf"),)
 
-PNG_DPI = 400
-FS_MIN = 8.0  # 图内最小字号
-FS_MAIN = 9.0  # 主标注字号
+# 3.6.8：受限观测曲线的三处印刷读数与前 50 条时的流读取占比
+TOPK_FROZEN = {"k1": 29.9964, "k50": 45.7276, "full": 46.2988, "cov50": 2.27}
+ENTITY_FLOW_MEDIAN = 2  # 3.6.6 与 3.6.8：实体流数中位数
 
-INK = "#1F2A30"
-MUTED = "#5C6A73"
-GRID = "#D5DCE0"
-ACCENT = "#B03A2E"
-FILL_C00 = "#E6EBEE"
-FILL_C01 = "#B7C3CB"
-FILL_C10 = "#7C8B95"
-FILL_C11 = "#3B4E5A"
-FILL_OWN_BASE = "#FFFFFF"
-FILL_EXTERNAL = "#FFFFFF"
-
-# 外部参照常量，来源 tools/ch3_main.py:282 与 302-304（同一冻结评价池）
-FLOW_PRIOR = 0.0257073138
-EXTERNAL_REFS = {
-    "XGBoost全量": 0.224442,
-    "逐流MLP": 0.159013,
-    "Dijk表5-XGB": 0.2416,
-    "Dijk表5-GRU+SesH": 0.1758,
-    "Dijk表5-Transformer+2-H": 0.0742,
+# 图3-12 冻结数值（正文 3.6.2 节图题与相邻两段，2026-08-18 版）
+ALERT_FROZEN = {
+    "crossing_nominal_fpr": 0.025020,  # 正文「假阳率 2.50% 处相交」
+    "ours_wins_fraction": 0.872204,  # 正文「87.22% 的点上检出率更高」
+    "dr_at_010pct": (0.264628, 0.118351),  # 正文「0.10% 处…14.63 个百分点」
+    "dr_at_050pct": (0.497340, 0.207447),  # 正文「0.50% 处…28.99 个百分点」
+    "transformer_lead_span": (0.025236, 0.128529),  # 正文「假阳率 2.52% 至 12.85%」
+    "transformer_max_lead": 0.045213,  # 正文「最大领先 4.52 个百分点」
 }
-ENTITY_FLOW_MEDIAN = 2  # run.log 第 5 行：实体内时序秩已建，实体流数中位=2
 
-CELL_NAMES = {
-    "C00": "基线序列编码器",
-    "C01": "仅实体级Lp池化",
-    "C10": "仅因果前缀聚合",
-    "C11": "完整方法",
-}
-CELL_TAGS = {"C00": "A-,B-", "C01": "A-,B+", "C10": "A+,B-", "C11": "A+,B+"}
-CELL_FILLS = {"C00": FILL_C00, "C01": FILL_C01, "C10": FILL_C10, "C11": FILL_C11}
-CELL_HATCH = {"C00": "", "C01": "//", "C10": "..", "C11": "xx"}
-CELL_ORDER = ("C00", "C01", "C10", "C11")
+# 撤下的四幅：不重绘，理由随清单一起交付，是否另行处置由正文一侧裁决
+WITHDRAWN: tuple[dict[str, str], ...] = (
+    {
+        "stem": "图3-6-跨骨干机制增益与判读带宽",
+        "reason": (
+            "正文对图 3-6 的唯一引用在 3.6.4 节，要的是式 (3-30) 在多层感知机骨干上的 2×2 交互分解；"
+            "该图画的是五个骨干的并用增量，与引用处不符。五行跨骨干读数已由表 3-2 逐行承载，"
+            "正文别处没有引用这张图。图 3-6 已改绘为 2×2 交互分解，落盘名沿用「图3-6-双机制消融交互」。"
+        ),
+        "unblock": "跨骨干比较如需配图，应另编图号并在正文相应位置建立引用；无需新实验。",
+    },
+    {
+        "stem": "图3-5-跨年度主性能对比",
+        "reason": (
+            "图题所述的六方法三指标共 18 个数与表 3-7 逐格一一对应，条形图不增加信息；"
+            "且随机森林、发表配置一维卷积网络与发表配置门控循环网络三行在本机没有结果 JSON，"
+            "只有印刷两位小数，无法按图件合同记录数据来源键路径。"
+        ),
+        "unblock": "同步 diagnostics/ch3-baselines-full/{trees_results.json,neural_results.json} 后可改画位次连线图；无需新实验。",
+    },
+    {
+        "stem": "图3-7-训练稳定性",
+        "reason": (
+            "全图只承载六个逐流读数，正文已连同两个取值波动逐一写出；"
+            "其中完整方法的三次取值与表 3-5 第 128 档是同一组数，已由图3-9 呈现。"
+        ),
+        "unblock": "如需保留，最省的做法是并入图3-9，在第 128 档旁另画一组无机制参照的三点。",
+    },
+    {
+        "stem": "图3-10-攻击类别分面",
+        "reason": (
+            "七行两指标共 14 个点估计全部在表 3-6 内，区间按图件体例不进图，图只能复述表格；"
+            "正文另已写明该子集只占全部正例的 0.164%、且三行正例数少于 50 不参与比较，"
+            "单独配图会把它抬到与主结果同级。"
+        ),
+        "unblock": "如裁决保留，需同步 diagnostics/ch3-e6-v2/e6_v2.json 及其三个输入数组；无需新实验。",
+    },
+)
 
+# ---------------------------------------------------------------------------
+# 版面
+# ---------------------------------------------------------------------------
 
-def register_fonts() -> dict[str, str]:
-    """注册中文黑体与西文 Times New Roman，返回实际生效的字体名。"""
-
-    def pick(candidates: tuple[Path, ...], kind: str) -> str:
-        for path in candidates:
-            if path.exists():
-                font_manager.fontManager.addfont(str(path))
-                return font_manager.FontProperties(fname=str(path)).get_name()
-        raise FileNotFoundError(f"未找到可用的{kind}字体，候选={candidates}")
-
-    cjk = pick(CJK_FONT_CANDIDATES, "中文黑体")
-    latin = pick(LATIN_FONT_CANDIDATES, "西文")
-    return {"cjk": cjk, "latin": latin}
-
-
-FONTS = register_fonts()
+INK = fs.INK
+MUTED = fs.MUTED
+RULE = fs.RULE
+HAIRLINE = fs.HAIRLINE
+SHADE = fs.SHADE
+ACCENT = fs.M2_EDGE
+SERIES_A_FACE = fs.M1_FACE
+SERIES_A_EDGE = fs.M1_EDGE
+SERIES_B_FACE = fs.M2_FACE
+FS_MIN = fs.MIN_FONT_PT
+FS_MAIN = fs.MAIN_FONT_PT
+PNG_DPI = fs.PNG_DPI
 
 plt.rcParams.update(
     {
-        # 西文优先 Times New Roman，中文逐字形回退到黑体
-        "font.family": [FONTS["latin"], FONTS["cjk"]],
-        "axes.unicode_minus": False,
-        "mathtext.fontset": "stix",
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-        "svg.fonttype": "none",
-        "figure.facecolor": "white",
-        "savefig.facecolor": "white",
-        "savefig.transparent": False,
-        "font.size": FS_MIN,
         "axes.labelsize": FS_MAIN,
         "axes.titlesize": FS_MAIN,
-        "xtick.labelsize": FS_MIN,
-        "ytick.labelsize": FS_MIN,
         "legend.fontsize": FS_MIN,
-        "axes.linewidth": 0.8,
-        "xtick.major.width": 0.8,
-        "ytick.major.width": 0.8,
-        "grid.linewidth": 0.5,
+        "grid.linewidth": fs.AUX_LINE_PT,
         "lines.linewidth": 1.4,
-        "hatch.linewidth": 0.6,
         "axes.edgecolor": INK,
         "text.color": INK,
         "axes.labelcolor": INK,
@@ -137,6 +202,13 @@ plt.rcParams.update(
         "ytick.color": INK,
     }
 )
+
+CELL_NAMES = {
+    "C00": "无机制参照",
+    "C01": "仅可学池化",
+    "C10": "仅因果前缀聚合",
+    "C11": "双机制并用",
+}
 
 
 @dataclass(frozen=True)
@@ -146,9 +218,42 @@ class FigureSpec:
     stem: str
     width_mm: float
     height_mm: float
-    draw: Callable[[dict[str, Any], dict[str, Any]], Figure]
-    json_keys: tuple[str, ...]
+    draw: Callable[[dict[str, Any]], Figure]
+    data_sources: tuple[str, ...]
     caption: str
+    check_group: str = ""
+
+
+@dataclass
+class Check:
+    """一项正文一致性自检的记录。"""
+
+    item: str
+    reproduced: float
+    thesis: float
+    tolerance: float
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "项": self.item,
+            "复现": round(self.reproduced, 8),
+            "正文": self.thesis,
+            "容差": self.tolerance,
+            "差": round(abs(self.reproduced - self.thesis), 8),
+        }
+
+
+def expect(bucket: list[Check], item: str, got: float, want: float, tol: float) -> None:
+    """复现值与正文印刷值比对；超差立刻报错停止，不得改图迁就。"""
+
+    if not np.isfinite(got):
+        raise ValueError(f"正文一致性自检失败：{item} 复现值非有限数，停止")
+    if abs(got - want) > tol:
+        raise ValueError(
+            f"正文一致性自检失败：{item} 复现={got:.6f} 正文={want:.6f} "
+            f"差={abs(got - want):.3e} 超出容差 {tol:g}；停止，不得改图迁就"
+        )
+    bucket.append(Check(item, float(got), float(want), tol))
 
 
 def mm_to_inch(value: float) -> float:
@@ -156,687 +261,1302 @@ def mm_to_inch(value: float) -> float:
 
 
 def new_figure(width_mm: float, height_mm: float) -> Figure:
-    return plt.figure(figsize=(mm_to_inch(width_mm), mm_to_inch(height_mm)), dpi=150)
+    if width_mm > fs.MAX_WIDTH_MM:
+        raise ValueError(f"宽度 {width_mm} mm 超过图件合同上限 {fs.MAX_WIDTH_MM} mm")
+    if height_mm > fs.MAX_HEIGHT_MM:
+        raise ValueError(f"高度 {height_mm} mm 超过图件合同上限 {fs.MAX_HEIGHT_MM} mm")
+    return plt.figure(figsize=(mm_to_inch(width_mm), mm_to_inch(height_mm)), dpi=200)
 
 
 def style_axes(ax: Axes, *, grid_axis: str = "y") -> None:
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.grid(True, axis=grid_axis, color=GRID, linewidth=0.5, zorder=0)
+    ax.grid(True, axis=grid_axis, color=HAIRLINE, linewidth=fs.AUX_LINE_PT, zorder=0)
     ax.set_axisbelow(True)
     ax.tick_params(length=2.5, pad=1.5)
 
 
-def warning_box(fig: Figure, text: str, *, y: float = 0.015) -> None:
-    """把已知缺陷说明直接钉在图面上，保证与图件不可分离。"""
+def pct_formatter(decimals: int = 0) -> Callable[[float, int], str]:
+    return lambda value, _pos: f"{value:.{decimals}f}%"
 
-    fig.text(
-        0.5,
-        y,
-        text,
-        ha="center",
-        va="bottom",
-        fontsize=FS_MIN,
-        color=ACCENT,
-        linespacing=1.35,
-        bbox={"boxstyle": "round,pad=0.32", "facecolor": "#FDF2F0", "edgecolor": ACCENT, "linewidth": 0.7},
+
+def read_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise FileNotFoundError(f"数据源不存在：{path}")
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+# ---------------------------------------------------------------------------
+# 遮挡自检：任何数据元素都不得落在图例框或注记框这类不透明矩形内
+# ---------------------------------------------------------------------------
+
+# 承载数据的绘图对象统一打这个标记，自检据此枚举，不靠猜测区分数据线与网格线、参考线。
+DATA_GID = "data-element"
+
+
+def mark_data(artist: Any) -> Any:
+    """把一个绘图返回值标记为数据元素。接受 Line2D、Rectangle 或它们的列表。"""
+
+    if isinstance(artist, (list, tuple)):
+        for item in artist:
+            mark_data(item)
+        return artist
+    artist.set_gid(DATA_GID)
+    return artist
+
+
+def _is_opaque(patch: Any) -> bool:
+    """判断一个补片是否不透明到足以遮住其下方的数据。"""
+
+    face = patch.get_facecolor()
+    if face is None or len(face) < 4:
+        return False
+    alpha = patch.get_alpha()
+    value = float(face[3]) if alpha is None else float(alpha)
+    return value > 0.99
+
+
+def _opaque_boxes(fig: Figure, renderer: Any) -> list[tuple[str, Any]]:
+    """收集全部不透明矩形：图例边框与带底色的文字注记框。"""
+
+    boxes: list[tuple[str, Any]] = []
+    legends = list(fig.legends)
+    for ax in fig.axes:
+        legend = ax.get_legend()
+        if legend is not None:
+            legends.append(legend)
+    for legend in legends:
+        if not legend.get_frame_on():
+            continue
+        frame = legend.get_frame()
+        if _is_opaque(frame):
+            boxes.append(("图例框", frame.get_window_extent(renderer)))
+
+    texts = list(fig.texts)
+    for ax in fig.axes:
+        texts.extend(ax.texts)
+    for item in texts:
+        patch = item.get_bbox_patch()
+        if patch is None or not _is_opaque(patch):
+            continue
+        head = item.get_text().splitlines()[0]
+        boxes.append((f"注记框「{head}」", patch.get_window_extent(renderer)))
+    return boxes
+
+
+def _point_gap_px(x: float, y: float, bbox: Any) -> float:
+    """点到矩形的最短距离，单位为显示像素；点落在矩形内时为 0。"""
+
+    dx = max(bbox.x0 - x, 0.0, x - bbox.x1)
+    dy = max(bbox.y0 - y, 0.0, y - bbox.y1)
+    return float(np.hypot(dx, dy))
+
+
+@dataclass
+class Occlusion:
+    """一幅图的遮挡判定结果。"""
+
+    stem: str
+    n_boxes: int
+    n_points: int
+    n_distinct: int
+    n_inside: int
+    n_inside_distinct: int
+    n_marker_clipped: int
+    min_gap_pt: float
+    marker_pt: float
+    nearest: str
+    offenders: list[str]
+    per_series: list[str]
+
+
+def check_occlusion(stem: str, fig: Figure) -> Occlusion:
+    """逐点判定：把每个数据标记与曲线折点的显示坐标同每个不透明矩形做包含判定。
+
+    判定在实际渲染后的显示坐标系上做，不依赖数据坐标或人工估算的版面尺寸。
+    只统计落在坐标区可视范围内的点——被坐标范围裁掉的点本来就不在页面上。
+    除包含判定外还报告最近间隙，用来说明数据元素连边缘都没有被压到。
+    """
+
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    boxes = _opaque_boxes(fig, renderer)
+
+    n_points = 0
+    n_distinct = 0
+    n_inside = 0
+    n_inside_distinct = 0
+    n_marker_clipped = 0
+    min_gap = float("inf")
+    marker_pt = 0.0
+    nearest = "无不透明框"
+    offenders: list[str] = []
+    per_series: list[str] = []
+
+    for ax in fig.axes:
+        clip = ax.get_window_extent(renderer)
+        for line in ax.get_lines():
+            if line.get_gid() != DATA_GID:
+                continue
+            xy = np.asarray(line.get_transform().transform(line.get_xydata()), dtype=float)
+            if xy.size == 0:
+                continue
+            keep = np.isfinite(xy).all(axis=1)
+            keep &= (xy[:, 0] >= clip.x0) & (xy[:, 0] <= clip.x1)
+            keep &= (xy[:, 1] >= clip.y0) & (xy[:, 1] <= clip.y1)
+            xy = xy[keep]
+            if xy.size == 0:
+                continue
+            rounded = np.round(xy, 0)
+            distinct = np.unique(rounded, axis=0)
+            n_points += int(xy.shape[0])
+            n_distinct += int(distinct.shape[0])
+            marker = line.get_marker()
+            has_marker = marker not in (None, "none", "None", " ", "")
+            # 标记是有面积的圆盘，圆心在框外但离框沿不足半径时仍会被压掉一角。
+            # 半径按显示像素算，与图的物理尺寸和分辨率无关。
+            radius_px = float(line.get_markersize()) / 2.0 / 72.0 * fig.dpi if has_marker else 0.0
+            if has_marker:
+                marker_pt = max(marker_pt, float(line.get_markersize()))
+            hit = 0
+            hit_distinct = 0
+            for px, py in xy:
+                for name, bbox in boxes:
+                    gap = _point_gap_px(px, py, bbox)
+                    if gap < min_gap:
+                        min_gap = gap
+                        nearest = f"{line.get_label()} 距 {name} 最近"
+                    if 0.0 < gap < radius_px:
+                        n_marker_clipped += 1
+                        if len(offenders) < 6:
+                            offenders.append(
+                                f"{name} 压到 {line.get_label()} 标记的边缘，"
+                                f"圆心间隙 {gap / fig.dpi * 72.0:.2f} pt 小于半径 "
+                                f"{radius_px / fig.dpi * 72.0:.2f} pt"
+                            )
+                    if gap <= 0.0:
+                        hit += 1
+                        if len(offenders) < 6:
+                            offenders.append(
+                                f"{name} 盖住 {line.get_label()} 的显示坐标 ({px:.1f}, {py:.1f})"
+                            )
+            for px, py in distinct:
+                if any(_point_gap_px(px, py, bbox) <= 0.0 for _name, bbox in boxes):
+                    hit_distinct += 1
+            n_inside += hit
+            n_inside_distinct += hit_distinct
+            per_series.append(
+                f"{line.get_label()}：可视折点 {xy.shape[0]} 个（去重 {distinct.shape[0]} 个），"
+                f"落在框内 {hit} 个（去重 {hit_distinct} 个）"
+            )
+        for patch in ax.patches:
+            if patch.get_gid() != DATA_GID:
+                continue
+            bar = patch.get_window_extent(renderer)
+            n_points += 1
+            n_distinct += 1
+            hit = 0
+            for name, bbox in boxes:
+                overlap_x = min(bar.x1, bbox.x1) - max(bar.x0, bbox.x0)
+                overlap_y = min(bar.y1, bbox.y1) - max(bar.y0, bbox.y0)
+                gap = 0.0 if (overlap_x > 0 and overlap_y > 0) else max(-overlap_x, -overlap_y, 0.0)
+                min_gap = min(min_gap, gap)
+                if overlap_x > 0 and overlap_y > 0:
+                    hit += 1
+                    if len(offenders) < 6:
+                        offenders.append(f"{name} 与条形重叠，重叠 {overlap_x:.1f}×{overlap_y:.1f} 像素")
+            n_inside += hit
+            n_inside_distinct += hit
+            per_series.append(f"条形 {patch.get_label()}：落在框内 {hit} 个")
+
+    gap_pt = min_gap / fig.dpi * 72.0 if np.isfinite(min_gap) else float("inf")
+    return Occlusion(
+        stem,
+        len(boxes),
+        n_points,
+        n_distinct,
+        n_inside,
+        n_inside_distinct,
+        n_marker_clipped,
+        gap_pt,
+        marker_pt,
+        nearest,
+        offenders,
+        per_series,
     )
 
 
-def load_sources() -> tuple[dict[str, Any], dict[str, Any]]:
-    """读取冻结 JSON 与 run.log，解析 Lp 指数逐 epoch 轨迹（若存在）。"""
-
-    if not JSON_PATH.exists():
-        raise FileNotFoundError(f"冻结结果不存在：{JSON_PATH}")
-    with JSON_PATH.open(encoding="utf-8") as handle:
-        data = json.load(handle)
-
-    log_text = LOG_PATH.read_text(encoding="utf-8") if LOG_PATH.exists() else ""
-    # 逐 epoch 轨迹须同时含 epoch/step 标记与 p 值；本次为顺序执行，预期无匹配。
-    traj_pattern = re.compile(
-        r"(?:epoch|ep|step)\s*[=: ]\s*(\d+)[^\n]*?\b(C\d{2})\b[^\n]*?p=([0-9.]+)", re.IGNORECASE
-    )
-    trajectory: dict[str, list[tuple[int, float]]] = {}
-    for step, cell, value in traj_pattern.findall(log_text):
-        trajectory.setdefault(cell, []).append((int(step), float(value)))
-    has_trajectory = any(len(v) >= 2 for v in trajectory.values())
-
-    # 终值 p（无 epoch 标记的行），用于回退柱状图的三种子标注
-    seed_pattern = re.compile(r"(C\d{2})-s(\d+)[^\n]*?p=([0-9.]+)")
-    seed_p: dict[str, dict[int, float]] = {}
-    for cell, seed, value in seed_pattern.findall(log_text):
-        seed_p.setdefault(cell, {})[int(seed)] = float(value)
-
-    log_facts = {"trajectory": trajectory, "has_trajectory": has_trajectory, "seed_p": seed_p}
-    return data, log_facts
+# ---------------------------------------------------------------------------
+# 数据加载与正文一致性自检
+# ---------------------------------------------------------------------------
 
 
-def interaction(cells: dict[str, Any], key: str) -> dict[str, float]:
-    """按预注册设计计算 2x2 主效应与交互项。"""
+def load_full_results() -> dict[str, Any]:
+    return read_json(FULL_PATH)
 
-    v = {c: float(cells[c][key]) for c in CELL_ORDER}
-    a_main = v["C10"] - v["C00"]
-    b_main = v["C01"] - v["C00"]
-    combo = v["C11"] - v["C00"]
-    delta = v["C11"] - v["C10"] - v["C01"] + v["C00"]
+
+def load_interaction_2x2() -> dict[str, Any]:
+    """图3-6：多层感知机骨干上 2×2 四格的实体平均精确率与式 (3-30) 的分解。
+
+    四格取主口径 `cells.*.e_lp`——两个启用可学池化的格按幂平均读，两个未启用的格
+    按取最大读，与表 3-3 的主口径列一致。三项增量与交互项在此由四格重算，再与
+    结果文件内已落盘的 `interaction.e_lp` 逐项对齐，两条路径都不过就停止。
+
+    取用正确性的断言是可训练参数量与评价实体数：四格同为 90,242 与 47,115，
+    取错运行目录会立即在这两项上暴露。
+    """
+    checks: list[Check] = []
+    fair = read_json(FAIRSEL_PATH)
+    cells = fair["cells"]
+
+    values: dict[str, float] = {}
+    for cell in ("C00", "C01", "C10", "C11"):
+        item = cells[cell]
+        values[cell] = float(item["e_lp"]) * 100.0
+        expect(checks, f"表3-3 {CELL_NAMES[cell]}", values[cell], INTERACTION_FROZEN[cell], 5e-3)
+        expect(checks, f"{CELL_NAMES[cell]} 评价实体数", float(item["n_ent_scored"]), float(N_ENT_FROZEN), 0.5)
+        deviation = abs(float(item["npar"]) - NPAR_ANCHOR) / NPAR_ANCHOR
+        if deviation > NPAR_TOL:
+            raise ValueError(
+                f"{CELL_NAMES[cell]} 可训练参数量 {item['npar']} 偏离锚点 {NPAR_ANCHOR} 达 "
+                f"{deviation * 100:.2f}%；可能取错运行目录，停止"
+            )
+
+    gain_cpa = values["C10"] - values["C00"]
+    gain_elp = values["C01"] - values["C00"]
+    gain_sum = gain_cpa + gain_elp
+    gain_both = values["C11"] - values["C00"]
+    interaction = gain_both - gain_sum
+
+    expect(checks, "3.6.4 单开因果前缀聚合的增益", gain_cpa, INTERACTION_FROZEN["gain_cpa"], 5e-3)
+    expect(checks, "3.6.4 单开可学池化的增益", gain_elp, INTERACTION_FROZEN["gain_elp"], 5e-3)
+    expect(checks, "3.6.4 两者之和", gain_sum, INTERACTION_FROZEN["gain_sum"], 5e-3)
+    expect(checks, "3.6.4 双机制并用的增益", gain_both, INTERACTION_FROZEN["gain_both"], 5e-3)
+    expect(checks, "式 (3-30) 交互项", interaction, INTERACTION_FROZEN["interaction"], 5e-3)
+
+    # 与结果文件内已落盘的同名分解逐项对齐，防止本文件的重算与生产端口径漂移。
+    landed = fair["interaction"]["e_lp"]
+    for item, got, key in (
+        ("交互项与结果文件一致", interaction, "interaction"),
+        ("单开因果前缀聚合增益与结果文件一致", gain_cpa, "A"),
+        ("单开可学池化增益与结果文件一致", gain_elp, "B"),
+        ("两者之和与结果文件一致", gain_sum, "sum"),
+        ("双机制并用增益与结果文件一致", gain_both, "combo"),
+    ):
+        expect(checks, item, got, float(landed[key]) * 100.0, 5e-9)
+
     return {
-        **v,
-        "A": a_main,
-        "B": b_main,
-        "sum": a_main + b_main,
-        "combo": combo,
-        "delta": delta,
-        "crit1": float(delta > 0.0),
-        "crit2": float(v["C11"] > max(v["C01"], v["C10"])),
+        "values": values,
+        "gain_cpa": gain_cpa,
+        "gain_elp": gain_elp,
+        "gain_sum": gain_sum,
+        "gain_both": gain_both,
+        "interaction": interaction,
+        "checks": checks,
     }
 
 
-def draw_main_comparison(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-5 跨年度主性能对比（逐流 AP 横向条形）。"""
+def load_lp_trajectory() -> dict[str, Any]:
+    """图3-8：两个启用可学池化的配置在 20 个训练轮次上的指数取值。
 
-    cells = data["cells"]
-    rows = [
-        (f"本章 {CELL_NAMES['C11']}（前缀聚合+Lp池化）", float(cells["C11"]["fap"]), "own_cell", "C11"),
-        (f"本章 {CELL_NAMES['C10']}", float(cells["C10"]["fap"]), "own_cell", "C10"),
-        (f"本章 {CELL_NAMES['C01']}", float(cells["C01"]["fap"]), "own_cell", "C01"),
-        (f"本章 {CELL_NAMES['C00']}", float(cells["C00"]["fap"]), "own_cell", "C00"),
-        ("本课题 XGBoost 全量字段", EXTERNAL_REFS["XGBoost全量"], "own_base", None),
-        ("本课题 逐流 MLP", EXTERNAL_REFS["逐流MLP"], "own_base", None),
-        ("Dijk 2026 表5 XGBoost", EXTERNAL_REFS["Dijk表5-XGB"], "external", None),
-        ("Dijk 2026 表5 GRU + SesH", EXTERNAL_REFS["Dijk表5-GRU+SesH"], "external", None),
-        ("Dijk 2026 表5 Transformer + 2-H", EXTERNAL_REFS["Dijk表5-Transformer+2-H"], "external", None),
-    ]
+    selection.{C01,C11}.val_ap_history 的每一项为 [轮次, 源年度验证平均精确率, 指数]。
+    自检两条：选中轮次与表 3-3 行序所记一致；该轮的指数等于 cells.*.p 的终值。
+    """
+    checks: list[Check] = []
+    fair = read_json(FAIRSEL_PATH)
+    series: dict[str, dict[str, Any]] = {}
+    for cell, (sel_epoch_txt, sel_p_txt) in LP_FROZEN.items():
+        history = fair["selection"][cell]["val_ap_history"]
+        epochs = [int(row[0]) for row in history]
+        values = [float(row[2]) for row in history]
+        sel_epoch = int(fair["cells"][cell]["sel_epoch"])
+        sel_p = float(fair["cells"][cell]["p"])
+        expect(checks, f"{CELL_NAMES[cell]} 选中轮次", float(sel_epoch), float(sel_epoch_txt), 0.0)
+        expect(checks, f"{CELL_NAMES[cell]} 选中轮次的指数", sel_p, sel_p_txt, 5e-5)
+        at_sel = values[epochs.index(sel_epoch)]
+        expect(checks, f"{CELL_NAMES[cell]} 轨迹与终值一致", at_sel, sel_p, 1e-9)
+        if max(values) > LP_INIT:
+            raise ValueError(f"{CELL_NAMES[cell]} 轨迹出现高于初值 {LP_INIT} 的取值，与正文不符，停止")
+        series[cell] = {"epochs": epochs, "values": values, "sel_epoch": sel_epoch, "sel_p": sel_p}
+    return {"series": series, "checks": checks}
 
-    fig = new_figure(150, 95)
-    ax = fig.add_axes((0.335, 0.335, 0.635, 0.615))
-    style_axes(ax, grid_axis="x")
 
-    ypos = np.arange(len(rows))[::-1]
-    for y, (label, value, kind, cell) in zip(ypos, rows, strict=True):
-        if kind == "own_cell" and cell is not None:
-            face, hatch, edge = CELL_FILLS[cell], CELL_HATCH[cell], INK
-        elif kind == "own_base":
-            face, hatch, edge = FILL_OWN_BASE, "\\\\", MUTED
-        else:
-            face, hatch, edge = FILL_EXTERNAL, "///", ACCENT
-        ax.barh(y, value, height=0.66, facecolor=face, edgecolor=edge, linewidth=0.9, hatch=hatch, zorder=3)
-        ax.text(value + 0.006, y, f"{value:.4f}", va="center", ha="left", fontsize=FS_MIN, color=INK, zorder=4)
+def load_length_flow(full: dict[str, Any]) -> dict[str, Any]:
+    """图3-9：四档序列长度的逐流平均精确率三次取值与均值。
 
-    ax.vlines(FLOW_PRIOR, -0.7, len(rows) - 0.52, color=ACCENT, linestyle=(0, (4, 2)), linewidth=1.1, zorder=5)
-    ax.text(
-        FLOW_PRIOR + 0.008,
-        len(rows) - 0.35,
-        f"随机先验 {FLOW_PRIOR:.6f}",
-        fontsize=FS_MIN,
-        color=ACCENT,
-        va="center",
-        ha="left",
+    产出该实验的运行目录未同步到本机，逐次读数取自 LENGTH_LEDGER 第九节；
+    第 128 档与 ch3-full 的 stability.C11 同源，此处逐值交叉核对，不一致即停止。
+    """
+    checks: list[Check] = []
+    anchor = np.asarray(full["stability"]["C11"], dtype=float)
+    rows: list[dict[str, Any]] = []
+    for length, triple, mean_txt, spread_txt in LENGTH_FROZEN:
+        values = np.asarray(triple, dtype=float) * 100.0
+        mean = float(values.mean())
+        spread = float(values.std(ddof=1))
+        expect(checks, f"表3-5 长度 {length} 均值", mean, mean_txt, 5e-3)
+        expect(checks, f"表3-5 长度 {length} 取值波动", spread, spread_txt, 5e-3)
+        if length == 128:
+            for idx, (got, want) in enumerate(zip(triple, anchor.tolist(), strict=True), start=1):
+                expect(checks, f"长度 128 第 {idx} 次与 stability.C11 交叉核对", got, want, 5e-7)
+        rows.append({"length": length, "values": values, "mean": mean, "spread": spread})
+
+    means = [row["mean"] for row in rows]
+    spreads = [row["spread"] for row in rows]
+    expect(checks, "3.6.6 档内波动下界", min(spreads), 4.01, 5e-3)
+    expect(checks, "3.6.6 档内波动上界", max(spreads), 10.16, 5e-3)
+    return {"rows": rows, "mean_span": (min(means), max(means)), "checks": checks}
+
+
+def load_topk_curve(full: dict[str, Any]) -> dict[str, Any]:
+    """图3-11：每实体只用按时间最早的前 k 条流时的实体平均精确率。
+
+    curve.C11 的每一项为 [k, 实体平均精确率, 假阳率 4% 工作点检出率, 已评实体数, 被读取流占比]，
+    末项的 k 为空表示使用全部流。正文只引用实体平均精确率一列，检出率一列不入图。
+    """
+    checks: list[Check] = []
+    curve = full["curve"]["C11"]
+    finite = [row for row in curve if row[0] is not None]
+    ks = [int(row[0]) for row in finite]
+    aps = [float(row[1]) * 100.0 for row in finite]
+    coverage = [float(row[4]) * 100.0 for row in finite]
+    full_ap = float(curve[-1][1]) * 100.0
+    if curve[-1][0] is not None:
+        raise ValueError("curve.C11 末项不是使用全部流的取值，停止")
+
+    idx50 = ks.index(50)
+    expect(checks, "3.6.8 只看第一条流", aps[0], TOPK_FROZEN["k1"], 5e-4)
+    expect(checks, "3.6.8 前 50 条", aps[idx50], TOPK_FROZEN["k50"], 5e-4)
+    expect(checks, "3.6.8 使用全部流", full_ap, TOPK_FROZEN["full"], 5e-4)
+    expect(checks, "3.6.8 前 50 条的流读取占比", coverage[idx50], TOPK_FROZEN["cov50"], 5e-3)
+    expect(checks, "评价实体数", float(finite[0][3]), float(N_ENT_FROZEN), 0.5)
+    if aps[idx50] / full_ap < 0.95:
+        raise ValueError("前 50 条未达到使用全部流取值的 95%，与正文不符，停止")
+    return {
+        "ks": ks,
+        "aps": aps,
+        "coverage": coverage,
+        "full_ap": full_ap,
+        "idx50": idx50,
+        "checks": checks,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 图3-12：告警预算曲线（数据源与其余四幅独立）
+# ---------------------------------------------------------------------------
+
+
+def _average_precision(y_true: np.ndarray, y_score: np.ndarray) -> float:
+    """sklearn.metrics.average_precision_score 的等价实现（按唯一阈值分组处理并列）。
+
+    只用于图3-12 数据加载阶段核验 entity_scores.npy 的列序与实体标签重建是否对齐，
+    不作为任何结果表的指标来源——正式实体级读数以 alert_budget_curves.json 内的冻结值为准。
+    """
+    order = np.argsort(y_score, kind="mergesort")[::-1]
+    yt = y_true[order]
+    ys = y_score[order]
+    distinct = np.where(np.diff(ys))[0]
+    thr_idx = np.r_[distinct, len(yt) - 1]
+    tps = np.cumsum(yt)[thr_idx]
+    fps = 1 + thr_idx - tps
+    precision = tps / (tps + fps)
+    recall = tps / tps[-1]
+    precision = np.r_[precision[::-1], 1.0]
+    recall = np.r_[recall[::-1], 0.0]
+    return float(-np.sum(np.diff(recall) * precision[:-1]))
+
+
+def _budget_curve(es: np.ndarray, ent_lab: np.ndarray) -> dict[str, np.ndarray]:
+    """按实体分数与标签构造告警预算曲线。
+
+    算法逐字复用 thesis/experiments/llm_probe/tools/ch3_alert_budget_curves.py 的
+    budget_curve() 函数（该脚本是 entity_scores.npy 与 alert_budget_curves.json 的
+    生成源）：阈值取自负实体分数降序序列，第 j 个（0 起）阈值对应名义假阳率 j/n_neg。
+    """
+    ok = np.isfinite(es)
+    v, lab = es[ok], ent_lab[ok]
+    pos = np.sort(v[lab == 1])
+    neg = np.sort(v[lab == 0])[::-1]
+    n_pos, n_neg = len(pos), len(neg)
+    dr = (n_pos - np.searchsorted(pos, neg, side="left")) / n_pos
+    return {"dr": dr, "nominal_fpr": np.arange(n_neg) / n_neg, "n_pos": n_pos, "n_neg": n_neg}
+
+
+def _find_crossings(dr_a: np.ndarray, dr_b: np.ndarray) -> list[dict[str, int]]:
+    """在共同的假阳预算网格上找两条检出率曲线的符号变化点，语义同源脚本 find_crossings。"""
+
+    diff = dr_a - dr_b
+    sign = np.sign(diff)
+    nz_idx = np.flatnonzero(sign != 0)
+    crossings: list[dict[str, int]] = []
+    if len(nz_idx) == 0:
+        return crossings
+    prev = int(nz_idx[0])
+    for i in nz_idx[1:]:
+        i = int(i)
+        if sign[i] != sign[prev]:
+            crossings.append({"j_before": prev, "j_after": i})
+        prev = i
+    return crossings
+
+
+def load_alert_budget_curve() -> dict[str, Any]:
+    """加载图3-12所需数据并复现正文冻结数值；任何一项复现不过直接报错，不画图。
+
+    实体顺序核验：entity_scores.npy 的列序对应 ent24_local.npy——即
+    thesis/experiments/llm_probe/tools/ch3_alert_budget_curves.py::build_entity_mapping
+    用 pd.factorize 编码地址后再对整数无向对 np.unique 得到的实体编号，
+    不是对字符串键直接排序的结果（两种编号给出相同的实体划分，但索引顺序不同）。
+    本函数用实体级读数与 alert_budget_curves.json 内的冻结值比对，显式核验列序对齐，
+    不对列序做任何假设；核验失败直接抛错，不允许静默按其他顺序对齐。
+    """
+    for path in (ALERT_JSON_PATH, ALERT_SCORES_PATH, ALERT_ROWS_PATH, ALERT_ENT24_PATH, ALERT_Y24_PATH):
+        if not path.exists():
+            raise FileNotFoundError(f"图3-12 数据源缺失：{path}")
+
+    y24 = np.load(ALERT_Y24_PATH)
+    ent24 = np.load(ALERT_ENT24_PATH)
+    n_ent = int(ent24.max()) + 1
+    ent_lab = np.zeros(n_ent, np.float32)
+    np.maximum.at(ent_lab, ent24, y24)
+
+    with ALERT_ROWS_PATH.open(encoding="utf-8") as handle:
+        rows = json.load(handle)["rows"]
+    scores = np.load(ALERT_SCORES_PATH)
+    if scores.shape != (len(rows), n_ent):
+        raise ValueError(f"图3-12 entity_scores.npy 形状 {scores.shape} 与实体数 {n_ent} 不符，停止")
+
+    i_ours, i_trans = rows.index("ours_c11"), rows.index("transformer_full")
+    es_ours = scores[i_ours].astype(np.float64)
+    es_trans = scores[i_trans].astype(np.float64)
+
+    with ALERT_JSON_PATH.open(encoding="utf-8") as handle:
+        meta = json.load(handle)
+    ap_frozen_ours = float(meta["methods"]["ours_c11"]["lp"]["entity_ap"])
+    ap_frozen_trans = float(meta["methods"]["transformer_full"]["max"]["entity_ap"])
+    ap_ours = _average_precision(ent_lab.astype(np.float64), es_ours)
+    ap_trans = _average_precision(ent_lab.astype(np.float64), es_trans)
+    if abs(ap_ours - ap_frozen_ours) > 1e-6:
+        raise ValueError(
+            f"图3-12 列序核验失败：ours_c11 复现={ap_ours:.10f} 冻结={ap_frozen_ours:.10f}，"
+            "entity_scores.npy 列序可能与 ent24_local.npy 不一致，停止，不得猜测对齐方式"
+        )
+    if abs(ap_trans - ap_frozen_trans) > 1e-6:
+        raise ValueError(
+            f"图3-12 列序核验失败：transformer_full 复现={ap_trans:.10f} 冻结={ap_frozen_trans:.10f}，"
+            "entity_scores.npy 列序可能与 ent24_local.npy 不一致，停止，不得猜测对齐方式"
+        )
+
+    curve_ours = _budget_curve(es_ours, ent_lab)
+    curve_trans = _budget_curve(es_trans, ent_lab)
+    n = min(curve_ours["n_neg"], curve_trans["n_neg"])
+    if n != 46363 or curve_ours["n_pos"] != 752:
+        raise ValueError(
+            f"图3-12 实体规模与正文冻结的 46,363 负实体 / 752 正实体不符："
+            f"n_neg={n} n_pos={curve_ours['n_pos']}，停止"
+        )
+
+    dr_ours, dr_trans = curve_ours["dr"][:n], curve_trans["dr"][:n]
+    fpr = curve_ours["nominal_fpr"][:n]
+    diff = dr_ours - dr_trans
+
+    crossings = _find_crossings(dr_ours, dr_trans)
+    if len(crossings) < 3:
+        raise ValueError(f"图3-12 交叉点数 {len(crossings)} 少于预期的 3 个，停止")
+    # 第 1 个交叉点是 j=0 附近的单点边界效应（负实体最高分处，样本量为 1），
+    # 正文所指「假阳率 2.50% 处相交」与「2.52% 至 12.85% 区间」是第 2、3 个交叉点。
+    main_cross, span_end_cross = crossings[1], crossings[2]
+    crossing_fpr = float(fpr[main_cross["j_before"]])
+    span_lo = float(fpr[main_cross["j_after"]])
+    span_hi = float(fpr[span_end_cross["j_after"]])
+
+    lead_lo_idx, lead_hi_idx = main_cross["j_after"], span_end_cross["j_before"]
+    lead_slice = diff[lead_lo_idx : lead_hi_idx + 1]
+    max_lead = float(-lead_slice.min()) if lead_slice.size else 0.0
+
+    def _dr_at(target: float) -> tuple[float, float]:
+        j = min(int(n * target), n - 1)
+        return float(dr_ours[j]), float(dr_trans[j])
+
+    dr010 = _dr_at(0.001)
+    dr050 = _dr_at(0.005)
+    win_frac = float(np.mean(diff > 0))
+
+    checks: list[Check] = []
+    for item, got, want in (
+        ("交叉点名义假阳率", crossing_fpr, ALERT_FROZEN["crossing_nominal_fpr"]),
+        ("本方法领先点占比", win_frac, ALERT_FROZEN["ours_wins_fraction"]),
+        ("假阳率 0.10% 本方法检出率", dr010[0], ALERT_FROZEN["dr_at_010pct"][0]),
+        ("假阳率 0.10% 全注意力检出率", dr010[1], ALERT_FROZEN["dr_at_010pct"][1]),
+        ("假阳率 0.50% 本方法检出率", dr050[0], ALERT_FROZEN["dr_at_050pct"][0]),
+        ("假阳率 0.50% 全注意力检出率", dr050[1], ALERT_FROZEN["dr_at_050pct"][1]),
+        ("全注意力领先区间左端", span_lo, ALERT_FROZEN["transformer_lead_span"][0]),
+        ("全注意力领先区间右端", span_hi, ALERT_FROZEN["transformer_lead_span"][1]),
+        ("全注意力最大领先", max_lead, ALERT_FROZEN["transformer_max_lead"]),
+    ):
+        expect(checks, item, got, want, 2e-4)
+
+    return {
+        "fpr": fpr,
+        "dr_ours": dr_ours,
+        "dr_trans": dr_trans,
+        "crossing_fpr": crossing_fpr,
+        "win_frac": win_frac,
+        "dr010": dr010,
+        "dr050": dr050,
+        "lead_span": (span_lo, span_hi),
+        "max_lead": max_lead,
+        "n_neg": n,
+        "n_pos": curve_ours["n_pos"],
+        "checks": checks,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 绘图
+# ---------------------------------------------------------------------------
+
+
+def draw_interaction_2x2(ctx: dict[str, Any]) -> Figure:
+    """图3-6 式 (3-30) 在多层感知机骨干上的 2×2 交互分解。
+
+    上半幅是表 3-3 四格的实体平均精确率，两支箭头给出从无机制参照单开一个机制的
+    增量；下半幅把双机制并用的 18.34 个百分点按式 (3-30) 拆成 5.10、7.35 与 5.89。
+    交互项在此只是四格的直接读数，图内不作任何可加性判定，也不出现判据框。
+    """
+    payload = ctx["interaction"]
+    values = payload["values"]
+
+    fig = new_figure(140, 96)
+    grid = fig.add_axes((0.055, 0.585, 0.910, 0.335))
+    grid.set_xlim(0.0, 1.0)
+    grid.set_ylim(0.0, 1.0)
+    grid.axis("off")
+    grid.set_title(
+        fs.checked("（a）四格的实体平均精确率与单开一个机制的增量", FS_MAIN),
+        fontsize=FS_MAIN,
+        color=INK,
+        pad=4,
     )
 
-    ax.set_yticks(ypos)
-    ax.set_yticklabels([r[0] for r in rows], fontsize=FS_MIN)
-    ax.set_xlim(0, 0.50)
-    ax.set_xlabel("跨年度逐流平均精确率 AP（LSPR23 训练 → LSPR24 评价）", fontsize=FS_MAIN, labelpad=4)
-    ax.set_ylim(-0.7, len(rows) + 0.1)
+    # 四格的落位：左列关闭因果前缀聚合，上行关闭可学池化。
+    col_x = {0: (0.100, 0.340), 1: (0.620, 0.340)}
+    row_y = {0: (0.580, 0.360), 1: (0.040, 0.360)}
+    layout = {
+        "C00": (0, 0),
+        "C01": (1, 0),
+        "C10": (0, 1),
+        "C11": (1, 1),
+    }
+    for cell, (col, row) in layout.items():
+        x, width = col_x[col]
+        y, height = row_y[row]
+        both = cell == "C11"
+        # 并用格用浅底加重描边区分，不加填充图案：图案会穿过格内的读数，压低可读性。
+        grid.add_patch(
+            plt.Rectangle(
+                (x, y),
+                width,
+                height,
+                facecolor=SHADE if both else "white",
+                edgecolor=INK if both else RULE,
+                linewidth=1.2 if both else fs.AUX_LINE_PT + 0.2,
+                zorder=2,
+            )
+        )
+        grid.text(
+            x + width / 2.0,
+            y + height * 0.68,
+            fs.checked(CELL_NAMES[cell], FS_MIN),
+            ha="center",
+            va="center",
+            fontsize=FS_MIN,
+            color=MUTED,
+            zorder=4,
+        )
+        grid.text(
+            x + width / 2.0,
+            y + height * 0.30,
+            fs.checked(f"{values[cell]:.2f}%", FS_MAIN),
+            ha="center",
+            va="center",
+            fontsize=FS_MAIN,
+            color=INK,
+            zorder=4,
+        )
 
-    handles = [
-        plt.Rectangle((0, 0), 1, 1, facecolor=FILL_C11, edgecolor=INK, linewidth=0.9, hatch="xx"),
-        plt.Rectangle((0, 0), 1, 1, facecolor=FILL_OWN_BASE, edgecolor=MUTED, linewidth=0.9, hatch="\\\\"),
-        plt.Rectangle((0, 0), 1, 1, facecolor=FILL_EXTERNAL, edgecolor=ACCENT, linewidth=0.9, hatch="///"),
-    ]
-    labels = [
-        "本章 2×2 四格（同一冻结评价池）",
-        "本课题同协议基线",
-        "Dijk 2026 表5 论文原始数字，协议不完全等同",
-    ]
-    fig.legend(
-        handles,
-        labels,
-        loc="lower center",
-        bbox_to_anchor=(0.5, 0.012),
+    # 从无机制参照出发的两支增量箭头。
+    grid.annotate(
+        "",
+        xy=(0.612, 0.760),
+        xytext=(0.448, 0.760),
+        arrowprops={"arrowstyle": "-|>", "color": INK, "linewidth": 1.0, "shrinkA": 0, "shrinkB": 0},
+    )
+    grid.text(
+        0.530,
+        0.905,
+        fs.checked(f"启用可学池化\n+{payload['gain_elp']:.2f}", FS_MIN),
+        ha="center",
+        va="center",
+        fontsize=FS_MIN,
+        color=INK,
+        linespacing=1.35,
+    )
+    grid.annotate(
+        "",
+        xy=(0.270, 0.408),
+        xytext=(0.270, 0.572),
+        arrowprops={"arrowstyle": "-|>", "color": INK, "linewidth": 1.0, "shrinkA": 0, "shrinkB": 0},
+    )
+    grid.text(
+        0.300,
+        0.490,
+        fs.checked(f"启用因果前缀聚合 +{payload['gain_cpa']:.2f}", FS_MIN),
+        ha="left",
+        va="center",
+        fontsize=FS_MIN,
+        color=INK,
+    )
+
+    # 下半幅：把并用增量按式 (3-30) 拆开，横向瀑布，五行自上而下累加。
+    bars = fig.add_axes((0.245, 0.190, 0.715, 0.285))
+    bars.set_title(
+        fs.checked("（b）并用增量按式 (3-30) 的分解", FS_MAIN),
+        fontsize=FS_MAIN,
+        color=INK,
+        pad=4,
+    )
+    style_axes(bars, grid_axis="x")
+
+    steps = (
+        ("单开因果前缀聚合", 0.0, payload["gain_cpa"], f"+{payload['gain_cpa']:.2f}", "\\\\\\", False),
+        ("单开可学池化", payload["gain_cpa"], payload["gain_elp"], f"+{payload['gain_elp']:.2f}", "///", False),
+        ("两者之和", 0.0, payload["gain_sum"], f"{payload['gain_sum']:.2f}", None, True),
+        ("交互项", payload["gain_sum"], payload["interaction"], f"+{payload['interaction']:.2f}", "xxx", False),
+        ("双机制并用", 0.0, payload["gain_both"], f"{payload['gain_both']:.2f}", None, True),
+    )
+    ypos = np.arange(len(steps))[::-1]
+    for y, (name, left, span, label, hatch, total) in zip(ypos, steps, strict=True):
+        container = bars.barh(
+            y,
+            span,
+            left=left,
+            height=0.58,
+            facecolor=SHADE if total else "white",
+            edgecolor=INK if total else MUTED,
+            linewidth=1.0,
+            hatch=hatch,
+            zorder=3,
+        )
+        for patch in container:
+            patch.set_label(name)
+        mark_data(container)
+        bars.text(
+            left + span + 0.40,
+            y,
+            fs.checked(label, FS_MIN),
+            ha="left",
+            va="center",
+            fontsize=FS_MIN,
+            color=INK,
+            zorder=5,
+        )
+    # 台阶之间的接续线，读出「前一段的终点就是后一段的起点」。
+    for y, (_name, left, span, _label, _hatch, _total) in zip(ypos, steps, strict=True):
+        end = left + span
+        if y > ypos[-1]:
+            bars.plot(
+                [end, end],
+                [y - 0.58 / 2.0, y - 1 + 0.58 / 2.0],
+                linestyle=(0, (2, 1.6)),
+                color=RULE,
+                linewidth=fs.AUX_LINE_PT + 0.2,
+                zorder=2,
+            )
+
+    bars.set_yticks(ypos)
+    bars.set_yticklabels([fs.checked(step[0], FS_MIN) for step in steps], fontsize=FS_MIN)
+    bars.set_ylim(-0.62, len(steps) - 0.38)
+    bars.set_xlim(0.0, 21.6)
+    bars.set_xticks([0, 5, 10, 15, 20])
+    bars.set_xticklabels([fs.checked(str(t), FS_MIN) for t in (0, 5, 10, 15, 20)], fontsize=FS_MIN)
+    bars.set_xlabel(
+        fs.checked("相对无机制参照的实体平均精确率增量（个百分点）", FS_MAIN),
+        fontsize=FS_MAIN,
+        labelpad=3,
+    )
+
+    fig.text(
+        0.5,
+        0.022,
+        fs.checked("交互项由式 (3-30) 从四格直接算出，此处只作读数呈现。", FS_MIN),
+        ha="center",
+        va="bottom",
+        fontsize=FS_MIN,
+        color=MUTED,
+    )
+    return fig
+
+
+def draw_lp_trajectory(ctx: dict[str, Any]) -> Figure:
+    """图3-8 可学指数在训练过程中的取值变化。"""
+
+    series = ctx["lp"]["series"]
+    fig = new_figure(132, 84)
+    ax = fig.add_axes((0.135, 0.215, 0.835, 0.715))
+    style_axes(ax)
+
+    styles = {
+        "C01": {"linestyle": "-", "color": INK, "marker": "o"},
+        "C11": {"linestyle": (0, (5, 2)), "color": MUTED, "marker": "s"},
+    }
+    for cell in ("C01", "C11"):
+        item = series[cell]
+        style = styles[cell]
+        ax.plot(
+            item["epochs"],
+            item["values"],
+            linestyle=style["linestyle"],
+            color=style["color"],
+            linewidth=1.3,
+            marker=style["marker"],
+            markersize=3.6,
+            markerfacecolor="white",
+            markeredgewidth=0.9,
+            markeredgecolor=style["color"],
+            zorder=5,
+            label=fs.checked(CELL_NAMES[cell], FS_MIN),
+        )
+        ax.plot(
+            [item["sel_epoch"]],
+            [item["sel_p"]],
+            linestyle="none",
+            marker=style["marker"],
+            markersize=6.4,
+            markerfacecolor=style["color"],
+            markeredgecolor=style["color"],
+            zorder=6,
+        )
+
+    ax.axhline(LP_INIT, color=RULE, linestyle=(0, (1, 1.8)), linewidth=fs.AUX_LINE_PT + 0.3, zorder=3)
+    ax.text(
+        1.0,
+        LP_INIT - 0.045,
+        fs.checked("式 (3-11) 的初值 2.0000", FS_MIN),
+        ha="left",
+        va="top",
+        fontsize=FS_MIN,
+        color=RULE,
+    )
+    ax.axhline(1.0, color=ACCENT, linestyle=(0, (4, 2)), linewidth=1.1, zorder=3)
+    ax.text(
+        20.4,
+        1.045,
+        fs.checked("指数为 1，聚合为算术平均", FS_MIN),
+        ha="right",
+        va="bottom",
+        fontsize=FS_MIN,
+        color=ACCENT,
+    )
+
+    ax.annotate(
+        fs.checked(f"选中第 {series['C11']['sel_epoch']} 轮\n取值 {series['C11']['sel_p']:.4f}", FS_MIN),
+        xy=(series["C11"]["sel_epoch"], series["C11"]["sel_p"]),
+        xytext=(13.2, 1.62),
+        fontsize=FS_MIN,
+        color=INK,
+        linespacing=1.35,
+        ha="center",
+        va="center",
+        arrowprops={"arrowstyle": "->", "color": INK, "linewidth": 0.9, "shrinkB": 4},
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": MUTED, "linewidth": 0.7},
+        zorder=8,
+    )
+    ax.annotate(
+        fs.checked(f"选中第 {series['C01']['sel_epoch']} 轮\n取值 {series['C01']['sel_p']:.4f}", FS_MIN),
+        xy=(series["C01"]["sel_epoch"], series["C01"]["sel_p"]),
+        xytext=(9.0, 0.60),
+        fontsize=FS_MIN,
+        color=INK,
+        linespacing=1.35,
+        ha="center",
+        va="center",
+        arrowprops={"arrowstyle": "->", "color": INK, "linewidth": 0.9, "shrinkB": 4},
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": MUTED, "linewidth": 0.7},
+        zorder=8,
+    )
+
+    ax.set_xlim(0.4, 20.6)
+    ax.set_ylim(0.35, 2.18)
+    ax.set_xticks([1, 5, 10, 15, 20])
+    ax.set_xlabel(fs.checked("训练轮次", FS_MAIN), fontsize=FS_MAIN)
+    ax.set_ylabel(fs.checked("可学池化的指数取值", FS_MAIN), fontsize=FS_MAIN)
+    ax.legend(
+        loc="upper right",
         frameon=True,
         framealpha=1.0,
-        edgecolor=GRID,
+        edgecolor=HAIRLINE,
         fontsize=FS_MIN,
         borderpad=0.4,
-        handlelength=1.6,
-        handleheight=1.0,
+        handlelength=2.4,
         labelspacing=0.35,
     )
     return fig
 
 
-def draw_interaction(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-6 双机制消融交互（三个口径并列，结论不一致如实呈现）。"""
+def draw_length_flow(ctx: dict[str, Any]) -> Figure:
+    """图3-9 四档序列长度在等真实流预算下的逐流平均精确率分布。"""
 
-    cells = data["cells"]
-    panels = [
-        ("(a) 逐流 AP", "fap", "逐流 AP"),
-        ("(b) 实体 AP（Lp 池化）", "e_lp", "实体 AP"),
-        ("(c) DR@4%FPR", "dr", "DR@4%FPR"),
-    ]
+    payload = ctx["length"]
+    rows = payload["rows"]
+    lo, hi = payload["mean_span"]
 
-    fig = new_figure(150, 100)
-    axes = [fig.add_axes((0.085 + i * 0.315, 0.545, 0.235, 0.365)) for i in range(3)]
-
-    for idx, (ax, (title, key, ylabel)) in enumerate(zip(axes, panels, strict=True)):
-        stat = interaction(cells, key)
-        style_axes(ax)
-        xs = np.arange(4)
-        for x, cell in zip(xs, CELL_ORDER, strict=True):
-            ax.bar(
-                x,
-                stat[cell],
-                width=0.68,
-                facecolor=CELL_FILLS[cell],
-                edgecolor=INK,
-                linewidth=0.9,
-                hatch=CELL_HATCH[cell],
-                zorder=3,
-            )
-            ax.text(x, stat[cell] + 0.006, f"{stat[cell]:.3f}", ha="center", va="bottom", fontsize=FS_MIN)
-
-        top = max(stat[c] for c in CELL_ORDER)
-        ax.set_ylim(0, top * 1.20)
-        ax.set_xticks(xs)
-        ax.set_xticklabels([f"{c}\n{CELL_TAGS[c]}" for c in CELL_ORDER], fontsize=FS_MIN, linespacing=1.2)
-        ax.set_ylabel(ylabel, fontsize=FS_MAIN, labelpad=2)
-        ax.set_title(title, fontsize=FS_MAIN, pad=3)
-
-        mark1 = "通过" if stat["crit1"] > 0 else "不通过"
-        mark2 = "通过" if stat["crit2"] > 0 else "不通过"
-        color = INK if stat["crit1"] > 0 and stat["crit2"] > 0 else ACCENT
-        note = (
-            f"A 主效应 {stat['A']:+.4f}\n"
-            f"B 主效应 {stat['B']:+.4f}\n"
-            f"之和      {stat['sum']:+.4f}\n"
-            f"组合      {stat['combo']:+.4f}\n"
-            f"交互 Δ    {stat['delta']:+.4f}\n"
-            f"判据一 {mark1}／二 {mark2}"
-        )
-        fig.text(
-            0.085 + idx * 0.315 + 0.1175,
-            0.462,
-            note,
-            ha="center",
-            va="top",
-            fontsize=FS_MIN,
-            linespacing=1.28,
-            color=color,
-            bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "edgecolor": color, "linewidth": 0.7},
-        )
-
-    fig.text(
-        0.5,
-        0.222,
-        "C00 基线序列编码器　C01 仅实体级 Lp 池化　C10 仅因果前缀聚合　C11 完整方法\n"
-        "A = 因果前缀聚合，B = 实体级 Lp 池化；Δ = C11 - C10 - C01 + C00；"
-        "判据一 Δ > 0；判据二 C11 > max(C01, C10)",
-        ha="center",
-        va="top",
-        fontsize=FS_MIN,
-        linespacing=1.3,
-        color=MUTED,
-    )
-    warning_box(
-        fig,
-        "三个评价口径结论不一致：实体 AP 与 DR@4%FPR 两条判据均通过，\n逐流 AP 判据一、判据二均不通过。此处如实并列呈现，不作取舍。",
-        y=0.012,
-    )
-    return fig
-
-
-def draw_stability(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-7 训练稳定性（三种子逐流 AP）。"""
-
-    stab = data["stability"]
-    groups = [("C00", f"{CELL_NAMES['C00']}\nC00"), ("C11", f"{CELL_NAMES['C11']}\nC11")]
-    seeds = (42, 43, 44)
-    markers = ("o", "s", "^")
-
-    fig = new_figure(110, 85)
-    ax = fig.add_axes((0.185, 0.215, 0.775, 0.70))
+    # 图例移到坐标区之外的下方：留在坐标区内时其白底会盖住长度 32 档最高的那个读数。
+    # 只改版面，坐标范围与全部读数不变。
+    fig = new_figure(124, 86)
+    ax = fig.add_axes((0.155, 0.265, 0.805, 0.675))
     style_axes(ax)
 
-    for gi, (cell, label) in enumerate(groups):
-        vals = np.asarray(stab[cell], dtype=float)
-        mean, sd = float(vals.mean()), float(vals.std(ddof=1))
-        ax.add_patch(
-            plt.Rectangle(
-                (gi - 0.26, mean - sd),
-                0.52,
-                2 * sd,
-                facecolor="#EEF2F4",
-                edgecolor=MUTED,
-                linewidth=0.6,
-                hatch=CELL_HATCH[cell] or None,
-                zorder=2,
-            )
-        )
-        ax.hlines(mean, gi - 0.28, gi + 0.28, color=INK, linewidth=1.4, zorder=4)
-        for si, (seed, marker) in enumerate(zip(seeds, markers, strict=True)):
+    ax.axhspan(lo, hi, facecolor=SHADE, edgecolor="none", zorder=1)
+    xs = np.arange(len(rows))
+    for x, row in zip(xs, rows, strict=True):
+        mark_data(
             ax.plot(
-                gi,
-                vals[si],
-                marker=marker,
+                [x] * len(row["values"]),
+                row["values"],
+                linestyle="none",
+                marker="o",
                 markersize=5.0,
                 markerfacecolor="white",
                 markeredgecolor=INK,
                 markeredgewidth=1.0,
-                linestyle="none",
                 zorder=5,
-                label=f"种子 {seed}" if gi == 0 else None,
+                label=f"长度 {row['length']} 的三次取值",
             )
-            ax.text(
-                gi + 0.30,
-                vals[si],
-                f"{vals[si]:.4f}",
-                ha="left",
-                va="center",
-                fontsize=FS_MIN,
+        )
+        # 均值横线用 plot 画而不用 hlines：Line2D 才能进遮挡自检的逐点枚举。
+        mark_data(
+            ax.plot(
+                [x - 0.24, x + 0.24],
+                [row["mean"], row["mean"]],
+                linestyle="-",
+                color=INK,
+                linewidth=1.4,
+                solid_capstyle="butt",
                 zorder=6,
+                label=f"长度 {row['length']} 的均值",
             )
+        )
         ax.text(
-            gi,
-            mean - sd - 0.008,
-            f"均值 {mean:.4f}\nσ {sd:.6f}",
-            ha="center",
-            va="top",
+            x + 0.28,
+            row["mean"],
+            fs.checked(f"{row['mean']:.2f}%", FS_MIN),
+            ha="left",
+            va="center",
             fontsize=FS_MIN,
-            color=ACCENT,
-            linespacing=1.3,
-            zorder=6,
+            color=INK,
+            bbox={"boxstyle": "square,pad=0.12", "facecolor": "white", "edgecolor": "none"},
+            zorder=7,
         )
 
-    ax.set_xticks(range(len(groups)))
-    ax.set_xticklabels([g[1] for g in groups], fontsize=FS_MIN)
-    ax.set_xlim(-0.60, len(groups) - 0.40)
-    ax.set_ylim(0.138, 0.335)
-    ax.set_ylabel("跨年度逐流 AP", fontsize=FS_MAIN)
-    ax.legend(loc="upper left", frameon=True, framealpha=1.0, edgecolor=GRID, fontsize=FS_MIN, borderpad=0.35)
-    fig.text(
-        0.5,
-        0.045,
-        "阴影为 ±1σ（σ 按 ddof=1 计），协议：20000 步、末 5 检查点平均、顺序执行",
-        ha="center",
-        va="bottom",
-        fontsize=FS_MIN,
-        color=MUTED,
-    )
-    return fig
-
-
-def draw_lp_exponent(data: dict[str, Any], log_facts: dict[str, Any]) -> Figure:
-    """图3-8 Lp 指数：有逐 epoch 轨迹则画轨迹，否则画四格终值柱状图。"""
-
-    cells = data["cells"]
-    fig = new_figure(130, 85)
-    ax = fig.add_axes((0.135, 0.215, 0.83, 0.70))
-    style_axes(ax)
-
-    if log_facts["has_trajectory"]:
-        for cell, points in sorted(log_facts["trajectory"].items()):
-            if len(points) < 2:
-                continue
-            pts = sorted(points)
-            ax.plot(
-                [p[0] for p in pts],
-                [p[1] for p in pts],
-                marker="o",
-                markersize=3.5,
-                label=f"{CELL_NAMES.get(cell, cell)} {cell}",
-            )
-        ax.set_xlabel("训练轮次", fontsize=FS_MAIN)
-    else:
-        xs = np.arange(4)
-        trained = {"C01", "C11"}
-        for x, cell in zip(xs, CELL_ORDER, strict=True):
-            value = float(cells[cell]["p"])
-            is_trained = cell in trained
-            ax.bar(
-                x,
-                value,
-                width=0.62,
-                facecolor=CELL_FILLS[cell] if is_trained else "white",
-                edgecolor=INK if is_trained else MUTED,
-                linewidth=0.9,
-                hatch=CELL_HATCH[cell] if is_trained else "..",
-                zorder=3,
-            )
-            tail = "" if is_trained else "\n(未参与训练，初值)"
-            ax.text(
-                x,
-                value + 0.045,
-                f"p = {value:.4f}{tail}",
-                ha="center",
-                va="bottom",
-                fontsize=FS_MIN,
-                color=INK if is_trained else MUTED,
-                linespacing=1.25,
-            )
-        ax.set_xticks(xs)
-        ax.set_xticklabels([f"{CELL_NAMES[c]}\n{c}" for c in CELL_ORDER], fontsize=FS_MIN)
-        ax.set_xlim(-0.65, 4.15)
-        ax.set_ylim(0, 2.62)
-
-    ax.axhline(1.0, color=ACCENT, linestyle=(0, (4, 2)), linewidth=1.1, zorder=5)
-    ax.text(4.10, 1.04, "p = 1（算术平均）", ha="right", va="bottom", fontsize=FS_MIN, color=ACCENT)
-    ax.set_ylabel("学到的 Lp 池化指数 p", fontsize=FS_MAIN)
-
-    seed_p = log_facts["seed_p"].get("C11", {})
-    extra = ""
-    if seed_p:
-        joined = " / ".join(f"{seed_p[s]:.4f}" for s in sorted(seed_p))
-        extra = f"\nC11 另两种子（43／44）终值 p = {joined}，同样落在 p = 1 与 p → ∞ 之间（run.log）"
-    fig.text(
-        0.5,
-        0.035,
-        f"run.log 未记录逐 epoch 轨迹（本次为顺序执行），故本图只画各格终值{extra}",
-        ha="center",
-        va="bottom",
-        fontsize=FS_MIN,
-        color=MUTED,
-        linespacing=1.35,
-    )
-    return fig
-
-
-def draw_length(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-9 序列长度敏感性（实验已知有缺陷，仅作趋势参考）。"""
-
-    lengths = sorted(int(k) for k in data["length"])
-    flow_ap = [float(data["length"][str(L)][0]) for L in lengths]
-    ent_ap = [float(data["length"][str(L)][1]) for L in lengths]
-
-    fig = new_figure(130, 85)
-    ax = fig.add_axes((0.135, 0.365, 0.72, 0.545))
-    style_axes(ax)
-    ax2 = ax.twinx()
-    ax2.spines["top"].set_visible(False)
-
-    xs = np.arange(len(lengths))
-    ax.plot(xs, flow_ap, marker="o", markersize=4.5, linestyle="-", color=INK, markerfacecolor="white", zorder=4)
-    ax2.plot(
-        xs, ent_ap, marker="s", markersize=4.5, linestyle=(0, (5, 2)), color=MUTED, markerfacecolor="white", zorder=4
-    )
-    # 两条曲线在 L=64、128 处的像素位置接近，标签左右分置并加白底避免叠压
-    label_bg = {"boxstyle": "square,pad=0.12", "facecolor": "white", "edgecolor": "none"}
-    for x, v in zip(xs, flow_ap, strict=True):
-        ax.text(x - 0.09, v, f"{v:.4f}", ha="right", va="center", fontsize=FS_MIN, color=INK, bbox=label_bg)
-    for x, v in zip(xs, ent_ap, strict=True):
-        ax2.text(x + 0.09, v, f"{v:.4f}", ha="left", va="center", fontsize=FS_MIN, color=MUTED, bbox=label_bg)
-
     ax.set_xticks(xs)
-    ax.set_xticklabels([str(L) for L in lengths])
-    ax.set_xlim(-0.62, len(lengths) - 0.38)
-    ax.set_xlabel("序列长度 L（8000 步固定步数预算）", fontsize=FS_MAIN)
-    ax.set_ylabel("逐流 AP（实线圆点）", fontsize=FS_MAIN)
-    ax2.set_ylabel("实体 AP（虚线方点）", fontsize=FS_MAIN, color=MUTED)
-    ax.set_ylim(0.165, 0.222)
-    ax2.set_ylim(0.325, 0.435)
-    ax2.tick_params(axis="y", colors=MUTED, length=2.5, pad=1.5)
+    ax.set_xticklabels([fs.checked(str(row["length"]), FS_MIN) for row in rows], fontsize=FS_MIN)
+    ax.set_xlim(-0.58, len(rows) - 0.10)
+    ax.set_ylim(15.0, 44.0)
+    ax.yaxis.set_major_formatter(pct_formatter(0))
+    ax.set_xlabel(fs.checked("序列长度（四档的真实流访问数相同）", FS_MAIN), fontsize=FS_MAIN)
+    ax.set_ylabel(fs.checked("跨年度逐流平均精确率", FS_MAIN), fontsize=FS_MAIN)
 
-    warning_box(
-        fig,
-        "本实验已知存在缺陷，仅作趋势参考，不支持「长上下文更好」的结论：\n"
-        "(1) 截断取固定 L=128 块的前 L 个位置，逐流覆盖率约 L/128（L=16 时仅约 12.5% 的流被打分）；\n"
-        "(2) 评价集正类基率随 L 改变，四点分母不同不可直接比较；\n"
-        "(3) 8000 步固定预算下各 L 的训练流量预算最多相差 8 倍。",
-        y=0.02,
+    handles = [
+        plt.Line2D([], [], linestyle="none", marker="o", markersize=5.0, markerfacecolor="white", markeredgecolor=INK),
+        plt.Line2D([], [], linestyle="-", color=INK, linewidth=1.4),
+        plt.Rectangle((0, 0), 1, 1, facecolor=SHADE, edgecolor=HAIRLINE, linewidth=fs.AUX_LINE_PT),
+    ]
+    fig.legend(
+        handles,
+        [
+            fs.checked("三次重复训练的取值", FS_MIN),
+            fs.checked("该档均值", FS_MIN),
+            fs.checked("四档均值的跨度", FS_MIN),
+        ],
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.018),
+        ncol=3,
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=HAIRLINE,
+        fontsize=FS_MIN,
+        borderpad=0.4,
+        handlelength=1.8,
+        columnspacing=1.4,
     )
     return fig
 
 
-def draw_facet(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-10 攻击类别分面（AP 与 AP/基率 lift 并列，标注每类正例数）。"""
+def draw_topk_curve(ctx: dict[str, Any]) -> Figure:
+    """图3-11 受限观测下的实体平均精确率随可用流条数的变化。"""
 
-    facet = data["facet"]
-    items = sorted(facet.items(), key=lambda kv: kv[1][1], reverse=True)
-    names = [k for k, _ in items]
-    aps = np.array([float(v[0]) for _, v in items])
-    pos = np.array([int(v[1]) for _, v in items])
+    payload = ctx["topk"]
+    ks, aps = payload["ks"], payload["aps"]
+    full_ap, idx50 = payload["full_ap"], payload["idx50"]
 
-    # 负例池由冻结逐流先验反推：所有类别共享同一负例集合（见 tools/ch3_full.py E6 掩码构造）
-    pos_total = int(pos.sum())
-    n_neg = pos_total * (1.0 - FLOW_PRIOR) / FLOW_PRIOR
-    base = pos / (pos + n_neg)
-    lift = aps / base
-
-    short = [n if len(n) <= 22 else n[:21] + "…" for n in names]
-    labels = [f"{s}\n正例 {p:,}" for s, p in zip(short, pos, strict=True)]
-
-    fig = new_figure(130, 90)
-    ax1 = fig.add_axes((0.335, 0.395, 0.285, 0.485))
-    ax2 = fig.add_axes((0.700, 0.395, 0.270, 0.485))
-    ypos = np.arange(len(names))[::-1]
-    hatches = ["xx", "//", "..", "\\\\", "++"]
-
-    def fmt_lift(value: float) -> str:
-        return f"{value:.1f}×" if value < 100 else f"{value:,.0f}×"
-
-    for ax, values, title, fmt, log_scale in (
-        (ax1, aps, "(a) 类内 AP（跨类不可比）", lambda v: f"{v:.4f}", False),
-        (ax2, lift, "(b) AP / 基率 lift（可比口径）", fmt_lift, True),
-    ):
-        style_axes(ax, grid_axis="x")
-        left = 1.0 if log_scale else 0.0
-        for y, value, hatch in zip(ypos, values, hatches, strict=True):
-            ax.barh(
-                y,
-                value - left,
-                left=left,
-                height=0.62,
-                facecolor=FILL_C01,
-                edgecolor=INK,
-                linewidth=0.9,
-                hatch=hatch,
-                zorder=3,
-            )
-            ax.text(value * 1.12, y, fmt(value), va="center", ha="left", fontsize=FS_MIN)
-        ax.set_yticks(ypos)
-        ax.set_ylim(-0.65, len(names) - 0.35)
-        ax.set_title(title, fontsize=FS_MAIN, pad=3)
-        if log_scale:
-            ax.set_xscale("log")
-            ax.set_xlim(1.0, 4.0e5)
-            ax.set_xticks([1e1, 1e3, 1e5])
-            ax.set_xlabel("对数刻度", fontsize=FS_MIN, labelpad=1)
-        else:
-            ax.set_xlim(0, float(values.max()) * 1.45)
-
-    ax1.set_yticklabels(labels, fontsize=FS_MIN, linespacing=1.25)
-    ax2.set_yticklabels([])
-
-    warning_box(
-        fig,
-        "本实验已知存在缺陷，只作定性参考：\n"
-        f"(1) Category 字段对恶意流几乎全空：「(空)」类含 {pos[0]:,} 个正例，占五类\n"
-        f"　　正例合计的 {pos[0] / pos_total * 100:.2f}%，其余四类各仅 {pos.min()}～{sorted(pos)[-2]} 例；\n"
-        "(2) 各类按「该类正例 + 全部负例」构造，评价基率相差数个数量级，故\n"
-        "　　(a) 的类内 AP 跨类不可比；\n"
-        f"(3) (b) 的基率按共享负例池 {n_neg:,.0f} 折算（冻结逐流先验 {FLOW_PRIOR:.6f}\n"
-        f"　　与五类正例合计 {pos_total:,} 反推）；正例 ≤ {sorted(pos)[-2]} 的四类 lift 方差极大。",
-        y=0.014,
-    )
-    return fig
-
-
-def draw_latency_curve(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-11 受限观测下的检测能力（每实体只用按时间的前 k 条流）。"""
-
-    curve = data["curve"]["C11"]
-    full_x = 260.0
-    xs = [float(row[0]) if row[0] is not None else full_x for row in curve]
-    aps = [float(row[1]) for row in curve]
-    drs = [float(row[2]) for row in curve]
-    covs = [float(row[4]) for row in curve]
-    full_ap = aps[-1]
-
-    fig = new_figure(140, 95)
-    ax = fig.add_axes((0.135, 0.315, 0.735, 0.595))
+    fig = new_figure(132, 86)
+    ax = fig.add_axes((0.145, 0.205, 0.825, 0.725))
     style_axes(ax)
-    ax2 = ax.twinx()
-    ax2.spines["top"].set_visible(False)
-
     ax.set_xscale("log")
-    ax.plot(xs, aps, marker="o", markersize=4.5, linestyle="-", color=INK, markerfacecolor="white", zorder=5)
-    ax2.plot(
-        xs, drs, marker="s", markersize=4.5, linestyle=(0, (5, 2)), color=MUTED, markerfacecolor="white", zorder=5
-    )
 
-    ax.axvline(ENTITY_FLOW_MEDIAN, color=ACCENT, linestyle=(0, (1, 1.6)), linewidth=1.1, zorder=3)
+    ax.axhline(full_ap, color=MUTED, linestyle=(0, (5, 2)), linewidth=1.1, zorder=3)
     ax.text(
-        ENTITY_FLOW_MEDIAN * 1.10,
-        0.4965,
-        f"实体流数中位 = {ENTITY_FLOW_MEDIAN}",
+        118.0,
+        full_ap + 0.28,
+        fs.checked(f"使用全部流 {full_ap:.4f}%", FS_MIN),
+        ha="right",
+        va="bottom",
+        fontsize=FS_MIN,
+        color=MUTED,
+    )
+    ax.axvline(ENTITY_FLOW_MEDIAN, color=ACCENT, linestyle=(0, (1, 1.8)), linewidth=1.1, zorder=3)
+    # 中位数标注上移到竖线的中上段：曲线下方那块空白已让给「只看第一条流」注记。
+    ax.text(
+        ENTITY_FLOW_MEDIAN * 1.14,
+        43.6,
+        fs.checked(f"实体流数中位数 {ENTITY_FLOW_MEDIAN}", FS_MIN),
+        ha="left",
+        va="bottom",
         fontsize=FS_MIN,
         color=ACCENT,
-        va="top",
-        ha="left",
     )
 
-    idx50 = next(i for i, row in enumerate(curve) if row[0] == 50)
+    mark_data(
+        ax.plot(
+            ks,
+            aps,
+            linestyle="-",
+            color=INK,
+            linewidth=1.4,
+            marker="o",
+            markersize=4.4,
+            markerfacecolor="white",
+            markeredgewidth=1.0,
+            zorder=6,
+            label="受限观测曲线",
+        )
+    )
+
+    # 注记移到曲线下方的空白处：原位置在曲线右上侧，白底正好压住 k=2 的读数。
+    # 只改注记落点，曲线与坐标范围不变。
     ax.annotate(
-        f"k = 50：用 {covs[idx50] * 100:.2f}% 的流达到\n"
-        f"全量 AP 的 {aps[idx50] / full_ap * 100:.1f}%（≥95%）\n"
-        f"实体 AP {aps[idx50]:.6f} / {full_ap:.6f}",
-        xy=(xs[idx50], aps[idx50]),
-        xytext=(9.0, 0.3115),
+        fs.checked(f"只看第一条流 {aps[0]:.4f}%", FS_MIN),
+        xy=(ks[0], aps[0]),
+        xytext=(2.20, 29.25),
         fontsize=FS_MIN,
         color=INK,
-        linespacing=1.3,
+        ha="left",
         va="center",
-        arrowprops={"arrowstyle": "->", "color": INK, "linewidth": 0.9, "shrinkB": 3},
-        bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "edgecolor": INK, "linewidth": 0.7},
+        arrowprops={"arrowstyle": "->", "color": INK, "linewidth": 0.9, "shrinkB": 4},
+        bbox={"boxstyle": "round,pad=0.26", "facecolor": "white", "edgecolor": MUTED, "linewidth": 0.7},
+        zorder=8,
+    )
+    ax.annotate(
+        fs.checked(
+            f"前 50 条 {aps[idx50]:.4f}%\n读取的流占全部流的 {payload['coverage'][idx50]:.2f}%",
+            FS_MIN,
+        ),
+        xy=(ks[idx50], aps[idx50]),
+        xytext=(19.0, 33.6),
+        fontsize=FS_MIN,
+        color=INK,
+        linespacing=1.35,
+        ha="center",
+        va="center",
+        arrowprops={"arrowstyle": "->", "color": INK, "linewidth": 0.9, "shrinkB": 4},
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": MUTED, "linewidth": 0.7},
+        zorder=8,
     )
 
-    ticks = [1, 2, 3, 5, 10, 20, 50, 100, full_x]
-    ax.set_xticks(ticks)
-    ax.set_xticklabels(["1", "2", "3", "5", "10", "20", "50", "100", "全部"], fontsize=FS_MIN)
+    ax.set_xticks(ks)
+    ax.set_xticklabels([fs.checked(str(k), FS_MIN) for k in ks], fontsize=FS_MIN)
     ax.minorticks_off()
-    ax.set_xlim(0.82, 400)
-    ax.set_ylim(0.28, 0.50)
-    ax2.set_ylim(0.46, 0.74)
-    ax.set_xlabel("每实体按时间使用的前 k 条流（对数刻度）", fontsize=FS_MAIN)
-    ax.set_ylabel("实体 AP（实线圆点）", fontsize=FS_MAIN)
-    ax2.set_ylabel("DR@4%FPR（虚线方点）", fontsize=FS_MAIN, color=MUTED)
-    ax2.tick_params(axis="y", colors=MUTED, length=2.5, pad=1.5)
+    ax.set_xlim(0.85, 135.0)
+    ax.set_ylim(28.0, 48.5)
+    ax.set_yticks([30, 35, 40, 45])
+    ax.yaxis.set_major_formatter(pct_formatter(0))
+    ax.set_xlabel(
+        fs.checked("每个实体按时间使用的前若干条流（对数刻度）", FS_MAIN), fontsize=FS_MAIN, labelpad=3
+    )
+    ax.set_ylabel(fs.checked("实体平均精确率", FS_MAIN), fontsize=FS_MAIN)
+    return fig
 
-    ax.text(xs[0] * 1.14, aps[0] - 0.007, f"{aps[0]:.4f}（{covs[0] * 100:.2f}% 流）", ha="left", va="top", fontsize=FS_MIN)
-    ax.text(xs[-1] * 1.35, aps[-1] - 0.020, f"{aps[-1]:.4f}（全部流）", ha="right", va="top", fontsize=FS_MIN)
 
+def draw_alert_budget_curve(ctx: dict[str, Any]) -> Figure:
+    """图3-12 检出率随告警预算的变化（LSPR23 训练、LSPR24 测试）。
+
+    数据源与其余四幅独立，见 load_alert_budget_curve()；绘图前已完成冻结数值复现自检。
+    """
+    c = ctx["alert"]
+    fpr_pct = c["fpr"] * 100.0
+    dr_ours_pct = c["dr_ours"] * 100.0
+    dr_trans_pct = c["dr_trans"] * 100.0
+
+    fig = new_figure(140, 95)
+    ax = fig.add_axes((0.130, 0.360, 0.750, 0.560))
+    style_axes(ax, grid_axis="both")
+    ax.set_xscale("log")
+
+    mark_idx = sorted(set(np.round(np.geomspace(2, c["n_neg"] - 2, 9)).astype(int).tolist()))
+    mark_data(
+        ax.plot(
+            fpr_pct,
+            dr_ours_pct,
+            linestyle="-",
+            linewidth=1.4,
+            color=INK,
+            marker="o",
+            markersize=4.2,
+            markerfacecolor="white",
+            markeredgewidth=0.9,
+            markevery=mark_idx,
+            zorder=5,
+            label=fs.checked("本章方法 CPA-ELP（学到的指数）", FS_MIN),
+        )
+    )
+    mark_data(
+        ax.plot(
+            fpr_pct,
+            dr_trans_pct,
+            linestyle=(0, (5, 2)),
+            linewidth=1.4,
+            color=MUTED,
+            marker="s",
+            markersize=4.2,
+            markerfacecolor="white",
+            markeredgewidth=0.9,
+            markevery=mark_idx,
+            zorder=5,
+            label=fs.checked("发表配置全注意力网络（取最大）", FS_MIN),
+        )
+    )
+
+    ax.axvspan(c["lead_span"][0] * 100.0, c["lead_span"][1] * 100.0, color=MUTED, alpha=0.14, zorder=1)
+
+    crossing_x = c["crossing_fpr"] * 100.0
+    cross_dr = float(np.interp(c["crossing_fpr"], c["fpr"], c["dr_ours"])) * 100.0
+    ax.axvline(crossing_x, color=ACCENT, linestyle=(0, (1, 1.6)), linewidth=1.1, zorder=3)
+    ax.annotate(
+        fs.checked(f"交叉点\n假阳率 {crossing_x:.2f}%", FS_MIN),
+        xy=(crossing_x, cross_dr),
+        xytext=(0.0060, 80.0),
+        fontsize=FS_MIN,
+        color=ACCENT,
+        linespacing=1.3,
+        ha="left",
+        va="top",
+        arrowprops={"arrowstyle": "->", "color": ACCENT, "linewidth": 0.9, "shrinkB": 3},
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": ACCENT, "linewidth": 0.7},
+        zorder=6,
+    )
+
+    ax.set_xlim(0.0018, 130)
+    ax.set_ylim(0, 108)
+    ticks = [0.01, 0.1, 1, 10, 100]
+    ax.set_xticks(ticks)
+    ax.set_xticklabels([fs.checked(f"{t:g}%", FS_MIN) for t in ticks], fontsize=FS_MIN)
+    ax.minorticks_off()
+    ax.set_yticks([0, 20, 40, 60, 80, 100])
+    ax.set_xlabel(fs.checked("实体级假阳率（对数刻度）", FS_MAIN), fontsize=FS_MAIN, labelpad=4)
+    ax.set_ylabel(fs.checked("实体级检出率", FS_MAIN), fontsize=FS_MAIN)
+    ax.yaxis.set_major_formatter(pct_formatter(0))
+
+    # 图例放坐标区左上：原来的右下角正好压在全注意力网络曲线上升段上。
+    # 左上角在两条曲线之上，检出率在该假阳率区段远低于此，图例不覆盖任何折点。
+    ax.legend(
+        loc="upper left",
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=HAIRLINE,
+        fontsize=FS_MIN,
+        borderpad=0.4,
+        handlelength=2.2,
+        labelspacing=0.4,
+    )
+
+    lead_lo, lead_hi = c["lead_span"]
     fig.text(
         0.5,
-        0.035,
-        "C11 完整方法，末 5 检查点平均；增益主要来自长尾实体——半数实体仅含 2 条流，\n"
-        "k > 2 的收益只作用于流数更多的实体",
+        0.250,
+        fs.checked(
+            f"46,363 个负实体、752 个正实体，全部可达预算点逐点相减：本方法在 {c['win_frac'] * 100:.2f}%\n"
+            f"的点上检出率更高；全注意力网络仅在假阳率 {lead_lo * 100:.2f}% 至 {lead_hi * 100:.2f}% 区间\n"
+            f"领先（阴影区间），最大领先 {c['max_lead'] * 100:.2f} 个百分点。",
+            FS_MIN,
+        ),
         ha="center",
-        va="bottom",
+        va="top",
         fontsize=FS_MIN,
+        linespacing=1.4,
         color=MUTED,
+    )
+    fig.text(
+        0.5,
+        0.100,
+        fs.checked(
+            f"假阳率 0.10% 处本方法高 {(c['dr010'][0] - c['dr010'][1]) * 100:.2f} 个百分点"
+            f"（{c['dr010'][0] * 100:.2f}% 对 {c['dr010'][1] * 100:.2f}%）；\n"
+            f"0.50% 处高 {(c['dr050'][0] - c['dr050'][1]) * 100:.2f} 个百分点"
+            f"（{c['dr050'][0] * 100:.2f}% 对 {c['dr050'][1] * 100:.2f}%）。",
+            FS_MIN,
+        ),
+        ha="center",
+        va="top",
+        fontsize=FS_MIN,
         linespacing=1.35,
+        color=MUTED,
     )
     return fig
 
+
+# ---------------------------------------------------------------------------
+# 图件登记
+# ---------------------------------------------------------------------------
 
 SPECS: tuple[FigureSpec, ...] = (
     FigureSpec(
-        stem="图3-5-跨年度主性能对比",
-        width_mm=150,
-        height_mm=95,
-        draw=draw_main_comparison,
-        json_keys=("cells.C00.fap", "cells.C01.fap", "cells.C10.fap", "cells.C11.fap"),
-        caption=(
-            "图3-5 LSPR23 训练、LSPR24 零样本评价下的跨年度逐流平均精确率对比。"
-            "本章 2×2 四格与本课题 XGBoost、逐流 MLP 基线在同一冻结评价池上测得；"
-            "Dijk 2026 表 5 三行为论文原始数字，协议不完全等同，仅作背景参照，"
-            "以不同填充图案标出。竖直虚线为随机先验 0.025707。"
-        ),
-    ),
-    FigureSpec(
         stem="图3-6-双机制消融交互",
-        width_mm=150,
-        height_mm=100,
-        draw=draw_interaction,
-        json_keys=(
-            "cells.*.fap",
-            "cells.*.e_lp",
-            "cells.*.dr",
+        width_mm=140,
+        height_mm=96,
+        draw=draw_interaction_2x2,
+        check_group="interaction",
+        data_sources=(
+            "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json :: cells.{C00,C01,C10,C11}.e_lp",
+            "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json :: cells.{C00,C01,C10,C11}.{npar,n_ent_scored}",
+            "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json :: interaction.e_lp.{A,B,sum,combo,interaction}",
         ),
         caption=(
-            "图3-6 因果前缀聚合（A）与实体级 Lp 池化（B）的 2×2 消融，在逐流 AP、实体 AP（Lp 池化）与 "
-            "DR@4%FPR 三个口径下并列呈现。交互项 Δ = C11 − C10 − C01 + C00；判据一为 Δ > 0（超可加），"
-            "判据二为 C11 > max(C01, C10)（组合优于最佳单机制）。三个口径结论不一致："
-            "实体 AP（Δ = +0.091268）与 DR@4%FPR（Δ = +0.017287）两条判据均通过，"
-            "逐流 AP（Δ = −0.182777）两条判据均不通过。此处如实并列，不作取舍。"
-        ),
-    ),
-    FigureSpec(
-        stem="图3-7-训练稳定性",
-        width_mm=110,
-        height_mm=85,
-        draw=draw_stability,
-        json_keys=("stability.C00", "stability.C11"),
-        caption=(
-            "图3-7 基线序列编码器（C00）与完整方法（C11）在种子 42/43/44 下的跨年度逐流 AP。"
-            "横线为三种子均值，阴影为 ±1σ（ddof=1）。σ 是协议的属性："
-            "本图协议为 20000 步、末 5 检查点平均、顺序执行，σ(C00) = 0.023248、σ(C11) = 0.058622。"
+            "图3-6 因果前缀聚合与可学池化的 2×2 交互分解（多层感知机骨干，LSPR23 训练、LSPR24 测试）。"
+            "上半幅为表 3-3 四格的实体平均精确率：无机制参照 33.50%、仅可学池化 40.85%、"
+            "仅因果前缀聚合 38.60%、双机制并用 51.84%，两支箭头为从无机制参照单开一个机制的增量。"
+            "下半幅按式 (3-30) 把双机制并用相对无机制参照的 18.34 个百分点拆开：单开因果前缀聚合 "
+            "5.10 个百分点，单开可学池化 7.35 个百分点，两者之和 12.45 个百分点，交互项 5.89 个百分点。"
+            "交互项由四格直接算出，此处只作描述性读数。"
         ),
     ),
     FigureSpec(
         stem="图3-8-Lp指数收敛轨迹",
-        width_mm=130,
-        height_mm=85,
-        draw=draw_lp_exponent,
-        json_keys=("cells.C00.p", "cells.C01.p", "cells.C10.p", "cells.C11.p"),
+        width_mm=132,
+        height_mm=84,
+        draw=draw_lp_trajectory,
+        check_group="lp",
+        data_sources=(
+            "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json :: selection.{C01,C11}.val_ap_history",
+            "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json :: cells.{C01,C11}.{sel_epoch,p}",
+        ),
         caption=(
-            "图3-8 四格学到的 Lp 池化指数 p 终值。run.log 为顺序执行日志，未记录逐 epoch 轨迹，"
-            "故本图只有各格终值，不呈现收敛过程。C00 与 C10 未启用 Lp 池化，p 保持初值 2.0，不参与训练；"
-            "C01 收敛到 0.6069、C11 收敛到 1.2236，均落在 p = 1（算术平均）与 p → ∞（上界）之间的内部值。"
+            "图3-8 可学指数在训练过程中的取值变化（仅可学池化与双机制并用两个配置，LSPR23 训练）。"
+            "横轴为训练轮次，纵轴为该轮结束时的指数取值。由式 (3-11) 初值为 2，两个配置都把它压低，"
+            "都没有推向取最大一端。实心标记为按源年度检查点选择标准选中的轮次：仅可学池化选中第 14 轮，"
+            "取值 0.5233；双机制并用选中第 10 轮，取值 1.0562。水平虚线标出指数为 1 的算术均值。"
         ),
     ),
     FigureSpec(
         stem="图3-9-序列长度敏感性",
-        width_mm=130,
-        height_mm=85,
-        draw=draw_length,
-        json_keys=("length.16", "length.32", "length.64", "length.128"),
-        caption=(
-            "图3-9 序列长度 L 的逐流与实体级 AP（本实验已知存在缺陷，仅作趋势参考，"
-            "不支持「长上下文更好」的结论）。缺陷有三：其一，截断实现取固定 L=128 块的前 L 个位置，"
-            "逐流覆盖率约 L/128，L=16 时仅约 12.5% 的流被打分；其二，评价集正类基率随 L 改变，"
-            "四点分母不同不可直接比较；其三，8000 步固定步数预算下各 L 的训练流量预算最多相差 8 倍。"
+        width_mm=124,
+        height_mm=86,
+        draw=draw_length_flow,
+        check_group="length",
+        data_sources=(
+            ".Codex/docs/RWKV/2026-08-17-第三章XGBoost基线对照与门槛测算.md :: 第九节四档逐流三次取值",
+            "ch3-full/ch3_full_results.json :: stability.C11（长度 128 档的交叉核对）",
         ),
-    ),
-    FigureSpec(
-        stem="图3-10-攻击类别分面",
-        width_mm=130,
-        height_mm=90,
-        draw=draw_facet,
-        json_keys=("facet.*",),
         caption=(
-            "图3-10 按 Category 字段的攻击类别分面（本实验已知存在缺陷，只作定性参考）。"
-            "缺陷有三：其一，Category 字段对恶意流几乎全空，「(空)」类含 519,138 个正例，"
-            "占五类正例总数的 99.84%，其余四类各仅 81～452 例；其二，各类按「该类正例 + 全部负例」构造，"
-            "评价基率相差数个数量级，(a) 的类内 AP 跨类不可比；其三，(b) 给出 AP / 基率 lift 作为可比口径，"
-            "基率按共享负例池折算，负例池由冻结逐流先验 0.025707 与五类正例合计反推。"
-            "每类条形上同时标注该类正例数。"
+            "图3-9 四档序列长度在等真实流预算下的跨年度逐流平均精确率（LSPR23 训练、LSPR24 测试）。"
+            "每档三个空心圆为三次重复训练的取值，横线为该档均值，四档依次为 22.86%、29.57%、"
+            "33.69% 与 24.20%，阴影为四档均值的跨度。档内三次取值的波动在 4.01 至 10.16 个百分点之间，"
+            "与档间均值之差处在同一量级，本图不对四档排序。"
         ),
     ),
     FigureSpec(
         stem="图3-11-受限观测下的检测能力",
+        width_mm=132,
+        height_mm=86,
+        draw=draw_topk_curve,
+        check_group="topk",
+        data_sources=("ch3-full/ch3_full_results.json :: curve.C11 的第 1、2、5 列",),
+        caption=(
+            "图3-11 每个实体只使用按时间最早的前若干条流时的实体平均精确率，横轴为对数刻度"
+            "（LSPR23 训练、LSPR24 测试）。只看第一条流时为 29.9964%，取前 50 条时升到 45.7276%，"
+            "达到使用全部流的 46.2988% 的 95% 以上，此时读取的流只占全部流的 2.27%。"
+            "水平虚线为使用全部流的取值，竖直点线标出实体流数中位数 2。"
+        ),
+    ),
+    FigureSpec(
+        stem="图3-12-告警预算曲线",
         width_mm=140,
         height_mm=95,
-        draw=draw_latency_curve,
-        json_keys=("curve.C11",),
+        draw=draw_alert_budget_curve,
+        check_group="alert",
+        data_sources=(
+            "dijk-repro/cache/ent24_local.npy",
+            "dijk-repro/cache/y24.npy",
+            "ch3-alert-budget-curve/entity_scores.npy",
+            "ch3-alert-budget-curve/entity_scores_rows.json",
+            "ch3-alert-budget-curve/alert_budget_curves.json :: methods.{ours_c11.lp,transformer_full.max}.entity_ap",
+        ),
         caption=(
-            "图3-11 完整方法（C11）在每实体只使用按时间前 k 条流时的实体 AP 与 DR@4%FPR，横轴为对数刻度。"
-            "实体 AP 从 k=1 的 0.299964 升到使用全部流的 0.462988，DR@4%FPR 从 0.4973 升到 0.6955。"
-            "k=50 时用 2.27% 的流即达到全量 AP 的 98.8%（≥95%）。竖直点线标出实体流数中位 = 2："
-            "半数实体仅含 2 条流，故 k > 2 的增益主要来自长尾实体。"
+            "图3-12 检出率随告警预算的变化（LSPR23 训练、LSPR24 测试，比较本方法 CPA-ELP 与"
+            "发表配置全注意力网络，横轴为实体级假阳率、纵轴为实体级检出率，46,363 个负实体与 "
+            "752 个正实体）。两条曲线在假阳率 2.50% 处相交；在全部 46,363 个可达预算点中，"
+            "本方法在 87.22% 的点上检出率更高。假阳率 0.10% 处本方法高 14.63 个百分点"
+            "（26.46% 对 11.84%），0.50% 处高 28.99 个百分点（49.73% 对 20.74%）。"
+            "全注意力网络仅在假阳率 2.52% 至 12.85% 区间领先（图中阴影），最大领先 4.52 个百分点。"
+            "正文所引的预算点占比与各预算点上的差值由两条曲线在全部可达预算点上逐点相减得到，"
+            "非按图目视读取。"
         ),
     ),
 )
+
+
+def build_context() -> dict[str, Any]:
+    """加载全部数据源并完成正文一致性自检；任何一项不过在此报错，绝不进入绘图。"""
+
+    full = load_full_results()
+    ctx: dict[str, Any] = {
+        "full": full,
+        "interaction": load_interaction_2x2(),
+        "lp": load_lp_trajectory(),
+        "length": load_length_flow(full),
+        "topk": load_topk_curve(full),
+        "alert": load_alert_budget_curve(),
+    }
+    return ctx
+
+
+def report_context(ctx: dict[str, Any], specs: tuple[FigureSpec, ...] = ()) -> None:
+    """逐图打印数据来源键路径与自检结果，供人工核对。"""
+
+    specs = specs or SPECS
+    logger.info("=" * 96)
+    logger.info("字体：中文 %s（%s）", fs.CJK_FONT.family, fs.CJK_FONT.path)
+    logger.info("字体：西文 %s；数学 %s", fs.LATIN_FONT.family, fs.MATH_FONT.family if fs.MATH_FONT else "stix 回退")
+    logger.info("=" * 96)
+    for spec in specs:
+        logger.info("[%s]", spec.stem)
+        for source in spec.data_sources:
+            logger.info("  数据来源 %s", source)
+        for check in ctx[spec.check_group]["checks"]:
+            logger.info(
+                "  自检 %-38s 复现=%.6f 正文=%.6f 差=%.2e 容差=%g 通过",
+                check.item,
+                check.reproduced,
+                check.thesis,
+                abs(check.reproduced - check.thesis),
+                check.tolerance,
+            )
+    logger.info("=" * 96)
+    for item in WITHDRAWN:
+        logger.info("[未重绘] %s：%s", item["stem"], item["reason"])
+    logger.info("=" * 96)
 
 
 def save_figure(spec: FigureSpec, fig: Figure) -> dict[str, str]:
@@ -860,194 +1580,187 @@ def save_figure(spec: FigureSpec, fig: Figure) -> dict[str, str]:
     return outputs
 
 
-def report_values(data: dict[str, Any], log_facts: dict[str, Any]) -> None:
-    """逐图打印所用数值与 JSON 键路径，供人工核对。"""
-
-    cells = data["cells"]
-    logger.info("=" * 88)
-    logger.info("数据源 JSON：%s", JSON_PATH)
-    logger.info("数据源 日志：%s", LOG_PATH)
-    logger.info("=" * 88)
-
-    logger.info("[图3-5] 键路径 cells.{C00,C01,C10,C11}.fap")
-    for cell in CELL_ORDER:
-        logger.info("  cells.%s.fap = %.10f  (%s)", cell, cells[cell]["fap"], CELL_NAMES[cell])
-    for name, value in EXTERNAL_REFS.items():
-        logger.info("  外部参照 %s = %.6f  (来源 tools/ch3_main.py:302-304)", name, value)
-    logger.info("  随机先验 = %.10f  (来源 tools/ch3_main.py:282)", FLOW_PRIOR)
-
-    logger.info("[图3-6] 键路径 cells.*.fap / cells.*.e_lp / cells.*.dr")
-    for key, label in (("fap", "逐流AP"), ("e_lp", "实体AP(Lp)"), ("dr", "DR@4%FPR")):
-        stat = interaction(cells, key)
-        logger.info(
-            "  %-11s C00=%.6f C01=%.6f C10=%.6f C11=%.6f | A=%+.6f B=%+.6f 和=%+.6f 组合=%+.6f 交互=%+.6f "
-            "| 判据一=%s 判据二=%s",
-            label,
-            stat["C00"],
-            stat["C01"],
-            stat["C10"],
-            stat["C11"],
-            stat["A"],
-            stat["B"],
-            stat["sum"],
-            stat["combo"],
-            stat["delta"],
-            "通过" if stat["crit1"] > 0 else "不通过",
-            "通过" if stat["crit2"] > 0 else "不通过",
-        )
-
-    logger.info("[图3-7] 键路径 stability.C00 / stability.C11")
-    for cell, vals in data["stability"].items():
-        arr = np.asarray(vals, dtype=float)
-        logger.info(
-            "  stability.%s = %s | 均值=%.6f σ(ddof=1)=%.6f",
-            cell,
-            " ".join(f"{v:.6f}" for v in arr),
-            arr.mean(),
-            arr.std(ddof=1),
-        )
-
-    logger.info("[图3-8] 键路径 cells.*.p；run.log 逐 epoch 轨迹=%s", log_facts["has_trajectory"])
-    for cell in CELL_ORDER:
-        logger.info("  cells.%s.p = %.10f", cell, cells[cell]["p"])
-    for cell, seeds in log_facts["seed_p"].items():
-        logger.info("  run.log %s 其他种子 p = %s", cell, {k: f"{v:.4f}" for k, v in sorted(seeds.items())})
-
-    logger.info("[图3-9] 键路径 length.{16,32,64,128} = [逐流AP, 实体AP, p]")
-    for key in sorted(data["length"], key=int):
-        flow, ent, p = data["length"][key]
-        logger.info("  length.%-3s 逐流AP=%.6f 实体AP=%.6f p=%.6f", key, flow, ent, p)
-
-    logger.info("[图3-10] 键路径 facet.* = [AP, 正例数]")
-    pos_total = sum(int(v[1]) for v in data["facet"].values())
-    n_neg = pos_total * (1.0 - FLOW_PRIOR) / FLOW_PRIOR
-    logger.info("  五类正例合计=%d 反推共享负例池=%.0f（由 FLOW_PRIOR=%.10f 折算）", pos_total, n_neg, FLOW_PRIOR)
-    for name, (ap, n) in sorted(data["facet"].items(), key=lambda kv: kv[1][1], reverse=True):
-        base = n / (n + n_neg)
-        logger.info("  facet['%s'] AP=%.8f 正例=%d 基率=%.8f lift=%.3f", name, ap, n, base, ap / base)
-    logger.info(
-        "  一致性核对：整体 C11 逐流 AP/先验 = %.3f，(空) 类 lift = %.3f",
-        cells["C11"]["fap"] / FLOW_PRIOR,
-        data["facet"]["(空)"][0] / (data["facet"]["(空)"][1] / (data["facet"]["(空)"][1] + n_neg)),
-    )
-
-    logger.info("[图3-11] 键路径 curve.C11 = [k, 实体AP, DR@4%%FPR, 覆盖实体数, 用流占比]")
-    full_ap = float(data["curve"]["C11"][-1][1])
-    for k, ap, dr, n_ent, cov in data["curve"]["C11"]:
-        logger.info(
-            "  k=%-5s 实体AP=%.6f DR@4%%FPR=%.4f 覆盖实体=%d 用流占比=%.6f 占全量AP=%.1f%%",
-            "全部" if k is None else k,
-            ap,
-            dr,
-            n_ent,
-            cov,
-            ap / full_ap * 100,
-        )
-    logger.info("  run.log 第 5 行：实体流数中位=%d", ENTITY_FLOW_MEDIAN)
-    logger.info("=" * 88)
-
-
 def write_manifest(entries: list[dict[str, Any]]) -> None:
-    """把本脚本的条目合并进 图件清单.json，保留机制图脚本的既有条目。"""
+    """把本脚本的条目合并进 图件清单.json，保留仍有输出文件的其他图件条目。"""
+
+    import PIL
 
     manifest: dict[str, Any] = {}
     if MANIFEST_PATH.exists():
         with MANIFEST_PATH.open(encoding="utf-8") as handle:
             manifest = json.load(handle)
 
-    mine = {e["stem"] for e in entries}
-    kept = [e for e in manifest.get("figures", []) if e.get("stem") not in mine and not _is_result_stem(e.get("stem"))]
+    mine = {entry["stem"] for entry in entries}
+    # 图3-6 的落盘名回到「双机制消融交互」，跨骨干那版已撤下，其清单条目不得留存
+    superseded = {"图3-6-跨骨干机制增益与判读带宽"}
+    withdrawn = {item["stem"] for item in WITHDRAWN}
+    kept: list[dict[str, Any]] = []
+    for entry in manifest.get("figures", []):
+        stem = entry.get("stem")
+        if stem in mine or stem in withdrawn or stem in superseded:
+            continue
+        outputs = entry.get("outputs", {})
+        if outputs and all((ROOT / name).exists() for name in outputs.values()):
+            kept.append(entry)
 
-    generators = manifest.get("generators", [])
-    if isinstance(generators, list):
-        generators = [g for g in generators if g.get("script") != "绘制第三章结果图.py"]
-    else:
-        generators = []
-    if manifest.get("generator") and manifest["generator"] != "绘制第三章结果图.py":
-        generators = [g for g in generators if g.get("script") != manifest["generator"]] + [
-            {"script": manifest["generator"], "evidence_mode": manifest.get("evidence_mode", "unknown")}
-        ]
-    generators.append(
-        {
-            "script": "绘制第三章结果图.py",
-            "evidence_mode": "frozen_experiment_results",
-            "data_source_json": str(JSON_PATH.relative_to(REPO)),
-            "data_source_log": str(LOG_PATH.relative_to(REPO)),
-            "external_reference_source": "thesis/experiments/llm_probe/tools/ch3_main.py:282,302-304",
-            "figures": sorted(mine),
-        }
-    )
-
-    manifest["generators"] = generators
-    manifest["python"] = f"{__import__('sys').version_info.major}.{__import__('sys').version_info.minor}." + str(
-        __import__("sys").version_info.micro
-    )
-    manifest["matplotlib"] = matplotlib.__version__
-    manifest["font"] = {"cjk": FONTS["cjk"], "latin": FONTS["latin"], "math": "STIX (mathtext.fontset=stix)"}
-    manifest["png_dpi"] = PNG_DPI
-    manifest["figures"] = sorted(kept + entries, key=_figure_sort_key)
+    manifest = {
+        "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）",
+        "environment": {
+            "generator": "绘制第三章结果图.py（图3-6/3-8/3-9/3-11/3-12）与 绘制第三章机制图.py（图3-1~图3-4）",
+            "python": ".".join(str(v) for v in sys.version_info[:3]),
+            "matplotlib": matplotlib.__version__,
+            "pillow": PIL.__version__,
+        },
+        "typography": {
+            "resolver": "figstyle.py（字体由解析得到，不在绘图脚本内硬编码）",
+            "cjk_font_requested": fs.CJK_FONT.requested,
+            "cjk_font_used": fs.CJK_FONT.family,
+            "cjk_font_path": fs.CJK_FONT.path,
+            "cjk_face_index": fs.CJK_FONT.face_index,
+            "latin_font_used": fs.LATIN_FONT.family,
+            "latin_font_path": fs.LATIN_FONT.path,
+            "math_font_used": fs.MATH_FONT.family if fs.MATH_FONT else "stix 回退",
+            "min_font_pt": fs.MIN_FONT_PT,
+            "main_font_pt": fs.MAIN_FONT_PT,
+            "main_line_pt": fs.MAIN_LINE_PT,
+            "aux_line_pt": fs.AUX_LINE_PT,
+        },
+        "grayscale_readable": True,
+        "figures": sorted(kept + entries, key=_figure_sort_key),
+        "withdrawn": [
+            {
+                **item,
+                "note": "2026-08-18 以正文为准的重绘中撤下，未生成图件；是否另行处置由正文一侧裁决。",
+            }
+            for item in WITHDRAWN
+        ],
+    }
 
     with MANIFEST_PATH.open("w", encoding="utf-8") as handle:
         json.dump(manifest, handle, ensure_ascii=False, indent=2)
         handle.write("\n")
 
 
-def _is_result_stem(stem: str | None) -> bool:
-    """判定条目是否落在本脚本负责的 图3-5 ~ 图3-11 编号区间。"""
-
-    if not stem:
-        return False
-    match = re.match(r"图3-(\d+)-", stem)
-    return bool(match) and 5 <= int(match.group(1)) <= 11
-
-
 def _figure_sort_key(entry: dict[str, Any]) -> tuple[int, str]:
-    match = re.match(r"图3-(\d+)-", str(entry.get("stem", "")))
-    return (int(match.group(1)) if match else 999, str(entry.get("stem", "")))
+    stem = str(entry.get("stem", ""))
+    head = stem.split("-", 2)
+    try:
+        return (int(head[1]), stem)
+    except (IndexError, ValueError):
+        return (999, stem)
 
 
-def main() -> None:
-    data, log_facts = load_sources()
-    report_values(data, log_facts)
+def select_specs(names: list[str]) -> tuple[FigureSpec, ...]:
+    """按落盘名筛选要生成的图件。给空表则生成全部。"""
+
+    if not names:
+        return SPECS
+    known = {spec.stem: spec for spec in SPECS}
+    unknown = [name for name in names if name not in known]
+    if unknown:
+        raise SystemExit(f"未登记的图件名：{unknown}；可选 {sorted(known)}")
+    return tuple(known[name] for name in names)
+
+
+def main(argv: list[str] | None = None) -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="生成第三章实验结果图")
+    parser.add_argument(
+        "--only",
+        nargs="+",
+        default=[],
+        metavar="落盘名",
+        help="只生成指定图件；其余图件的文件与清单条目原样保留",
+    )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="只绘制并跑遮挡自检，不落盘、不改清单",
+    )
+    args = parser.parse_args(argv)
+    specs = select_specs(args.only)
+
+    ctx = build_context()
+    report_context(ctx, specs)
 
     entries: list[dict[str, Any]] = []
-    for spec in SPECS:
-        fig = spec.draw(data, log_facts)
+    for spec in specs:
+        fig = spec.draw(ctx)
+        # 画布尺寸与登记尺寸必须一致：不一致时清单里的毫米数与 ppi 都会失真，
+        # 而 ppi 仍可能高于合同下限，靠肉眼看不出来，所以在此硬断言。
+        drawn_w, drawn_h = (float(v) * 25.4 for v in fig.get_size_inches())
+        if abs(drawn_w - spec.width_mm) > 0.05 or abs(drawn_h - spec.height_mm) > 0.05:
+            raise ValueError(
+                f"{spec.stem} 画布 {drawn_w:.2f}×{drawn_h:.2f} mm 与登记的 "
+                f"{spec.width_mm}×{spec.height_mm} mm 不一致，停止"
+            )
+        occ = check_occlusion(spec.stem, fig)
+        logger.info(
+            "遮挡自检 %s：不透明框 %d 个，可视数据点 %d 个（去重后 %d 个），"
+            "落在框内 %d 个（去重后 %d 个），标记被压到边缘 %d 个，"
+            "最近间隙 %.2f pt（%s），最大标记直径 %.1f pt",
+            occ.stem,
+            occ.n_boxes,
+            occ.n_points,
+            occ.n_distinct,
+            occ.n_inside,
+            occ.n_inside_distinct,
+            occ.n_marker_clipped,
+            occ.min_gap_pt,
+            occ.nearest,
+            occ.marker_pt,
+        )
+        for line in occ.per_series:
+            logger.info("    分序列 %s", line)
+        for line in occ.offenders:
+            logger.info("    被遮挡 %s", line)
+        if (occ.n_inside or occ.n_marker_clipped) and not args.check_only:
+            raise ValueError(
+                f"遮挡自检失败：{spec.stem} 有 {occ.n_inside} 个数据元素落在不透明框内、"
+                f"{occ.n_marker_clipped} 个标记被框沿压到，停止，"
+                "须改图例或注记的位置，不得删点或改坐标范围"
+            )
+        if args.check_only:
+            plt.close(fig)
+            continue
         outputs = save_figure(spec, fig)
-        png = ROOT / outputs["png"]
-        px_w, px_h = _png_pixels(png)
         entries.append(
             {
                 "stem": spec.stem,
-                "width_mm": spec.width_mm,
-                "height_mm": spec.height_mm,
-                "png_dpi": PNG_DPI,
-                "png_pixels": [px_w, px_h],
-                "json_keys": list(spec.json_keys),
                 "caption": spec.caption,
+                "width_mm": round(spec.width_mm, 2),
+                "height_mm": round(spec.height_mm, 2),
+                "png_dpi": PNG_DPI,
                 "outputs": outputs,
+                "generator": "绘制第三章结果图.py",
+                "evidence_mode": "frozen_experiment_results",
+                "data_sources": list(spec.data_sources),
+                "consistency_checks": [check.as_dict() for check in ctx[spec.check_group]["checks"]],
+                "occlusion_check": {
+                    "判定方式": "渲染后按显示坐标逐点与不透明矩形做包含判定",
+                    "不透明框数": occ.n_boxes,
+                    "可视数据点数": occ.n_points,
+                    "可视数据点数_按像素去重": occ.n_distinct,
+                    "落在框内的数据点数": occ.n_inside,
+                    "标记被框沿压到的个数": occ.n_marker_clipped,
+                    # 无不透明框时写 null：json 的 Infinity 不是合法 JSON，严格解析器读不了。
+                    "数据点到最近不透明框的间隙_pt": (
+                        round(occ.min_gap_pt, 2) if np.isfinite(occ.min_gap_pt) else None
+                    ),
+                },
             }
         )
-        logger.info(
-            "已生成 %s：%.0f×%.0f mm，PNG %d×%d px @ %d ppi，键路径 %s",
-            spec.stem,
-            spec.width_mm,
-            spec.height_mm,
-            px_w,
-            px_h,
-            PNG_DPI,
-            ", ".join(spec.json_keys),
-        )
+
+    if args.check_only:
+        logger.info("只跑自检，未落盘")
+        return
+
+    for line in fs.verify_outputs(ROOT, entries):
+        logger.info("已生成 %s", line)
 
     write_manifest(entries)
     logger.info("图件清单已更新：%s", MANIFEST_PATH)
-
-
-def _png_pixels(path: Path) -> tuple[int, int]:
-    """读取 PNG 头部的像素尺寸，不引入额外依赖。"""
-
-    raw = path.read_bytes()[16:24]
-    return int.from_bytes(raw[0:4], "big"), int.from_bytes(raw[4:8], "big")
 
 
 if __name__ == "__main__":
