@@ -1,14 +1,10 @@
-"""生成第三章五张实验结果图（图3-6、图3-8、图3-9、图3-11、图3-12）。
+"""生成第三章七张实验结果图（图3-5、图3-6、图3-8、图3-9、图3-10、图3-11、图3-12）。
 
 2026-08-18 重绘。原图3-5 ~ 图3-11 七幅与正文冲突，已裁决以正文为准重绘图件：正文
 数字是基准，一个不许改；图跟数据走，不得为对齐图面改动任何数值。本脚本据此只保留
-承担论证增量、且数据能追溯到本机制品的四幅重绘图，加上不在冲突之列的图3-12。撤下
-三幅的理由见 WITHDRAWN 常量，同时写进 图件清单.json：
-  图3-5  六方法三指标共 18 个数与表 3-7 逐格重复，且随机森林、发表配置一维卷积网络
-         与发表配置门控循环网络三行在本机没有结果制品，无法记录数据来源键路径。
+承担论证增量、且数据能追溯到本机制品的重绘图，加上不在冲突之列的图3-12。撤下一幅
+的理由见 WITHDRAWN 常量，同时写进 图件清单.json：
   图3-7  全图只承载六个标量，正文已逐一写出；其完整方法一组与图3-9 第 128 档同源。
-  图3-10 七行两指标共 14 个点估计全部落在表 3-6 内，且该子集只占全部正例的 0.164%，
-         正文自身两度限定其读法，单独配图会抬高它在读者视觉里的权重。
 
 每幅图绘制前先用本机制品复现正文印刷读数，任何一项超差立即报错停止，不画图。
 落盘前还要过一道遮挡自检：渲染后按显示坐标把每个数据标记与曲线折点同图例框、注记框
@@ -19,13 +15,35 @@
 带宽」画的是五个骨干，与正文 3.6.4 节唯一那处引用不符，已撤下；跨骨干读数由表 3-2
 承载）；图3-9 的图例、图3-11 的注记、图3-12 的图例改位，各自解除一处数据遮挡。
 
+2026-08-20 图3-10 由撤下改为重画（用户裁决保留）。原撤下理由有二。其一「七行两指标
+共 14 个点估计全部在表内，区间按图件体例不进图，图只能复述表格」——靠改变图型部分
+解除：现改画森林图，横轴为曲线下面积，画出点估计与置信区间，给出表格给不出的区间
+宽度横向对比。其二「该子集只占全部正例的 0.164%，单独配图会抬高其在读者视觉里的
+权重」——这一条是编辑判断，不因换图型解除，故图内把正例数少于 50 的三类明确置灰、
+虚线画区间、并以分隔线隔到下方另成一组，注明不参与比较，图题写明 0.164% 这一占比。
+数据源与其余各图独立，见 load_forest()；正文表格现编号为表 3-8（3.6.7 节）。
+
+2026-08-20 图3-5 由撤下改为重画（诊断制品已同步到本机）。原撤下理由有二。其一「六
+方法三指标共 18 个数与表 3-4 逐格重复，条形图不增加信息」——靠改变图型解除：不画
+条形图，改画位次连线图，纵轴为位次，呈现表格给不出的位次反转——同一方法在逐流指标
+上靠前、在实体指标上靠后的情形，正是 3.6.2 节「逐流排序与实体排序不是同一次序」的
+论点，条形图画不出这一点。其二「随机森林、发表配置一维卷积网络与发表配置门控循环
+网络三行在本机没有结果 JSON」——diagnostics/ch3-baselines-full/ 下的两份结果制品已
+同步到本机，理由解除。数据源与其余各图独立，见 load_rank_comparison()。
+
 各图数据源（互相独立，不得混用）：
+  图3-5  diagnostics/ch3-baselines-full/{trees_results.json,neural_results.json} 的
+         models.*.{flow_ap,ent_ap_max,dr_at_fpr_max}（五个对比方法，取最大聚合）；
+         本章方法取 diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json 的
+         cells.C11.{fap,e_lp,dr_main}（主口径实体值取学到指数一支）
   图3-6  diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json 的
          cells.{C00,C01,C10,C11}.e_lp 与 interaction.e_lp（多层感知机骨干）
   图3-8  diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json 的 selection.*.val_ap_history
   图3-9  四档长度的逐流读数取自 .Codex/docs/RWKV/2026-08-17-第三章XGBoost基线对照与门槛
          测算.md 第九节（产出该实验的运行目录未同步到本机）；第 128 档与 ch3-full 的
          stability.C11 交叉核对，核对不过即报错
+  图3-10 diagnostics/ch3-e6-v2/e6_v2.json 的 classes[*].{cat,n_pos,n_hit,auc,auc_lo,auc_hi}、
+         unlabeled.{n_pos,auc} 与顶层 fpr_real，详见 load_forest()
   图3-11 diagnostics/ch3-full/ch3_full_results.json 的 curve.C11
   图3-12 diagnostics/dijk-repro/cache/{ent24_local.npy,y24.npy} 与
          diagnostics/ch3-alert-budget-curve/{entity_scores.npy,entity_scores_rows.json,
@@ -74,6 +92,14 @@ FAIRSEL_PATH = DIAG / "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json"
 # 图3-9 四档长度逐流读数的落盘出处（运行目录未同步到本机，读数以本文件第九节为准）
 LENGTH_LEDGER = REPO / ".Codex/docs/RWKV/2026-08-17-第三章XGBoost基线对照与门槛测算.md"
 
+# 图3-10 独立数据源：细粒度攻击类别检测效果（表 3-8 的生产源）
+E6_PATH = DIAG / "ch3-e6-v2/e6_v2.json"
+
+# 图3-5 独立数据源：五个对比方法的共同预算重跑结果（表 3-4 的生产源，与本章方法独立）
+BASELINES_DIR = DIAG / "ch3-baselines-full"
+TREES_PATH = BASELINES_DIR / "trees_results.json"
+NEURAL_PATH = BASELINES_DIR / "neural_results.json"
+
 # 图3-12 独立数据源：告警预算曲线专项复算产物
 ALERT_RUN_DIR = DIAG / "ch3-alert-budget-curve"
 ALERT_JSON_PATH = ALERT_RUN_DIR / "alert_budget_curves.json"
@@ -106,6 +132,26 @@ NPAR_TOL = 0.02
 # 表 3-7 表头：目标年度评价实体数
 N_ENT_FROZEN = 47115
 
+# 表 3-4：六方法在三个指标上的印刷读数（百分数）。五个对比方法的实体分数取最大聚合，
+# 本章方法取学到的指数（cells.C11 的 fap/e_lp/dr_main）；DR@4%FPR 的工作点为假阳率 4%。
+RANK_DISPLAY: dict[str, str] = {
+    "random_forest_dijk2024": "随机森林",
+    "xgboost_dijk2026": "XGBoost",
+    "cnn_leoste2025": "一维卷积网络（主干重建）",
+    "gru_dijk2026": "门控循环网络",
+    "transformer_dijk2026": "全注意力网络",
+    "ours": "CPA-ELP",
+}
+RANK_FROZEN: dict[str, tuple[float, float, float]] = {
+    "random_forest_dijk2024": (13.43, 26.05, 42.55),
+    "xgboost_dijk2026": (22.24, 51.29, 69.28),
+    "cnn_leoste2025": (12.71, 40.96, 64.89),
+    "gru_dijk2026": (28.77, 16.00, 30.85),
+    "transformer_dijk2026": (32.57, 35.36, 74.07),
+    "ours": (29.18, 51.84, 70.35),
+}
+RANK_TARGET_FPR = 0.04
+
 # 表 3-4 与 3.6.5：两个启用可学池化的配置，选中轮次与该轮的指数取值
 LP_FROZEN: dict[str, tuple[int, float]] = {"C01": (14, 0.5233), "C11": (10, 1.0562)}
 LP_INIT = 2.0  # 式 (3-11) 的初值
@@ -121,6 +167,37 @@ LENGTH_FROZEN: tuple[tuple[int, tuple[float, float, float], float, float], ...] 
 # 3.6.8：受限观测曲线的三处印刷读数与前 50 条时的流读取占比
 TOPK_FROZEN = {"k1": 29.9964, "k50": 45.7276, "full": 46.2988, "cov50": 2.27}
 ENTITY_FLOW_MEDIAN = 2  # 3.6.6 与 3.6.8：实体流数中位数
+
+# 表 3-8 与 3.6.7：按攻击类别分面的曲线下面积（百分数）与其 95% 置信区间，
+# 附正例数、命中数，逐行对应正文印刷表格；classes 数组本身已按 n_pos 降序排列，
+# 但装载时仍显式重新排序，不依赖来源顺序。
+E6_FROZEN: dict[str, dict[str, float]] = {
+    "Generic Protocol Command Decode": {
+        "n_pos": 452, "n_hit": 374, "auc": 95.88, "auc_lo": 95.05, "auc_hi": 96.71,
+    },
+    "Potentially Bad Traffic": {
+        "n_pos": 179, "n_hit": 175, "auc": 98.30, "auc_lo": 96.83, "auc_hi": 99.77,
+    },
+    "access to a potentially vulnerable web application": {
+        "n_pos": 102, "n_hit": 87, "auc": 97.12, "auc_lo": 96.06, "auc_hi": 98.17,
+    },
+    "Attempted Information Leak": {
+        "n_pos": 81, "n_hit": 73, "auc": 98.28, "auc_lo": 97.39, "auc_hi": 99.17,
+    },
+    "Potential Corporate Privacy Violation": {
+        "n_pos": 20, "n_hit": 20, "auc": 98.83, "auc_lo": 98.54, "auc_hi": 99.12,
+    },
+    "Misc activity": {
+        "n_pos": 14, "n_hit": 11, "auc": 97.60, "auc_lo": 95.78, "auc_hi": 99.43,
+    },
+    "Web Application Attack": {
+        "n_pos": 3, "n_hit": 3, "auc": 100.00, "auc_lo": 100.00, "auc_hi": 100.00,
+    },
+}
+# 表注：假阳率工作点、未标注桶曲线下面积、带标签正例占全部正例之比（个百分点）
+E6_FPR_WORKING_POINT = 4.0000
+E6_UNLABELED_AUC = 93.86
+E6_LABELED_SHARE = 0.164
 
 # 图3-12 冻结数值（正文 3.6.2 节图题与相邻两段，2026-08-18 版）
 ALERT_FROZEN = {
@@ -144,30 +221,12 @@ WITHDRAWN: tuple[dict[str, str], ...] = (
         "unblock": "跨骨干比较如需配图，应另编图号并在正文相应位置建立引用；无需新实验。",
     },
     {
-        "stem": "图3-5-跨年度主性能对比",
-        "reason": (
-            "图题所述的六方法三指标共 18 个数与表 3-7 逐格一一对应，条形图不增加信息；"
-            "且随机森林、发表配置一维卷积网络与发表配置门控循环网络三行在本机没有结果 JSON，"
-            "只有印刷两位小数，无法按图件合同记录数据来源键路径。"
-        ),
-        "unblock": "同步 diagnostics/ch3-baselines-full/{trees_results.json,neural_results.json} 后可改画位次连线图；无需新实验。",
-    },
-    {
         "stem": "图3-7-训练稳定性",
         "reason": (
             "全图只承载六个逐流读数，正文已连同两个取值波动逐一写出；"
             "其中完整方法的三次取值与表 3-5 第 128 档是同一组数，已由图3-9 呈现。"
         ),
         "unblock": "如需保留，最省的做法是并入图3-9，在第 128 档旁另画一组无机制参照的三点。",
-    },
-    {
-        "stem": "图3-10-攻击类别分面",
-        "reason": (
-            "七行两指标共 14 个点估计全部在表 3-6 内，区间按图件体例不进图，图只能复述表格；"
-            "正文另已写明该子集只占全部正例的 0.164%、且三行正例数少于 50 不参与比较，"
-            "单独配图会把它抬到与主结果同级。"
-        ),
-        "unblock": "如裁决保留，需同步 diagnostics/ch3-e6-v2/e6_v2.json 及其三个输入数组；无需新实验。",
     },
 )
 
@@ -492,6 +551,74 @@ def check_occlusion(stem: str, fig: Figure) -> Occlusion:
 # ---------------------------------------------------------------------------
 
 
+def load_rank_comparison() -> dict[str, Any]:
+    """图3-5：六方法在三个指标上的位次（表 3-4 的生产源，数据源与其余各图独立）。
+
+    五个对比方法读 diagnostics/ch3-baselines-full/{trees_results.json,neural_results.json}
+    的 models.*.{flow_ap,ent_ap_max,dr_at_fpr_max}（实体分数取最大聚合，DR 工作点为假阳率
+    4%，两份制品的 target_fpr 字段在此显式核验）；本章方法读 ch3-2x2-fairsel 的
+    cells.C11.{fap,e_lp,dr_main}（主口径实体值取学到指数一支，与图3-6 所用的
+    INTERACTION_FROZEN["C11"] 同源，此处逐项交叉核对，防止两处口径漂移）。
+    六方法各三项、共十八个数逐一比对表 3-4 印刷值，任何一项超差立即报错，不画图。
+    """
+    checks: list[Check] = []
+    trees = read_json(TREES_PATH)
+    neural = read_json(NEURAL_PATH)
+    fair = read_json(FAIRSEL_PATH)
+
+    for label, data in (("随机森林/XGBoost 制品", trees), ("神经基线制品", neural)):
+        target = float(data["target_fpr"])
+        if abs(target - RANK_TARGET_FPR) > 1e-9:
+            raise ValueError(f"{label} 的 target_fpr={target}，与 DR@4%FPR 工作点不符，停止")
+
+    rows: dict[str, dict[str, float]] = {}
+    for key, src in (
+        ("random_forest_dijk2024", trees),
+        ("xgboost_dijk2026", trees),
+        ("cnn_leoste2025", neural),
+        ("gru_dijk2026", neural),
+        ("transformer_dijk2026", neural),
+    ):
+        item = src["models"][key]
+        flow = float(item["flow_ap"]) * 100.0
+        ent = float(item["ent_ap_max"]) * 100.0
+        dr = float(item["dr_at_fpr_max"]) * 100.0
+        rows[key] = {"flow": flow, "ent": ent, "dr": dr}
+        name = RANK_DISPLAY[key]
+        want_flow, want_ent, want_dr = RANK_FROZEN[key]
+        expect(checks, f"表3-4 {name} 逐流平均精确率", flow, want_flow, 5e-3)
+        expect(checks, f"表3-4 {name} 实体平均精确率", ent, want_ent, 5e-3)
+        expect(checks, f"表3-4 {name} DR@4%FPR", dr, want_dr, 5e-3)
+        expect(checks, f"{name} 评价实体数", float(item["n_ent_scored"]), float(N_ENT_FROZEN), 0.5)
+
+    c11 = fair["cells"]["C11"]
+    flow_o = float(c11["fap"]) * 100.0
+    ent_o = float(c11["e_lp"]) * 100.0
+    dr_o = float(c11["dr_main"]) * 100.0
+    rows["ours"] = {"flow": flow_o, "ent": ent_o, "dr": dr_o}
+    want_flow, want_ent, want_dr = RANK_FROZEN["ours"]
+    expect(checks, "表3-4 CPA-ELP 逐流平均精确率", flow_o, want_flow, 5e-3)
+    expect(checks, "表3-4 CPA-ELP 实体平均精确率", ent_o, want_ent, 5e-3)
+    expect(checks, "表3-4 CPA-ELP DR@4%FPR", dr_o, want_dr, 5e-3)
+    expect(checks, "CPA-ELP 评价实体数", float(c11["n_ent_scored"]), float(N_ENT_FROZEN), 0.5)
+    expect(
+        checks,
+        "CPA-ELP 实体平均精确率与表3-3双机制并用格一致",
+        ent_o,
+        INTERACTION_FROZEN["C11"],
+        5e-3,
+    )
+
+    order = tuple(RANK_DISPLAY.keys())
+    ranks: dict[str, dict[str, int]] = {key: {} for key in order}
+    for metric in ("flow", "ent", "dr"):
+        ordered = sorted(order, key=lambda k: rows[k][metric], reverse=True)
+        for position, key in enumerate(ordered, start=1):
+            ranks[key][metric] = position
+
+    return {"rows": rows, "ranks": ranks, "checks": checks}
+
+
 def load_full_results() -> dict[str, Any]:
     return read_json(FULL_PATH)
 
@@ -639,6 +766,61 @@ def load_topk_curve(full: dict[str, Any]) -> dict[str, Any]:
         "coverage": coverage,
         "full_ap": full_ap,
         "idx50": idx50,
+        "checks": checks,
+    }
+
+
+def load_forest() -> dict[str, Any]:
+    """图3-10：按攻击类别分面的曲线下面积点估计与 95% 置信区间（表 3-8 的生产源）。
+
+    classes 数组每项对应表 3-8 的一行；unlabeled 是未打标签的正例桶，不进图，
+    只用于复现表注的占比与曲线下面积。装载时按 n_pos 显式降序重排，不依赖来源顺序，
+    并逐行同 E6_FROZEN 核对——取错运行目录或字段名会在这里报错，不会画出错的图。
+    """
+    checks: list[Check] = []
+    data = read_json(E6_PATH)
+    classes = data["classes"]
+    unlabeled = data["unlabeled"]
+
+    labeled_pos = sum(int(c["n_pos"]) for c in classes)
+    total_pos = labeled_pos + int(unlabeled["n_pos"])
+    if labeled_pos != 851:
+        raise ValueError(f"图3-10 带标签正例数复现为 {labeled_pos}，与正文 851 不符，停止")
+    share = labeled_pos / total_pos * 100.0
+    expect(checks, "表3-8表注 带标签正例占全部正例", share, E6_LABELED_SHARE, 5e-3)
+    expect(checks, "表3-8表注 未标注桶曲线下面积", float(unlabeled["auc"]) * 100.0, E6_UNLABELED_AUC, 5e-3)
+    expect(checks, "3.6.7 假阳率工作点", float(data["fpr_real"]) * 100.0, E6_FPR_WORKING_POINT, 5e-4)
+
+    rows: list[dict[str, Any]] = []
+    for item in classes:
+        cat = str(item["cat"])
+        if cat not in E6_FROZEN:
+            raise ValueError(f"图3-10 出现未登记的攻击类别 {cat!r}，需先核对表 3-8 是否已改动，停止")
+        frozen = E6_FROZEN[cat]
+        n_pos, n_hit = int(item["n_pos"]), int(item["n_hit"])
+        if n_pos != int(frozen["n_pos"]) or n_hit != int(frozen["n_hit"]):
+            raise ValueError(
+                f"图3-10 {cat} 的正例数/命中数复现为 {n_pos}/{n_hit}，"
+                f"与表 3-8 的 {frozen['n_pos']}/{frozen['n_hit']} 不符，停止"
+            )
+        auc = float(item["auc"]) * 100.0
+        lo = float(item["auc_lo"]) * 100.0
+        hi = float(item["auc_hi"]) * 100.0
+        expect(checks, f"表3-8 {cat} 曲线下面积", auc, frozen["auc"], 5e-3)
+        expect(checks, f"表3-8 {cat} 曲线下面积下界", lo, frozen["auc_lo"], 5e-3)
+        expect(checks, f"表3-8 {cat} 曲线下面积上界", hi, frozen["auc_hi"], 5e-3)
+        rows.append({"cat": cat, "n_pos": n_pos, "n_hit": n_hit, "auc": auc, "lo": lo, "hi": hi})
+
+    rows.sort(key=lambda row: -row["n_pos"])
+    weak = [row for row in rows if row["n_pos"] < 50]
+    if len(weak) != 3:
+        raise ValueError(f"图3-10 正例数少于 50 的类别数复现为 {len(weak)}，与正文「三行」不符，停止")
+
+    return {
+        "rows": rows,
+        "n_weak": len(weak),
+        "total_pos": total_pos,
+        "labeled_share": share,
         "checks": checks,
     }
 
@@ -817,6 +999,133 @@ def load_alert_budget_curve() -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # 绘图
 # ---------------------------------------------------------------------------
+
+# 图3-5 专用样式：本章方法加粗单独取色，五个对比方法只靠线型与标记区分，
+# 颜色仅作辅助（灰度打印仍可凭线型、标记读出六条线）。
+RANK_STYLE: dict[str, dict[str, Any]] = {
+    "random_forest_dijk2024": {"ls": (0, (1, 1.6)), "marker": "v", "color": MUTED, "lw": 1.1, "ms": 4.2},
+    "xgboost_dijk2026": {"ls": (0, (5, 2)), "marker": "s", "color": INK, "lw": 1.1, "ms": 4.0},
+    "cnn_leoste2025": {"ls": (0, (3, 1, 1, 1)), "marker": "^", "color": MUTED, "lw": 1.1, "ms": 4.4},
+    "gru_dijk2026": {"ls": (0, (4, 1.4)), "marker": "D", "color": INK, "lw": 1.1, "ms": 3.8},
+    "transformer_dijk2026": {"ls": (0, (1, 1, 3, 1)), "marker": "P", "color": MUTED, "lw": 1.1, "ms": 4.6},
+    "ours": {"ls": "-", "marker": "o", "color": ACCENT, "lw": 1.8, "ms": 5.2},
+}
+RANK_METRICS: tuple[str, ...] = ("flow", "ent", "dr")
+RANK_XPOS: dict[str, float] = {"flow": 0.0, "ent": 1.0, "dr": 2.0}
+RANK_HEADERS: dict[str, str] = {
+    "flow": "逐流平均精确率",
+    "ent": "实体平均精确率",
+    "dr": "DR@4%FPR",
+}
+
+
+def draw_rank_chart(ctx: dict[str, Any]) -> Figure:
+    """图3-5 六方法在三个指标上的位次连线图。
+
+    纵轴为位次（1 为最优），三列自左至右为逐流平均精确率、实体平均精确率与
+    DR@4%FPR。每个方法一条折线，把三列间的位次变化连起来，位次反转一眼可见；
+    每个数据点上方标出该方法在该指标上的百分数取值，读者不必回表 3-4。方法名
+    标在最右列旁，不用挤成一团的图例框。灰度可读：六条线只靠线型与标记区分，
+    颜色只作辅助，本章方法额外加粗并单独取色以示区别。
+    """
+    payload = ctx["rank"]
+    rows, ranks = payload["rows"], payload["ranks"]
+
+    fig = new_figure(150, 100)
+    ax = fig.add_axes((0.085, 0.130, 0.845, 0.760))
+    ax.set_xlim(-0.55, 3.05)
+    ax.set_ylim(6.9, -0.9)
+    ax.set_xticks([])
+    ax.set_yticks([1, 2, 3, 4, 5, 6])
+    ax.set_yticklabels([fs.checked(str(i), FS_MIN) for i in range(1, 7)], fontsize=FS_MIN)
+    ax.set_ylabel(fs.checked("位次（1 为最优）", FS_MAIN), fontsize=FS_MAIN)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+    ax.tick_params(length=0, pad=3)
+    for y in range(1, 7):
+        ax.plot(
+            [-0.55, 3.05], [y, y],
+            color=HAIRLINE, linewidth=fs.AUX_LINE_PT, zorder=0,
+        )
+
+    order = (
+        "random_forest_dijk2024",
+        "xgboost_dijk2026",
+        "cnn_leoste2025",
+        "gru_dijk2026",
+        "transformer_dijk2026",
+        "ours",
+    )
+    for key in order:
+        style = RANK_STYLE[key]
+        is_ours = key == "ours"
+        xs = [RANK_XPOS[m] for m in RANK_METRICS]
+        ys = [ranks[key][m] for m in RANK_METRICS]
+        mark_data(
+            ax.plot(
+                xs,
+                ys,
+                linestyle=style["ls"],
+                color=style["color"],
+                linewidth=style["lw"],
+                marker=style["marker"],
+                markersize=style["ms"],
+                markerfacecolor=style["color"] if is_ours else "white",
+                markeredgewidth=1.0,
+                markeredgecolor=style["color"],
+                zorder=7 if is_ours else 5,
+                label=fs.checked(RANK_DISPLAY[key], FS_MIN),
+            )
+        )
+        for metric in RANK_METRICS:
+            ax.text(
+                RANK_XPOS[metric],
+                ranks[key][metric] - 0.32,
+                fs.checked(f"{rows[key][metric]:.2f}%", FS_MIN),
+                ha="center",
+                va="bottom",
+                fontsize=FS_MIN,
+                color=style["color"] if is_ours else INK,
+                zorder=8,
+            )
+        # 方法名标在最右列（DR@4%FPR）旁，按该方法在该列的位次对齐，不用图例框。
+        ax.text(
+            RANK_XPOS["dr"] + 0.16,
+            ranks[key]["dr"],
+            fs.checked(RANK_DISPLAY[key], FS_MIN),
+            ha="left",
+            va="center",
+            fontsize=FS_MIN,
+            color=style["color"] if is_ours else INK,
+            zorder=8,
+        )
+
+    for metric in RANK_METRICS:
+        ax.text(
+            RANK_XPOS[metric],
+            -0.45,
+            fs.checked(RANK_HEADERS[metric], FS_MAIN),
+            ha="center",
+            va="bottom",
+            fontsize=FS_MAIN,
+            color=INK,
+            zorder=8,
+        )
+
+    fig.text(
+        0.5,
+        0.030,
+        fs.checked(
+            "LSPR23 训练、LSPR24 测试，47,115 个实体（正例 752 个）；实体分数按各方法自身"
+            "设计的聚合算子得到，五个对比方法取最大，本章方法用学到的指数。",
+            FS_MIN,
+        ),
+        ha="center",
+        va="bottom",
+        fontsize=FS_MIN,
+        color=MUTED,
+    )
+    return fig
 
 
 def draw_interaction_2x2(ctx: dict[str, Any]) -> Figure:
@@ -1290,6 +1599,162 @@ def draw_topk_curve(ctx: dict[str, Any]) -> Figure:
     return fig
 
 
+def draw_forest(ctx: dict[str, Any]) -> Figure:
+    """图3-10 按攻击类别分面的曲线下面积森林图（LSPR24，假阳率 4% 工作点）。
+
+    每类一行，按正例数降序排列。表 3-8 已把全部点估计与区间的印刷值列尽，
+    本图补的是表格给不出的东西：区间宽度的横向对比。正例数少于 50 的三类改用
+    三角标记、虚线区间、灰阶着色，并以分隔线隔到下方另成一组，图例注明其不
+    参与比较；右侧标出每类的正例数与命中数，使读者知道每个点估计背后有多少样本。
+    """
+    payload = ctx["forest"]
+    rows = payload["rows"]
+    n = len(rows)
+    n_weak = payload["n_weak"]
+    n_strong = n - n_weak
+
+    ys = list(range(n - 1, -1, -1))
+    divider_y = (ys[n_strong - 1] + ys[n_strong]) / 2.0
+
+    cat_label = {
+        "access to a potentially vulnerable web application": (
+            "access to a potentially\nvulnerable web application"
+        ),
+    }
+
+    fig = new_figure(155, 92)
+    left, bottom, width, height = 0.400, 0.225, 0.430, 0.660
+    ax = fig.add_axes((left, bottom, width, height))
+    style_axes(ax, grid_axis="x")
+
+    # 弱组背景浅灰：只是分组提示，不参与遮挡自检（自检只查图例框与带底色注记框）。
+    ax.axhspan(-0.7, divider_y, facecolor=SHADE, edgecolor="none", zorder=1)
+
+    for row, y in zip(rows, ys, strict=True):
+        weak = row["n_pos"] < 50
+        color = MUTED if weak else INK
+        marker = "^" if weak else "o"
+        lw = fs.AUX_LINE_PT + 0.2 if weak else fs.MAIN_LINE_PT
+        xerr = [[row["auc"] - row["lo"]], [row["hi"] - row["auc"]]]
+        container = ax.errorbar(
+            [row["auc"]],
+            [y],
+            xerr=xerr,
+            fmt=marker,
+            color=color,
+            ecolor=color,
+            elinewidth=lw,
+            capsize=2.6,
+            capthick=lw,
+            markersize=4.8,
+            markerfacecolor="white",
+            markeredgewidth=1.0,
+            markeredgecolor=color,
+            zorder=6,
+        )
+        data_line, caplines, barlinecols = container.lines
+        mark_data(data_line)
+        for cap in caplines:
+            mark_data(cap)
+        for lc in barlinecols:
+            mark_data(lc)
+            if weak:
+                lc.set_linestyle((0, (2, 1.4)))
+        ax.text(
+            1.03,
+            y,
+            fs.checked(f"{row['n_pos']} ／ {row['n_hit']}", FS_MIN),
+            transform=ax.get_yaxis_transform(),
+            ha="left",
+            va="center",
+            fontsize=FS_MIN,
+            color=color,
+            zorder=7,
+        )
+
+    ax.axhline(divider_y, color=RULE, linestyle=(0, (1, 1.8)), linewidth=fs.AUX_LINE_PT + 0.2, zorder=2)
+    ax.axvline(100.0, color=RULE, linestyle=(0, (1, 1.8)), linewidth=fs.AUX_LINE_PT + 0.2, zorder=2)
+
+    ax.set_yticks(ys)
+    ax.set_yticklabels(
+        [fs.checked(cat_label.get(row["cat"], row["cat"]), FS_MIN) for row in rows],
+        fontsize=FS_MIN,
+    )
+    for tick, row in zip(ax.get_yticklabels(), rows, strict=True):
+        if row["n_pos"] < 50:
+            tick.set_color(MUTED)
+
+    lo_min = min(row["lo"] for row in rows)
+    ax.set_xlim(lo_min - 1.1, 100.7)
+    ax.set_ylim(-0.7, n - 1 + 0.8)
+    ax.set_xlabel(
+        fs.checked("曲线下面积（95% 置信区间，%）", FS_MAIN), fontsize=FS_MAIN, labelpad=3
+    )
+    ax.xaxis.set_major_formatter(pct_formatter(0))
+
+    fig.text(
+        left + width + 0.018,
+        bottom + height + 0.018,
+        fs.checked("正例数／命中数", FS_MIN),
+        ha="left",
+        va="bottom",
+        fontsize=FS_MIN,
+        color=MUTED,
+    )
+    ax.text(
+        100.0 - 0.06,
+        n - 1 + 0.62,
+        fs.checked("上界 100%", FS_MIN),
+        ha="right",
+        va="top",
+        fontsize=FS_MIN,
+        color=RULE,
+    )
+
+    handles = [
+        plt.Line2D(
+            [],
+            [],
+            linestyle="-",
+            color=INK,
+            marker="o",
+            markersize=4.8,
+            markerfacecolor="white",
+            markeredgecolor=INK,
+            linewidth=fs.MAIN_LINE_PT,
+        ),
+        plt.Line2D(
+            [],
+            [],
+            linestyle=(0, (2, 1.4)),
+            color=MUTED,
+            marker="^",
+            markersize=4.8,
+            markerfacecolor="white",
+            markeredgecolor=MUTED,
+            linewidth=fs.AUX_LINE_PT + 0.2,
+        ),
+    ]
+    fig.legend(
+        handles,
+        [
+            fs.checked(f"正例数 ≥ 50（{n_strong} 类）", FS_MIN),
+            fs.checked(f"正例数 < 50，不参与比较（{n_weak} 类）", FS_MIN),
+        ],
+        loc="lower center",
+        bbox_to_anchor=(left + width / 2.0, 0.018),
+        ncol=1,
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=HAIRLINE,
+        fontsize=FS_MIN,
+        borderpad=0.4,
+        handlelength=2.2,
+        labelspacing=0.4,
+    )
+    return fig
+
+
 def draw_alert_budget_curve(ctx: dict[str, Any]) -> Figure:
     """图3-12 检出率随告警预算的变化（LSPR23 训练、LSPR24 测试）。
 
@@ -1423,6 +1888,33 @@ def draw_alert_budget_curve(ctx: dict[str, Any]) -> Figure:
 
 SPECS: tuple[FigureSpec, ...] = (
     FigureSpec(
+        stem="图3-5-六方法三指标位次",
+        width_mm=150,
+        height_mm=100,
+        draw=draw_rank_chart,
+        check_group="rank",
+        data_sources=(
+            "ch3-baselines-full/trees_results.json :: "
+            "models.{random_forest_dijk2024,xgboost_dijk2026}.{flow_ap,ent_ap_max,dr_at_fpr_max}",
+            "ch3-baselines-full/neural_results.json :: "
+            "models.{cnn_leoste2025,gru_dijk2026,transformer_dijk2026}.{flow_ap,ent_ap_max,dr_at_fpr_max}",
+            "ch3-2x2-fairsel/ch3_2x2_fairsel_results.json :: cells.C11.{fap,e_lp,dr_main}",
+        ),
+        caption=(
+            "图3-5 六个方法在三个指标上的位次连线图（LSPR23 训练、LSPR24 测试，47,115 个实体、"
+            "其中正例 752 个，实体分数按各方法自身设计的聚合算子得到，五个对比方法取最大，"
+            "本章方法用学到的指数）。纵轴为位次，1 为最优；三列自左至右为逐流平均精确率、"
+            "实体平均精确率与 DR@4%FPR，点旁数字为该方法在该指标上的百分数取值。随机森林在"
+            "三列均为第 5 名，位次不变。其余五个方法都出现位次反转：一维卷积网络（主干重建）"
+            "逐流第 6（12.71%，全表最低）升到实体第 3（40.96%）；门控循环网络逐流第 3"
+            "（28.77%，高于 XGBoost）跌到实体与检出率两列并列第 6（16.00%、30.85%）；"
+            "全注意力网络在逐流与检出率两列均列第 1（32.57%、74.07%），中间的实体一列却跌到"
+            "第 4（35.36%）；XGBoost 逐流第 4（22.24%）升到实体第 2（51.29%）后回落到检出率"
+            "第 3（69.28%）。本章方法 CPA-ELP 在三列依次为第 2（29.18%）、第 1（51.84%）与"
+            "第 2（70.35%），是唯一在三列都进入前两名的方法。"
+        ),
+    ),
+    FigureSpec(
         stem="图3-6-双机制消融交互",
         width_mm=140,
         height_mm=96,
@@ -1477,6 +1969,28 @@ SPECS: tuple[FigureSpec, ...] = (
         ),
     ),
     FigureSpec(
+        stem="图3-10-攻击类别检测能力森林图",
+        width_mm=155,
+        height_mm=92,
+        draw=draw_forest,
+        check_group="forest",
+        data_sources=(
+            "ch3-e6-v2/e6_v2.json :: classes[*].{cat,n_pos,n_hit,auc,auc_lo,auc_hi}",
+            "ch3-e6-v2/e6_v2.json :: unlabeled.{n_pos,auc}",
+            "ch3-e6-v2/e6_v2.json :: fpr_real",
+        ),
+        caption=(
+            "图3-10 七个攻击类别的检测能力森林图，横轴为曲线下面积（LSPR24，假阳率 4% 工作点，"
+            "阈值处的实际假阳率 4.0000%）。每类一行，按正例数降序排列，圆形标记与实线区间为"
+            "正例数不少于 50 的四类，三角标记、虚线区间与灰阶底纹为正例数少于 50 的三类"
+            "（图例已注明其不参与比较）；右侧标出每类的正例数与命中数。带类别标签的正例共 851 条，"
+            "只占全部正例的 0.164%，其余 99.836% 落在未标注桶，该桶的曲线下面积为 93.86%，"
+            "本图与表 3-8 均不能外推到整体检测行为。曲线下面积的点估计与区间数值见表 3-8；"
+            "本图呈现表格给不出的区间宽度横向对比，正例数最少的 Web Application Attack（3 条）"
+            "区间收窄退化到上界 100%，本身即是小样本估计不可靠的视觉信号。"
+        ),
+    ),
+    FigureSpec(
         stem="图3-11-受限观测下的检测能力",
         width_mm=132,
         height_mm=86,
@@ -1523,9 +2037,11 @@ def build_context() -> dict[str, Any]:
     full = load_full_results()
     ctx: dict[str, Any] = {
         "full": full,
+        "rank": load_rank_comparison(),
         "interaction": load_interaction_2x2(),
         "lp": load_lp_trajectory(),
         "length": load_length_flow(full),
+        "forest": load_forest(),
         "topk": load_topk_curve(full),
         "alert": load_alert_budget_curve(),
     }
@@ -1606,7 +2122,7 @@ def write_manifest(entries: list[dict[str, Any]]) -> None:
     manifest = {
         "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）",
         "environment": {
-            "generator": "绘制第三章结果图.py（图3-6/3-8/3-9/3-11/3-12）与 绘制第三章机制图.py（图3-1~图3-4）",
+            "generator": "绘制第三章结果图.py（图3-6/3-8/3-9/3-10/3-11/3-12）与 绘制第三章机制图.py（图3-1~图3-4）",
             "python": ".".join(str(v) for v in sys.version_info[:3]),
             "matplotlib": matplotlib.__version__,
             "pillow": PIL.__version__,
