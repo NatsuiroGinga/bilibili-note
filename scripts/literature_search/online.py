@@ -752,8 +752,14 @@ def _local_inventory(
     if connection is None:
         return []
     inventory = []
+    note_columns = {
+        str(row["name"]) for row in connection.execute("PRAGMA table_info(notes)")
+    }
+    collection_filter = " WHERE collection='papers'" if "collection" in note_columns else ""
     for row in connection.execute(
-        "SELECT path,title,source_pdf,doi,arxiv_id FROM notes ORDER BY id"
+        "SELECT path,title,source_pdf,doi,arxiv_id FROM notes"
+        + collection_filter
+        + " ORDER BY id"
     ):
         source_pdf = row["source_pdf"]
         inventory.append(

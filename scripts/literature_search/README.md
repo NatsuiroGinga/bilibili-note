@@ -1,6 +1,8 @@
-# 关键词与向量混合文献检索
+# 全项目文档关键词与向量混合检索
 
-该工具只读取 `wiki/papers/**/*.md` 中具有合法 YAML 前言和非空 `source_pdf` 的论文笔记。所有 `INDEX.md`、缺少原件字段的参考笔记和 YAML 无法解析的文件都会排除，并在构建收据中按原因列出。工具不会读取 PDF，不会修改笔记、原件或 Zotero。
+该工具在单一 SQLite 中按 collection 隔离论文笔记、活动项目文档、精选实验收据和论文正文。默认 `paper` 作用域仍只读取 `wiki/papers/**/*.md` 中具有合法 YAML 前言和非空 `source_pdf` 的论文笔记，并继续按 `paper_id` 去重。项目结果只显示自身证据等级，不能冒充论文全文。
+
+所有 `INDEX.md`、归档、备份、缓存、依赖、运行大文件、检查点、逐样本预测、最终测试标签、原始大数组和疑似凭据内容都会排除，并在构建收据中按路径与原因列出。工具不会读取 PDF，不会修改文档、原件、实验制品或 Zotero。
 
 ## 环境
 
@@ -26,7 +28,10 @@ uv run --project scripts/literature_search --locked \
 # 查询与状态
 uv run --project scripts/literature_search --locked \
   python -m scripts.literature_search query \
-  "正常性漂移异常检测" --mode hybrid --top-k 10
+  "正常性漂移异常检测" --scope paper --mode hybrid --top-k 10
+uv run --project scripts/literature_search --locked \
+  python -m scripts.literature_search query \
+  "第四章当前实验状态" --scope project --mode hybrid --offline --top-k 10
 uv run --project scripts/literature_search --locked \
   python -m scripts.literature_search status --json
 
@@ -39,7 +44,19 @@ uv run --project scripts/literature_search --locked \
   python -m scripts.literature_search lint wiki/papers/目标笔记.md --strict --json
 ```
 
-`build --json` 与 `status --json` 会输出当前语料相对索引的 `added`、`changed`、`deleted`、`unchanged`，以及 `excluded`、`excluded_reasons`、`embedding_contract_changed` 和 `stale_reasons`。构建收据另含向量块级的 `reused` 与 `reembedded`。
+`build --json` 与 `status --json` 会输出当前语料相对索引的 `added`、`changed`、`deleted`、`unchanged`，以及逐 collection 的 `collection_diffs`、`excluded`、`excluded_reasons`、`embedding_contract_changed` 和 `stale_reasons`。构建收据另含 `collection_counts`、`collection_chunk_counts` 及向量块级的 `reused` 与 `reembedded`。
+
+## 作用域与 collection
+
+| 作用域 | collection | 用途 |
+|---|---|---|
+| `paper` | `papers` | 文献、相关工作、引用和机制来源 |
+| `project` | `route-control`、`recovery`、`plans`、`reports`、`research-notes` | 当前路线、计划、状态和决策追溯 |
+| `experiment` | `experiment-receipts` | 允许字段内的聚合运行状态与指标 |
+| `thesis` | `thesis-chapters`、`output-deliverables` | 正文定位与公开表述 |
+| `all` | 上述全部本地 collection | 明确跨域问题，按作用域分区输出 |
+
+`local` 保留为 `paper` 的兼容别名；`online` 仍只返回外部候选。`--collection` 可在所选作用域内进一步过滤，参数可重复。默认只查询 `current/active/completed`；只有历史追溯请求才使用 `--include-history` 解锁 `superseded/rejected/archive`。
 
 ## 论文身份与元数据
 
@@ -77,16 +94,17 @@ uv run --project scripts/literature_search --locked \
 
 `query` 使用统一范围：
 
-- `--scope local`：只返回本地全文笔记证据，默认值。
+- `--scope paper`：只返回本地全文论文笔记证据，默认值；`local` 是兼容别名。
+- `--scope project/experiment/thesis`：只返回相应本地 collection，不触发联网。
 - `--scope online`：只返回外部题录或摘要候选及来源状态。
-- `--scope all`：分区返回本地证据与外部候选，二者不混排分数。
+- `--scope all`：按 `paper/project/experiment/thesis` 分区返回本地证据，并保留外部候选独立分区；不同分区不比较原始分数。
 
 在线输出继续以 `results`/`paper_candidates` 保存论文候选，并独立提供 `code_candidates` 和 `hub_candidates`。代码与 Hub 候选不进入论文 RRF 或论文候选去重。
 
 ```bash
 uv run --project scripts/literature_search --locked \
   python -m scripts.literature_search query \
-  "normality shift anomaly detection" --scope all --mode lexical --json
+  "normality shift anomaly detection" --scope all --mode lexical --offline --json
 ```
 
 可选环境变量只从进程环境读取，不写入索引或输出：
@@ -115,7 +133,14 @@ Google Scholar 通过本机 `scholar` 命令的参数列表调用，程序化查
 - 清理模型：使用 `hf cache list` 确认条目，再用 `hf cache rm model/intfloat/multilingual-e5-small --dry-run` 预检。
 - 索引和模型缓存都不应提交 Git。
 
-`status` 会按当前索引合同重新扫描合法论文笔记并计算来源清单哈希；`stale=true` 时，`stale_reasons` 会指出来源新增、修改、删除或嵌入合同变化。
+`status` 会按当前索引合同重新扫描全部允许语料并计算来源清单哈希；`stale=true` 时，`stale_reasons` 会指出来源新增、修改、删除或嵌入合同变化，`collection_diffs` 给出各 collection 的差异路径收据。
+
+## 安全与证据边界
+
+- 项目 Markdown 只从配置中的目录允许清单发现，并执行目录、文件名、大小和内容拒绝检查。
+- `runs/` 不递归索引 Markdown 或原始制品；只有配置列出的聚合 JSON 文件名会进入实验收据适配器。
+- 实验 JSON 只提取状态、运行身份、聚合指标、资源、时间和哈希等允许字段；路径、命令、地址、凭据、标签、逐样本数组和检查点字段不会写入索引。
+- 每条结果强制回显 `scope`、`collection`、`doc_type`、`authority`、`status`、`evidence_level` 和原路径。只有 `papers` 结果提供 `paper_id`、原件和页码证据。
 
 ## 笔记 lint
 

@@ -1,27 +1,29 @@
 ---
 name: literature-hybrid-search
-description: 用户请求 Google Scholar、学术搜索、文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文时使用。
+description: 用户请求项目内文档、实验收据、论文正文、Google Scholar、学术搜索、文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文时使用。
 ---
 
 # 混合文献检索
 
 ## 目标
 
-先复用仓库内已核全文的结构化笔记，再按证据缺口扩展外部候选。在线题录和摘要不能冒充全文证据。
+先按 `paper/project/experiment/thesis` 识别本地证据作用域，再查询对应 collection。只有论文证据缺口需要外部发现时才扩展在线候选；项目文档、实验收据、论文正文、在线题录和摘要都不能冒充已核论文全文。
 
 ## 工作流
 
 1. 在仓库根运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search status --json`。
-2. 索引存在且未陈旧时，运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search query "查询" --scope local --mode hybrid --offline --json`。按 `paper_id` 阅读去重结果，同时核对 `note_views`、`evidence_channel`、`evidence_block`、词法块和向量块。
-3. 向量依赖不可用时可临时改用 `--mode lexical`，并在结果中明确缺失的通道。
-4. 只有本地结果不足、用户要求近期外部工作、源码、模型、数据集、Space 或 DOI/题录核验时，移除 `--offline` 并将同一命令改为 `--scope all`。
-5. 先报告最终证据块对应的本地笔记、其他视图、原件和页码；在线结果单列为“未核全文候选”，同时报告各来源认证、缓存、延迟、限流、去重和失败状态。OpenAlex 缺密钥时只报告 `skipped_missing_key`，不把跳过写成普通搜索回退。
-6. 若用户决定正式纳入外部候选，停止本技能并转入仓库规定的原件下载、全文核验和知识库写回流程。
-7. 用户请求 Google Scholar 或学术搜索时调用 `$google-scholar`，程序化检索固定使用 `--json`，默认传统 `lookup`；只有既有认证或功能明确支持时才允许 `search`。需要源码语义核验时调用现有 `github:github` 技能；需要 HF 模型、数据集、Space 或论文关联时调用现有 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。只读核验候选，不自动下载、登录、上传、索引或认领。
+2. 索引存在且未陈旧时先选择唯一作用域：文献与引用用 `paper`，路线、状态、计划与决策用 `project`，聚合运行指标与资源用 `experiment`，正文定位与表述用 `thesis`，明确跨域问题用 `all`。运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search query "查询" --scope <作用域> --mode hybrid --offline --json`。
+3. 每条本地结果核对 `scope`、`collection`、`authority`、`status`、`evidence_level` 和原路径。`paper` 结果还必须核对 `paper_id`、`note_views`、`source_pdf`、`page_hint` 与 `evidence_block`；其他作用域不得按论文证据引用。
+4. 向量依赖不可用时可临时改用 `--mode lexical`，并在结果中明确缺失的通道。需要限定 collection 时重复使用 `--collection`；只有明确历史追溯才加 `--include-history`。
+5. 只有论文本地结果不足、用户要求近期外部工作、源码、模型、数据集、Space 或 DOI/题录核验时，才移除 `--offline` 并使用 `--scope all`；项目、实验和正文查询默认不联网。
+6. 在线结果单列为“未核全文候选”，同时报告各来源认证、缓存、延迟、限流、去重和失败状态。OpenAlex 缺密钥时只报告 `skipped_missing_key`，不把跳过写成普通搜索回退。
+7. 若用户决定正式纳入外部候选，停止本技能并转入仓库规定的原件下载、全文核验和知识库写回流程。
+8. 用户请求 Google Scholar 或学术搜索时调用 `$google-scholar`，程序化检索固定使用 `--json`，默认传统 `lookup`；只有既有认证或功能明确支持时才允许 `search`。需要源码语义核验时调用现有 `github:github` 技能；需要 HF 模型、数据集、Space 或论文关联时调用现有 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。只读核验候选，不自动下载、登录、上传、索引或认领。
 
 ## 边界
 
 - 不自动修改 `raw/`、`wiki/`、论文正文或 Zotero。
+- 不索引 `INDEX.md`、归档、备份、缓存、依赖、运行大文件、检查点、逐样本预测、最终测试标签、原始大数组或疑似凭据内容；实验 JSON 只读取配置允许的文件名和字段。
 - 不因在线 API 失败丢弃本地结果。
 - 不把 OpenAlex、Semantic Scholar、Crossref、Hugging Face Papers 或 Google Scholar 的摘要、题录和搜索排序写成论文结论。Google Scholar 的 `clusterId`、引用数和排名只作发现元数据，候选固定标记为 `unverified_external_candidate`。
 - Google Scholar 缺命令、缺认证、限流、验证码、超时或 JSON 错误时只记录来源降级，不以其他来源结果伪装成功，也不自动运行登录或 PDF 下载。

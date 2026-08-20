@@ -29,6 +29,16 @@ def initialize(connection: sqlite3.Connection) -> None:
             id INTEGER PRIMARY KEY,
             note_id TEXT NOT NULL UNIQUE,
             paper_id TEXT NOT NULL,
+            collection TEXT NOT NULL,
+            doc_type TEXT NOT NULL,
+            authority TEXT NOT NULL,
+            route TEXT,
+            chapter TEXT,
+            status TEXT NOT NULL,
+            fact_date TEXT,
+            evidence_level TEXT NOT NULL,
+            sensitivity TEXT NOT NULL,
+            parser_contract_hash TEXT NOT NULL,
             path TEXT NOT NULL UNIQUE,
             title TEXT NOT NULL,
             title_zh TEXT,
@@ -50,6 +60,7 @@ def initialize(connection: sqlite3.Connection) -> None:
             source_hash TEXT NOT NULL
         );
         CREATE INDEX notes_paper_id ON notes(paper_id);
+        CREATE INDEX notes_collection ON notes(collection, status);
         CREATE TABLE chunks (
             id INTEGER PRIMARY KEY,
             note_id INTEGER NOT NULL REFERENCES notes(id),
@@ -82,18 +93,31 @@ def insert_documents(
     connection: sqlite3.Connection,
     notes: Sequence[NoteDocument],
     chunks: Sequence[TextChunk],
+    parser_contract_hash: str,
 ) -> None:
     for position, note in enumerate(notes):
         connection.execute(
             """INSERT INTO notes(
-                id,note_id,paper_id,path,title,title_zh,authors,year,aliases,tags,
+                id,note_id,paper_id,collection,doc_type,authority,route,chapter,
+                status,fact_date,evidence_level,sensitivity,parser_contract_hash,
+                path,title,title_zh,authors,year,aliases,tags,
                 key_finding,tasks,datasets,methods,metrics,supports,cannot_support,
                 source_pdf,doi,arxiv_id,cited_dois,source_hash
-            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 position + 1,
                 note.note_id,
                 note.paper_id,
+                note.collection,
+                note.doc_type,
+                note.authority,
+                note.route,
+                note.chapter,
+                note.status,
+                note.fact_date,
+                note.evidence_level,
+                note.sensitivity,
+                parser_contract_hash,
                 note.relative_path,
                 note.title,
                 note.title_zh,
@@ -170,6 +194,21 @@ def indexed_source_hashes(connection: sqlite3.Connection) -> Dict[str, str]:
     }
 
 
+def indexed_document_state(
+    connection: sqlite3.Connection,
+) -> Dict[str, Tuple[str, str]]:
+    columns = table_columns(connection, "notes")
+    identity_column = "note_id" if "note_id" in columns else "path"
+    collection_expression = "collection" if "collection" in columns else "'papers'"
+    return {
+        str(row["identity"]): (str(row["source_hash"]), str(row["collection"]))
+        for row in connection.execute(
+            f"SELECT {identity_column} AS identity,source_hash,"
+            f"{collection_expression} AS collection FROM notes"
+        )
+    }
+
+
 def source_diff(
     indexed: Mapping[str, str], notes: Sequence[NoteDocument]
 ) -> Dict[str, object]:
@@ -190,6 +229,23 @@ def source_diff(
         "changed_paths": changed_paths,
         "deleted_paths": deleted_paths,
     }
+
+
+def collection_source_diffs(
+    indexed: Mapping[str, Tuple[str, str]], notes: Sequence[NoteDocument]
+) -> Dict[str, Dict[str, object]]:
+    current_collections = {note.collection for note in notes}
+    indexed_collections = {collection for _, collection in indexed.values()}
+    differences: Dict[str, Dict[str, object]] = {}
+    for collection in sorted(current_collections | indexed_collections):
+        indexed_hashes = {
+            note_id: source_hash
+            for note_id, (source_hash, indexed_collection) in indexed.items()
+            if indexed_collection == collection
+        }
+        collection_notes = [note for note in notes if note.collection == collection]
+        differences[collection] = source_diff(indexed_hashes, collection_notes)
+    return differences
 
 
 def reusable_embeddings(

@@ -1,6 +1,23 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "input_glob": "wiki/papers/**/*.md",
+  "project_input_globs": [
+    ".Codex/docs/**/*.md",
+    "wiki/**/*.md",
+    "thesis/**/*.md",
+    "output/**/*.md",
+    "Research/**/*.md",
+    "scripts/**/*.md",
+    ".agents/**/*.md",
+    "*.md"
+  ],
+  "experiment_receipt_globs": [
+    "thesis/experiments/llm_probe/runs/**/status.json",
+    "thesis/experiments/llm_probe/runs/**/summary.json",
+    "thesis/experiments/llm_probe/runs/**/metrics.json",
+    "thesis/experiments/llm_probe/runs/**/manifest.json"
+  ],
+  "max_document_bytes": 524288,
   "index_path": ".cache/literature-search/index.sqlite3",
   "model_name": "intfloat/multilingual-e5-small",
   "model_revision": "614241f622f53c4eeff9890bdc4f31cfecc418b3",
@@ -11,7 +28,7 @@
   "default_top_k": 10,
   "online_limit": 5,
   "online_timeout_seconds": 8.0,
-  "parser_contract_version": 1,
+  "parser_contract_version": 2,
   "chunking_contract_version": 1,
   "embedding_contract_version": 1
 }

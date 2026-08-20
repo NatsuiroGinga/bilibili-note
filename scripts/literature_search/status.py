@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 import hashlib
+from collections import Counter
 from pathlib import Path
 from typing import Dict, List
 
 from .config import SearchConfig
-from .documents import excluded_summary, scan_notes, source_manifest_hash
-from .storage import connect, get_metadata, indexed_source_hashes, source_diff
+from .documents import excluded_summary, scan_corpus, source_manifest_hash
+from .storage import (
+    collection_source_diffs,
+    connect,
+    get_metadata,
+    indexed_document_state,
+    source_diff,
+)
 
 
 def _file_sha256(path: Path) -> str:
@@ -18,10 +25,17 @@ def _file_sha256(path: Path) -> str:
 
 
 def index_status(repo_root: Path, index_path: Path, config: SearchConfig) -> Dict[str, object]:
-    scan = scan_notes(repo_root, config.input_glob)
+    scan = scan_corpus(
+        repo_root,
+        config.input_glob,
+        config.project_input_globs,
+        config.experiment_receipt_globs,
+        config.max_document_bytes,
+    )
     notes = list(scan.notes)
     exclusions = excluded_summary(scan.excluded)
     current_manifest = source_manifest_hash(notes)
+    current_parser_contract = config.parser_contract_hash()
     current_contract = config.embedding_contract_hash()
     if not index_path.exists():
         return {
@@ -31,8 +45,14 @@ def index_status(repo_root: Path, index_path: Path, config: SearchConfig) -> Dic
             "stale_reasons": ["missing_index"],
             "message": "索引不存在，请先运行 build",
             "current_note_count": len(notes),
+            "current_collection_counts": dict(
+                sorted(Counter(note.collection for note in notes).items())
+            ),
+            "collection_diffs": collection_source_diffs({}, notes),
             "current_source_manifest_hash": current_manifest,
+            "current_parser_contract_hash": current_parser_contract,
             "current_embedding_contract_hash": current_contract,
+            "parser_contract_changed": False,
             "added": len(notes),
             "changed": 0,
             "deleted": 0,
@@ -43,17 +63,24 @@ def index_status(repo_root: Path, index_path: Path, config: SearchConfig) -> Dic
     connection = connect(index_path, readonly=True)
     try:
         metadata = get_metadata(connection)
-        indexed = indexed_source_hashes(connection)
+        indexed = indexed_document_state(connection)
     finally:
         connection.close()
-    differences = source_diff(indexed, notes)
+    indexed_hashes = {note_id: value[0] for note_id, value in indexed.items()}
+    differences = source_diff(indexed_hashes, notes)
+    collection_diffs = collection_source_diffs(indexed, notes)
     contract_changed = metadata.get("embedding_contract_hash") != current_contract
+    parser_contract_changed = (
+        metadata.get("parser_contract_hash") != current_parser_contract
+    )
     stale_reasons: List[str] = []
     for reason in ("added", "changed", "deleted"):
         if differences[reason]:
             stale_reasons.append(f"source_{reason}")
     if contract_changed:
         stale_reasons.append("embedding_contract_changed")
+    if parser_contract_changed:
+        stale_reasons.append("parser_contract_changed")
     return {
         **metadata,
         "exists": True,
@@ -63,8 +90,14 @@ def index_status(repo_root: Path, index_path: Path, config: SearchConfig) -> Dic
         "stale": bool(stale_reasons),
         "stale_reasons": stale_reasons,
         "current_note_count": len(notes),
+        "current_collection_counts": dict(
+            sorted(Counter(note.collection for note in notes).items())
+        ),
+        "collection_diffs": collection_diffs,
         "current_source_manifest_hash": current_manifest,
+        "current_parser_contract_hash": current_parser_contract,
         "current_embedding_contract_hash": current_contract,
+        "parser_contract_changed": parser_contract_changed,
         "embedding_contract_changed": contract_changed,
         **differences,
         **exclusions,

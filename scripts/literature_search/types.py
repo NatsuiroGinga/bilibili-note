@@ -11,6 +11,15 @@ class NoteDocument:
     relative_path: str
     note_id: str
     paper_id: str
+    collection: str
+    doc_type: str
+    authority: str
+    route: Optional[str]
+    chapter: Optional[str]
+    status: str
+    fact_date: Optional[str]
+    evidence_level: str
+    sensitivity: str
     title: str
     title_zh: Optional[str]
     authors: Tuple[str, ...]

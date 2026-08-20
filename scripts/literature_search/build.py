@@ -4,6 +4,7 @@ import hashlib
 import os
 import sqlite3
 import time
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -12,15 +13,16 @@ from .config import SearchConfig
 from .documents import (
     chunk_note,
     excluded_summary,
-    scan_notes,
+    scan_corpus,
     source_manifest_hash,
 )
 from .embeddings import EmbeddingBackend
 from .storage import (
     chunk_texts,
     connect,
+    collection_source_diffs,
     get_metadata,
-    indexed_source_hashes,
+    indexed_document_state,
     initialize,
     insert_documents,
     reusable_embeddings,
@@ -41,13 +43,13 @@ def _file_sha256(path: Path) -> str:
 
 def _old_index_state(
     index_path: Path, embedding_contract_hash: str
-) -> Tuple[Dict[str, str], Dict[str, bytes], Optional[str]]:
+) -> Tuple[Dict[str, Tuple[str, str]], Dict[str, bytes], Optional[str]]:
     if not index_path.exists():
         return {}, {}, None
     connection = connect(index_path, readonly=True)
     try:
         metadata = get_metadata(connection)
-        indexed = indexed_source_hashes(connection)
+        indexed = indexed_document_state(connection)
         saved_contract = metadata.get("embedding_contract_hash")
         reusable = (
             reusable_embeddings(connection, embedding_contract_hash)
@@ -124,11 +126,18 @@ def build_index(
     device: str = "auto",
 ) -> Dict[str, object]:
     started = time.monotonic()
-    scan = scan_notes(repo_root, config.input_glob)
+    scan = scan_corpus(
+        repo_root,
+        config.input_glob,
+        config.project_input_globs,
+        config.experiment_receipt_globs,
+        config.max_document_bytes,
+    )
     notes = list(scan.notes)
     if not notes:
-        raise RuntimeError(f"未找到合法论文笔记：{config.input_glob}")
+        raise RuntimeError("未找到符合安全允许清单的项目文档")
     embedding_contract_hash = config.embedding_contract_hash()
+    parser_contract_hash = config.parser_contract_hash()
     chunks = [
         chunk
         for note_position, note in enumerate(notes)
@@ -143,7 +152,9 @@ def build_index(
     indexed, reusable, previous_contract = _old_index_state(
         index_path, embedding_contract_hash
     )
-    differences = source_diff(indexed, notes)
+    indexed_hashes = {note_id: value[0] for note_id, value in indexed.items()}
+    differences = source_diff(indexed_hashes, notes)
+    collection_diffs = collection_source_diffs(indexed, notes)
     contract_changed = index_path.exists() and previous_contract != embedding_contract_hash
     exclusions = excluded_summary(scan.excluded)
 
@@ -154,7 +165,7 @@ def build_index(
     connection = connect(temporary)
     try:
         initialize(connection)
-        insert_documents(connection, notes, chunks)
+        insert_documents(connection, notes, chunks, parser_contract_hash)
         vector_stats: Dict[str, object] = {
             "vector_count": 0,
             "vector_dimension": 0,
@@ -178,10 +189,20 @@ def build_index(
             "built_at": datetime.now(timezone.utc).isoformat(),
             "build_seconds": round(elapsed, 3),
             "source_manifest_hash": source_manifest_hash(notes),
+            "parser_contract_hash": parser_contract_hash,
             "embedding_contract_hash": embedding_contract_hash,
             "embedding_contract_changed": contract_changed,
             "note_count": len(notes),
             "chunk_count": len(chunks),
+            "collection_counts": dict(
+                sorted(Counter(note.collection for note in notes).items())
+            ),
+            "collection_chunk_counts": dict(
+                sorted(
+                    Counter(notes[chunk.note_position].collection for chunk in chunks).items()
+                )
+            ),
+            "collection_diffs": collection_diffs,
             "model_name": config.model_name,
             "model_revision": config.model_revision,
             "config": config.to_dict(),

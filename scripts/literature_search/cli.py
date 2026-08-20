@@ -12,7 +12,7 @@ from .config import REPO_ROOT, SearchConfig, load_config
 from .evaluate import evaluate_queries
 from .lint_notes import lint_paths
 from .online import discover_online
-from .search import search_local
+from .search import SCOPE_COLLECTIONS, search_federated
 from .status import index_status
 from .storage import connect, get_metadata
 
@@ -27,13 +27,31 @@ def _print_json(value: object) -> None:
 def _print_results(results: Sequence[Dict[str, object]]) -> None:
     for item in results:
         print(f"{item['rank']}. {item['title']}")
-        print(f"   论文身份：{item['paper_id']}")
-        print(f"   笔记：{item['note_path']}")
+        if item.get("paper_id"):
+            print(f"   论文身份：{item['paper_id']}")
+        else:
+            print(f"   文档身份：{item['document_id']}")
+        print(
+            "   分区：scope={scope} collection={collection} 类型={doc_type}".format(
+                scope=item["scope"],
+                collection=item["collection"],
+                doc_type=item["doc_type"],
+            )
+        )
+        print(
+            "   证据元数据：权威={authority} 状态={status} 等级={level}".format(
+                authority=item["authority"],
+                status=item["status"],
+                level=item["evidence_level"],
+            )
+        )
+        print(f"   路径：{item['note_path']}")
         if int(item.get("note_view_count") or 0) > 1:
             paths = "、".join(str(view["note_path"]) for view in item["note_views"])
             print(f"   笔记视图：{paths}")
-        print(f"   原件：{item.get('source_pdf') or '未记录'}")
-        print(f"   页码：{item.get('page_hint') or '当前分块未提取'}")
+        if item.get("paper_id"):
+            print(f"   原件：{item.get('source_pdf') or '未记录'}")
+            print(f"   页码：{item.get('page_hint') or '当前分块未提取'}")
         print(
             "   排名：词法={lexical} 向量={vector} 融合分={fusion}".format(
                 lexical=item.get("lexical_rank") or "-",
@@ -93,7 +111,7 @@ def _add_common(parser: argparse.ArgumentParser) -> None:
 
 
 def make_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="关键词与向量混合文献检索")
+    parser = argparse.ArgumentParser(description="全项目文档关键词与向量混合检索")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build_parser = subparsers.add_parser("build", help="构建或原子重建索引")
@@ -113,7 +131,20 @@ def make_parser() -> argparse.ArgumentParser:
         "--mode", choices=["lexical", "vector", "hybrid"], default="hybrid"
     )
     query_parser.add_argument(
-        "--scope", choices=["local", "online", "all"], default="local"
+        "--scope",
+        choices=["paper", "project", "experiment", "thesis", "all", "local", "online"],
+        default="paper",
+    )
+    query_parser.add_argument(
+        "--collection",
+        action="append",
+        choices=list(SCOPE_COLLECTIONS["all"]),
+        help="在所选本地作用域内进一步过滤 collection，可重复指定",
+    )
+    query_parser.add_argument(
+        "--include-history",
+        action="store_true",
+        help="显式纳入 superseded、rejected 和 archive 状态",
     )
     query_parser.add_argument("--top-k", type=int, default=None)
     query_parser.add_argument("--online-limit", type=int, default=None)
@@ -234,16 +265,42 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 raise ValueError("top-k 必须为正数")
             if connection is None:
                 raise RuntimeError(f"索引不存在：{index_path}；请先运行 build")
-            results = search_local(
-                connection,
-                args.text,
-                args.mode,
-                top_k,
-                actual_config,
-                cache_folder=_model_cache(args, repo_root),
-                local_files_only=args.offline,
-                device=args.device,
+            requested_scope = "paper" if args.scope == "local" else args.scope
+            results_by_scope: Dict[str, Sequence[Dict[str, object]]] = {}
+            local_scopes = (
+                ("paper", "project", "experiment", "thesis")
+                if requested_scope == "all"
+                else (requested_scope,)
             )
+            for local_scope in local_scopes:
+                selected_collections = None
+                if args.collection:
+                    selected_collections = [
+                        value
+                        for value in args.collection
+                        if value in SCOPE_COLLECTIONS[local_scope]
+                    ]
+                    if not selected_collections:
+                        results_by_scope[local_scope] = []
+                        continue
+                results_by_scope[local_scope] = search_federated(
+                    connection,
+                    args.text,
+                    args.mode,
+                    top_k,
+                    actual_config,
+                    cache_folder=_model_cache(args, repo_root),
+                    local_files_only=args.offline,
+                    device=args.device,
+                    scope=local_scope,
+                    collections=selected_collections,
+                    include_history=args.include_history,
+                )
+            results = [
+                item
+                for local_scope in local_scopes
+                for item in results_by_scope[local_scope]
+            ]
             online = None
             if args.scope == "all":
                 online = discover_online(
@@ -258,12 +315,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             if connection is not None:
                 connection.close()
         if args.json:
-            output = {"scope": args.scope, "mode": args.mode, "local_results": results}
+            output = {
+                "scope": "paper" if args.scope == "local" else args.scope,
+                "mode": args.mode,
+                "collections": args.collection,
+                "include_history": args.include_history,
+                "local_results": results,
+            }
+            if len(results_by_scope) > 1:
+                output["local_results_by_scope"] = results_by_scope
             if online is not None:
                 output["online"] = online
             _print_json(output)
         else:
-            _print_results(results)
+            if len(results_by_scope) > 1:
+                for local_scope, scoped_results in results_by_scope.items():
+                    print(f"本地作用域：{local_scope}")
+                    _print_results(scoped_results)
+            else:
+                _print_results(results)
             if online is not None:
                 _print_online(online)
         return 0

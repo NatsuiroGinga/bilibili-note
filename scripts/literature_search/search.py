@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-from typing import Dict, List, Mapping, Optional
+from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
 import numpy as np
 
@@ -14,8 +14,47 @@ from .storage import fetch_chunks, fetch_note_views, fetch_notes, load_embedding
 from .types import RankedChunk, RankedNote
 
 
+SCOPE_COLLECTIONS: Dict[str, Tuple[str, ...]] = {
+    "paper": ("papers",),
+    "project": ("route-control", "recovery", "plans", "reports", "research-notes"),
+    "experiment": ("experiment-receipts",),
+    "thesis": ("thesis-chapters", "output-deliverables"),
+    "all": (
+        "papers",
+        "route-control",
+        "recovery",
+        "plans",
+        "reports",
+        "research-notes",
+        "experiment-receipts",
+        "thesis-chapters",
+        "output-deliverables",
+    ),
+}
+CURRENT_STATUSES = {"current", "active", "completed"}
+
+
+def scope_collections(
+    scope: str, requested: Optional[Sequence[str]] = None
+) -> Tuple[str, ...]:
+    normalized_scope = "paper" if scope == "local" else scope
+    if normalized_scope not in SCOPE_COLLECTIONS:
+        raise ValueError(f"未知本地检索作用域：{scope}")
+    allowed = SCOPE_COLLECTIONS[normalized_scope]
+    if not requested:
+        return allowed
+    unknown = sorted(set(requested) - set(allowed))
+    if unknown:
+        raise ValueError(
+            f"collection 不属于作用域 {normalized_scope}：{', '.join(unknown)}"
+        )
+    return tuple(dict.fromkeys(requested))
+
+
 def _vector_ranking(
-    connection: sqlite3.Connection, query_vector: np.ndarray
+    connection: sqlite3.Connection,
+    query_vector: np.ndarray,
+    allowed_note_ids: Set[int],
 ) -> List[RankedNote]:
     chunk_ids, note_ids, vectors = load_embeddings(connection)
     if not len(chunk_ids):
@@ -25,15 +64,40 @@ def _vector_ranking(
     chunks = [
         RankedChunk(int(chunk_ids[index]), int(note_ids[index]), float(scores[index]))
         for index in order
+        if int(note_ids[index]) in allowed_note_ids
     ]
     return aggregate_chunks(chunks)
 
 
-def _note_to_paper(connection: sqlite3.Connection) -> Dict[int, str]:
+def _note_to_identity(
+    connection: sqlite3.Connection, allowed_note_ids: Set[int]
+) -> Dict[int, str]:
     return {
-        int(row["id"]): str(row["paper_id"])
-        for row in connection.execute("SELECT id,paper_id FROM notes")
+        int(row["id"]): (
+            str(row["paper_id"])
+            if str(row["collection"]) == "papers"
+            else str(row["note_id"])
+        )
+        for row in connection.execute("SELECT id,paper_id,note_id,collection FROM notes")
+        if int(row["id"]) in allowed_note_ids
     }
+
+
+def _allowed_notes(
+    connection: sqlite3.Connection,
+    collections: Sequence[str],
+    include_history: bool,
+) -> Tuple[Set[int], Dict[int, sqlite3.Row]]:
+    marks = ",".join("?" for _ in collections)
+    rows = list(
+        connection.execute(
+            f"SELECT * FROM notes WHERE collection IN ({marks}) ORDER BY id",
+            tuple(collections),
+        )
+    )
+    if not include_history:
+        rows = [row for row in rows if str(row["status"]) in CURRENT_STATUSES]
+    return {int(row["id"]) for row in rows}, {int(row["id"]): row for row in rows}
 
 
 def _rrf_contribution(rank: Optional[int], constant: int) -> Optional[float]:
@@ -101,12 +165,28 @@ def search_local(
     local_files_only: bool = False,
     device: str = "auto",
     backend: Optional[EmbeddingBackend] = None,
+    scope: str = "paper",
+    collections: Optional[Sequence[str]] = None,
+    include_history: bool = False,
+    query_vector: Optional[np.ndarray] = None,
 ) -> List[Dict[str, object]]:
     if mode not in {"lexical", "vector", "hybrid"}:
         raise ValueError(f"未知检索模式：{mode}")
-    note_to_paper = _note_to_paper(connection)
+    selected_collections = scope_collections(scope, collections)
+    allowed_note_ids, allowed_note_rows = _allowed_notes(
+        connection, selected_collections, include_history
+    )
+    if not allowed_note_ids:
+        return []
+    note_to_paper = _note_to_identity(connection, allowed_note_ids)
     lexical_notes = (
-        aggregate_chunks(lexical_search(connection, query)) if mode != "vector" else []
+        aggregate_chunks(
+            item
+            for item in lexical_search(connection, query)
+            if item.note_id in allowed_note_ids
+        )
+        if mode != "vector"
+        else []
     )
     lexical = aggregate_papers(lexical_notes, note_to_paper)
     vector_notes: List[RankedNote] = []
@@ -119,7 +199,9 @@ def search_local(
                 local_files_only=local_files_only,
                 device=device,
             )
-        vector_notes = _vector_ranking(connection, backend.encode_query(query))
+        if query_vector is None:
+            query_vector = backend.encode_query(query)
+        vector_notes = _vector_ranking(connection, query_vector, allowed_note_ids)
         if not vector_notes:
             raise RuntimeError("索引没有向量；请执行完整 build，不能以纯词法索引运行向量检索")
     vector = aggregate_papers(vector_notes, note_to_paper)
@@ -178,6 +260,7 @@ def search_local(
     for display_rank, (paper_id, score) in enumerate(ordered, start=1):
         evidence = selected[paper_id]
         evidence_note = note_rows[evidence.note_id]
+        document_metadata = allowed_note_rows[evidence.note_id]
         lexical_contribution = _rrf_contribution(
             lexical_rank.get(paper_id), config.rrf_constant
         )
@@ -205,16 +288,27 @@ def search_local(
             }
             for row in views[paper_id]
         ]
+        is_paper = str(document_metadata["collection"]) == "papers"
         results.append(
             {
                 "rank": display_rank,
-                "paper_id": paper_id,
+                "scope": "paper" if is_paper else scope,
+                "document_id": document_metadata["note_id"],
+                "paper_id": paper_id if is_paper else None,
+                "collection": document_metadata["collection"],
+                "doc_type": document_metadata["doc_type"],
+                "authority": document_metadata["authority"],
+                "route": document_metadata["route"],
+                "chapter": document_metadata["chapter"],
+                "status": document_metadata["status"],
+                "date": document_metadata["fact_date"],
+                "sensitivity": document_metadata["sensitivity"],
                 "title": evidence_note["title"],
                 "note_id": evidence_note["note_id"],
                 "note_path": evidence_note["path"],
                 "note_views": note_views,
                 "note_view_count": len(note_views),
-                "source_pdf": evidence_note["source_pdf"],
+                "source_pdf": evidence_note["source_pdf"] if is_paper else None,
                 "page_hint": evidence_block["page_hint"],
                 "doi": evidence_note["doi"],
                 "arxiv_id": evidence_note["arxiv_id"],
@@ -234,7 +328,87 @@ def search_local(
                 "evidence_channel": channel_by_paper[paper_id],
                 "evidence_block": evidence_block,
                 "snippet": evidence_block["snippet"],
-                "evidence_level": "本地结构化全文笔记",
+                "evidence_level": document_metadata["evidence_level"],
             }
         )
     return results
+
+
+def search_federated(
+    connection: sqlite3.Connection,
+    query: str,
+    mode: str,
+    top_k: int,
+    config: SearchConfig,
+    cache_folder: Optional[Path] = None,
+    local_files_only: bool = False,
+    device: str = "auto",
+    scope: str = "paper",
+    collections: Optional[Sequence[str]] = None,
+    include_history: bool = False,
+) -> List[Dict[str, object]]:
+    selected_collections = scope_collections(scope, collections)
+    if len(selected_collections) == 1:
+        return search_local(
+            connection,
+            query,
+            mode,
+            top_k,
+            config,
+            cache_folder=cache_folder,
+            local_files_only=local_files_only,
+            device=device,
+            scope=scope,
+            collections=selected_collections,
+            include_history=include_history,
+        )
+
+    backend = None
+    query_vector = None
+    if mode != "lexical":
+        backend = EmbeddingBackend(
+            config.model_name,
+            config.model_revision,
+            cache_folder=cache_folder,
+            local_files_only=local_files_only,
+            device=device,
+        )
+        query_vector = backend.encode_query(query)
+    collection_results = {
+        collection: search_local(
+            connection,
+            query,
+            mode,
+            top_k,
+            config,
+            cache_folder=cache_folder,
+            local_files_only=local_files_only,
+            device=device,
+            backend=backend,
+            scope=scope,
+            collections=(collection,),
+            include_history=include_history,
+            query_vector=query_vector,
+        )
+        for collection in selected_collections
+    }
+    fused = reciprocal_rank_fusion(
+        {
+            collection: [str(item["document_id"]) for item in results]
+            for collection, results in collection_results.items()
+        },
+        config.rrf_constant,
+    )
+    payloads = {
+        str(item["document_id"]): item
+        for results in collection_results.values()
+        for item in results
+    }
+    ordered = sorted(fused.items(), key=lambda item: (-item[1], item[0]))[:top_k]
+    output: List[Dict[str, object]] = []
+    for rank, (document_id, score) in enumerate(ordered, start=1):
+        item = dict(payloads[document_id])
+        item["rank"] = rank
+        item["collection_rrf_score"] = score
+        output.append(item)
+    return output

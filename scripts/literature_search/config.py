@@ -4,7 +4,7 @@ import hashlib
 import json
 from dataclasses import MISSING, dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -26,6 +26,23 @@ class SearchConfig:
     default_top_k: int
     online_limit: int
     online_timeout_seconds: float
+    project_input_globs: Tuple[str, ...] = (
+        ".Codex/docs/**/*.md",
+        "wiki/**/*.md",
+        "thesis/**/*.md",
+        "output/**/*.md",
+        "Research/**/*.md",
+        "scripts/**/*.md",
+        ".agents/**/*.md",
+        "*.md",
+    )
+    experiment_receipt_globs: Tuple[str, ...] = (
+        "thesis/experiments/llm_probe/runs/**/status.json",
+        "thesis/experiments/llm_probe/runs/**/summary.json",
+        "thesis/experiments/llm_probe/runs/**/metrics.json",
+        "thesis/experiments/llm_probe/runs/**/manifest.json",
+    )
+    max_document_bytes: int = 524288
     parser_contract_version: int = 1
     chunking_contract_version: int = 1
     embedding_contract_version: int = 1
@@ -35,7 +52,10 @@ class SearchConfig:
         values: Dict[str, Any] = {}
         for field, definition in cls.__dataclass_fields__.items():
             if field in data:
-                values[field] = data[field]
+                value = data[field]
+                if field in {"project_input_globs", "experiment_receipt_globs"}:
+                    value = tuple(value)
+                values[field] = value
             elif definition.default is not MISSING:
                 values[field] = definition.default
             else:
@@ -65,6 +85,21 @@ class SearchConfig:
             "chunking_contract_version": self.chunking_contract_version,
             "chunk_max_chars": self.chunk_max_chars,
             "chunk_overlap_chars": self.chunk_overlap_chars,
+        }
+        payload = json.dumps(
+            contract, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    def parser_contract_hash(self) -> str:
+        contract = {
+            "version": self.parser_contract_version,
+            "paper_input_glob": self.input_glob,
+            "project_input_globs": self.project_input_globs,
+            "experiment_receipt_globs": self.experiment_receipt_globs,
+            "max_document_bytes": self.max_document_bytes,
+            "collection_policy": "project-document-collections/v1",
+            "sensitive_filter_policy": "project-document-sensitive-filter/v1",
         }
         payload = json.dumps(
             contract, ensure_ascii=False, sort_keys=True, separators=(",", ":")

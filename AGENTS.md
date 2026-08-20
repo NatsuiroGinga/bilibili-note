@@ -119,11 +119,12 @@
 2. **分析门禁只卡结论，不卡实验**：`results-analysis` 的 blocker-first 门禁（锁定分析单元、主指标、种子/折数、来源、比较族）**作用于"把结果写入正文或路线总控"这一步**，不得用于阻塞已满足数据与运行门禁的实验启动。格式化、重复静态检查、归档与非阻断性审查同样不得延迟实验。
 3. **图表按下述学位论文图件合同产出**：`publication-chart-skill` 负责图型选择、信息密度与配套表；渲染规格按本合同执行。历史图件的 `180 mm` 宽与 Hiragino Sans GB 字体已判定为缺陷（A4 版心不足 180 mm、该字体非中文学位论文常规），不再沿用。
 
-### 本地混合文献检索路由（强制）
+### 本地混合项目检索路由（强制）
 
-- 遇到“文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文、主题论文”等请求，先运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search status --json`，再用 `uv run --project scripts/literature_search --locked python -m scripts.literature_search query "查询" --scope local --mode hybrid --offline --json` 检索 `wiki/papers/**/*.md`。
+- 遇到项目内检索请求，先运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search status --json`。文献、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文使用 `--scope paper`；当前路线、状态、计划和决策追溯使用 `--scope project`；运行指标和资源收据使用 `--scope experiment`；正文、小节和公开表述使用 `--scope thesis`；只有明确跨域问题才使用 `--scope all`。本地查询默认加 `--mode hybrid --offline --json`。
+- `local` 只作为 `paper` 的兼容别名。结果必须核对 `scope`、`collection`、`authority`、`status`、`evidence_level` 和原路径；项目、实验和正文结果不得冒充论文全文证据。需要缩小范围时重复使用 `--collection`，只有显式历史追溯才使用 `--include-history`。
 - 索引不存在或 `stale=true` 时，按 `scripts/literature_search/README.md` 构建；模型依赖不可用时可先用 `--mode lexical`，但必须明确向量通道未运行。
-- 只有本地证据不足、用户明确要求近期或外部工作、或需要验证 DOI/题录时，才改用 `--scope all`；`all` 必须同时保留本地结果和在线来源状态，任一在线来源失败不得丢弃本地结果。
+- 只有论文本地证据不足、用户明确要求近期或外部工作、或需要验证 DOI/题录时，才允许 `paper/all` 查询移除 `--offline`；`all` 必须保留各本地作用域分区和在线来源状态，任一在线来源失败不得丢弃本地结果。项目、实验和正文作用域默认不联网。
 - OpenAlex、Semantic Scholar、Crossref、Hugging Face Papers 和 Google Scholar 的返回一律视为外部题录或摘要候选。Google Scholar 请求必须调用 `$google-scholar`，程序化检索固定使用 JSON；`clusterId`、引用数和排序只作发现元数据。候选没有本地全文原件与结构化全文笔记前，不得升级为全文证据、写入论文结论或冒充已读全文。
 - `scope=all` 的 GitHub 结果只进入 `code_candidates`，HF 模型、数据集和 Space 只进入 `hub_candidates`，均不得进入论文 RRF。HF Papers 可作为论文候选来源，但未有本地全文前仍是未核候选。
 - 需要 Google Scholar 或学术搜索时调用 `$google-scholar`；需要源码时优先调用已安装的官方 `github:github`；需要 HF 模型、数据集、Space 或论文关联时调用已安装的 `hf-cli`、`huggingface-papers`、`huggingface-datasets`。skills.sh 上第三方 GitHub 技能采用量较低且来源弱于官方插件，不重复安装。所有调用只读；正式纳入仍按 `raw/` 原件、`wiki/` 全文笔记和 Zotero 题录的流程晋级。
