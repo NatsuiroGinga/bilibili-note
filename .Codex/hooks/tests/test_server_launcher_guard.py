@@ -14,6 +14,7 @@ assert SPEC is not None and SPEC.loader is not None
 HOOK = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = HOOK
 SPEC.loader.exec_module(HOOK)
+REMOTE_EXPECT = "tools/remote_exec/gpu_env_quiet.exp"
 
 
 class ServerLauncherGuardTest(unittest.TestCase):
@@ -55,7 +56,7 @@ class ServerLauncherGuardTest(unittest.TestCase):
 
     def test_rejects_set_o_nounset_before_bashrc(self) -> None:
         decision = HOOK.inspect_text(
-            "expect /tmp/gpu-exec.exp 'set -o nounset; source ~/.bashrc; nvidia-smi'"
+            f"expect {REMOTE_EXPECT} 'set -o nounset; source ~/.bashrc; nvidia-smi'"
         )
 
         self.assertTrue(decision.denied)
@@ -117,7 +118,7 @@ class ServerLauncherGuardTest(unittest.TestCase):
     def test_extracts_nested_exec_command_from_functions_exec(self) -> None:
         source = (
             "const r = await tools.exec_command({"
-            "cmd: \"expect /tmp/gpu-exec.exp 'set -u; source ~/.bashrc'\""
+            f"cmd: \"expect {REMOTE_EXPECT} 'set -u; source ~/.bashrc'\""
             "});"
         )
         payload = {
@@ -133,7 +134,7 @@ class ServerLauncherGuardTest(unittest.TestCase):
 
     def test_exec_command_cmd_field_is_checked(self) -> None:
         payload = self._payload(
-            "expect /tmp/gpu-exec.exp 'set -u; source ~/.bashrc'",
+            f"expect {REMOTE_EXPECT} 'set -u; source ~/.bashrc'",
             tool_name="exec_command",
         )
 

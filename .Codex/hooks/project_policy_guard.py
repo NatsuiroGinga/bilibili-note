@@ -19,6 +19,9 @@ from server_launcher_guard import (
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LLM_PROBE_RELATIVE = Path("thesis/experiments/llm_probe")
 REMOTE_PROJECT_ROOT = "/root/autodl-tmp/thesis/experiments/llm_probe"
+REMOTE_EXPECT_PATH = (
+    PROJECT_ROOT / LLM_PROBE_RELATIVE / "tools/remote_exec/gpu_env_quiet.exp"
+)
 SHELL_TOOL_NAMES = frozenset({"Bash", "exec_command", "functions.exec"})
 AGENT_TOOL_NAMES = frozenset({"Agent", "spawn_agent"})
 GENERIC_AGENT_NAMES = re.compile(
@@ -85,7 +88,7 @@ REMOTE_TRANSPORT_PATTERN = re.compile(
     r"(?:^|[;&|\s])ssh(?:[;&|\s]|$)|"
     r"(?:^|[;&|\s])scp(?:[;&|\s]|$)|"
     r"\bGPU_(?:SSH|PWD)\b|"
-    r"gpu-(?:exec|rsync)[^\s'\"]*\.exp"
+    r"(?:gpu-(?:exec|rsync)[^\s'\"]*|gpu_env_quiet)\.exp"
     r")",
     re.IGNORECASE,
 )
@@ -277,6 +280,13 @@ def _expect_invocations(text: str) -> list[list[str]]:
     ]
 
 
+def _is_canonical_remote_expect(token: str, cwd: Path) -> bool:
+    candidate = Path(token).expanduser()
+    if not candidate.is_absolute():
+        candidate = cwd / candidate
+    return candidate.resolve() == REMOTE_EXPECT_PATH.resolve()
+
+
 def _approved_short_remote_query(payload: str) -> bool:
     if len(payload) > 768 or _contains_unsafe_remote_encoding(payload):
         return False
@@ -390,12 +400,15 @@ def inspect_shell_payload(payload: Mapping[str, object]) -> PolicyDecision:
             expect_calls = _expect_invocations(text)
             if expect_calls:
                 for argv in expect_calls:
-                    if len(argv) < 3 or _basename(argv[1]) != "gpu-exec.exp":
-                        return _deny("P1-REMOTE", "远程操作必须使用受管包装器。")
+                    if len(argv) < 3 or not _is_canonical_remote_expect(argv[1], cwd):
+                        return _deny(
+                            "P1-REMOTE",
+                            "远程操作必须使用 tools/remote_exec/gpu_env_quiet.exp。",
+                        )
                     if not _approved_short_remote_query(argv[2]):
                         return _deny(
                             "P1-REMOTE",
-                            "临时 gpu-exec 仅允许一个只读查询；正式或多语句操作必须使用受管持久脚本。",
+                            "临时远程入口仅允许一个只读查询；正式或多语句操作必须使用受管持久脚本。",
                         )
                 continue
             return _deny(

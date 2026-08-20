@@ -16,6 +16,7 @@ assert SPEC is not None and SPEC.loader is not None
 HOOK = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = HOOK
 SPEC.loader.exec_module(HOOK)
+REMOTE_EXPECT = HOOK.REMOTE_EXPECT_PATH.as_posix()
 
 
 class ProjectPolicyGuardTest(unittest.TestCase):
@@ -69,7 +70,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_allows_single_read_only_query(self) -> None:
         command = (
-            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            f"source ~/.zshrc && expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; cd /root/autodl-tmp/thesis; df -h'"
         )
 
@@ -77,7 +78,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_allows_command_v_after_local_shell_setup(self) -> None:
         command = (
-            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            f"source ~/.zshrc && expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; command -v uv'"
         )
 
@@ -85,7 +86,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_allows_quoted_rg_alternation(self) -> None:
         command = (
-            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            f"source ~/.zshrc && expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; rg \"tcp|udp\" /root/autodl-tmp/thesis'"
         )
 
@@ -93,7 +94,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_allows_server_fdfind_executable(self) -> None:
         command = (
-            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            f"source ~/.zshrc && expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; /usr/bin/fdfind -t f . "
             "/root/autodl-tmp/thesis'"
         )
@@ -102,7 +103,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_rejects_noninteractive_fd_alias(self) -> None:
         command = (
-            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            f"source ~/.zshrc && expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; fd -t f . /root/autodl-tmp/thesis'"
         )
 
@@ -110,7 +111,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_rejects_real_pipeline(self) -> None:
         command = (
-            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            f"source ~/.zshrc && expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; rg tcp /root/autodl-tmp/thesis | wc -l'"
         )
 
@@ -118,7 +119,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_rejects_read_then_write(self) -> None:
         command = (
-            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            f"source ~/.zshrc && expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; rg tcp /root/autodl-tmp/thesis; "
             "touch /root/autodl-tmp/thesis/marker'"
         )
@@ -131,6 +132,17 @@ class ProjectPolicyGuardTest(unittest.TestCase):
         self.assertTrue(decision.denied)
         self.assertEqual(decision.rule_id, "P1-REMOTE")
 
+    def test_remote_rejects_removed_tmp_expect_entry(self) -> None:
+        command = (
+            "source ~/.zshrc && expect /tmp/gpu-exec.exp "
+            "'source ~/.bashrc; nvidia-smi'"
+        )
+
+        decision = self._decision(command)
+
+        self.assertTrue(decision.denied)
+        self.assertEqual(decision.rule_id, "P1-REMOTE")
+
     def test_remote_rejects_nested_shell_bypass(self) -> None:
         decision = self._decision("bash -lc \"ssh host 'source ~/.bashrc; pwd'\"")
 
@@ -139,7 +151,7 @@ class ProjectPolicyGuardTest(unittest.TestCase):
 
     def test_remote_rejects_literal_newline_bypass(self) -> None:
         command = (
-            "expect /tmp/gpu-exec.exp "
+            f"expect {REMOTE_EXPECT} "
             "'source ~/.bashrc; printf cmd\\nsecond /root/autodl-tmp/thesis'"
         )
 
