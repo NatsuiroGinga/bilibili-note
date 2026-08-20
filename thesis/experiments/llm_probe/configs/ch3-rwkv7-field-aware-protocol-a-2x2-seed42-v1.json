@@ -1,0 +1,174 @@
+{
+  "schema_version": "ch3-rwkv7-field-aware-protocol-a-2x2-config-v1",
+  "run_id": "ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1",
+  "display_name": "RWKV-7字段感知输入与容量筛选后协议A四格",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24", "t24"],
+  "target_year_arrays_read_before_selection_frozen": 0,
+  "adapter_order": ["R0", "R1", "R2"],
+  "capacity_order": ["K0", "K1", "K2"],
+  "input_contract": {
+    "flow_count_23": 16353511,
+    "sequence_count_23": 271815,
+    "entity_count_23": 150680,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "train_sequences": 208598,
+    "validation_sequences": 22444,
+    "flow_count_24": 20227356,
+    "entity_count_24": 47115,
+    "positive_entity_count_24": 752
+  },
+  "cells": {
+    "C00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "C01": {"causal_prefix_aggregation": false, "learned_lp_pooling": true},
+    "C10": {"causal_prefix_aggregation": true, "learned_lp_pooling": false},
+    "C11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "candidate": {
+    "family": "RWKV-7_Goose",
+    "official_repository": "BlinkDL/RWKV-LM",
+    "official_source_commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+    "official_license": "Apache-2.0",
+    "operator_backend": "pytorch_recursive_reference",
+    "state_dtype": "float32",
+    "state_scope": "within_sequence_only",
+    "channel_mix_used": false,
+    "payload_tokens_used": false,
+    "images_used": false
+  },
+  "adapters": {
+    "R0": {"name": "线性83维投影", "formula": "84C"},
+    "R1": {"name": "冻结语义组字段感知编码", "formula": "1456+183C", "scalar_token_size": 15, "semantic_group_count": 12},
+    "R2": {"name": "参数匹配普通两层投影", "formula": "C^2+84C"}
+  },
+  "capacities": {
+    "K0": {
+      "name": "约90K效率与回归锚",
+      "hidden_size": 112,
+      "head_size": 16,
+      "lora_size": 8,
+      "time_mix_layers": 1,
+      "structure": "legacy_single_time_mix",
+      "parameter_counts": {"R0": 91730, "R1": 104274, "R2": 104274},
+      "capacity_claim_allowed": false,
+      "source": "既有RWKV-7源年资格门配置"
+    },
+    "K1": {
+      "name": "GRU资源邻域三层RWKV-7",
+      "hidden_size": 576,
+      "head_size": 64,
+      "lora_size": 32,
+      "time_mix_layers": 3,
+      "structure": "preln_value_residual_time_mix_stack",
+      "parameter_counts": {"R0": 5126978, "R1": 5185458, "R2": 5458754},
+      "source": "RWKV-TS三层结构与5355649参数GRU资源锚的机械邻近宽度"
+    },
+    "K2": {
+      "name": "RWKV-TS三层768维容量候选",
+      "hidden_size": 768,
+      "head_size": 64,
+      "lora_size": 32,
+      "time_mix_layers": 3,
+      "structure": "preln_value_residual_time_mix_stack",
+      "parameter_counts": {"R0": 8900354, "R1": 8977842, "R2": 9490178},
+      "source": "RWKV-TS官方论文与源码三层768维配置，低于10729345参数Transformer资源锚"
+    }
+  },
+  "training": {
+    "seed": 42,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.002,
+    "w0_learning_rate_scale": 2.0,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "dropout": 0.1,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "maximum_gpu_hours": 4.5,
+    "actual_parallelism": 1,
+    "precision": "float32"
+  },
+  "evaluation": {
+    "selection_metric": "lspr23_entity_disjoint_validation_flow_average_precision",
+    "selection_rule": "argmax_then_fewer_parameters_then_frozen_order",
+    "sequence_batch_size": 512,
+    "target_year": "LSPR24",
+    "target_previously_accessed": true,
+    "independent_test": false,
+    "target_load_after_all_source_selections_sealed": true,
+    "target_evaluation_calls": 4,
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_reachable_alert_budget_curve": true
+  },
+  "field_contract": {
+    "source": "Dijk 2026附录A印刷第48页及tools/dijk2026_replication/dijk_fields.py",
+    "names": [
+      "SrcPort", "DstPort", "Protocol", "Flow Duration", "Flow Bytes/s", "Flow Packets/s",
+      "Tot Fwd Pkts", "Tot Bwd Pkts", "Total Length of Fwd Packet", "Total Length of Bwd Packet",
+      "Fwd Packet Length Min", "Fwd Packet Length Max", "Fwd Packet Length Mean", "Fwd Packet Length Std",
+      "Bwd Packet Length Min", "Bwd Packet Length Max", "Bwd Packet Length Mean", "Bwd Packet Length Std",
+      "Flow IAT Mean", "Flow IAT Min", "Flow IAT Max", "Flow IAT Stddev",
+      "Fwd IAT Min", "Fwd IAT Max", "Fwd IAT Mean", "Fwd IAT Std", "Fwd IAT Tot",
+      "Bwd IAT Min", "Bwd IAT Max", "Bwd IAT Mean", "Bwd IAT Std", "Bwd IAT Tot",
+      "Fwd PSH flags", "Bwd PSH flags", "Fwd URG flags", "Bwd URG flags",
+      "Fwd Header Length", "Bwd Header Length", "Fwd Packets/s", "Bwd Packets/s",
+      "Packet Length Min", "Packet Length Max", "Packet Length Mean", "Packet Length Std", "Packet Length Variance",
+      "FIN Flag Cnt", "SYN Flag Cnt", "RST Flag Cnt", "PSH Flag Cnt", "ACK Flag Cnt", "URG Flag Cnt", "CWR Flag Cnt", "ECE Flag Cnt",
+      "Down/Up Ratio", "Average Packet Size", "Fwd Segment Size Avg", "Bwd Segment Size Avg",
+      "Fwd Bytes/Bulk Avg", "Fwd Packet/Bulk Avg", "Fwd Bulk Rate Avg", "Bwd Bytes/Bulk Avg", "Bwd Packet/Bulk Avg", "Bwd Bulk Rate Avg",
+      "Subflow Fwd Packets", "Subflow Fwd Bytes", "Subflow Bwd Packets", "Subflow Bwd Bytes",
+      "FWD Init Win Bytes", "Bwd Init Win Bytes", "Fwd Act Data Pkts", "Fwd Seg Size Min",
+      "Active Min", "Active Mean", "Active Max", "Active Std", "Idle Min", "Idle Mean", "Idle Max", "Idle Std",
+      "L3/L4 Protocol", "Int/Ext Dst IP", "External_src", "External_dst"
+    ],
+    "groups": [
+      {"id": "G00", "name": "端点与协议身份", "indices": [0, 1, 2, 79, 80, 81, 82]},
+      {"id": "G01", "name": "流持续时间与总吞吐", "indices": [3, 4, 5, 6, 7, 8, 9]},
+      {"id": "G02", "name": "方向包长统计", "indices": [10, 11, 12, 13, 14, 15, 16, 17]},
+      {"id": "G03", "name": "全流到达间隔", "indices": [18, 19, 20, 21]},
+      {"id": "G04", "name": "方向到达间隔", "indices": [22, 23, 24, 25, 26, 27, 28, 29, 30, 31]},
+      {"id": "G05", "name": "方向标志与头部速率", "indices": [32, 33, 34, 35, 36, 37, 38, 39]},
+      {"id": "G06", "name": "包长与方向比", "indices": [40, 41, 42, 43, 44, 53, 54, 55, 56]},
+      {"id": "G07", "name": "TCP标志计数", "indices": [45, 46, 47, 48, 49, 50, 51, 52]},
+      {"id": "G08", "name": "批量传输统计", "indices": [57, 58, 59, 60, 61, 62]},
+      {"id": "G09", "name": "子流统计", "indices": [63, 64, 65, 66]},
+      {"id": "G10", "name": "初始窗口与有效载荷计数", "indices": [67, 68, 69, 70]},
+      {"id": "G11", "name": "活跃与空闲周期", "indices": [71, 72, 73, 74, 75, 76, 77, 78]}
+    ],
+    "canonical_sha256": "e622f059d2295c8740daeb7d29fe92761c68c17a78b3d57ad65821d9137f105d"
+  },
+  "artifact_policy": {
+    "persist_all_epoch_model_weights": true,
+    "persist_latest_complete_inflight": true,
+    "delete_inflight_after_completion": false,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_split_member_arrays": false
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_gib": 20,
+    "minimum_cgroup_available_memory_gib": 40,
+    "minimum_free_disk_gib": 25,
+    "maximum_parallel_training_units": 1,
+    "maximum_gpu_hours": 4.5,
+    "first_adapter_epoch_recalibration": true,
+    "first_enlarged_capacity_epoch_recalibration": true,
+    "capacity_resource_anchors": {"gru_parameters": 5355649, "transformer_parameters": 10729345},
+    "resource_block_verdict": "capacity_upper_bound_not_verified_due_to_resource_cap"
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "rwkv7", "field-aware", "capacity-screen", "protocol-a", "2x2", "seed42"]
+  }
+}
