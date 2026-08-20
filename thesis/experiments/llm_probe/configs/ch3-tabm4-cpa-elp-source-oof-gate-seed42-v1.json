@@ -1,0 +1,128 @@
+{
+  "schema_version": "ch3-tabm-source-oof-gate-config-v1",
+  "run_id": "ch3-tabm4-cpa-elp-source-oof-gate-seed42-v1",
+  "model_key": "tabm4",
+  "display_name": "TabM式四成员参数高效集成源年资格门",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-source-oof-gate-seed42-v1",
+    "mlp_reference_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-e1-source-entity-oof-gate-seed42-v1",
+    "xgb_parent_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "xgb_recovery_proof": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/recovery/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-for-ch4-xgb-pbc-q0-seed42-v1-v1/parent-recovery-proof.json",
+    "xgb_input_sha256_receipt": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1/input-sha256.txt"
+  },
+  "seed": 42,
+  "allowed_arrays": ["X23", "y23", "I23", "M23", "E23"],
+  "fold_count": 3,
+  "batch_size": 64,
+  "epochs": 20,
+  "steps_per_epoch": 1000,
+  "learning_rate": 0.002,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "auxiliary_loss_weight": 1.0,
+  "input_contract": {
+    "allowed_arrays": ["X23", "y23", "I23", "M23", "E23"],
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "positive_entity_count": 239,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "entity_code_minimum": 0,
+    "entity_code_maximum": 150679
+  },
+  "fold_contract": {
+    "count": 3,
+    "assignment": "seeded-stratified-entity-round-robin",
+    "map_to_sequences_via": "E23",
+    "map_to_flows_via": ["I23", "M23"],
+    "require_each_entity_once_oof": true,
+    "require_train_holdout_entity_disjoint": true
+  },
+  "cells": {
+    "C00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "C11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "candidate": {
+    "ensemble_members": 4,
+    "hidden_size": 186,
+    "share_training_batches": false,
+    "member_batch_sequences": 16,
+    "activation": "relu",
+    "dropout": 0.1,
+    "first_layer_r_initialization": "random_sign",
+    "later_scaling_initialization": "ones",
+    "member_bias_initialization": "shared_initial_value",
+    "output_heads": "independent_linear",
+    "inference_member_reduction": "mean_sigmoid_probability",
+    "parameter_formula": "2d^2+83d+k(84+7d)+1",
+    "parameter_count": 90175,
+    "reference_parameter_count": 90242,
+    "parameter_tolerance_fraction": 0.01,
+    "official_source_commit": "28e47ae301c92ec37787dde1ce923a0793f405b4",
+    "residual_blocks": 0,
+    "residual_affine_layers": 0
+  },
+  "training": {
+    "seed": 42,
+    "hidden_size": 186,
+    "dropout": 0.1,
+    "parameter_count": 90175,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.002,
+    "weight_decay": 0.01,
+    "weight_decay_policy": "shared_and_output_weights_only",
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "positive_weight_scope": "train_rows_reachable_labels_only",
+    "selection_metric": "holdout_flow_average_precision",
+    "selection_rule": "single_epoch_argmax_earliest_tie",
+    "selection_evidence_scope": "source_screening_not_independent_oof"
+  },
+  "evaluation": {
+    "c00_entity_aggregation": "maximum_after_member_probability_mean",
+    "c11_entity_aggregation": "fold_learned_p_after_member_probability_mean",
+    "p_diagnostic_grid": [0.5, 1.0, 2.0, 4.0, 8.0],
+    "mlp_reference_c00_pooled": 0.5109066464488172,
+    "mlp_reference_c11_pooled": 0.5447784766847485,
+    "qualification_rule": "candidate_c11_gt_xgb_and_candidate_c11_gt_c00_and_all_fold_c11_gt_c00_and_at_least_two_fold_c11_gt_xgb"
+  },
+  "parent_contract": {
+    "mlp_run_id": "ch4-e1-source-entity-oof-gate-seed42-v1",
+    "xgb_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "xgb_adapter": "semantic168",
+    "xgb_p": 1.0,
+    "xgb_recovery_proof_schema": "ch3-xgb-parent-recovery-proof-v1",
+    "historical_xgb_per_array_hash_persisted": false
+  },
+  "artifact_policy": {
+    "persist_selected_checkpoint_per_cell_fold": true,
+    "persist_inflight_epoch_checkpoint": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false,
+    "aggregate_tracking_only": true
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch3-tabm4-cpa-elp-source-oof-gate-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "tabm4", "source-oof", "entity-fold", "seed42", "screening"]
+  },
+  "resource_contract": {
+    "serial_minimum_free_gpu_memory_gib": 12,
+    "serial_minimum_cgroup_available_memory_gib": 40,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_training_units": 1,
+    "initial_run_parallelism": 1,
+    "parallel_resume_requires_first_unit_resource_receipt": true
+  },
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "target_year_arrays_read": 0
+}
