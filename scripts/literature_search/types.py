@@ -2,19 +2,47 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
 
 @dataclass(frozen=True)
 class NoteDocument:
     path: Path
     relative_path: str
+    note_id: str
+    paper_id: str
     title: str
-    source_pdf: Optional[str]
+    title_zh: Optional[str]
+    authors: Tuple[str, ...]
+    year: Optional[int]
+    aliases: Tuple[str, ...]
+    tags: Tuple[str, ...]
+    key_finding: Tuple[str, ...]
+    tasks: Tuple[str, ...]
+    datasets: Tuple[str, ...]
+    methods: Tuple[str, ...]
+    metrics: Tuple[str, ...]
+    supports: Tuple[str, ...]
+    cannot_support: Tuple[str, ...]
+    source_pdf: str
     doi: Optional[str]
     arxiv_id: Optional[str]
+    cited_dois: Tuple[str, ...]
     body: str
     source_hash: str
+
+
+@dataclass(frozen=True)
+class ExcludedDocument:
+    relative_path: str
+    reason: str
+    detail: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class CorpusScan:
+    notes: Tuple[NoteDocument, ...]
+    excluded: Tuple[ExcludedDocument, ...]
 
 
 @dataclass(frozen=True)
@@ -25,6 +53,9 @@ class TextChunk:
     page_hint: Optional[str]
     text: str
     lexical_text: str
+    text_hash: str
+    chunk_key: str
+    embedding_contract_hash: str
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,13 @@
+[project]
+name = "note-literature-search"
+version = "0.1.0"
+description = "本地关键词、向量与在线候选文献检索工具"
+requires-python = "==3.11.*"
+dependencies = [
+  "numpy==2.0.2",
+  "pyyaml==6.0.3",
+  "sentence-transformers==5.1.1",
+]
+
+[tool.uv]
+package = false

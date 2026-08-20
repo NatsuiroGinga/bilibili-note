@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "input_glob": "wiki/papers/**/*.md",
   "index_path": ".cache/literature-search/index.sqlite3",
   "model_name": "intfloat/multilingual-e5-small",
@@ -10,5 +10,8 @@
   "rrf_constant": 60,
   "default_top_k": 10,
   "online_limit": 5,
-  "online_timeout_seconds": 8.0
+  "online_timeout_seconds": 8.0,
+  "parser_contract_version": 1,
+  "chunking_contract_version": 1,
+  "embedding_contract_version": 1
 }
