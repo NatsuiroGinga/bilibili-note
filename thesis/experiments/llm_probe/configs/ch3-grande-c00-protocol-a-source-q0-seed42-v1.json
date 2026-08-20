@@ -1,0 +1,122 @@
+{
+  "schema_version": "ch3-grande-protocol-a-source-q0-config-v1",
+  "run_id": "ch3-grande-c00-protocolA-source-q0-seed42-v1",
+  "display_name": "GRANDE官方PyTorch后更新版协议A源年C00 Q0",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-c00-protocolA-source-q0-seed42-v1",
+    "full_mlp_reference_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-capacity-mlp-source-screen-seed42-v1",
+    "xgb_protocol_a_c00_receipt": "",
+    "uv_lock": "/root/autodl-tmp/thesis/experiments/llm_probe/uv.lock",
+    "pyproject": "/root/autodl-tmp/thesis/experiments/llm_probe/pyproject.toml"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "candidates": [
+    {
+      "unit_key": "G-A",
+      "display_name": "GRANDE论文最大数据结构",
+      "depth": 4,
+      "n_estimators": 512,
+      "dropout": 0.2,
+      "selected_variables": 0.8,
+      "data_subset_fraction": 1.0,
+      "bootstrap": false,
+      "use_category_embeddings": false,
+      "use_numeric_embeddings": false,
+      "use_freq_enc": false,
+      "use_robust_scale_smoothing": false,
+      "implementation_role": "official-pytorch-postpaper"
+    },
+    {
+      "unit_key": "G-B",
+      "display_name": "GRANDE当前官方默认结构",
+      "depth": 5,
+      "n_estimators": 1024,
+      "dropout": 0.2,
+      "selected_variables": 0.8,
+      "data_subset_fraction": 1.0,
+      "bootstrap": false,
+      "use_category_embeddings": false,
+      "use_numeric_embeddings": false,
+      "use_freq_enc": false,
+      "use_robust_scale_smoothing": false,
+      "implementation_role": "official-pytorch-postpaper"
+    }
+  ],
+  "training": {
+    "seed": 42,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "gradient_clip_norm": 1.0,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "optimizer": "adam",
+    "learning_rate_weights": 0.001,
+    "learning_rate_index": 0.01,
+    "learning_rate_values": 0.05,
+    "learning_rate_leaf": 0.05,
+    "scheduler": "none",
+    "focal_loss": false,
+    "use_class_weights": true,
+    "swa": false,
+    "cell": "C00",
+    "selection_metric": "lspr23_entity_disjoint_validation_flow_ap",
+    "selection_rule": "single_epoch_argmax_earliest_tie_no_early_stopping",
+    "deterministic_algorithms": true,
+    "cublas_workspace_config": ":4096:8"
+  },
+  "input_contract": {
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "train_sequences": 208598,
+    "validation_sequences": 22444
+  },
+  "evaluation": {
+    "selection_metric_only": "validation_flow_average_precision",
+    "diagnostic_flow_roc_auc": true,
+    "diagnostic_entity_average_precision": true,
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_reachable_alert_budget_curve": true,
+    "diagnostics_do_not_select_candidate": true
+  },
+  "resource_contract": {
+    "total_gpu_hour_cap": 4.5,
+    "maximum_parallel_training_units": 1,
+    "minimum_free_gpu_memory_gib": 12,
+    "minimum_cgroup_available_memory_gib": 30,
+    "minimum_free_disk_gib": 10,
+    "r0_real_batch_sequences": 64,
+    "r1_steps": 1000,
+    "g_b_requires_projected_budget": true
+  },
+  "upstream": {
+    "repository": "https://github.com/s-marton/GRANDE",
+    "commit": "07f7278b30ab9ebbbdc544e5f9a91f1b5df7fecb",
+    "license": "MIT",
+    "package_version": "0.2.0",
+    "role": "official-pytorch-postpaper",
+    "supported_torch": ">=2.6,<2.10",
+    "runtime_torch_gate": "2.13-compatible-only-if-r0-passes"
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "name": "GRANDE官方PyTorch后更新版协议A源年C00 Q0",
+    "group": "ch3-grande-c00-protocolA-source-q0-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "grande", "official-pytorch-postpaper", "protocol-a", "source-q0", "seed42"]
+  },
+  "source_year_only": true,
+  "target_year_arrays_read": 0,
+  "target_year_paths_enumerated": 0,
+  "target_label_used_for_selection": false,
+  "target_entry_generated": false,
+  "formal_paper_evidence": false,
+  "independent_test": false
+}

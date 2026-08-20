@@ -1,0 +1,35 @@
+{
+  "schema_version": "grande-vendor-snapshot-v1",
+  "repository": "https://github.com/s-marton/GRANDE",
+  "commit": "07f7278b30ab9ebbbdc544e5f9a91f1b5df7fecb",
+  "package_version_declared_in_setup": "0.2.0",
+  "license": "MIT",
+  "implementation_role": "official-pytorch-postpaper",
+  "files": {
+    "upstream_GRANDE.py": {
+      "upstream_path": "GRANDE/GRANDE.py",
+      "modified": false,
+      "sha256": "53f58a980b751aca88ef61615d9e4b1904525952afcbed2678396c877f998064"
+    },
+    "upstream_setup.py": {
+      "upstream_path": "setup.py",
+      "modified": false,
+      "sha256": "4f7565fabc976b985f76dffefcff7b8440ab0c18ebe3e855d153b33356b72a4b"
+    },
+    "LICENSE": {
+      "upstream_path": "LICENSE",
+      "modified": false,
+      "sha256": "c433b2b805878f09d67ab901d67ee26168779f39ec192dabc414b5ccfc7ab99a"
+    },
+    "core.py": {
+      "upstream_basis": "GRANDE/GRANDE.py:165-461",
+      "modified": true,
+      "modifications": [
+        "仅保留二分类硬轴对齐树PyTorch核心",
+        "删除DataFrame、AutoGluon、类别编码和高层fit/predict封装",
+        "暴露四个核心参数组与路由诊断"
+      ],
+      "sha256": "caf94daf71cec89ac7a53705f8628b41f223966d6c70abf741426fda7a3370e6"
+    }
+  }
+}
