@@ -8,6 +8,8 @@ source_pdf: "[[raw/papers/methodology/2025-Gorishniy-TabM-Parameter-Efficient-En
 sha256: "a6988aa10d726e99c706dc92856c5a07f4e3f9fa854d08c8f854f06dc83ea34f"
 arxiv_id: "2410.24210v3"
 openreview_id: "Sd4wYYOhmY"
+zotero_item_key: "Y4ICR5KF"
+bibtex_key: "gorishniy_tabm_2025"
 tags:
   - 表格数据
   - 参数高效集成
@@ -41,6 +43,7 @@ TabM 的核心不是简单增加多个输出头，而是在第一次特征混合
 - arXiv：<https://arxiv.org/abs/2410.24210>；仓库原件为 2025-02-18 的 v3。
 - 仓库原件：`raw/papers/methodology/2025-Gorishniy-TabM-Parameter-Efficient-Ensembling.pdf`。
 - 原件 SHA-256：`a6988aa10d726e99c706dc92856c5a07f4e3f9fa854d08c8f854f06dc83ea34f`。
+- Zotero 条目键：`Y4ICR5KF`；BibTeX 键：`gorishniy_tabm_2025`。当前条目无子附件，仓库 `source_pdf` 是全文事实源。
 
 ## 论文原方法
 
