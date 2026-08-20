@@ -69,6 +69,14 @@ def _print_online(result: Dict[str, object]) -> None:
             f"   本地：wiki={item['has_wiki']} raw={item['has_raw']} "
             f"Zotero={item['zotero_status']}"
         )
+    print("GitHub 代码候选：")
+    for position, item in enumerate(result.get("code_candidates", []), start=1):
+        print(f"{position}. {item['repo_id']} {item['repo_url']}")
+        print(f"   核验：{item['verification_status']} 许可证：{item.get('license') or '-'}")
+    print("Hugging Face Hub 候选：")
+    for position, item in enumerate(result.get("hub_candidates", []), start=1):
+        print(f"{position}. [{item['repo_type']}] {item['repo_id']} {item['url']}")
+        print(f"   核验：{item['verification_status']} arXiv：{item.get('arxiv_id') or '-'}")
     print(result["evidence_warning"])
 
 

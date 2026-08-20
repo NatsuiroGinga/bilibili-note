@@ -12,14 +12,15 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple, Type
 
 from .documents import normalize_lexical
 
 
 USER_AGENT = "note-literature-search/0.1 (local academic metadata discovery)"
-PROVIDER_ORDER = ("openalex", "semantic_scholar", "crossref")
-RETRYABLE_HTTP_STATUS = {429, 503}
+PAPER_PROVIDER_ORDER = ("openalex", "semantic_scholar", "crossref", "huggingface_papers")
+PROVIDER_ORDER = (*PAPER_PROVIDER_ORDER, "github", "huggingface_hub")
+RETRYABLE_HTTP_STATUS = {403, 429, 503}
 CROSSREF_SINGLEFLIGHT = threading.Lock()
 
 
@@ -32,7 +33,7 @@ class ProviderResponse:
 
 @dataclass(frozen=True)
 class RequestReceipt:
-    payload: Dict[str, Any]
+    payload: Any
     headers: Mapping[str, str]
     retry_count: int
     backoff_seconds: float
@@ -64,6 +65,7 @@ def _request_json(
     params: Mapping[str, object],
     headers: Optional[Mapping[str, str]],
     timeout: float,
+    expected_type: Type[object] = dict,
 ) -> RequestReceipt:
     encoded = urllib.parse.urlencode(
         {key: value for key, value in params.items() if value is not None}
@@ -78,8 +80,8 @@ def _request_json(
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 payload = json.loads(response.read().decode("utf-8"))
-                if not isinstance(payload, dict):
-                    raise ValueError("JSON 响应根节点不是对象")
+                if not isinstance(payload, expected_type):
+                    raise ValueError(f"JSON 响应根节点不是 {expected_type.__name__}")
                 return RequestReceipt(
                     payload,
                     {key.casefold(): value for key, value in response.headers.items()},
@@ -145,7 +147,7 @@ def _failure(
     status.update(
         {
             "http_status": http_status,
-            "rate_limited": http_status == 429,
+            "rate_limited": http_status in {403, 429},
             "retry_count": failure.retry_count,
             "backoff_seconds": failure.backoff_seconds,
             "degradation_reason": detail,
@@ -359,6 +361,184 @@ def search_crossref(query: str, limit: int, timeout: float) -> ProviderResponse:
         return response
 
 
+def _auth_headers(token: Optional[str], provider: str) -> Dict[str, str]:
+    if provider == "github":
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+        }
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
+        return headers
+    return {"Authorization": f"Bearer {token}"} if token else {}
+
+
+def search_github(query: str, limit: int, timeout: float) -> ProviderResponse:
+    provider = "github"
+    token = os.environ.get("GITHUB_TOKEN")
+    started = time.perf_counter()
+    try:
+        receipt = _request_json(
+            "https://api.github.com/search/repositories",
+            {"q": query, "per_page": limit, "sort": "stars", "order": "desc"},
+            _auth_headers(token, provider),
+            timeout,
+        )
+        candidates = []
+        for item in receipt.payload.get("items", []):
+            license_info = item.get("license") or {}
+            candidates.append(
+                {
+                    "provider": provider,
+                    "repo_url": item.get("html_url"),
+                    "repo_id": item.get("full_name"),
+                    "owner": (item.get("owner") or {}).get("login"),
+                    "name": item.get("name"),
+                    "description": item.get("description"),
+                    "homepage": item.get("homepage"),
+                    "license": license_info.get("spdx_id") or license_info.get("name"),
+                    "stars": item.get("stargazers_count"),
+                    "archived": bool(item.get("archived")),
+                    "updated_at": item.get("updated_at"),
+                    "default_branch": item.get("default_branch"),
+                    "match_basis": "GitHub repository search query",
+                    "verification_status": "unverified_code_candidate",
+                }
+            )
+        status = _base_status("ok", True, bool(token), started)
+        status.update(
+            {
+                "result_count": len(candidates),
+                "retry_count": receipt.retry_count,
+                "backoff_seconds": receipt.backoff_seconds,
+                "rate_limit": receipt.headers.get("x-ratelimit-limit"),
+                "rate_limit_remaining": receipt.headers.get("x-ratelimit-remaining"),
+                "rate_limit_reset": receipt.headers.get("x-ratelimit-reset"),
+                "rate_limit_resource": receipt.headers.get("x-ratelimit-resource"),
+            }
+        )
+        return ProviderResponse(provider, status, candidates)
+    except RequestFailure as failure:
+        return _failure(provider, failure, bool(token), started)
+
+
+def _hf_headers(token: Optional[str]) -> Dict[str, str]:
+    return _auth_headers(token, "huggingface")
+
+
+def search_huggingface_papers(query: str, limit: int, timeout: float) -> ProviderResponse:
+    provider = "huggingface_papers"
+    token = os.environ.get("HF_TOKEN")
+    started = time.perf_counter()
+    try:
+        receipt = _request_json(
+            "https://huggingface.co/api/papers/search",
+            {"q": query},
+            _hf_headers(token),
+            timeout,
+            list,
+        )
+        candidates = []
+        for item in receipt.payload[:limit]:
+            paper_id = str(item.get("id") or "")
+            published = str(item.get("publishedAt") or item.get("published_at") or "")
+            candidates.append(
+                _candidate(
+                    provider,
+                    item.get("title") or "",
+                    item.get("authors") or [],
+                    int(published[:4]) if published[:4].isdigit() else None,
+                    f"https://huggingface.co/papers/{paper_id}" if paper_id else None,
+                    None,
+                    paper_id or None,
+                    bool(item.get("summary")),
+                    paper_id or None,
+                )
+            )
+        status = _base_status("ok", True, bool(token), started)
+        status.update({"result_count": len(candidates), "retry_count": receipt.retry_count,
+                       "backoff_seconds": receipt.backoff_seconds})
+        return ProviderResponse(provider, status, candidates)
+    except RequestFailure as failure:
+        return _failure(provider, failure, bool(token), started)
+
+
+def _hf_license(tags: Sequence[str], card_data: object) -> Optional[str]:
+    for tag in tags:
+        if tag.startswith("license:"):
+            return tag.split(":", 1)[1]
+    if isinstance(card_data, Mapping) and card_data.get("license"):
+        return str(card_data["license"])
+    return None
+
+
+def _hf_arxiv(tags: Sequence[str]) -> Optional[str]:
+    for tag in tags:
+        if tag.lower().startswith("arxiv:"):
+            return _clean_arxiv(tag.split(":", 1)[1])
+    return None
+
+
+def search_huggingface_hub(query: str, limit: int, timeout: float) -> ProviderResponse:
+    provider = "huggingface_hub"
+    token = os.environ.get("HF_TOKEN")
+    started = time.perf_counter()
+    candidates: List[Dict[str, object]] = []
+    receipts: List[RequestReceipt] = []
+    try:
+        for repo_type, endpoint in (
+            ("model", "https://huggingface.co/api/models"),
+            ("dataset", "https://huggingface.co/api/datasets"),
+            ("space", "https://huggingface.co/api/spaces"),
+        ):
+            receipt = _request_json(
+                endpoint,
+                {"search": query, "sort": "downloads", "direction": -1, "limit": limit,
+                 "full": "true"},
+                _hf_headers(token),
+                timeout,
+                list,
+            )
+            receipts.append(receipt)
+            for item in receipt.payload[:limit]:
+                repo_id = str(item.get("id") or "")
+                tags = [str(tag) for tag in (item.get("tags") or [])]
+                arxiv_id = _hf_arxiv(tags)
+                candidates.append(
+                    {
+                        "provider": provider,
+                        "repo_id": repo_id,
+                        "repo_type": repo_type,
+                        "url": f"https://huggingface.co/{'datasets/' if repo_type == 'dataset' else 'spaces/' if repo_type == 'space' else ''}{repo_id}",
+                        "pipeline_tag": item.get("pipeline_tag"),
+                        "downloads": item.get("downloads"),
+                        "likes": item.get("likes"),
+                        "updated_at": item.get("lastModified") or item.get("last_modified"),
+                        "gated": item.get("gated", False),
+                        "license": _hf_license(tags, item.get("cardData") or item.get("card_data")),
+                        "arxiv_id": arxiv_id,
+                        "match_basis": f"Hugging Face {repo_type} search query",
+                        "verification_status": (
+                            "paper_linked_candidate" if arxiv_id else "unverified_hub_candidate"
+                        ),
+                    }
+                )
+        status = _base_status("ok", True, bool(token), started)
+        status.update(
+            {
+                "result_count": len(candidates),
+                "request_count": len(receipts),
+                "retry_count": sum(item.retry_count for item in receipts),
+                "backoff_seconds": sum(item.backoff_seconds for item in receipts),
+                "rate_limit": receipts[-1].headers.get("ratelimit") if receipts else None,
+                "rate_limit_policy": receipts[-1].headers.get("ratelimit-policy") if receipts else None,
+            }
+        )
+        return ProviderResponse(provider, status, candidates)
+    except RequestFailure as failure:
+        return _failure(provider, failure, bool(token), started)
+
+
 def _local_inventory(
     connection: Optional[sqlite3.Connection], repo_root: Path
 ) -> List[Dict[str, object]]:
@@ -450,6 +630,17 @@ def _merge_candidates(
     }
 
 
+def _deduplicate_channel(
+    candidates: Sequence[Dict[str, object]], url_field: str
+) -> Tuple[List[Dict[str, object]], int]:
+    unique: Dict[str, Dict[str, object]] = {}
+    for candidate in candidates:
+        url = str(candidate.get(url_field) or "").rstrip("/").casefold()
+        key = url or f"{candidate.get('provider')}:{candidate.get('repo_id')}"
+        unique.setdefault(key, candidate)
+    return list(unique.values()), len(candidates) - len(unique)
+
+
 def discover_online(
     query: str,
     limit: int,
@@ -466,6 +657,9 @@ def discover_online(
         "openalex": search_openalex,
         "semantic_scholar": search_semantic_scholar,
         "crossref": search_crossref,
+        "huggingface_papers": search_huggingface_papers,
+        "github": search_github,
+        "huggingface_hub": search_huggingface_hub,
     }
     responses_by_provider: Dict[str, ProviderResponse] = {}
     if offline:
@@ -489,21 +683,35 @@ def discover_online(
                         provider, failure, False, time.perf_counter()
                     )
     responses = [responses_by_provider[provider] for provider in PROVIDER_ORDER]
-    raw_candidate_count = sum(len(response.candidates) for response in responses)
-    candidates, deduplication = _merge_candidates(responses)
+    paper_responses = [responses_by_provider[provider] for provider in PAPER_PROVIDER_ORDER]
+    raw_candidate_count = sum(len(response.candidates) for response in paper_responses)
+    candidates, deduplication = _merge_candidates(paper_responses)
+    code_candidates, code_duplicates = _deduplicate_channel(
+        responses_by_provider["github"].candidates, "repo_url"
+    )
+    hub_candidates, hub_duplicates = _deduplicate_channel(
+        responses_by_provider["huggingface_hub"].candidates, "url"
+    )
     inventory = _local_inventory(connection, repo_root)
     for candidate in candidates:
         _annotate_local(candidate, inventory)
-    for response in responses:
+    for response in paper_responses:
         new_count, duplicate_count = deduplication[response.provider]
         response.status["deduplicated_new_count"] = new_count
         response.status["deduplicated_duplicate_count"] = duplicate_count
+    responses_by_provider["github"].status["deduplicated_duplicate_count"] = code_duplicates
+    responses_by_provider["huggingface_hub"].status["deduplicated_duplicate_count"] = hub_duplicates
     return {
         "provider_status": {response.provider: response.status for response in responses},
         "results": candidates,
+        "paper_candidates": candidates,
+        "code_candidates": code_candidates,
+        "hub_candidates": hub_candidates,
         "raw_candidate_count": raw_candidate_count,
         "candidate_count": len(candidates),
         "deduplicated_count": raw_candidate_count - len(candidates),
+        "code_candidate_count": len(code_candidates),
+        "hub_candidate_count": len(hub_candidates),
         "cache": {
             "kind": "none",
             "persistent": False,

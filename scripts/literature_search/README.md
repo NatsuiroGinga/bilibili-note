@@ -81,6 +81,8 @@ uv run --project scripts/literature_search --locked \
 - `--scope online`：只返回外部题录或摘要候选及来源状态。
 - `--scope all`：分区返回本地证据与外部候选，二者不混排分数。
 
+在线输出继续以 `results`/`paper_candidates` 保存论文候选，并独立提供 `code_candidates` 和 `hub_candidates`。代码与 Hub 候选不进入论文 RRF 或论文候选去重。
+
 ```bash
 uv run --project scripts/literature_search --locked \
   python -m scripts.literature_search query \
@@ -92,10 +94,14 @@ uv run --project scripts/literature_search --locked \
 - `OPENALEX_API_KEY`：启用 OpenAlex `search.semantic`；缺失时直接标记 `skipped_missing_key`，不发出普通搜索请求。
 - `SEMANTIC_SCHOLAR_API_KEY`：以 `x-api-key` 头发送；缺失时使用公共接口。
 - `CROSSREF_MAILTO`：进入 Crossref 礼貌池。
+- `GITHUB_TOKEN`：可选 GitHub REST 认证；缺失时只查询公开仓库并记录较低配额。
+- `HF_TOKEN`：可选 Hugging Face 公开读取认证；缺失时使用匿名公开 API。
 
 三个来源并发执行，但 Crossref 通过进程内锁保持单飞。HTTP 429 或 503 只有在响应提供数值型 `Retry-After` 且等待不超过本次超时时才退避并重试一次；403、超时、网络或 JSON 错误直接记录为来源级失败。在线候选按 DOI、arXiv、规范题名加年份依次跨来源去重，保留 `providers` 和各来源记录。
 
 每个来源状态记录认证、延迟、缓存、限流、重试、退避、去重和降级原因。当前没有查询缓存，状态固定标记 `cache_kind=none`；后续若实现持久缓存，必须另行冻结过期和失效合同。`--offline` 会把全部在线来源标为 `skipped_offline`。`scope=all` 始终保留本地结果。所有在线结果均标记为未核全文候选，不自动写入 `raw/`、`wiki/` 或 Zotero。
+
+GitHub 候选返回规范仓库 URL、`owner/name`、描述、主页、许可证、星数、归档状态、更新时间与默认分支，普通命中固定为 `unverified_code_candidate`。HF Papers 按 arXiv、DOI、题名与其他论文来源去重；HF 模型、数据集和 Space 独立返回仓库类型、任务、下载、点赞、更新时间、门控、许可证和 arXiv 关联。只有 Hub 元数据显式包含 arXiv 关联时标为 `paper_linked_candidate`，普通命中固定为 `unverified_hub_candidate`。本工具不自动下载、登录、上传、索引或认领任何外部候选。
 
 ## 可再生制品
 
