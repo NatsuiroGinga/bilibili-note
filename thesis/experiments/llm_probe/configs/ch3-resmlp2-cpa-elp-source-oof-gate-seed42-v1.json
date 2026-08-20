@@ -1,0 +1,119 @@
+{
+  "schema_version": "ch3-neural-backbone-source-oof-gate-config-v1",
+  "run_id": "ch3-resmlp2-cpa-elp-source-oof-gate-seed42-v1",
+  "model_key": "resmlp2",
+  "display_name": "等参数两层残差多层感知机源年资格门",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-source-oof-gate-seed42-v1",
+    "mlp_reference_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-e1-source-entity-oof-gate-seed42-v1",
+    "xgb_parent_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "xgb_recovery_proof": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/recovery/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-for-ch4-xgb-pbc-q0-seed42-v1-v1/parent-recovery-proof.json",
+    "xgb_input_sha256_receipt": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1/input-sha256.txt"
+  },
+  "seed": 42,
+  "allowed_arrays": ["X23", "y23", "I23", "M23", "E23"],
+  "fold_count": 3,
+  "batch_size": 64,
+  "epochs": 20,
+  "steps_per_epoch": 1000,
+  "learning_rate": 0.002,
+  "weight_decay": 0.01,
+  "gradient_clip_norm": 1.0,
+  "auxiliary_loss_weight": 1.0,
+  "input_contract": {
+    "allowed_arrays": ["X23", "y23", "I23", "M23", "E23"],
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "positive_entity_count": 239,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "entity_code_minimum": 0,
+    "entity_code_maximum": 150679
+  },
+  "fold_contract": {
+    "count": 3,
+    "assignment": "seeded-stratified-entity-round-robin",
+    "map_to_sequences_via": "E23",
+    "map_to_flows_via": ["I23", "M23"],
+    "require_each_entity_once_oof": true,
+    "require_train_holdout_entity_disjoint": true
+  },
+  "cells": {
+    "C00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "C11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "candidate": {
+    "residual_blocks": 1,
+    "residual_affine_layers": 2,
+    "hidden_size": 139,
+    "activation": "relu",
+    "dropout": 0.1,
+    "residual_coefficient": 1.0,
+    "pre_normalization": true,
+    "parameter_formula": "(2+2B)d^2+(86+4B)d+2",
+    "parameter_count": 89796,
+    "reference_parameter_count": 90242,
+    "parameter_tolerance_fraction": 0.01
+  },
+  "training": {
+    "seed": 42,
+    "hidden_size": 139,
+    "dropout": 0.1,
+    "parameter_count": 89796,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.002,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "selection_metric": "holdout_flow_average_precision",
+    "selection_rule": "single_epoch_argmax_earliest_tie"
+  },
+  "evaluation": {
+    "c00_entity_aggregation": "maximum",
+    "c11_entity_aggregation": "fold_learned_p",
+    "p_diagnostic_grid": [0.5, 1.0, 2.0, 4.0, 8.0],
+    "mlp_reference_c00_pooled": 0.5109066464488172,
+    "mlp_reference_c11_pooled": 0.5447784766847485,
+    "qualification_rule": "candidate_c11_gt_xgb_and_candidate_c11_gt_c00_and_all_fold_c11_gt_c00_and_at_least_two_fold_c11_gt_xgb"
+  },
+  "parent_contract": {
+    "mlp_run_id": "ch4-e1-source-entity-oof-gate-seed42-v1",
+    "xgb_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "xgb_adapter": "semantic168",
+    "xgb_p": 1.0,
+    "xgb_recovery_proof_schema": "ch3-xgb-parent-recovery-proof-v1"
+  },
+  "artifact_policy": {
+    "persist_selected_checkpoint_per_cell_fold": true,
+    "persist_inflight_epoch_checkpoint": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false,
+    "aggregate_tracking_only": true
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch3-resmlp2-cpa-elp-source-oof-gate-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "resmlp2", "source-oof", "entity-fold", "seed42", "screening"]
+  },
+  "resource_contract": {
+    "serial_minimum_free_gpu_memory_gib": 10,
+    "serial_minimum_cgroup_available_memory_gib": 40,
+    "parallel_minimum_free_gpu_memory_gib": 24,
+    "parallel_minimum_cgroup_available_memory_gib": 65,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_training_units": 2,
+    "adaptive_parallelism": true,
+    "parallelism_policy": "parallel_2_if_gpu_ge_24_gib_and_cgroup_available_ge_65_gib_else_serial_1_if_gpu_ge_10_gib_and_cgroup_available_ge_40_gib_else_block"
+  },
+  "screening_only": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "target_year_arrays_read": 0
+}
