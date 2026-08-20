@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "frozen_before_first_run": true,
+  "top_k": 5,
+  "queries": [
+    {
+      "query": "流形约束超连接 双随机矩阵 Sinkhorn",
+      "relevant_paths": ["wiki/papers/deepseek/mHC-流形约束超连接.md"],
+      "basis": "目标笔记标题、别名和已核验 key_finding"
+    },
+    {
+      "query": "恶意软件分类 时间偏置 空间偏置 AUT",
+      "relevant_paths": ["wiki/papers/attack-detection/2019-Pendlebury-TESSERACT时空实验偏置与AUT.md"],
+      "basis": "目标笔记标题、标签和核心方法字段"
+    },
+    {
+      "query": "normality shift adaptation open world anomaly detection",
+      "relevant_paths": ["wiki/papers/attack-detection/2023-Han-OWAD正常性漂移适应.md"],
+      "basis": "目标笔记英文缩写、中文标题和方法摘要的跨语言表达"
+    },
+    {
+      "query": "TLS 未知服务 拒识 细粒度分类",
+      "relevant_paths": ["wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md"],
+      "basis": "目标笔记标题、标签和数据集描述"
+    },
+    {
+      "query": "选择性状态空间模型 去趋势 时间序列异常检测",
+      "relevant_paths": ["wiki/papers/attack-detection/2024-Chen-JSSM去趋势状态空间异常检测.md"],
+      "basis": "目标笔记标题、标签和 key_finding"
+    }
+  ]
+}
