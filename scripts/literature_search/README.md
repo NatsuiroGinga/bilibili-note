@@ -62,6 +62,13 @@ uv run --project scripts/literature_search --locked \
 
 当前没有经独立开发集冻结的可靠拒答门。负例只报告返回数量，不使用冻结测试查询事后选择阈值。
 
+查询集使用 `literature-query-set/v2` 时可声明 `dataset_id`、`dataset_role`、`qrel_status` 和 `tuning_prohibited`。本仓库严格区分：
+
+- `curated-regression-v1`：从证据矩阵和题录人工构造的开发/回归集，不代表真实用户查询分布，可用于接口回归但不得冒充用户效果。
+- `real-user-query-v1`：只含本会话与文献检索直接相关的用户原问，角色为独立验收，禁止据其结果调整 BM25、RRF 或阈值。当前规格位于 `.Codex/docs/2026-08-20-本地文献混合检索真实用户查询/real-user-query-v1.json`。
+
+逐查询 `judgment_status` 不是 `complete` 或 `judged` 时，评估器只验证规格并标记 `skipped_pending_qrel`，不会运行检索或把它计作负例。相关路径与块必须在看排名前由全文或既有证据矩阵独立标注；标注完成后，两套集合分别输出指标，不能合并平均。
+
 ## 在线候选
 
 `query` 使用统一范围：

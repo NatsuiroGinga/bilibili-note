@@ -53,9 +53,9 @@ def _ndcg(results: Sequence[Mapping[str, object]], relevant: Set[str], k: int) -
 def _relevant_papers(
     case: Mapping[str, object], path_to_paper: Mapping[str, str]
 ) -> tuple[Set[str], List[str]]:
-    papers = {str(value) for value in case.get("relevant_paper_ids", [])}
+    papers = {str(value) for value in (case.get("relevant_paper_ids") or [])}
     missing_paths: List[str] = []
-    for path in case.get("relevant_paths", []):
+    for path in case.get("relevant_paths") or []:
         paper_id = path_to_paper.get(str(path))
         if paper_id is None:
             missing_paths.append(str(path))
@@ -99,12 +99,21 @@ def evaluate_queries(
         str(row["path"]): str(row["paper_id"])
         for row in connection.execute("SELECT path,paper_id FROM notes")
     }
-    backend = EmbeddingBackend(
-        config.model_name,
-        config.model_revision,
-        cache_folder=cache_folder,
-        local_files_only=local_files_only,
-        device=device,
+    cases = list(specification["queries"])
+    has_judged_queries = any(
+        str(case.get("judgment_status", "complete")) in {"complete", "judged"}
+        for case in cases
+    )
+    backend = (
+        EmbeddingBackend(
+            config.model_name,
+            config.model_revision,
+            cache_folder=cache_folder,
+            local_files_only=local_files_only,
+            device=device,
+        )
+        if has_judged_queries
+        else None
     )
     accumulators: Dict[str, Dict[str, object]] = {
         mode: {
@@ -133,21 +142,31 @@ def evaluate_queries(
     channel_coverage = {"lexical_only": 0, "vector_only": 0, "both": 0, "neither": 0}
     positive_count = 0
     negative_count = 0
+    unjudged_count = 0
 
-    for position, case in enumerate(specification["queries"], start=1):
+    for position, case in enumerate(cases, start=1):
+        judgment_status = str(case.get("judgment_status", "complete"))
+        judged = judgment_status in {"complete", "judged"}
         relevant, missing_paths = _relevant_papers(case, path_to_paper)
-        chunk_ids = {int(value) for value in case.get("relevant_chunk_ids", [])}
-        chunk_keys = {str(value) for value in case.get("relevant_chunk_keys", [])}
+        chunk_ids = {int(value) for value in (case.get("relevant_chunk_ids") or [])}
+        chunk_keys = {str(value) for value in (case.get("relevant_chunk_keys") or [])}
         case_result: Dict[str, object] = {
             "id": case.get("id", f"Q{position:02d}"),
             "query": case["query"],
             "category": case.get("category"),
-            "relevant_paths": case.get("relevant_paths", []),
+            "judgment_status": judgment_status,
+            "relevant_paths": case.get("relevant_paths"),
             "relevant_paper_ids": sorted(relevant),
             "missing_relevant_paths": missing_paths,
             "basis": case.get("basis"),
             "modes": {},
         }
+        if not judged:
+            unjudged_count += 1
+            case_result["evaluation_status"] = "skipped_pending_qrel"
+            details.append(case_result)
+            continue
+        case_result["evaluation_status"] = "evaluated"
         mode_results: Dict[str, List[Dict[str, object]]] = {}
         if relevant:
             positive_count += 1
@@ -276,25 +295,26 @@ def evaluate_queries(
         summary[mode] = {
             "positive_query_count": positive_count,
             "negative_query_count": negative_count,
+            "unjudged_query_count": unjudged_count,
             "total_relevance_judgments": total_relevance,
             "macro_recall_at_5": statistics.fmean(accumulator["recall_5"])
             if accumulator["recall_5"]
-            else 0.0,
+            else None,
             "macro_recall_at_10": statistics.fmean(accumulator["recall_10"])
             if accumulator["recall_10"]
-            else 0.0,
+            else None,
             "micro_recall_at_5": int(accumulator["retrieved_5"]) / total_relevance
             if total_relevance
-            else 0.0,
+            else None,
             "micro_recall_at_10": int(accumulator["retrieved_10"]) / total_relevance
             if total_relevance
-            else 0.0,
+            else None,
             "mrr_at_10": statistics.fmean(accumulator["reciprocal_ranks"])
             if accumulator["reciprocal_ranks"]
-            else 0.0,
+            else None,
             "ndcg_at_10": statistics.fmean(accumulator["ndcg_10"])
             if accumulator["ndcg_10"]
-            else 0.0,
+            else None,
             "duplicate_paper_results": accumulator["duplicate_paper_results"],
             "latency_ms": _latency_summary(accumulator["latencies"]),
             "relevant_top10_count": accumulator["relevant_top10"],
@@ -313,13 +333,30 @@ def evaluate_queries(
             ],
         }
     summary["hybrid"]["relevant_channel_coverage_at_10"] = channel_coverage
+    dataset_id = str(specification.get("dataset_id", "curated-regression-v1"))
+    dataset_role = str(
+        specification.get("dataset_role", "development_regression")
+    )
+    qrel_status = str(specification.get("qrel_status", "complete"))
+    interpretation = (
+        "相关性标注尚未独立完成；本次只验证查询集规格，不运行检索、不输出排名，"
+        "Recall、MRR 与 nDCG 均不可用。"
+        if unjudged_count and not has_judged_queries
+        else "该目的性小样本只作回归门禁，不代表真实用户查询分布，也不构成普遍检索有效性结论。"
+    )
     return {
+        "query_set_schema": specification.get("schema", "literature-query-set/v1"),
+        "dataset_id": dataset_id,
+        "dataset_role": dataset_role,
+        "qrel_status": qrel_status,
+        "tuning_prohibited": bool(specification.get("tuning_prohibited", False)),
         "evaluation_version": specification.get("version"),
         "frozen_before_first_run": specification.get("frozen_before_first_run"),
         "requested_top_k": requested_top_k,
         "evaluation_depth": evaluation_depth,
-        "vector_device": backend.device,
-        "vector_device_fallback": backend.fallback_reason,
+        "vector_device": backend.device if backend else None,
+        "vector_device_fallback": backend.fallback_reason if backend else None,
+        "metrics_available": positive_count > 0,
         "latency_scope": "嵌入后端初始化完成后的单次 search_local 墙钟时间",
         "summary": summary,
         "queries": details,
@@ -331,5 +368,9 @@ def evaluate_queries(
             "仅当查询显式提供 relevant_chunk_ids 或 relevant_chunk_keys 时计算块级命中；"
             "缺少块标注时返回 null，不用相关笔记路径冒充块级真值。"
         ),
-        "interpretation": "该目的性小样本只作回归门禁，不构成普遍检索有效性结论。",
+        "reporting_policy": (
+            "curated-regression-v1 与 real-user-query-v1 必须分开报告；"
+            "禁止合并平均，禁止在 real-user-query-v1 结果上调参。"
+        ),
+        "interpretation": interpretation,
     }

@@ -25,4 +25,6 @@ description: 用户请求文献检索、相关工作、直接近邻、引用核�
 - 不把 OpenAlex、Semantic Scholar 或 Crossref 的摘要、题录和搜索排序写成论文结论。
 - 不根据负例查询的返回分数临时设置拒答阈值；可靠拒答门必须使用独立开发集冻结。
 - 没有 `relevant_chunk_ids` 或 `relevant_chunk_keys` 时，不把相关笔记命中写成块级命中。
+- `curated-regression-v1` 只作人工构造的开发/回归集，不得写成真实用户查询效果。
+- `real-user-query-v1` 只作独立验收；相关性标注完成前不得查看或导出系统排名，也不得根据该集合调整 BM25、RRF 或阈值。
 - 命令参数与重建方式以 `scripts/literature_search/README.md` 为准。
