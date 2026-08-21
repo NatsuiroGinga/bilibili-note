@@ -1,0 +1,44 @@
+{
+  "schema_version": "rwkv7-k0-fused-vendor-manifest-v1",
+  "name": "BlinkDL RWKV-7 K0基础WKV前反向CUDA核",
+  "upstream_repository": "https://github.com/BlinkDL/RWKV-LM",
+  "upstream_commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+  "license": "Apache-2.0",
+  "license_file": "LICENSE",
+  "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+  "upstream_files": [
+    {
+      "path": "upstream/rwkv7_clampw.cpp",
+      "upstream_path": "RWKV-v7/train_temp/cuda/rwkv7_clampw.cpp",
+      "sha256": "f6781adacbe0ab8638b666e0bd49098e262a861b7cc95fb1735ab54a43d82628"
+    },
+    {
+      "path": "upstream/rwkv7_clampw.cu",
+      "upstream_path": "RWKV-v7/train_temp/cuda/rwkv7_clampw.cu",
+      "sha256": "a879dd478457290ebe793a10fcd0c1b93db1e1afb9d51ff8f8f1245a0146bbfb"
+    }
+  ],
+  "derived_files": [
+    {
+      "path": "derived/rwkv7_k0_clampw.cpp",
+      "based_on": "upstream/rwkv7_clampw.cpp",
+      "changes": [
+        "TORCH_LIBRARY命名空间改为rwkv7_k0_clampw以隔离注册",
+        "重排C++格式且增加修改通知"
+      ]
+    }
+  ],
+  "compile_contract": {
+    "head_size": 16,
+    "channels": 112,
+    "heads": 7,
+    "sequence_length": 128,
+    "chunk_length": 16,
+    "input_dtype": "bfloat16",
+    "output_dtype": "bfloat16",
+    "gradient_dtype": "bfloat16",
+    "state_dtype": "float32",
+    "target_cuda_arch": "sm_120",
+    "defines": ["_N_=16", "_CHUNK_LEN_=16"]
+  }
+}

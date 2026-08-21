@@ -1,0 +1,96 @@
+{
+  "schema_version": "ch3-rwkv7-k0-fused-benchmark-config-v1",
+  "benchmark_id": "ch3-rwkv7-k0-fused-equivalence-speed-v1",
+  "display_name": "RWKV-7 K0官方基础WKV融合核等价性与整轮速度基准",
+  "paths": {
+    "base_config": "configs/ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-bf16-v1.json",
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-k0-fused-equivalence-speed-v1",
+    "extension_build_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-k0-fused-equivalence-speed-v1/torch-extensions"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "target_year_paths_enumerated": 0,
+  "upstream": {
+    "repository": "https://github.com/BlinkDL/RWKV-LM",
+    "commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+    "license": "Apache-2.0"
+  },
+  "k0_contract": {
+    "capacity": "K0",
+    "channels": 112,
+    "head_size": 16,
+    "heads": 7,
+    "sequence_length": 128,
+    "chunk_length": 16,
+    "input_dtype": "bfloat16",
+    "output_dtype": "bfloat16",
+    "state_dtype": "float32",
+    "parameter_count": 104274
+  },
+  "target_environment": {
+    "torch_version": "2.13.0+cu130",
+    "cuda_version": "13.0",
+    "compute_capability": [12, 0],
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "cuda_arch_list": "12.0",
+    "required_commands": ["nvcc", "ninja", "nvidia-smi"]
+  },
+  "extension": {
+    "operator_namespace": "rwkv7_k0_clampw",
+    "defines": ["_N_=16", "_CHUNK_LEN_=16"],
+    "verbose_build": true,
+    "import_triggers_build": false,
+    "h100_v3_kernel_used": false
+  },
+  "numeric_thresholds": {
+    "absolute": 0.03125,
+    "relative": 0.02,
+    "relative_denominator_floor": 1e-12,
+    "selection_metric_absolute": 1e-6
+  },
+  "threshold_basis": {
+    "bf16_unit_roundoff": 0.00390625,
+    "absolute_multiple_of_unit_roundoff": 8.0,
+    "relative_multiple_of_unit_roundoff": 5.12,
+    "frozen_before_target_execution": true,
+    "final_target_labels_used": false
+  },
+  "synthetic": {
+    "seed": 20260821,
+    "batch_sequences": 2,
+    "optimizer": "AdamW",
+    "optimizer_learning_rate": 0.002,
+    "optimizer_weight_decay": 0.01,
+    "swanlab_identity_created": false
+  },
+  "epoch_benchmark": {
+    "seed": 42,
+    "cell": "C00",
+    "steps": 1000,
+    "effective_batch_sequences": 64,
+    "microbatch_sequences": 8,
+    "selection_metric": "LSPR23_entity_disjoint_validation_flow_average_precision",
+    "external_memory_sample_interval_seconds": 0.5,
+    "target_year_read_allowed": false
+  },
+  "performance_qualification": {
+    "minimum_throughput_ratio": 1.0,
+    "maximum_peak_reserved_memory_ratio": 1.0,
+    "require_selection_epoch_equal": true
+  },
+  "artifact_policy": {
+    "persist_aggregate_metrics_only": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_model_checkpoints": false,
+    "new_training_identity_requires_eligibility_receipt": true,
+    "failure_action": "保留当前纯PyTorch BF16后端"
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_gib": 20,
+    "minimum_cgroup_available_memory_gib": 40,
+    "minimum_free_disk_gib": 25,
+    "maximum_parallel_training_units": 1,
+    "wall_clock_limit": null
+  }
+}

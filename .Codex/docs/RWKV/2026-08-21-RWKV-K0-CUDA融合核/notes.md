@@ -44,7 +44,17 @@
 
 ## 六、待完成
 
-- 落盘官方原件、专用 C++ 注册文件和清单。
-- 实现不触发导入时编译的独立 Python 后端。
-- 实现合成、LSPR23 首批和整轮基准阶段。
-- 冻结配置、唯一启动器和实施报告。
+- 已落盘官方原件、专用 C++ 注册文件和清单，三个官方文件哈希通过。
+- 已实现只在显式调用时编译的独立 Python 后端。
+- 已实现合成、LSPR23 首批、整轮纯 PyTorch、整轮 fused 和资格汇总阶段。
+- 已冻结配置、唯一启动器和实施报告。
+- 待目标服务器在当前纯 PyTorch BF16 训练释放资源后，执行唯一 `all` 基准命令；未通过前不新建融合核训练身份。
+
+## 七、本机验证收据
+
+- `py_compile` 已通过：`rwkv7_k0_fused_backend.py`、`ch3_rwkv7_k0_fused_benchmark.py`。
+- JSON 解析与静态配置合同已通过：只有六个 LSPR23 数组、K0 `112/16/7/128`、`1000` 步和预注册误差门。
+- `bash -n` 已通过唯一远程启动器。
+- `git diff --check` 已通过实现文件集。
+- 静态内核合同扫描已命中 `TORCH_LIBRARY(rwkv7_k0_clampw)`、`HEAD_SIZE=16`、`CHANNELS=112`、`SEQUENCE_LENGTH=128`、`TARGET_CAPABILITY=(12,0)` 和 `w_raw` 单次 soft-clamp 路径。
+- 本机导入和 CLI 被项目环境缺少 `torch` 阻断；未访问服务器，未宣称 CUDA 编译、数值或性能通过。
