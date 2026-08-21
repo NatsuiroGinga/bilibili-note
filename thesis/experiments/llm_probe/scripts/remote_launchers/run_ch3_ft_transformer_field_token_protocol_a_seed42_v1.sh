@@ -219,10 +219,31 @@ print(f"字段口径覆盖断言通过：numeric={len(numeric_set)} vocabulary={
 ' "$CONFIG_PATH"
 }
 
-# 门禁 4：字段基数收据存在且 complete 为真。
+# 门禁 4：字段基数收据存在且 complete 为真。收据路径必须从配置的
+# paths.field_cardinality_receipt 读取——工具运行时真正打开的是这一条，不是
+# 启动器写死的常量；先与 CARDINALITY_RECEIPT_PATH 交叉核对，不一致时显式
+# 失败，避免"门禁在一份文件上报通过、工具在另一份文件上跑"的错位（同族
+# 事故参照实施计划里 receipt["protocol_a_source_split"]["entity_count"] 与
+# 生产端 receipt["statistics"] 嵌套路径不一致的教训）。存在性与 complete
+# 校验统一在配置声明的路径上执行；启动器常量只作期望值参与比对，不直接当
+# 消费路径。
 gate_cardinality_receipt() {
-    if [[ ! -s "$CARDINALITY_RECEIPT_PATH" ]]; then
-        printf '字段基数收据不存在或为空：%s\n' "$CARDINALITY_RECEIPT_PATH" >&2
+    local declared_path
+    if ! declared_path=$(uv run --no-sync python -c '
+import json, pathlib, sys
+config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+print(config["paths"]["field_cardinality_receipt"])
+' "$CONFIG_PATH"); then
+        printf '读取配置字段 paths.field_cardinality_receipt 失败\n' >&2
+        return 78
+    fi
+    if [[ "$declared_path" != "$CARDINALITY_RECEIPT_PATH" ]]; then
+        printf '配置声明的收据路径与启动器固定路径不一致：配置=%s 启动器=%s\n' \
+            "$declared_path" "$CARDINALITY_RECEIPT_PATH" >&2
+        return 78
+    fi
+    if [[ ! -s "$declared_path" ]]; then
+        printf '字段基数收据不存在或为空：%s\n' "$declared_path" >&2
         return 66
     fi
     uv run --no-sync python -c '
@@ -232,7 +253,7 @@ if receipt.get("complete") is not True:
     print("字段基数收据 complete 字段不为真，拒绝消费", file=sys.stderr)
     raise SystemExit(66)
 print("字段基数收据核对通过：complete=true")
-' "$CARDINALITY_RECEIPT_PATH"
+' "$declared_path"
 }
 
 # 门禁 5：精度档案存在，且配置声明的 precision_profile_id 在其 profiles 成员
