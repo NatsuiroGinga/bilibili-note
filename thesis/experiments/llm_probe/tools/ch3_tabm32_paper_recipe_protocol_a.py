@@ -68,9 +68,16 @@ DR_FPR_GRID: tuple[float, ...] = (0.001, 0.005, 0.01, 0.02, 0.04, 0.08)
 SOURCE_ARRAYS: tuple[str, ...] = ("X23", "y23", "I23", "M23", "E23", "T23")
 TARGET_ARRAYS: tuple[str, ...] = ("X24", "y24", "I24", "M24", "s24", "d24", "t24")
 
-# 输入接口候选（阶段一 select-input 的备选清单）。候选二的 input_dimension 与
-# parameter_count 故意为 None：它们由运行时从字段基数收据推导，在
-# WAITING_FOR_CODEX_CARDINALITY_RECEIPT 解除前保持未知。
+# 输入接口候选（阶段一 select-input 的备选清单）。
+#
+# Codex 2026-08-21 14:20 CST 裁定（覆盖此前 WAITING_FOR_CODEX_CARDINALITY_RECEIPT
+# 待定态）：否决 SrcPort/DstPort 全独热候选（缺少原始语义、产生 37.7× 容量混杂与
+# 显存代价）。候选二改为：两端口继续数值，仅 Protocol、L3/L4 Protocol 与二元粗
+# 拓扑字段（Int/Ext Dst IP、External_src、External_dst）采用训练区词表独热，其余
+# 数值与候选一相同。候选二的 input_dimension 与 parameter_count 保持 None：
+# 由运行时从字段基数收据实测推导（见 project_input_dimension/fit_input_transform
+# 对 TYPE_PARTITIONED_* 三个字段角色常量的消费），不在此硬编码——这样代码对实测
+# 基数如有出入会明确报错，而不是掩盖与预算不符的偏差。
 INPUT_CANDIDATES: tuple[dict[str, Any], ...] = (
     {
         "order": 1,
@@ -84,14 +91,17 @@ INPUT_CANDIDATES: tuple[dict[str, Any], ...] = (
     },
     {
         "order": 2,
-        "display_name": "TabM32-官方字段类型分治输入",
+        "display_name": "TabM32-协议与粗拓扑字段独热输入",
         "key": "tabm32-input-type-partitioned",
         "numeric_transform": "training_region_quantile_normalization",
-        "categorical_treatment": "training_region_one_hot_with_out_of_vocabulary_bucket",
+        "categorical_treatment": (
+            "srcport_dstport_remain_numeric_quantile_normalized；"
+            "protocol_and_l34_training_region_one_hot_with_out_of_vocabulary_bucket；"
+            "coarse_topology_binary_fields_zero_one_passthrough"
+        ),
         "boolean_treatment": "zero_one_passthrough",
         "input_dimension": None,
         "parameter_count": None,
-        "pending_reason": "WAITING_FOR_CODEX_CARDINALITY_RECEIPT",
     },
 )
 
@@ -227,8 +237,9 @@ _EXPECTED_ARTIFACT_POLICY: dict[str, Any] = {
     "persist_complete_budget_curve_aggregate": True,
 }
 
-# resource_contract 中除 minimum_free_gpu_memory_mib 外的固定期望值；该字段
-# 目前故意为 null，待 Codex 依实施计划冲突四重新裁定后才回填，见 validate_config。
+# resource_contract 中除 minimum_free_gpu_memory_mib 外的固定期望值。该字段本身
+# 由 Codex 于 2026-08-21 14:20 CST 裁定为 20480（见看板 N-12 裁决第 4 条），
+# 在 validate_config 中单独按等值校验。
 _EXPECTED_RESOURCE_CONTRACT_FIXED: dict[str, Any] = {
     "measure_resident_bytes_after_upload": True,
     "assert_free_memory_before_model_allocation": True,
@@ -239,6 +250,9 @@ _EXPECTED_RESOURCE_CONTRACT_FIXED: dict[str, Any] = {
     "resource_sample_interval_seconds": 5,
     "concurrent_resource_measurement_is_fair_efficiency_evidence": False,
 }
+
+# Codex 2026-08-21 14:20 CST 裁定的 GPU 空闲显存准入阈值（MiB）。
+GPU_FREE_MEMORY_MINIMUM_MIB = 20480
 
 _EXPECTED_SWANLAB: dict[str, Any] = {
     "workspace": "mortiswang",
@@ -315,6 +329,26 @@ def compute_dtype_bytes(profile: dict[str, Any]) -> int:
     if dtype_name not in PRECISION_DTYPE_BYTES:
         raise ValueError(f"精度配置登记了未核验的计算类型：{dtype_name}")
     return PRECISION_DTYPE_BYTES[dtype_name]
+
+
+# 精度配置登记的计算类型字符串到 torch.dtype 的映射；键集合与
+# PRECISION_DTYPE_BYTES、neural_precision_runtime.autocast_context 内部映射一致。
+_COMPUTE_DTYPE_NAMES: tuple[str, ...] = ("bfloat16", "float16", "float32")
+
+
+def compute_torch_dtype(profile: dict[str, Any], torch_module: Any) -> Any:
+    """把精度合同登记的 ``compute_dtype`` 字符串映射为 ``torch.dtype``。
+
+    Codex 2026-08-21 14:20 CST 裁定：BatchEnsemble 入口须把激活显式转换为计算
+    类型，避免 ``values * r`` 保留 FP32 后在矩阵乘前再复制一份 BF16
+    （见 ``LinearBatchEnsemble.forward``）。该计算类型必须从本函数按
+    profile 解析，不得在骨干代码中硬编码 ``torch.bfloat16``，使 FP32 例外
+    profile（``compute_dtype=="float32"``）也能复用同一条代码路径。
+    """
+    dtype_name = profile["compute_dtype"]
+    if dtype_name not in _COMPUTE_DTYPE_NAMES:
+        raise ValueError(f"精度配置登记了未核验的计算类型：{dtype_name}")
+    return getattr(torch_module, dtype_name)
 
 
 def tensor_upper_bounds(config: dict[str, Any], output_dimension: int, profile: dict[str, Any]) -> dict[str, int]:
@@ -427,17 +461,16 @@ def validate_config(config: dict[str, Any]) -> None:
     for key, expected_value in _EXPECTED_RESOURCE_CONTRACT_FIXED.items():
         if resource_contract.get(key) != expected_value:
             raise ValueError(f"resource_contract.{key} 与冻结值不符")
-    if resource_contract.get("minimum_free_gpu_memory_mib") is not None:
+    if resource_contract.get("minimum_free_gpu_memory_mib") != GPU_FREE_MEMORY_MINIMUM_MIB:
         raise ValueError(
-            "resource_contract.minimum_free_gpu_memory_mib 当前必须为待定的 null，"
-            "须先由 Codex 依实施计划冲突四重新裁定后再回填"
+            f"resource_contract.minimum_free_gpu_memory_mib 必须等于 Codex 裁定值 "
+            f"{GPU_FREE_MEMORY_MINIMUM_MIB}"
         )
-    if not resource_contract.get("pending_reason"):
-        raise ValueError("resource_contract 缺少 pending_reason 待定说明")
-    logger.warning(
-        "resource_contract.minimum_free_gpu_memory_mib 待定（%s），GPU 显存准入阈值尚未确定",
-        resource_contract.get("pending_reason"),
-    )
+    if "pending_reason" in resource_contract:
+        raise ValueError(
+            "resource_contract.pending_reason 必须删除：GPU 显存准入阈值已由 Codex 裁定，"
+            "配置中不得再保留待裁字段"
+        )
 
     if config.get("precision_profile_id") != PRECISION_PROFILE_ID:
         raise ValueError(
@@ -636,6 +669,27 @@ def resolve_missing_indicator_policy(receipt: dict[str, Any]) -> bool:
     return False
 
 
+# 候选二（tabm32-input-type-partitioned）的字段角色划分，与 field_groups
+# （用于消费字段基数收据的原始 7 字段清单与顺序，见 load_cardinality_receipt）
+# 是两个不同用途的分组：field_groups 决定收据里有哪些字段、以什么顺序出现；
+# 下列三个常量决定候选二对这些字段各自采用哪种数值/独热/直通处理。
+#
+# Codex 2026-08-21 14:20 CST 裁定：两端口继续数值（不独热，理由是缺少原始语义、
+# 全独热会产生 37.7× 容量混杂与显存代价）；Protocol、L3/L4 Protocol 采用训练区
+# 词表独热（真正多类别字段，含越界桶）；Int/Ext Dst IP、External_src、
+# External_dst 是二元粗拓扑字段，按论文 §D.2 对二值特征的 {0,1} 直通处理
+# ——与 External_src/External_dst 原有的 zero_one_passthrough 机制完全一致，
+# 只是把 Int/Ext Dst IP 也纳入同一处理，不新增独立代码路径。
+# 实测基数（field-cardinality-receipt-v1）：Protocol=7、L3/L4 Protocol=5、
+# Int/Ext Dst IP=2、External_src=2、External_dst=2，七个字段 missing_fraction
+# 全为 0。按此口径预算 d_in = 78(数值) + (7+1)+(5+1)(两个独热字段含越界桶)
+# + 3(三个二元直通字段) = 95，参数量 = 544*95+950305 = 1,001,985；
+# 该预算以运行时对真实收据的实测为准，此处不写死。
+TYPE_PARTITIONED_NUMERIC_TREATED_FIELDS: tuple[str, ...] = ("SrcPort", "DstPort")
+TYPE_PARTITIONED_ONE_HOT_FIELDS: tuple[str, ...] = ("Protocol", "L3/L4 Protocol")
+TYPE_PARTITIONED_BOOLEAN_FIELDS: tuple[str, ...] = ("Int/Ext Dst IP", "External_src", "External_dst")
+
+
 def project_input_dimension(candidate_key: str, receipt: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
     """拟合前用收据的 unique_count 预算输出维、参数量与稠密输入字节。
 
@@ -643,17 +697,23 @@ def project_input_dimension(candidate_key: str, receipt: dict[str, Any], config:
     """
     groups = config["field_groups"]
     numeric_count = groups["numeric_count"]
-    categorical = list(groups["categorical"])
-    boolean = list(groups["boolean"])
     if candidate_key == "tabm32-input-all-numeric":
         output_dimension = groups["total_count"]
         vocabulary_widths: dict[str, int] = {}
     elif candidate_key == "tabm32-input-type-partitioned":
-        # 每个离散字段占 词表长度 + 1 列，加一为固定越界桶。
+        one_hot_fields = list(TYPE_PARTITIONED_ONE_HOT_FIELDS)
+        boolean_fields = list(TYPE_PARTITIONED_BOOLEAN_FIELDS)
+        numeric_treated_fields = list(TYPE_PARTITIONED_NUMERIC_TREATED_FIELDS)
+        # 每个独热字段占 词表长度 + 1 列，加一为固定越界桶；二元直通字段不设
+        # 越界桶（论文 §D.2 对二值特征是 {0,1} 直通，训练区未见取值静默记 0）。
         vocabulary_widths = {
-            name: receipt["fields"][name]["unique_count"] + 1 for name in categorical
+            name: receipt["fields"][name]["unique_count"] + 1 for name in one_hot_fields
         }
-        output_dimension = numeric_count + sum(vocabulary_widths.values()) + len(boolean)
+        output_dimension = (
+            (numeric_count + len(numeric_treated_fields))
+            + sum(vocabulary_widths.values())
+            + len(boolean_fields)
+        )
     else:
         raise ValueError(f"未知输入候选：{candidate_key}")
 
@@ -696,11 +756,11 @@ def project_input_dimension(candidate_key: str, receipt: dict[str, Any], config:
     )
     if vocabulary_widths:
         logger.info("各离散字段独热块宽度（含越界桶）：%s", vocabulary_widths)
-    # GPU 显存准入阈值仍为待定（配置 resource_contract.minimum_free_gpu_memory_mib 为 null），
-    # 因此这里只给出可核对的预算事实，不设置未经依据的硬阈值。
-    logger.warning(
-        "输出维可行性硬阈值待定：resource_contract.minimum_free_gpu_memory_mib 仍为 null，"
-        "本预算只提供事实，不构成准入判定"
+    # GPU 空闲显存准入阈值已由 Codex 裁定为 GPU_FREE_MEMORY_MINIMUM_MIB；实际准入判定
+    # 由启动器门禁 9（gate_gpu_free_memory）在真实设备上比对，本函数只给出预算事实。
+    logger.info(
+        "输出维可行性预算事实（不构成准入判定，准入判定见启动器门禁 9）：GPU 空闲显存准入阈值=%d MiB",
+        GPU_FREE_MEMORY_MINIMUM_MIB,
     )
     return projection
 
@@ -947,18 +1007,26 @@ def fit_input_transform(
         raise RuntimeError(f"X23 类型不符：{matrix.dtype}")
 
     field_indices = {name: entry["dijk_feature_index"] for name, entry in receipt["fields"].items()}
-    categorical_names = tuple(config["field_groups"]["categorical"])
-    boolean_names = tuple(config["field_groups"]["boolean"])
     partitioned = candidate_key == "tabm32-input-type-partitioned"
     if partitioned:
-        reserved = set(field_indices.values())
+        # 候选二字段角色：SrcPort/DstPort 继续数值（并入分位数规范化），
+        # Protocol/L3-L4 Protocol 独热（真正多类别），Int/Ext Dst IP/
+        # External_src/External_dst 二元直通——三者互斥地划分收据里的 7 个字段。
+        categorical_names = tuple(TYPE_PARTITIONED_ONE_HOT_FIELDS)
+        boolean_names = tuple(TYPE_PARTITIONED_BOOLEAN_FIELDS)
+        reserved = {field_indices[name] for name in (*categorical_names, *boolean_names)}
         numeric_indices = tuple(i for i in range(DIJK_FEATURE_COUNT) if i not in reserved)
-        if len(numeric_indices) != config["field_groups"]["numeric_count"]:
+        expected_numeric_count = (
+            config["field_groups"]["numeric_count"] + len(TYPE_PARTITIONED_NUMERIC_TREATED_FIELDS)
+        )
+        if len(numeric_indices) != expected_numeric_count:
             raise RuntimeError(
-                f"数值字段数 {len(numeric_indices)} 与合同 {config['field_groups']['numeric_count']} 不符"
+                f"候选二数值字段数 {len(numeric_indices)} 与预算 {expected_numeric_count} 不符"
             )
     else:
         # 候选一把 83 个字段全部声明为数值，统一施加同一分位数规范化。
+        categorical_names = ()
+        boolean_names = ()
         numeric_indices = tuple(range(DIJK_FEATURE_COUNT))
 
     landmark_count = resolve_quantile_landmark_count(row_count)
@@ -1233,12 +1301,16 @@ def backbone_classes() -> dict[str, Any]:
             output_size: int,
             members: int,
             random_sign_input_scaling: bool,
+            compute_dtype: Any,
         ) -> None:
             super().__init__()
             self.input_size = input_size
             self.output_size = output_size
             self.members = members
             self.random_sign_input_scaling = random_sign_input_scaling
+            # 计算类型只用于 forward 内的显式转型，不改变参数本身的存储 dtype：
+            # weight/r/s/bias 仍按精度合同保持 FP32（见下方 nn.Parameter 构造）。
+            self.compute_dtype = compute_dtype
             self.weight = nn.Parameter(torch.empty(output_size, input_size))
             self.r = nn.Parameter(torch.empty(members, input_size))
             self.s = nn.Parameter(torch.ones(members, output_size))
@@ -1258,16 +1330,27 @@ def backbone_classes() -> dict[str, Any]:
 
         def forward(self, values: torch.Tensor) -> torch.Tensor:
             # values: (N, k, T, a) -> (N, k, T, b)
+            #
+            # Codex 2026-08-21 14:20 CST 裁定：在 BatchEnsemble 入口把激活显式转换
+            # 为计算类型，避免 ``values * r`` 先在 FP32 物化出展开张量、autocast
+            # 又在 matmul 前另生一份计算类型副本（两份同时存在，实测峰值 1.50×）。
+            # 这里连同 r/weight/s/bias 一并显式转型：mul/matmul 均不在 PyTorch AMP
+            # 的隐式降精度列表之外，只显式转型激活而不转型参数会因 FP32×BF16 的
+            # 类型提升规则被自动升回 FP32，起不到消除副本的作用；r/weight/s/bias
+            # 参数本身（nn.Parameter 存储）与优化器状态仍保持 FP32，这里的 ``.to``
+            # 只产生前向用的临时视图/副本，反向梯度经 ``.to`` 正常回传到 FP32 参数。
             if values.ndim != 4 or values.shape[MEMBER_AXIS] != self.members:
                 raise RuntimeError(
                     f"BatchEnsemble 输入必须是 N×{self.members}×T×{self.input_size}，"
                     f"实际 {tuple(values.shape)}"
                 )
-            scaled = values * self.r.unsqueeze(0).unsqueeze(TIME_AXIS)
-            projected = torch.matmul(scaled, self.weight.t())
+            compute_values = values.to(self.compute_dtype)
+            compute_r = self.r.to(self.compute_dtype)
+            scaled = compute_values * compute_r.unsqueeze(0).unsqueeze(TIME_AXIS)
+            projected = torch.matmul(scaled, self.weight.to(self.compute_dtype).t())
             return (
-                projected * self.s.unsqueeze(0).unsqueeze(TIME_AXIS)
-                + self.bias.unsqueeze(0).unsqueeze(TIME_AXIS)
+                projected * self.s.to(self.compute_dtype).unsqueeze(0).unsqueeze(TIME_AXIS)
+                + self.bias.to(self.compute_dtype).unsqueeze(0).unsqueeze(TIME_AXIS)
             )
 
     class TabM32Backbone(nn.Module):
@@ -1290,15 +1373,17 @@ def backbone_classes() -> dict[str, Any]:
             members: int,
             dropout: float,
             aggregate: bool,
+            compute_dtype: Any,
         ) -> None:
             super().__init__()
             self.input_dimension = input_dimension
             self.hidden_size = hidden_size
             self.members = members
             self.aggregate = aggregate
-            self.input_layer = LinearBatchEnsemble(input_dimension, hidden_size, members, True)
-            self.hidden_layer = LinearBatchEnsemble(hidden_size, hidden_size, members, False)
-            self.fusion_layer = LinearBatchEnsemble(hidden_size * 2, hidden_size, members, False)
+            self.compute_dtype = compute_dtype
+            self.input_layer = LinearBatchEnsemble(input_dimension, hidden_size, members, True, compute_dtype)
+            self.hidden_layer = LinearBatchEnsemble(hidden_size, hidden_size, members, False, compute_dtype)
+            self.fusion_layer = LinearBatchEnsemble(hidden_size * 2, hidden_size, members, False, compute_dtype)
             self.activation = nn.ReLU()
             self.dropout = nn.Dropout(dropout)
             self.output_weight = nn.Parameter(torch.empty(members, hidden_size))
@@ -1429,12 +1514,18 @@ def learned_lp_pool(scores: Any, valid: Any, p_value: Any) -> Any:
     return pooled
 
 
-def build_model(config: dict[str, Any], cell: str, input_key: str, input_dimension: int) -> Any:
+def build_model(
+    config: dict[str, Any], cell: str, input_key: str, input_dimension: int, profile: dict[str, Any]
+) -> Any:
     """按格构造骨干并做参数量三方比对。
 
     三方为：闭式 ``expected_parameter_count(input_dimension)``、冻结配置中该输入候选
     登记的 ``parameter_count``、以及实际 ``sum(p.numel() ...)``。候选二的冻结值当前
     为 null（待收据裁定），此时只比对闭式与实际两方，并把实测值写进日志，不自行回填。
+
+    ``profile`` 提供 BatchEnsemble 入口显式转型所需的计算类型（见
+    ``LinearBatchEnsemble.forward`` 与 ``compute_torch_dtype``），从精度合同解析，
+    不在本函数硬编码。
     """
     import torch
 
@@ -1442,12 +1533,14 @@ def build_model(config: dict[str, Any], cell: str, input_key: str, input_dimensi
         raise ValueError(f"未知实验格：{cell}")
     candidate = config["candidate"]
     classes = backbone_classes()
+    compute_dtype = compute_torch_dtype(profile, torch)
     model = classes["TabM32Backbone"](
         input_dimension=input_dimension,
         hidden_size=candidate["hidden_size"],
         members=candidate["ensemble_members"],
         dropout=config["training"]["dropout"],
         aggregate=CELLS[cell]["causal_prefix_aggregation"],
+        compute_dtype=compute_dtype,
     )
     closed_form = expected_parameter_count(input_dimension)
     layer_wise = backbone_parameter_count(
@@ -1785,6 +1878,20 @@ def evaluate_validation_flow_ap(
     return float(average_precision_score(targets, scores)), int(len(scores))
 
 
+def _move_optimizer_state(optimizer: Any, device: Any) -> None:
+    """把 ``optimizer.load_state_dict`` 恢复后仍留在 CPU 的张量状态搬到目标设备。
+
+    与既有同族工具 ``tools/ch3_resmlp2_tabm_protocol_a_2x2.py`` 的
+    ``move_optimizer_state`` 同写法，供三层断点恢复的在途层调用。
+    """
+    import torch
+
+    for state in optimizer.state.values():
+        for key, value in state.items():
+            if torch.is_tensor(value):
+                state[key] = value.to(device)
+
+
 def train_cell(
     config: dict[str, Any],
     cell: str,
@@ -1797,9 +1904,10 @@ def train_cell(
     train_rows: Any,
     validation_rows: Any,
     device: Any,
+    resume: bool = False,
     precision_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """训练一格并按协议 A 选择检查点。
+    """训练一格并按协议 A 选择检查点，支持三层同身份断点恢复。
 
     梯度累积、精度与资源收据一律复用 ``tools/neural_precision_runtime.py``：
     有效批起点一次 ``zero_grad(set_to_none=True)``，每个微批把 FP32 岛内求和得到的
@@ -1808,12 +1916,41 @@ def train_cell(
 
     选择规则：跑满 ``epochs`` 轮、每轮 ``steps_per_epoch`` 步，不早停、无学习率调度；
     每轮结束在实体不相交验证集上算逐流平均精度，用严格大于更新最优，因此并列保留最早轮次。
+
+    三层断点恢复（任务 5）：
+
+    - 完成层：``checkpoints/selected-{cell}.pt`` 与 ``receipts/selection-{cell}.json``
+      同时存在时，只有传了 ``--resume`` 且收据 ``identity`` 等于本次调用的 ``identity``、
+      且收据记录的检查点 ``sha256`` 等于实测哈希，才直接复用并跳过训练；否则拒绝。
+    - 未传 ``--resume`` 时若任一历史制品（完成检查点、完成收据、在途检查点）已存在，
+      直接拒绝，避免静默覆盖。
+    - 在途层：每个 epoch 完整跑满（即 ``optimizer.step()`` 的完整边界）后原子写
+      ``inflight/{cell}.pt``；恢复时先核验精度、微批量、累积步数与身份一致，
+      再从 ``epoch+1`` 继续。半个有效批中断时该 epoch 从未落盘，恢复会整轮重放，
+      不会出现"恢复部分累计梯度后跳过样本"的情形。
     """
     import random
     import time
 
     import numpy as np
     import torch
+
+    checkpoint_path = output_root / "checkpoints" / f"selected-{cell}.pt"
+    receipt_path = output_root / "receipts" / f"selection-{cell}.json"
+    inflight_path = output_root / "inflight" / f"{cell}.pt"
+
+    if checkpoint_path.is_file() and receipt_path.is_file():
+        receipt = load_json(receipt_path)
+        checkpoint_sha = receipt.get("selection", {}).get("checkpoint", {}).get("sha256")
+        if not resume or receipt.get("identity") != identity or checkpoint_sha != _sha256_file(checkpoint_path):
+            raise RuntimeError(
+                f"{cell}（输入候选={input_key}，优化器候选={optimizer_key}）已有完成检查点，"
+                "但未传 --resume、身份不符或摘要不符，拒绝覆盖或部分拼接"
+            )
+        logger.info("%s 完成层复用：身份与检查点摘要均匹配，跳过训练：%s", cell, receipt_path)
+        return receipt["selection"]
+    if not resume and (checkpoint_path.exists() or receipt_path.exists() or inflight_path.exists()):
+        raise RuntimeError(f"全新运行（未传 --resume）已存在 {cell} 的历史制品，拒绝覆盖：{output_root}")
 
     precision = _precision_module()
     training = config["training"]
@@ -1853,7 +1990,7 @@ def train_cell(
     if device_type == "cuda":
         torch.cuda.manual_seed_all(training["seed"])
 
-    model = build_model(config, cell, input_key, view.transform.output_dimension).to(device)
+    model = build_model(config, cell, input_key, view.transform.output_dimension, profile).to(device)
     optimizer, optimizer_candidate = make_optimizer(config, model, optimizer_key)
     parameter_check = precision.validate_model_optimizer_fp32(model, optimizer, torch)
     logger.info(
@@ -1887,10 +2024,58 @@ def train_cell(
     total_steps = training["epochs"] * training["steps_per_epoch"]
     total_sequences = total_steps * effective_batch
     heartbeat_interval = max(1, training["steps_per_epoch"] // 4)
+    elapsed_before = 0.0
+    start_epoch = 1
+
+    # 在途层恢复：只有传了 --resume 且在途检查点存在时才尝试恢复；身份、精度、
+    # 微批量与累积步数任一不符都拒绝，不做部分拼接。
+    if resume and inflight_path.is_file():
+        inflight = torch.load(inflight_path, map_location="cpu", weights_only=False)
+        if inflight.get("identity") != identity:
+            raise RuntimeError(f"{cell} 在途检查点身份与本次运行不符，拒绝恢复")
+        runtime_state = inflight["runtime_state"]
+        precision.validate_checkpoint_runtime_state(runtime_state)
+        if (
+            runtime_state["precision_profile_id"] != profile_id
+            or runtime_state["microbatch_items"] != micro_batch
+            or runtime_state["accumulation_steps"] != accumulation_steps
+        ):
+            raise RuntimeError(f"{cell} 在途检查点的精度或批量合同与本次运行不符，拒绝恢复")
+        model.load_state_dict(inflight["model_state_dict"])
+        model.to(device)
+        optimizer.load_state_dict(inflight["optimizer_state_dict"])
+        _move_optimizer_state(optimizer, device)
+        history = inflight["history"]
+        best_ap = float(inflight["best_ap"])
+        best_epoch = int(inflight["best_epoch"])
+        best_p = float(inflight["best_p"])
+        best_state = inflight["best_state"]
+        elapsed_before = float(inflight["elapsed_seconds"])
+        generator.set_state(inflight["generator_state"])
+        rng_state = runtime_state["rng_state"]
+        random.setstate(rng_state["python_random"])
+        torch.set_rng_state(rng_state["torch_cpu"])
+        if rng_state["torch_cuda_all"] is not None and torch.cuda.is_available():
+            torch.cuda.set_rng_state_all(rng_state["torch_cuda_all"])
+        if rng_state["numpy_random"] is not None:
+            np.random.set_state(rng_state["numpy_random"])
+        start_epoch = int(inflight["epoch"]) + 1
+        optimizer_step_count = int(inflight["epoch"]) * training["steps_per_epoch"]
+        processed_sequences = optimizer_step_count * effective_batch
+        logger.info(
+            "%s 在途层恢复：身份、精度与批量合同均匹配，从第 %d 轮继续（已完成 %d 轮）",
+            cell, start_epoch, int(inflight["epoch"]),
+        )
+    elif resume:
+        logger.info("%s 未发现在途检查点，从第 1 轮开始（首次为本次运行的初次训练）", cell)
+
     started = time.time()
     model.train()
+    # 若恢复自一个已跑满全部轮次但尚未落最终检查点的在途状态，下方轮次循环
+    # 不会执行任何一次，accumulator 需要有定义的占位，避免收尾阶段引用未定义变量。
+    accumulator: Any = None
 
-    for epoch in range(1, training["epochs"] + 1):
+    for epoch in range(start_epoch, training["epochs"] + 1):
         epoch_started = time.time()
         running_loss = 0.0
         for step in range(1, training["steps_per_epoch"] + 1):
@@ -2027,6 +2212,47 @@ def train_cell(
             cell, epoch, training["epochs"], validation_ap, p_value,
             history[-1]["mean_training_loss"], scored_flows,
         )
+
+        # 在途层落盘：写入点固定在本轮全部 optimizer.step() 完成之后，即完整边界。
+        # 内容含身份、轮次、模型与优化器状态、历史、当前最优四元组、已耗时、
+        # 采样器状态（generator_state）与由 neural_precision_runtime 构造的
+        # 精度/批量/四路随机状态（runtime_state.rng_state）。
+        epoch_elapsed_seconds = elapsed_before + (time.time() - started)
+        inflight_runtime_state = precision.build_checkpoint_runtime_state(
+            profile_id=profile_id,
+            profile=profile,
+            scaler=scaler,
+            effective_batch_items=effective_batch,
+            effective_batch_item_unit=EFFECTIVE_BATCH_ITEM_UNIT,
+            microbatch_items=micro_batch,
+            accumulation_steps=accumulation_steps,
+            normalization_unit=NORMALIZATION_UNIT,
+            is_tail_batch=False,
+            optimizer_step=optimizer_step_count,
+            optimizer_step_boundary=True,
+            torch_module=torch,
+        )
+        _atomic_torch(
+            inflight_path,
+            {
+                "schema_version": "ch3-tabm32-inflight-checkpoint-v1",
+                "identity": dict(identity),
+                "epoch": epoch,
+                "model_state_dict": {
+                    name: tensor.detach().cpu().clone() for name, tensor in model.state_dict().items()
+                },
+                "optimizer_state_dict": optimizer.state_dict(),
+                "history": history,
+                "best_ap": best_ap,
+                "best_epoch": best_epoch,
+                "best_p": best_p,
+                "best_state": best_state,
+                "elapsed_seconds": epoch_elapsed_seconds,
+                "generator_state": generator.get_state(),
+                "runtime_state": inflight_runtime_state,
+            },
+        )
+
         if epoch == 1:
             epoch_seconds = time.time() - epoch_started
             logger.info(
@@ -2038,7 +2264,7 @@ def train_cell(
 
     if best_state is None:
         raise RuntimeError(f"{cell} 未产生可选检查点")
-    training_seconds = time.time() - started
+    training_seconds = elapsed_before + (time.time() - started)
 
     runtime_state = precision.build_checkpoint_runtime_state(
         profile_id=profile_id,
@@ -2118,7 +2344,11 @@ def train_cell(
         "precision_contract_schema_version": contract["schema_version"],
         "precision_resource_receipt": resource_receipt,
         "accumulation_plan": plan,
-        "accumulation_receipt": accumulator.receipt(),
+        "accumulation_receipt": (
+            accumulator.receipt()
+            if accumulator is not None
+            else {"reused_from_inflight_without_new_optimizer_steps": True}
+        ),
         "optimizer_steps": optimizer_step_count,
         "tensor_upper_bounds": bounds,
         "first_step_memory": first_step_memory,
@@ -2130,7 +2360,493 @@ def train_cell(
         "%s 训练完成：最优轮次=%d 验证逐流AP=%.8f p=%.6f 用时=%.1f 分 检查点=%s",
         cell, best_epoch, best_ap, best_p, training_seconds / 60.0, checkpoint_path,
     )
+
+    # 完成层收据：与最终检查点一起构成可复用判据（身份 + 检查点摘要）。
+    _atomic_json(receipt_path, {"identity": dict(identity), "selection": selection})
+    inflight_path.unlink(missing_ok=True)
     return selection
+
+
+# ---------------------------------------------------------------------------
+# 运行身份、数据清单与训练有效流掩码（任务 5 支撑）
+# ---------------------------------------------------------------------------
+
+
+def _resolve_device() -> Any:
+    """解析本次运行的计算设备；精度合同要求 CUDA BF16，无 CUDA 时不静默降级。"""
+    import torch
+
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    raise RuntimeError(
+        "本运行的精度合同 cuda-bf16-amp-fp32-sensitive-v1 要求 CUDA，"
+        "当前环境无可用 CUDA；非 CUDA 环境须先取得显式例外收据，本工具不静默降级"
+    )
+
+
+def data_inventory(cache_root: Path, names: tuple[str, ...]) -> dict[str, Any]:
+    """对若干冻结缓存文件的字节数与 mtime 取规范化摘要，作为数据版本身份的一部分。"""
+    files: list[dict[str, Any]] = []
+    for name in names:
+        path = cache_root / f"{name}.npy"
+        if not path.is_file():
+            raise FileNotFoundError(f"缺少冻结缓存：{path}")
+        stat = path.stat()
+        files.append({"name": path.name, "bytes": stat.st_size, "mtime_ns": stat.st_mtime_ns})
+    return {
+        "schema_version": "ch3-tabm32-data-inventory-v1",
+        "cache_root": str(cache_root),
+        "files": files,
+        "sha256": _canonical_sha256(files),
+    }
+
+
+def build_effective_flow_mask(
+    indices: Any, mask: Any, train_rows: Any, flow_count: int
+) -> tuple[Any, dict[str, Any]]:
+    """训练有效流掩码：把训练区序列的有效位置映射到流索引，去重后置真。
+
+    与诊断工具 ``tools/ch3_lspr23_field_cardinality_receipt.py`` 的
+    ``build_effective_flow_mask``（第 182 至 205 行）逐字同算法（含分块行数
+    4096），使本工具独立重算出的掩码哈希能够与收据登记的
+    ``effective_flow_mask_sha256`` 相互核验，而不是单方面信任收据。
+    """
+    import hashlib
+
+    import numpy as np
+
+    if indices.shape != mask.shape or indices.ndim != 2:
+        raise RuntimeError("I23/M23 形状不符")
+    effective = np.zeros(flow_count, dtype=bool)
+    valid_occurrences = 0
+    for start in range(0, len(train_rows), 4096):
+        rows = train_rows[start : start + 4096]
+        current_mask = np.asarray(mask[rows], dtype=bool)
+        current_indices = np.asarray(indices[rows])
+        selected = current_indices[current_mask]
+        if selected.size:
+            if int(selected.min()) < 0 or int(selected.max()) >= flow_count:
+                raise RuntimeError("I23 存在越界流索引")
+            effective[selected] = True
+            valid_occurrences += int(selected.size)
+    digest = hashlib.sha256(effective.tobytes()).hexdigest()
+    return effective, {
+        "train_sequences": int(len(train_rows)),
+        "sequence_length": int(indices.shape[1]),
+        "valid_sequence_flow_occurrences": valid_occurrences,
+        "effective_flows": int(effective.sum()),
+        "deduplicated_flow_mapping": True,
+        "effective_flow_mask_sha256": digest,
+    }
+
+
+def build_run_identity(
+    config_path: Path, cache_root: Path, cardinality_receipt_path: Path
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """本工具独立重算的运行身份：配置、代码、源数据与字段基数收据四路哈希。
+
+    返回 ``(identity, source_data_inventory)``；identity 不含候选或 cell，
+    候选与 cell 由 ``cell_identity`` 在其基础上补齐。
+    """
+    source_inventory = data_inventory(cache_root, SOURCE_ARRAYS)
+    identity = {
+        "schema_version": "ch3-tabm32-run-identity-v1",
+        "config_sha256": _sha256_file(config_path),
+        "code_sha256": _sha256_file(Path(__file__).resolve()),
+        "source_data_inventory_sha256": source_inventory["sha256"],
+        "cardinality_receipt_sha256": _sha256_file(cardinality_receipt_path),
+    }
+    return identity, source_inventory
+
+
+def cell_identity(
+    run_identity: dict[str, Any], *, input_candidate: str, optimizer_candidate: str, cell: str
+) -> dict[str, Any]:
+    """把运行身份补齐为某个 cell 训练调用的完整身份，供 train_cell 的三层恢复比对。"""
+    return {
+        "schema_version": "ch3-tabm32-cell-identity-v1",
+        "run_id": RUN_ID,
+        "model_key": MODEL_KEY,
+        **run_identity,
+        "input_candidate": input_candidate,
+        "optimizer_candidate": optimizer_candidate,
+        "cell": cell,
+    }
+
+
+def materialize_reused_cell(
+    source_root: Path, target_root: Path, cell: str, identity: dict[str, Any]
+) -> dict[str, Any]:
+    """把选择阶段已完成、身份完全一致的 cell 检查点与收据复制到最终输出根。
+
+    只在调用方已核验候选与优化器均为封印值时调用；这里再独立核对一次收据身份与
+    检查点摘要，防止把不同配置/代码/数据下产出的制品部分拼接进最终四格。
+    """
+    import shutil
+
+    source_checkpoint = source_root / "checkpoints" / f"selected-{cell}.pt"
+    source_receipt = source_root / "receipts" / f"selection-{cell}.json"
+    if not source_checkpoint.is_file() or not source_receipt.is_file():
+        raise RuntimeError(f"待复用的 {cell} 选择运行制品不完整：{source_root}")
+    receipt = load_json(source_receipt)
+    if receipt.get("identity") != identity:
+        raise RuntimeError(f"待复用的 {cell} 选择运行身份与目标身份不符，拒绝复用")
+    if receipt["selection"]["checkpoint"]["sha256"] != _sha256_file(source_checkpoint):
+        raise RuntimeError(f"待复用的 {cell} 选择运行检查点摘要不符，拒绝复用")
+    target_checkpoint = target_root / "checkpoints" / f"selected-{cell}.pt"
+    target_receipt = target_root / "receipts" / f"selection-{cell}.json"
+    target_checkpoint.parent.mkdir(parents=True, exist_ok=True)
+    target_receipt.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source_checkpoint, target_checkpoint)
+    shutil.copy2(source_receipt, target_receipt)
+    logger.info("%s 已从选择阶段完成运行复用（身份与检查点摘要均核验通过）：%s -> %s", cell, source_root, target_root)
+    return receipt["selection"]
+
+
+def save_input_transform(path: Path, transform: InputTransform) -> None:
+    """把已在 LSPR23 训练区拟合完成的输入变换整体持久化，供 evaluate 阶段只应用不拟合。
+
+    ``InputTransform`` 内部含 sklearn ``QuantileTransformer`` 与 numpy 数组，
+    均为标准库 ``pickle`` 可序列化对象；先写临时文件再原子替换。
+    """
+    import os
+    import pickle
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.partial.{os.getpid()}")
+    with temporary.open("wb") as handle:
+        pickle.dump(transform, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    os.replace(temporary, path)
+
+
+def load_input_transform(path: Path) -> InputTransform:
+    """加载 ``cells`` 阶段封印的输入变换；``evaluate`` 阶段只应用，绝不重新拟合。"""
+    import pickle
+
+    if not path.is_file():
+        raise FileNotFoundError(f"缺少已封印的输入变换：{path}，须先完成 cells 阶段")
+    with path.open("rb") as handle:
+        transform = pickle.load(handle)
+    if not isinstance(transform, InputTransform):
+        raise RuntimeError(f"已封印的输入变换类型不符：{path}")
+    return transform
+
+
+def load_target_arrays(cache_root: str) -> dict[str, Any]:
+    """加载协议 A 目标年（LSPR24）冻结数组；s24/d24 为对象数组，按需允许 pickle。"""
+    import numpy as np
+
+    root = Path(cache_root)
+    arrays: dict[str, Any] = {}
+    for name in TARGET_ARRAYS:
+        path = root / f"{name}.npy"
+        if not path.is_file():
+            raise FileNotFoundError(f"缺少冻结缓存：{path}")
+        arrays[name] = np.load(path, allow_pickle=name in {"s24", "d24"})
+    if arrays["X24"].shape[1] != DIJK_FEATURE_COUNT:
+        raise RuntimeError(f"X24 字段数不符：{arrays['X24'].shape}")
+    logger.info("目标年数组已载入：X24=%s I24=%s", arrays["X24"].shape, arrays["I24"].shape)
+    return arrays
+
+
+def write_status(output_root: Path, state: str, stage: str, exit_code: int | None, detail: str) -> None:
+    """原子写运行级状态文件，供人工与启动器只读核对进度。"""
+    import time
+
+    _atomic_json(
+        output_root / "status.json",
+        {
+            "schema_version": "ch3-tabm32-paper-recipe-protocol-a-status-v1",
+            "run_id": RUN_ID,
+            "state": state,
+            "stage": stage,
+            "exit_code": exit_code,
+            "detail": detail,
+            "updated_at_unix": time.time(),
+            "target_previously_accessed": True,
+            "independent_test": False,
+        },
+    )
+
+
+def build_manifest(output_root: Path, run_id: str) -> None:
+    """重写运行根的制品清单：只登记确实存在的文件，逐个记录字节数与摘要。"""
+    names = (
+        "config.json",
+        "input_selection_sealed.json",
+        "optimizer_selection_sealed.json",
+        "selection_frozen.json",
+        "aggregate-results.json",
+        "complete-alert-budget-curves.npz",
+        "complete-alert-budget-curves-receipt.json",
+        "resource-receipt.json",
+        "swanlab-receipt.json",
+        "status.json",
+        "artifacts/sealed-input-transform.pkl",
+    )
+    files: dict[str, Any] = {}
+    for name in names:
+        path = output_root / name
+        if path.is_file():
+            files[name] = {"bytes": path.stat().st_size, "sha256": _sha256_file(path)}
+    for cell in CELL_ORDER:
+        for relative in (
+            f"checkpoints/selected-{cell}.pt",
+            f"receipts/selection-{cell}.json",
+            f"receipts/target-evaluation-{cell}/receipt.json",
+            f"receipts/target-evaluation-{cell}/complete-alert-budget-curve.npz",
+        ):
+            path = output_root / relative
+            if path.is_file():
+                files[relative] = {"bytes": path.stat().st_size, "sha256": _sha256_file(path)}
+    _atomic_json(
+        output_root / "manifest.json",
+        {
+            "schema_version": "ch3-tabm32-paper-recipe-protocol-a-manifest-v1",
+            "run_id": run_id,
+            "files": files,
+            "per_flow_scores_persisted": False,
+            "per_entity_scores_persisted": False,
+            "complete_budget_curve_persisted": "complete-alert-budget-curves.npz" in files,
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
+# 选择封印、目标评价与制品清单（任务 6）
+# ---------------------------------------------------------------------------
+
+
+def entity_scores(flow_scores: Any, seen: Any, flow_entity: Any, entity_count: int, p_value: float | None) -> Any:
+    """按实体聚合逐流分数：``p_value`` 为空取实体内最大值，否则做共享 p 的 ELP 池化。
+
+    与既有同族工具 ``tools/ch3_resmlp2_tabm_protocol_a_2x2.py`` 的
+    ``entity_scores`` 同公式，供 ``evaluate`` 阶段区分「主指标（学习池化格用 ELP，
+    其余格用最大池化）」与「最大池化指标（全部格统一用最大池化）」。
+    """
+    import numpy as np
+
+    if p_value is None:
+        scores = np.full(entity_count, -np.inf, dtype=np.float32)
+        np.maximum.at(scores, flow_entity[seen], flow_scores[seen])
+        return scores
+    numerator = np.zeros(entity_count, dtype=np.float64)
+    count = np.zeros(entity_count, dtype=np.float64)
+    np.add.at(numerator, flow_entity[seen], np.clip(flow_scores[seen], 1e-7, 1.0).astype(np.float64) ** p_value)
+    np.add.at(count, flow_entity[seen], 1.0)
+    return np.where(count > 0, (numerator / np.maximum(count, 1.0)) ** (1.0 / p_value), -np.inf).astype(np.float32)
+
+
+def dr_at_fpr(scores: Any, labels: Any, target_fpr: float) -> float:
+    """给定负类实体分数排序后，在最接近 ``target_fpr`` 的整数下标处取检测率。"""
+    import numpy as np
+
+    valid = np.isfinite(scores)
+    values = scores[valid]
+    target = labels[valid]
+    negative = np.sort(values[target == 0])[::-1]
+    positive = values[target == 1]
+    if len(negative) == 0 or len(positive) == 0:
+        raise RuntimeError("检测率计算缺少正类或负类实体")
+    threshold = negative[min(int(len(negative) * target_fpr), len(negative) - 1)]
+    return float((positive >= threshold).mean())
+
+
+def complete_budget_curve(scores: Any, labels: Any) -> dict[str, Any]:
+    """遍历全部可达负类实体预算，给出完整检测率-误报预算曲线。"""
+    import numpy as np
+
+    valid = np.isfinite(scores)
+    values = scores[valid]
+    target = labels[valid]
+    positive = np.sort(values[target == 1])
+    negative = np.sort(values[target == 0])[::-1]
+    detection_rate = (len(positive) - np.searchsorted(positive, negative, side="left")) / len(positive)
+    false_positive = len(negative) - np.searchsorted(negative[::-1], negative, side="left")
+    return {
+        "n_false_positive_entity": false_positive.astype(np.int64),
+        "nominal_fpr": np.arange(len(negative), dtype=np.float64) / len(negative),
+        "realized_fpr": false_positive.astype(np.float64) / len(negative),
+        "detection_rate": detection_rate.astype(np.float64),
+    }
+
+
+def save_target_evaluation(
+    output_root: Path, cell: str, identity: dict[str, Any], cell_result: dict[str, Any], curve: dict[str, Any]
+) -> None:
+    """原子写某格的目标评价完成收据与完整预算曲线，目录整体存在即视为完成。"""
+    import os
+
+    import numpy as np
+
+    receipt_root = output_root / "receipts" / f"target-evaluation-{cell}"
+    if receipt_root.exists():
+        raise RuntimeError(f"{cell} 目标评价完成目录已存在，拒绝覆盖")
+    temporary_root = receipt_root.with_name(f"{receipt_root.name}.partial.{os.getpid()}")
+    temporary_root.mkdir(parents=True, exist_ok=False)
+    curve_path = temporary_root / "complete-alert-budget-curve.npz"
+    with curve_path.open("wb") as handle:
+        np.savez_compressed(handle, **curve)
+    _atomic_json(
+        temporary_root / "receipt.json",
+        {
+            "schema_version": "ch3-tabm32-target-cell-receipt-v1",
+            "identity": identity,
+            "cell_result": cell_result,
+            "curve": {
+                "filename": curve_path.name,
+                "bytes": curve_path.stat().st_size,
+                "sha256": _sha256_file(curve_path),
+                "fields": list(curve),
+            },
+            "complete": True,
+        },
+    )
+    os.replace(temporary_root, receipt_root)
+
+
+def load_target_evaluation(
+    output_root: Path, cell: str, identity: dict[str, Any]
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    """复用已完成的目标评价收据；身份或摘要任一不符都拒绝伪装完成。"""
+    import numpy as np
+
+    receipt_root = output_root / "receipts" / f"target-evaluation-{cell}"
+    if not receipt_root.exists():
+        return None
+    if not receipt_root.is_dir():
+        raise RuntimeError(f"{cell} 目标评价收据路径类型不符")
+    receipt_path = receipt_root / "receipt.json"
+    curve_path = receipt_root / "complete-alert-budget-curve.npz"
+    if not receipt_path.is_file() or not curve_path.is_file():
+        raise RuntimeError(f"{cell} 目标评价只有部分写入，拒绝伪装完成")
+    receipt = load_json(receipt_path)
+    if (
+        receipt.get("identity") != identity
+        or receipt.get("complete") is not True
+        or receipt.get("curve", {}).get("sha256") != _sha256_file(curve_path)
+    ):
+        raise RuntimeError(f"{cell} 目标评价收据身份或摘要不符")
+    with np.load(curve_path, allow_pickle=False) as payload:
+        curve = {name: payload[name] for name in payload.files}
+    if set(curve) != {"n_false_positive_entity", "nominal_fpr", "realized_fpr", "detection_rate"}:
+        raise RuntimeError(f"{cell} 目标评价预算曲线字段不完整")
+    return receipt["cell_result"], curve
+
+
+def score_target(
+    config: dict[str, Any],
+    model: Any,
+    transform: InputTransform,
+    target: dict[str, Any],
+    device: Any,
+    profile: dict[str, Any],
+) -> tuple[Any, Any]:
+    """对 LSPR24 全量序列打分；输入变换只 ``apply``，绝不在目标年上重新拟合。
+
+    评价阶段不得训练、不得替换检查点、不得裁剪成员、不得搜索阈值、不得更新聚合
+    指数或任何超参数，因此这里全程 ``torch.no_grad()``，且不调用
+    ``optimizer``、不调用 ``model.train()``。
+    """
+    import numpy as np
+    import torch
+
+    precision = _precision_module()
+    length = config["training"]["sequence_length"]
+    X = target["X24"]
+    I = target["I24"]
+    M = target["M24"]
+    y = target["y24"]
+    scores = np.zeros(len(y), dtype=np.float32)
+    seen = np.zeros(len(y), dtype=bool)
+    batch_sequences = 2048
+    model.eval()
+    with torch.no_grad():
+        for start in range(0, len(I), batch_sequences):
+            stop = min(start + batch_sequences, len(I))
+            indices = np.ascontiguousarray(I[start:stop, :length])
+            valid = np.ascontiguousarray(M[start:stop, :length] > 0.5)
+            raw = np.asarray(X[indices.reshape(-1)], dtype=np.float32)
+            values = transform.apply(raw).reshape(indices.shape[0], indices.shape[1], transform.output_dimension)
+            values_t = torch.from_numpy(values).to(device)
+            valid_t = torch.from_numpy(valid).to(device)
+            with precision.autocast_context(profile, device.type, torch):
+                probabilities = model.shared_batch_flow_probability(values_t, valid_t)
+            flat_indices = indices.reshape(-1)
+            flat_valid = valid.reshape(-1)
+            flat_probabilities = probabilities.reshape(-1).float().cpu().numpy()
+            selected = flat_indices[flat_valid]
+            scores[selected] = flat_probabilities[flat_valid]
+            seen[selected] = True
+    return scores, seen
+
+
+def publish_swanlab(config: dict[str, Any], result: dict[str, Any], output_root: Path) -> None:
+    """创建 SwanLab 运行并上报聚合指标；只使用已核验存在的 Run 公开属性。
+
+    核验依据（2026-08-13 本仓库事故记录）：SwanLab 0.9.0 的 ``Run`` 对象只公开
+    ``id``/``name``/``path``/``url``/``dir``/``config``/``log*`` 七类属性，没有
+    ``public`` 属性；本函数只读取 ``name``/``id``/``url`` 三个已核验字段用于收据
+    留痕，不访问 ``run.public``。上传前先机械核对目的地与冻结配置逐字相同。
+    """
+    destination = config["swanlab"]
+    if destination != _EXPECTED_SWANLAB:
+        raise RuntimeError("SwanLab 目的地与冻结配置不一致，拒绝创建运行或上传")
+
+    import swanlab
+
+    run = swanlab.init(
+        workspace=destination["workspace"],
+        project=destination["project"],
+        name=RUN_ID,
+        mode=destination["mode"],
+        group=destination["group"],
+        tags=destination["tags"],
+        log_dir=str(output_root / "swanlog"),
+        config={
+            "run_id": RUN_ID,
+            "model_key": MODEL_KEY,
+            "seed": config["training"]["seed"],
+            "protocol": "tabm32_paper_recipe_protocol_a",
+            "target_previously_accessed": True,
+            "independent_test": False,
+        },
+    )
+    if run.name != RUN_ID:
+        raise RuntimeError("SwanLab 运行名称与冻结身份不符，拒绝上报")
+
+    metrics: dict[str, float] = {}
+    for cell in CELL_ORDER:
+        selection = result["source_selection"]["cells"][cell]
+        cell_target = result["target_evaluation"]["cells"][cell]["target"]
+        metrics[f"source/{cell}_selected_epoch"] = float(selection["selected_epoch"])
+        metrics[f"source/{cell}_validation_flow_ap"] = float(selection["validation_flow_ap"])
+        metrics[f"target/{cell}_flow_ap"] = cell_target["flow_average_precision"]
+        metrics[f"target/{cell}_entity_ap"] = cell_target["entity_average_precision"]
+        metrics[f"target/{cell}_maximum_entity_ap"] = cell_target["maximum_entity_average_precision"]
+        for key, value in cell_target["dr_at_fpr"].items():
+            metrics[f"target/{cell}_dr_{key}"] = value
+    metrics["resource/training_wall_seconds"] = result["resource"]["training_wall_seconds_sum"]
+    metrics["resource/evaluation_wall_seconds"] = result["resource"]["evaluation_wall_seconds_sum"]
+    metrics["resource/peak_gpu_allocated_mib"] = result["resource"]["peak_gpu_allocated_mib"]
+    metrics["resource/peak_process_rss_mib"] = result["resource"]["peak_process_rss_mib"]
+    metrics["resource/gpu_hours"] = result["resource"]["gpu_hours"]
+    swanlab.log(metrics, step=0)
+    swanlab.finish()
+    _atomic_json(
+        output_root / "swanlab-receipt.json",
+        {
+            "schema_version": "ch3-tabm32-paper-recipe-protocol-a-swanlab-receipt-v1",
+            "completed": True,
+            "workspace": destination["workspace"],
+            "project": destination["project"],
+            "run_name": run.name,
+            "run_id_field": run.id,
+            "run_url": run.url,
+            "metric_count": len(metrics),
+            "per_sample_values_uploaded": False,
+        },
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2157,7 +2873,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--resume",
         action="store_true",
-        help="恢复同运行身份下的在途检查点或已封印选择（预留，由后续任务实现）",
+        help="恢复同运行身份下的在途检查点或已封印选择；未传时任一历史制品存在都拒绝覆盖",
     )
     parser.add_argument(
         "--stage",
@@ -2166,29 +2882,585 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--resource-receipt",
-        help="启动器写入的资源准入收据路径（预留，由后续任务实现）",
+        help="启动器写入的资源准入收据路径；evaluate 阶段原样并入聚合结果的 resource 字段",
     )
     return parser.parse_args()
 
 
 def run_select_input_stage(config: dict[str, Any], args: argparse.Namespace) -> None:
-    """阶段一：在 INPUT_CANDIDATES 中筛选输入接口（骨架占位，尚未实现）。"""
-    raise NotImplementedError("select-input 阶段尚未实现，将由后续任务补全输入变换与筛选逻辑")
+    """阶段一：训练两个输入候选各自的 C00（固定阶段一优化器候选），封印胜出输入接口。
+
+    并列裁决固定为「候选一（table order 第一个）」；只用
+    ``lspr23_entity_disjoint_validation_flow_ap`` 决策，不看实体 AP、告警预算、
+    训练时间、显存或 LSPR24（``selection_stages.forbidden_tie_breakers``）。
+    """
+    import time
+
+    config_path = Path(args.config).resolve()
+    cache_root = Path(config["paths"]["cache_root"])
+    output_root = Path(config["paths"]["output_root"])
+    receipt_path = Path(config["paths"]["field_cardinality_receipt"])
+    seal_path = output_root / "input_selection_sealed.json"
+
+    if seal_path.is_file():
+        if not args.resume:
+            raise RuntimeError(f"全新运行（未传 --resume）已存在输入接口封印，拒绝覆盖：{seal_path}")
+        logger.info("阶段一封印已存在且传了 --resume，直接复用：%s", seal_path)
+        return
+
+    # 先做纯标准库的收据存在性与内容核验，再写运行状态：避免在收据缺失时
+    # 仍尝试建立运行输出目录（本地无网络盘挂载时会报误导性的目录创建失败）。
+    receipt = load_cardinality_receipt(str(receipt_path), config)
+    write_status(output_root, "running", "select-input", None, "训练两个输入候选各自的 C00 以选择输入接口")
+
+    run_identity, source_inventory = build_run_identity(config_path, cache_root, receipt_path)
+    arrays = load_source_arrays(str(cache_root))
+    train_rows, validation_rows, split_stats = source_split(arrays, config)
+    train_flow_mask, flow_mapping = build_effective_flow_mask(
+        arrays["I23"], arrays["M23"], train_rows, LSPR23_FLOW_COUNT
+    )
+    if flow_mapping["effective_flow_mask_sha256"] != receipt["training_effective_flows"]["effective_flow_mask_sha256"]:
+        raise RuntimeError("本工具独立重算的训练有效流掩码与收据登记的哈希不一致，拒绝继续")
+
+    fixed_optimizer = config["selection_stages"]["stage_one_fixed_optimizer"]
+    device = _resolve_device()
+    runs: dict[str, Any] = {}
+    for candidate in sorted(INPUT_CANDIDATES, key=lambda item: item["order"]):
+        key = candidate["key"]
+        run_root = output_root / "selection-runs" / "select-input" / key
+        transform = fit_input_transform(
+            key, str(cache_root), train_flow_mask, receipt, config=config, seed=config["training"]["seed"]
+        )
+        view = ProtocolASourceView(arrays, transform)
+        identity = cell_identity(run_identity, input_candidate=key, optimizer_candidate=fixed_optimizer, cell="C00")
+        selection = train_cell(
+            config, "C00", key, fixed_optimizer,
+            output_root=run_root, identity=identity, view=view,
+            train_rows=train_rows, validation_rows=validation_rows, device=device, resume=args.resume,
+        )
+        runs[key] = {
+            "identity": identity,
+            "input_dimension": transform.output_dimension,
+            "parameter_count": expected_parameter_count(transform.output_dimension),
+            "selection": selection,
+        }
+        logger.info("阶段一 %s（%s）训练完成：验证逐流AP=%.8f", key, candidate["display_name"], selection["validation_flow_ap"])
+
+    key_a, key_b = (c["key"] for c in sorted(INPUT_CANDIDATES, key=lambda item: item["order"]))
+    ap_a = runs[key_a]["selection"]["validation_flow_ap"]
+    ap_b = runs[key_b]["selection"]["validation_flow_ap"]
+    if ap_b > ap_a:
+        best_key = key_b
+        reason = f"候选二验证逐流AP={ap_b!r}严格高于候选一{ap_a!r}"
+    elif ap_a == ap_b:
+        best_key = key_a
+        reason = f"两候选验证逐流AP并列={ap_a!r}，按冻结候选表固定顺序取候选一"
+    else:
+        best_key = key_a
+        reason = f"候选一验证逐流AP={ap_a!r}高于候选二{ap_b!r}"
+
+    seal = {
+        "schema_version": "ch3-tabm32-input-selection-sealed-v1",
+        "run_id": RUN_ID,
+        "identity": run_identity,
+        "source_data_inventory": source_inventory,
+        "source_split": split_stats,
+        "cardinality_receipt_flow_mapping": flow_mapping,
+        "fixed_optimizer_candidate": fixed_optimizer,
+        "runs": runs,
+        "selection_metric": "lspr23_entity_disjoint_validation_flow_ap",
+        "selection_metric_full_precision": {key_a: ap_a, key_b: ap_b},
+        "tie_break_rule": "fixed_table_order",
+        "forbidden_tie_breakers": list(config["selection_stages"]["forbidden_tie_breakers"]),
+        "selected_candidate": best_key,
+        "selection_reason": reason,
+        "sealed_at_unix": time.time(),
+    }
+    _atomic_json(seal_path, seal)
+    write_status(output_root, "running", "select-input", 0, f"输入接口已封印：{best_key}")
+    logger.info("阶段一封印完成：胜出输入候选=%s（%s）", best_key, reason)
 
 
 def run_select_optimizer_stage(config: dict[str, Any], args: argparse.Namespace) -> None:
-    """阶段二：在已封印输入接口上筛选 OPTIMIZER_CANDIDATES（骨架占位，尚未实现）。"""
-    raise NotImplementedError("select-optimizer 阶段尚未实现，将由后续任务补全优化器筛选逻辑")
+    """阶段二：在已封印输入上训练优化器候选二的 C00，与阶段一对应结果比较。
+
+    不重训优化器候选一：阶段一固定用它训练过 C00，这里直接复用阶段一该结果做比较。
+    完全相等或候选一更高时取 ``tabm32-official-default``（冻结配方第 181 行）。
+    """
+    import time
+
+    config_path = Path(args.config).resolve()
+    cache_root = Path(config["paths"]["cache_root"])
+    output_root = Path(config["paths"]["output_root"])
+    receipt_path = Path(config["paths"]["field_cardinality_receipt"])
+    input_seal_path = output_root / "input_selection_sealed.json"
+    seal_path = output_root / "optimizer_selection_sealed.json"
+
+    if not input_seal_path.is_file():
+        raise RuntimeError(f"尚未完成阶段一输入接口封印，禁止进入阶段二：{input_seal_path}")
+    input_seal = load_json(input_seal_path)
+    sealed_input_candidate = input_seal["selected_candidate"]
+    fixed_optimizer_key = input_seal["fixed_optimizer_candidate"]
+
+    if seal_path.is_file():
+        if not args.resume:
+            raise RuntimeError(f"全新运行（未传 --resume）已存在优化器封印，拒绝覆盖：{seal_path}")
+        logger.info("阶段二封印已存在且传了 --resume，直接复用：%s", seal_path)
+        return
+
+    # 先做纯标准库的收据核验，再写运行状态，理由同 select-input 阶段。
+    receipt = load_cardinality_receipt(str(receipt_path), config)
+    write_status(output_root, "running", "select-optimizer", None, "在已封印输入上训练优化器候选二的 C00")
+
+    run_identity, source_inventory = build_run_identity(config_path, cache_root, receipt_path)
+    if run_identity != input_seal["identity"]:
+        raise RuntimeError("阶段二独立重算的运行身份与阶段一封印不符，拒绝在不同配置/代码/数据版本间比较")
+
+    arrays = load_source_arrays(str(cache_root))
+    train_rows, validation_rows, split_stats = source_split(arrays, config)
+    train_flow_mask, flow_mapping = build_effective_flow_mask(
+        arrays["I23"], arrays["M23"], train_rows, LSPR23_FLOW_COUNT
+    )
+    if flow_mapping["effective_flow_mask_sha256"] != receipt["training_effective_flows"]["effective_flow_mask_sha256"]:
+        raise RuntimeError("本工具独立重算的训练有效流掩码与收据登记的哈希不一致，拒绝继续")
+
+    stage_two_keys = list(config["selection_stages"]["stage_two_optimizer"])
+    challenger_candidates = [c["key"] for c in OPTIMIZER_CANDIDATES if c["key"] != fixed_optimizer_key]
+    if stage_two_keys != [fixed_optimizer_key, *challenger_candidates]:
+        raise RuntimeError("selection_stages.stage_two_optimizer 顺序与阶段一固定优化器候选不符")
+    challenger_key = challenger_candidates[0]
+
+    device = _resolve_device()
+    transform = fit_input_transform(
+        sealed_input_candidate, str(cache_root), train_flow_mask, receipt,
+        config=config, seed=config["training"]["seed"],
+    )
+    view = ProtocolASourceView(arrays, transform)
+    challenger_identity = cell_identity(
+        run_identity, input_candidate=sealed_input_candidate, optimizer_candidate=challenger_key, cell="C00"
+    )
+    challenger_run_root = output_root / "selection-runs" / "select-optimizer" / challenger_key
+    challenger_selection = train_cell(
+        config, "C00", sealed_input_candidate, challenger_key,
+        output_root=challenger_run_root, identity=challenger_identity, view=view,
+        train_rows=train_rows, validation_rows=validation_rows, device=device, resume=args.resume,
+    )
+
+    incumbent_run = input_seal["runs"][sealed_input_candidate]
+    incumbent_ap = float(incumbent_run["selection"]["validation_flow_ap"])
+    challenger_ap = float(challenger_selection["validation_flow_ap"])
+    if challenger_ap > incumbent_ap:
+        best_key = challenger_key
+        reason = f"候选二（{challenger_key}）验证逐流AP={challenger_ap!r}严格高于候选一{incumbent_ap!r}"
+    elif challenger_ap == incumbent_ap:
+        best_key = fixed_optimizer_key
+        reason = f"两优化器候选验证逐流AP并列={incumbent_ap!r}，按冻结配方第181行取 tabm32-official-default"
+    else:
+        best_key = fixed_optimizer_key
+        reason = f"候选一（{fixed_optimizer_key}）验证逐流AP={incumbent_ap!r}高于候选二{challenger_ap!r}"
+
+    seal = {
+        "schema_version": "ch3-tabm32-optimizer-selection-sealed-v1",
+        "run_id": RUN_ID,
+        "identity": run_identity,
+        "sealed_input_candidate": sealed_input_candidate,
+        "runs": {
+            fixed_optimizer_key: incumbent_run,
+            challenger_key: {"identity": challenger_identity, "selection": challenger_selection},
+        },
+        "selection_metric": "lspr23_entity_disjoint_validation_flow_ap",
+        "selection_metric_full_precision": {fixed_optimizer_key: incumbent_ap, challenger_key: challenger_ap},
+        "tie_break_rule": "frozen_recipe_line_181_tabm32_official_default_on_tie_or_loss",
+        "forbidden_tie_breakers": list(config["selection_stages"]["forbidden_tie_breakers"]),
+        "selected_candidate": best_key,
+        "selection_reason": reason,
+        "sealed_at_unix": time.time(),
+    }
+    _atomic_json(seal_path, seal)
+    write_status(output_root, "running", "select-optimizer", 0, f"优化器已封印：{best_key}")
+    logger.info("阶段二封印完成：胜出优化器候选=%s（%s）", best_key, reason)
 
 
 def run_cells_stage(config: dict[str, Any], args: argparse.Namespace) -> None:
-    """协议 A 四格（CELL_ORDER）训练与选择（骨架占位，尚未实现）。"""
-    raise NotImplementedError("cells 阶段尚未实现，将由后续任务补全骨干、训练循环与断点恢复")
+    """协议 A 四格：用已封印的输入与优化器训练 C00/C01/C10/C11，全部完成后写选择封印。
+
+    C00 只有在配置、代码、数据、字段基数收据与检查点身份完全一致时才复用阶段一或
+    阶段二的完成运行；任一不符都以新运行身份在最终输出根重训，不做部分拼接。
+    """
+    import time
+
+    config_path = Path(args.config).resolve()
+    cache_root = Path(config["paths"]["cache_root"])
+    output_root = Path(config["paths"]["output_root"])
+    receipt_path = Path(config["paths"]["field_cardinality_receipt"])
+    input_seal_path = output_root / "input_selection_sealed.json"
+    optimizer_seal_path = output_root / "optimizer_selection_sealed.json"
+    selection_frozen_path = output_root / "selection_frozen.json"
+
+    if not input_seal_path.is_file() or not optimizer_seal_path.is_file():
+        raise RuntimeError(
+            "尚未完成阶段一/阶段二封印，禁止进入 cells 阶段："
+            f"输入封印存在={input_seal_path.is_file()}，优化器封印存在={optimizer_seal_path.is_file()}"
+        )
+    input_seal = load_json(input_seal_path)
+    optimizer_seal = load_json(optimizer_seal_path)
+    sealed_input_candidate = input_seal["selected_candidate"]
+    sealed_optimizer_candidate = optimizer_seal["selected_candidate"]
+
+    if selection_frozen_path.is_file():
+        if not args.resume:
+            raise RuntimeError(f"全新运行（未传 --resume）已存在选择封印，拒绝覆盖：{selection_frozen_path}")
+        seal = load_json(selection_frozen_path)
+        if set(seal.get("cells", {})) != set(CELL_ORDER) or seal.get("all_four_cells_sealed") is not True:
+            raise RuntimeError("既有选择封印不完整，拒绝在其上继续")
+        logger.info("四格选择封印已存在且传了 --resume，直接复用：%s", selection_frozen_path)
+        return
+
+    # 先做纯标准库的收据核验，再写运行状态，理由同 select-input 阶段。
+    receipt = load_cardinality_receipt(str(receipt_path), config)
+    write_status(output_root, "running", "cells", None, "训练协议 A 四格并封印选择")
+
+    run_identity, source_inventory = build_run_identity(config_path, cache_root, receipt_path)
+    if run_identity != input_seal["identity"] or run_identity != optimizer_seal["identity"]:
+        raise RuntimeError("cells 阶段独立重算的运行身份与阶段一/阶段二封印不符")
+    arrays = load_source_arrays(str(cache_root))
+    train_rows, validation_rows, split_stats = source_split(arrays, config)
+    train_flow_mask, flow_mapping = build_effective_flow_mask(
+        arrays["I23"], arrays["M23"], train_rows, LSPR23_FLOW_COUNT
+    )
+    if flow_mapping["effective_flow_mask_sha256"] != receipt["training_effective_flows"]["effective_flow_mask_sha256"]:
+        raise RuntimeError("cells 阶段独立重算的训练有效流掩码与收据登记的哈希不一致，拒绝继续")
+
+    device = _resolve_device()
+    transform = fit_input_transform(
+        sealed_input_candidate, str(cache_root), train_flow_mask, receipt,
+        config=config, seed=config["training"]["seed"],
+    )
+    view = ProtocolASourceView(arrays, transform)
+    save_input_transform(output_root / "artifacts" / "sealed-input-transform.pkl", transform)
+
+    reused_c00_source = optimizer_seal["runs"].get(sealed_optimizer_candidate)
+    selections: dict[str, Any] = {}
+    for cell in CELL_ORDER:
+        identity = cell_identity(
+            run_identity, input_candidate=sealed_input_candidate,
+            optimizer_candidate=sealed_optimizer_candidate, cell=cell,
+        )
+        if cell == "C00" and reused_c00_source is not None and reused_c00_source.get("identity") == identity:
+            source_root = (
+                output_root / "selection-runs" / "select-input" / sealed_input_candidate
+                if sealed_optimizer_candidate == input_seal["fixed_optimizer_candidate"]
+                else output_root / "selection-runs" / "select-optimizer" / sealed_optimizer_candidate
+            )
+            selections[cell] = materialize_reused_cell(source_root, output_root, cell, identity)
+            continue
+        logger.info("开始 %s 协议 A 训练与选择（输入=%s，优化器=%s）", cell, sealed_input_candidate, sealed_optimizer_candidate)
+        selections[cell] = train_cell(
+            config, cell, sealed_input_candidate, sealed_optimizer_candidate,
+            output_root=output_root, identity=identity, view=view,
+            train_rows=train_rows, validation_rows=validation_rows, device=device, resume=args.resume,
+        )
+
+    cell_hashes: dict[str, Any] = {}
+    optimizer_candidate_record = next(c for c in OPTIMIZER_CANDIDATES if c["key"] == sealed_optimizer_candidate)
+    for cell in CELL_ORDER:
+        selection = selections[cell]
+        cell_hashes[cell] = {
+            "checkpoint_sha256": selection["checkpoint"]["sha256"],
+            "config_sha256": run_identity["config_sha256"],
+            "code_sha256": run_identity["code_sha256"],
+            "optimizer_candidate_sha256": _canonical_sha256(optimizer_candidate_record),
+            "random_state": {"seed": config["training"]["seed"]},
+            "elp_parameter_p_at_selection": selection["p_at_selection"],
+            "aggregation_rule": (
+                "32个成员sigmoid概率算术平均"
+                + ("，再对唯一实体做共享标量p的可学幂平均池化(ELP)" if CELLS[cell]["learned_lp_pooling"] else "")
+            ),
+        }
+
+    sample_order_sha256 = _canonical_sha256(
+        {"train_rows": train_rows.tolist(), "validation_rows": validation_rows.tolist()}
+    )
+    seal = {
+        "schema_version": "ch3-tabm32-selection-frozen-v1",
+        "run_id": RUN_ID,
+        "frozen_recipe_sha256": FROZEN_RECIPE_SHA256,
+        "identity": run_identity,
+        "input_candidates": list(INPUT_CANDIDATES),
+        "optimizer_candidates": list(OPTIMIZER_CANDIDATES),
+        "field_groups": config["field_groups"],
+        "dijk_feature_count": DIJK_FEATURE_COUNT,
+        "lspr23_flow_count": LSPR23_FLOW_COUNT,
+        "source_data_inventory": source_inventory,
+        "source_split": split_stats,
+        "sample_order_sha256": sample_order_sha256,
+        "cardinality_receipt_sha256": run_identity["cardinality_receipt_sha256"],
+        "input_selection": input_seal,
+        "optimizer_selection": optimizer_seal,
+        "sealed_input_candidate": sealed_input_candidate,
+        "sealed_optimizer_candidate": sealed_optimizer_candidate,
+        "input_dimension": view.transform.output_dimension,
+        "parameter_count": expected_parameter_count(view.transform.output_dimension),
+        "cells": selections,
+        "cell_hashes": cell_hashes,
+        "all_four_cells_sealed": True,
+        "target_year_arrays_read": 0,
+        "target_evaluation_calls": 0,
+        "sealed_at_unix": time.time(),
+    }
+    _atomic_json(selection_frozen_path, seal)
+    write_status(output_root, "computed", "cells", 0, "四格训练与选择封印完成，等待目标年评价")
+    logger.info("四格选择封印完成：%s", selection_frozen_path)
 
 
 def run_evaluate_stage(config: dict[str, Any], args: argparse.Namespace) -> None:
-    """四格全部封印后的目标年评价（骨架占位，尚未实现）。"""
-    raise NotImplementedError("evaluate 阶段尚未实现，将由后续任务补全封印与评价逻辑")
+    """四格全部封印后的目标年评价：每格恰好评价一次，四格合计恰好 4 次。
+
+    输入变换只应用已封印的训练区状态，绝不在 LSPR24 上重新拟合；评价阶段全程
+    ``torch.no_grad()``，不训练、不替换检查点、不裁剪成员、不搜索阈值、
+    不更新聚合指数或任何超参数。
+    """
+    output_root = Path(config["paths"]["output_root"])
+    cache_root = Path(config["paths"]["cache_root"])
+    selection_frozen_path = output_root / "selection_frozen.json"
+
+    # 先做纯标准库的封印存在性核验，numpy/torch/sklearn 延后到确认要做真实评价
+    # 工作之后才导入，使本阶段在缺依赖或尚未完成上游阶段的开发机上也能给出
+    # 清晰的中文错误，而不是被导入失败掩盖真实原因。
+    if not selection_frozen_path.is_file():
+        raise RuntimeError(f"四格选择尚未封印，禁止加载 LSPR24：{selection_frozen_path}")
+    seal = load_json(selection_frozen_path)
+    if seal.get("all_four_cells_sealed") is not True or set(seal.get("cells", {})) != set(CELL_ORDER):
+        raise RuntimeError("既有选择封印不完整，拒绝评价")
+
+    aggregate_path = output_root / "aggregate-results.json"
+    if aggregate_path.is_file():
+        if not args.resume:
+            raise RuntimeError(f"全新运行（未传 --resume）已存在聚合结果，拒绝覆盖：{aggregate_path}")
+        logger.info("聚合结果已存在且传了 --resume，直接复用（不重新评价、不重新上报）：%s", aggregate_path)
+        return
+
+    import os
+    import time
+
+    import numpy as np
+    import torch
+    from sklearn.metrics import average_precision_score, roc_auc_score
+
+    write_status(output_root, "running", "evaluate", None, "选择封印后首次加载 LSPR24，每格评价一次")
+
+    device = _resolve_device()
+    transform = load_input_transform(output_root / "artifacts" / "sealed-input-transform.pkl")
+    _, profile, _ = resolve_precision_profile(device.type, torch)
+
+    target_inventory = data_inventory(cache_root, TARGET_ARRAYS)
+    target = load_target_arrays(str(cache_root))
+    target_load_count = 1
+
+    key = np.array(
+        [
+            left + "|" + right if left <= right else right + "|" + left
+            for left, right in zip(target["s24"], target["d24"])
+        ],
+        dtype=object,
+    )
+    _, flow_entity = np.unique(key, return_inverse=True)
+    entity_count = int(flow_entity.max()) + 1
+    entity_labels = np.zeros(entity_count, dtype=np.float32)
+    np.maximum.at(entity_labels, flow_entity, target["y24"])
+    flow_positive_rate = float(target["y24"].astype(np.float64).mean())
+    del key
+
+    cells: dict[str, Any] = {}
+    curve_arrays: dict[str, Any] = {}
+    evaluation_calls_this_process = 0
+    evaluation_receipts_reused = 0
+    evaluation_started = time.time()
+    evaluation_peak_gpu_mib = 0.0
+    for cell in CELL_ORDER:
+        checkpoint_path = output_root / seal["cells"][cell]["checkpoint"]["filename"]
+        if seal["cells"][cell]["checkpoint"]["sha256"] != _sha256_file(checkpoint_path):
+            raise RuntimeError(f"{cell} 选择检查点摘要与封印不符")
+        target_identity = {
+            **seal["identity"],
+            "target_data_inventory_sha256": target_inventory["sha256"],
+            "cell": cell,
+            "checkpoint_sha256": seal["cells"][cell]["checkpoint"]["sha256"],
+        }
+        restored = load_target_evaluation(output_root, cell, target_identity)
+        if restored is not None:
+            cell_result, curve = restored
+            cells[cell] = cell_result
+            for field, values in curve.items():
+                curve_arrays[f"{cell}__{field}"] = values
+            evaluation_receipts_reused += 1
+            logger.info("%s 复用身份与摘要匹配的目标评价完成收据", cell)
+            continue
+
+        model = build_model(config, cell, seal["sealed_input_candidate"], seal["input_dimension"], profile).to(device)
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        model.load_state_dict(checkpoint["model"])
+        model.to(device)
+        selected_p = float(model.p.detach())
+        if abs(selected_p - float(seal["cells"][cell]["p_at_selection"])) > 1e-9:
+            raise RuntimeError(f"{cell} 回载后的共享 p 与选择封印不符")
+
+        if device.type == "cuda":
+            torch.cuda.reset_peak_memory_stats(device)
+        started = time.time()
+        flow_scores, seen = score_target(config, model, transform, target, device, profile)
+        evaluation_calls_this_process += 1
+        evaluation_seconds = time.time() - started
+        if device.type == "cuda":
+            evaluation_peak_gpu_mib = max(evaluation_peak_gpu_mib, torch.cuda.max_memory_allocated(device) / 2**20)
+
+        main_p = selected_p if CELLS[cell]["learned_lp_pooling"] else None
+        main_entity_scores = entity_scores(flow_scores, seen, flow_entity, entity_count, main_p)
+        maximum_entity_scores = entity_scores(flow_scores, seen, flow_entity, entity_count, None)
+        valid_entity = np.isfinite(main_entity_scores)
+        valid_maximum = np.isfinite(maximum_entity_scores)
+        metrics = {
+            "flow_average_precision": float(average_precision_score(target["y24"][seen], flow_scores[seen])),
+            "flow_roc_auc": float(roc_auc_score(target["y24"][seen], flow_scores[seen])),
+            "entity_average_precision": float(
+                average_precision_score(entity_labels[valid_entity], main_entity_scores[valid_entity])
+            ),
+            "maximum_entity_average_precision": float(
+                average_precision_score(entity_labels[valid_maximum], maximum_entity_scores[valid_maximum])
+            ),
+            "dr_at_fpr": {f"fpr_{value:g}": dr_at_fpr(main_entity_scores, entity_labels, value) for value in DR_FPR_GRID},
+            "maximum_dr_at_fpr": {
+                f"fpr_{value:g}": dr_at_fpr(maximum_entity_scores, entity_labels, value) for value in DR_FPR_GRID
+            },
+            "flows_scored": int(seen.sum()),
+            "entities_scored": int(valid_entity.sum()),
+            "evaluation_seconds": evaluation_seconds,
+            "target_evaluation_call": CELL_ORDER.index(cell) + 1,
+        }
+        curve = complete_budget_curve(main_entity_scores, entity_labels)
+        for field, values in curve.items():
+            curve_arrays[f"{cell}__{field}"] = values
+        cell_result = {
+            "mechanisms": CELLS[cell],
+            "selection": seal["cells"][cell],
+            "selected_p": selected_p,
+            "target": metrics,
+        }
+        save_target_evaluation(output_root, cell, target_identity, cell_result, curve)
+        cells[cell] = cell_result
+        logger.info(
+            "%s 目标评价：逐流AP=%.8f 实体AP=%.8f",
+            cell, metrics["flow_average_precision"], metrics["entity_average_precision"],
+        )
+        del model, checkpoint, flow_scores, seen, main_entity_scores, maximum_entity_scores
+        if device.type == "cuda":
+            torch.cuda.empty_cache()
+
+    total_calls = evaluation_calls_this_process + evaluation_receipts_reused
+    if len(cells) != 4 or total_calls != 4 or target_load_count != 1:
+        raise RuntimeError(f"目标年加载或四格评价次数不符：cells={len(cells)} calls={total_calls} loads={target_load_count}")
+
+    curve_path = output_root / "complete-alert-budget-curves.npz"
+    temporary_curve = curve_path.with_name(f"{curve_path.name}.partial.{os.getpid()}")
+    with temporary_curve.open("wb") as handle:
+        np.savez_compressed(handle, **curve_arrays)
+    os.replace(temporary_curve, curve_path)
+    curve_receipt = {
+        "schema_version": "ch3-tabm32-complete-alert-budget-curves-v1",
+        "artifact": {"filename": curve_path.name, "bytes": curve_path.stat().st_size, "sha256": _sha256_file(curve_path)},
+        "cells": list(CELL_ORDER),
+        "fields": ["n_false_positive_entity", "nominal_fpr", "realized_fpr", "detection_rate"],
+        "curve_is_complete_over_all_reachable_negative_entity_budgets": True,
+        "per_flow_scores_persisted": False,
+        "per_entity_scores_persisted": False,
+    }
+    _atomic_json(output_root / "complete-alert-budget-curves-receipt.json", curve_receipt)
+
+    interaction: dict[str, Any] = {}
+    for name in ("flow_average_precision", "entity_average_precision", "maximum_entity_average_precision"):
+        values = {cell: cells[cell]["target"][name] for cell in CELL_ORDER}
+        interaction[name] = {
+            **values,
+            "causal_prefix_effect": values["C10"] - values["C00"],
+            "elp_effect": values["C01"] - values["C00"],
+            "combined_effect": values["C11"] - values["C00"],
+            "interaction": values["C11"] - values["C10"] - values["C01"] + values["C00"],
+        }
+
+    training_seconds_sum = sum(float(seal["cells"][cell]["training_seconds"]) for cell in CELL_ORDER)
+    evaluation_seconds_sum = sum(float(cells[cell]["target"]["evaluation_seconds"]) for cell in CELL_ORDER)
+    launcher_resource = load_json(Path(args.resource_receipt)) if args.resource_receipt else None
+    peak_gpu_candidates = [evaluation_peak_gpu_mib] + [
+        float(seal["cells"][cell]["peak_gpu_allocated_mib"] or 0.0) for cell in CELL_ORDER
+    ]
+    result = {
+        "schema_version": "ch3-tabm32-paper-recipe-protocol-a-results-v1",
+        "run_id": RUN_ID,
+        "model": {
+            "model_key": MODEL_KEY,
+            "display_name": config["display_name"],
+            **config["candidate"],
+            "sealed_input_candidate": seal["sealed_input_candidate"],
+            "sealed_optimizer_candidate": seal["sealed_optimizer_candidate"],
+            "input_dimension": seal["input_dimension"],
+            "parameter_count": seal["parameter_count"],
+            "pytorch_version": torch.__version__,
+        },
+        "evidence": {
+            "single_run_directly_comparable": True,
+            "formal_paper_evidence": False,
+            "target_previously_accessed": True,
+            "independent_test": False,
+            "target_metrics_used_for_selection_or_tuning": False,
+        },
+        "source_selection": {
+            "split": seal["source_split"],
+            "input_selection": seal["input_selection"],
+            "optimizer_selection": seal["optimizer_selection"],
+            "cells": seal["cells"],
+        },
+        "target_evaluation": {
+            "dataset": "LSPR24",
+            "flow_count": int(len(target["y24"])),
+            "entity_count": entity_count,
+            "positive_entity_count": int(entity_labels.sum()),
+            "flow_positive_rate": flow_positive_rate,
+            "cells": cells,
+            "data_inventory": target_inventory,
+        },
+        "interaction": interaction,
+        "isolation": {
+            "all_four_selections_sealed_before_target_load": True,
+            "target_disk_loads": target_load_count,
+            "target_evaluation_calls": 4,
+            "target_evaluation_calls_this_process": evaluation_calls_this_process,
+            "target_evaluation_receipts_reused": evaluation_receipts_reused,
+            "one_call_per_cell": True,
+        },
+        "artifact_policy": {
+            "per_flow_scores_persisted": False,
+            "per_entity_scores_persisted": False,
+            "selected_checkpoints_persisted": 4,
+            "complete_alert_budget_curve": curve_receipt,
+        },
+        "resource": {
+            "parameter_count": seal["parameter_count"],
+            "training_wall_seconds_sum": training_seconds_sum,
+            "evaluation_wall_seconds_sum": evaluation_seconds_sum,
+            "target_stage_wall_seconds": time.time() - evaluation_started,
+            "peak_gpu_allocated_mib": max(peak_gpu_candidates),
+            "peak_process_rss_mib": _process_peak_rss_mib(),
+            "gpu_hours": (training_seconds_sum + evaluation_seconds_sum) / 3600.0,
+            "launcher_admission_receipt": launcher_resource,
+        },
+    }
+    _atomic_json(aggregate_path, result)
+    write_status(output_root, "computed", "evaluate", 0, "四格目标评价完成，等待 SwanLab 上报")
+    build_manifest(output_root, RUN_ID)
+    publish_swanlab(config, result, output_root)
+    write_status(output_root, "complete", "evaluate", 0, "四格结果、聚合指标与 SwanLab 上报均已完成")
+    build_manifest(output_root, RUN_ID)
+    logger.info("目标年评价与聚合完成：%s", aggregate_path)
 
 
 def main() -> int:

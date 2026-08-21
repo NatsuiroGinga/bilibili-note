@@ -315,6 +315,21 @@ gate_gpu_free_memory() {
     printf 'GPU 空闲显存门通过：free_mib=%s minimum=%s\n' "$GPU_FREE_MIB_AT_ADMISSION" "$GPU_FREE_MIN_MIB"
 }
 
+# 门禁 10：GRANDE（看板 N-11）活动时不得强行启动，避免同卡资源争用。
+# 判据：N-11 的运行 screen 会话固定以 ch3-grande 开头（例如
+# ch3-grande-pa-bf16-s42-v1），见 .Codex/docs/RWKV/2026-08-20-第三章神经骨干
+# 跨进程协作看板.md 的 N-11 条目；此处按名称模式检测，不猜测具体会话名。
+gate_grande_inactive() {
+    local grande_sessions
+    grande_sessions=$(screen -ls | rg -i 'ch3-grande' || true)
+    if [[ -n "$grande_sessions" ]]; then
+        printf 'GRANDE（N-11）screen 会话仍在运行，按看板约定不得强行启动：\n%s\n' \
+            "$grande_sessions" >&2
+        return 72
+    fi
+    printf 'GRANDE 活动检查通过：未发现名称含 ch3-grande 的 screen 会话\n'
+}
+
 run_gates() {
     run_gate "02-validate-config" "$LAUNCHER_ROOT/gates/02-validate-config.log" gate_validate_config || return $?
     run_gate "03-frozen-hash" "$LAUNCHER_ROOT/gates/03-frozen-hash.log" gate_frozen_hash || return $?
@@ -324,6 +339,7 @@ run_gates() {
     run_gate "07-memory-admission" "$LAUNCHER_ROOT/gates/07-memory-admission.log" gate_memory_admission || return $?
     run_gate "08-disk-space" "$LAUNCHER_ROOT/gates/08-disk-space.log" gate_disk_space || return $?
     run_gate "09-gpu-free-memory" "$LAUNCHER_ROOT/gates/09-gpu-free-memory.log" gate_gpu_free_memory || return $?
+    run_gate "10-grande-inactive" "$LAUNCHER_ROOT/gates/10-grande-inactive.log" gate_grande_inactive || return $?
 }
 
 # ---------------------------------------------------------------------------

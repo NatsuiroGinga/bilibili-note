@@ -37,14 +37,13 @@
     },
     {
       "order": 2,
-      "display_name": "TabM32-官方字段类型分治输入",
+      "display_name": "TabM32-协议与粗拓扑字段独热输入",
       "key": "tabm32-input-type-partitioned",
       "numeric_transform": "training_region_quantile_normalization",
-      "categorical_treatment": "training_region_one_hot_with_out_of_vocabulary_bucket",
+      "categorical_treatment": "srcport_dstport_remain_numeric_quantile_normalized；protocol_and_l34_training_region_one_hot_with_out_of_vocabulary_bucket；coarse_topology_binary_fields_zero_one_passthrough",
       "boolean_treatment": "zero_one_passthrough",
       "input_dimension": null,
-      "parameter_count": null,
-      "pending_reason": "WAITING_FOR_CODEX_CARDINALITY_RECEIPT"
+      "parameter_count": null
     }
   ],
   "optimizer_candidates": [
@@ -127,8 +126,7 @@
   "resource_contract": {
     "measure_resident_bytes_after_upload": true,
     "assert_free_memory_before_model_allocation": true,
-    "minimum_free_gpu_memory_mib": null,
-    "pending_reason": "既有8244已被D-1实测13646.41推翻，由Codex依实施计划冲突四重新裁定",
+    "minimum_free_gpu_memory_mib": 20480,
     "minimum_cgroup_available_memory_gib": 40,
     "minimum_free_disk_gib": 10,
     "maximum_parallel_jobs": 1,
