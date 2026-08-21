@@ -34,6 +34,8 @@ UNALERTED_RATE_COLUMNS = [
 ]
 
 FIRST_ALERT_COLUMNS = [
+    "first_alert_axis",
+    "time_delay_available",
     *UNALERTED_RATE_COLUMNS,
     "timely_detection_curve_summary",
     "timely_detection_curve_artifact",
@@ -212,7 +214,9 @@ COLUMN_LABELS = {
     "unalerted_rate_fpr_0.08": "8%FPR未告警率",
     "timely_detection_curve_summary": "按时检出曲线摘要",
     "timely_detection_curve_artifact": "按时检出曲线制品",
-    "first_alert_delay_summary": "首次告警时延摘要",
+    "first_alert_axis": "首次告警横轴",
+    "time_delay_available": "真实秒时延可用",
+    "first_alert_delay_summary": "首次告警延迟摘要",
     "first_alert_definition": "首次告警定义",
     "model_scale": "模型规模",
     "parameter_count": "参数量",
@@ -769,6 +773,14 @@ def _enrich_first_alert(
     receipt = _load_auxiliary_json(receipt_path)
     if receipt is None or receipt.get("schema_version") != "ch3-first-alert-timing-v1":
         return
+    axis = receipt.get("axis")
+    time_delay_available = receipt.get("time_delay_available")
+    if axis not in {"exposure_index", "elapsed_seconds"}:
+        return
+    if not isinstance(time_delay_available, bool):
+        return
+    if axis == "elapsed_seconds" and not time_delay_available:
+        return
     declared = receipt.get("artifact", {})
     actual_hash = provenance[str(artifact_path.resolve())]["sha256"]
     if declared.get("sha256") != actual_hash or declared.get("bytes") != artifact_path.stat().st_size:
@@ -780,7 +792,7 @@ def _enrich_first_alert(
     definition = cell_receipt.get("definition")
     curves: dict[str, dict[float, float]] = {}
     for source_key, _column in FPR_BUDGETS:
-        time_name = f"{cell}__{source_key}__elapsed_seconds"
+        time_name = f"{cell}__{source_key}__{axis}"
         rate_name = f"{cell}__{source_key}__timely_detection_rate"
         vectors = _npz_vectors(artifact_path, [time_name, rate_name])
         times = vectors.get(time_name)
@@ -796,10 +808,12 @@ def _enrich_first_alert(
     if not isinstance(delay_summary, dict) or not isinstance(definition, str) or not definition:
         return
     scope_prefix = "source_" if entry.get("first_alert_scope") == "source" else ""
+    result[f"{scope_prefix}first_alert_axis"] = axis
+    result[f"{scope_prefix}time_delay_available"] = time_delay_available
     for source_key, _column in FPR_BUDGETS:
         result[f"{scope_prefix}unalerted_rate_{source_key}"] = float(unalerted[source_key])
     result[f"{scope_prefix}timely_detection_curve_summary"] = (
-        "六档预算按时检出累计曲线齐全；各档均含未告警实体"
+        f"六档预算按时检出累计曲线齐全；横轴={axis}；各档均含未告警实体"
     )
     result[f"{scope_prefix}timely_detection_curve_artifact"] = (
         f"{artifact_path.resolve()}#{cell}"
@@ -842,7 +856,9 @@ def _default_missing_reason(column: str, row: dict[str, Any]) -> str:
         "dr_curve_artifact": "原始来源未持久化完整告警预算曲线制品",
         "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
         "timely_detection_curve_artifact": "原始来源未持久化按时检出累计曲线制品",
-        "first_alert_delay_summary": "原始来源未持久化首次告警时延摘要，禁止由AP或DR推导",
+        "first_alert_axis": "原始来源未声明首次告警横轴，曝光序号与真实秒不得混比",
+        "time_delay_available": "原始来源未声明真实秒时延是否可用",
+        "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
         "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
         "model_scale": "原始来源未持久化模型规模描述",
         "time_scope": "原始来源未持久化时间统计口径",
@@ -1041,6 +1057,8 @@ def _compare_high_vectors(
 
 
 def _performance_dominates(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    if left.get("first_alert_axis") != right.get("first_alert_axis"):
+        return False
     no_worse = all(float(left[column]) >= float(right[column]) for column in PERFORMANCE_SCALAR_COLUMNS)
     strict = any(float(left[column]) > float(right[column]) for column in PERFORMANCE_SCALAR_COLUMNS)
     if not no_worse:
@@ -1101,21 +1119,28 @@ def mark_pareto(table: list[dict[str, Any]], kind: str) -> list[dict[str, Any]]:
         raise ValueError(f"未知帕累托类型：{kind}")
     missing_builder = _performance_pareto_missing if kind == "performance" else _resource_pareto_missing
     dominates = _performance_dominates if kind == "performance" else _resource_dominates
-    group_key = "evaluation_pool" if kind == "performance" else "scale_unit"
+    group_keys = ("evaluation_pool", "first_alert_axis") if kind == "performance" else ("scale_unit",)
     complete: list[dict[str, Any]] = []
     for row in table:
         row["dominated_by"] = []
         row["dominates"] = []
         row["pareto_missing_reasons"] = missing_builder(row)
-        if row["pareto_missing_reasons"] or row.get(group_key) is None:
-            if row.get(group_key) is None:
-                row["pareto_missing_reasons"][group_key] = "缺少可比较池或规模单位"
+        group = tuple(row.get(key) for key in group_keys)
+        row["_pareto_group"] = group
+        if row["pareto_missing_reasons"] or any(part is None for part in group):
+            for key, part in zip(group_keys, group, strict=True):
+                if part is None:
+                    row["pareto_missing_reasons"][key] = (
+                        "缺少可比较池或首次告警横轴"
+                        if kind == "performance"
+                        else "缺少可比较池或规模单位"
+                    )
             row["pareto_status"] = "证据不完整"
         else:
             complete.append(row)
     for left in complete:
         for right in complete:
-            if left is right or left.get(group_key) != right.get(group_key):
+            if left is right or left["_pareto_group"] != right["_pareto_group"]:
                 continue
             if dominates(left, right):
                 left["dominates"].append(str(right["display_name"]))
@@ -1251,6 +1276,12 @@ def _render_markdown(name: str, rows: list[dict[str, Any]], columns: list[str]) 
                 for column, reason in reasons.items()
             )
             lines.append(f"- {row['display_name']}：{details}。")
+    axis_notes = []
+    if name in {"lspr23-performance", "lspr24-evaluation"}:
+        axis_notes = [
+            "- 首次告警帕累托只在相同横轴内比较；实体内曝光序号与真实秒时延不得混排。",
+            "- 曝光序号轴可在真实秒时延不可用时参与同轴比较，但必须明确保留真实秒时延不可用。",
+        ]
     lines.extend(
         [
             "",
@@ -1259,6 +1290,7 @@ def _render_markdown(name: str, rows: list[dict[str, Any]], columns: list[str]) 
             "- LSPR23 选择表只记录选模证据，LSPR23 性能表只记录源年开发性能；LSPR24 表只记录已访问目标年的描述性评价，三者不混排。",
             "- 实体 AP 为各运行预先注册的主聚合口径；最大实体 AP 单列，缺失时不反推。",
             "- 性能帕累托要求标量、实际完整预算曲线、六档未告警率和按时检出曲线全部齐全；缺项行标为证据不完整。",
+            *axis_notes,
             "- 首次告警缺失时不由AP、DR或离线实体分数反推。",
             "- 评价时间含预测与指标计算时会在时间口径列明示，不能替代纯模型推理时间。",
             "- 工程帕累托独立计算；树数与神经参数量按不同规模单位分池，不机械折算。",

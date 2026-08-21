@@ -5,14 +5,17 @@
 - 现有来源清单共 12 个模型登记项；GRANDE 是源年专用运行，因此不进入 LSPR24 描述性评价表。
 - ResMLP2 与 TabM4 的 C11 完整预算曲线均含 46,363 个可达负实体预算点，实际数组字段为 `n_false_positive_entity`、`nominal_fpr`、`realized_fpr`、`detection_rate`。
 - 当前所有来源都没有首次告警制品。未告警率、按时检出曲线、时延摘要和起点/阈值定义必须保持缺失，不能由实体 DR 或 AP 推导。
+- 新机械证据确认 RWKV 使用的 `T23/t24` 是 `mTimestampStart` 微秒，不是完整流可用时刻；按该值构造 `available_ns` 会出现大量实体内逆序，因此不得报告真实秒首次告警时延。
 - 当前工程收据没有同时覆盖模型权重、选模、纯推理、吞吐、恢复和重复计算等完整向量，因此不能形成完整工程前沿。
 
 ## 实现裁决
 
 - 保留 `lspr23-selection` 作为开发选择证据，新增 `lspr23-performance` 作为源年完整性能表；两者不复用指标列。
-- 性能支配仅在同一 `evaluation_pool` 内判断，要求九个性能标量、完整预算曲线实际数组、六档未告警率和六档按时检出曲线全部齐全。
+- 性能支配仅在同一 `evaluation_pool` 和同一 `first_alert_axis` 内判断，要求九个性能标量、完整预算曲线实际数组、六档未告警率和六档按时检出曲线全部齐全。
 - 完整预算曲线以共同负实体计数为横轴逐点比较；只持久化路径、摘要或六个预设点的来源不参加完整支配。
 - 首次告警摘要只作完整性证据，不临时选取均值、中位数或分位数作为支配轴；支配使用未告警率与按时检出累计曲线。
+- 首次告警收据必须声明 `axis=exposure_index` 或合法的 `axis=elapsed_seconds`，并显式登记 `time_delay_available`。RWKV BF16 只允许写 1 基实体内曝光序号和 `time_delay_available=false`；不写伪秒时延。
+- `exposure_index` 与 `elapsed_seconds` 不得混比。缺少真实秒不阻止曝光轴候选之间的同轴比较，但输出必须保留 `time_delay_available=false`。
 - 工程支配单独计算。神经参数量与树数使用不同规模单位分池，不机械换算，不与性能前沿合并。
 - RWKV-7、GRANDE、TabM32 通过显式清单路径和独立模式名接入；生成器不扫描 `runs/`。
 
