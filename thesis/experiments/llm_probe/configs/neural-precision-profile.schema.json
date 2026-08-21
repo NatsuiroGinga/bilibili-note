@@ -1,0 +1,290 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "neural-precision-profile.schema.json",
+  "title": "单卡神经训练精度与等效微批合同",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "default_profile",
+    "device_fallbacks",
+    "profiles",
+    "runtime_defaults",
+    "effective_batch_contract",
+    "comparison_contract",
+    "checkpoint_contract",
+    "resource_receipt_contract",
+    "integration_example"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "neural-precision-contract-v1"
+    },
+    "default_profile": {
+      "const": "cuda-bf16-amp-fp32-sensitive-v1"
+    },
+    "device_fallbacks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cuda_without_bf16", "cpu", "mps"],
+      "properties": {
+        "cuda_without_bf16": {
+          "const": "cuda-fp16-amp-gradscaler-v1"
+        },
+        "cpu": {
+          "const": "cpu-fp32-v1"
+        },
+        "mps": {
+          "const": "mps-fp32-v1"
+        }
+      }
+    },
+    "profiles": {
+      "type": "object",
+      "minProperties": 5,
+      "additionalProperties": {
+        "$ref": "#/$defs/profile"
+      }
+    },
+    "runtime_defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activation_checkpointing",
+        "activation_checkpointing_enable_condition",
+        "torch_compile",
+        "tf32",
+        "model_parameter_dtype",
+        "optimizer_state_dtype"
+      ],
+      "properties": {
+        "activation_checkpointing": {
+          "const": false
+        },
+        "activation_checkpointing_enable_condition": {
+          "const": "explicit_after_bf16_and_equivalent_microbatch_are_insufficient"
+        },
+        "torch_compile": {
+          "const": false
+        },
+        "tf32": {
+          "const": false
+        },
+        "model_parameter_dtype": {
+          "const": "float32"
+        },
+        "optimizer_state_dtype": {
+          "const": "float32"
+        }
+      }
+    },
+    "effective_batch_contract": {
+      "$ref": "#/$defs/effectiveBatchContract"
+    },
+    "comparison_contract": {
+      "$ref": "#/$defs/comparisonContract"
+    },
+    "checkpoint_contract": {
+      "$ref": "#/$defs/requiredStringList"
+    },
+    "resource_receipt_contract": {
+      "$ref": "#/$defs/requiredStringList"
+    },
+    "integration_example": {
+      "$ref": "#/$defs/integrationExample"
+    }
+  },
+  "$defs": {
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_type",
+        "compute_dtype",
+        "autocast",
+        "grad_scaler",
+        "parameter_dtype",
+        "optimizer_state_dtype",
+        "sensitive_computations",
+        "fallback_requires_receipt",
+        "scientific_status"
+      ],
+      "properties": {
+        "device_type": {
+          "enum": ["cuda", "cpu", "mps"]
+        },
+        "compute_dtype": {
+          "enum": ["bfloat16", "float16", "float32"]
+        },
+        "autocast": {
+          "type": "boolean"
+        },
+        "grad_scaler": {
+          "type": "boolean"
+        },
+        "parameter_dtype": {
+          "const": "float32"
+        },
+        "optimizer_state_dtype": {
+          "const": "float32"
+        },
+        "sensitive_computations": {
+          "type": "array",
+          "minItems": 7,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "softmax",
+              "log",
+              "probability_normalization",
+              "loss",
+              "reduction",
+              "metrics",
+              "model_declared_recursive_state",
+              "model_declared_routing"
+            ]
+          }
+        },
+        "fallback_requires_receipt": {
+          "type": "boolean"
+        },
+        "scientific_status": {
+          "enum": [
+            "engineering_default_experiment_pending",
+            "hardware_fallback_only",
+            "numerical_anomaly_fallback_only",
+            "non_cuda_default"
+          ]
+        }
+      }
+    },
+    "effectiveBatchContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "effective_batch_source",
+        "microbatch_selection",
+        "microbatch_factor_rule",
+        "zero_grad_per_original_step",
+        "loss_semantics",
+        "clip_per_original_step",
+        "optimizer_step_per_original_step",
+        "tail_batch_policy",
+        "normalization_units"
+      ],
+      "properties": {
+        "effective_batch_source": {
+          "const": "experiment_contract"
+        },
+        "microbatch_selection": {
+          "const": "resource_only"
+        },
+        "microbatch_factor_rule": {
+          "const": "exact_mechanical_factor_of_effective_batch_items"
+        },
+        "zero_grad_per_original_step": {
+          "const": "exactly_once_set_to_none_true"
+        },
+        "loss_semantics": {
+          "const": "sum_each_microbatch_divide_by_total_valid_units"
+        },
+        "clip_per_original_step": {
+          "const": "at_most_once_after_all_microbatches"
+        },
+        "optimizer_step_per_original_step": {
+          "const": "exactly_once_after_all_microbatches"
+        },
+        "tail_batch_policy": {
+          "const": "keep_real_units_no_padding_no_drop"
+        },
+        "normalization_units": {
+          "type": "array",
+          "const": ["flow", "sequence", "entity"]
+        }
+      }
+    },
+    "comparisonContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["same_profile_required_for", "cross_profile_allowed_for"],
+      "properties": {
+        "same_profile_required_for": {
+          "type": "array",
+          "const": ["structure_causal", "mechanism_causal", "same_family_selection"]
+        },
+        "cross_profile_allowed_for": {
+          "type": "array",
+          "const": ["complete_system_pareto", "engineering_observation"]
+        }
+      }
+    },
+    "requiredStringList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_fields"],
+      "properties": {
+        "required_fields": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "integrationExample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "example_only",
+        "do_not_inherit_batch_values",
+        "evidence_reference",
+        "profile_id",
+        "effective_batch_items",
+        "effective_batch_item_unit",
+        "microbatch_items",
+        "accumulation_steps",
+        "normalization_unit"
+      ],
+      "properties": {
+        "example_only": {
+          "const": true
+        },
+        "do_not_inherit_batch_values": {
+          "const": true
+        },
+        "evidence_reference": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "effective_batch_items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "effective_batch_item_unit": {
+          "enum": ["flow", "sequence", "entity"]
+        },
+        "microbatch_items": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "accumulation_steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "normalization_unit": {
+          "enum": ["flow", "sequence", "entity"]
+        }
+      }
+    }
+  }
+}
