@@ -1,0 +1,104 @@
+{
+  "schema_version": "ch3-published-neural-operational-backfill-config-v1",
+  "run_id": "ch3-published-neural-operational-backfill-v1",
+  "display_name": "已发表神经基线目标年完整运营指标零训练回填",
+  "dataset": "LSPR24",
+  "model_scope": "published_neural_performance_envelope",
+  "target_previously_accessed": true,
+  "independent_test": false,
+  "training_runs": 0,
+  "inference_runs": 0,
+  "models": {
+    "transformer": {
+      "display_name": "全注意力Transformer",
+      "relative_path": "runs/diagnostics/ch3-baselines-full/scores_transformer_dijk2026.npy",
+      "bytes": 80909552,
+      "sha256": "4bb845444a03cea0579c28120f2afe2d48559c8644c6a8fc80ddd37b5e63922d",
+      "flow_average_precision": 0.325725660495,
+      "max_pool_entity_average_precision": 0.353619988596,
+      "dr_at_4_percent_fpr": 0.740691489362
+    },
+    "cnn": {
+      "display_name": "一维CNN",
+      "relative_path": "runs/diagnostics/ch3-baselines-full/scores_cnn_leoste2025.npy",
+      "bytes": 80909552,
+      "sha256": "3d3674d98799140b9dadaa580c481986bd579acad6455dae79948adcb1a0749d",
+      "flow_average_precision": 0.127082755846,
+      "max_pool_entity_average_precision": 0.409638921562,
+      "dr_at_4_percent_fpr": 0.648936170213
+    },
+    "gru": {
+      "display_name": "GRU",
+      "relative_path": "runs/diagnostics/ch3-baselines-full/scores_gru_dijk2026.npy",
+      "bytes": 80909552,
+      "sha256": "8e75dcc7b787a4ed3d5c5f2fc250b3b2b20de083c6a5826ef9108d80f9b80ad2",
+      "flow_average_precision": 0.287728740908,
+      "max_pool_entity_average_precision": 0.159955930349,
+      "dr_at_4_percent_fpr": 0.308510638298
+    }
+  },
+  "shared_inputs": {
+    "flow_labels": {
+      "relative_path": "runs/diagnostics/dijk-repro/cache/y24.npy",
+      "dtype": "float32",
+      "shape": [20227356],
+      "sha256": "455a4932e0483af59ebccc64b462d3c620f671c6969f15312d8358cf7f410b46"
+    },
+    "source_addresses": {
+      "relative_path": "runs/diagnostics/dijk-repro/cache/s24.npy",
+      "bytes": 494808757,
+      "sha256": "bdae8476d927d2f6610335649c01e8db71ee48a375bd48f9c13bb7b968d25243"
+    },
+    "destination_addresses": {
+      "relative_path": "runs/diagnostics/dijk-repro/cache/d24.npy",
+      "bytes": 495445716,
+      "sha256": "a3621eaf4d683aac2f6f70ce2c2ad71d769b26fca6bfd981bb98ec81398f21cb"
+    }
+  },
+  "expected_metrics": {
+    "flow_count": 20227356,
+    "entity_count": 47115,
+    "positive_entity_count": 752,
+    "decimal_places_for_reproduction_gate": 12
+  },
+  "evaluation": {
+    "entity_aggregation": "maximum_flow_score",
+    "entity_label": "maximum_flow_label",
+    "threshold_semantics": "score_greater_equal_threshold",
+    "complete_curve": "all_complete_entity_score_tie_groups",
+    "nominal_fpr_budgets": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "budget_readout": "last_reachable_complete_tie_group_not_exceeding_budget",
+    "next_point": "immediately_following_complete_tie_group",
+    "interpolation": false,
+    "exposure_order": "ascending_frozen_flow_array_index_within_entity",
+    "exposure_index_base": 1,
+    "first_alert_quantiles": [0.25, 0.5, 0.75, 0.9, 0.95],
+    "timely_detection_denominator": 752,
+    "time_delay_available": false
+  },
+  "resource_contract": {
+    "authorized_server": "B76",
+    "device": "cpu",
+    "gpu_count": 0,
+    "gpu_array_reads": 0,
+    "peak_gpu_memory_mib": 0,
+    "estimated_peak_process_memory_gib": 4,
+    "estimated_cpu_wall_time": "less_than_2_minutes",
+    "estimated_input_read_gib": 1.32,
+    "estimated_output_mib_upper_bound": 6,
+    "minimum_free_disk_gib": 10,
+    "allow_parallel_with_grande_only_after_live_gates": true,
+    "wall_clock_limit": null
+  },
+  "artifact_policy": {
+    "output_root": "runs/diagnostics/ch3-published-neural-operational-backfill-v1",
+    "atomic_json_and_npz": true,
+    "persist_aggregate_results": true,
+    "persist_complete_alert_budget_curve": true,
+    "persist_first_alert_timing_curve": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_per_entity_first_alert": false,
+    "persist_models_or_checkpoints": false
+  }
+}
