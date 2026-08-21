@@ -5,9 +5,9 @@ set -Eeuo pipefail
 umask 027
 
 readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
-readonly RUN_ID=ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1
+readonly RUN_ID=ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun2
 readonly DISPLAY_NAME='XGBoost＋CPA-ELP C11目标年完整运营指标零训练回填'
-readonly SCREEN_NAME=ch3-xgb-c11-op-backfill-r1
+readonly SCREEN_NAME=ch3-xgb-c11-op-backfill-r2
 readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch3-xgb-cpa-elp-operational-backfill-v1.json"
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch3_xgb_cpa_elp_operational_backfill.py"
 readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_xgb_cpa_elp_operational_backfill_v1.sh"
@@ -60,7 +60,7 @@ resources = config["resource_contract"]
 valid = (
     config["run_id"] == sys.argv[2]
     and config["display_name"] == sys.argv[3]
-    and config["target_arrays"] == ["X24", "y24", "I24", "M24", "s24", "d24", "t24"]
+    and config["target_arrays"] == ["X24", "y24", "I24", "M24", "s24", "d24"]
     and parent["run_id"] == "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1"
     and parent["selected_adapter"] == "semantic168"
     and parent["power_mean_p"] == 1.0
@@ -97,7 +97,7 @@ validate_file_inventory() {
             return 66
         }
     done
-    for cache_name in X24 y24 I24 M24 s24 d24 t24; do
+    for cache_name in X24 y24 I24 M24 s24 d24; do
         path="$PROJECT_ROOT/runs/diagnostics/dijk-repro/cache/${cache_name}.npy"
         [[ -r "$path" && -s "$path" ]] || {
             printf '目标缓存缺失或不可读：%s\n' "$path" >&2

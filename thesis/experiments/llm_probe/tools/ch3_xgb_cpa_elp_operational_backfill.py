@@ -22,12 +22,12 @@ if str(DIJK_MODULE_ROOT) not in sys.path:
 from dijk_fields import DIJK_FEATURES  # noqa: E402
 
 
-RUN_ID = "ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1"
+RUN_ID = "ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun2"
 DISPLAY_NAME = "XGBoost＋CPA-ELP C11目标年完整运营指标零训练回填"
 PARENT_RUN_ID = "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1"
 PARENT_EVAL_RUN_ID = f"{PARENT_RUN_ID}-eval-continuation2"
 RECOVERY_SCHEMA = "ch3-xgb-parent-recovery-proof-v1"
-TARGET_ARRAYS = ("X24", "y24", "I24", "M24", "s24", "d24", "t24")
+TARGET_ARRAYS = ("X24", "y24", "I24", "M24", "s24", "d24")
 FPR_BUDGETS = (0.001, 0.005, 0.01, 0.02, 0.04, 0.08)
 FIRST_ALERT_QUANTILES = (0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)
 EXPECTED_HASHES = {
@@ -207,7 +207,7 @@ def validate_config(config: dict[str, Any]) -> None:
         if config.get(key) != expected:
             raise SystemExit(f"配置字段不符：{key}")
     if tuple(config.get("target_arrays", [])) != TARGET_ARRAYS:
-        raise SystemExit("目标缓存必须恰为 X24/y24/I24/M24/s24/d24/t24")
+        raise SystemExit("目标缓存必须恰为 X24/y24/I24/M24/s24/d24")
     parent = config.get("parent_contract", {})
     expected_parent = {
         "run_id": PARENT_RUN_ID,
@@ -241,7 +241,8 @@ def validate_config(config: dict[str, Any]) -> None:
         "flow_positive_rate": FLOW_POSITIVE_RATE,
         "entity_key": "unordered_source_destination_address_pair",
         "exposure_order": "ascending_frozen_flow_index_within_entity",
-        "time_order_required": True,
+        "timestamp_input_loaded": False,
+        "time_delay_available": False,
         "target_used_for_selection_or_tuning": False,
     }
     if target != expected_target:
@@ -507,42 +508,59 @@ def load_frozen_model(config: dict[str, Any]) -> tuple[Any, Any, str]:
     return booster, torch, xgb.__version__
 
 
-def assert_sequence_time_monotonic(
-    time_values: np.ndarray,
+def validate_sequence_index_contract(
     indices: np.ndarray,
     mask_values: np.ndarray,
-) -> int:
-    if len(time_values) != N_FLOW or not np.isfinite(time_values).all():
-        raise SystemExit("LSPR24 时间戳数量异常或含非有限值")
-    reversed_pairs = 0
-    checked_pairs = 0
+) -> dict[str, Any]:
+    if (
+        indices.ndim != 2
+        or indices.shape[1] != N_SEQUENCE_WIDTH
+        or mask_values.shape != indices.shape
+        or not np.issubdtype(indices.dtype, np.integer)
+    ):
+        raise SystemExit(f"LSPR24 序列索引或掩码形状异常：I={indices.shape} M={mask_values.shape}")
+    occurrences = np.zeros(N_FLOW, dtype=np.uint32)
+    valid_positions = 0
+    index_min = N_FLOW
+    index_max = -1
     started = time.time()
     for start in range(0, len(indices), 20_000):
         idx = indices[start : start + 20_000]
-        valid = mask_values[start : start + 20_000] > 0
-        values = time_values[idx]
-        adjacent = valid[:, 1:] & valid[:, :-1]
-        checked_pairs += int(adjacent.sum())
-        reversed_pairs += int(((values[:, 1:] < values[:, :-1]) & adjacent).sum())
-        beat("LSPR24/序列时间核验", min(start + 20_000, len(indices)), len(indices), started)
-    if reversed_pairs:
-        raise SystemExit(f"LSPR24 序列存在 {reversed_pairs} 个时间逆序相邻对")
-    return checked_pairs
-
-
-def assert_entity_time_monotonic(
-    time_values: np.ndarray,
-    entity: np.ndarray,
-) -> tuple[np.ndarray, int]:
-    flow_index = np.arange(N_FLOW, dtype=np.int64)
-    order = np.lexsort((flow_index, entity))
-    ordered_entity = entity[order]
-    ordered_time = time_values[order]
-    same_entity = ordered_entity[1:] == ordered_entity[:-1]
-    reversed_pairs = int(((ordered_time[1:] < ordered_time[:-1]) & same_entity).sum())
-    if reversed_pairs:
-        raise SystemExit(f"LSPR24 实体内冻结流序存在 {reversed_pairs} 个时间逆序相邻对")
-    return order, int(same_entity.sum())
+        mask = mask_values[start : start + 20_000]
+        if not np.isfinite(mask).all() or not bool(((mask == 0) | (mask == 1)).all()):
+            raise SystemExit("LSPR24 掩码必须是有限的二值数组")
+        batch_min = int(idx.min())
+        batch_max = int(idx.max())
+        if batch_min < 0 or batch_max >= N_FLOW:
+            raise SystemExit(
+                f"LSPR24 序列索引越界：min={batch_min} max={batch_max} flow_count={N_FLOW}"
+            )
+        index_min = min(index_min, batch_min)
+        index_max = max(index_max, batch_max)
+        selected = idx[mask == 1]
+        valid_positions += int(len(selected))
+        np.add.at(occurrences, selected, 1)
+        beat("LSPR24/序列索引核验", min(start + 20_000, len(indices)), len(indices), started)
+    missing = int((occurrences == 0).sum())
+    duplicated = int((occurrences > 1).sum())
+    maximum_occurrence = int(occurrences.max())
+    if valid_positions != N_FLOW or missing or duplicated or maximum_occurrence != 1:
+        raise SystemExit(
+            "LSPR24 序列索引未无重无漏覆盖："
+            f"valid={valid_positions} missing={missing} duplicated={duplicated} max={maximum_occurrence}"
+        )
+    return {
+        "sequence_count": int(len(indices)),
+        "sequence_width": N_SEQUENCE_WIDTH,
+        "valid_positions": valid_positions,
+        "index_min": index_min,
+        "index_max": index_max,
+        "missing_flow_indices": missing,
+        "duplicated_flow_indices": duplicated,
+        "maximum_flow_index_occurrence": maximum_occurrence,
+        "each_flow_scored_exactly_once": True,
+        "mask_is_finite_binary": True,
+    }
 
 
 def build_semantic_matrix(
@@ -859,7 +877,7 @@ def compute(config: dict[str, Any], config_path: Path, resume: bool) -> None:
             raise SystemExit("计算阶段已完成；仅允许使用 --resume 幂等跳过")
         print(f"COMPUTE_ALREADY_COMPLETE run={RUN_ID}", flush=True)
         return
-    write_stage_status(output_root, "input_validation", "核验父身份、固定哈希与七个目标缓存")
+    write_stage_status(output_root, "input_validation", "核验父身份、固定哈希与六个目标缓存")
     validation = validate_parent_and_cache(config)
     booster, torch_module, xgboost_version = load_frozen_model(config)
     model_path = Path(config["paths"]["parent_run_root"]) / "model_semantic168.json"
@@ -875,7 +893,7 @@ def compute(config: dict[str, Any], config_path: Path, resume: bool) -> None:
     atomic_json(output_root / "input-validation-receipt.json", validation)
     atomic_json(output_root / "config.json", config)
 
-    write_stage_status(output_root, "target_load", "只加载七个冻结 LSPR24 数组")
+    write_stage_status(output_root, "target_load", "只加载六个冻结 LSPR24 数组")
     cache_root = Path(config["paths"]["cache_root"])
     arrays = {
         name: np.load(
@@ -890,14 +908,14 @@ def compute(config: dict[str, Any], config_path: Path, resume: bool) -> None:
         or arrays["y24"].shape != (N_FLOW,)
         or arrays["I24"].shape[1] != N_SEQUENCE_WIDTH
         or arrays["M24"].shape != arrays["I24"].shape
-        or any(len(arrays[name]) != N_FLOW for name in ("s24", "d24", "t24"))
+        or any(len(arrays[name]) != N_FLOW for name in ("s24", "d24"))
     ):
-        raise SystemExit("七个 LSPR24 缓存的冻结形状不符")
-    sequence_pairs = assert_sequence_time_monotonic(
-        arrays["t24"], arrays["I24"], arrays["M24"]
+        raise SystemExit("六个 LSPR24 缓存的冻结形状不符")
+    sequence_index_contract = validate_sequence_index_contract(
+        arrays["I24"], arrays["M24"]
     )
 
-    write_stage_status(output_root, "entity_identity", "构造无向地址对实体并核验实体内时间顺序")
+    write_stage_status(output_root, "entity_identity", "构造无向地址对实体与冻结流索引曝光顺序")
     entity_key = np.fromiter(
         (
             f"{left}|{right}" if left <= right else f"{right}|{left}"
@@ -918,10 +936,9 @@ def compute(config: dict[str, Any], config_path: Path, resume: bool) -> None:
     flow_positive_rate = float(np.mean(arrays["y24"], dtype=np.float64))
     if abs(flow_positive_rate - FLOW_POSITIVE_RATE) >= 1e-9:
         raise SystemExit(f"LSPR24 逐流正例率不符：{flow_positive_rate:.12f}")
-    entity_order, entity_time_pairs = assert_entity_time_monotonic(
-        arrays["t24"], entity
+    entity_order = np.lexsort(
+        (np.arange(N_FLOW, dtype=np.int64), entity)
     )
-    del arrays["t24"]
 
     write_stage_status(output_root, "semantic168", "只在内存重建一次冻结 semantic168")
     semantic = build_semantic_matrix(
@@ -1039,8 +1056,10 @@ def compute(config: dict[str, Any], config_path: Path, resume: bool) -> None:
             "entity_count": N_ENTITY,
             "positive_entity_count": N_POSITIVE_ENTITY,
             "flow_positive_rate": flow_positive_rate,
-            "sequence_time_adjacent_pairs_checked": sequence_pairs,
-            "entity_time_adjacent_pairs_checked": entity_time_pairs,
+            "sequence_index_contract": sequence_index_contract,
+            "first_alert_exposure_order": "ascending_frozen_flow_index_within_entity",
+            "timestamp_input_loaded": False,
+            "time_delay_available": False,
         },
         "isolation": {
             "target_retrained": False,

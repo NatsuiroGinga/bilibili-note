@@ -1,6 +1,6 @@
 {
   "schema_version": "ch3-xgb-cpa-elp-operational-backfill-config-v1",
-  "run_id": "ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1",
+  "run_id": "ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun2",
   "display_name": "XGBoost＋CPA-ELP C11目标年完整运营指标零训练回填",
   "seed": 42,
   "screening_only": false,
@@ -13,7 +13,7 @@
     "parent_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json",
     "parent_recovery_proof": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/recovery/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-for-ch4-xgb-pbc-q0-seed42-v1-rerun2-v1/parent-recovery-proof.json",
     "parent_evaluation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
-    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1"
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun2"
   },
   "parent_contract": {
     "run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
@@ -31,7 +31,7 @@
     "target_score_calls": 1,
     "target_scores_persisted": false
   },
-  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24", "t24"],
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24"],
   "target_contract": {
     "dataset": "LSPR24",
     "flow_count": 20227356,
@@ -43,7 +43,8 @@
     "flow_positive_rate": 0.0257073138,
     "entity_key": "unordered_source_destination_address_pair",
     "exposure_order": "ascending_frozen_flow_index_within_entity",
-    "time_order_required": true,
+    "timestamp_input_loaded": false,
+    "time_delay_available": false,
     "target_used_for_selection_or_tuning": false
   },
   "evaluation": {
@@ -57,7 +58,7 @@
     "first_alert_threshold_semantics": "same_complete_tied_score_group_greater_equal",
     "first_alert_quantiles": [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0],
     "time_delay_available": false,
-    "time_delay_unavailable_reason": "t24是mTimestampStart而非完整流available_ns，禁止猜测时间单位或合法可观测时刻",
+    "time_delay_unavailable_reason": "目标输入不含完整流available_ns，曝光序号不能解释为真实时间时延",
     "predict_batch": 2000000,
     "sequence_batch": 2048
   },
