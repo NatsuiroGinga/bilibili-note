@@ -121,6 +121,23 @@
     "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
     "complete_reachable_alert_budget_curve": true
   },
+  "first_alert_contract": {
+    "budgets": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "threshold_semantics": "same_complete_tied_score_group_greater_equal",
+    "online_entity_score": {
+      "maximum_pool_cells": ["C00", "C10"],
+      "prefix_lp_mean_cells": ["C01", "C11"]
+    },
+    "axis": "exposure_index",
+    "curve_encoding": "right_continuous_exact_breakpoints",
+    "quantiles": [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0],
+    "denominator": "all_positive_entities_in_evaluation_pool",
+    "time_delay_available": false,
+    "time_delay_unavailable_reason": "现有T23与t24是mTimestampStart而非完整流available_ns，禁止猜测时间单位或合法可观测时刻",
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_per_entity_first_alert": false
+  },
   "field_contract": {
     "feature_count": 83,
     "canonical_sha256": "e622f059d2295c8740daeb7d29fe92761c68c17a78b3d57ad65821d9137f105d"

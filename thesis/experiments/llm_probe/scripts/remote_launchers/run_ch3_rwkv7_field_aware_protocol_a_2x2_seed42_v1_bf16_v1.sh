@@ -87,6 +87,7 @@ import json, pathlib, sys
 config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 architecture = config["architecture_selection"]
 training = config["training"]
+first_alert = config["first_alert_contract"]
 valid = (
     config["run_id"] == sys.argv[2]
     and config["paths"]["output_root"] == sys.argv[3]
@@ -103,6 +104,13 @@ valid = (
     and config["precision"]["scaler"] is None
     and config["resource_contract"]["wall_clock_limit"] is None
     and list(config["cells"]) == ["C00", "C01", "C10", "C11"]
+    and first_alert["budgets"] == [0.001, 0.005, 0.01, 0.02, 0.04, 0.08]
+    and first_alert["threshold_semantics"] == "same_complete_tied_score_group_greater_equal"
+    and first_alert["axis"] == "exposure_index"
+    and first_alert["time_delay_available"] is False
+    and first_alert["persist_per_flow_scores"] is False
+    and first_alert["persist_per_entity_scores"] is False
+    and first_alert["persist_per_entity_first_alert"] is False
     and config["swanlab"]["workspace"] == sys.argv[4]
     and config["swanlab"]["project"] == sys.argv[5]
 )

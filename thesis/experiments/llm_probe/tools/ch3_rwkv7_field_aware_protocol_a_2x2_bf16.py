@@ -194,6 +194,28 @@ def validate_config(config: Mapping[str, Any], require_resolved: bool) -> None:
         or evaluation.get("target_load_after_all_source_cells_sealed") is not True
     ):
         raise ValueError("评价或最早最佳轮选择合同不符")
+    first_alert = config.get("first_alert_contract", {})
+    if first_alert != {
+        "budgets": list(DR_FPR_GRID),
+        "threshold_semantics": "same_complete_tied_score_group_greater_equal",
+        "online_entity_score": {
+            "maximum_pool_cells": ["C00", "C10"],
+            "prefix_lp_mean_cells": ["C01", "C11"],
+        },
+        "axis": "exposure_index",
+        "curve_encoding": "right_continuous_exact_breakpoints",
+        "quantiles": [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0],
+        "denominator": "all_positive_entities_in_evaluation_pool",
+        "time_delay_available": False,
+        "time_delay_unavailable_reason": (
+            "现有T23与t24是mTimestampStart而非完整流available_ns，"
+            "禁止猜测时间单位或合法可观测时刻"
+        ),
+        "persist_per_flow_scores": False,
+        "persist_per_entity_scores": False,
+        "persist_per_entity_first_alert": False,
+    }:
+        raise ValueError("首次告警曝光序号、并列阈值或非持久化合同不符")
     if require_resolved:
         model = build_model(config, selected_capacity, "C00", DEFAULT_PROFILE_ID)
         del model
@@ -686,6 +708,288 @@ def write_first_step_resource_receipt(
     )
 
 
+def strict_tied_budget_thresholds(
+    entity_scores: np.ndarray,
+    entity_labels: np.ndarray,
+) -> dict[str, dict[str, float | int]]:
+    """按完整负类并列分数组生成六档阈值，不截断同分实体。"""
+
+    valid = np.isfinite(entity_scores)
+    scores = np.asarray(entity_scores[valid], dtype=np.float64)
+    labels = np.asarray(entity_labels[valid], dtype=np.float32)
+    negative = np.sort(scores[labels == 0])[::-1]
+    positive_count = int((labels == 1).sum())
+    if len(negative) == 0 or positive_count == 0:
+        raise RuntimeError("首次告警阈值缺少正类或负类实体")
+    thresholds: dict[str, dict[str, float | int]] = {}
+    for target_fpr in DR_FPR_GRID:
+        key = f"fpr_{target_fpr:g}"
+        threshold = float(
+            negative[min(int(len(negative) * target_fpr), len(negative) - 1)]
+        )
+        false_positive_count = int((negative >= threshold).sum())
+        thresholds[key] = {
+            "target_fpr": float(target_fpr),
+            "threshold": threshold,
+            "negative_entity_count": int(len(negative)),
+            "positive_entity_count": positive_count,
+            "false_positive_entity_count": false_positive_count,
+            "realized_fpr": false_positive_count / len(negative),
+            "comparison": "score_greater_equal_threshold",
+            "tied_group_kept_complete": True,
+        }
+    return thresholds
+
+
+def _update_positive_entity_path(
+    *,
+    entity_code: int,
+    scores: np.ndarray,
+    positive_lookup: np.ndarray,
+    exposure_count: np.ndarray,
+    running_maximum: np.ndarray,
+    running_power_sum: np.ndarray,
+    first_alert_exposure: np.ndarray,
+    thresholds: np.ndarray,
+    p_value: float | None,
+) -> None:
+    positive_index = int(positive_lookup[entity_code])
+    if positive_index < 0:
+        return
+    values = np.asarray(scores, dtype=np.float64)
+    if not len(values) or not np.isfinite(values).all():
+        raise RuntimeError("首次告警路径包含空分数或非有限分数")
+    prior_count = int(exposure_count[positive_index])
+    if p_value is None:
+        online = np.maximum.accumulate(
+            np.maximum(values, running_maximum[positive_index])
+        )
+        running_maximum[positive_index] = float(online[-1])
+    else:
+        powered = np.clip(values, 1e-7, 1.0) ** p_value
+        cumulative = running_power_sum[positive_index] + np.cumsum(powered)
+        counts = prior_count + np.arange(1, len(values) + 1, dtype=np.int64)
+        online = (cumulative / counts) ** (1.0 / p_value)
+        running_power_sum[positive_index] = float(cumulative[-1])
+    for budget_index, threshold in enumerate(thresholds):
+        if first_alert_exposure[budget_index, positive_index] != 0:
+            continue
+        crossing = np.flatnonzero(online >= threshold)
+        if len(crossing):
+            first_alert_exposure[budget_index, positive_index] = (
+                prior_count + int(crossing[0]) + 1
+            )
+    exposure_count[positive_index] = prior_count + len(values)
+
+
+def _first_alert_distribution(values: np.ndarray) -> dict[str, float | int | None]:
+    if not len(values):
+        return {
+            "count": 0,
+            "minimum": None,
+            "p25": None,
+            "median": None,
+            "p75": None,
+            "p90": None,
+            "p95": None,
+            "p99": None,
+            "maximum": None,
+        }
+    quantiles = np.quantile(
+        values.astype(np.float64),
+        [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0],
+    )
+    names = ("minimum", "p25", "median", "p75", "p90", "p95", "p99", "maximum")
+    return {"count": int(len(values)), **dict(zip(names, map(float, quantiles), strict=True))}
+
+
+def _finalize_first_alert_aggregate(
+    *,
+    config: Mapping[str, Any],
+    thresholds: Mapping[str, Mapping[str, float | int]],
+    first_alert_exposure: np.ndarray,
+    exposure_count: np.ndarray,
+) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
+    positive_count = int(len(exposure_count))
+    if positive_count == 0 or np.any(exposure_count <= 0):
+        raise RuntimeError("首次告警聚合缺少恶意实体曝光路径")
+    summaries: dict[str, Any] = {}
+    curves: dict[str, np.ndarray] = {}
+    for budget_index, (key, threshold_receipt) in enumerate(thresholds.items()):
+        positions = first_alert_exposure[budget_index]
+        alerted = positions > 0
+        axis = np.unique(
+            np.concatenate(
+                (
+                    np.array([0], dtype=np.int64),
+                    positions[alerted],
+                    np.array([int(exposure_count.max())], dtype=np.int64),
+                )
+            )
+        )
+        rate = np.array(
+            [float(((positions > 0) & (positions <= point)).sum()) / positive_count for point in axis],
+            dtype=np.float64,
+        )
+        summaries[key] = {
+            "threshold": dict(threshold_receipt),
+            "positive_entity_count": positive_count,
+            "alerted_entity_count": int(alerted.sum()),
+            "never_alerted_entity_count": int((~alerted).sum()),
+            "unalerted_rate": float((~alerted).mean()),
+            "first_alert_exposure_index": _first_alert_distribution(positions[alerted]),
+            "maximum_positive_entity_exposure_count": int(exposure_count.max()),
+            "curve_point_count": int(len(axis)),
+        }
+        curves[f"{key}__exposure_index"] = axis
+        curves[f"{key}__timely_detection_rate"] = rate
+    definition = (
+        "从恶意实体第一条进入本评价池的合法序列流开始，以1基实体内曝光序号计数；"
+        "在线实体分数按格使用运行最大值或前缀Lp均值，首次满足score>=同档完整并列阈值即告警；"
+        "累计检出率分母始终为全部恶意实体，未告警实体保留为删失。"
+        + config["first_alert_contract"]["time_delay_unavailable_reason"]
+    )
+    summary = {
+        "definition": definition,
+        "axis": config["first_alert_contract"]["axis"],
+        "curve_encoding": config["first_alert_contract"]["curve_encoding"],
+        "threshold_semantics": config["first_alert_contract"]["threshold_semantics"],
+        "time_delay_available": False,
+        "time_delay_unavailable_reason": config["first_alert_contract"][
+            "time_delay_unavailable_reason"
+        ],
+        "positive_entity_count": positive_count,
+        "unalerted_rate_at_fpr": {
+            key: value["unalerted_rate"] for key, value in summaries.items()
+        },
+        "delay_summary_at_fpr": summaries,
+        "first_alert_exposure_summary_at_fpr": summaries,
+        "persisted_per_flow_scores": False,
+        "persisted_per_entity_scores": False,
+        "persisted_per_entity_first_alert": False,
+    }
+    return summary, curves
+
+
+def source_first_alert_aggregate(
+    *,
+    config: Mapping[str, Any],
+    source: Mapping[str, np.ndarray],
+    validation_rows: np.ndarray,
+    ordered_flow_scores: np.ndarray,
+    ordered_flow_entity: np.ndarray,
+    entity_labels: np.ndarray,
+    entity_scores: np.ndarray,
+    p_value: float | None,
+) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
+    thresholds = strict_tied_budget_thresholds(entity_scores, entity_labels)
+    positive_entities = np.flatnonzero(entity_labels == 1)
+    positive_lookup = np.full(len(entity_labels), -1, dtype=np.int32)
+    positive_lookup[positive_entities] = np.arange(len(positive_entities), dtype=np.int32)
+    exposure_count = np.zeros(len(positive_entities), dtype=np.int64)
+    running_maximum = np.full(len(positive_entities), -np.inf, dtype=np.float64)
+    running_power_sum = np.zeros(len(positive_entities), dtype=np.float64)
+    first_alert_exposure = np.zeros(
+        (len(DR_FPR_GRID), len(positive_entities)), dtype=np.int64
+    )
+    threshold_values = np.array(
+        [float(receipt["threshold"]) for receipt in thresholds.values()],
+        dtype=np.float64,
+    )
+    cursor = 0
+    for row in validation_rows:
+        valid = np.asarray(source["M23"][row] > 0.5, dtype=bool)
+        count = int(valid.sum())
+        scores = ordered_flow_scores[cursor : cursor + count]
+        entities = ordered_flow_entity[cursor : cursor + count]
+        cursor += count
+        if count == 0 or not np.all(entities == entities[0]):
+            raise RuntimeError("源年首次告警序列缺少流或跨越多个实体")
+        _update_positive_entity_path(
+            entity_code=int(entities[0]),
+            scores=scores,
+            positive_lookup=positive_lookup,
+            exposure_count=exposure_count,
+            running_maximum=running_maximum,
+            running_power_sum=running_power_sum,
+            first_alert_exposure=first_alert_exposure,
+            thresholds=threshold_values,
+            p_value=p_value,
+        )
+    if cursor != len(ordered_flow_scores):
+        raise RuntimeError("源年首次告警路径未无重无漏消费验证分数")
+    return _finalize_first_alert_aggregate(
+        config=config,
+        thresholds=thresholds,
+        first_alert_exposure=first_alert_exposure,
+        exposure_count=exposure_count,
+    )
+
+
+def target_first_alert_aggregate(
+    *,
+    config: Mapping[str, Any],
+    target: Mapping[str, np.ndarray],
+    flow_scores: np.ndarray,
+    flow_entity: np.ndarray,
+    entity_labels: np.ndarray,
+    entity_scores: np.ndarray,
+    p_value: float | None,
+) -> tuple[dict[str, Any], dict[str, np.ndarray]]:
+    thresholds = strict_tied_budget_thresholds(entity_scores, entity_labels)
+    positive_entities = np.flatnonzero(entity_labels == 1)
+    positive_lookup = np.full(len(entity_labels), -1, dtype=np.int32)
+    positive_lookup[positive_entities] = np.arange(len(positive_entities), dtype=np.int32)
+    exposure_count = np.zeros(len(positive_entities), dtype=np.int64)
+    running_maximum = np.full(len(positive_entities), -np.inf, dtype=np.float64)
+    running_power_sum = np.zeros(len(positive_entities), dtype=np.float64)
+    first_alert_exposure = np.zeros(
+        (len(DR_FPR_GRID), len(positive_entities)), dtype=np.int64
+    )
+    threshold_values = np.array(
+        [float(receipt["threshold"]) for receipt in thresholds.values()],
+        dtype=np.float64,
+    )
+    for row in range(len(target["I24"])):
+        indices = np.asarray(target["I24"][row], dtype=np.int64)
+        valid = np.asarray(target["M24"][row] > 0.5, dtype=bool)
+        valid_indices = indices[valid]
+        entities = flow_entity[valid_indices]
+        if not len(valid_indices) or not np.all(entities == entities[0]):
+            raise RuntimeError("目标年首次告警序列缺少流或跨越多个实体")
+        _update_positive_entity_path(
+            entity_code=int(entities[0]),
+            scores=flow_scores[valid_indices],
+            positive_lookup=positive_lookup,
+            exposure_count=exposure_count,
+            running_maximum=running_maximum,
+            running_power_sum=running_power_sum,
+            first_alert_exposure=first_alert_exposure,
+            thresholds=threshold_values,
+            p_value=p_value,
+        )
+    return _finalize_first_alert_aggregate(
+        config=config,
+        thresholds=thresholds,
+        first_alert_exposure=first_alert_exposure,
+        exposure_count=exposure_count,
+    )
+
+
+def save_npz_atomic(path: Path, vectors: Mapping[str, np.ndarray]) -> dict[str, Any]:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.partial.{os.getpid()}")
+    with temporary.open("wb") as handle:
+        np.savez_compressed(handle, **vectors)
+    os.replace(temporary, path)
+    return {
+        "filename": str(path),
+        "bytes": path.stat().st_size,
+        "sha256": sha256_file(path),
+        "fields": list(vectors),
+    }
+
+
 def train_cell(
     config: Mapping[str, Any],
     cell: str,
@@ -1095,6 +1399,28 @@ def train_cell(
     }
     if abs(validation_metrics["flow_average_precision"] - best_ap) > 1e-12:
         raise RuntimeError("选中轮复算逐流 AP 与选择历史不一致")
+    first_alert_started = time.time()
+    source_first_alert, source_first_alert_curves = source_first_alert_aggregate(
+        config=config,
+        source=source,
+        validation_rows=validation_rows,
+        ordered_flow_scores=validation_scores,
+        ordered_flow_entity=validation_flow_entity,
+        entity_labels=validation_entity_labels,
+        entity_scores=validation_entity_scores,
+        p_value=main_p,
+    )
+    source_first_alert["aggregation_seconds"] = time.time() - first_alert_started
+    source_first_alert_path = (
+        output_root / "receipts" / f"source-first-alert-{task_key}.npz"
+    )
+    source_first_alert_artifact = save_npz_atomic(
+        source_first_alert_path, source_first_alert_curves
+    )
+    source_first_alert_artifact["filename"] = str(
+        source_first_alert_path.relative_to(output_root)
+    )
+    source_first_alert["artifact"] = source_first_alert_artifact
     source_curve = legacy.complete_budget_curve(
         validation_entity_scores, validation_entity_labels
     )
@@ -1126,6 +1452,7 @@ def train_cell(
         "scaler": None,
         "normalization_units": ["flow", "sequence"] if uses_lp else ["flow"],
         "selected_validation_metrics": validation_metrics,
+        "source_first_alert": source_first_alert,
         "selected_validation_complete_budget_curve": {
             "filename": str(source_curve_path.relative_to(output_root)),
             "bytes": source_curve_path.stat().st_size,
@@ -1147,6 +1474,309 @@ def train_cell(
     del model, optimizer
     torch.cuda.empty_cache()
     return selection
+
+
+def save_target_evaluation(
+    output_root: Path,
+    cell: str,
+    identity: Mapping[str, Any],
+    cell_result: Mapping[str, Any],
+    budget_curve: Mapping[str, np.ndarray],
+    first_alert_curves: Mapping[str, np.ndarray],
+) -> dict[str, Any]:
+    receipt_root = output_root / "receipts" / f"target-evaluation-{cell}"
+    if receipt_root.exists():
+        raise RuntimeError(f"{cell} 目标评价完成目录已存在，拒绝覆盖")
+    temporary_root = receipt_root.with_name(
+        f"{receipt_root.name}.partial.{os.getpid()}"
+    )
+    temporary_root.mkdir(parents=True, exist_ok=False)
+    budget_path = temporary_root / "complete-alert-budget-curve.npz"
+    first_alert_path = temporary_root / "first-alert-exposure-curves.npz"
+    budget_artifact = save_npz_atomic(budget_path, budget_curve)
+    first_alert_artifact = save_npz_atomic(first_alert_path, first_alert_curves)
+    final_result = dict(cell_result)
+    final_result["first_alert"] = dict(cell_result["first_alert"])
+    final_result["first_alert"]["artifact"] = {
+        **first_alert_artifact,
+        "filename": str(
+            (receipt_root / first_alert_path.name).relative_to(output_root)
+        ),
+    }
+    atomic_json(
+        temporary_root / "receipt.json",
+        {
+            "schema_version": "ch3-rwkv7-bf16-target-cell-receipt-v1",
+            "identity": dict(identity),
+            "cell_result": final_result,
+            "curve": {
+                **budget_artifact,
+                "filename": budget_path.name,
+            },
+            "first_alert_curve": {
+                **first_alert_artifact,
+                "filename": first_alert_path.name,
+            },
+            "complete": True,
+        },
+    )
+    os.replace(temporary_root, receipt_root)
+    return final_result
+
+
+def load_target_evaluation(
+    output_root: Path,
+    cell: str,
+    identity: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, np.ndarray], dict[str, np.ndarray]] | None:
+    receipt_root = output_root / "receipts" / f"target-evaluation-{cell}"
+    if not receipt_root.exists():
+        return None
+    receipt = load_json(receipt_root / "receipt.json")
+    budget_path = receipt_root / receipt["curve"]["filename"]
+    first_alert_path = receipt_root / receipt["first_alert_curve"]["filename"]
+    if (
+        receipt.get("schema_version") != "ch3-rwkv7-bf16-target-cell-receipt-v1"
+        or receipt.get("identity") != identity
+        or not receipt.get("complete")
+        or sha256_file(budget_path) != receipt["curve"]["sha256"]
+        or sha256_file(first_alert_path) != receipt["first_alert_curve"]["sha256"]
+    ):
+        raise RuntimeError(f"{cell} 目标评价完成收据身份或摘要不符")
+    with np.load(budget_path) as payload:
+        budget_curve = {name: payload[name] for name in payload.files}
+    with np.load(first_alert_path) as payload:
+        first_alert_curves = {name: payload[name] for name in payload.files}
+    return receipt["cell_result"], budget_curve, first_alert_curves
+
+
+def evaluate_target(
+    config: Mapping[str, Any],
+    output_root: Path,
+    run_identity: Mapping[str, Any],
+    selections: Mapping[str, Mapping[str, Any]],
+    capacity_key: str,
+    target_inventory: Mapping[str, Any],
+    target: Mapping[str, np.ndarray],
+) -> tuple[dict[str, Any], dict[str, np.ndarray], dict[str, int]]:
+    flow_entity, entity_labels, entity_stats = legacy.build_target_entity_map(target)
+    if entity_stats.get("unmapped_flow_count") != 0:
+        raise RuntimeError("目标年实体映射未覆盖全部流，禁止首次告警聚合")
+    device = torch.device("cuda")
+    cells: dict[str, Any] = {}
+    curves: dict[str, np.ndarray] = {}
+    calls = 0
+    reused = 0
+    for cell in CELL_ORDER:
+        selection = selections[cell]
+        checkpoint_path = output_root / selection["checkpoint"]["filename"]
+        if sha256_file(checkpoint_path) != selection["checkpoint"]["sha256"]:
+            raise RuntimeError(f"{cell} 选择检查点摘要不符")
+        identity = {
+            **run_identity,
+            "target_data_inventory_sha256": target_inventory["sha256"],
+            "cell": cell,
+            "checkpoint_sha256": selection["checkpoint"]["sha256"],
+            "first_alert_contract": config["first_alert_contract"],
+        }
+        restored = load_target_evaluation(output_root, cell, identity)
+        if restored is not None:
+            cell_result, budget_curve, _first_alert_curves = restored
+            cells[cell] = cell_result
+            for name, values in budget_curve.items():
+                curves[f"{cell}__{name}"] = values
+            reused += 1
+            continue
+        model = build_model(
+            config, capacity_key, cell, config["precision"]["profile_id"]
+        ).to(device)
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+        model.load_state_dict(checkpoint["model"])
+        selected_p = float(model.p.detach())
+        if abs(selected_p - float(selection["p_at_selection"])) > 1e-9:
+            raise RuntimeError(f"{cell} 回载 p 与源年选择封印不符")
+        torch.cuda.reset_peak_memory_stats(device)
+        started = time.time()
+        flow_scores, seen = score_target(config, model, target, device)
+        if not seen.all():
+            raise RuntimeError(f"{cell} 目标评价未覆盖全部流，禁止首次告警聚合")
+        inference_seconds = time.time() - started
+        calls += 1
+        main_p = selected_p if config["cells"][cell]["learned_lp_pooling"] else None
+        main_scores = legacy.entity_scores(
+            flow_scores, seen, flow_entity, len(entity_labels), main_p
+        )
+        maximum_scores = legacy.entity_scores(
+            flow_scores, seen, flow_entity, len(entity_labels), None
+        )
+        valid_entity = np.isfinite(main_scores)
+        valid_maximum = np.isfinite(maximum_scores)
+        first_alert_started = time.time()
+        first_alert, first_alert_curves = target_first_alert_aggregate(
+            config=config,
+            target=target,
+            flow_scores=flow_scores,
+            flow_entity=flow_entity,
+            entity_labels=entity_labels,
+            entity_scores=main_scores,
+            p_value=main_p,
+        )
+        first_alert["aggregation_seconds"] = time.time() - first_alert_started
+        elapsed = time.time() - started
+        metrics = {
+            "flow_average_precision": float(
+                legacy.average_precision_score(target["y24"][seen], flow_scores[seen])
+            ),
+            "flow_roc_auc": float(
+                legacy.roc_auc_score(target["y24"][seen], flow_scores[seen])
+            ),
+            "entity_average_precision": float(
+                legacy.average_precision_score(
+                    entity_labels[valid_entity], main_scores[valid_entity]
+                )
+            ),
+            "maximum_entity_average_precision": float(
+                legacy.average_precision_score(
+                    entity_labels[valid_maximum], maximum_scores[valid_maximum]
+                )
+            ),
+            "dr_at_fpr": {
+                f"fpr_{value:g}": legacy.dr_at_fpr(main_scores, entity_labels, value)
+                for value in DR_FPR_GRID
+            },
+            "maximum_dr_at_fpr": {
+                f"fpr_{value:g}": legacy.dr_at_fpr(
+                    maximum_scores, entity_labels, value
+                )
+                for value in DR_FPR_GRID
+            },
+            "flows_scored": int(seen.sum()),
+            "entities_scored": int(valid_entity.sum()),
+            "inference_seconds": inference_seconds,
+            "first_alert_aggregation_seconds": first_alert["aggregation_seconds"],
+            "evaluation_seconds": elapsed,
+            "effective_flow_throughput_per_second": int(seen.sum()) / elapsed,
+            "peak_gpu_allocated_mib": torch.cuda.max_memory_allocated(device) / 2**20,
+            "peak_gpu_reserved_mib": torch.cuda.max_memory_reserved(device) / 2**20,
+            "target_evaluation_call": CELL_ORDER.index(cell) + 1,
+        }
+        budget_curve = legacy.complete_budget_curve(main_scores, entity_labels)
+        cell_result = save_target_evaluation(
+            output_root,
+            cell,
+            identity,
+            {
+                "mechanisms": config["cells"][cell],
+                "selection": selection,
+                "selected_p": selected_p,
+                "target": metrics,
+                "first_alert": first_alert,
+            },
+            budget_curve,
+            first_alert_curves,
+        )
+        cells[cell] = cell_result
+        for name, values in budget_curve.items():
+            curves[f"{cell}__{name}"] = values
+        del model, checkpoint, flow_scores, seen, main_scores, maximum_scores
+        torch.cuda.empty_cache()
+    if calls + reused != 4:
+        raise RuntimeError("目标四格评价次数不符")
+    return cells, curves, {
+        "calls_this_process": calls,
+        "receipts_reused": reused,
+        **entity_stats,
+    }
+
+
+def publish_first_alert_bundle(
+    output_root: Path,
+    selections: Mapping[str, Mapping[str, Any]],
+    target_cells: Mapping[str, Mapping[str, Any]],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    vectors: dict[str, np.ndarray] = {}
+    source_cells: dict[str, Any] = {}
+    cells: dict[str, Any] = {}
+    for scope, records in (("source", selections), ("target", target_cells)):
+        for cell in CELL_ORDER:
+            first_alert = (
+                records[cell]["source_first_alert"]
+                if scope == "source"
+                else records[cell]["first_alert"]
+            )
+            artifact_path = output_root / first_alert["artifact"]["filename"]
+            if sha256_file(artifact_path) != first_alert["artifact"]["sha256"]:
+                raise RuntimeError(f"{scope}/{cell} 首次告警分格制品摘要不符")
+            with np.load(artifact_path) as payload:
+                local_vectors = {name: payload[name] for name in payload.files}
+            for name, values in local_vectors.items():
+                vectors[f"{scope}__{cell}__{name}"] = values
+                if scope == "target":
+                    vectors[f"{cell}__{name}"] = values
+            summary = {
+                key: value for key, value in first_alert.items() if key != "artifact"
+            }
+            if scope == "source":
+                source_cells[cell] = summary
+            else:
+                cells[cell] = summary
+    artifact_path = output_root / "first-alert-timing-curves.npz"
+    artifact = save_npz_atomic(artifact_path, vectors)
+    artifact["filename"] = artifact_path.name
+    receipt = {
+        "schema_version": "ch3-first-alert-timing-v1",
+        "run_id": RUN_ID,
+        "axis": "exposure_index",
+        "axis_field_suffix": "exposure_index",
+        "rate_field_suffix": "timely_detection_rate",
+        "time_delay_available": False,
+        "curve_encoding": "right_continuous_exact_breakpoints",
+        "artifact": artifact,
+        "cells": cells,
+        "source_cells": source_cells,
+        "scopes": ["source", "target"],
+        "budget_count_per_cell": len(DR_FPR_GRID),
+        "persisted_per_flow_scores": False,
+        "persisted_per_entity_scores": False,
+        "persisted_per_entity_first_alert": False,
+    }
+    receipt_path = output_root / "first-alert-timing-receipt.json"
+    atomic_json(receipt_path, receipt)
+    return receipt, {
+        "receipt": {
+            "filename": receipt_path.name,
+            "bytes": receipt_path.stat().st_size,
+            "sha256": sha256_file(receipt_path),
+        },
+        "artifact": artifact,
+    }
+
+
+def build_manifest(output_root: Path) -> None:
+    legacy.RUN_ID = RUN_ID
+    legacy.build_manifest(output_root)
+    manifest_path = output_root / "manifest.json"
+    manifest = load_json(manifest_path)
+    manifest.get("files", {}).pop("manifest.json", None)
+    receipt_path = output_root / "first-alert-timing-receipt.json"
+    artifact_path = output_root / "first-alert-timing-curves.npz"
+    if receipt_path.is_file() and artifact_path.is_file():
+        receipt = load_json(receipt_path)
+        manifest["first_alert_aggregation"] = {
+            "schema_version": receipt["schema_version"],
+            "axis": receipt["axis"],
+            "time_delay_available": receipt["time_delay_available"],
+            "source_cell_count": len(receipt["source_cells"]),
+            "target_cell_count": len(receipt["cells"]),
+            "budget_count_per_cell": receipt["budget_count_per_cell"],
+            "curve_field_count": len(receipt["artifact"]["fields"]),
+            "receipt_sha256": sha256_file(receipt_path),
+            "artifact_sha256": sha256_file(artifact_path),
+            "persisted_per_flow_scores": False,
+            "persisted_per_entity_scores": False,
+            "persisted_per_entity_first_alert": False,
+        }
+    atomic_json(manifest_path, manifest)
 
 
 def verify_architecture_receipt(config: Mapping[str, Any]) -> dict[str, Any]:
@@ -1322,12 +1952,11 @@ def run_experiment(
     if target["X24"].shape != (20_227_356, 83):
         raise RuntimeError("LSPR24 冻结缓存形状不符")
     target_started = time.time()
-    cells, curves, evaluation_counts = legacy.evaluate_target(
+    cells, curves, evaluation_counts = evaluate_target(
         config,
         output_root,
         run_identity,
         selections,
-        "R2",
         capacity_key,
         target_inventory,
         target,
@@ -1351,6 +1980,9 @@ def run_experiment(
     }
     atomic_json(
         output_root / "complete-alert-budget-curves-receipt.json", curve_receipt
+    )
+    first_alert_receipt, first_alert_artifacts = publish_first_alert_bundle(
+        output_root, selections, cells
     )
     interaction: dict[str, Any] = {}
     for metric in (
@@ -1401,6 +2033,7 @@ def run_experiment(
             "counts": evaluation_counts,
         },
         "interaction": interaction,
+        "first_alert": first_alert_receipt,
         "isolation": {
             "all_source_cells_sealed_before_target_load": True,
             "target_disk_loads": 1,
@@ -1413,6 +2046,8 @@ def run_experiment(
             "all_epoch_checkpoints_persisted": True,
             "latest_complete_inflight_persisted": True,
             "complete_alert_budget_curve": curve_receipt,
+            "first_alert_timing": first_alert_artifacts,
+            "per_entity_first_alert_persisted": False,
         },
         "resource": {
             "source_training_wall_seconds": source_training_seconds,
@@ -1423,6 +2058,26 @@ def run_experiment(
             )
             / 3600.0,
             "peak_process_rss_mib": legacy.process_peak_rss_mib(),
+            "first_alert_aggregation": {
+                "axis": "exposure_index",
+                "budget_count_per_cell": len(DR_FPR_GRID),
+                "source_cell_count": len(CELL_ORDER),
+                "target_cell_count": len(CELL_ORDER),
+                "source_aggregation_seconds": sum(
+                    float(selections[cell]["source_first_alert"]["aggregation_seconds"])
+                    for cell in CELL_ORDER
+                ),
+                "target_aggregation_seconds": sum(
+                    float(cells[cell]["first_alert"]["aggregation_seconds"])
+                    for cell in CELL_ORDER
+                ),
+                "artifact_bytes": first_alert_artifacts["artifact"]["bytes"],
+                "curve_field_count": len(first_alert_artifacts["artifact"]["fields"]),
+                "temporary_state": "六档乘恶意实体数的int64首次曝光矩阵及每实体常数聚合状态",
+                "persisted_per_flow_scores": False,
+                "persisted_per_entity_scores": False,
+                "persisted_per_entity_first_alert": False,
+            },
             "launcher_admission_receipt": load_json(Path(args.resource_receipt))
             if args.resource_receipt
             else None,
@@ -1436,7 +2091,7 @@ def run_experiment(
         0,
         "固定 R2/容量的 BF16 源年选择与目标四格评价完成",
     )
-    legacy.build_manifest(output_root)
+    build_manifest(output_root)
 
 
 def publish_aggregate(config: Mapping[str, Any], args: argparse.Namespace) -> None:
@@ -1506,7 +2161,7 @@ def publish_aggregate(config: Mapping[str, Any], args: argparse.Namespace) -> No
     )
     legacy.RUN_ID = RUN_ID
     legacy.write_status(output_root, "complete", "finished", 0, "统一 BF16 聚合指标发布完成")
-    legacy.build_manifest(output_root)
+    build_manifest(output_root)
 
 
 def main() -> int:
