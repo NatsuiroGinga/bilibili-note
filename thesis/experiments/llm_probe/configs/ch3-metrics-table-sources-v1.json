@@ -109,7 +109,7 @@
 
     {"display_name": "XGBoost＋CPA-ELP", "root": "main", "available": true,
      "relative_path": "diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2/xgb_cpa_elp_results.json",
-     "source_schema": "xgb_cpa_elp", "cell": "C11",
+     "source_schema": "xgb_cpa_elp", "cell": "C11", "max_entity_ap_source_cell": "C10",
      "differentiable": false, "config_type": "本章机制外挂树集成", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
      "target_operational_overlay": {

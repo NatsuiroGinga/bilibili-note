@@ -29,6 +29,14 @@ PERFORMANCE_SCALAR_COLUMNS = [
     *(column for _, column in FPR_BUDGETS),
 ]
 
+ACTUAL_FPR_COLUMNS = [
+    f"actual_fpr_{source_key}" for source_key, _column in FPR_BUDGETS
+]
+
+FIRST_ALERT_ACTUAL_FPR_COLUMNS = [
+    f"first_alert_actual_fpr_{source_key}" for source_key, _column in FPR_BUDGETS
+]
+
 UNALERTED_RATE_COLUMNS = [
     f"unalerted_rate_{source_key}" for source_key, _ in FPR_BUDGETS
 ]
@@ -72,9 +80,11 @@ PARETO_COLUMNS = [
 
 TARGET_OPERATIONAL_FIELDS = [
     *PERFORMANCE_SCALAR_COLUMNS,
+    *ACTUAL_FPR_COLUMNS,
     "dr_curve_summary",
     "dr_curve_artifact",
     *FIRST_ALERT_COLUMNS,
+    *FIRST_ALERT_ACTUAL_FPR_COLUMNS,
     "_dr_curve_points",
     "_dr_actual_fpr_at_nominal_budget",
     "_first_alert_actual_fpr",
@@ -99,17 +109,21 @@ CANONICAL_COLUMNS = [
     "entity_ap",
     "max_entity_ap",
     *(column for _, column in FPR_BUDGETS),
+    *ACTUAL_FPR_COLUMNS,
     "dr_curve_summary",
     "dr_curve_artifact",
     *FIRST_ALERT_COLUMNS,
+    *FIRST_ALERT_ACTUAL_FPR_COLUMNS,
     "source_performance_pool",
     "source_flow_ap",
     "source_entity_ap",
     "source_max_entity_ap",
     *(f"source_{column}" for _, column in FPR_BUDGETS),
+    *(f"source_{column}" for column in ACTUAL_FPR_COLUMNS),
     "source_dr_curve_summary",
     "source_dr_curve_artifact",
     *(f"source_{column}" for column in FIRST_ALERT_COLUMNS),
+    *(f"source_{column}" for column in FIRST_ALERT_ACTUAL_FPR_COLUMNS),
     "model_scale",
     "parameter_count",
     *RESOURCE_METRIC_COLUMNS,
@@ -127,9 +141,11 @@ LSPR23_PERFORMANCE_COLUMNS = [
     "run_id",
     "evaluation_pool",
     *PERFORMANCE_SCALAR_COLUMNS,
+    *ACTUAL_FPR_COLUMNS,
     "dr_curve_summary",
     "dr_curve_artifact",
     *FIRST_ALERT_COLUMNS,
+    *FIRST_ALERT_ACTUAL_FPR_COLUMNS,
     "evidence_level",
     "source_path",
     "pending_reason",
@@ -167,9 +183,11 @@ LSPR24_COLUMNS = [
     "entity_ap",
     "max_entity_ap",
     *(column for _, column in FPR_BUDGETS),
+    *ACTUAL_FPR_COLUMNS,
     "dr_curve_summary",
     "dr_curve_artifact",
     *FIRST_ALERT_COLUMNS,
+    *FIRST_ALERT_ACTUAL_FPR_COLUMNS,
     "evidence_level",
     "source_path",
     "pending_reason",
@@ -216,6 +234,12 @@ COLUMN_LABELS = {
     "dr_fpr_0.02": "DR@2%FPR",
     "dr_fpr_0.04": "DR@4%FPR",
     "dr_fpr_0.08": "DR@8%FPR",
+    "actual_fpr_fpr_0.001": "0.1%名义预算终端实际FPR",
+    "actual_fpr_fpr_0.005": "0.5%名义预算终端实际FPR",
+    "actual_fpr_fpr_0.01": "1%名义预算终端实际FPR",
+    "actual_fpr_fpr_0.02": "2%名义预算终端实际FPR",
+    "actual_fpr_fpr_0.04": "4%名义预算终端实际FPR",
+    "actual_fpr_fpr_0.08": "8%名义预算终端实际FPR",
     "dr_curve_summary": "完整曲线摘要",
     "dr_curve_artifact": "完整曲线制品",
     "unalerted_rate_fpr_0.001": "0.1%FPR未告警率",
@@ -230,6 +254,12 @@ COLUMN_LABELS = {
     "time_delay_available": "真实秒时延可用",
     "first_alert_delay_summary": "首次告警延迟摘要",
     "first_alert_definition": "首次告警定义",
+    "first_alert_actual_fpr_fpr_0.001": "0.1%名义预算首次告警实际FPR",
+    "first_alert_actual_fpr_fpr_0.005": "0.5%名义预算首次告警实际FPR",
+    "first_alert_actual_fpr_fpr_0.01": "1%名义预算首次告警实际FPR",
+    "first_alert_actual_fpr_fpr_0.02": "2%名义预算首次告警实际FPR",
+    "first_alert_actual_fpr_fpr_0.04": "4%名义预算首次告警实际FPR",
+    "first_alert_actual_fpr_fpr_0.08": "8%名义预算首次告警实际FPR",
     "model_scale": "模型规模",
     "parameter_count": "参数量",
     "scale_value": "规模数值",
@@ -624,6 +654,33 @@ ADAPTERS: dict[str, Callable[[dict[str, Any], str], dict[str, Any] | None]] = {
 }
 
 
+def _apply_xgb_max_entity_counterfactual(
+    result: dict[str, Any],
+    document: dict[str, Any],
+    main_cell: str,
+    max_cell: str,
+) -> None:
+    main = document.get("cells", {}).get(main_cell)
+    maximum = document.get("cells", {}).get(max_cell)
+    if not isinstance(main, dict) or not isinstance(maximum, dict):
+        raise ValueError("XGBoost最大池化反事实缺少主单元或对照单元")
+    if not (
+        main.get("input_view") == maximum.get("input_view") == "semantic168"
+        and main.get("flow_ap") == maximum.get("flow_ap")
+        and main.get("mech2_power_mean") is True
+        and main.get("p") == 1.0
+        and maximum.get("mech2_power_mean") is False
+        and maximum.get("p") is None
+    ):
+        raise ValueError("XGBoost最大池化反事实没有复现同一semantic168逐流分数合同")
+    maximum_entity_ap = maximum.get("ent_ap")
+    if not isinstance(maximum_entity_ap, (int, float)) or isinstance(
+        maximum_entity_ap, bool
+    ):
+        raise ValueError("XGBoost最大池化反事实缺少实体AP")
+    result["max_entity_ap"] = maximum_entity_ap
+
+
 def read_source(root_path: str, model_entry: dict[str, Any]) -> dict[str, Any] | None:
     """读取单个JSON来源，并用配置指定的模式适配为统一字段。"""
     relative_path = model_entry.get("relative_path")
@@ -638,7 +695,17 @@ def read_source(root_path: str, model_entry: dict[str, Any]) -> dict[str, Any] |
         document = json.loads(source_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
-    return adapter(document, cell) if isinstance(document, dict) else None
+    if not isinstance(document, dict):
+        return None
+    result = adapter(document, cell)
+    max_cell = model_entry.get("max_entity_ap_source_cell")
+    if (
+        result is not None
+        and model_entry.get("source_schema") == "xgb_cpa_elp"
+        and isinstance(max_cell, str)
+    ):
+        _apply_xgb_max_entity_counterfactual(result, document, str(cell), max_cell)
+    return result
 
 
 def _sha256(path: Path) -> str:
@@ -809,8 +876,6 @@ def _apply_complete_curve(
         int(budget): float(rate)
         for budget, rate in zip(negative_budget, detection_rate, strict=True)
     }
-    if not derive_dr_from_curve:
-        return
     actual_fpr_at_nominal_budget: dict[str, float] = {}
     for source_key, column in FPR_BUDGETS:
         nominal_budget = float(source_key.removeprefix("fpr_"))
@@ -822,10 +887,12 @@ def _apply_complete_curve(
         if not eligible:
             continue
         closest_fpr = max(actual_fpr for actual_fpr, _rate in eligible)
-        result[f"{scope_prefix}{column}"] = max(
-            rate for actual_fpr, rate in eligible if actual_fpr == closest_fpr
-        )
         actual_fpr_at_nominal_budget[source_key] = closest_fpr
+        result[f"{scope_prefix}actual_fpr_{source_key}"] = closest_fpr
+        if derive_dr_from_curve:
+            result[f"{scope_prefix}{column}"] = max(
+                rate for actual_fpr, rate in eligible if actual_fpr == closest_fpr
+            )
     result[f"_{scope_prefix}dr_actual_fpr_at_nominal_budget"] = actual_fpr_at_nominal_budget
     if expose_actual_fpr_in_summary:
         serialized = json.dumps(
@@ -979,6 +1046,9 @@ def _apply_first_alert(
     result[f"{scope_prefix}time_delay_available"] = time_delay_available
     for source_key, _column in FPR_BUDGETS:
         result[f"{scope_prefix}unalerted_rate_{source_key}"] = unalerted[source_key]
+        result[f"{scope_prefix}first_alert_actual_fpr_{source_key}"] = (
+            actual_fpr_by_budget[source_key]
+        )
     result[f"{scope_prefix}timely_detection_curve_summary"] = (
         f"六档名义预算均保留实际可达FPR与按时检出累计曲线；横轴={axis}；各档均含未告警实体"
     )
@@ -1481,7 +1551,11 @@ def _apply_target_operational_overlay(
                 raise _OperationalOverlayIncomplete(f"XGBoost覆盖缺少单元：{cell}")
             candidate["flow_ap"] = metrics.get("flow_average_precision")
             candidate["entity_ap"] = metrics.get("entity_average_precision")
-            candidate["max_entity_ap"] = metrics.get("maximum_entity_average_precision")
+            overlay_max_entity_ap = metrics.get("maximum_entity_average_precision")
+            if isinstance(overlay_max_entity_ap, (int, float)) and not isinstance(
+                overlay_max_entity_ap, bool
+            ):
+                candidate["max_entity_ap"] = overlay_max_entity_ap
             if not (
                 curve_receipt.get("curve_is_complete_over_all_reachable_negative_entity_budgets")
                 is True
@@ -1632,6 +1706,10 @@ def _default_missing_reason(column: str, row: dict[str, Any]) -> str:
     }
     if column.startswith("dr_fpr_"):
         return "原始来源未持久化该FPR工作点"
+    if column.startswith("actual_fpr_fpr_"):
+        return "原始来源未持久化该名义预算对应的终端实际可达FPR，禁止从名义预算反推"
+    if column.startswith("first_alert_actual_fpr_fpr_"):
+        return "原始来源未持久化该名义预算对应的首次告警实际FPR，禁止从终端FPR反推"
     if column.startswith("unalerted_rate_fpr_"):
         return "原始来源未持久化该预算的未告警率，禁止从DR反推"
     return reasons.get(column, "原始来源未持久化该字段")
@@ -1649,9 +1727,11 @@ def _fill_missing_reasons(row: dict[str, Any]) -> None:
         "entity_ap",
         "max_entity_ap",
         *(column for _, column in FPR_BUDGETS),
+        *ACTUAL_FPR_COLUMNS,
         "dr_curve_summary",
         "dr_curve_artifact",
         *FIRST_ALERT_COLUMNS,
+        *FIRST_ALERT_ACTUAL_FPR_COLUMNS,
         "model_scale",
         "parameter_count",
         *RESOURCE_METRIC_COLUMNS,
@@ -1664,9 +1744,11 @@ def _fill_missing_reasons(row: dict[str, Any]) -> None:
     }
     source_fields = [
         *PERFORMANCE_SCALAR_COLUMNS,
+        *ACTUAL_FPR_COLUMNS,
         "dr_curve_summary",
         "dr_curve_artifact",
         *FIRST_ALERT_COLUMNS,
+        *FIRST_ALERT_ACTUAL_FPR_COLUMNS,
     ]
     row["source_performance_missing_reasons"] = {
         column: _default_missing_reason(column, row)
@@ -1780,9 +1862,11 @@ def _source_performance_row(row: dict[str, Any]) -> dict[str, Any]:
     projected["evaluation_pool"] = row.get("source_performance_pool")
     for column in [
         *PERFORMANCE_SCALAR_COLUMNS,
+        *ACTUAL_FPR_COLUMNS,
         "dr_curve_summary",
         "dr_curve_artifact",
         *FIRST_ALERT_COLUMNS,
+        *FIRST_ALERT_ACTUAL_FPR_COLUMNS,
     ]:
         projected[column] = row.get(f"source_{column}")
     projected["missing_reasons"] = dict(row.get("source_performance_missing_reasons", {}))
@@ -2062,6 +2146,7 @@ def _render_markdown(name: str, rows: list[dict[str, Any]], columns: list[str]) 
     axis_notes = []
     if name in {"lspr23-performance", "lspr24-evaluation"}:
         axis_notes = [
+            "- 每个名义预算分别公开终端实体分数实际FPR与首次告警实际FPR；二者不得互相替代或由名义预算反推。",
             "- 首次告警帕累托只在相同横轴内比较；实体内曝光序号与真实秒时延不得混排。",
             "- 曝光序号轴可在真实秒时延不可用时参与同轴比较，但必须明确保留真实秒时延不可用。",
         ]
