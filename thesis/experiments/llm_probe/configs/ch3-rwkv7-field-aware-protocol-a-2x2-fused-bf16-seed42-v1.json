@@ -1,0 +1,197 @@
+{
+  "schema_version": "ch3-rwkv7-k0-fused-protocol-a-bf16-config-v1",
+  "run_id": "ch3-rwkv7-field-aware-protocol-a-2x2-fused-bf16-seed42-v1",
+  "display_name": "RWKV-7任务化R2-K0 CUDA融合数值变体BF16协议A四格正式资格",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-field-aware-protocol-a-2x2-fused-bf16-seed42-v1",
+    "extension_build_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-field-aware-protocol-a-2x2-fused-bf16-seed42-v1/torch-extensions"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24", "t24"],
+  "target_year_arrays_read_before_source_cells_frozen": 0,
+  "architecture_selection": {
+    "source_run_id": "ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-rerun1",
+    "source_precision": "float32",
+    "capacity_receipt_path": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-rerun1/capacity_selection_frozen.json",
+    "capacity_receipt_sha256": null,
+    "required_adapter": "R2",
+    "selected_adapter": "R2",
+    "selected_capacity": null,
+    "precision_changed_after_architecture_selection": true,
+    "bf16_architecture_search_repeated": false,
+    "target_metrics_allowed_for_architecture_resolution": false
+  },
+  "precision": {
+    "contract_path": "configs/neural-precision-profiles-v1.json",
+    "profile_id": "cuda-bf16-amp-fp32-sensitive-v1",
+    "parameter_dtype": "float32",
+    "optimizer_state_dtype": "float32",
+    "scaler": null,
+    "activation_checkpointing": false
+  },
+  "input_contract": {
+    "flow_count_23": 16353511,
+    "sequence_count_23": 271815,
+    "entity_count_23": 150680,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "train_sequences": 208598,
+    "validation_sequences": 22444,
+    "flow_count_24": 20227356,
+    "entity_count_24": 47115,
+    "positive_entity_count_24": 752
+  },
+  "cells": {
+    "C00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "C01": {"causal_prefix_aggregation": false, "learned_lp_pooling": true},
+    "C10": {"causal_prefix_aggregation": true, "learned_lp_pooling": false},
+    "C11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "candidate": {
+    "family": "RWKV-7_Goose_task_derived_K0",
+    "official_repository": "BlinkDL/RWKV-LM",
+    "official_source_commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+    "official_license": "Apache-2.0",
+    "operator_backend": "rwkv7_k0_cuda_fused",
+    "state_dtype": "float32",
+    "state_scope": "within_sequence_only",
+    "channel_mix_used": false,
+    "complete_official_rwkv": false,
+    "payload_tokens_used": false,
+    "images_used": false
+  },
+  "capacities": {
+    "K0": {
+      "name": "R2-K0任务化单层TimeMix CUDA融合正式资格",
+      "hidden_size": 112,
+      "head_size": 16,
+      "lora_size": 8,
+      "time_mix_layers": 1,
+      "structure": "legacy_single_time_mix",
+      "r2_parameter_count": 104274
+    }
+  },
+  "cuda_fused_variant": {
+    "operator_backend": "rwkv7_k0_cuda_fused",
+    "upstream_repository": "https://github.com/BlinkDL/RWKV-LM",
+    "upstream_commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+    "license": "Apache-2.0",
+    "head_size": 16,
+    "channels": 112,
+    "sequence_length": 128,
+    "input_dtype": "bfloat16",
+    "output_dtype": "bfloat16",
+    "gradient_dtype": "bfloat16",
+    "state_dtype": "float32",
+    "derived_scope": {
+      "input_adapter": "R2_field_aware_projection",
+      "time_mix": "single_K0_RWKV7_TimeMix",
+      "channel_mix_used": false,
+      "complete_official_rwkv": false
+    },
+    "disclosure": {
+      "transparent_replacement_eligible": false,
+      "independent_numeric_variant_authorized": true,
+      "user_authorization_is_effect_evidence": false,
+      "checkpoint_compatibility": "same_cuda_fused_variant_only"
+    },
+    "benchmark_receipt_path": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-k0-fused-equivalence-speed-v1/eligibility.json",
+    "benchmark_receipt_sha256": null,
+    "benchmark_facts": {
+      "synthetic_equivalence_passed": true,
+      "lspr23_first_batch_equivalence_passed": true,
+      "selection_metric_absolute_delta": 0.004199787,
+      "throughput_ratio_fused_over_pytorch": 8.668993,
+      "peak_reserved_memory_ratio_fused_over_pytorch": 1.099476,
+      "eligible_for_new_training_identity": false
+    },
+    "files": {
+      "backend_module": {"path": "tools/rwkv7_k0_fused_backend.py", "sha256": "cbbf9739e6f17237d428cdc4a25ddd43419ee5d7ef606d715cd344d5620c6a9b"},
+      "benchmark_tool": {"path": "tools/ch3_rwkv7_k0_fused_benchmark.py", "sha256": "f6c873363907cdb7ca4f3f8bb934b471081e34e5a24c94d72ff54a21745d0243"},
+      "benchmark_config": {"path": "configs/ch3-rwkv7-k0-fused-benchmark-v1.json", "sha256": "9c5f30157eac37c70ce8ddbe15c9b6f74c6cf17b137ec4f9c7ef58c4233e9c23"},
+      "vendor_manifest": {"path": "vendor/rwkv7_k0_fused/manifest.json", "sha256": "6a94d3ed057558457033bd78060928745e7dba020ddffe07b4d51e97a59425d6"},
+      "derived_cpp": {"path": "vendor/rwkv7_k0_fused/derived/rwkv7_k0_clampw.cpp", "sha256": "0fe48181d324f0b8a8e7d5839fbac28a734bdc2aec043efe090d571039f96015"},
+      "upstream_cuda": {"path": "vendor/rwkv7_k0_fused/upstream/rwkv7_clampw.cu", "sha256": "a879dd478457290ebe793a10fcd0c1b93db1e1afb9d51ff8f8f1245a0146bbfb"},
+      "license": {"path": "vendor/rwkv7_k0_fused/LICENSE", "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"},
+      "pure_pytorch_anchor": {"path": "tools/ch3_rwkv7_field_aware_protocol_a_2x2_bf16.py", "sha256": "4471ed1b10cefda3e668d7c9d281ac635c51d8e7ab6c87f09de26498c6cfd27e"}
+    }
+  },
+  "training": {
+    "seed": 42,
+    "effective_batch_sequences": 64,
+    "microbatch_sequences": 8,
+    "accumulation_steps": 8,
+    "flow_normalization_unit": "flow",
+    "auxiliary_normalization_unit": "sequence",
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.002,
+    "w0_learning_rate_scale": 2.0,
+    "weight_decay": 0.01,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "dropout": 0.1,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "actual_parallelism": 1,
+    "checkpoint_interval_optimizer_steps": 20,
+    "precision_profile_id": "cuda-bf16-amp-fp32-sensitive-v1"
+  },
+  "evaluation": {
+    "selection_metric": "lspr23_entity_disjoint_validation_flow_average_precision",
+    "selection_rule": "maximum_validation_flow_ap_then_earliest_epoch",
+    "sequence_batch_size": 512,
+    "target_year": "LSPR24",
+    "target_previously_accessed": true,
+    "independent_test": false,
+    "target_load_after_all_source_cells_sealed": true,
+    "target_evaluation_calls": 4,
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_reachable_alert_budget_curve": true
+  },
+  "first_alert_contract": {
+    "budgets": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "threshold_semantics": "same_complete_tied_score_group_greater_equal",
+    "online_entity_score": {
+      "maximum_pool_cells": ["C00", "C10"],
+      "prefix_lp_mean_cells": ["C01", "C11"]
+    },
+    "axis": "exposure_index",
+    "curve_encoding": "right_continuous_exact_breakpoints",
+    "quantiles": [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0],
+    "denominator": "all_positive_entities_in_evaluation_pool",
+    "time_delay_available": false,
+    "time_delay_unavailable_reason": "现有T23与t24是mTimestampStart而非完整流available_ns，禁止猜测时间单位或合法可观测时刻",
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_per_entity_first_alert": false
+  },
+  "field_contract": {
+    "feature_count": 83,
+    "canonical_sha256": "e622f059d2295c8740daeb7d29fe92761c68c17a78b3d57ad65821d9137f105d"
+  },
+  "artifact_policy": {
+    "persist_all_epoch_checkpoints": true,
+    "persist_latest_complete_inflight": true,
+    "delete_inflight_after_completion": false,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_split_member_arrays": false
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_gib": 20,
+    "minimum_cgroup_available_memory_gib": 40,
+    "minimum_free_disk_gib": 25,
+    "maximum_parallel_training_units": 1,
+    "first_complete_optimizer_step_receipt": true,
+    "wall_clock_limit": null
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch3-rwkv7-field-aware-protocol-a-2x2-fused-bf16-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "rwkv7", "task-derived", "r2-k0", "cuda-fused-numeric-variant", "protocol-a", "bf16", "seed42"]
+  }
+}
