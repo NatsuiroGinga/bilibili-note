@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""TabM32 骨干专属论文配方协议 A 四格实验工具（任务 1 至 2）。
+"""TabM32 骨干专属论文配方协议 A 四格实验工具（任务 1 至 4）。
 
 本文件目前实现：
 
@@ -7,15 +7,23 @@
 - 任务 2：字段基数收据消费 ``load_cardinality_receipt``、参数量闭式
   ``expected_parameter_count``，以及两个输入接口候选的拟合与应用
   ``fit_input_transform`` / ``InputTransform``。
+- 任务 3：三层 BatchEnsemble 骨干 ``LinearBatchEnsemble`` / ``TabM32Backbone``
+  与两个机制开关（因果前缀聚合、实体级可学幂平均池化）的边界断言。
+- 任务 4：梯度累积训练循环 ``train_cell``、协议 A 源年切分 ``source_split``
+  与逐轮最早最大验证逐流 AP 的检查点选择。
 
-``select-input``、``select-optimizer``、``cells``、``evaluate`` 四个阶段的训练与
-评价逻辑将由后续任务（骨干、训练循环、断点恢复、封印与评价、启动器）继续叠加，
-本文件只为它们预留分发位置，不预先实现。
+``select-input``、``select-optimizer``、``cells``、``evaluate`` 四个阶段的编排、
+断点恢复、选择封印与目标年评价由后续任务继续叠加，本文件只为它们预留分发位置。
+
+精度合同：本运行走 RTX 5090 神经训练默认配置 ``cuda-bf16-amp-fp32-sensitive-v1``
+（BF16 autocast、参数与优化器状态保持 FP32、敏感计算进 FP32 岛、不用 GradScaler），
+经 ``tools/neural_precision_runtime.py`` 接入，不自建第二套精度、累积或收据实现。
 
 按仓库规则，numpy、scikit-learn 与 torch 的导入一律延迟到真正需要它们的函数内部：
-``--validate-config`` 只做纯 Python 字典/字符串比对，不应因为本机 ``.venv`` 缺少
-这些依赖而失败。模块顶层因此只导入
+``--validate-config`` 只做纯 Python 字典/字符串比对与纯标准库的精度合同校验，
+不应因为本机 ``.venv`` 缺少这些依赖而失败。模块顶层因此只导入
 ``argparse``、``json``、``logging``、``sys``、``pathlib``、``typing``。
+``neural_precision_runtime`` 只依赖标准库，但仍按同一纪律延迟导入。
 """
 
 from __future__ import annotations
@@ -28,6 +36,12 @@ from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+# 允许以 `python tools/ch3_tabm32_paper_recipe_protocol_a.py` 之外的方式调用时
+# 仍能找到同目录的 neural_precision_runtime，与仓库既有工具同一写法。
+TOOL_DIR = Path(__file__).resolve().parent
+if str(TOOL_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOL_DIR))
 
 # ---------------------------------------------------------------------------
 # 运行身份与协议 A 冻结常量
@@ -101,6 +115,37 @@ OPTIMIZER_CANDIDATES: tuple[dict[str, Any], ...] = (
 
 # 命令行 --stage 的合法取值，对应后续任务要补全的四个执行阶段。
 STAGE_CHOICES: tuple[str, ...] = ("select-input", "select-optimizer", "cells", "evaluate")
+
+# ---------------------------------------------------------------------------
+# 精度合同接入常量（2026-08-21 Codex 裁定的 RTX 5090 神经训练默认配置）
+# ---------------------------------------------------------------------------
+
+# 依据：thesis/experiments/llm_probe/AGENTS.md「PyTorch 训练与显存」条，
+# 合同定义见 configs/neural-precision-profiles-v1.json，运行时实现见
+# tools/neural_precision_runtime.py。本运行不走 FP32 或 FP16 例外。
+PRECISION_PROFILE_ID = "cuda-bf16-amp-fp32-sensitive-v1"
+PRECISION_CONTRACT_FILENAME = "neural-precision-profiles-v1.json"
+
+# 有效批的对象单位是序列，损失归一化单位是流；与精度合同 integration_example
+# 中登记的 N-12 数值（有效批 64 序列、微批 4 序列、累积 16、按流归一化）一致。
+EFFECTIVE_BATCH_ITEM_UNIT = "sequence"
+NORMALIZATION_UNIT = "flow"
+
+# 各计算类型的元素字节数，用于按精度合同而不是写死 4 字节来预算展开张量。
+PRECISION_DTYPE_BYTES: dict[str, int] = {"bfloat16": 2, "float16": 2, "float32": 4}
+
+# 主机侧 InputTransform.apply 的输出恒为 float32，与设备端计算类型无关。
+HOST_FEATURE_DTYPE_BYTES = 4
+
+# 与既有协议 A 工具逐字一致的源年形状身份，供训练前机械断言。
+LSPR23_SEQUENCE_COUNT = 271_815
+PROTOCOL_A_SEQUENCE_LENGTH = 128
+PROTOCOL_A_SPLIT_STATISTICS: dict[str, int] = {
+    "entity_count": 150_680,
+    "train_sequences": 208_598,
+    "validation_sequences": 22_444,
+    "train_validation_row_intersection": 0,
+}
 
 # ---------------------------------------------------------------------------
 # validate_config 内部使用的冻结期望值（不对外导出，只服务本函数）
@@ -205,6 +250,104 @@ _EXPECTED_SWANLAB: dict[str, Any] = {
 
 
 # ---------------------------------------------------------------------------
+# 精度合同接入（复用 tools/neural_precision_runtime.py，不另写一套）
+# ---------------------------------------------------------------------------
+
+
+def _precision_module() -> Any:
+    """延迟导入共享精度脚手架。
+
+    该模块只依赖标准库，本函数仍延迟导入以保持模块顶层导入清单稳定。
+    """
+    import neural_precision_runtime
+
+    return neural_precision_runtime
+
+
+def precision_contract_path() -> Path:
+    """默认精度合同路径：与本工具同仓库的 ``configs/neural-precision-profiles-v1.json``。"""
+    return TOOL_DIR.parent / "configs" / PRECISION_CONTRACT_FILENAME
+
+
+def load_precision_contract(path: Path | None = None) -> dict[str, Any]:
+    """加载并校验精度合同；不需要安装 PyTorch。"""
+    module = _precision_module()
+    resolved = path or precision_contract_path()
+    contract = module.load_and_validate_contract(resolved)
+    if contract["default_profile"] != PRECISION_PROFILE_ID:
+        raise ValueError(
+            f"精度合同默认配置为 {contract['default_profile']}，与本运行冻结的 {PRECISION_PROFILE_ID} 不符"
+        )
+    return contract
+
+
+def resolve_precision_profile(
+    device_type: str, torch_module: Any, contract: dict[str, Any] | None = None
+) -> tuple[dict[str, Any], dict[str, Any], str]:
+    """核验真实设备能力后返回 ``(合同, 精度配置, 配置标识)``。
+
+    ``profile_for_device`` 只在非 CUDA 设备上返回回退标识；CUDA 无 BF16 时不静默降级，
+    而是由 ``validate_runtime_profile`` 抛错，要求显式改走 FP16 回退并留硬件收据。
+    本运行按合同只接受 CUDA BF16 默认配置。
+    """
+    module = _precision_module()
+    resolved_contract = contract or load_precision_contract()
+    profile_id = module.profile_for_device(resolved_contract, device_type)
+    if profile_id != PRECISION_PROFILE_ID:
+        raise RuntimeError(
+            f"设备类型 {device_type} 解析出的精度配置为 {profile_id}，"
+            f"本运行只接受 {PRECISION_PROFILE_ID}；非 CUDA 或无 BF16 的环境须先取得显式例外收据"
+        )
+    profile = module.validate_runtime_profile(
+        resolved_contract, profile_id, device_type, torch_module
+    )
+    logger.info(
+        "精度配置已核验：%s（计算类型=%s，autocast=%s，GradScaler=%s，参数=%s，优化器状态=%s）",
+        profile_id, profile["compute_dtype"], profile["autocast"], profile["grad_scaler"],
+        profile["parameter_dtype"], profile["optimizer_state_dtype"],
+    )
+    return resolved_contract, profile, profile_id
+
+
+def compute_dtype_bytes(profile: dict[str, Any]) -> int:
+    """按精度配置登记的计算类型返回元素字节数，不写死 4 字节。"""
+    dtype_name = profile["compute_dtype"]
+    if dtype_name not in PRECISION_DTYPE_BYTES:
+        raise ValueError(f"精度配置登记了未核验的计算类型：{dtype_name}")
+    return PRECISION_DTYPE_BYTES[dtype_name]
+
+
+def tensor_upper_bounds(config: dict[str, Any], output_dimension: int, profile: dict[str, Any]) -> dict[str, int]:
+    """按真实展开维度乘积给出单微批张量上界，不按参数量估算。
+
+    冻结配方第 150 行登记的两个量在此重算：隐藏张量 ``4×128×32×512×4 = 32 MiB``、
+    因果前缀拼接 ``64 MiB``。这两个量按 FP32 登记（配方冻结时的口径），
+    autocast 只把矩阵乘输入下转为计算类型，逐元素缩放与 FP32 岛内的归约仍是 FP32，
+    因此 FP32 口径是保守上界，计算类型口径是矩阵乘输入的实际副本大小，两者都记录。
+    """
+    candidate = config["candidate"]
+    training = config["training"]
+    micro_batch = candidate["micro_batch_sequences"]
+    members = candidate["ensemble_members"]
+    hidden_size = candidate["hidden_size"]
+    length = training["sequence_length"]
+    element_bytes = compute_dtype_bytes(profile)
+
+    host_dense_bytes = micro_batch * length * output_dimension * HOST_FEATURE_DTYPE_BYTES
+    expanded_elements = micro_batch * members * length * output_dimension
+    hidden_elements = micro_batch * members * length * hidden_size
+    return {
+        "micro_batch_host_dense_input_bytes": host_dense_bytes,
+        "micro_batch_device_expanded_input_bytes": expanded_elements * element_bytes,
+        "micro_batch_device_expanded_input_fp32_bytes": expanded_elements * HOST_FEATURE_DTYPE_BYTES,
+        "hidden_tensor_bytes": hidden_elements * HOST_FEATURE_DTYPE_BYTES,
+        "hidden_tensor_compute_dtype_bytes": hidden_elements * element_bytes,
+        "causal_prefix_concat_bytes": 2 * hidden_elements * HOST_FEATURE_DTYPE_BYTES,
+        "compute_dtype_bytes": element_bytes,
+    }
+
+
+# ---------------------------------------------------------------------------
 # 配置校验
 # ---------------------------------------------------------------------------
 
@@ -296,6 +439,32 @@ def validate_config(config: dict[str, Any]) -> None:
         resource_contract.get("pending_reason"),
     )
 
+    if config.get("precision_profile_id") != PRECISION_PROFILE_ID:
+        raise ValueError(
+            f"precision_profile_id 必须为 {PRECISION_PROFILE_ID}："
+            "本运行按 RTX 5090 神经训练默认精度配置执行，FP32 与 FP16 只作有收据的显式例外"
+        )
+    if "precision_pending_ruling" in config:
+        raise ValueError(
+            "precision_pending_ruling 必须删除：精度冲突已由 Codex 裁定为 BF16 默认配置，"
+            "配置中不得再保留待裁字段"
+        )
+    # 只做纯标准库的合同校验，不导入 torch，保证 --validate-config 在无 GPU 开发机可跑。
+    contract = load_precision_contract()
+    profile = _precision_module().get_profile(contract, PRECISION_PROFILE_ID)
+    if profile["compute_dtype"] != "bfloat16" or profile["grad_scaler"] is not False:
+        raise ValueError("精度配置不是 BF16 且不使用 GradScaler 的默认配置")
+    example = contract["integration_example"]
+    if (
+        example["effective_batch_items"] != training["effective_batch_size"]
+        or example["microbatch_items"] != candidate["micro_batch_sequences"]
+        or example["accumulation_steps"] != candidate["gradient_accumulation_steps"]
+    ):
+        raise ValueError(
+            "精度合同 integration_example 登记的 N-12 批量与本配置不符；"
+            "有效批、微批与累积次数以本配置为准，须先修正合同再运行"
+        )
+
     if config.get("swanlab") != _EXPECTED_SWANLAB:
         raise ValueError("swanlab 上报身份合同不符")
 
@@ -341,6 +510,12 @@ QUANTILE_LANDMARK_MINIMUM = 10
 # 生成拟合噪声时的单次抽取元素数，只为把 float64 临时缓冲限制在 32 MiB 以内；
 # 已实测分块抽取与一次性抽取的随机流逐位相同，因此不改变数值结果。
 QUANTILE_NOISE_CHUNK_ELEMENTS = 4_194_304
+
+# 组装式变换器的实现漂移绊线，不是科学阈值。推导：地标数为 n 时中位数附近一格地标的
+# 概率间距为 1/(n-1)；标准正态分位函数在 p=0.5 处斜率为 sqrt(2*pi)≈2.5066，
+# 故 n=1000 时插值位移的解析上界约 2.5e-3。下列容差约为该上界的 40 倍，
+# 只在 sklearn 行为实质改变（输出分布变更、网格转置、私有属性语义变化）时触发。
+QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE = 0.1
 
 
 def expected_parameter_count(input_dimension: int) -> int:
@@ -482,19 +657,42 @@ def project_input_dimension(candidate_key: str, receipt: dict[str, Any], config:
     else:
         raise ValueError(f"未知输入候选：{candidate_key}")
 
-    training = config["training"]
-    micro_batch = config["candidate"]["micro_batch_sequences"]
-    dense_bytes = micro_batch * training["sequence_length"] * output_dimension * 4
+    # 张量上界必须区分两个量，不能合并成一个含糊的「稠密输入」：
+    #   1) 主机侧 InputTransform.apply 产出的单微批矩阵是 (micro_batch*T, d)，不含成员维；
+    #   2) 进第一层 BatchEnsemble 之前必须按成员数复制成 N×k×T×d，成员维在第 1 轴
+    #      （LinearBatchEnsemble.forward 的 values * r.unsqueeze(0).unsqueeze(2) 要求如此）。
+    # 此前只算第 1 个量并当作显存可行性依据，对 32 成员低估 32 倍，属实测确认的缺陷。
+    profile = _precision_module().get_profile(load_precision_contract(), PRECISION_PROFILE_ID)
+    bounds = tensor_upper_bounds(config, output_dimension, profile)
     projection = {
         "candidate_key": candidate_key,
         "output_dimension": output_dimension,
         "vocabulary_widths": vocabulary_widths,
         "parameter_count": expected_parameter_count(output_dimension),
-        "micro_batch_dense_input_bytes": dense_bytes,
+        "ensemble_members": config["candidate"]["ensemble_members"],
+        "precision_profile_id": PRECISION_PROFILE_ID,
+        "tensor_upper_bounds": bounds,
+        # 保留两个显式键名，便于收据与日志逐字对表。
+        "micro_batch_host_dense_input_bytes": bounds["micro_batch_host_dense_input_bytes"],
+        "micro_batch_device_expanded_input_bytes": bounds["micro_batch_device_expanded_input_bytes"],
     }
     logger.info(
-        "输入维预算 %s：输出维=%d，参数量=%d，单微批稠密输入=%.2f MiB",
-        candidate_key, output_dimension, projection["parameter_count"], dense_bytes / 1024 / 1024,
+        "输入维预算 %s：输出维=%d，参数量=%d，成员数=%d",
+        candidate_key, output_dimension, projection["parameter_count"],
+        projection["ensemble_members"],
+    )
+    logger.info(
+        "单微批主机稠密输入（无成员维，float32）=%.2f MiB；"
+        "单微批设备展开输入（含成员维，%s）=%.2f MiB，FP32 保守口径=%.2f MiB",
+        bounds["micro_batch_host_dense_input_bytes"] / 1024 / 1024,
+        profile["compute_dtype"],
+        bounds["micro_batch_device_expanded_input_bytes"] / 1024 / 1024,
+        bounds["micro_batch_device_expanded_input_fp32_bytes"] / 1024 / 1024,
+    )
+    logger.info(
+        "隐藏张量上界=%.2f MiB，因果前缀拼接上界=%.2f MiB（均按 FP32 保守口径）",
+        bounds["hidden_tensor_bytes"] / 1024 / 1024,
+        bounds["causal_prefix_concat_bytes"] / 1024 / 1024,
     )
     if vocabulary_widths:
         logger.info("各离散字段独热块宽度（含越界桶）：%s", vocabulary_widths)
@@ -534,6 +732,7 @@ class InputTransform:
         boolean_field_names: tuple[str, ...],
         boolean_feature_indices: tuple[int, ...],
         boolean_true_values: tuple[float, ...],
+        boolean_false_values: tuple[float, ...],
     ) -> None:
         self.candidate_key = candidate_key
         self.output_dimension = output_dimension
@@ -549,6 +748,12 @@ class InputTransform:
         self.boolean_field_names = boolean_field_names
         self.boolean_feature_indices = boolean_feature_indices
         self.boolean_true_values = boolean_true_values
+        self.boolean_false_values = boolean_false_values
+        # 诊断计数器，不属于冻结状态，也不参与 state_hash：布尔列只有 2 列冻结维、
+        # 没有越界桶，训练区未见的第三取值与 NaN 都会被静默记 0。这里累计吸收次数，
+        # 使目标年分布漂移可被发现而不是无声并入「假」类。
+        self.boolean_absorption_counts: dict[str, int] = {name: 0 for name in boolean_field_names}
+        self._boolean_absorption_warned: set[str] = set()
 
     def apply(self, values: Any) -> Any:
         """把 ``(n, 83)`` 的 float32 原值批变换为 ``(n, output_dimension)`` 的 float32。
@@ -587,7 +792,22 @@ class InputTransform:
 
         for slot, index in enumerate(self.boolean_feature_indices):
             column = array[:, index].astype(np.float32, copy=False)
-            output[:, offset + slot] = (column == np.float32(self.boolean_true_values[slot])).astype(np.float32)
+            true_value = np.float32(self.boolean_true_values[slot])
+            false_value = np.float32(self.boolean_false_values[slot])
+            is_true = column == true_value
+            output[:, offset + slot] = is_true.astype(np.float32)
+            # 训练区只见过 {false_value, true_value} 两个取值；其余取值与 NaN 都会落到 0。
+            absorbed = int((~(is_true | (column == false_value))).sum())
+            if absorbed:
+                name = self.boolean_field_names[slot]
+                self.boolean_absorption_counts[name] += absorbed
+                if name not in self._boolean_absorption_warned:
+                    self._boolean_absorption_warned.add(name)
+                    logger.warning(
+                        "布尔字段 %s 出现训练区未见取值（含 NaN）%d 个，按 0 静默吸收；"
+                        "该列冻结维只有 2 列、无越界桶，累计次数见 boolean_absorption_counts",
+                        name, absorbed,
+                    )
         return output
 
 
@@ -694,6 +914,7 @@ def fit_input_transform(
     import hashlib
 
     import numpy as np
+    import sklearn
     from sklearn.preprocessing import QuantileTransformer
 
     if candidate_key not in {candidate["key"] for candidate in INPUT_CANDIDATES}:
@@ -778,10 +999,28 @@ def fit_input_transform(
     quantile_transformer.references_ = references
     quantile_transformer.n_features_in_ = len(numeric_indices)
 
+    # 组装式变换器直接写入了 scikit-learn 的私有拟合属性，未来版本一旦改变这些属性的
+    # 语义就会静默产出错误数值。这里加一条运行时自检：把各字段的训练区中位数送进
+    # transform，output_distribution="normal" 应把中位数映射到约 0；偏差超过绊线即停止。
+    median_probe = np.asarray(fill_values, dtype=np.float32).reshape(1, -1)
+    median_response = quantile_transformer.transform(median_probe)
+    median_deviation = float(np.max(np.abs(median_response)))
+    if median_deviation > QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE:
+        raise RuntimeError(
+            f"组装式分位数变换器自检失败：训练区中位数映射后的最大绝对值为 {median_deviation:.6g}，"
+            f"超过绊线 {QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE}；"
+            f"scikit-learn {sklearn.__version__} 的私有拟合属性语义可能已改变，拒绝继续拟合"
+        )
+    logger.info(
+        "组装式变换器自检通过：中位数映射最大绝对值=%.6g（绊线 %.3g），scikit-learn=%s",
+        median_deviation, QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE, sklearn.__version__,
+    )
+
     vocabularies: list[tuple[float, ...]] = []
     categorical_indices: list[int] = []
     boolean_indices: list[int] = []
     boolean_true_values: list[float] = []
+    boolean_false_values: list[float] = []
     if partitioned:
         for name in categorical_names:
             feature_index = field_indices[name]
@@ -806,12 +1045,39 @@ def fit_input_transform(
                 logger.warning("布尔字段 %s 在训练区只有一个取值，该列在训练区恒为 1", name)
             boolean_indices.append(field_indices[name])
             boolean_true_values.append(float(entry["max"]))
-            logger.info("布尔字段 %s 映射：max=%s 记为 1，其余记为 0", name, entry["max"])
+            boolean_false_values.append(float(entry["min"]))
+            logger.info(
+                "布尔字段 %s 映射：max=%s 记为 1，min=%s 记为 0，其余取值与 NaN 静默记 0 并计数",
+                name, entry["max"], entry["min"],
+            )
 
     output_dimension = len(numeric_indices) + sum(len(v) + 1 for v in vocabularies) + len(boolean_indices)
     if output_dimension != projection["output_dimension"]:
         raise RuntimeError(
             f"实测输出维 {output_dimension} 与收据预算 {projection['output_dimension']} 不符"
+        )
+    # 上一条只是把实测值与本函数自己推出的预算相比，等于自己跟自己比。这里再与
+    # 冻结配置登记的候选值做二方比对；候选二的冻结值当前为 null（待收据裁定），
+    # 为 null 时跳过比较并把实测值记入日志，不自行回填冻结配置。
+    frozen_candidate = next(
+        candidate for candidate in INPUT_CANDIDATES if candidate["key"] == candidate_key
+    )
+    frozen_dimension = frozen_candidate["input_dimension"]
+    frozen_parameters = frozen_candidate["parameter_count"]
+    if frozen_dimension is not None and output_dimension != frozen_dimension:
+        raise RuntimeError(
+            f"候选 {candidate_key} 实测输出维 {output_dimension} 与冻结值 {frozen_dimension} 不符"
+        )
+    if frozen_parameters is not None and expected_parameter_count(output_dimension) != frozen_parameters:
+        raise RuntimeError(
+            f"候选 {candidate_key} 闭式参数量 {expected_parameter_count(output_dimension)} "
+            f"与冻结值 {frozen_parameters} 不符"
+        )
+    if frozen_dimension is None or frozen_parameters is None:
+        logger.warning(
+            "候选 %s 的冻结 input_dimension/parameter_count 仍为 null，"
+            "本次实测为 %d / %d，只记录不回填冻结配置",
+            candidate_key, output_dimension, expected_parameter_count(output_dimension),
         )
 
     state = {
@@ -824,6 +1090,16 @@ def fit_input_transform(
             "subsample": QUANTILE_SUBSAMPLE,
             "noise_standard_deviation": QUANTILE_NOISE_STANDARD_DEVIATION,
             "seed": seed,
+            # 逐字段派生种子是相对官方一次性抽取 n×d 噪声的显式实现偏离，
+            # 必须进封印制品而不是只留在注释里。
+            "noise_seed_derivation": "per_feature_seed_plus_dijk_feature_index",
+            "scikit_learn_version": sklearn.__version__,
+            "median_self_check_max_absolute_value": median_deviation,
+            "median_self_check_tolerance": QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE,
+        },
+        # integer_like 只作事实记录、不参与任何分支，但必须随封印可追溯。
+        "field_integer_like": {
+            name: bool(entry["integer_like"]) for name, entry in receipt["fields"].items()
         },
         "numeric_feature_indices": list(numeric_indices),
         "numeric_fill_values_sha256": hashlib.sha256(
@@ -848,8 +1124,10 @@ def fit_input_transform(
             for name, index, vocabulary in zip(categorical_names, categorical_indices, vocabularies, strict=True)
         } if partitioned else {},
         "boolean_fields": {
-            name: {"dijk_feature_index": index, "true_value": value}
-            for name, index, value in zip(boolean_names, boolean_indices, boolean_true_values, strict=True)
+            name: {"dijk_feature_index": index, "true_value": true_value, "false_value": false_value}
+            for name, index, true_value, false_value in zip(
+                boolean_names, boolean_indices, boolean_true_values, boolean_false_values, strict=True
+            )
         } if partitioned else {},
         "cardinality_receipt_effective_flow_mask_sha256": flow_mapping["effective_flow_mask_sha256"],
     }
@@ -873,7 +1151,341 @@ def fit_input_transform(
         boolean_field_names=boolean_names if partitioned else (),
         boolean_feature_indices=tuple(boolean_indices),
         boolean_true_values=tuple(boolean_true_values),
+        boolean_false_values=tuple(boolean_false_values),
     )
+
+
+# ---------------------------------------------------------------------------
+# 三层 BatchEnsemble 骨干（任务 3）
+# ---------------------------------------------------------------------------
+
+# 前向张量的轴约定：0 批、1 成员、2 时间、3 特征。
+# 因果前缀聚合只沿时间轴累积，成员轴自始至终只作批维的一部分；
+# 任何跨成员的求和、拼接或注意力都是机制越界，由下列常量与断言共同钉死。
+BATCH_AXIS = 0
+MEMBER_AXIS = 1
+TIME_AXIS = 2
+FEATURE_AXIS = 3
+
+_BACKBONE_CACHE: dict[str, Any] = {}
+
+
+def batch_ensemble_parameter_count(input_size: int, output_size: int, members: int) -> int:
+    """冻结配方第 170 行的 ``BE(a,b,k)=a*b+k*a+k*b+k*b``。
+
+    四项依次对应共享主权重 ``weight``、成员输入缩放 ``r``、成员输出缩放 ``s``
+    与成员偏置 ``bias``，与 ``LinearBatchEnsemble`` 的参数逐项一一对应。
+    """
+    return input_size * output_size + members * input_size + 2 * members * output_size
+
+
+def backbone_parameter_count(input_dimension: int, hidden_size: int, members: int) -> int:
+    """逐层展开的可训练参数量，用于与闭式 ``expected_parameter_count`` 交叉核对。
+
+    ``BE(d_in,d,k) + BE(d,d,k) + BE(2d,d,k) + k*Linear(d,1) + p_log``。
+    """
+    return (
+        batch_ensemble_parameter_count(input_dimension, hidden_size, members)
+        + batch_ensemble_parameter_count(hidden_size, hidden_size, members)
+        + batch_ensemble_parameter_count(2 * hidden_size, hidden_size, members)
+        + members * (hidden_size + 1)
+        + 1
+    )
+
+
+def backbone_classes() -> dict[str, Any]:
+    """延迟构造依赖 PyTorch 的骨干类并缓存。
+
+    模块顶层不导入 torch，``--validate-config`` 因此可以在没有 GPU 与 PyTorch 的
+    开发机上跑通；只有真正要建模型时才触发导入。
+    """
+    if _BACKBONE_CACHE:
+        return _BACKBONE_CACHE
+
+    import math
+
+    import torch
+    from torch import nn
+
+    precision = _precision_module()
+
+    def masked(tensor: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        """按时间掩码清零无效位置，并保持与被乘张量同一计算类型。"""
+        return tensor * mask.unsqueeze(-1).to(tensor.dtype)
+
+    class LinearBatchEnsemble(nn.Module):
+        """BatchEnsemble 线性层：一份共享主权重加三组成员参数。
+
+        参数构成与 ``BE(a,b,k)=a*b+k*a+k*b+k*b`` 逐项对应：
+        ``weight`` 为 ``a*b`` 的共享主权重，``r`` 为 ``k*a`` 的成员输入缩放，
+        ``s`` 为 ``k*b`` 的成员输出缩放，``bias`` 为 ``k*b`` 的成员偏置。
+
+        初始化按冻结配方第 147 行：第一组输入缩放用随机符号，使 32 个成员在第一次
+        特征混合前就产生不同表示；其余乘性缩放初始化为 1；成员偏置按官方语义初始化，
+        即先按 ``nn.Linear`` 的默认界 ``U(-1/sqrt(a), 1/sqrt(a))`` 抽一份共享偏置，
+        再复制到每个成员。该语义沿用本仓库同族 TabM4 实现
+        （tools/ch3_resmlp2_tabm_protocol_a_2x2.py 第 343 至 345 行）。
+        """
+
+        def __init__(
+            self,
+            input_size: int,
+            output_size: int,
+            members: int,
+            random_sign_input_scaling: bool,
+        ) -> None:
+            super().__init__()
+            self.input_size = input_size
+            self.output_size = output_size
+            self.members = members
+            self.random_sign_input_scaling = random_sign_input_scaling
+            self.weight = nn.Parameter(torch.empty(output_size, input_size))
+            self.r = nn.Parameter(torch.empty(members, input_size))
+            self.s = nn.Parameter(torch.ones(members, output_size))
+            self.bias = nn.Parameter(torch.empty(members, output_size))
+            nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+            if random_sign_input_scaling:
+                signs = torch.randint(0, 2, self.r.shape, dtype=torch.int64)
+                self.r.data.copy_(signs.to(self.r.dtype).mul_(2).sub_(1))
+            else:
+                nn.init.ones_(self.r)
+            bound = 1.0 / math.sqrt(input_size)
+            shared_bias = torch.empty(output_size).uniform_(-bound, bound)
+            self.bias.data.copy_(shared_bias.unsqueeze(0).expand_as(self.bias))
+
+        def parameter_count(self) -> int:
+            return batch_ensemble_parameter_count(self.input_size, self.output_size, self.members)
+
+        def forward(self, values: torch.Tensor) -> torch.Tensor:
+            # values: (N, k, T, a) -> (N, k, T, b)
+            if values.ndim != 4 or values.shape[MEMBER_AXIS] != self.members:
+                raise RuntimeError(
+                    f"BatchEnsemble 输入必须是 N×{self.members}×T×{self.input_size}，"
+                    f"实际 {tuple(values.shape)}"
+                )
+            scaled = values * self.r.unsqueeze(0).unsqueeze(TIME_AXIS)
+            projected = torch.matmul(scaled, self.weight.t())
+            return (
+                projected * self.s.unsqueeze(0).unsqueeze(TIME_AXIS)
+                + self.bias.unsqueeze(0).unsqueeze(TIME_AXIS)
+            )
+
+    class TabM32Backbone(nn.Module):
+        """三层 BatchEnsemble 骨干，含因果前缀聚合与实体级可学幂平均池化两个开关。
+
+        第一层 ``input_dimension→512``（随机符号输入缩放为真），第二层 ``512→512``，
+        第三层是因果前缀聚合感知的 ``1024→512`` 融合。三层随机失活一致、激活为 ReLU、
+        不追加任何归一化层。输出头是 32 个独立的 ``Linear(512,1)``，向量化为
+        ``output_weight``（k×d）与 ``output_bias``（k），初始化与 32 个独立
+        ``nn.Linear(512,1)`` 的默认初始化逐项一致；另有共享标量 ``p_log``。
+
+        ``aggregate`` 为假时上下文置零后同样拼接成 1024 维，使两条路径的参数量与
+        张量形状完全一致，机制差异只来自上下文是否携带信息。
+        """
+
+        def __init__(
+            self,
+            input_dimension: int,
+            hidden_size: int,
+            members: int,
+            dropout: float,
+            aggregate: bool,
+        ) -> None:
+            super().__init__()
+            self.input_dimension = input_dimension
+            self.hidden_size = hidden_size
+            self.members = members
+            self.aggregate = aggregate
+            self.input_layer = LinearBatchEnsemble(input_dimension, hidden_size, members, True)
+            self.hidden_layer = LinearBatchEnsemble(hidden_size, hidden_size, members, False)
+            self.fusion_layer = LinearBatchEnsemble(hidden_size * 2, hidden_size, members, False)
+            self.activation = nn.ReLU()
+            self.dropout = nn.Dropout(dropout)
+            self.output_weight = nn.Parameter(torch.empty(members, hidden_size))
+            self.output_bias = nn.Parameter(torch.empty(members))
+            nn.init.kaiming_uniform_(self.output_weight, a=math.sqrt(5))
+            bound = 1.0 / math.sqrt(hidden_size)
+            nn.init.uniform_(self.output_bias, -bound, bound)
+            self.p_log = nn.Parameter(torch.tensor(math.log(2.0)))
+
+        @property
+        def p(self) -> torch.Tensor:
+            return torch.exp(self.p_log).clamp(1e-3, 1e3)
+
+        def expand_to_members(
+            self, values: torch.Tensor, valid: torch.Tensor
+        ) -> tuple[torch.Tensor, torch.Tensor]:
+            """把 32 个成员共享的同一批序列扩成 N×32×T×F 与 N×32×T 的视图。
+
+            冻结配方第 148 行规定 32 个成员共享同一批对象；``expand`` 只产生视图，
+            真正的物化发生在第一层的成员输入缩放处。
+            """
+            if values.ndim != 3 or valid.ndim != 2 or valid.shape != values.shape[:2]:
+                raise RuntimeError(
+                    f"共享批输入必须是 N×T×F 与 N×T，实际 {tuple(values.shape)} 与 {tuple(valid.shape)}"
+                )
+            return (
+                values.unsqueeze(MEMBER_AXIS).expand(-1, self.members, -1, -1),
+                valid.unsqueeze(MEMBER_AXIS).expand(-1, self.members, -1),
+            )
+
+        def forward(self, values: torch.Tensor, valid: torch.Tensor) -> torch.Tensor:
+            if values.ndim != 4 or values.shape[MEMBER_AXIS] != self.members:
+                raise RuntimeError(
+                    f"TabM32 训练输入必须是 N×{self.members}×T×F，实际 {tuple(values.shape)}"
+                )
+            if valid.shape != values.shape[:FEATURE_AXIS]:
+                raise RuntimeError(
+                    f"有效掩码必须是 N×{self.members}×T，实际 {tuple(valid.shape)}"
+                )
+            device_type = values.device.type
+            mask = valid.to(torch.float32)
+            hidden = masked(self.dropout(self.activation(self.input_layer(values))), mask)
+            hidden = masked(self.dropout(self.activation(self.hidden_layer(hidden))), mask)
+
+            if self.aggregate:
+                # 因果前缀累积属精度合同的 reduction 敏感计算，放进 FP32 岛：
+                # 长度 128 的前缀和在 BF16 下会累积可观舍入误差。
+                with precision.fp32_island(
+                    hidden, mask, device_type=device_type, torch_module=torch
+                ) as (hidden32, mask32):
+                    counts = torch.cumsum(mask32, TIME_AXIS).clamp(min=1.0).unsqueeze(-1)
+                    context32 = torch.cumsum(hidden32, TIME_AXIS) / counts
+                    context32 = context32 * mask32.unsqueeze(-1)
+                context = context32.to(hidden.dtype)
+            else:
+                context = torch.zeros_like(hidden)
+
+            # 机制边界一：因果前缀聚合只沿时间轴、在成员维之内独立进行。
+            # 上下文张量必须与隐藏张量同形且成员维仍为 members；任何跨成员求和、
+            # 拼接或注意力都会改变这两项之一，从而在此立即失败。
+            if context.shape != hidden.shape or context.shape[MEMBER_AXIS] != self.members:
+                raise RuntimeError(
+                    "因果前缀聚合越出成员维：上下文张量必须与隐藏张量同形且成员维不变，"
+                    f"实际 {tuple(context.shape)} 对 {tuple(hidden.shape)}"
+                )
+
+            fused = masked(
+                self.dropout(self.activation(self.fusion_layer(torch.cat((hidden, context), dim=-1)))),
+                mask,
+            )
+            # 32 个独立 Linear(512,1) 的向量化写法：每个成员只用自己的头权重。
+            logits = torch.einsum("nkth,kh->nkt", fused, self.output_weight)
+            return logits + self.output_bias.view(1, self.members, 1)
+
+        def member_mean_probability(self, logits: torch.Tensor) -> torch.Tensor:
+            """32 个 sigmoid 概率算术平均，禁止平均对数几率。
+
+            概率归一化属精度合同的敏感计算，在 FP32 岛内完成。
+            """
+            if logits.ndim != 3 or logits.shape[MEMBER_AXIS] != self.members:
+                raise RuntimeError(
+                    f"成员概率平均的输入必须是 N×{self.members}×T，实际 {tuple(logits.shape)}"
+                )
+            with precision.fp32_island(
+                logits, device_type=logits.device.type, torch_module=torch
+            ) as (logits32,):
+                probabilities = torch.sigmoid(logits32).mean(dim=MEMBER_AXIS)
+            return probabilities
+
+        def shared_batch_flow_probability(
+            self, values: torch.Tensor, valid: torch.Tensor
+        ) -> torch.Tensor:
+            """共享批推理：``(N,T,F)`` 与 ``(N,T)`` 直接得到成员平均后的逐流概率。"""
+            expanded_values, expanded_valid = self.expand_to_members(values, valid)
+            return self.member_mean_probability(self.forward(expanded_values, expanded_valid))
+
+    _BACKBONE_CACHE.update(
+        {
+            "LinearBatchEnsemble": LinearBatchEnsemble,
+            "TabM32Backbone": TabM32Backbone,
+        }
+    )
+    return _BACKBONE_CACHE
+
+
+def learned_lp_pool(scores: Any, valid: Any, p_value: Any) -> Any:
+    """实体级可学幂平均池化。
+
+    机制边界二：``scores`` 必须是已经完成成员维归约的 ``N×T``，即先对 32 个成员概率
+    做算术平均，再对唯一实体做 ELP；禁止先逐成员池化再平均。下面的维度断言使违反
+    该顺序时立即失败。对数、幂与掩码归约都属精度合同的敏感计算，全部在 FP32 岛内完成。
+    """
+    import torch
+
+    if scores.ndim != 2 or valid.ndim != 2 or scores.shape != valid.shape:
+        raise RuntimeError(
+            "ELP 池化输入必须是已完成成员归约的 N×T 概率与同形掩码，"
+            f"实际 {tuple(scores.shape)} 与 {tuple(valid.shape)}；禁止先逐成员池化再平均"
+        )
+    precision = _precision_module()
+    with precision.fp32_island(
+        scores, valid, p_value, device_type=scores.device.type, torch_module=torch
+    ) as (scores32, valid32, exponent):
+        log_scores = torch.log(scores32.clamp(min=1e-7))
+        count = valid32.sum(1).clamp(min=1.0)
+        summed = torch.logsumexp((exponent * log_scores).masked_fill(valid32 < 0.5, -1e30), 1)
+        pooled = torch.exp((summed - torch.log(count)) / exponent)
+    return pooled
+
+
+def build_model(config: dict[str, Any], cell: str, input_key: str, input_dimension: int) -> Any:
+    """按格构造骨干并做参数量三方比对。
+
+    三方为：闭式 ``expected_parameter_count(input_dimension)``、冻结配置中该输入候选
+    登记的 ``parameter_count``、以及实际 ``sum(p.numel() ...)``。候选二的冻结值当前
+    为 null（待收据裁定），此时只比对闭式与实际两方，并把实测值写进日志，不自行回填。
+    """
+    import torch
+
+    if cell not in CELLS:
+        raise ValueError(f"未知实验格：{cell}")
+    candidate = config["candidate"]
+    classes = backbone_classes()
+    model = classes["TabM32Backbone"](
+        input_dimension=input_dimension,
+        hidden_size=candidate["hidden_size"],
+        members=candidate["ensemble_members"],
+        dropout=config["training"]["dropout"],
+        aggregate=CELLS[cell]["causal_prefix_aggregation"],
+    )
+    closed_form = expected_parameter_count(input_dimension)
+    layer_wise = backbone_parameter_count(
+        input_dimension, candidate["hidden_size"], candidate["ensemble_members"]
+    )
+    actual = sum(
+        parameter.numel() for parameter in model.parameters() if parameter.requires_grad
+    )
+    if closed_form != layer_wise:
+        raise RuntimeError(
+            f"参数量闭式 {closed_form} 与逐层展开 {layer_wise} 不符，冻结配方的参数式已被破坏"
+        )
+    if actual != closed_form:
+        raise RuntimeError(f"实际可训练参数量 {actual} 与闭式 {closed_form} 不符")
+    frozen_candidate = next(
+        entry for entry in INPUT_CANDIDATES if entry["key"] == input_key
+    )
+    frozen_parameters = frozen_candidate["parameter_count"]
+    if frozen_parameters is not None and actual != frozen_parameters:
+        raise RuntimeError(
+            f"实际可训练参数量 {actual} 与冻结配置登记的 {frozen_parameters} 不符"
+        )
+    if frozen_parameters is None:
+        logger.warning(
+            "输入候选 %s 的冻结 parameter_count 仍为 null，本次实测为 %d，只记录不回填",
+            input_key, actual,
+        )
+    # 参数与优化器状态必须保持 FP32：这里先核参数，优化器状态在第一次 step 之后再核。
+    for name, parameter in model.named_parameters():
+        if parameter.is_floating_point() and parameter.dtype != torch.float32:
+            raise RuntimeError(f"模型参数 {name} 不是 FP32，与精度合同不符")
+    logger.info(
+        "已构造 %s 骨干：输入候选=%s，输入维=%d，宽度=%d，成员=%d，因果前缀聚合=%s，"
+        "可训练参数量=%d（闭式与逐层展开一致）",
+        cell, input_key, input_dimension, candidate["hidden_size"],
+        candidate["ensemble_members"], CELLS[cell]["causal_prefix_aggregation"], actual,
+    )
+    return model
 
 
 # ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@
   "model_key": "tabm32-paper-recipe",
   "display_name": "TabM32骨干专属论文配方协议A四格",
   "frozen_recipe_sha256": "3b1e3103c9a8d37afe55c5e055cfcc4b84c72af3054b4cd20ec1dc4e5554d359",
+  "precision_profile_id": "cuda-bf16-amp-fp32-sensitive-v1",
   "paths": {
     "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
     "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm32-paper-recipe-protocol-a-seed42-v1",
