@@ -58,14 +58,13 @@
      "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1", "notes": "N-01"},
 
-    {"display_name": "TabM4＋CPA-ELP", "root": "main", "available": false,
+    {"display_name": "TabM4＋CPA-ELP", "root": "main", "available": true,
      "relative_path": "diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
      "curve_receipt_relative_path": "diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves-receipt.json",
      "curve_artifact_relative_path": "diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves.npz",
      "source_schema": "protocol_a_v1", "cell": "C11",
      "differentiable": true, "config_type": "骨干升级候选", "evidence_level": "单次运行直接可比",
      "run_id": "ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1",
-     "pending_reason": "运行已完成 exit_code=0，但制品仅存服务器，两个本地 runs 根均无；拉回后重跑本工具即自动填入",
      "notes": "N-02"},
 
     {"display_name": "RWKV-7＋CPA-ELP", "root": "main", "available": false,
