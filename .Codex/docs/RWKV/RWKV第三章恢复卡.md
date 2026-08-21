@@ -97,9 +97,9 @@
 | ResMLP2 | 协议 A 四格已完成；LSPR24 C11 逐流 AP=`0.110920`、实体 AP=`0.298882`，相对 C00 分别为 `−0.039514/+0.022818`；组合只在约 `2.44%` 以下误报预算局部占优 | 统一约 9 万参数下不构成 MLP 升级，结果分析提交 `7e03aeb`；只否决本配置，不否决 ResMLP/表格 ResNet 模型族。 |
 | TabM4 | 协议 A 四格已完成；LSPR24 实体 AP 为 `0.472662/0.478663/0.360866/0.197274`，C11 为四格最差且六档检测率全档最低 | 当前协议下不支持升级；但源年四格验证逐流 AP 均在 `0.9989–0.9996`，检查点选择信号饱和，骨干失配与选择规则失效尚不可分。 |
 | 全容量 MLP | 8 个 LSPR23 C00 容量/配方筛选单元已于 2026-08-20 17:27 启动，运行身份 `ch3-full-capacity-mlp-source-screen-seed42-v1` | 只允许源年筛选，目标年数组读取固定为 0；预计 `1.5–2.0` GPU 小时，支持同身份恢复。 |
-| RWKV-7 | `ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-rerun1` 已完成 R0/R1/R2 输入适配并封印 R2，当前阶段为 `source-capacity-selection`，保留 6 项断点；B76 重启后直连规则已在提交 `6f69852` 固化。关机后尚未恢复。 | 计划外源年资格对照，真实效果实验待证；无运行时长或 GPU 小时上限。目标数组读取计数为 0。 |
-| GRANDE | `ch3-grande-c00-protocolA-source-q0-seed42-v1` 的 G-A（论文最大数据结构）已完成 `20/20` 周期，已有 `selection-G-A` 收据和完整预算曲线。G-B（当前官方默认结构）曾在与 RWKV 并发时 OOM；B76 重启后独占 GPU、设置 `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True` 后，仍在 `resource-calibrate` 反向传播 OOM：进程 `30.05 GiB`、仅余 `1.30 GiB`、尝试申请 `3.04 GiB`。 | `target_year_arrays_read=0`、`target_year_paths_enumerated=0`。旧运行原样保留；这是工程显存故障，不是科学否决。N-11 先用 FP32 等效微批量保持数学口径，仍不可行才启用 BF16；BF16 G-B 不得与 FP32 G-A 直接选优，除非 G-A 同合同复算。结果仍为实验待证。 |
-| 严格过去 CPA | 曲线横轴修复运行 `ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1-rerun1` 已 `complete/finished/exit0`，只读复用旧 S10/S11 两个 20 轮检查点，`new_cells_trained=[]`、`target_year_arrays_read=0`。S10 对 B10 的实体 AP 与逐流 AP 门失败；S11 对 O11 全门通过。 | 预注册要求两分支共同通过，故 `verdict=source_gate_rejected`，完整严格过去 CPA Q0 候选源年否决且不读取 LSPR24。S11 正向信号只作交互线索，不能据此改门或宣称机制有效。详见[源年 Q0 结果记录](2026-08-21-严格过去CPA协议A源年Q0结果记录.md)。 |
+| RWKV-7 | `ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-rerun1` 的输入适配 R2 已封印；K2-R2-C00 完成至 epoch `4/20` 后由调度主动暂停，完整断点保留，最近验证逐流 AP=`0.99773152`。 | 当前是源年容量筛选的瞬时运行状态，不构成效果结论；恢复后继续。目标数组读取计数为 0。 |
+| GRANDE | 旧运行 G-A（论文最大数据结构）已完成 `20/20` 周期、已有 `selection-G-A` 收据与完整曲线；旧 G-B 两次 OOM 原样保留。新 `ch3-grande-c00-protocolA-source-q0-seed42-v1-rerun1` 使用 2048 流 FP32 等效微批量，当前 `resource-calibrate` 运行中，显存约 `31132/32110 MiB`、利用率 `97%`。 | `target_year_arrays_read=0`、`target_year_paths_enumerated=0`。仍有映射警告，尚未裁决工程通过或科学结果；FP32 等效微批量合同保持不变，结果仍为实验待证。 |
+| 严格过去 CPA | 曲线横轴修复运行 `ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1-rerun1` 已 `complete/finished/exit0`，`verdict=source_gate_rejected`，只读复用旧 S10/S11 两个 20 轮检查点，`new_cells_trained=[]`、`target_year_arrays_read=0`。S10 对 B10 的实体 AP 与逐流 AP 门失败；S11 对 O11 全门通过。 | 预注册要求两分支共同通过，完整严格过去 CPA Q0 候选源年否决且不读取 LSPR24。S11 正向信号只作交互线索，不能据此改门或宣称机制有效。详见[源年 Q0 结果记录](2026-08-21-严格过去CPA协议A源年Q0结果记录.md)。 |
 | FT-Transformer | 仅完成候选定位和文献边界 | 尚无工具、配置、启动器或真实结果，不在当前运行队列。 |
 | RWKV-8 | 官方当前反转/ROSA 路径缺少与冻结协议兼容的反向传播 | 只能前向构造，当前不可作为公平可训练骨干。 |
 
@@ -164,10 +164,11 @@ CPA 与 ELP 不是永久不可改的结构。每个实验轮次必须在读取�
 6. N-07 由 Claude Code 只读盘点 TabM 检查点；无可用末轮/末五轮制品时停止，不擅自重训。
 7. 骨干专属论文配方已冻结，后续效果实验使用独立身份，不覆盖约 9 万参数结果。
 8. 第三章机制替换文献与实验审计进行中；候选可替换 CPA/ELP，但必须先通过全文和开发区最小实验门。
-9. RWKV-7 协议 A 的旧运行 `ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1` 只读保留；`rerun1` 已完成 R0/R1/R2 输入适配并封印 R2，处于 `source-capacity-selection`、有 6 项断点，B76 关机后尚未恢复。保持目标数组读取为 0，待恢复后运行结束或明确异常时再读取状态、日志和结果。
-10. GRANDE 的 G-A 已完成 `20/20` 与源年选择，G-B 在独占 GPU 且启用 `expandable_segments:True` 后仍于反向传播 OOM。旧运行必须保留，不能把工程故障写成科学否决；按 N-11 优先用 FP32 等效微批量和梯度累积或数学等价树分块降低峰值，仍不可行才启用 BF16，禁止削减 G-B 树数、深度、样本、`20×1000` 优化步、有效批量 `64`、数据顺序、指标或取消断点。BF16 G-B 只有 G-A 同合同复算时才可科学选优，否则只作工程资格。
+9. RWKV-7 协议 A 的旧运行 `ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1` 只读保留；`rerun1` 的 R2 已封印，K2-R2-C00 主动暂停于 epoch `4/20`、完整断点保留，最近验证逐流 AP=`0.99773152`。这是瞬时源年运行状态，恢复后继续容量筛选；保持目标数组读取为 0，不能据此写效果结论。
+10. GRANDE 的旧 G-A 已完成、旧 G-B 两次 OOM 均原样保留。N-11 新 `rerun1` 正以 2048 流 FP32 等效微批量在 `resource-calibrate` 运行中，显存约 `31132/32110 MiB`、仍有映射警告；这不是工程通过或科学结果。保持树数、深度、样本、`20×1000` 优化步、有效批量 `64`、数据顺序、指标和断点合同；FP32 不可行才按既定边界评估 BF16。
 11. 严格过去 CPA 的曲线横轴修复 `rerun1` 已完成，旧 S10/S11 两个 20 轮检查点只读复用，未训练新单元，目标年读取为 0。S10 对 B10 的实体 AP 与逐流 AP 门失败，虽 S11 对 O11 全门通过，预注册共同通过规则仍使完整严格过去 CPA Q0 候选源年否决；不读取 LSPR24。S11 仅保留为交互线索，不改门、不宣称机制有效。
 12. 骨干升级属于补充资格比较，不把第三章改写成“寻找冠军模型”；任何源年或历史目标年胜出都不能自动替换正文基座。
+13. 字段基数诊断 `ch3-lspr23-field-cardinality-receipt-v1` 已完成，仅读 `X23/I23/M23/E23/T23`、目标年读取为 0；收据路径见证据索引。N-12 继续输入候选与参数/资源核算，不自动冻结端口编码，且只在 LSPR23 C00 选择。
 
 ## 九、证据索引
 
@@ -187,5 +188,6 @@ CPA 与 ELP 不是永久不可改的结构。每个实验轮次必须在读取�
 - [全容量 MLP 骨干专属配方实验设计](2026-08-20-全容量MLP骨干专属配方实验设计.md)
 - [全容量 MLP 源年筛选实施报告](2026-08-20-全容量MLP源年筛选实施报告.md)
 - [严格过去 CPA 协议 A 源年 Q0 结果记录](2026-08-21-严格过去CPA协议A源年Q0结果记录.md)
+- LSPR23 Protocol A 字段基数收据（远端相对制品路径，尚未回传本工作树）：`runs/diagnostics/ch3-lspr23-field-cardinality-receipt-v1/field-cardinality-receipt.json`
 - [骨干专属论文配方冻结](2026-08-20-骨干专属论文配方冻结/骨干专属论文配方冻结.md)
 - [LSPR 数据与 RWKV 适配性分析](2026-08-20-LSPR数据与RWKV适配性分析.md)
