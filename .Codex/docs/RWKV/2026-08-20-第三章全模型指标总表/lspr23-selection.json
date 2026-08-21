@@ -205,10 +205,10 @@
     "best_flags": {}
   },
   {
-    "display_name": "RWKV-7＋CPA-ELP",
+    "display_name": "RWKV-7固定R2与封印容量＋CPA-ELP",
     "config_type": "骨干升级候选",
     "differentiable": true,
-    "run_id": "",
+    "run_id": "ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-bf16-v1",
     "selection_pool": null,
     "selection_metric": null,
     "selection_score": null,
@@ -216,16 +216,16 @@
     "validation_flow_ap": null,
     "selected_p": null,
     "selection_protocol": null,
-    "evidence_level": "未运行",
-    "source_path": null,
-    "pending_reason": "实现已就绪但尚未运行，无结果制品",
+    "evidence_level": "运行中待回收",
+    "source_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-bf16-v1/aggregate-results.json",
+    "pending_reason": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
     "missing_reasons": {
-      "selected_epoch": "实现已就绪但尚未运行，无结果制品",
-      "selected_p": "实现已就绪但尚未运行，无结果制品",
-      "selection_metric": "实现已就绪但尚未运行，无结果制品",
-      "selection_protocol": "实现已就绪但尚未运行，无结果制品",
-      "selection_score": "实现已就绪但尚未运行，无结果制品",
-      "validation_flow_ap": "实现已就绪但尚未运行，无结果制品"
+      "selected_epoch": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
+      "selected_p": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
+      "selection_metric": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
+      "selection_protocol": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
+      "selection_score": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
+      "validation_flow_ap": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导"
     },
     "best_flags": {}
   },
@@ -233,7 +233,7 @@
     "display_name": "GRANDE",
     "config_type": "骨干升级候选",
     "differentiable": true,
-    "run_id": "",
+    "run_id": "ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1",
     "selection_pool": null,
     "selection_metric": null,
     "selection_score": null,
@@ -241,24 +241,24 @@
     "validation_flow_ap": null,
     "selected_p": null,
     "selection_protocol": null,
-    "evidence_level": "未运行",
-    "source_path": null,
-    "pending_reason": "计划已冻结，尚无运行制品",
+    "evidence_level": "运行中待回收",
+    "source_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1/grande-c00-source-results.json",
+    "pending_reason": "统一BF16源年运行尚无本地聚合结果；没有目标年评价",
     "missing_reasons": {
-      "selected_epoch": "计划已冻结，尚无运行制品",
-      "selected_p": "计划已冻结，尚无运行制品",
-      "selection_metric": "计划已冻结，尚无运行制品",
-      "selection_protocol": "计划已冻结，尚无运行制品",
-      "selection_score": "计划已冻结，尚无运行制品",
-      "validation_flow_ap": "计划已冻结，尚无运行制品"
+      "selected_epoch": "统一BF16源年运行尚无本地聚合结果；没有目标年评价",
+      "selected_p": "统一BF16源年运行尚无本地聚合结果；没有目标年评价",
+      "selection_metric": "统一BF16源年运行尚无本地聚合结果；没有目标年评价",
+      "selection_protocol": "统一BF16源年运行尚无本地聚合结果；没有目标年评价",
+      "selection_score": "统一BF16源年运行尚无本地聚合结果；没有目标年评价",
+      "validation_flow_ap": "统一BF16源年运行尚无本地聚合结果；没有目标年评价"
     },
     "best_flags": {}
   },
   {
-    "display_name": "骨干专属论文配方模型",
+    "display_name": "TabM32骨干专属论文配方＋CPA-ELP",
     "config_type": "论文配方",
     "differentiable": true,
-    "run_id": "",
+    "run_id": "ch3-tabm32-paper-recipe-protocol-a-seed42-v1",
     "selection_pool": null,
     "selection_metric": null,
     "selection_score": null,
@@ -267,15 +267,15 @@
     "selected_p": null,
     "selection_protocol": null,
     "evidence_level": "未运行",
-    "source_path": null,
-    "pending_reason": "N-05 设计已冻结、效果待实验",
+    "source_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm32-paper-recipe-protocol-a-seed42-v1/aggregate-results.json",
+    "pending_reason": "版本化接入已预留，但真实聚合制品尚未形成",
     "missing_reasons": {
-      "selected_epoch": "N-05 设计已冻结、效果待实验",
-      "selected_p": "N-05 设计已冻结、效果待实验",
-      "selection_metric": "N-05 设计已冻结、效果待实验",
-      "selection_protocol": "N-05 设计已冻结、效果待实验",
-      "selection_score": "N-05 设计已冻结、效果待实验",
-      "validation_flow_ap": "N-05 设计已冻结、效果待实验"
+      "selected_epoch": "版本化接入已预留，但真实聚合制品尚未形成",
+      "selected_p": "版本化接入已预留，但真实聚合制品尚未形成",
+      "selection_metric": "版本化接入已预留，但真实聚合制品尚未形成",
+      "selection_protocol": "版本化接入已预留，但真实聚合制品尚未形成",
+      "selection_score": "版本化接入已预留，但真实聚合制品尚未形成",
+      "validation_flow_ap": "版本化接入已预留，但真实聚合制品尚未形成"
     },
     "best_flags": {}
   }

@@ -13,9 +13,9 @@
 | XGBoost＋CPA-ELP | 本章机制外挂树集成 | 否 | ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2 | LSPR23三折实体OOF | 实体OOF AP | 0.922235112994 | — | — | 1 | LSPR23 三折实体折外 CPA 单机制实体 AP（最大聚合） | 单次运行直接可比 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2/xgb_cpa_elp_results.json | — |
 | ResMLP2＋CPA-ELP | 骨干升级候选 | 是 | ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1 | LSPR23实体不相交验证集 | 单轮逐流AP | 0.999649147724 | 12 | 0.999649147724 | 0.998496055603 | 协议A：源年验证集单轮逐流AP择优 | 单次运行直接可比 | /Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json | — |
 | TabM4＋CPA-ELP | 骨干升级候选 | 是 | ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1 | LSPR23实体不相交验证集 | 单轮逐流AP | 0.999609176422 | 6 | 0.999609176422 | 1.03322803974 | 协议A：源年验证集单轮逐流AP择优 | 单次运行直接可比 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json | — |
-| RWKV-7＋CPA-ELP | 骨干升级候选 | 是 | — | — | — | — | — | — | — | — | 未运行 | — | 实现已就绪但尚未运行，无结果制品 |
-| GRANDE | 骨干升级候选 | 是 | — | — | — | — | — | — | — | — | 未运行 | — | 计划已冻结，尚无运行制品 |
-| 骨干专属论文配方模型 | 论文配方 | 是 | — | — | — | — | — | — | — | — | 未运行 | — | N-05 设计已冻结、效果待实验 |
+| RWKV-7固定R2与封印容量＋CPA-ELP | 骨干升级候选 | 是 | ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-bf16-v1 | — | — | — | — | — | — | — | 运行中待回收 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-bf16-v1/aggregate-results.json | 统一BF16运行尚无本地聚合结果；不得从旧停止运行推导 |
+| GRANDE | 骨干升级候选 | 是 | ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1 | — | — | — | — | — | — | — | 运行中待回收 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1/grande-c00-source-results.json | 统一BF16源年运行尚无本地聚合结果；没有目标年评价 |
+| TabM32骨干专属论文配方＋CPA-ELP | 论文配方 | 是 | ch3-tabm32-paper-recipe-protocol-a-seed42-v1 | — | — | — | — | — | — | — | 未运行 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm32-paper-recipe-protocol-a-seed42-v1/aggregate-results.json | 版本化接入已预留，但真实聚合制品尚未形成 |
 
 ## 缺失值说明
 
@@ -25,13 +25,15 @@
 - 门控循环网络：选定幂指数：该模型或选择规则不使用幂平均指数。
 - 全注意力网络：选定幂指数：该模型或选择规则不使用幂平均指数。
 - XGBoost＋CPA-ELP：选定轮次：该来源没有单轮检查点选择，或未持久化选定轮次；验证逐流AP：该来源未持久化可比较的源年验证逐流AP。
-- RWKV-7＋CPA-ELP：选定轮次：实现已就绪但尚未运行，无结果制品；选定幂指数：实现已就绪但尚未运行，无结果制品；选择指标：实现已就绪但尚未运行，无结果制品；选择口径：实现已就绪但尚未运行，无结果制品；选择分数：实现已就绪但尚未运行，无结果制品；验证逐流AP：实现已就绪但尚未运行，无结果制品。
-- GRANDE：选定轮次：计划已冻结，尚无运行制品；选定幂指数：计划已冻结，尚无运行制品；选择指标：计划已冻结，尚无运行制品；选择口径：计划已冻结，尚无运行制品；选择分数：计划已冻结，尚无运行制品；验证逐流AP：计划已冻结，尚无运行制品。
-- 骨干专属论文配方模型：选定轮次：N-05 设计已冻结、效果待实验；选定幂指数：N-05 设计已冻结、效果待实验；选择指标：N-05 设计已冻结、效果待实验；选择口径：N-05 设计已冻结、效果待实验；选择分数：N-05 设计已冻结、效果待实验；验证逐流AP：N-05 设计已冻结、效果待实验。
+- RWKV-7固定R2与封印容量＋CPA-ELP：选定轮次：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选定幂指数：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选择指标：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选择口径：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选择分数：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；验证逐流AP：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导。
+- GRANDE：选定轮次：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选定幂指数：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选择指标：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选择口径：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选择分数：统一BF16源年运行尚无本地聚合结果；没有目标年评价；验证逐流AP：统一BF16源年运行尚无本地聚合结果；没有目标年评价。
+- TabM32骨干专属论文配方＋CPA-ELP：选定轮次：版本化接入已预留，但真实聚合制品尚未形成；选定幂指数：版本化接入已预留，但真实聚合制品尚未形成；选择指标：版本化接入已预留，但真实聚合制品尚未形成；选择口径：版本化接入已预留，但真实聚合制品尚未形成；选择分数：版本化接入已预留，但真实聚合制品尚未形成；验证逐流AP：版本化接入已预留，但真实聚合制品尚未形成。
 
 ## 评价口径
 
-- LSPR23 表只记录源年选择证据；LSPR24 表只记录已访问目标年的描述性评价，二者不混排。
+- LSPR23 选择表只记录选模证据，LSPR23 性能表只记录源年开发性能；LSPR24 表只记录已访问目标年的描述性评价，三者不混排。
 - 实体 AP 为各运行预先注册的主聚合口径；最大实体 AP 单列，缺失时不反推。
+- 性能帕累托要求标量、实际完整预算曲线、六档未告警率和按时检出曲线全部齐全；缺项行标为证据不完整。
+- 首次告警缺失时不由AP、DR或离线实体分数反推。
 - 评价时间含预测与指标计算时会在时间口径列明示，不能替代纯模型推理时间。
-- 资源表不判最强；树集成使用树数、节点数或深度描述规模，不机械折算神经网络参数量。
+- 工程帕累托独立计算；树数与神经参数量按不同规模单位分池，不机械折算。

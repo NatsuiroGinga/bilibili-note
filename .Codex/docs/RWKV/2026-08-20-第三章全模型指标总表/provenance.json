@@ -1,6 +1,6 @@
 {
-  "schema_version": "ch3-metrics-table-provenance-v1",
-  "generated_at_utc": "2026-08-20T12:01:24.470668+00:00",
+  "schema_version": "ch3-metrics-table-provenance-v2",
+  "generated_at_utc": "2026-08-21T06:02:36.362903+00:00",
   "config_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/configs/ch3-metrics-table-sources-v1.json",
   "roots": {
     "main": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs",
@@ -11,9 +11,9 @@
   "files": [
     {
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/configs/ch3-metrics-table-sources-v1.json",
-      "sha256": "bef041de13568b6fbf0f4c86c906beec55378c843052474c6c580f2b5f5246cc",
-      "bytes": 5967,
-      "read_at_utc": "2026-08-20T12:01:24.457199+00:00",
+      "sha256": "9b683f67f39a957591f8fc002ac815ad187878ca56e30c0a0f7124daffd9e313",
+      "bytes": 8424,
+      "read_at_utc": "2026-08-21T06:02:36.309127+00:00",
       "roles": [
         "来源配置"
       ]
@@ -22,7 +22,7 @@
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
       "sha256": "3c18bb9f31415f59f0a522c44fb14a2045ac0e7c8cd8c719eeb8f0e73e0d188d",
       "bytes": 46658,
-      "read_at_utc": "2026-08-20T12:01:24.461329+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.315959+00:00",
       "roles": [
         "ResMLP2＋CPA-ELP的主结果"
       ]
@@ -31,7 +31,7 @@
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves-receipt.json",
       "sha256": "0bb5615bb1fd9e3fd582f46d9df1131392e6d7de15088f2d4d58ac7ddcfa81ea",
       "bytes": 570,
-      "read_at_utc": "2026-08-20T12:01:24.462042+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.319145+00:00",
       "roles": [
         "ResMLP2＋CPA-ELP的完整曲线收据"
       ]
@@ -40,7 +40,7 @@
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves.npz",
       "sha256": "bc26e8522709397f7c7e393a98033cf3822491c361fe56e3f47d4548eed67db2",
       "bytes": 2129238,
-      "read_at_utc": "2026-08-20T12:01:24.465366+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.323721+00:00",
       "roles": [
         "ResMLP2＋CPA-ELP的完整曲线NPZ"
       ]
@@ -49,7 +49,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json",
       "sha256": "9cbba98517850a083e5bd86618a4d2af27a606cf5b862583253aa4c7705bc292",
       "bytes": 14084,
-      "read_at_utc": "2026-08-20T12:01:24.460088+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.313418+00:00",
       "roles": [
         "多层感知机＋CPA-ELP的主结果"
       ]
@@ -58,7 +58,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-baselines-full/neural_results.json",
       "sha256": "90e0244b5532f3eb9f7a1db5fdd960d6daa5a30fda9a3674e1a15641f3951517",
       "bytes": 12526,
-      "read_at_utc": "2026-08-20T12:01:24.458520+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.310672+00:00",
       "roles": [
         "一维卷积网络（主干重建）的主结果",
         "门控循环网络的主结果",
@@ -69,7 +69,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-baselines-full/selection_frozen_neural.json",
       "sha256": "d4b6e0ca84629f4882361e76480e1cbe553ef6427c0653a31198eee82b899426",
       "bytes": 14949,
-      "read_at_utc": "2026-08-20T12:01:24.458951+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.311170+00:00",
       "roles": [
         "一维卷积网络（主干重建）的选择与显存收据",
         "门控循环网络的选择与显存收据",
@@ -80,7 +80,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-baselines-full/trees_results.json",
       "sha256": "31e4b536d026f7263a5f1ec9bcc58abb4c078fbd8069b7a137618295c02f7ddd",
       "bytes": 2807,
-      "read_at_utc": "2026-08-20T12:01:24.457805+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.309908+00:00",
       "roles": [
         "随机森林的主结果",
         "XGBoost的主结果"
@@ -90,7 +90,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
       "sha256": "20eaa72c63ca67521b810d554479551f565089dabe7d1bc277009b0d84b92716",
       "bytes": 46295,
-      "read_at_utc": "2026-08-20T12:01:24.468183+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.338601+00:00",
       "roles": [
         "TabM4＋CPA-ELP的主结果"
       ]
@@ -99,7 +99,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves-receipt.json",
       "sha256": "d946e712d066b12d72b461580ba6b0ec9076a886dd0a45760f781ebd67038cef",
       "bytes": 570,
-      "read_at_utc": "2026-08-20T12:01:24.468757+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.339838+00:00",
       "roles": [
         "TabM4＋CPA-ELP的完整曲线收据"
       ]
@@ -108,7 +108,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves.npz",
       "sha256": "65fca3a41b754fc971ce6692152edcf23a814c8039785b88796ca83566504851",
       "bytes": 2294945,
-      "read_at_utc": "2026-08-20T12:01:24.470123+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.344447+00:00",
       "roles": [
         "TabM4＋CPA-ELP的完整曲线NPZ"
       ]
@@ -117,7 +117,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2/xgb_cpa_elp_results.json",
       "sha256": "128b1225c96bb07c5b808dc2e0092223d1acb4c039b487a7007551a4f6b5135f",
       "bytes": 15125,
-      "read_at_utc": "2026-08-20T12:01:24.460698+00:00",
+      "read_at_utc": "2026-08-21T06:02:36.314360+00:00",
       "roles": [
         "XGBoost＋CPA-ELP的主结果"
       ]
