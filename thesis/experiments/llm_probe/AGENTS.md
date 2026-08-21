@@ -30,7 +30,8 @@
 
 ## PyTorch 训练与显存
 
-- 新增或修改 PyTorch 模型、训练循环、混合精度、显存优化、`DataLoader` 或检查点前，读取 `pytorch-patterns`，核验目标服务器实际安装版本及所用接口，在计划或报告记录技能条目、版本、官方来源和签名。
+- 新增或修改 PyTorch 模型、训练循环、混合精度、显存优化、`DataLoader` 或检查点前，必须调用并读取 `$pytorch-patterns`，核验目标服务器实际安装版本及所用接口，在计划或报告记录技能条目、版本、官方来源和签名。
+- B76 RTX 5090 的新神经训练默认使用 `configs/neural-precision-profiles-v1.json` 中的 `cuda-bf16-amp-fp32-sensitive-v1`，并通过 `tools/neural_precision_runtime.py` 接入：BF16 autocast，参数、优化器状态和敏感计算保持 FP32，BF16 不使用 `GradScaler`，有效批固定且只按资源选择数学等效微批与累积。FP32、FP16 和 activation checkpointing 只能作为有收据的显式例外；同族结构、机制和选型的科学比较必须使用同一 profile，跨 profile 只作完整系统或工程 Pareto，活动旧运行不得中途切换精度。完整合同见 [RTX 5090 神经训练默认精度模式实施报告](../../../.Codex/docs/RWKV/2026-08-21-RTX5090神经训练默认精度模式/实施报告.md)。
 - 资源估算按真实展开张量上界，写明批量、长度以及树、头、叶、层等并行维度乘积、类型字节与反向保留量；不得只按参数量。最坏候选第一次真实 `optimizer.step()` 记录 `allocated`、`reserved`、`max_allocated`、`max_reserved` 和外部进程显存。
 - 每个合同预注册 `FP32`、`BF16` 或 `FP16` 与启用条件。`BF16` 通常不用 `GradScaler`，`FP16` 使用已核验缩放路径；敏感 softmax、对数、归一化和损失可保留 `FP32`。结构比较必须同精度；异精度只作工程资格观察，除非补同精度对照。
 - OOM 首选数学等效微批量和梯度累积：有效批起点一次 `zero_grad(set_to_none=True)`，微批损失按 `sum` 累加后除以全部有效样本数，有效批结束一次裁剪和 `optimizer.step()`，尾批按真实样本归一。此后才考虑 activation checkpointing；禁止缩小冻结模型、序列、有效批量、训练步数或评价伪装修复。

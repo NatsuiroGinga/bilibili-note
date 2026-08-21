@@ -67,7 +67,14 @@
 
 ## 修改后统计
 
-- 10 个活动 `AGENTS.md` 总字节：`40,933`，比修改前减少 `46,513` 字节（`53.19%`）。
-- 12 字符跨文件重复率：`4.38%`，比修改前 `6.11%` 下降 `1.73` 个百分点。
-- 组合字节：根 `12,669`；`raw` `15,502`；`wiki` `14,372`；`output` `13,829`；论文章节 `19,661`；RWKV 文档 `18,102`；`llm_probe/scripts` `26,315`。全部低于 `32,768`。
+- 10 个活动 `AGENTS.md` 总字节：`41,712`，比修改前减少 `45,734` 字节（`52.30%`）。
+- 12 字符跨文件重复率：`4.30%`，比修改前 `6.11%` 下降 `1.81` 个百分点。
+- 组合字节：根 `12,669`；`raw` `15,502`；`wiki` `14,372`；`output` `13,829`；论文章节 `19,661`；RWKV 文档 `18,102`；`llm_probe/scripts` `27,094`。全部低于 `32,768`。
 - 自动加载链模拟按每层 `AGENTS.override.md`、`AGENTS.md` 顺序选首个非空文件；仓库未发现 override，七条代表路径均只选预期的 `AGENTS.md`。
+
+## 后续精度入口
+
+- 实现提交 `b74d858` 与文档提交 `d92296d` 已在当前 `HEAD` 历史中。
+- B76 RTX 5090 新神经训练的工程默认 profile 为 `cuda-bf16-amp-fp32-sensitive-v1`；规则只登记入口、精度组成、例外收据、科学比较边界和活动旧运行禁切换。
+- 共享配置为 `thesis/experiments/llm_probe/configs/neural-precision-profiles-v1.json`，运行工具为 `thesis/experiments/llm_probe/tools/neural_precision_runtime.py`，完整合同为 `.Codex/docs/RWKV/2026-08-21-RTX5090神经训练默认精度模式/实施报告.md`。
+- 该 profile 是“工程默认、效果实验待证”，不得写成项目全模型精度最优。
