@@ -1,0 +1,292 @@
+{
+  "schema_version": "ch3-common-first-alert-fp-budget-envelope-config-v1",
+  "run_id": "ch3-common-first-alert-fp-budget-envelope-v1",
+  "display_name": "五系统共同实际首次告警FP预算包络",
+  "dataset": "LSPR24",
+  "target_previously_accessed": true,
+  "independent_test": false,
+  "formal_paper_evidence": false,
+  "screening_only": false,
+  "training_runs": 0,
+  "hyperparameter_selection_runs": 0,
+  "evidence_ceiling": "目标年描述性共同首次告警包络",
+  "target_identity": {
+    "flow_count": 20227356,
+    "entity_count": 47115,
+    "positive_entity_count": 752,
+    "negative_entity_count": 46363,
+    "flow_positive_rate": 0.0257073138,
+    "sequence_width": 128,
+    "entity_key": "unordered_source_destination_address_pair",
+    "entity_label": "maximum_flow_label",
+    "exposure_order": "ascending_frozen_flow_array_index_within_entity",
+    "exposure_index_base": 1,
+    "timestamp_input_loaded": false,
+    "time_delay_available": false
+  },
+  "shared_inputs": {
+    "flow_labels": {
+      "relative_path": "runs/diagnostics/dijk-repro/cache/y24.npy",
+      "bytes": 80909552,
+      "sha256": "455a4932e0483af59ebccc64b462d3c620f671c6969f15312d8358cf7f410b46"
+    },
+    "source_addresses": {
+      "relative_path": "runs/diagnostics/dijk-repro/cache/s24.npy",
+      "bytes": 494808757,
+      "sha256": "bdae8476d927d2f6610335649c01e8db71ee48a375bd48f9c13bb7b968d25243"
+    },
+    "destination_addresses": {
+      "relative_path": "runs/diagnostics/dijk-repro/cache/d24.npy",
+      "bytes": 495445716,
+      "sha256": "a3621eaf4d683aac2f6f70ce2c2ad71d769b26fca6bfd981bb98ec81398f21cb"
+    }
+  },
+  "methods": {
+    "full_mlp_o11": {
+      "display_name": "全容量MLP O11（因果前缀聚合＋学习幂平均）",
+      "source_kind": "frozen_o11_checkpoint_single_logical_inference",
+      "online_score": "running_power_mean_p_from_selection_receipt",
+      "terminal_score": "complete_entity_power_mean_p_from_selection_receipt",
+      "probability_clip": [1e-7, 1.0],
+      "logical_training_runs": 0,
+      "logical_target_inference_calls": 1,
+      "logical_target_score_calls": 0,
+      "target_retrained": false,
+      "inputs": {
+        "selected_checkpoint": {
+          "relative_path": "runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/checkpoints/selected-O11.pt",
+          "bytes": 8604193,
+          "sha256": "7226dd49852f18b7196fca134148f8a1263af4b461ebba5b6969220ff00ff9f6"
+        },
+        "selection_receipt": {
+          "relative_path": "runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/receipts/selection-O11.json",
+          "bytes": 8414,
+          "sha256": "dcef320fc752c1fc8b9ebcab8d3f608090f684ffca55c21163e79061fa8f963b"
+        },
+        "frozen_run_config": {
+          "relative_path": "runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/config.json",
+          "bytes": 4766,
+          "sha256": "c5d66e848018918ef7a0d09d7a87efe3c6d5746584b9d3cbd1ba6c06e24da38f"
+        },
+        "target_features": {
+          "relative_path": "runs/diagnostics/dijk-repro/cache/X24.npy",
+          "bytes": 6715482320,
+          "sha256": "1a3ebe8bcdd01be0b5031b33cd4e3d4be0c4b6aae8ca6ed5beb5282517efc936"
+        },
+        "target_sequence_index": {
+          "relative_path": "runs/diagnostics/dijk-repro/cache/I24.npy",
+          "bytes": 205644928,
+          "sha256": "420993e83512adb5878470d5e95a77e1cc5548b20c281eb7d44468a37b23c37d"
+        },
+        "target_sequence_mask": {
+          "relative_path": "runs/diagnostics/dijk-repro/cache/M24.npy",
+          "bytes": 102822528,
+          "sha256": "1300a42273c8fdd386b0d5569a3c5023d2bcde3f6534c1e20d3570c31cd1ff6c"
+        }
+      }
+    },
+    "xgb_cpa_elp_c11": {
+      "display_name": "XGBoost＋CPA-ELP C11（semantic168、p=1运行均值）",
+      "source_kind": "frozen_semantic168_booster_single_logical_rescore",
+      "online_score": "running_arithmetic_mean",
+      "terminal_score": "complete_entity_arithmetic_mean",
+      "probability_clip": [1e-7, 1.0],
+      "logical_training_runs": 0,
+      "logical_target_inference_calls": 0,
+      "logical_target_score_calls": 1,
+      "target_retrained": false,
+      "inputs": {
+        "semantic168_model": {
+          "relative_path": "runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1/model_semantic168.json",
+          "bytes": 4428293,
+          "sha256": "1805e15d96ac4ebb57df910640a4c5e1af58f692659db2eb80b724851efe42e9"
+        },
+        "selection_seal": {
+          "relative_path": "runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1/selection_frozen_xgb2x2.json",
+          "bytes": 8707,
+          "sha256": "a9075653efc6b29b6eb9d72f04409781af18e7c65cb31c1ba9bac941e1293943"
+        },
+        "effective_config_receipts": {
+          "relative_path": "runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1/effective_config_receipts.json",
+          "bytes": 28577,
+          "sha256": "657c9f88b3c37f15e48817b145ad8bb22b8f4edd5ba700742b945c84c413515d"
+        },
+        "parent_evaluation_result": {
+          "relative_path": "runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2/xgb_cpa_elp_results.json",
+          "sha256": "128b1225c96bb07c5b808dc2e0092223d1acb4c039b487a7007551a4f6b5135f"
+        },
+        "parent_evaluation_manifest": {
+          "relative_path": "runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2/manifest.json",
+          "sha256": "f6b66cc94ef09b169ff29ce317464109bc701fa109875f6e9b7d09c889516115"
+        },
+        "target_features": {
+          "relative_path": "runs/diagnostics/dijk-repro/cache/X24.npy",
+          "bytes": 6715482320,
+          "sha256": "1a3ebe8bcdd01be0b5031b33cd4e3d4be0c4b6aae8ca6ed5beb5282517efc936"
+        },
+        "target_sequence_index": {
+          "relative_path": "runs/diagnostics/dijk-repro/cache/I24.npy",
+          "bytes": 205644928,
+          "sha256": "420993e83512adb5878470d5e95a77e1cc5548b20c281eb7d44468a37b23c37d"
+        },
+        "target_sequence_mask": {
+          "relative_path": "runs/diagnostics/dijk-repro/cache/M24.npy",
+          "bytes": 102822528,
+          "sha256": "1300a42273c8fdd386b0d5569a3c5023d2bcde3f6534c1e20d3570c31cd1ff6c"
+        }
+      }
+    },
+    "cnn_published_max": {
+      "display_name": "一维CNN（已发表，前缀最大值在线读法）",
+      "source_kind": "persisted_published_flow_scores",
+      "online_score": "prefix_maximum",
+      "terminal_score": "complete_entity_maximum",
+      "probability_clip": null,
+      "logical_training_runs": 0,
+      "logical_target_inference_calls": 0,
+      "logical_target_score_calls": 0,
+      "target_retrained": false,
+      "inputs": {
+        "flow_scores": {
+          "relative_path": "runs/diagnostics/ch3-baselines-full/scores_cnn_leoste2025.npy",
+          "bytes": 80909552,
+          "sha256": "3d3674d98799140b9dadaa580c481986bd579acad6455dae79948adcb1a0749d"
+        }
+      }
+    },
+    "gru_published_max": {
+      "display_name": "GRU（已发表，前缀最大值在线读法）",
+      "source_kind": "persisted_published_flow_scores",
+      "online_score": "prefix_maximum",
+      "terminal_score": "complete_entity_maximum",
+      "probability_clip": null,
+      "logical_training_runs": 0,
+      "logical_target_inference_calls": 0,
+      "logical_target_score_calls": 0,
+      "target_retrained": false,
+      "inputs": {
+        "flow_scores": {
+          "relative_path": "runs/diagnostics/ch3-baselines-full/scores_gru_dijk2026.npy",
+          "bytes": 80909552,
+          "sha256": "8e75dcc7b787a4ed3d5c5f2fc250b3b2b20de083c6a5826ef9108d80f9b80ad2"
+        }
+      }
+    },
+    "transformer_published_max": {
+      "display_name": "全注意力Transformer（已发表，前缀最大值在线读法）",
+      "source_kind": "persisted_published_flow_scores",
+      "online_score": "prefix_maximum",
+      "terminal_score": "complete_entity_maximum",
+      "probability_clip": null,
+      "logical_training_runs": 0,
+      "logical_target_inference_calls": 0,
+      "logical_target_score_calls": 0,
+      "target_retrained": false,
+      "inputs": {
+        "flow_scores": {
+          "relative_path": "runs/diagnostics/ch3-baselines-full/scores_transformer_dijk2026.npy",
+          "bytes": 80909552,
+          "sha256": "4bb845444a03cea0579c28120f2afe2d48559c8644c6a8fc80ddd37b5e63922d"
+        }
+      }
+    }
+  },
+  "common_budget": {
+    "axis": "integer_false_positive_entity_count",
+    "axis_minimum": 0,
+    "axis_maximum": 46363,
+    "tie_group_rule": "complete_benign_path_max_tie_groups_never_split",
+    "selection_rule": "last_reachable_threshold_with_path_fp_not_exceeding_k",
+    "interpolation": false,
+    "exact_fpr_intersection": false,
+    "nominal_budgets": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "common_integer_budgets": [46, 231, 463, 927, 1854, 3709],
+    "integer_budget_formula": "floor(nominal_budget*negative_entity_count)",
+    "nominal_4_percent_is_empirical_anchor_not_deployment_standard": true
+  },
+  "evaluation": {
+    "path_curve_threshold_source": "all_entity_path_max_descending_unique",
+    "threshold_semantics": "online_score_greater_equal_threshold",
+    "zero_false_positive_boundary": "nextafter_of_global_maximum_path_max",
+    "terminal_curve_threshold_source": "identical_to_path_curve_thresholds",
+    "first_alert_axis": "exposure_index",
+    "exposure_index_base": 1,
+    "first_alert_quantiles": [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0],
+    "timely_detection_denominator": 752,
+    "timely_curve_encoding": "right_continuous_exact_first_crossing_breakpoints",
+    "timely_detection_budget_count": 6,
+    "benign_first_alert_count_must_equal_path_false_positive": true,
+    "time_delay_available": false,
+    "time_delay_unavailable_reason": "目标输入不含完整流available_ns，曝光序号不能解释为真实时间时延",
+    "dominance_tolerance": 0.0,
+    "dominance_requires_strict_improvement_somewhere": true,
+    "synthetic_best_of_baselines_forbidden": true
+  },
+  "full_flow_array_budget": {
+    "entity_id_int32": 1,
+    "stable_order_int64": 1,
+    "exposure_index_int64": 1,
+    "current_method_probability_float32": 1,
+    "online_running_score_float64": 1,
+    "transient_int64_first_alert_candidate": 1,
+    "dense_entity_by_exposure_matrix": 0,
+    "threshold_by_flow_matrix": 0,
+    "note": "在线运行分数与首次跨越候选是运行均值/幂平均无法避免的全流级工作区，已在实施报告登记为对计划第五节数组清单的显式增补"
+  },
+  "execution": {
+    "xgb_predict_batch": 2000000,
+    "xgb_sequence_batch": 2048,
+    "mlp_inference_batch_from_frozen_entry": 2048,
+    "batching_is_engineering_detail_only": true,
+    "reuses_frozen_production_entries": true
+  },
+  "resource_contract": {
+    "authorized_server": "B76",
+    "minimum_free_gpu_memory_mib": 12288,
+    "minimum_cgroup_available_memory_gib": 48,
+    "minimum_free_disk_gib": 10,
+    "maximum_disk_used_percent": 79,
+    "maximum_parallel_units": 1,
+    "wall_clock_limit": null,
+    "gpu_hour_limit": null,
+    "stage_atomic_resume": true,
+    "fair_efficiency_evidence": false
+  },
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  },
+  "artifact_policy": {
+    "output_root": "runs/diagnostics/ch3-common-first-alert-fp-budget-envelope-v1",
+    "atomic_json_and_npz": true,
+    "persist_aggregate_results": true,
+    "persist_complete_path_budget_curves": true,
+    "persist_terminal_at_path_threshold_curves": true,
+    "persist_first_alert_timing_curves": true,
+    "persist_method_level_aggregates_for_resume": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_per_entity_first_alert": false,
+    "persist_entity_mapping": false,
+    "persist_derived_matrices": false,
+    "persist_models_or_checkpoints": false
+  },
+  "schema_keys": {
+    "config": "ch3-common-first-alert-fp-budget-envelope-config-v1",
+    "results": "ch3-common-first-alert-fp-budget-envelope-results-v1",
+    "path_budget_curves": "ch3-common-first-alert-path-budget-curves-v1",
+    "terminal_at_path_threshold": "ch3-common-first-alert-terminal-at-path-threshold-v1",
+    "timely_detection": "ch3-common-first-alert-timely-detection-v1",
+    "manifest": "ch3-common-first-alert-fp-budget-envelope-manifest-v1"
+  },
+  "stages": [
+    "validate_shared_identity",
+    "published_neural_aggregate",
+    "xgb_rescore_and_aggregate",
+    "mlp_infer_and_aggregate",
+    "common_budget_projection",
+    "finalize"
+  ]
+}
