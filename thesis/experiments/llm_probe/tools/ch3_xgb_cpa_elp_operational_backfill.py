@@ -22,7 +22,7 @@ if str(DIJK_MODULE_ROOT) not in sys.path:
 from dijk_fields import DIJK_FEATURES  # noqa: E402
 
 
-RUN_ID = "ch3-xgb-cpa-elp-c11-operational-backfill-v1"
+RUN_ID = "ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1"
 DISPLAY_NAME = "XGBoost＋CPA-ELP C11目标年完整运营指标零训练回填"
 PARENT_RUN_ID = "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1"
 PARENT_EVAL_RUN_ID = f"{PARENT_RUN_ID}-eval-continuation2"

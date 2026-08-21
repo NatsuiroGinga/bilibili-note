@@ -5,9 +5,9 @@ set -Eeuo pipefail
 umask 027
 
 readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
-readonly RUN_ID=ch3-xgb-cpa-elp-c11-operational-backfill-v1
+readonly RUN_ID=ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1
 readonly DISPLAY_NAME='XGBoost＋CPA-ELP C11目标年完整运营指标零训练回填'
-readonly SCREEN_NAME=ch3-xgb-c11-op-backfill-v1
+readonly SCREEN_NAME=ch3-xgb-c11-op-backfill-r1
 readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch3-xgb-cpa-elp-operational-backfill-v1.json"
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch3_xgb_cpa_elp_operational_backfill.py"
 readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_xgb_cpa_elp_operational_backfill_v1.sh"
@@ -125,7 +125,8 @@ tracking_gate() {
 
 admit_resources() {
     mkdir -p -- "$OUTPUT_ROOT" "$LAUNCHER_ROOT"
-    bash "$MEMORY_GATE_PATH" 48 "$RUN_ID" > "$LAUNCHER_ROOT/memory-admission-gate.log" 2>&1
+    bash "$MEMORY_GATE_PATH" 48 "$RUN_ID" > "$LAUNCHER_ROOT/memory-admission-gate.log" 2>&1 \
+        || return $?
     local free_mib used_mib cgroup_max cgroup_current cgroup_available
     local disk_fields available_kib used_percent peer_count
     free_mib=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | awk 'NR == 1 {gsub(/ /, "", $0); print $0}')
@@ -221,6 +222,25 @@ os.replace(temporary, receipt)
 ' "$RESOURCE_RECEIPT" "$RESOURCE_SAMPLES"
 }
 
+validate_admitted_resource_receipt() {
+    uv run --no-sync python -c '
+import json, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+value = json.loads(path.read_text(encoding="utf-8"))
+admission = value.get("admission", {})
+valid = (
+    value.get("run_id") == sys.argv[2]
+    and value.get("finalized") is False
+    and value.get("wall_clock_limit") is None
+    and admission.get("minimum_free_gpu_memory_gib") == 11
+    and admission.get("minimum_cgroup_available_memory_gib") == 48
+    and admission.get("minimum_free_disk_gib") == 10
+    and admission.get("parallel_compute_units") == 1
+)
+raise SystemExit(0 if valid else 69)
+' "$RESOURCE_RECEIPT" "$RUN_ID"
+}
+
 run_logged() {
     local log_path=$1
     shift
@@ -267,11 +287,6 @@ raise SystemExit(0 if valid else 7)
 
 worker() {
     local monitor_pid= code=0 resume_flag= cleanup_needed=0
-    exec 9> "$LAUNCHER_ROOT/worker.lock"
-    flock -n 9 || {
-        printf '同名运行锁已占用。\n' >&2
-        return 75
-    }
     trap '
         if [[ -n ${monitor_pid:-} ]]; then kill "$monitor_pid" 2>/dev/null || true; wait "$monitor_pid" 2>/dev/null || true; fi
         if (( ${cleanup_needed:-0} == 1 )); then finalize_resources || true; fi
@@ -290,8 +305,7 @@ worker() {
     tracking_gate
     [[ -s "$OUTPUT_ROOT/compute-complete-receipt.json" ]] && resume_flag=--resume
     if [[ -z "$resume_flag" ]]; then
-        launcher_status running resource_gate checking_live_resources null
-        admit_resources
+        validate_admitted_resource_receipt
         cleanup_needed=1
         resource_monitor &
         monitor_pid=$!
@@ -327,6 +341,23 @@ raise SystemExit(0 if path.is_file() and json.loads(path.read_text())["finalized
 
 worker_entry() {
     local code
+    exec 9> "$LAUNCHER_ROOT/worker.lock"
+    flock -n 9 || {
+        printf '同名运行锁已占用。\n' >&2
+        return 75
+    }
+    if [[ ! -s "$OUTPUT_ROOT/manifest.json" \
+        && ! -s "$OUTPUT_ROOT/compute-complete-receipt.json" ]]; then
+        launcher_status running resource_gate checking_live_resources_before_controller_tee null
+        set +e
+        admit_resources
+        code=$?
+        set -e
+        if (( code != 0 )); then
+            launcher_status failed resource_gate admission_failed_before_controller_tee "$code"
+            return "$code"
+        fi
+    fi
     set +e
     worker 2>&1 | tee "$LAUNCHER_ROOT/controller.log"
     local pipeline_status=("${PIPESTATUS[@]}")

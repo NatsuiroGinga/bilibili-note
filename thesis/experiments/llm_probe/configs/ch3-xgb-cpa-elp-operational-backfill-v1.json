@@ -1,6 +1,6 @@
 {
   "schema_version": "ch3-xgb-cpa-elp-operational-backfill-config-v1",
-  "run_id": "ch3-xgb-cpa-elp-c11-operational-backfill-v1",
+  "run_id": "ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1",
   "display_name": "XGBoost＋CPA-ELP C11目标年完整运营指标零训练回填",
   "seed": 42,
   "screening_only": false,
@@ -13,7 +13,7 @@
     "parent_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json",
     "parent_recovery_proof": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/recovery/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-for-ch4-xgb-pbc-q0-seed42-v1-rerun2-v1/parent-recovery-proof.json",
     "parent_evaluation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
-    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-c11-operational-backfill-v1"
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-c11-operational-backfill-v1-rerun1"
   },
   "parent_contract": {
     "run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
