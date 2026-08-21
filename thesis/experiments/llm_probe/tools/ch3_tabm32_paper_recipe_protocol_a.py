@@ -228,6 +228,7 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("optimizer_candidates 与冻结优化器候选定义不符")
 
     candidate = config.get("candidate", {})
+    training = config.get("training", {})
     if candidate.get("ensemble_members") != 32:
         raise ValueError("candidate.ensemble_members 成员数必须为 32")
     if candidate.get("layer_count") != 3:
@@ -238,17 +239,16 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("candidate.numerical_embedding 必须为假，TabM32 官方配方不使用数值嵌入")
     if candidate.get("additional_normalization_layers") is not False:
         raise ValueError("candidate.additional_normalization_layers 必须为假，不追加归一化层")
-    if candidate != _EXPECTED_CANDIDATE:
-        raise ValueError("candidate 配方其余字段与冻结协议 A 配方不符")
-
-    training = config.get("training", {})
-    if training.get("dropout") != 0.1:
-        raise ValueError("training.dropout 随机失活必须为 0.1")
     micro_batch = candidate.get("micro_batch_sequences")
     accumulation = candidate.get("gradient_accumulation_steps")
     effective_batch = training.get("effective_batch_size")
     if not isinstance(micro_batch, int) or not isinstance(accumulation, int) or micro_batch * accumulation != effective_batch:
         raise ValueError("micro_batch_sequences 乘以 gradient_accumulation_steps 必须等于 effective_batch_size")
+    if candidate != _EXPECTED_CANDIDATE:
+        raise ValueError("candidate 配方其余字段与冻结协议 A 配方不符")
+
+    if training.get("dropout") != 0.1:
+        raise ValueError("training.dropout 随机失活必须为 0.1")
     if training != _EXPECTED_TRAINING:
         raise ValueError("training 训练与选择合同不符（协议 A 冻结值）")
 
