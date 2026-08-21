@@ -1489,6 +1489,651 @@ def build_model(config: dict[str, Any], cell: str, input_key: str, input_dimensi
 
 
 # ---------------------------------------------------------------------------
+# 训练循环、梯度累积与协议 A 检查点选择（任务 4）
+# ---------------------------------------------------------------------------
+
+
+def _atomic_json(path: Path, value: Any) -> None:
+    """先写同目录临时文件再原子替换，避免半写文件被当作完成制品。"""
+    import os
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.partial.{os.getpid()}")
+    temporary.write_text(
+        json.dumps(value, ensure_ascii=False, indent=2, default=str) + "\n", encoding="utf-8"
+    )
+    os.replace(temporary, path)
+
+
+def _atomic_torch(path: Path, value: Any) -> None:
+    """检查点的原子写；只应在完整 ``optimizer.step()`` 边界调用。"""
+    import os
+
+    import torch
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.partial.{os.getpid()}")
+    torch.save(value, temporary)
+    os.replace(temporary, path)
+
+
+def _sha256_file(path: Path, chunk_size: int = 16 * 1024 * 1024) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(chunk_size):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _process_peak_rss_mib() -> float:
+    """进程峰值常驻内存；Linux 的 ru_maxrss 单位是 KiB，macOS 是字节。"""
+    import resource
+
+    peak = float(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+    return peak / 1024.0 if sys.platform != "darwin" else peak / (1024.0 * 1024.0)
+
+
+def external_process_gpu_memory_mib(torch_module: Any, device: Any) -> float:
+    """同卡外部进程占用显存的估计值，用于判断测量是否被并发运行污染。
+
+    以 ``torch.cuda.mem_get_info()`` 的 ``(free, total)`` 为准，减去本进程缓存分配器
+    已保留的字节。本进程的 CUDA 上下文开销不计入 ``memory_reserved``，因此该估计会
+    略微高估外部占用；它只作污染判据，不作准入阈值。这里使用与仓库既有工具一致的
+    无参调用形式（资源合同 ``maximum_parallel_jobs`` 为 1，单卡）。
+    """
+    free_bytes, total_bytes = torch_module.cuda.mem_get_info()
+    reserved = int(torch_module.cuda.memory_reserved(device))
+    return max(int(total_bytes) - int(free_bytes) - reserved, 0) / 2**20
+
+
+def gpu_memory_snapshot(torch_module: Any, device: Any) -> dict[str, float]:
+    """四个本进程显存量加同卡外部进程占用，一律换算为 MiB。"""
+    if device.type != "cuda":
+        raise RuntimeError("显存快照只在 CUDA 设备上有意义")
+    return {
+        "memory_allocated_mib": int(torch_module.cuda.memory_allocated(device)) / 2**20,
+        "memory_reserved_mib": int(torch_module.cuda.memory_reserved(device)) / 2**20,
+        "max_memory_allocated_mib": int(torch_module.cuda.max_memory_allocated(device)) / 2**20,
+        "max_memory_reserved_mib": int(torch_module.cuda.max_memory_reserved(device)) / 2**20,
+        "external_process_gpu_mib": external_process_gpu_memory_mib(torch_module, device),
+    }
+
+
+def load_source_arrays(cache_root: str) -> dict[str, Any]:
+    """加载协议 A 源年冻结数组并机械断言形状身份。"""
+    import numpy as np
+
+    root = Path(cache_root)
+    arrays: dict[str, Any] = {}
+    for name in SOURCE_ARRAYS:
+        path = root / f"{name}.npy"
+        if not path.is_file():
+            raise FileNotFoundError(f"缺少冻结缓存：{path}")
+        arrays[name] = np.load(path, allow_pickle=False)
+    if arrays["X23"].shape != (LSPR23_FLOW_COUNT, DIJK_FEATURE_COUNT):
+        raise RuntimeError(f"X23 形状不符：{arrays['X23'].shape}")
+    if arrays["I23"].shape != (LSPR23_SEQUENCE_COUNT, PROTOCOL_A_SEQUENCE_LENGTH):
+        raise RuntimeError(f"I23 形状不符：{arrays['I23'].shape}")
+    if arrays["M23"].shape != arrays["I23"].shape:
+        raise RuntimeError(f"M23 形状与 I23 不符：{arrays['M23'].shape}")
+    if arrays["y23"].shape != (LSPR23_FLOW_COUNT,):
+        raise RuntimeError(f"y23 形状不符：{arrays['y23'].shape}")
+    for name in ("E23", "T23"):
+        if arrays[name].shape != (LSPR23_SEQUENCE_COUNT,):
+            raise RuntimeError(f"{name} 形状不符：{arrays[name].shape}")
+    resident = {name: int(array.nbytes) for name, array in arrays.items()}
+    logger.info(
+        "源年数组已载入主机：总常驻 %.2f GiB，逐数组字节 %s",
+        sum(resident.values()) / 2**30, resident,
+    )
+    return arrays
+
+
+def source_split(arrays: dict[str, Any], config: dict[str, Any]) -> tuple[Any, Any, dict[str, int]]:
+    """协议 A 源年切分：按实体随机留出验证集并切除时间尾部，逐字复用既有语义。"""
+    import numpy as np
+
+    training = config["training"]
+    seed = training["seed"]
+    entity = arrays["E23"]
+    timestamp = arrays["T23"]
+    unique_entity = np.unique(entity)
+    permutation = np.random.RandomState(seed).permutation(len(unique_entity))
+    count = max(1, int(len(unique_entity) * training["validation_fraction"]))
+    validation_entities = set(unique_entity[permutation[:count]].tolist())
+    entity_mask = np.fromiter((value in validation_entities for value in entity), bool, len(entity))
+    time_cut = np.quantile(timestamp, 1.0 - training["time_tail_fraction"])
+    time_mask = timestamp >= time_cut
+    train_rows = np.flatnonzero(~(entity_mask | time_mask))
+    validation_rows = np.flatnonzero(entity_mask & ~time_mask)
+    statistics = {
+        "entity_count": int(len(unique_entity)),
+        "train_sequences": int(len(train_rows)),
+        "validation_sequences": int(len(validation_rows)),
+        "train_validation_row_intersection": int(np.intersect1d(train_rows, validation_rows).size),
+    }
+    if statistics != PROTOCOL_A_SPLIT_STATISTICS:
+        raise RuntimeError(f"协议 A 源年切分统计不符：{statistics}")
+
+    # 梯度累积按真实有效流归一化，任一微批的有效流数必须为正；这里提前把
+    # 「存在整条全掩码序列」这一数据合同违例暴露成明确错误，而不是留到累积器内部。
+    length = training["sequence_length"]
+    for name, rows in (("训练", train_rows), ("验证", validation_rows)):
+        per_row_valid = (arrays["M23"][rows][:, :length] > 0.5).sum(axis=1)
+        if int(per_row_valid.min()) <= 0:
+            raise RuntimeError(f"{name}集中存在有效流数为 0 的序列，违反逐流归一化前提")
+    logger.info("协议 A 源年切分统计已核验：%s", statistics)
+    return train_rows, validation_rows, statistics
+
+
+class ProtocolASourceView:
+    """协议 A 源年数据的主机侧视图，按已冻结的输入变换逐微批供给特征。
+
+    两个输入候选共用同一条数据通路「主机取原值 → 冻结变换 → 逐微批上卡」。
+    不做整表物化的理由是可核对的算术：候选二变换后的整表为
+    ``16,353,511 × 67,195 × 4`` 字节约 ``4.0 TiB``，任何主机或设备都放不下；
+    若只给候选一开整表模式，两个候选的数据通路就不再可比。
+    """
+
+    def __init__(self, arrays: dict[str, Any], transform: InputTransform) -> None:
+        self.matrix = arrays["X23"]
+        self.labels = arrays["y23"]
+        self.indices = arrays["I23"]
+        self.mask = arrays["M23"]
+        self.transform = transform
+        self._sequence_positive_weight: float | None = None
+
+    @property
+    def flow_positive_rate(self) -> float:
+        return float(self.labels.mean())
+
+    @property
+    def sequence_positive_weight(self) -> float:
+        """序列级正类权重，与既有协议 A 工具同口径，在全部序列上统计一次。"""
+        if self._sequence_positive_weight is None:
+            sequence_labels = (
+                self.labels[self.indices.reshape(-1)].reshape(self.indices.shape) * self.mask
+            ).max(1) > 0
+            positive_rate = float(sequence_labels.mean())
+            self._sequence_positive_weight = (1.0 - positive_rate) / max(positive_rate, 1e-8)
+        return self._sequence_positive_weight
+
+    def gather_sequences(self, rows: Any, length: int) -> tuple[Any, Any, Any]:
+        """取出若干序列的流索引、有效掩码与逐流标签，形状均为 ``(len(rows), length)``。"""
+        import numpy as np
+
+        indices = np.ascontiguousarray(self.indices[rows][:, :length])
+        valid = np.ascontiguousarray(self.mask[rows][:, :length] > 0.5)
+        labels = np.ascontiguousarray(self.labels[indices].astype(np.float32, copy=False))
+        return indices, valid, labels
+
+    def features(self, indices: Any) -> Any:
+        """把 ``(n, T)`` 流索引展成 ``(n, T, output_dimension)`` 的 float32 特征。
+
+        无效位置的索引仍会被变换，其贡献随后由掩码清零；保持矩形形状换取批处理效率。
+        """
+        import numpy as np
+
+        flat = np.asarray(indices).reshape(-1)
+        raw = np.asarray(self.matrix[flat], dtype=np.float32)
+        values = self.transform.apply(raw)
+        return np.ascontiguousarray(
+            values.reshape(indices.shape[0], indices.shape[1], self.transform.output_dimension)
+        )
+
+
+def sample_distinct_positions(size: int, count: int, generator: Any) -> Any:
+    """在 ``[0, size)`` 内抽 ``count`` 个互不相同的位置，供有效批取不同序列。"""
+    import torch
+
+    if count > size:
+        raise ValueError(f"要求 {count} 条不同序列，但可选池只有 {size} 条")
+    positions: list[int] = []
+    seen: set[int] = set()
+    while len(positions) < count:
+        candidates = torch.randint(
+            0, size, ((count - len(positions)) * 2,), generator=generator
+        ).tolist()
+        for candidate in candidates:
+            if candidate not in seen:
+                seen.add(candidate)
+                positions.append(candidate)
+                if len(positions) == count:
+                    break
+    return torch.tensor(positions, dtype=torch.int64)
+
+
+def make_optimizer(config: dict[str, Any], model: Any, optimizer_key: str) -> tuple[Any, dict[str, Any]]:
+    """按优化器候选建 AdamW；权重衰减只施加于三层共享主权重与 32 个输出头权重。
+
+    成员输入缩放、成员输出缩放、成员偏置、输出头偏置与共享标量 ``p_log`` 不衰减，
+    与本仓库同族 TabM4 实现的分组一致。协议 A 无学习率调度，此处不建 scheduler。
+    """
+    import torch
+
+    candidate = next(
+        (entry for entry in OPTIMIZER_CANDIDATES if entry["key"] == optimizer_key), None
+    )
+    if candidate is None:
+        raise ValueError(f"未知优化器候选：{optimizer_key}")
+    decay_names = {
+        "input_layer.weight",
+        "hidden_layer.weight",
+        "fusion_layer.weight",
+        "output_weight",
+    }
+    decay = [parameter for name, parameter in model.named_parameters() if name in decay_names]
+    no_decay = [parameter for name, parameter in model.named_parameters() if name not in decay_names]
+    if len(decay) != len(decay_names):
+        raise RuntimeError(
+            f"权重衰减分组只匹配到 {len(decay)} 个参数，期望 {len(decay_names)} 个共享主权重"
+        )
+    optimizer = torch.optim.AdamW(
+        [
+            {"params": decay, "weight_decay": candidate["weight_decay"]},
+            {"params": no_decay, "weight_decay": 0.0},
+        ],
+        lr=candidate["learning_rate"],
+    )
+    logger.info(
+        "优化器候选 %s：学习率=%s，权重衰减=%s，衰减组参数 %d 个、不衰减组 %d 个，无学习率调度",
+        candidate["display_name"], candidate["learning_rate"], candidate["weight_decay"],
+        len(decay), len(no_decay),
+    )
+    return optimizer, candidate
+
+
+def evaluate_validation_flow_ap(
+    config: dict[str, Any],
+    model: Any,
+    view: ProtocolASourceView,
+    rows: Any,
+    device: Any,
+    profile: dict[str, Any],
+) -> tuple[float, int]:
+    """在 LSPR23 实体不相交验证集上计算逐流平均精度。
+
+    推理批取有效批的序列数：同一批对象数下 ``no_grad`` 保留的显存严格低于训练步，
+    因此不需要另立一个未经依据的推理批常数。
+    """
+    import numpy as np
+    import torch
+    from sklearn.metrics import average_precision_score
+
+    precision = _precision_module()
+    length = config["training"]["sequence_length"]
+    batch_sequences = config["training"]["effective_batch_size"]
+    predictions: list[Any] = []
+    labels: list[Any] = []
+    model.eval()
+    with torch.no_grad():
+        for start in range(0, len(rows), batch_sequences):
+            chunk = rows[start : start + batch_sequences]
+            indices, valid, flow_labels = view.gather_sequences(chunk, length)
+            values_t = torch.from_numpy(view.features(indices)).to(device)
+            valid_t = torch.from_numpy(valid).to(device)
+            with precision.autocast_context(profile, device.type, torch):
+                probabilities = model.shared_batch_flow_probability(values_t, valid_t)
+            flat_mask = valid.reshape(-1)
+            predictions.append(probabilities.reshape(-1).float().cpu().numpy()[flat_mask])
+            labels.append(flow_labels.reshape(-1)[flat_mask])
+    model.train()
+    scores = np.concatenate(predictions)
+    targets = np.concatenate(labels)
+    return float(average_precision_score(targets, scores)), int(len(scores))
+
+
+def train_cell(
+    config: dict[str, Any],
+    cell: str,
+    input_key: str,
+    optimizer_key: str,
+    *,
+    output_root: Path,
+    identity: dict[str, Any],
+    view: ProtocolASourceView,
+    train_rows: Any,
+    validation_rows: Any,
+    device: Any,
+    precision_contract: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """训练一格并按协议 A 选择检查点。
+
+    梯度累积、精度与资源收据一律复用 ``tools/neural_precision_runtime.py``：
+    有效批起点一次 ``zero_grad(set_to_none=True)``，每个微批把 FP32 岛内求和得到的
+    标量损失交给 ``EffectiveBatchAccumulator.backward``（内部统一除以本步的全部有效流数），
+    全部微批反向完成后只裁剪一次并只更新一次。
+
+    选择规则：跑满 ``epochs`` 轮、每轮 ``steps_per_epoch`` 步，不早停、无学习率调度；
+    每轮结束在实体不相交验证集上算逐流平均精度，用严格大于更新最优，因此并列保留最早轮次。
+    """
+    import random
+    import time
+
+    import numpy as np
+    import torch
+
+    precision = _precision_module()
+    training = config["training"]
+    candidate = config["candidate"]
+    members = candidate["ensemble_members"]
+    micro_batch = candidate["micro_batch_sequences"]
+    accumulation_steps = candidate["gradient_accumulation_steps"]
+    effective_batch = training["effective_batch_size"]
+    length = training["sequence_length"]
+    uses_lp = CELLS[cell]["learned_lp_pooling"]
+    device_type = device.type
+
+    # 精度合同：核验设备能力与配置一致，再核验批量因子自洽。
+    contract, profile, profile_id = resolve_precision_profile(device_type, torch, precision_contract)
+    plan = precision.validate_microbatch_plan(
+        effective_batch, micro_batch, accumulation_steps, NORMALIZATION_UNIT, is_tail_batch=False
+    )
+    scaler = precision.create_grad_scaler(profile, torch)
+    if scaler is not None:
+        raise RuntimeError("BF16 默认精度配置不得创建 GradScaler，实际创建了缩放器")
+    bounds = tensor_upper_bounds(config, view.transform.output_dimension, profile)
+    logger.info(
+        "%s 张量上界（按展开维度乘积，非参数量）：主机稠密输入=%.2f MiB，"
+        "设备展开输入=%.2f MiB（%s）/%.2f MiB（FP32 保守口径），隐藏张量=%.2f MiB，因果前缀拼接=%.2f MiB",
+        cell,
+        bounds["micro_batch_host_dense_input_bytes"] / 2**20,
+        bounds["micro_batch_device_expanded_input_bytes"] / 2**20,
+        profile["compute_dtype"],
+        bounds["micro_batch_device_expanded_input_fp32_bytes"] / 2**20,
+        bounds["hidden_tensor_bytes"] / 2**20,
+        bounds["causal_prefix_concat_bytes"] / 2**20,
+    )
+
+    random.seed(training["seed"])
+    np.random.seed(training["seed"])
+    torch.manual_seed(training["seed"])
+    if device_type == "cuda":
+        torch.cuda.manual_seed_all(training["seed"])
+
+    model = build_model(config, cell, input_key, view.transform.output_dimension).to(device)
+    optimizer, optimizer_candidate = make_optimizer(config, model, optimizer_key)
+    parameter_check = precision.validate_model_optimizer_fp32(model, optimizer, torch)
+    logger.info(
+        "%s 精度前置核验：FP32 浮点参数 %d 个，优化器浮点状态 %d 个（首次 step 前为 0）",
+        cell, parameter_check["checked_floating_parameters"],
+        parameter_check["checked_floating_optimizer_states"],
+    )
+
+    positive_weight = torch.tensor(
+        [(1.0 - view.flow_positive_rate) / max(view.flow_positive_rate, 1e-8)],
+        device=device,
+        dtype=torch.float32,
+    )
+    flow_loss = torch.nn.BCEWithLogitsLoss(reduction="none", pos_weight=positive_weight)
+    sequence_loss = torch.nn.BCELoss(reduction="none")
+    sequence_positive_weight = view.sequence_positive_weight
+
+    if device_type == "cuda":
+        precision.reset_cuda_peak_memory(torch, device)
+
+    generator = torch.Generator().manual_seed(training["seed"])
+    history: list[dict[str, Any]] = []
+    best_ap = -1.0
+    best_epoch = 0
+    best_p = float("nan")
+    best_state: dict[str, Any] | None = None
+    first_step_memory: dict[str, Any] | None = None
+    optimizer_step_count = 0
+    processed_valid_flows = 0
+    processed_sequences = 0
+    total_steps = training["epochs"] * training["steps_per_epoch"]
+    total_sequences = total_steps * effective_batch
+    heartbeat_interval = max(1, training["steps_per_epoch"] // 4)
+    started = time.time()
+    model.train()
+
+    for epoch in range(1, training["epochs"] + 1):
+        epoch_started = time.time()
+        running_loss = 0.0
+        for step in range(1, training["steps_per_epoch"] + 1):
+            positions = sample_distinct_positions(len(train_rows), effective_batch, generator)
+            rows = train_rows[positions.numpy()]
+            indices, valid, flow_labels = view.gather_sequences(rows, length)
+            total_valid_flows = int(valid.sum())
+            sequence_labels = np.asarray(
+                (flow_labels * valid).max(axis=1) > 0, dtype=np.float32
+            )
+            sequence_weights = (
+                1.0 + (sequence_positive_weight - 1.0) * sequence_labels
+            ).astype(np.float32)
+            total_weight = float(sequence_weights.sum())
+            # 辅助损失的自然分母是序列权重和，主损失的分母是全部有效流数；累积器只接受
+            # 一个全局分母，因此把辅助项先乘 total_valid_flows/total_weight，
+            # 除以 total_valid_flows 之后恰好还原为按序列权重的加权平均，数值完全等价。
+            auxiliary_scale = (
+                training["auxiliary_loss_weight"] * total_valid_flows / max(total_weight, 1e-8)
+            )
+
+            accumulator = precision.EffectiveBatchAccumulator(
+                total_valid_units=total_valid_flows,
+                normalization_unit=NORMALIZATION_UNIT,
+                torch_module=torch,
+                expected_microbatches=accumulation_steps,
+            )
+            accumulator.begin(optimizer)
+            step_loss = 0.0
+            for start in range(0, effective_batch, micro_batch):
+                stop = min(start + micro_batch, effective_batch)
+                micro_valid = valid[start:stop]
+                micro_valid_flows = int(micro_valid.sum())
+                values_t = torch.from_numpy(view.features(indices[start:stop])).to(device)
+                valid_t = torch.from_numpy(micro_valid).to(device)
+                labels_t = torch.from_numpy(flow_labels[start:stop]).to(device)
+                mask32 = valid_t.to(torch.float32)
+                labels32 = labels_t.to(torch.float32)
+                with precision.autocast_context(profile, device_type, torch):
+                    expanded_values, expanded_valid = model.expand_to_members(values_t, valid_t)
+                    logits = model(expanded_values, expanded_valid)
+                # 损失、概率归一化与掩码归约都是精度合同的敏感计算，进 FP32 岛。
+                with precision.fp32_island(
+                    logits, device_type=device_type, torch_module=torch
+                ) as (logits32,):
+                    member_labels = labels32.unsqueeze(MEMBER_AXIS).expand(-1, members, -1)
+                    member_mask = mask32.unsqueeze(MEMBER_AXIS).expand(-1, members, -1)
+                    # 32 个成员各自的二元交叉熵先求和再除以成员数，即成员损失均值；
+                    # 禁止先平均概率再算训练损失。
+                    loss_sum = (flow_loss(logits32, member_labels) * member_mask).sum() / members
+                    if uses_lp:
+                        # 先对 32 个成员概率做算术平均，再对唯一实体做 ELP。
+                        flow_probability = model.member_mean_probability(logits32)
+                        pooled = learned_lp_pool(flow_probability, mask32, model.p).clamp(
+                            1e-6, 1.0 - 1e-6
+                        )
+                        auxiliary_labels = torch.from_numpy(sequence_labels[start:stop]).to(device)
+                        auxiliary_weights = torch.from_numpy(sequence_weights[start:stop]).to(device)
+                        auxiliary = (
+                            sequence_loss(pooled, auxiliary_labels) * auxiliary_weights
+                        ).sum()
+                        loss_sum = loss_sum + auxiliary_scale * auxiliary
+                normalized = accumulator.backward(loss_sum, micro_valid_flows, scaler=scaler)
+                step_loss += float(normalized.detach())
+            accumulator.finish(
+                model.parameters(), optimizer, torch, training["gradient_clip_norm"], scaler=scaler
+            )
+            optimizer_step_count += 1
+            processed_valid_flows += total_valid_flows
+            processed_sequences += effective_batch
+            running_loss += step_loss
+
+            if optimizer_step_count == 1:
+                state_check = precision.validate_model_optimizer_fp32(model, optimizer, torch)
+                first_step_memory = {
+                    "schema_version": "ch3-tabm32-first-step-memory-v1",
+                    "identity": dict(identity),
+                    "cell": cell,
+                    "input_candidate": input_key,
+                    "optimizer_candidate": optimizer_key,
+                    "input_dimension": view.transform.output_dimension,
+                    "precision_profile_id": profile_id,
+                    "tensor_upper_bounds": bounds,
+                    "accumulation_plan": plan,
+                    "checked_floating_parameters": state_check["checked_floating_parameters"],
+                    "checked_floating_optimizer_states": state_check[
+                        "checked_floating_optimizer_states"
+                    ],
+                }
+                if device_type == "cuda":
+                    first_step_memory.update(gpu_memory_snapshot(torch, device))
+                _atomic_json(
+                    output_root
+                    / "receipts"
+                    / f"first-step-memory-{cell}-{input_key}-{optimizer_key}.json",
+                    first_step_memory,
+                )
+                logger.info("%s 首次 optimizer.step() 后的显存快照：%s", cell, first_step_memory)
+
+            if step % heartbeat_interval == 0 or step == training["steps_per_epoch"]:
+                elapsed = time.time() - started
+                throughput = processed_sequences / max(elapsed, 1e-9)
+                remaining = (total_sequences - processed_sequences) / max(throughput, 1e-9)
+                logger.info(
+                    "%s 心跳 epoch=%d/%d step=%d/%d 已处理序列=%d/%d 有效流=%d "
+                    "吞吐=%.1f 序列/秒 累计=%.1f 分 预计剩余=%.1f 分",
+                    cell, epoch, training["epochs"], step, training["steps_per_epoch"],
+                    processed_sequences, total_sequences, processed_valid_flows,
+                    throughput, elapsed / 60.0, remaining / 60.0,
+                )
+
+        validation_ap, scored_flows = evaluate_validation_flow_ap(
+            config, model, view, validation_rows, device, profile
+        )
+        p_value = float(model.p.detach())
+        history.append(
+            {
+                "epoch": epoch,
+                "validation_flow_ap": validation_ap,
+                "p": p_value,
+                "mean_training_loss": running_loss / training["steps_per_epoch"],
+            }
+        )
+        # 严格大于：并列时保留最早轮次。不早停、不看目标年。
+        if validation_ap > best_ap:
+            best_ap = validation_ap
+            best_epoch = epoch
+            best_p = p_value
+            best_state = {
+                name: tensor.detach().cpu().clone() for name, tensor in model.state_dict().items()
+            }
+        logger.info(
+            "%s epoch=%d/%d 验证逐流AP=%.8f p=%.6f 平均训练损失=%.8f 计分流=%d",
+            cell, epoch, training["epochs"], validation_ap, p_value,
+            history[-1]["mean_training_loss"], scored_flows,
+        )
+        if epoch == 1:
+            epoch_seconds = time.time() - epoch_started
+            logger.info(
+                "%s 首轮实测 %.1f 分（%.4f 秒/优化步），按此换算全程 %d 轮预计 %.1f 小时；"
+                "本运行不设人为墙钟或 GPU 小时上限，该数字只供判断是否继续",
+                cell, epoch_seconds / 60.0, epoch_seconds / training["steps_per_epoch"],
+                training["epochs"], epoch_seconds * training["epochs"] / 3600.0,
+            )
+
+    if best_state is None:
+        raise RuntimeError(f"{cell} 未产生可选检查点")
+    training_seconds = time.time() - started
+
+    runtime_state = precision.build_checkpoint_runtime_state(
+        profile_id=profile_id,
+        profile=profile,
+        scaler=scaler,
+        effective_batch_items=effective_batch,
+        effective_batch_item_unit=EFFECTIVE_BATCH_ITEM_UNIT,
+        microbatch_items=micro_batch,
+        accumulation_steps=accumulation_steps,
+        normalization_unit=NORMALIZATION_UNIT,
+        is_tail_batch=False,
+        optimizer_step=optimizer_step_count,
+        optimizer_step_boundary=True,
+        torch_module=torch,
+    )
+    precision.validate_checkpoint_runtime_state(runtime_state)
+    checkpoint_path = output_root / "checkpoints" / f"selected-{cell}.pt"
+    _atomic_torch(
+        checkpoint_path,
+        {
+            "schema_version": "ch3-tabm32-protocol-a-selected-checkpoint-v1",
+            "identity": dict(identity),
+            "cell": cell,
+            "input_candidate": input_key,
+            "optimizer_candidate": optimizer_key,
+            "input_dimension": view.transform.output_dimension,
+            "input_transform_state_hash": view.transform.state_hash,
+            "selected_epoch": best_epoch,
+            "model": best_state,
+            "runtime_state": runtime_state,
+        },
+    )
+
+    external_mib = (
+        external_process_gpu_memory_mib(torch, device) if device_type == "cuda" else None
+    )
+    resource_receipt = precision.collect_resource_receipt(
+        profile_id=profile_id,
+        device_type=device_type,
+        effective_batch_items=effective_batch,
+        microbatch_items=micro_batch,
+        accumulation_steps=accumulation_steps,
+        normalization_unit=NORMALIZATION_UNIT,
+        processed_valid_units=processed_valid_flows,
+        elapsed_seconds=training_seconds,
+        external_process_gpu_memory_mib=external_mib,
+        external_measurement_source=(
+            "torch.cuda.mem_get_info 总量减空闲减本进程 memory_reserved" if device_type == "cuda" else "非 CUDA 设备"
+        ),
+        torch_module=torch,
+        device=device,
+    )
+    precision.validate_resource_receipt(resource_receipt)
+
+    selection = {
+        "selected_epoch": best_epoch,
+        "validation_flow_ap": best_ap,
+        "p_at_selection": best_p,
+        "history": history,
+        "training_seconds": training_seconds,
+        "checkpoint": {
+            "filename": str(checkpoint_path.relative_to(output_root)),
+            "bytes": checkpoint_path.stat().st_size,
+            "sha256": _sha256_file(checkpoint_path),
+        },
+        "parameter_count": sum(
+            parameter.numel() for parameter in model.parameters() if parameter.requires_grad
+        ),
+        "peak_gpu_allocated_mib": (
+            int(torch.cuda.max_memory_allocated(device)) / 2**20 if device_type == "cuda" else None
+        ),
+        "peak_process_rss_mib": _process_peak_rss_mib(),
+        "input_candidate": input_key,
+        "optimizer_candidate": optimizer_key,
+        "input_dimension": view.transform.output_dimension,
+        "precision_profile_id": profile_id,
+        "precision_contract_schema_version": contract["schema_version"],
+        "precision_resource_receipt": resource_receipt,
+        "accumulation_plan": plan,
+        "accumulation_receipt": accumulator.receipt(),
+        "optimizer_steps": optimizer_step_count,
+        "tensor_upper_bounds": bounds,
+        "first_step_memory": first_step_memory,
+        "training_sequences_per_second": processed_sequences / max(training_seconds, 1e-9),
+        "learning_rate": optimizer_candidate["learning_rate"],
+        "weight_decay": optimizer_candidate["weight_decay"],
+    }
+    logger.info(
+        "%s 训练完成：最优轮次=%d 验证逐流AP=%.8f p=%.6f 用时=%.1f 分 检查点=%s",
+        cell, best_epoch, best_ap, best_p, training_seconds / 60.0, checkpoint_path,
+    )
+    return selection
+
+
+# ---------------------------------------------------------------------------
 # 命令行入口
 # ---------------------------------------------------------------------------
 
