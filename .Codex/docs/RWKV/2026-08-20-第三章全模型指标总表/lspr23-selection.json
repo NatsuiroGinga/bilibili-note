@@ -205,6 +205,24 @@
     "best_flags": {}
   },
   {
+    "display_name": "全容量多层感知机＋完整实体幂平均（BF16）",
+    "config_type": "骨干专属全容量配方",
+    "differentiable": true,
+    "run_id": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+    "selection_pool": "LSPR23实体不相交验证集",
+    "selection_metric": "单轮逐流AP",
+    "selection_score": 0.999693506365774,
+    "selected_epoch": 5,
+    "validation_flow_ap": 0.999693506365774,
+    "selected_p": 1.6776543855667114,
+    "selection_protocol": "协议A：源年验证集单轮逐流AP择优；O11为完整系统",
+    "evidence_level": "单次运行直接可比（BF16）",
+    "source_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/aggregate-results.json",
+    "pending_reason": null,
+    "missing_reasons": {},
+    "best_flags": {}
+  },
+  {
     "display_name": "RWKV-7固定R2与封印容量＋CPA-ELP",
     "config_type": "骨干升级候选",
     "differentiable": true,

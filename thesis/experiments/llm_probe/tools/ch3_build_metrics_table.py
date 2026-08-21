@@ -527,6 +527,79 @@ def _adapt_tabm32_protocol_a_v1(doc: dict[str, Any], cell: str) -> dict[str, Any
     return _adapt_protocol_a_v1(doc, cell)
 
 
+def _adapt_full_mlp_complete_entity_lp_v1(
+    doc: dict[str, Any], cell: str
+) -> dict[str, Any] | None:
+    """适配全容量多层感知机 BF16 O11 完整系统及双年度完整指标。"""
+    selection = doc.get("source_selection", {}).get("cells", {}).get(cell, {})
+    source = doc.get("source_year_table", {}).get(cell, {})
+    target = doc.get("target_year_table", {}).get(cell, {})
+    resource = doc.get("resource", {})
+    model = doc.get("model", {})
+    if not selection or not source or not target:
+        return None
+    parameter_count = model.get("parameter_count") or resource.get("parameter_count")
+    trained_cells = set(doc.get("source_selection", {}).get("cells", {}))
+    evaluated_flows = sum(
+        int(table.get(branch, {}).get("flows_scored", 0))
+        for table in (doc.get("source_year_table", {}), doc.get("target_year_table", {}))
+        for branch in trained_cells
+    )
+    pure_inference_seconds = resource.get("pure_inference_seconds_sum")
+    result = _blank_result()
+    result.update(
+        {
+            "selection_pool": "LSPR23实体不相交验证集",
+            "evaluation_pool": "LSPR24已访问目标年描述性评价池",
+            "selection_metric": "单轮逐流AP",
+            "selection_score": selection.get("validation_flow_ap"),
+            "selected_epoch": selection.get("selected_epoch"),
+            "validation_flow_ap": selection.get("validation_flow_ap"),
+            "selected_p": selection.get("p_at_selection"),
+            "selection_protocol": "协议A：源年验证集单轮逐流AP择优；O11为完整系统",
+            "source_performance_pool": "LSPR23实体不相交验证集",
+            "source_flow_ap": source.get("flow_average_precision"),
+            "source_entity_ap": source.get("entity_average_precision"),
+            "source_max_entity_ap": source.get("maximum_entity_average_precision"),
+            "flow_ap": target.get("flow_average_precision"),
+            "entity_ap": target.get("entity_average_precision"),
+            "max_entity_ap": target.get("maximum_entity_average_precision"),
+            "model_scale": f"{parameter_count:,}个可训练参数" if isinstance(parameter_count, int) else None,
+            "parameter_count": parameter_count,
+            "scale_value": parameter_count,
+            "scale_unit": "parameter" if parameter_count is not None else None,
+            "model_weight_bytes": resource.get("model_weight_bytes_fp32"),
+            "training_seconds": resource.get("training_wall_seconds_sum"),
+            "selection_seconds": resource.get("selection_seconds_sum"),
+            "inference_seconds": pure_inference_seconds,
+            "evaluation_seconds": resource.get("evaluation_wall_seconds_sum"),
+            "total_seconds": resource.get("total_process_seconds_before_publish"),
+            "gpu_hours": resource.get("gpu_hours"),
+            "training_throughput": resource.get("effective_training_flows_per_second"),
+            "evaluation_throughput": (
+                evaluated_flows / pure_inference_seconds
+                if evaluated_flows and isinstance(pure_inference_seconds, (int, float)) and pure_inference_seconds > 0
+                else None
+            ),
+            "peak_gpu_mib": resource.get("peak_gpu_allocated_mib"),
+            "peak_rss_mib": resource.get("peak_process_rss_mib"),
+            "checkpoint_bytes": resource.get("selected_checkpoint_bytes_sum"),
+            "interruption_count": resource.get("recovery_count_sum"),
+            "recovery_count": resource.get("recovery_count_sum"),
+            "recomputed_units": resource.get("recomputed_optimizer_steps_upper_bound_sum"),
+            "time_scope": (
+                "四格源年训练、选择与双年度评价总收据；中断次数按完成运行的恢复计数记录；"
+                "评价吞吐按四个真实前向分支的源年与目标年流数除以纯推理总墙钟"
+            ),
+            "_curve_cell": cell,
+            "_derive_dr_from_complete_curve": True,
+            "_source_first_alert_metadata": source.get("first_alert"),
+            "_first_alert_metadata": target.get("first_alert"),
+        }
+    )
+    return result
+
+
 ADAPTERS: dict[str, Callable[[dict[str, Any], str], dict[str, Any] | None]] = {
     "baselines_full": _adapt_baselines_full,
     "fairsel_2x2": _adapt_fairsel_2x2,
@@ -534,6 +607,7 @@ ADAPTERS: dict[str, Callable[[dict[str, Any], str], dict[str, Any] | None]] = {
     "rwkv7_protocol_a_v1": _adapt_rwkv7_protocol_a_v1,
     "grande_source_q0_v1": _adapt_grande_source_q0_v1,
     "tabm32_protocol_a_v1": _adapt_tabm32_protocol_a_v1,
+    "full_mlp_complete_entity_lp_v1": _adapt_full_mlp_complete_entity_lp_v1,
     "xgb_cpa_elp": _adapt_xgb_cpa_elp,
 }
 
@@ -682,6 +756,62 @@ def _enrich_neural_resource(
         result["peak_gpu_mib"] = candidate["peak_gib"] * 1024.0
 
 
+def _apply_complete_curve(
+    result: dict[str, Any],
+    artifact_path: Path,
+    member_prefix: str,
+    fields: list[str],
+    scope_prefix: str,
+    derive_dr_from_curve: bool,
+) -> None:
+    expected_names = [f"{member_prefix}__{field}" for field in fields]
+    shapes = _npz_shapes(artifact_path, f"{member_prefix}__")
+    expected_shapes = [shapes.get(name) for name in expected_names]
+    if any(shape is None or len(shape) != 1 for shape in expected_shapes):
+        return
+    point_counts = {shape[0] for shape in expected_shapes if shape is not None}
+    if len(point_counts) != 1:
+        return
+    vector_names = [
+        f"{member_prefix}__n_false_positive_entity",
+        f"{member_prefix}__realized_fpr",
+        f"{member_prefix}__detection_rate",
+    ]
+    vectors = _npz_vectors(artifact_path, vector_names)
+    if any(name not in vectors for name in vector_names):
+        return
+    negative_budget, realized_fpr, detection_rate = (vectors[name] for name in vector_names)
+    if not (len(negative_budget) == len(realized_fpr) == len(detection_rate)):
+        return
+    point_count = next(iter(point_counts))
+    suffix = "；六档DR按realized_fpr不超过名义预算的最接近实际可达点重算" if derive_dr_from_curve else ""
+    result[f"{scope_prefix}dr_curve_summary"] = (
+        f"完整可达负实体预算曲线，共{point_count}个预算点；字段："
+        + "、".join(fields)
+        + suffix
+    )
+    result[f"{scope_prefix}dr_curve_artifact"] = f"{artifact_path.resolve()}#{member_prefix}"
+    result[f"_{scope_prefix}dr_curve_points"] = {
+        int(budget): float(rate)
+        for budget, rate in zip(negative_budget, detection_rate, strict=True)
+    }
+    if not derive_dr_from_curve:
+        return
+    for source_key, column in FPR_BUDGETS:
+        nominal_budget = float(source_key.removeprefix("fpr_"))
+        eligible = [
+            (float(actual_fpr), float(rate))
+            for actual_fpr, rate in zip(realized_fpr, detection_rate, strict=True)
+            if float(actual_fpr) <= nominal_budget
+        ]
+        if not eligible:
+            continue
+        closest_fpr = max(actual_fpr for actual_fpr, _rate in eligible)
+        result[f"{scope_prefix}{column}"] = max(
+            rate for actual_fpr, rate in eligible if actual_fpr == closest_fpr
+        )
+
+
 def _enrich_complete_curve(
     result: dict[str, Any],
     root: Path,
@@ -707,9 +837,6 @@ def _enrich_complete_curve(
         raise ValueError(f"完整曲线制品哈希与收据不符：{artifact_path}")
     if declared.get("bytes") and declared["bytes"] != artifact_path.stat().st_size:
         raise ValueError(f"完整曲线制品字节数与收据不符：{artifact_path}")
-    cell = str(result.get("_curve_cell") or entry.get("cell"))
-    shapes = _npz_shapes(artifact_path, f"{cell}__")
-    point_counts = {shape[0] for shape in shapes.values() if shape}
     fields = receipt.get("fields") or [
         "n_false_positive_entity",
         "nominal_fpr",
@@ -722,35 +849,125 @@ def _enrich_complete_curve(
         or receipt.get("complete_over_all_reachable_negative_entity_budgets") is True
         or schema == "ch3-grande-complete-alert-budget-curves-v1"
     )
-    expected_names = [f"{cell}__{field}" for field in fields]
-    vectors = _npz_vectors(
-        artifact_path,
-        [
-            f"{cell}__n_false_positive_entity",
-            f"{cell}__detection_rate",
-        ],
-    )
-    negative_budget = vectors.get(f"{cell}__n_false_positive_entity")
-    detection_rate = vectors.get(f"{cell}__detection_rate")
-    if (
-        all(name in shapes for name in expected_names)
-        and len(point_counts) == 1
-        and complete
-        and negative_budget is not None
-        and detection_rate is not None
-        and len(negative_budget) == len(detection_rate)
-    ):
-        point_count = next(iter(point_counts))
+    if complete:
+        cell = str(result.get("_curve_cell") or entry.get("cell"))
+        member_prefix = f"{entry.get('curve_member_prefix', '')}{cell}"
         scope_prefix = "source_" if entry.get("curve_scope") == "source" else ""
-        result[f"{scope_prefix}dr_curve_summary"] = (
-            f"完整可达负实体预算曲线，共{point_count}个预算点；字段："
-            + "、".join(str(field) for field in fields)
+        _apply_complete_curve(
+            result,
+            artifact_path,
+            member_prefix,
+            [str(field) for field in fields],
+            scope_prefix,
+            result.get("_derive_dr_from_complete_curve") is True,
         )
-        result[f"{scope_prefix}dr_curve_artifact"] = f"{artifact_path.resolve()}#{cell}"
-        result[f"_{scope_prefix}dr_curve_points"] = {
-            int(budget): float(rate)
-            for budget, rate in zip(negative_budget, detection_rate, strict=True)
+
+
+def _enrich_manifest_source_curve(
+    result: dict[str, Any],
+    root: Path,
+    entry: dict[str, Any],
+    provenance: dict[str, dict[str, Any]],
+) -> None:
+    artifact_relative = entry.get("source_curve_artifact_relative_path")
+    manifest_relative = entry.get("manifest_relative_path")
+    if not artifact_relative or not manifest_relative:
+        return
+    artifact_path = root / artifact_relative
+    manifest_path = root / manifest_relative
+    if not artifact_path.is_file() or not manifest_path.is_file():
+        return
+    _record_provenance(manifest_path, f"{entry['display_name']}的运行清单", provenance)
+    _record_provenance(artifact_path, f"{entry['display_name']}的源年完整曲线NPZ", provenance)
+    manifest = _load_auxiliary_json(manifest_path)
+    if manifest is None:
+        return
+    declared = manifest.get("files", {}).get(artifact_path.name, {})
+    actual_hash = provenance[str(artifact_path.resolve())]["sha256"]
+    if declared.get("sha256") != actual_hash or declared.get("bytes") != artifact_path.stat().st_size:
+        raise ValueError(f"源年完整曲线制品与运行清单不符：{artifact_path}")
+    cell = str(result.get("_curve_cell") or entry.get("cell"))
+    member_prefix = f"{entry.get('source_curve_member_prefix', '')}{cell}"
+    _apply_complete_curve(
+        result,
+        artifact_path,
+        member_prefix,
+        ["n_false_positive_entity", "nominal_fpr", "realized_fpr", "detection_rate"],
+        "source_",
+        result.get("_derive_dr_from_complete_curve") is True,
+    )
+
+
+def _apply_first_alert(
+    result: dict[str, Any],
+    artifact_path: Path,
+    member_prefix: str,
+    axis: str,
+    time_delay_available: bool,
+    metadata: dict[str, Any],
+    scope_prefix: str,
+    key_style: str,
+) -> None:
+    unalerted: dict[str, float] = {}
+    delay_summary: dict[str, Any] = {}
+    actual_fpr_by_budget: dict[str, float] = {}
+    curves_by_actual_fpr: dict[float, dict[float, float]] = {}
+    unalerted_by_actual_fpr: dict[float, float] = {}
+    for source_key, _column in FPR_BUDGETS:
+        item = metadata.get(source_key, {})
+        if (
+            item.get("axis") != axis
+            or item.get("time_delay_available") is not time_delay_available
+            or not isinstance(item.get("positive_unalerted_rate"), (int, float))
+            or not isinstance(item.get("realized_first_alert_fpr"), (int, float))
+        ):
+            return
+        actual_fpr = float(item["realized_first_alert_fpr"])
+        if key_style == "branch_first_alert_v1":
+            axis_name = f"{member_prefix}__first_alert__{source_key}__{axis}"
+            rate_name = f"{member_prefix}__first_alert__{source_key}__on_time_detection_rate"
+        else:
+            axis_name = f"{member_prefix}__{source_key}__{axis}"
+            rate_name = f"{member_prefix}__{source_key}__timely_detection_rate"
+        vectors = _npz_vectors(artifact_path, [axis_name, rate_name])
+        axis_values = vectors.get(axis_name)
+        rates = vectors.get(rate_name)
+        if axis_values is None or rates is None or len(axis_values) != len(rates) or not axis_values:
+            return
+        curve = {
+            float(axis_value): float(rate)
+            for axis_value, rate in zip(axis_values, rates, strict=True)
         }
+        unalerted[source_key] = float(item["positive_unalerted_rate"])
+        actual_fpr_by_budget[source_key] = actual_fpr
+        unalerted_by_actual_fpr[actual_fpr] = unalerted[source_key]
+        curves_by_actual_fpr[actual_fpr] = curve
+        delay_summary[source_key] = {
+            "nominal_fpr": float(source_key.removeprefix("fpr_")),
+            "realized_first_alert_fpr": actual_fpr,
+            "positive_unalerted_rate": unalerted[source_key],
+            "first_alert_delay_quantiles": item.get("first_alert_exposure_quantiles")
+            or item.get("first_alert_delay_quantiles"),
+            "time_delay_available": time_delay_available,
+        }
+    result[f"{scope_prefix}first_alert_axis"] = axis
+    result[f"{scope_prefix}time_delay_available"] = time_delay_available
+    for source_key, _column in FPR_BUDGETS:
+        result[f"{scope_prefix}unalerted_rate_{source_key}"] = unalerted[source_key]
+    result[f"{scope_prefix}timely_detection_curve_summary"] = (
+        f"六档名义预算均保留实际可达FPR与按时检出累计曲线；横轴={axis}；各档均含未告警实体"
+    )
+    result[f"{scope_prefix}timely_detection_curve_artifact"] = (
+        f"{artifact_path.resolve()}#{member_prefix}"
+    )
+    result[f"{scope_prefix}first_alert_delay_summary"] = delay_summary
+    result[f"{scope_prefix}first_alert_definition"] = (
+        "从实体首条合法可观测流起计算1基实体内曝光序号；每档同时保留实际可达FPR；"
+        f"axis={axis}；time_delay_available={str(time_delay_available).lower()}"
+    )
+    result[f"_{scope_prefix}first_alert_actual_fpr"] = actual_fpr_by_budget
+    result[f"_{scope_prefix}unalerted_by_actual_fpr"] = unalerted_by_actual_fpr
+    result[f"_{scope_prefix}timely_detection_curves"] = curves_by_actual_fpr
 
 
 def _enrich_first_alert(
@@ -771,7 +988,7 @@ def _enrich_first_alert(
     _record_provenance(receipt_path, f"{entry['display_name']}的首次告警收据", provenance)
     _record_provenance(artifact_path, f"{entry['display_name']}的按时检出曲线NPZ", provenance)
     receipt = _load_auxiliary_json(receipt_path)
-    if receipt is None or receipt.get("schema_version") != "ch3-first-alert-timing-v1":
+    if receipt is None:
         return
     axis = receipt.get("axis")
     time_delay_available = receipt.get("time_delay_available")
@@ -785,42 +1002,103 @@ def _enrich_first_alert(
     actual_hash = provenance[str(artifact_path.resolve())]["sha256"]
     if declared.get("sha256") != actual_hash or declared.get("bytes") != artifact_path.stat().st_size:
         raise ValueError(f"首次告警制品与收据不符：{artifact_path}")
-    cell = str(result.get("_curve_cell") or entry.get("cell"))
-    cell_receipt = receipt.get("cells", {}).get(cell, {})
-    unalerted = cell_receipt.get("unalerted_rate_at_fpr", {})
-    delay_summary = cell_receipt.get("delay_summary_at_fpr")
-    definition = cell_receipt.get("definition")
-    curves: dict[str, dict[float, float]] = {}
-    for source_key, _column in FPR_BUDGETS:
-        time_name = f"{cell}__{source_key}__{axis}"
-        rate_name = f"{cell}__{source_key}__timely_detection_rate"
-        vectors = _npz_vectors(artifact_path, [time_name, rate_name])
-        times = vectors.get(time_name)
-        rates = vectors.get(rate_name)
-        if times is None or rates is None or len(times) != len(rates) or not times:
-            return
-        curves[source_key] = {
-            float(time_value): float(rate_value)
-            for time_value, rate_value in zip(times, rates, strict=True)
-        }
-    if not all(isinstance(unalerted.get(source_key), (int, float)) for source_key, _ in FPR_BUDGETS):
-        return
-    if not isinstance(delay_summary, dict) or not isinstance(definition, str) or not definition:
-        return
     scope_prefix = "source_" if entry.get("first_alert_scope") == "source" else ""
-    result[f"{scope_prefix}first_alert_axis"] = axis
-    result[f"{scope_prefix}time_delay_available"] = time_delay_available
-    for source_key, _column in FPR_BUDGETS:
-        result[f"{scope_prefix}unalerted_rate_{source_key}"] = float(unalerted[source_key])
-    result[f"{scope_prefix}timely_detection_curve_summary"] = (
-        f"六档预算按时检出累计曲线齐全；横轴={axis}；各档均含未告警实体"
+    metadata = result.get(f"_{scope_prefix}first_alert_metadata")
+    cell = str(result.get("_curve_cell") or entry.get("cell"))
+    if not isinstance(metadata, dict):
+        cell_receipt = receipt.get("cells", {}).get(cell, {})
+        unalerted = cell_receipt.get("unalerted_rate_at_fpr", {})
+        realized = cell_receipt.get("realized_fpr_at_fpr", {})
+        delay = cell_receipt.get("delay_summary_at_fpr", {})
+        if all(
+            isinstance(unalerted.get(source_key), (int, float))
+            and isinstance(realized.get(source_key), (int, float))
+            for source_key, _column in FPR_BUDGETS
+        ):
+            metadata = {
+                source_key: {
+                    "axis": axis,
+                    "time_delay_available": time_delay_available,
+                    "positive_unalerted_rate": unalerted[source_key],
+                    "realized_first_alert_fpr": realized[source_key],
+                    "first_alert_delay_quantiles": delay.get(source_key),
+                }
+                for source_key, _column in FPR_BUDGETS
+            }
+    if not isinstance(metadata, dict):
+        return
+    member_prefix = f"{entry.get('first_alert_member_prefix', '')}{cell}"
+    _apply_first_alert(
+        result,
+        artifact_path,
+        member_prefix,
+        axis,
+        time_delay_available,
+        metadata,
+        scope_prefix,
+        str(entry.get("first_alert_key_style", "timely_detection_v1")),
     )
-    result[f"{scope_prefix}timely_detection_curve_artifact"] = (
-        f"{artifact_path.resolve()}#{cell}"
+
+
+def _enrich_manifest_source_first_alert(
+    result: dict[str, Any],
+    root: Path,
+    entry: dict[str, Any],
+) -> None:
+    artifact_relative = entry.get("source_curve_artifact_relative_path")
+    receipt_relative = entry.get("first_alert_receipt_relative_path")
+    if not artifact_relative or not receipt_relative:
+        return
+    artifact_path = root / artifact_relative
+    receipt = _load_auxiliary_json(root / receipt_relative)
+    metadata = result.get("_source_first_alert_metadata")
+    if not artifact_path.is_file() or receipt is None or not isinstance(metadata, dict):
+        return
+    axis = receipt.get("axis")
+    time_delay_available = receipt.get("time_delay_available")
+    if axis not in {"exposure_index", "elapsed_seconds"} or not isinstance(time_delay_available, bool):
+        return
+    if axis == "elapsed_seconds" and not time_delay_available:
+        return
+    cell = str(result.get("_curve_cell") or entry.get("cell"))
+    member_prefix = f"{entry.get('source_curve_member_prefix', '')}{cell}"
+    _apply_first_alert(
+        result,
+        artifact_path,
+        member_prefix,
+        axis,
+        time_delay_available,
+        metadata,
+        "source_",
+        str(entry.get("first_alert_key_style", "timely_detection_v1")),
     )
-    result[f"{scope_prefix}first_alert_delay_summary"] = delay_summary
-    result[f"{scope_prefix}first_alert_definition"] = definition
-    result[f"_{scope_prefix}timely_detection_curves"] = curves
+
+
+def _enrich_run_receipts(
+    root: Path,
+    entry: dict[str, Any],
+    provenance: dict[str, dict[str, Any]],
+) -> None:
+    status_relative = entry.get("status_relative_path")
+    if status_relative:
+        status_path = root / status_relative
+        if not status_path.is_file():
+            raise ValueError(f"配置声明的完成状态收据不存在：{status_path}")
+        _record_provenance(status_path, f"{entry['display_name']}的完成状态", provenance)
+        status = _load_auxiliary_json(status_path)
+        if status is None or (
+            status.get("state"), status.get("stage"), status.get("exit_code")
+        ) != ("complete", "finished", 0):
+            raise ValueError(f"运行尚未达到complete/finished/0：{status_path}")
+    resource_relative = entry.get("resource_receipt_relative_path")
+    if resource_relative:
+        resource_path = root / resource_relative
+        if not resource_path.is_file():
+            raise ValueError(f"配置声明的资源收据不存在：{resource_path}")
+        _record_provenance(resource_path, f"{entry['display_name']}的资源收据", provenance)
+        resource = _load_auxiliary_json(resource_path)
+        if resource is None or resource.get("finished_at_unix") is None:
+            raise ValueError(f"资源收据没有完成时间：{resource_path}")
 
 
 def _default_missing_reason(column: str, row: dict[str, Any]) -> str:
@@ -963,7 +1241,10 @@ def collect_rows(
                 root = Path(root_value)
                 _enrich_neural_resource(row, root, entry, provenance_records)
                 _enrich_complete_curve(row, root, entry, provenance_records)
+                _enrich_manifest_source_curve(row, root, entry, provenance_records)
                 _enrich_first_alert(row, root, entry, provenance_records)
+                _enrich_manifest_source_first_alert(row, root, entry)
+                _enrich_run_receipts(root, entry, provenance_records)
         elif entry.get("available"):
             row["pending_reason"] = "配置标记为可用，但指定本地原始制品不存在"
         elif not row.get("pending_reason"):
@@ -1016,6 +1297,8 @@ def _source_performance_row(row: dict[str, Any]) -> dict[str, Any]:
         projected[column] = row.get(f"source_{column}")
     projected["missing_reasons"] = dict(row.get("source_performance_missing_reasons", {}))
     projected["_dr_curve_points"] = row.get("_source_dr_curve_points")
+    projected["_first_alert_actual_fpr"] = row.get("_source_first_alert_actual_fpr")
+    projected["_unalerted_by_actual_fpr"] = row.get("_source_unalerted_by_actual_fpr")
     projected["_timely_detection_curves"] = row.get("_source_timely_detection_curves")
     return projected
 
@@ -1030,6 +1313,8 @@ def _performance_pareto_missing(row: dict[str, Any]) -> dict[str, str]:
         missing["dr_curve_artifact"] = "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     if not row.get("_timely_detection_curves"):
         missing["timely_detection_curve_artifact"] = "缺少可读取的六档按时检出累计曲线数组"
+    if not row.get("_first_alert_actual_fpr") or not row.get("_unalerted_by_actual_fpr"):
+        missing["first_alert_delay_summary"] = "缺少名义预算到实际可达FPR的首次告警映射"
     return missing
 
 
@@ -1069,14 +1354,22 @@ def _performance_dominates(left: dict[str, Any], right: dict[str, Any]) -> bool:
     if not curve_no_worse:
         return False
     strict = strict or curve_strict
-    for column in UNALERTED_RATE_COLUMNS:
-        if float(left[column]) > float(right[column]):
+    common_first_alert_fpr = sorted(
+        set(left["_unalerted_by_actual_fpr"]).intersection(right["_unalerted_by_actual_fpr"])
+    )
+    if not common_first_alert_fpr:
+        return False
+    for actual_fpr in common_first_alert_fpr:
+        if float(left["_unalerted_by_actual_fpr"][actual_fpr]) > float(
+            right["_unalerted_by_actual_fpr"][actual_fpr]
+        ):
             return False
-        strict = strict or float(left[column]) < float(right[column])
-    for source_key, _column in FPR_BUDGETS:
+        strict = strict or float(left["_unalerted_by_actual_fpr"][actual_fpr]) < float(
+            right["_unalerted_by_actual_fpr"][actual_fpr]
+        )
         timely_no_worse, timely_strict = _compare_high_vectors(
-            left["_timely_detection_curves"][source_key],
-            right["_timely_detection_curves"][source_key],
+            left["_timely_detection_curves"][actual_fpr],
+            right["_timely_detection_curves"][actual_fpr],
         )
         if not timely_no_worse:
             return False

@@ -71,7 +71,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     }
@@ -128,9 +128,7 @@
       "unalerted_rate_fpr_0.04": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推"
     },
-    "best_flags": {
-      "max_entity_ap": "best"
-    },
+    "best_flags": {},
     "pareto_status": "证据不完整",
     "dominated_by": [],
     "dominates": [],
@@ -150,7 +148,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     }
@@ -227,7 +225,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     }
@@ -304,7 +302,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     }
@@ -383,7 +381,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     }
@@ -460,7 +458,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     }
@@ -514,11 +512,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推"
     },
     "best_flags": {
-      "entity_ap": "best",
-      "dr_fpr_0.001": "best",
-      "dr_fpr_0.005": "best",
-      "dr_fpr_0.01": "best",
-      "dr_fpr_0.02": "best",
+      "dr_fpr_0.02": "tied_best",
       "dr_fpr_0.04": "best",
       "dr_fpr_0.08": "best"
     },
@@ -537,7 +531,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定"
     }
@@ -603,7 +597,7 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导"
     }
   },
@@ -668,9 +662,134 @@
       "unalerted_rate_fpr_0.08": "原始来源未持久化该预算的未告警率，禁止从DR反推",
       "timely_detection_curve_summary": "原始来源未持久化按时检出累计曲线摘要",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "原始来源未持久化首次告警延迟或曝光摘要，禁止由AP或DR推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "原始来源未持久化首次告警起点与阈值定义，禁止推导"
     }
+  },
+  {
+    "display_name": "全容量多层感知机＋完整实体幂平均（BF16）",
+    "config_type": "骨干专属全容量配方",
+    "differentiable": true,
+    "run_id": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+    "evaluation_pool": "LSPR24已访问目标年描述性评价池",
+    "flow_ap": 0.13271059426762066,
+    "entity_ap": 0.5854895985969766,
+    "max_entity_ap": 0.5713766131389163,
+    "dr_fpr_0.001": 0.3497340425531915,
+    "dr_fpr_0.005": 0.5332446808510638,
+    "dr_fpr_0.01": 0.6675531914893617,
+    "dr_fpr_0.02": 0.75,
+    "dr_fpr_0.04": 0.7898936170212766,
+    "dr_fpr_0.08": 0.7898936170212766,
+    "dr_curve_summary": "完整可达负实体预算曲线，共46363个预算点；字段：n_false_positive_entity、nominal_fpr、realized_fpr、detection_rate；六档DR按realized_fpr不超过名义预算的最接近实际可达点重算",
+    "dr_curve_artifact": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/complete-alert-budget-curves.npz#O11",
+    "first_alert_axis": "exposure_index",
+    "time_delay_available": false,
+    "unalerted_rate_fpr_0.001": 0.6276595744680851,
+    "unalerted_rate_fpr_0.005": 0.44813829787234044,
+    "unalerted_rate_fpr_0.01": 0.32313829787234044,
+    "unalerted_rate_fpr_0.02": 0.2473404255319149,
+    "unalerted_rate_fpr_0.04": 0.026595744680851064,
+    "unalerted_rate_fpr_0.08": 0.026595744680851064,
+    "timely_detection_curve_summary": "六档名义预算均保留实际可达FPR与按时检出累计曲线；横轴=exposure_index；各档均含未告警实体",
+    "timely_detection_curve_artifact": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/complete-alert-budget-curves.npz#O11",
+    "first_alert_delay_summary": {
+      "fpr_0.001": {
+        "nominal_fpr": 0.001,
+        "realized_first_alert_fpr": 0.001250997562711645,
+        "positive_unalerted_rate": 0.6276595744680851,
+        "first_alert_delay_quantiles": {
+          "q25": 1.0,
+          "q50": 1.0,
+          "q75": 2.0,
+          "q90": 4.099999999999994,
+          "q95": 8.050000000000011
+        },
+        "time_delay_available": false
+      },
+      "fpr_0.005": {
+        "nominal_fpr": 0.005,
+        "realized_first_alert_fpr": 0.005413799797252119,
+        "positive_unalerted_rate": 0.44813829787234044,
+        "first_alert_delay_quantiles": {
+          "q25": 1.0,
+          "q50": 1.0,
+          "q75": 1.0,
+          "q90": 4.0,
+          "q95": 8.0
+        },
+        "time_delay_available": false
+      },
+      "fpr_0.01": {
+        "nominal_fpr": 0.01,
+        "realized_first_alert_fpr": 0.010827599594504238,
+        "positive_unalerted_rate": 0.32313829787234044,
+        "first_alert_delay_quantiles": {
+          "q25": 1.0,
+          "q50": 1.0,
+          "q75": 1.0,
+          "q90": 4.0,
+          "q95": 9.0
+        },
+        "time_delay_available": false
+      },
+      "fpr_0.02": {
+        "nominal_fpr": 0.02,
+        "realized_first_alert_fpr": 0.021806181653473675,
+        "positive_unalerted_rate": 0.2473404255319149,
+        "first_alert_delay_quantiles": {
+          "q25": 1.0,
+          "q50": 1.0,
+          "q75": 1.0,
+          "q90": 3.0,
+          "q95": 7.75
+        },
+        "time_delay_available": false
+      },
+      "fpr_0.04": {
+        "nominal_fpr": 0.04,
+        "realized_first_alert_fpr": 0.7905010460927895,
+        "positive_unalerted_rate": 0.026595744680851064,
+        "first_alert_delay_quantiles": {
+          "q25": 1.0,
+          "q50": 1.0,
+          "q75": 1.0,
+          "q90": 1.0,
+          "q95": 1.0
+        },
+        "time_delay_available": false
+      },
+      "fpr_0.08": {
+        "nominal_fpr": 0.08,
+        "realized_first_alert_fpr": 0.7905010460927895,
+        "positive_unalerted_rate": 0.026595744680851064,
+        "first_alert_delay_quantiles": {
+          "q25": 1.0,
+          "q50": 1.0,
+          "q75": 1.0,
+          "q90": 1.0,
+          "q95": 1.0
+        },
+        "time_delay_available": false
+      }
+    },
+    "first_alert_definition": "从实体首条合法可观测流起计算1基实体内曝光序号；每档同时保留实际可达FPR；axis=exposure_index；time_delay_available=false",
+    "evidence_level": "单次运行直接可比（BF16）",
+    "source_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/aggregate-results.json",
+    "pending_reason": null,
+    "missing_reasons": {},
+    "best_flags": {
+      "entity_ap": "best",
+      "max_entity_ap": "best",
+      "dr_fpr_0.001": "best",
+      "dr_fpr_0.005": "best",
+      "dr_fpr_0.01": "best",
+      "dr_fpr_0.02": "tied_best"
+    },
+    "pareto_status": "帕累托前沿",
+    "dominated_by": [],
+    "dominates": [],
+    "pareto_missing_reasons": {}
   },
   {
     "display_name": "RWKV-7固定R2与封印容量＋CPA-ELP",
@@ -753,7 +872,7 @@
       "unalerted_rate_fpr_0.08": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
       "timely_detection_curve_summary": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "统一BF16运行尚无本地聚合结果；不得从旧停止运行推导",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定",
       "evaluation_pool": "缺少可比较池或首次告警横轴"
@@ -840,7 +959,7 @@
       "unalerted_rate_fpr_0.08": "版本化接入已预留，但真实聚合制品尚未形成",
       "timely_detection_curve_summary": "版本化接入已预留，但真实聚合制品尚未形成",
       "timely_detection_curve_artifact": "缺少可读取的六档按时检出累计曲线数组",
-      "first_alert_delay_summary": "版本化接入已预留，但真实聚合制品尚未形成",
+      "first_alert_delay_summary": "缺少名义预算到实际可达FPR的首次告警映射",
       "first_alert_definition": "版本化接入已预留，但真实聚合制品尚未形成",
       "dr_curve_artifact": "缺少可读取的完整告警预算曲线数组，不能仅凭路径或摘要判定",
       "evaluation_pool": "缺少可比较池或首次告警横轴"

@@ -1,28 +1,93 @@
 {
   "schema_version": "ch3-metrics-table-provenance-v2",
-  "generated_at_utc": "2026-08-21T06:23:29.092481+00:00",
+  "generated_at_utc": "2026-08-21T07:43:53.213938+00:00",
   "config_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/configs/ch3-metrics-table-sources-v1.json",
   "roots": {
     "main": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs",
     "ch4_worktree": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs"
   },
-  "source_file_count": 12,
-  "sha256_count": 12,
+  "source_file_count": 19,
+  "sha256_count": 19,
   "files": [
     {
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/configs/ch3-metrics-table-sources-v1.json",
-      "sha256": "9b683f67f39a957591f8fc002ac815ad187878ca56e30c0a0f7124daffd9e313",
-      "bytes": 8424,
-      "read_at_utc": "2026-08-21T06:23:29.053472+00:00",
+      "sha256": "0836da1a35f3c4a1bcd382a595df2d9fd91dcba76bda32924456363667c61f4b",
+      "bytes": 10346,
+      "read_at_utc": "2026-08-21T07:43:53.132908+00:00",
       "roles": [
         "来源配置"
+      ]
+    },
+    {
+      "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/aggregate-results.json",
+      "sha256": "f9c20e03893aeae73914e67926721ecc358d2016e79d05f6299ddb09c9338e07",
+      "bytes": 275163,
+      "read_at_utc": "2026-08-21T07:43:53.169041+00:00",
+      "roles": [
+        "全容量多层感知机＋完整实体幂平均（BF16）的主结果"
+      ]
+    },
+    {
+      "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/complete-alert-budget-curves-receipt.json",
+      "sha256": "98e435ff4bec9cde9184358fc52a2f2df048c7b46e97d6a7cb2897fa8bb8a16a",
+      "bytes": 767,
+      "read_at_utc": "2026-08-21T07:43:53.171387+00:00",
+      "roles": [
+        "全容量多层感知机＋完整实体幂平均（BF16）的完整曲线收据",
+        "全容量多层感知机＋完整实体幂平均（BF16）的首次告警收据"
+      ]
+    },
+    {
+      "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/complete-alert-budget-curves.npz",
+      "sha256": "3820e783d1b594bcae7ac1fd14537a69f8984621bd95783f75773518e07d96ef",
+      "bytes": 1845651,
+      "read_at_utc": "2026-08-21T07:43:53.173865+00:00",
+      "roles": [
+        "全容量多层感知机＋完整实体幂平均（BF16）的完整曲线NPZ",
+        "全容量多层感知机＋完整实体幂平均（BF16）的按时检出曲线NPZ"
+      ]
+    },
+    {
+      "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/manifest.json",
+      "sha256": "7d56f1d1e56286eab0f3ba558d1c290c32eeb6c6e0603a83e50b1c941a598cc8",
+      "bytes": 17648,
+      "read_at_utc": "2026-08-21T07:43:53.198132+00:00",
+      "roles": [
+        "全容量多层感知机＋完整实体幂平均（BF16）的运行清单"
+      ]
+    },
+    {
+      "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/resource-receipt.json",
+      "sha256": "601b1f46a2c9869269e2bd5221f8641b5de5469e37dbb322d8280e2bad1d531c",
+      "bytes": 898,
+      "read_at_utc": "2026-08-21T07:43:53.213656+00:00",
+      "roles": [
+        "全容量多层感知机＋完整实体幂平均（BF16）的资源收据"
+      ]
+    },
+    {
+      "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/source-complete-alert-budget-curves.npz",
+      "sha256": "4bb2223ec647ab007f2732ac7bdb96ab804c008f2a67ae358c1d7244be04e111",
+      "bytes": 592933,
+      "read_at_utc": "2026-08-21T07:43:53.199101+00:00",
+      "roles": [
+        "全容量多层感知机＋完整实体幂平均（BF16）的源年完整曲线NPZ"
+      ]
+    },
+    {
+      "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/status.json",
+      "sha256": "4ea727b6b80d9d9d0dbde247097a4554e21b97b435c3dae00a0d2c190a883278",
+      "bytes": 326,
+      "read_at_utc": "2026-08-21T07:43:53.213404+00:00",
+      "roles": [
+        "全容量多层感知机＋完整实体幂平均（BF16）的完成状态"
       ]
     },
     {
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
       "sha256": "3c18bb9f31415f59f0a522c44fb14a2045ac0e7c8cd8c719eeb8f0e73e0d188d",
       "bytes": 46658,
-      "read_at_utc": "2026-08-21T06:23:29.058341+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.138043+00:00",
       "roles": [
         "ResMLP2＋CPA-ELP的主结果"
       ]
@@ -31,7 +96,7 @@
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves-receipt.json",
       "sha256": "0bb5615bb1fd9e3fd582f46d9df1131392e6d7de15088f2d4d58ac7ddcfa81ea",
       "bytes": 570,
-      "read_at_utc": "2026-08-21T06:23:29.059170+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.139094+00:00",
       "roles": [
         "ResMLP2＋CPA-ELP的完整曲线收据"
       ]
@@ -40,7 +105,7 @@
       "absolute_path": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves.npz",
       "sha256": "bc26e8522709397f7c7e393a98033cf3822491c361fe56e3f47d4548eed67db2",
       "bytes": 2129238,
-      "read_at_utc": "2026-08-21T06:23:29.063128+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.141649+00:00",
       "roles": [
         "ResMLP2＋CPA-ELP的完整曲线NPZ"
       ]
@@ -49,7 +114,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-2x2-fairsel/ch3_2x2_fairsel_results.json",
       "sha256": "9cbba98517850a083e5bd86618a4d2af27a606cf5b862583253aa4c7705bc292",
       "bytes": 14084,
-      "read_at_utc": "2026-08-21T06:23:29.056803+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.136369+00:00",
       "roles": [
         "多层感知机＋CPA-ELP的主结果"
       ]
@@ -58,7 +123,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-baselines-full/neural_results.json",
       "sha256": "90e0244b5532f3eb9f7a1db5fdd960d6daa5a30fda9a3674e1a15641f3951517",
       "bytes": 12526,
-      "read_at_utc": "2026-08-21T06:23:29.054730+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.134463+00:00",
       "roles": [
         "一维卷积网络（主干重建）的主结果",
         "门控循环网络的主结果",
@@ -69,7 +134,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-baselines-full/selection_frozen_neural.json",
       "sha256": "d4b6e0ca84629f4882361e76480e1cbe553ef6427c0653a31198eee82b899426",
       "bytes": 14949,
-      "read_at_utc": "2026-08-21T06:23:29.055153+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.134883+00:00",
       "roles": [
         "一维卷积网络（主干重建）的选择与显存收据",
         "门控循环网络的选择与显存收据",
@@ -80,7 +145,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-baselines-full/trees_results.json",
       "sha256": "31e4b536d026f7263a5f1ec9bcc58abb4c078fbd8069b7a137618295c02f7ddd",
       "bytes": 2807,
-      "read_at_utc": "2026-08-21T06:23:29.053997+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.133656+00:00",
       "roles": [
         "随机森林的主结果",
         "XGBoost的主结果"
@@ -90,7 +155,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json",
       "sha256": "20eaa72c63ca67521b810d554479551f565089dabe7d1bc277009b0d84b92716",
       "bytes": 46295,
-      "read_at_utc": "2026-08-21T06:23:29.077236+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.153551+00:00",
       "roles": [
         "TabM4＋CPA-ELP的主结果"
       ]
@@ -99,7 +164,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves-receipt.json",
       "sha256": "d946e712d066b12d72b461580ba6b0ec9076a886dd0a45760f781ebd67038cef",
       "bytes": 570,
-      "read_at_utc": "2026-08-21T06:23:29.077947+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.154520+00:00",
       "roles": [
         "TabM4＋CPA-ELP的完整曲线收据"
       ]
@@ -108,7 +173,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/complete-alert-budget-curves.npz",
       "sha256": "65fca3a41b754fc971ce6692152edcf23a814c8039785b88796ca83566504851",
       "bytes": 2294945,
-      "read_at_utc": "2026-08-21T06:23:29.080780+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.157124+00:00",
       "roles": [
         "TabM4＋CPA-ELP的完整曲线NPZ"
       ]
@@ -117,7 +182,7 @@
       "absolute_path": "/Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2/xgb_cpa_elp_results.json",
       "sha256": "128b1225c96bb07c5b808dc2e0092223d1acb4c039b487a7007551a4f6b5135f",
       "bytes": 15125,
-      "read_at_utc": "2026-08-21T06:23:29.057357+00:00",
+      "read_at_utc": "2026-08-21T07:43:53.137238+00:00",
       "roles": [
         "XGBoost＋CPA-ELP的主结果"
       ]
