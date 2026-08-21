@@ -1,0 +1,89 @@
+{
+  "schema_version": "ch3-xgb-cpa-elp-operational-backfill-config-v1",
+  "run_id": "ch3-xgb-cpa-elp-c11-operational-backfill-v1",
+  "display_name": "XGBoost＋CPA-ELP C11目标年完整运营指标零训练回填",
+  "seed": 42,
+  "screening_only": false,
+  "formal_paper_evidence": false,
+  "target_previously_accessed": true,
+  "independent_test": false,
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "parent_run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "parent_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-xgb-cpa-elp-gpu-oof-seed42-v1.json",
+    "parent_recovery_proof": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/recovery/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-for-ch4-xgb-pbc-q0-seed42-v1-rerun2-v1/parent-recovery-proof.json",
+    "parent_evaluation_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-xgb-cpa-elp-c11-operational-backfill-v1"
+  },
+  "parent_contract": {
+    "run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+    "evaluation_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
+    "recovery_proof_schema": "ch3-xgb-parent-recovery-proof-v1",
+    "selection_sha256": "a9075653efc6b29b6eb9d72f04409781af18e7c65cb31c1ba9bac941e1293943",
+    "effective_config_receipts_sha256": "657c9f88b3c37f15e48817b145ad8bb22b8f4edd5ba700742b945c84c413515d",
+    "semantic168_model_sha256": "1805e15d96ac4ebb57df910640a4c5e1af58f692659db2eb80b724851efe42e9",
+    "evaluation_result_sha256": "128b1225c96bb07c5b808dc2e0092223d1acb4c039b487a7007551a4f6b5135f",
+    "evaluation_manifest_sha256": "f6b66cc94ef09b169ff29ce317464109bc701fa109875f6e9b7d09c889516115",
+    "selected_adapter": "semantic168",
+    "power_mean_p": 1.0,
+    "num_boost_round": 800,
+    "target_retrained": false,
+    "target_score_calls": 1,
+    "target_scores_persisted": false
+  },
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24", "t24"],
+  "target_contract": {
+    "dataset": "LSPR24",
+    "flow_count": 20227356,
+    "sequence_length": 128,
+    "raw_feature_count": 83,
+    "semantic_feature_count": 168,
+    "entity_count": 47115,
+    "positive_entity_count": 752,
+    "flow_positive_rate": 0.0257073138,
+    "entity_key": "unordered_source_destination_address_pair",
+    "exposure_order": "ascending_frozen_flow_index_within_entity",
+    "time_order_required": true,
+    "target_used_for_selection_or_tuning": false
+  },
+  "evaluation": {
+    "cell": "C11",
+    "fpr_budgets": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_curve": "all_reachable_complete_negative_tie_groups",
+    "budget_readout": "largest_realized_fpr_not_exceeding_nominal_budget",
+    "nominal_point_interpolation": false,
+    "first_alert_axis": "exposure_index",
+    "exposure_index_base": 1,
+    "first_alert_threshold_semantics": "same_complete_tied_score_group_greater_equal",
+    "first_alert_quantiles": [0.0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0],
+    "time_delay_available": false,
+    "time_delay_unavailable_reason": "t24是mTimestampStart而非完整流available_ns，禁止猜测时间单位或合法可观测时刻",
+    "predict_batch": 2000000,
+    "sequence_batch": 2048
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_gib": 11,
+    "minimum_cgroup_available_memory_gib": 48,
+    "minimum_free_disk_gib": 10,
+    "maximum_disk_used_percent": 79,
+    "maximum_parallel_units": 1,
+    "wall_clock_limit": null,
+    "stage_atomic_resume": true
+  },
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  },
+  "artifact_policy": {
+    "persist_aggregate_json": true,
+    "persist_complete_budget_curve": true,
+    "persist_first_alert_aggregate_curve": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_per_entity_first_alert": false,
+    "persist_derived_matrices": false,
+    "persist_new_models": false
+  }
+}
