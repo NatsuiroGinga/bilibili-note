@@ -48,6 +48,8 @@
 ## 五、服务器与凭据
 
 - 当前服务器为 **B76**（RTX 5090，32.6 GiB），凭据键为 `GPU_SSH_B76` / `GPU_PWD_B76`。C56 与 A44 已停用，仅作历史制品来源。
+- **B76 连接默认直连**：`GPU_SSH_B76` 表面可仅为 `ssh -p <端口> <目标>`，但既有 SSH 配置可能隐式指向 `127.0.0.1:7890`。每次使用 B76 前，先设置 `GPU_SSH_ACTIVE="ssh -o ProxyCommand=none -o ProxyJump=none ${GPU_SSH_B76#ssh }"`，再通过正式 `tools/remote_exec/gpu_env_quiet.exp` 执行；不得探测、启动或假设必须使用 Clash Party，也不得将 `7890` 视为必需端口。
+- 直连失败时只报告原始且脱敏的 SSH 错误，不得自动切换代理。只有用户明确授权后，才可使用代理路径；凭据仍只可从既有环境变量读取，禁止打印或写入文档、日志与命令回显。
 - 远程项目根为 `/root/autodl-tmp/thesis/experiments/llm_probe`，不是 `~/llm_probe` 或 `/workspace/llm_probe`。运行根写作 `<项目根>/runs/diagnostics/<运行名>` 或专项计划冻结的候选路径。
 - 主 shell 默认不加载凭据变量，需先 `source ~/.zshrc` 并丢弃输出。远程执行必须用 `tools/remote_exec/gpu_env_quiet.exp`，禁止自建会回显 `spawn ssh` 行的入口。
 - 新端口首次连接卡在主机密钥确认时，先停止遗留入口再重连。长任务必须用后台持久入口并轮询日志，不得 `sleep` 死等。
