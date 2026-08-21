@@ -1,0 +1,46 @@
+{
+  "schema_version": "vendor-upstream-snapshot-v1",
+  "display_name": "FT-Transformer 官方实现固定快照",
+  "purpose": "支撑 N-13 的参数量闭式与结构冻结依据；本课题不导入该模块，只作逐行核验来源",
+  "upstream": {
+    "repository": "https://github.com/yandex-research/rtdl-revisiting-models",
+    "commit": "e3ed46cac38568785289d8fa16b8cfa585bde27e",
+    "license": "Apache-2.0",
+    "upstream_path_of_source": "bin/ft_transformer.py"
+  },
+  "files": [
+    {
+      "name": "ft_transformer.py",
+      "bytes": 19110,
+      "sha256": "2eddb24549aa322840f1e699b80b3ed9137bba2032592c333ad34998310326b3",
+      "modified_from_upstream": false
+    },
+    {
+      "name": "LICENSE",
+      "bytes": 11339,
+      "sha256": "bd39fcc730a79d256b14fcdccbfc8ac9f0c7fad4a2e8d01fc513def67980fe35",
+      "modified_from_upstream": false
+    }
+  ],
+  "source_status": {
+    "official_repository_verified": true,
+    "pinned_commit_determined": true,
+    "local_snapshot_archived": true,
+    "importable_in_production_environment": false,
+    "real_forward_backward_executed": false,
+    "note": "后三项不得由前项推断。本仓库不安装也不导入 rtdl，本快照只用于逐行核验结构事实与参数量闭式依据。"
+  },
+  "verified_facts": [
+    "第 42 行 nn.Parameter(Tensor(d_numerical + 1, d_token)) 与第 41 行注释 take [CLS] token into account：CLS 不单独设参数，共享权重矩阵第 0 行",
+    "第 89 至 92 行 W_q/W_k/W_v 为 nn.Linear(d, d)，W_out 仅 n_heads > 1 时存在，四者默认带偏置",
+    "第 208 行 d_hidden = int(d_token * d_ffn_factor)",
+    "第 216 至 217 行 linear0 输出宽度为 d_hidden * (2 if activation.endswith('glu') else 1)：ReGLU 使首层输出翻倍"
+  ],
+  "authorization": {
+    "granted_by": "Codex",
+    "kanban_message": "2026-08-21 15:55 CST 授权 N-13",
+    "commit": "956abcb",
+    "scope": "只保存固定提交的未修改上游 bin/ft_transformer.py、Apache-2.0 LICENSE、来源说明和 SHA-256 manifest.json；不得引入整个仓库、依赖缓存或易失目录"
+  },
+  "archived_at_local_date": "2026-08-21"
+}
