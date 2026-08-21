@@ -70,6 +70,18 @@ PARETO_COLUMNS = [
     "pareto_missing_reasons",
 ]
 
+TARGET_OPERATIONAL_FIELDS = [
+    *PERFORMANCE_SCALAR_COLUMNS,
+    "dr_curve_summary",
+    "dr_curve_artifact",
+    *FIRST_ALERT_COLUMNS,
+    "_dr_curve_points",
+    "_dr_actual_fpr_at_nominal_budget",
+    "_first_alert_actual_fpr",
+    "_unalerted_by_actual_fpr",
+    "_timely_detection_curves",
+]
+
 CANONICAL_COLUMNS = [
     "display_name",
     "config_type",
@@ -763,6 +775,12 @@ def _apply_complete_curve(
     fields: list[str],
     scope_prefix: str,
     derive_dr_from_curve: bool,
+    vector_fields: tuple[str, str, str] = (
+        "n_false_positive_entity",
+        "realized_fpr",
+        "detection_rate",
+    ),
+    expose_actual_fpr_in_summary: bool = False,
 ) -> None:
     expected_names = [f"{member_prefix}__{field}" for field in fields]
     shapes = _npz_shapes(artifact_path, f"{member_prefix}__")
@@ -772,11 +790,7 @@ def _apply_complete_curve(
     point_counts = {shape[0] for shape in expected_shapes if shape is not None}
     if len(point_counts) != 1:
         return
-    vector_names = [
-        f"{member_prefix}__n_false_positive_entity",
-        f"{member_prefix}__realized_fpr",
-        f"{member_prefix}__detection_rate",
-    ]
+    vector_names = [f"{member_prefix}__{field}" for field in vector_fields]
     vectors = _npz_vectors(artifact_path, vector_names)
     if any(name not in vectors for name in vector_names):
         return
@@ -797,6 +811,7 @@ def _apply_complete_curve(
     }
     if not derive_dr_from_curve:
         return
+    actual_fpr_at_nominal_budget: dict[str, float] = {}
     for source_key, column in FPR_BUDGETS:
         nominal_budget = float(source_key.removeprefix("fpr_"))
         eligible = [
@@ -810,6 +825,16 @@ def _apply_complete_curve(
         result[f"{scope_prefix}{column}"] = max(
             rate for actual_fpr, rate in eligible if actual_fpr == closest_fpr
         )
+        actual_fpr_at_nominal_budget[source_key] = closest_fpr
+    result[f"_{scope_prefix}dr_actual_fpr_at_nominal_budget"] = actual_fpr_at_nominal_budget
+    if expose_actual_fpr_in_summary:
+        serialized = json.dumps(
+            actual_fpr_at_nominal_budget,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        result[f"{scope_prefix}dr_curve_summary"] += f"；六档实际可达FPR={serialized}"
 
 
 def _enrich_complete_curve(
@@ -1101,6 +1126,470 @@ def _enrich_run_receipts(
             raise ValueError(f"资源收据没有完成时间：{resource_path}")
 
 
+class _OperationalOverlayIncomplete(ValueError):
+    """目标年运营覆盖层不完整；调用方须保留原始行。"""
+
+
+def _target_overlay_paths(root: Path, overlay: dict[str, Any]) -> dict[str, Path]:
+    path_keys = {
+        "main": "relative_path",
+        "identity_receipt": "identity_receipt_relative_path",
+        "curve_receipt": "curve_receipt_relative_path",
+        "curve_artifact": "curve_artifact_relative_path",
+        "first_alert_receipt": "first_alert_receipt_relative_path",
+        "first_alert_artifact": "first_alert_artifact_relative_path",
+        "manifest": "manifest_relative_path",
+        "status": "status_relative_path",
+        "resource": "resource_receipt_relative_path",
+    }
+    paths: dict[str, Path] = {}
+    for role, key in path_keys.items():
+        relative = overlay.get(key)
+        if not isinstance(relative, str) or not relative:
+            raise _OperationalOverlayIncomplete(f"配置缺少{key}")
+        path = root / relative
+        if not path.is_file():
+            raise _OperationalOverlayIncomplete(f"制品不存在：{path}")
+        paths[role] = path
+    return paths
+
+
+def _load_overlay_json(path: Path, role: str) -> dict[str, Any]:
+    document = _load_auxiliary_json(path)
+    if document is None:
+        raise _OperationalOverlayIncomplete(f"{role}不是有效JSON：{path}")
+    return document
+
+
+def _validate_manifest_file(
+    manifest: dict[str, Any], path: Path, role: str
+) -> None:
+    declared = manifest.get("files", {}).get(path.name)
+    if not isinstance(declared, dict):
+        raise _OperationalOverlayIncomplete(f"运行清单未登记{role}：{path.name}")
+    actual_bytes = path.stat().st_size
+    actual_hash = _sha256(path)
+    if declared.get("bytes") != actual_bytes or declared.get("sha256") != actual_hash:
+        raise _OperationalOverlayIncomplete(f"运行清单中的{role}字节数或SHA-256不符")
+
+
+def _validate_receipt_artifact(
+    receipt: dict[str, Any], artifact_path: Path, role: str
+) -> None:
+    declared = receipt.get("artifact")
+    if not isinstance(declared, dict):
+        raise _OperationalOverlayIncomplete(f"{role}收据缺少artifact声明")
+    if (
+        declared.get("bytes") != artifact_path.stat().st_size
+        or declared.get("sha256") != _sha256(artifact_path)
+    ):
+        raise _OperationalOverlayIncomplete(f"{role}收据中的字节数或SHA-256不符")
+
+
+def _overlay_first_alert_metadata(
+    receipt_node: dict[str, Any], axis: str, time_delay_available: bool
+) -> dict[str, Any]:
+    unalerted = receipt_node.get("unalerted_rate_at_fpr")
+    realized = receipt_node.get("realized_fpr_at_fpr")
+    delay = receipt_node.get("delay_summary_at_fpr")
+    if isinstance(unalerted, dict) and isinstance(realized, dict):
+        return {
+            source_key: {
+                "axis": axis,
+                "time_delay_available": time_delay_available,
+                "positive_unalerted_rate": unalerted.get(source_key),
+                "realized_first_alert_fpr": realized.get(source_key),
+                "first_alert_delay_quantiles": (
+                    delay.get(source_key, {}).get("first_alert_exposure_index")
+                    if isinstance(delay, dict)
+                    else None
+                ),
+            }
+            for source_key, _column in FPR_BUDGETS
+        }
+    budgets = receipt_node.get("budgets")
+    if not isinstance(budgets, dict):
+        raise _OperationalOverlayIncomplete("首次告警收据缺少六档预算明细")
+    return {
+        source_key: {
+            "axis": axis,
+            "time_delay_available": time_delay_available,
+            "positive_unalerted_rate": budgets.get(source_key, {}).get(
+                "positive_unalerted_rate"
+            ),
+            "realized_first_alert_fpr": budgets.get(source_key, {}).get(
+                "realized_first_alert_fpr"
+            ),
+            "first_alert_delay_quantiles": budgets.get(source_key, {}).get(
+                "malicious_first_alert_exposure_quantiles"
+            ),
+        }
+        for source_key, _column in FPR_BUDGETS
+    }
+
+
+def _validate_overlay_run_documents(
+    schema: str,
+    run_id: str,
+    documents: dict[str, dict[str, Any]],
+) -> None:
+    expected_schemas = {
+        "xgb_c11_operational_backfill_v1": {
+            "curve_receipt": "ch3-xgb-cpa-elp-operational-complete-alert-budget-curves-v1",
+            "first_alert_receipt": "ch3-first-alert-timing-v1",
+            "manifest": "ch3-xgb-cpa-elp-operational-backfill-manifest-v1",
+            "status": "ch3-xgb-cpa-elp-operational-backfill-stage-status-v1",
+            "resource": "ch3-xgb-cpa-elp-operational-backfill-resource-v1",
+        },
+        "published_neural_operational_backfill_v1": {
+            "identity_receipt": "ch3-published-neural-operational-backfill-input-v1",
+            "curve_receipt": "ch3-published-neural-complete-alert-budget-curves-v1",
+            "first_alert_receipt": "ch3-published-neural-first-alert-timing-v1",
+            "manifest": "ch3-published-neural-operational-backfill-manifest-v1",
+            "status": "ch3-published-neural-operational-backfill-status-v1",
+            "resource": "ch3-published-neural-operational-backfill-resource-v1",
+        },
+    }
+    schema_contract = expected_schemas.get(schema)
+    if schema_contract is None:
+        raise _OperationalOverlayIncomplete(f"不支持的目标年运营覆盖模式：{schema}")
+    for role, expected_schema in schema_contract.items():
+        if documents[role].get("schema_version") != expected_schema:
+            raise _OperationalOverlayIncomplete(f"{role}的schema_version不匹配")
+    for role, document in documents.items():
+        if role == "manifest":
+            continue
+        if role == "identity_receipt" and document.get("run_id") is None:
+            continue
+        if document.get("run_id") != run_id:
+            raise _OperationalOverlayIncomplete(f"{role}的run_id与主结果不一致")
+    manifest = documents["manifest"]
+    status = documents["status"]
+    resource = documents["resource"]
+    if manifest.get("run_id") != run_id or manifest.get("complete") is not True:
+        raise _OperationalOverlayIncomplete("运行清单未声明同一run_id且complete=true")
+    if schema == "xgb_c11_operational_backfill_v1":
+        if not (
+            status.get("stage") == "complete"
+            and status.get("target_retrained") is False
+            and status.get("target_scores_persisted") is False
+        ):
+            raise _OperationalOverlayIncomplete("XGBoost覆盖运行状态不完整")
+        if (
+            resource.get("finalized") is not True
+            or resource.get("finished_at_unix") is None
+        ):
+            raise _OperationalOverlayIncomplete("XGBoost覆盖资源收据未完成")
+    elif schema == "published_neural_operational_backfill_v1":
+        if (
+            status.get("state"),
+            status.get("stage"),
+            status.get("exit_code"),
+            status.get("training_runs"),
+            status.get("inference_runs"),
+            status.get("gpu_array_reads"),
+        ) != ("finished", "complete", 0, 0, 0, 0):
+            raise _OperationalOverlayIncomplete("神经基线覆盖运行状态不完整")
+        if not isinstance(resource.get("compute_wall_seconds"), (int, float)):
+            raise _OperationalOverlayIncomplete("神经基线覆盖资源收据缺少计算墙钟")
+
+
+def _validate_overlay_identity(
+    schema: str,
+    overlay: dict[str, Any],
+    main: dict[str, Any],
+    identity_receipt: dict[str, Any],
+) -> None:
+    expected = overlay.get("identity")
+    if not isinstance(expected, dict):
+        raise _OperationalOverlayIncomplete("覆盖配置缺少冻结身份")
+    if schema == "xgb_c11_operational_backfill_v1":
+        cache_files = identity_receipt.get("cache_inventory", {}).get("files", {})
+        actual = {
+            "cell": main.get("cell"),
+            "adapter": main.get("model", {}).get("adapter"),
+            "power_mean_p": main.get("model", {}).get("power_mean_p"),
+            "model_sha256": identity_receipt.get("loaded_model", {}).get("sha256"),
+            "flow_label_sha256": cache_files.get("y24", {}).get("sha256"),
+            "entity_index_sha256": cache_files.get("I24", {}).get("sha256"),
+            "entity_label_sha256": cache_files.get("M24", {}).get("sha256"),
+        }
+    else:
+        model_key = overlay.get("model_key")
+        files = identity_receipt.get("files", {})
+        actual = {
+            "model_key": model_key,
+            "score_sha256": files.get(model_key, {}).get("sha256"),
+            "flow_label_sha256": files.get("flow_labels", {}).get("sha256"),
+            "source_address_sha256": files.get("source_addresses", {}).get("sha256"),
+            "destination_address_sha256": files.get("destination_addresses", {}).get("sha256"),
+            "entity_construction": identity_receipt.get("entity_construction"),
+            "entity_count": identity_receipt.get("entity_count"),
+            "positive_entity_count": identity_receipt.get("positive_entity_count"),
+            "negative_entity_count": identity_receipt.get("negative_entity_count"),
+        }
+    if actual != expected:
+        raise _OperationalOverlayIncomplete(
+            f"覆盖制品身份与冻结配置不一致：期望={expected}，实际={actual}"
+        )
+
+
+def _validate_overlay_dr_counts(
+    schema: str,
+    metrics: dict[str, Any],
+    candidate: dict[str, Any],
+) -> None:
+    if schema == "xgb_c11_operational_backfill_v1":
+        readouts = metrics.get("dr_at_fpr_receipts", {})
+        first_alert = metrics.get("first_alert", {})
+        positive_count = first_alert.get("positive_entity_count")
+        entity_count = metrics.get("entities_scored")
+        if not isinstance(positive_count, int) or not isinstance(entity_count, int):
+            raise _OperationalOverlayIncomplete("XGBoost覆盖缺少实体计数")
+        negative_count = entity_count - positive_count
+    else:
+        readouts = metrics.get("alert_budget_readouts", {})
+        positive_count = None
+        negative_count = None
+    for source_key, column in FPR_BUDGETS:
+        readout = readouts.get(source_key)
+        if not isinstance(readout, dict):
+            raise _OperationalOverlayIncomplete(f"缺少{source_key}整数计数收据")
+        point = readout.get("best_reachable_point", readout)
+        if not isinstance(point, dict):
+            raise _OperationalOverlayIncomplete(f"{source_key}计数收据不是对象")
+        fp_count = point.get("false_positive_entity_count")
+        detection_rate = point.get("detection_rate")
+        actual_fpr = point.get("actual_reachable_fpr", point.get("realized_fpr"))
+        if schema == "xgb_c11_operational_backfill_v1":
+            tp_product = (
+                detection_rate * positive_count
+                if isinstance(detection_rate, float)
+                else None
+            )
+            if not isinstance(tp_product, float) or not tp_product.is_integer():
+                raise _OperationalOverlayIncomplete(f"{source_key}的DR不能还原整数TP")
+            tp_count = int(tp_product)
+        else:
+            tp_count = point.get("true_positive_entity_count")
+            negative_count = point.get("negative_entity_denominator")
+            positive_count = (
+                metrics.get("first_alert", {})
+                .get("budgets", {})
+                .get(source_key, {})
+                .get("positive_entity_denominator")
+            )
+        if not all(
+            isinstance(value, int)
+            for value in (fp_count, tp_count, negative_count, positive_count)
+        ):
+            raise _OperationalOverlayIncomplete(f"{source_key}缺少整数FP/TP或分母")
+        if (
+            actual_fpr != fp_count / negative_count
+            or detection_rate != tp_count / positive_count
+            or candidate.get(column) != detection_rate
+            or candidate.get("_dr_actual_fpr_at_nominal_budget", {}).get(source_key)
+            != actual_fpr
+        ):
+            raise _OperationalOverlayIncomplete(f"{source_key}的FP/TP、实际FPR与曲线读数不一致")
+
+
+def _apply_target_operational_overlay(
+    result: dict[str, Any],
+    roots: dict[str, str],
+    entry: dict[str, Any],
+    provenance: dict[str, dict[str, Any]],
+) -> None:
+    overlay = entry.get("target_operational_overlay")
+    if overlay is None:
+        return
+    if not isinstance(overlay, dict):
+        result["pending_reason"] = "目标年运营覆盖层配置不是对象；保留旧结果"
+        return
+    try:
+        root_value = roots.get(overlay.get("root"))
+        if not root_value:
+            raise _OperationalOverlayIncomplete("覆盖层root未通过--root提供")
+        root = Path(root_value)
+        paths = _target_overlay_paths(root, overlay)
+        role_labels = {
+            "main": "目标年运营覆盖主结果",
+            "identity_receipt": "目标年覆盖身份收据",
+            "curve_receipt": "目标年完整曲线收据",
+            "curve_artifact": "目标年完整曲线NPZ",
+            "first_alert_receipt": "目标年首次告警收据",
+            "first_alert_artifact": "目标年按时检出曲线NPZ",
+            "manifest": "目标年覆盖运行清单",
+            "status": "目标年覆盖完成状态",
+            "resource": "目标年覆盖资源收据",
+        }
+        for role, path in paths.items():
+            _record_provenance(
+                path,
+                f"{entry['display_name']}的{role_labels[role]}",
+                provenance,
+            )
+        documents = {
+            role: _load_overlay_json(paths[role], role_labels[role])
+            for role in (
+                "main",
+                "identity_receipt",
+                "curve_receipt",
+                "first_alert_receipt",
+                "manifest",
+                "status",
+                "resource",
+            )
+        }
+        manifest = documents["manifest"]
+        for role, path in paths.items():
+            if role != "manifest":
+                _validate_manifest_file(manifest, path, role_labels[role])
+        _validate_receipt_artifact(
+            documents["curve_receipt"], paths["curve_artifact"], "完整曲线"
+        )
+        _validate_receipt_artifact(
+            documents["first_alert_receipt"],
+            paths["first_alert_artifact"],
+            "首次告警",
+        )
+        schema = str(overlay.get("schema"))
+        run_id = documents["main"].get("run_id")
+        if not isinstance(run_id, str) or not run_id:
+            raise _OperationalOverlayIncomplete("目标年覆盖主结果缺少run_id")
+        _validate_overlay_run_documents(schema, run_id, documents)
+        _validate_overlay_identity(
+            schema,
+            overlay,
+            documents["main"],
+            documents["identity_receipt"],
+        )
+
+        candidate = dict(result)
+        main = documents["main"]
+        curve_receipt = documents["curve_receipt"]
+        first_receipt = documents["first_alert_receipt"]
+        if schema == "xgb_c11_operational_backfill_v1":
+            if (
+                main.get("schema_version")
+                != "ch3-xgb-cpa-elp-operational-backfill-target-metrics-v1"
+            ):
+                raise _OperationalOverlayIncomplete("XGBoost覆盖主结果schema不匹配")
+            cell = overlay.get("cell")
+            metrics = main.get("cells", {}).get(cell)
+            if not isinstance(metrics, dict):
+                raise _OperationalOverlayIncomplete(f"XGBoost覆盖缺少单元：{cell}")
+            candidate["flow_ap"] = metrics.get("flow_average_precision")
+            candidate["entity_ap"] = metrics.get("entity_average_precision")
+            candidate["max_entity_ap"] = metrics.get("maximum_entity_average_precision")
+            if not (
+                curve_receipt.get("curve_is_complete_over_all_reachable_negative_entity_budgets")
+                is True
+            ):
+                raise _OperationalOverlayIncomplete("XGBoost完整曲线未覆盖全部可达预算")
+            fields = curve_receipt.get("fields")
+            member_prefix = str(cell)
+            vector_fields = (
+                "n_false_positive_entity",
+                "realized_fpr",
+                "detection_rate",
+            )
+            first_node = first_receipt.get("cells", {}).get(cell)
+        else:
+            if (
+                main.get("schema_version")
+                != "ch3-published-neural-operational-backfill-results-v1"
+            ):
+                raise _OperationalOverlayIncomplete("神经基线覆盖主结果schema不匹配")
+            model_key = overlay.get("model_key")
+            metrics = main.get("models", {}).get(model_key)
+            if not isinstance(metrics, dict):
+                raise _OperationalOverlayIncomplete(f"神经基线覆盖缺少模型键：{model_key}")
+            if (
+                main.get("score_fusion_performed") is not False
+                or metrics.get("score_fusion_performed") is not False
+            ):
+                raise _OperationalOverlayIncomplete("神经基线覆盖发生了禁止的分数融合")
+            candidate["flow_ap"] = metrics.get("flow_average_precision")
+            candidate["entity_ap"] = metrics.get("max_pool_entity_average_precision")
+            candidate["max_entity_ap"] = metrics.get("max_pool_entity_average_precision")
+            if curve_receipt.get("all_complete_entity_score_tie_groups_included") is not True:
+                raise _OperationalOverlayIncomplete("神经基线完整曲线未保留全部并列组")
+            curve_node = curve_receipt.get("models", {}).get(model_key)
+            if not isinstance(curve_node, dict):
+                raise _OperationalOverlayIncomplete(f"神经曲线收据缺少模型键：{model_key}")
+            fields = curve_node.get("fields")
+            member_prefix = str(model_key)
+            vector_fields = (
+                "false_positive_entity_count",
+                "actual_fpr",
+                "detection_rate",
+            )
+            first_node = first_receipt.get("models", {}).get(model_key)
+        if not isinstance(fields, list) or not isinstance(first_node, dict):
+            raise _OperationalOverlayIncomplete("覆盖层曲线字段或首次告警节点不完整")
+        if any(
+            not isinstance(candidate.get(column), (int, float))
+            for column in ("flow_ap", "entity_ap")
+        ):
+            raise _OperationalOverlayIncomplete("覆盖层缺少逐流AP或实体AP")
+        try:
+            _apply_complete_curve(
+                candidate,
+                paths["curve_artifact"],
+                member_prefix,
+                [str(field) for field in fields],
+                "",
+                True,
+                vector_fields,
+                True,
+            )
+        except (OSError, ValueError, zipfile.BadZipFile) as exc:
+            raise _OperationalOverlayIncomplete(f"完整曲线无法解析：{exc}") from exc
+        if (
+            not candidate.get("_dr_curve_points")
+            or len(candidate.get("_dr_actual_fpr_at_nominal_budget", {})) != len(FPR_BUDGETS)
+        ):
+            raise _OperationalOverlayIncomplete("完整曲线没有形成六档实际可达FPR")
+        _validate_overlay_dr_counts(schema, metrics, candidate)
+
+        axis = first_node.get("axis")
+        time_delay_available = first_node.get("time_delay_available")
+        if (
+            axis != "exposure_index"
+            or time_delay_available is not False
+            or first_node.get("exposure_index_base") != 1
+        ):
+            raise _OperationalOverlayIncomplete(
+                "首次告警只接受1基exposure_index且time_delay_available=false"
+            )
+        metadata = _overlay_first_alert_metadata(first_node, axis, time_delay_available)
+        try:
+            _apply_first_alert(
+                candidate,
+                paths["first_alert_artifact"],
+                member_prefix,
+                axis,
+                time_delay_available,
+                metadata,
+                "",
+                "timely_detection_v1",
+            )
+        except (OSError, ValueError, zipfile.BadZipFile) as exc:
+            raise _OperationalOverlayIncomplete(f"首次告警曲线无法解析：{exc}") from exc
+        if (
+            candidate.get("first_alert_axis") != "exposure_index"
+            or candidate.get("time_delay_available") is not False
+            or len(candidate.get("_first_alert_actual_fpr", {})) != len(FPR_BUDGETS)
+        ):
+            raise _OperationalOverlayIncomplete("首次告警没有形成六档同轴结果")
+
+        for field in TARGET_OPERATIONAL_FIELDS:
+            result[field] = candidate.get(field)
+    except _OperationalOverlayIncomplete as exc:
+        result["pending_reason"] = f"目标年运营覆盖层未应用：{exc}；保留旧结果"
+
+
 def _default_missing_reason(column: str, row: dict[str, Any]) -> str:
     if row.get("pending_reason"):
         return str(row["pending_reason"])
@@ -1245,6 +1734,7 @@ def collect_rows(
                 _enrich_first_alert(row, root, entry, provenance_records)
                 _enrich_manifest_source_first_alert(row, root, entry)
                 _enrich_run_receipts(root, entry, provenance_records)
+                _apply_target_operational_overlay(row, roots, entry, provenance_records)
         elif entry.get("available"):
             row["pending_reason"] = "配置标记为可用，但指定本地原始制品不存在"
         elif not row.get("pending_reason"):
