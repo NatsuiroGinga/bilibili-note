@@ -1,0 +1,104 @@
+{
+  "schema_version": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-bf16-config-v1",
+  "run_id": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+  "display_name": "全容量多层感知机统一BF16协议A资格实验",
+  "model_key": "full_mlp",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+    "precision_contract": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/neural-precision-profiles-v1.json"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24", "t24"],
+  "parent_selection": {
+    "run_id": "ch3-full-capacity-mlp-source-screen-seed42-v1",
+    "seal_path": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-capacity-mlp-source-screen-seed42-v1/backbone_selection_frozen.json",
+    "selected_unit_key": "mlp-depth8-width512-full--paper-log-median",
+    "selected_epoch": 10,
+    "validation_flow_ap": 0.9997527228408204,
+    "hidden_depth": 8,
+    "hidden_size": 512,
+    "learning_rate": 0.0003162277660168379,
+    "weight_decay": 0.0,
+    "dropout": 0.1,
+    "parameter_count": 2144258,
+    "target_year_arrays_read": 0
+  },
+  "candidate": {
+    "unit_key": "mlp-depth8-width512-full--paper-log-median",
+    "hidden_depth": 8,
+    "hidden_size": 512,
+    "activation": "relu",
+    "dropout": 0.1,
+    "parameter_formula": "m*d^2+(m+84)*d+2",
+    "parameter_count": 2144258
+  },
+  "cells": {
+    "B00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "B10": {"causal_prefix_aggregation": true, "learned_lp_pooling": false},
+    "O01": {"causal_prefix_aggregation": false, "learned_lp_pooling": true},
+    "O11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "training": {
+    "seed": 42,
+    "sequence_length": 128,
+    "batch_size": 64,
+    "microbatch_size": 64,
+    "accumulation_steps": 1,
+    "normalization_unit": "flow",
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.0003162277660168379,
+    "weight_decay": 0.0,
+    "dropout": 0.1,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "selection_metric": "lspr23_entity_disjoint_validation_flow_ap",
+    "selection_rule": "single_epoch_argmax_earliest_tie_no_early_stopping",
+    "checkpoint_interval_optimizer_steps": 20,
+    "precision_profile_id": "cuda-bf16-amp-fp32-sensitive-v1"
+  },
+  "evaluation": {
+    "p_grid": [0.5, 1.0, 2.0, 4.0, 8.0],
+    "p_tie_break": "smaller_p",
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "length_buckets": [[1, 2], [3, 10], [11, 100], [101, 1000], [1001, null]],
+    "target_load_after_all_selections_sealed": true,
+    "target_evaluation_calls": 4,
+    "complete_reachable_alert_budget_curve": true,
+    "first_alert_exposure_order": "ascending_frozen_flow_index_within_entity",
+    "first_alert_quantiles": [0.25, 0.5, 0.75, 0.9, 0.95]
+  },
+  "artifact_policy": {
+    "persist_selected_checkpoint_per_cell": true,
+    "persist_every_epoch_checkpoint_per_cell": true,
+    "persist_inflight_optimizer_step_checkpoint": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_complete_budget_curve_aggregate": true,
+    "persist_first_alert_aggregate_only": true
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_mib": 12288,
+    "minimum_cgroup_available_memory_gib": 30,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_jobs": 1,
+    "maximum_parallel_cells_per_job": 1,
+    "resource_sample_interval_seconds": 5,
+    "estimated_training_minutes": [60, 120]
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "name": "全容量多层感知机统一BF16协议A资格实验",
+    "group": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "full-mlp", "protocol-a", "bf16", "qualification", "seed42"]
+  },
+  "target_informed": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "target_year_arrays_read": 0
+}

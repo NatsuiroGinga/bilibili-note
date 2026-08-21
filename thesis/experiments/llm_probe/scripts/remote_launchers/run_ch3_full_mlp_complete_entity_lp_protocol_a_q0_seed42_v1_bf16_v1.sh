@@ -1,0 +1,337 @@
+#!/usr/bin/env bash
+
+source ~/.bashrc >/dev/null 2>&1 || true
+set -Eeuo pipefail
+umask 027
+
+readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
+readonly RUN_ID=ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1
+readonly SCREEN_NAME=ch3-full-mlp-bf16-pa-q0-s42-v1
+readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1.json"
+readonly TOOL_PATH="$PROJECT_ROOT/tools/ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py"
+readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_full_mlp_complete_entity_lp_protocol_a_q0_seed42_v1_bf16_v1.sh"
+readonly PRECISION_PATH="$PROJECT_ROOT/configs/neural-precision-profiles-v1.json"
+readonly PARENT_SEAL="$PROJECT_ROOT/runs/diagnostics/ch3-full-capacity-mlp-source-screen-seed42-v1/backbone_selection_frozen.json"
+readonly MEMORY_GATE_PATH="$PROJECT_ROOT/tools/memory_admission_gate.sh"
+readonly OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$RUN_ID"
+readonly LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"
+readonly RESOURCE_RECEIPT="$OUTPUT_ROOT/resource-receipt.json"
+readonly RESOURCE_SAMPLES="$OUTPUT_ROOT/resource-samples.tsv"
+readonly SWANLAB_WORKSPACE=mortiswang
+readonly SWANLAB_PROJECT=ns3-rwkv-lspr24
+readonly PEER_RUN_PATTERN='python.*ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16[.]py'
+readonly GPU_FREE_MIN_MIB=12288
+readonly CGROUP_AVAILABLE_MIN_BYTES=32212254720
+readonly DISK_FREE_MIN_KIB=10485760
+
+cd "$PROJECT_ROOT"
+source tools/env/activate.sh
+
+launcher_status() {
+    local state=$1 stage=$2 detail=$3 exit_code=$4
+    mkdir -p -- "$LAUNCHER_ROOT"
+    uv run --no-sync python -c '
+import json, os, pathlib, sys, time
+path = pathlib.Path(sys.argv[1])
+value = {
+    "schema_version": "ch3-full-mlp-bf16-launcher-status-v1",
+    "run_id": sys.argv[2], "state": sys.argv[3], "stage": sys.argv[4],
+    "detail": sys.argv[5], "exit_code": None if sys.argv[6] == "null" else int(sys.argv[6]),
+    "updated_at_unix": time.time(), "precision_profile_id": "cuda-bf16-amp-fp32-sensitive-v1",
+    "target_previously_accessed": True, "independent_test": False,
+}
+temporary = path.with_name(path.name + f".partial.{os.getpid()}")
+temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+os.replace(temporary, path)
+' "$LAUNCHER_ROOT/status.json" "$RUN_ID" "$state" "$stage" "$detail" "$exit_code"
+}
+
+validate_static_contract() {
+    uv run --no-sync python "$TOOL_PATH" --config "$CONFIG_PATH" --validate-config
+    uv run --no-sync python -c '
+import json, pathlib, sys
+config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+training = config["training"]
+parent = config["parent_selection"]
+valid = (
+    config["run_id"] == sys.argv[2]
+    and config["candidate"]["unit_key"] == "mlp-depth8-width512-full--paper-log-median"
+    and config["candidate"]["hidden_depth"] == 8
+    and config["candidate"]["hidden_size"] == 512
+    and config["candidate"]["parameter_count"] == 2144258
+    and parent["selected_epoch"] == 10
+    and parent["validation_flow_ap"] == 0.9997527228408204
+    and training["precision_profile_id"] == "cuda-bf16-amp-fp32-sensitive-v1"
+    and training["batch_size"] == 64 and training["microbatch_size"] == 64
+    and training["accumulation_steps"] == 1
+    and training["checkpoint_interval_optimizer_steps"] == 20
+    and config["evaluation"]["target_load_after_all_selections_sealed"] is True
+    and config["evaluation"]["first_alert_exposure_order"] == "ascending_frozen_flow_index_within_entity"
+    and config["artifact_policy"]["persist_per_flow_scores"] is False
+    and config["artifact_policy"]["persist_per_entity_scores"] is False
+    and config["paths"]["output_root"] == sys.argv[3]
+    and config["swanlab"]["workspace"] == sys.argv[4]
+    and config["swanlab"]["project"] == sys.argv[5]
+)
+raise SystemExit(0 if valid else 78)
+' "$CONFIG_PATH" "$RUN_ID" "$OUTPUT_ROOT" "$SWANLAB_WORKSPACE" "$SWANLAB_PROJECT"
+}
+
+validate_inputs() {
+    uv run --no-sync python -c '
+import json, pathlib, sys
+config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+root = pathlib.Path(config["paths"]["cache_root"])
+source_ok = all((root / f"{name}.npy").is_file() for name in config["source_arrays"])
+target_ok = all((root / f"{name}.npy").is_file() for name in config["target_arrays"])
+seal = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
+selected = seal.get("selected_candidate") or {}
+parent_ok = (
+    seal.get("run_id") == config["parent_selection"]["run_id"]
+    and seal.get("source_gate", {}).get("passed") is True
+    and selected.get("unit_key") == config["parent_selection"]["selected_unit_key"]
+    and selected.get("selected_epoch") == 10
+    and selected.get("validation_flow_ap") == 0.9997527228408204
+    and seal.get("target_year_arrays_read") == 0
+)
+raise SystemExit(0 if source_ok and target_ok and parent_ok else 66)
+' "$CONFIG_PATH" "$PARENT_SEAL"
+}
+
+admit_resources() {
+    mkdir -p -- "$LAUNCHER_ROOT" "$OUTPUT_ROOT"
+    bash "$MEMORY_GATE_PATH" 30 "$RUN_ID" > "$LAUNCHER_ROOT/memory-admission-gate.log" 2>&1
+    local free_mib used_mib cgroup_max cgroup_current cgroup_available disk_fields available_kib used_percent
+    free_mib=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits | awk 'NR == 1 {gsub(/ /, "", $0); print $0}')
+    used_mib=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | awk 'NR == 1 {gsub(/ /, "", $0); print $0}')
+    if [[ -r /sys/fs/cgroup/memory.max ]]; then
+        cgroup_max=$(< /sys/fs/cgroup/memory.max)
+        cgroup_current=$(< /sys/fs/cgroup/memory.current)
+    elif [[ -r /sys/fs/cgroup/memory/memory.limit_in_bytes ]]; then
+        cgroup_max=$(< /sys/fs/cgroup/memory/memory.limit_in_bytes)
+        cgroup_current=$(< /sys/fs/cgroup/memory/memory.usage_in_bytes)
+    else
+        printf '无法读取控制组主存，拒绝启动。\n' >&2
+        return 69
+    fi
+    if [[ ! "$free_mib" =~ ^[0-9]+$ || ! "$used_mib" =~ ^[0-9]+$ || ! "$cgroup_max" =~ ^[0-9]+$ || ! "$cgroup_current" =~ ^[0-9]+$ ]]; then
+        printf '资源读数无效，拒绝启动。\n' >&2
+        return 69
+    fi
+    cgroup_available=$((cgroup_max - cgroup_current))
+    (( free_mib >= GPU_FREE_MIN_MIB && cgroup_available >= CGROUP_AVAILABLE_MIN_BYTES )) || {
+        printf '资源门失败：GPU空闲=%sMiB，控制组可用=%s字节。\n' "$free_mib" "$cgroup_available" >&2
+        return 69
+    }
+    disk_fields=$(df -Pk "$PROJECT_ROOT" | tail -n 1)
+    available_kib=$(printf '%s\n' "$disk_fields" | awk '{print $4}')
+    used_percent=$(printf '%s\n' "$disk_fields" | awk '{gsub(/%/, "", $5); print $5}')
+    if [[ ! "$available_kib" =~ ^[0-9]+$ || ! "$used_percent" =~ ^[0-9]+$ ]] \
+        || (( available_kib < DISK_FREE_MIN_KIB || used_percent >= 80 )); then
+        printf '磁盘资源门失败：available_kib=%s used_percent=%s\n' "$available_kib" "$used_percent" >&2
+        return 69
+    fi
+    nvidia-smi --query-gpu=name,memory.total,memory.free,utilization.gpu --format=csv,noheader,nounits > "$LAUNCHER_ROOT/gpu-resource.txt"
+    uv run --no-sync python -c '
+import json, os, pathlib, sys, time
+path = pathlib.Path(sys.argv[1])
+value = {
+    "schema_version": "ch3-full-mlp-bf16-resource-receipt-v1",
+    "run_started_at_unix": time.time(), "gpu_free_mib_at_admission": int(sys.argv[2]),
+    "gpu_used_mib_at_admission": int(sys.argv[3]), "cgroup_limit_bytes": int(sys.argv[4]),
+    "cgroup_current_bytes_at_admission": int(sys.argv[5]), "cgroup_available_bytes_at_admission": int(sys.argv[6]),
+    "disk_available_kib": int(sys.argv[7]), "disk_used_percent": int(sys.argv[8]),
+    "actual_parallel_runs_at_admission": 1, "precision_profile_id": "cuda-bf16-amp-fp32-sensitive-v1",
+    "effective_batch_sequences": 64, "microbatch_sequences": 64, "accumulation_steps": 1,
+    "gpu_admission_basis": "full_mlp_bf16_qualification_12288_mib", "resource_measurement_contended": False,
+}
+temporary = path.with_name(path.name + f".partial.{os.getpid()}")
+temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+os.replace(temporary, path)
+' "$RESOURCE_RECEIPT" "$free_mib" "$used_mib" "$cgroup_max" "$cgroup_current" "$cgroup_available" "$available_kib" "$used_percent"
+}
+
+resource_monitor() {
+    printf 'unix_time\tgpu_used_mib\tcgroup_current_bytes\tpeer_job_running\n' > "$RESOURCE_SAMPLES"
+    while true; do
+        local gpu_used cgroup_current peer_job_running=0 peer_count=0
+        gpu_used=$(nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | awk 'NR == 1 {gsub(/ /, "", $0); print $0}')
+        if [[ -r /sys/fs/cgroup/memory.current ]]; then
+            cgroup_current=$(< /sys/fs/cgroup/memory.current)
+        else
+            cgroup_current=$(< /sys/fs/cgroup/memory/memory.usage_in_bytes)
+        fi
+        peer_count=$(pgrep -fc "$PEER_RUN_PATTERN" 2>/dev/null || true)
+        (( peer_count > 1 )) && peer_job_running=1
+        printf '%s\t%s\t%s\t%s\n' "$(date +%s)" "$gpu_used" "$cgroup_current" "$peer_job_running" >> "$RESOURCE_SAMPLES"
+        sleep 5
+    done
+}
+
+finalize_resources() {
+    uv run --no-sync python -c '
+import json, os, pathlib, sys, time
+receipt = pathlib.Path(sys.argv[1]); samples = pathlib.Path(sys.argv[2]); result_path = pathlib.Path(sys.argv[3])
+value = json.loads(receipt.read_text(encoding="utf-8"))
+rows = [tuple(map(int, line.split("\t"))) for line in samples.read_text(encoding="utf-8").splitlines()[1:] if line.count("\t") == 3]
+if not rows: raise SystemExit("资源采样为空")
+contended = any(row[3] for row in rows)
+value.update({"finished_at_unix": time.time(), "sample_interval_seconds": 5, "sample_count": len(rows),
+              "peak_gpu_used_mib": max(row[1] for row in rows), "peak_cgroup_current_bytes": max(row[2] for row in rows),
+              "resource_measurement_contended": contended, "fair_efficiency_evidence": not contended})
+temporary = receipt.with_name(receipt.name + f".partial.{os.getpid()}")
+temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"); os.replace(temporary, receipt)
+if result_path.is_file():
+    result = json.loads(result_path.read_text(encoding="utf-8")); result.setdefault("resource", {})["launcher_final_receipt"] = value
+    temporary = result_path.with_name(result_path.name + f".partial.{os.getpid()}")
+    temporary.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"); os.replace(temporary, result_path)
+manifest_path = result_path.parent / "manifest.json"
+if manifest_path.is_file():
+    import hashlib
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for artifact in (receipt, result_path):
+        digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        manifest.setdefault("files", {})[artifact.name] = {"bytes": artifact.stat().st_size, "sha256": digest}
+    temporary = manifest_path.with_name(manifest_path.name + f".partial.{os.getpid()}")
+    temporary.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"); os.replace(temporary, manifest_path)
+' "$RESOURCE_RECEIPT" "$RESOURCE_SAMPLES" "$OUTPUT_ROOT/aggregate-results.json"
+}
+
+run_logged() {
+    local log_path=$1
+    shift
+    mkdir -p -- "$(dirname "$log_path")"
+    set +e
+    "$@" 2>&1 | tee "$log_path"
+    local pipeline_status=("${PIPESTATUS[@]}")
+    set -e
+    printf '%s\n' "${pipeline_status[0]}" > "$log_path.command-exit-code.txt"
+    printf '%s\n' "${pipeline_status[1]}" > "$log_path.tee-exit-code.txt"
+    (( pipeline_status[1] == 0 )) || return "${pipeline_status[1]}"
+    return "${pipeline_status[0]}"
+}
+
+publish_results() {
+    uv run --no-sync swanlab ping > "$OUTPUT_ROOT/swanlab-ping.log" 2>&1
+    uv run --no-sync swanlab verify > "$OUTPUT_ROOT/swanlab-verify.log" 2>&1
+    run_logged "$OUTPUT_ROOT/publish.log" uv run --no-sync python "$TOOL_PATH" \
+        --config "$CONFIG_PATH" --publish-only \
+        --authorized-swanlab-workspace "$SWANLAB_WORKSPACE" \
+        --authorized-swanlab-project "$SWANLAB_PROJECT"
+}
+
+validate_outputs() {
+    uv run --no-sync python -c '
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1]); result = json.loads((root / "aggregate-results.json").read_text(encoding="utf-8"))
+required = ["selection_frozen.json", "source-gate-results.json", "source-year-metrics.json", "target-year-metrics.json",
+            "aggregate-results.json", "resource-receipt.json", "swanlab-receipt.json", "manifest.json", "status.json"]
+required += [f"checkpoints/selected-{cell}.pt" for cell in ("B00", "B10", "O01", "O11")]
+valid = (
+    result["run_id"] == sys.argv[2]
+    and set(result["source_year_table"]) == {"B00", "B10", "O01", "O11", "N01", "N11"}
+    and set(result["target_year_table"]) == {"B00", "B10", "O01", "O11", "N01", "N11"}
+    and result["precision"]["profile_id"] == "cuda-bf16-amp-fp32-sensitive-v1"
+    and result["artifact_policy"]["per_flow_scores_persisted"] is False
+    and result["artifact_policy"]["per_entity_scores_persisted"] is False
+    and all((root / name).is_file() for name in required)
+)
+raise SystemExit(0 if valid else 7)
+' "$OUTPUT_ROOT" "$RUN_ID"
+}
+
+worker() {
+    local resume_flag=${1:-} monitor_pid= code=0
+    exec 9> "$LAUNCHER_ROOT/worker.lock"
+    flock -n 9 || { printf '同名运行锁已占用。\n' >&2; return 75; }
+    trap '[[ -n ${monitor_pid:-} ]] && kill "$monitor_pid" 2>/dev/null || true; launcher_status interrupted signal received 130; exit 130' HUP INT TERM
+    validate_static_contract
+    validate_inputs
+    uv run --no-sync python -c 'import numpy, sklearn, swanlab, torch; assert torch.cuda.is_available() and torch.cuda.is_bf16_supported()' > "$LAUNCHER_ROOT/dependency-check.txt"
+    admit_resources
+    launcher_status running source-selection bf16_cells_started_target_reads_0 null
+    resource_monitor &
+    monitor_pid=$!
+    if run_logged "$OUTPUT_ROOT/run${resume_flag:+-resume}.log" uv run --no-sync python "$TOOL_PATH" \
+        --config "$CONFIG_PATH" --resource-receipt "$RESOURCE_RECEIPT" ${resume_flag:+--resume}; then
+        code=0
+    else
+        code=$?
+    fi
+    kill "$monitor_pid" 2>/dev/null || true
+    wait "$monitor_pid" 2>/dev/null || true
+    monitor_pid=
+    finalize_resources
+    (( code == 0 )) || return "$code"
+    launcher_status running publish aggregate_metrics_started null
+    publish_results
+    validate_outputs
+    launcher_status finished complete full_mlp_bf16_qualification_finished 0
+}
+
+worker_entry() {
+    local resume_flag=${1:-} controller_log="$LAUNCHER_ROOT/controller.log" code
+    [[ "$resume_flag" == --resume ]] && controller_log="$LAUNCHER_ROOT/controller-resume-$(date -u +%Y%m%dT%H%M%SZ).log"
+    set +e
+    worker "$resume_flag" 2>&1 | tee "$controller_log"
+    local pipeline_status=("${PIPESTATUS[@]}")
+    set -e
+    code=${pipeline_status[0]}
+    (( code != 0 || pipeline_status[1] == 0 )) || code=${pipeline_status[1]}
+    if (( code != 0 )); then
+        launcher_status failed controller worker_or_tee_failed "$code"
+        return "$code"
+    fi
+}
+
+if [[ ${1:-} == --worker ]]; then
+    worker_entry "${2:-}"
+    exit $?
+fi
+
+resume_flag=
+if [[ ${1:-} == --resume && $# -eq 1 ]]; then
+    resume_flag=--resume
+elif [[ $# -ne 0 ]]; then
+    printf '仅接受可选参数 --resume。\n' >&2
+    exit 64
+fi
+mkdir -p -- "$PROJECT_ROOT/runs/launchers/.locks"
+exec 8> "$PROJECT_ROOT/runs/launchers/.locks/$RUN_ID.lock"
+flock -n 8 || { printf '同一运行身份的启动器锁已占用。\n' >&2; exit 75; }
+for command in rg uv swanlab screen flock nvidia-smi sha256sum; do
+    command -v "$command" >/dev/null 2>&1 || { printf '缺少命令：%s\n' "$command" >&2; exit 69; }
+done
+for path in "$CONFIG_PATH" "$TOOL_PATH" "$SCRIPT_PATH" "$PRECISION_PATH" "$PARENT_SEAL" "$MEMORY_GATE_PATH"; do
+    [[ -s "$path" ]] || { printf '生产输入未完整同步：%s\n' "$path" >&2; exit 67; }
+done
+if screen -ls 2>/dev/null | rg -q "[.]${SCREEN_NAME}[[:space:]]" \
+    || pgrep -f 'python.*[c]h3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py' >/dev/null; then
+    printf '同名会话或进程已运行。\n' >&2
+    exit 75
+fi
+if [[ -e "$OUTPUT_ROOT" ]]; then
+    if [[ -s "$OUTPUT_ROOT/status.json" ]] && uv run --no-sync python -c '
+import json, pathlib, sys
+status = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+raise SystemExit(0 if status.get("state") == "complete" and status.get("exit_code") == 0 else 1)
+' "$OUTPUT_ROOT/status.json"; then
+        printf '同名运行已完成，不重复启动：%s\n' "$OUTPUT_ROOT"
+        exit 0
+    fi
+    resume_flag=--resume
+elif [[ "$resume_flag" == --resume ]]; then
+    printf '输出根不存在，不能恢复。\n' >&2
+    exit 73
+fi
+[[ ! -e "$LAUNCHER_ROOT" || "$resume_flag" == --resume ]] || { printf '启动器证据目录已存在。\n' >&2; exit 73; }
+mkdir -p -- "$LAUNCHER_ROOT" "$OUTPUT_ROOT"
+validate_static_contract
+validate_inputs
+printf '%s\n' "$SCREEN_NAME" > "$LAUNCHER_ROOT/screen-session.txt"
+printf '%s\n' "$SCRIPT_PATH ${resume_flag}" > "$LAUNCHER_ROOT/command.txt"
+sha256sum "$CONFIG_PATH" "$TOOL_PATH" "$SCRIPT_PATH" "$PRECISION_PATH" "$PARENT_SEAL" > "$LAUNCHER_ROOT/input-sha256.txt"
+launcher_status prepared launch static_contract_parent_seal_passed null
+screen -dmS "$SCREEN_NAME" bash "$SCRIPT_PATH" --worker "$resume_flag"
+printf 'CH3_FULL_MLP_BF16_QUALIFICATION_STARTED session=%s output=%s cells=4 resume=%s resource_gate=12288MiB_gpu_30GiB_ram_10GiB_disk\n' \
+    "$SCREEN_NAME" "$OUTPUT_ROOT" "${resume_flag:-false}"
