@@ -197,16 +197,7 @@ def fit_candidate_b(
         )
     temporary_root = run_root / "temporary" / "candidate-b"
     temporary_root.mkdir(parents=True, exist_ok=True)
-    noise_path = temporary_root / f"official-row-major-noise.f8.partial.{run_id}.npy"
     filled_path = temporary_root / f"filled-noisy-training.f4.partial.{run_id}.npy"
-    noise = _open_partial_npy(
-        noise_path,
-        dtype="<f8",
-        shape=(indices.size, len(QUANTILE_INDICES)),
-    )
-    random_generator = np.random.default_rng(int(parameters["random_state"]))
-    random_generator.standard_normal(size=noise.shape, dtype=np.float64, out=noise)
-    noise.flush()
     filled_noisy = _open_partial_npy(
         filled_path,
         dtype="<f4",
@@ -224,13 +215,44 @@ def fit_candidate_b(
     for local_index in range(len(QUANTILE_INDICES)):
         stds[local_index] = np.std(filled_noisy[:, local_index], ddof=0)
     noise_scale = noise_base / np.maximum(stds, noise_base)
+    random_generator = np.random.default_rng(int(parameters["random_state"]))
+    noise_receipts_root = run_root / "receipts" / "p4-noise-batches"
+    noise_receipts_root.mkdir(parents=True, exist_ok=True)
+    previous_stop = 0
+    noise_receipt_hashes: list[str] = []
+    filled_content_digest = hashlib.sha256()
     for start in range(0, indices.size, batch_rows):
         stop = min(start + batch_rows, indices.size)
+        if start != previous_stop:
+            raise ProtocolARaw83Error("P4 随机流批起点不连续")
+        noise_batch = random_generator.standard_normal(
+            size=(stop - start, len(QUANTILE_INDICES)),
+            dtype=np.float64,
+        )
         batch = np.array(filled_noisy[start:stop], dtype="<f4", copy=True)
-        batch += np.asarray(noise[start:stop]) * noise_scale
+        batch += noise_batch * noise_scale
         filled_noisy[start:stop] = batch
-    filled_noisy.flush()
-    noisy_training_sha256 = sha256_file(filled_path)
+        filled_noisy.flush()
+        content_sha256 = hashlib.sha256(batch.tobytes(order="C")).hexdigest()
+        filled_content_digest.update(batch.tobytes(order="C"))
+        receipt_path = noise_receipts_root / f"batch-{start:09d}-{stop:09d}.json"
+        receipt = {
+            "schema_version": f"{SCHEMA_VERSION}-p4-noise-batch-receipt-v1",
+            "start_row": start,
+            "end_row": stop,
+            "shape": [stop - start, len(QUANTILE_INDICES)],
+            "random_stream": parameters["random_stream"],
+            "numpy_version": numpy_version,
+            "filled_noisy_slice_sha256": content_sha256,
+        }
+        if receipt_path.exists() and load_json(receipt_path) != receipt:
+            raise ProtocolARaw83Error(f"P4 随机流批收据不匹配：{receipt_path}")
+        atomic_write_json(receipt_path, receipt)
+        noise_receipt_hashes.append(sha256_file(receipt_path))
+        previous_stop = stop
+    if previous_stop != indices.size:
+        raise ProtocolARaw83Error("P4 随机流未连续覆盖全部训练流")
+    noisy_training_sha256 = filled_content_digest.hexdigest()
     quantiles_path = temporary_root / f"quantiles.f8.partial.{run_id}.npy"
     references_path = temporary_root / f"references.f8.partial.{run_id}.npy"
     quantiles = _open_partial_npy(
@@ -323,15 +345,18 @@ def fit_candidate_b(
         "subsample": parameters["subsample"],
         "random_state": parameters["random_state"],
         "noise": parameters["noise"],
-        "random_stream": "single-default_rng-42-standard_normal-C-row-major-float64-out-v1",
+        "random_stream": parameters["random_stream"],
+        "random_stream_batch_continuity": "contiguous-[start,end)-cover-training-valid-order-v1",
+        "random_stream_batch_rows": int(batch_rows),
+        "random_stream_batch_count": len(noise_receipt_hashes),
         "training_valid_flow_count": int(indices.size),
         "training_valid_flow_bitmap_sha256": sha256_file(
             output_root / "split" / "training-valid-flow-bitmap.npy"
         ),
         "numpy_version": numpy_version,
         "sklearn_version": sklearn_version,
-        "noise_temporary_sha256": sha256_file(noise_path),
-        "noisy_training_temporary_sha256": noisy_training_sha256,
+        "filled_noisy_content_sha256": noisy_training_sha256,
+        "noise_batch_receipts_sha256": canonical_sha256(noise_receipt_hashes),
         "state_content_sha256": _state_content_hash(state_path),
     }
     identity = {
@@ -340,6 +365,11 @@ def fit_candidate_b(
         "state_artifact": _artifact(state_path),
     }
     atomic_write_json(run_root / "receipts" / "p4-candidate-b-state.json", identity)
+    for temporary_path in (filled_path, quantiles_path, references_path):
+        if temporary_path.exists():
+            temporary_path.unlink()
+    if temporary_root.exists() and not any(temporary_root.iterdir()):
+        temporary_root.rmdir()
     return identity
 
 

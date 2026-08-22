@@ -159,7 +159,7 @@ def validate_static_contract(config: Mapping[str, Any]) -> dict[str, Any]:
         "imputation": "training-valid-flow-mean",
         "noise": 0.001,
         "random_state": 42,
-        "random_stream": "single-default_rng-42-standard_normal-C-row-major-float64-out-v1",
+        "random_stream": "chunked-row-major-default_rng-bitwise-equivalent-v1",
         "output_distribution": "normal",
         "subsample": 1_000_000_000,
         "n_quantiles_formula": "max(min(n_train//30,1000),10)",
@@ -252,17 +252,29 @@ def runtime_resource_plan(config: Mapping[str, Any]) -> dict[str, Any]:
         partial_path = final_path.with_name(f"{final_path.name}.partial.{config['run_id']}")
         if not final_path.exists() and not partial_path.exists():
             final_bytes += expected_bytes
-    noise_bytes = SOURCE_ROW_COUNT * 76 * 8
     noisy_bytes = SOURCE_ROW_COUNT * 76 * 4
     temporary_root = Path(config["paths"]["output_root"]) / "temporary" / "candidate-b"
-    noise_path = temporary_root / f"official-row-major-noise.f8.partial.{config['run_id']}.npy"
     noisy_path = temporary_root / f"filled-noisy-training.f4.partial.{config['run_id']}.npy"
-    quantile_temporary_bytes = (0 if noise_path.exists() else noise_bytes) + (
-        0 if noisy_path.exists() else noisy_bytes
+    quantile_temporary_bytes = 0 if noisy_path.exists() else noisy_bytes
+    source_auxiliary_upper_bound_bytes = (
+        271_815 * 128 * (8 + 4)
+        + 271_815 * 16
+        + 208_598 * 8
+        + 22_444 * 8
+        + 15_068 * 8
+        + 150_680 * 8
+        + SOURCE_ROW_COUNT * 2
+        + 16 * 1024**2
     )
     largest_atomic_bytes = feature_bytes
     low_water_bytes = int(resources["minimum_free_disk_gib"]) * 1024**3
-    required_free_bytes = final_bytes + quantile_temporary_bytes + largest_atomic_bytes + low_water_bytes
+    required_free_bytes = (
+        final_bytes
+        + source_auxiliary_upper_bound_bytes
+        + quantile_temporary_bytes
+        + largest_atomic_bytes
+        + low_water_bytes
+    )
     return {
         "schema_version": f"{SCHEMA_VERSION}-runtime-resource-plan-v1",
         "cgroup_limit_bytes": maximum,
@@ -275,6 +287,7 @@ def runtime_resource_plan(config: Mapping[str, Any]) -> dict[str, Any]:
         "arrow_block_size": arrow_block_size,
         "missing_final_artifact_upper_bound_bytes": final_bytes,
         "maximum_quantile_temporary_bytes": quantile_temporary_bytes,
+        "source_auxiliary_upper_bound_bytes": source_auxiliary_upper_bound_bytes,
         "largest_atomic_publish_bytes": largest_atomic_bytes,
         "disk_low_water_bytes": low_water_bytes,
         "required_free_bytes": required_free_bytes,
@@ -732,7 +745,6 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
         repair_source_completion_metadata(config)
         temporary_root = output_root / "temporary" / "candidate-b"
         for name in (
-            f"official-row-major-noise.f8.partial.{config['run_id']}.npy",
             f"filled-noisy-training.f4.partial.{config['run_id']}.npy",
             f"quantiles.f8.partial.{config['run_id']}.npy",
             f"references.f8.partial.{config['run_id']}.npy",
@@ -819,7 +831,6 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
                 validation = validate_published_product(config)
                 temporary_root = run_root / "temporary" / "candidate-b"
                 for name in (
-                    f"official-row-major-noise.f8.partial.{config['run_id']}.npy",
                     f"filled-noisy-training.f4.partial.{config['run_id']}.npy",
                     f"quantiles.f8.partial.{config['run_id']}.npy",
                     f"references.f8.partial.{config['run_id']}.npy",
@@ -850,7 +861,6 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
             )
             temporary_root = run_root / "temporary" / "candidate-b"
             cleanup_paths = [
-                temporary_root / f"official-row-major-noise.f8.partial.{config['run_id']}.npy",
                 temporary_root / f"filled-noisy-training.f4.partial.{config['run_id']}.npy",
                 temporary_root / f"quantiles.f8.partial.{config['run_id']}.npy",
                 temporary_root / f"references.f8.partial.{config['run_id']}.npy",

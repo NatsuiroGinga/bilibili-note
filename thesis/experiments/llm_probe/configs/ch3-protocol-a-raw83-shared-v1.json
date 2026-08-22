@@ -154,7 +154,7 @@
       "imputation": "training-valid-flow-mean",
       "noise": 0.001,
       "random_state": 42,
-      "random_stream": "single-default_rng-42-standard_normal-C-row-major-float64-out-v1",
+      "random_stream": "chunked-row-major-default_rng-bitwise-equivalent-v1",
       "output_distribution": "normal",
       "subsample": 1000000000,
       "n_quantiles_formula": "max(min(n_train//30,1000),10)",
