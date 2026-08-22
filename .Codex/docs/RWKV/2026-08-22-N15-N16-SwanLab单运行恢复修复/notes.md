@@ -40,7 +40,7 @@
 
 | 任务 | 工具 SHA-256 | 配置 SHA-256 | 启动器 SHA-256 |
 | --- | --- | --- | --- |
-| N-15 | `1f1f4439eaefd6f0b35b89b924beaa15b59c92281bf0ab2232ad03dd49dba00c` | `094b1ced3d61ef1c10b5e62a32b1ded68f45c99b3cca3d32e086ae89f3091008` | `f5b16cc6987563fb10fa794f2d819daecc13d95c31e64c057af03589821f780e` |
+| N-15 | `dd6d776f2fc10106a81a707e39d5064c3821e81e896a171fbec2cc93d68c64cc` | `094b1ced3d61ef1c10b5e62a32b1ded68f45c99b3cca3d32e086ae89f3091008` | `f5b16cc6987563fb10fa794f2d819daecc13d95c31e64c057af03589821f780e` |
 | N-16 | `026888b8b4a86f634469d4733a2ae1fcb5cf2df142dac0bd59d2421ee61f805f` | `4d852f3ab2731bc10777c884a0faa6c050055adae3ee2058bbd8bd673b3a2c03` | `70e6808e544eaab3e6e86502892f7c32016a97dfec90f12be4937b8a3688827f` |
 
 ## 集中静态验收
@@ -53,3 +53,10 @@
 - 两个启动器各一次 `bash -n`：通过。
 - 限定十一份文件的 `git diff --check`：通过，最终输出 `N15_N16_STATIC_ACCEPTANCE_VALID`。
 - 环境激活脚本在当前 `zsh` 且启用未定义变量检查时打印 `BASH_SOURCE[0]: parameter not set`；后续项目 `uv` 命令均实际执行并退出 `0`，未将该非生产提示误判为代码失败，也未为形式重复验收。
+
+## N-15 独立复核订正
+
+- 独立复核确认首次修复仍有一个确定性阻断：中央初始化只写 `attempt_root/swanlab-tag-receipt.json`，但嵌套 `swanlab_receipt` 在成功收据落盘前错误哈希顶层 `output_root/swanlab-tag-receipt.json`。
+- 顶层标签收据要到 `success-receipt.json` 完整写入并通过 `recover_completed_swanlab_publish()` 后才复制，因此首次正常运行会在云端 `finish()` 成功后触发 `FileNotFoundError`，留下无成功收据的未知在途状态。
+- 单变量修复在 `finish()` 后计算一次尝试目录标签摘要，嵌套 `swanlab_receipt.tag_receipt_sha256` 与外层 `success-receipt.json#/tag_receipt_sha256` 共同引用该值。N-16 未修改。
+- 本次订正提交仍以一次 N-15 `py_compile`、导入、`--help`、配置门、启动器 `bash -n` 与限定差异检查为提交门禁；禁止测试、服务器和真实发布。

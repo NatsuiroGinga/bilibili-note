@@ -2353,6 +2353,7 @@ def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_ro
     inflight = load_json(attempt_root / "inflight-receipt.json")
     inflight["stage"] = "finished"
     atomic_json(attempt_root / "inflight-receipt.json", inflight)
+    attempt_tag_receipt_sha256 = sha256_file(attempt_root / "swanlab-tag-receipt.json")
     swanlab_receipt = {
             "schema_version": "ch3-full-mlp-s0-swanlab-v1",
             "run_id": RUN_ID,
@@ -2363,7 +2364,7 @@ def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_ro
             "requested_tags": tracking["tags"],
             "effective_tags": tag_receipt["effective_tags"],
             "tag_contract_sha256": tag_receipt["contract_sha256"],
-            "tag_receipt_sha256": sha256_file(output_root / "swanlab-tag-receipt.json"),
+            "tag_receipt_sha256": attempt_tag_receipt_sha256,
             "alias_config_sha256": tag_receipt["alias_config_sha256"],
             "central_api_commit": tracking["central_api_commit"],
             "mode": tracking["mode"],
@@ -2384,7 +2385,7 @@ def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_ro
             "cloud_run_id": str(run.id),
             "completed": True,
             "health_receipt_sha256": sha256_file(expected_health_path),
-            "tag_receipt_sha256": sha256_file(attempt_root / "swanlab-tag-receipt.json"),
+            "tag_receipt_sha256": attempt_tag_receipt_sha256,
             "production_identity": production_identity_receipts(config, args),
             "swanlab_receipt": swanlab_receipt,
         },
