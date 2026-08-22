@@ -43,8 +43,30 @@
 ## 当前裁决
 
 - `DESIGN=READY`：共享接口、变换、资源、恢复和验证门已在 `实施方案.md` 冻结。
-- `IMPLEMENTATION=NOT_STARTED`：本任务不修改生产代码。
+- `IMPLEMENTATION=IN_PROGRESS`：2026-08-22 已交给唯一实现所有者，只新增冻结的共享生产模块、配置、启动器、官方快照与实施报告。
 - `EXPERIMENT=NOT_RUN`：没有真实物化或模型效果证据。
+
+## 实现阶段
+
+| 优先级 | 步骤 | 状态 |
+| --- | --- | --- |
+| P0 | 核验依赖版本、第三方签名、现有切分与启动器惯例 | 进行中 |
+| P0 | 实现 Raw83 模式、清单、源年流式解析、切分绑定和消费者权限 | 未开始 |
+| P0 | 实现 A/B 训练区状态、共享视图和原子恢复 | 未开始 |
+| P1 | 实现 P0–P5 默认源年入口、资源门、配置与启动器 | 未开始 |
+| P1 | 归档官方快照与实施报告，执行冻结静态验收 | 未开始 |
+
+## 实现文件所有权
+
+- 生产代码：`src/flow_probe/protocol_a_raw83.py`、`src/flow_probe/protocol_a_preprocessing.py`。
+- 入口与合同：`tools/ch3_protocol_a_raw83_prepare.py`、`configs/ch3-protocol-a-raw83-shared-v1.json`、`scripts/remote_launchers/run_ch3_protocol_a_raw83_prepare_v1.sh`。
+- 官方快照：`vendor/rtdl_revisiting_models/LICENSE`、`vendor/rtdl_revisiting_models/lib/data.py`、`vendor/rtdl_revisiting_models/manifest.json`。
+- 交付记录：`.Codex/docs/RWKV/2026-08-22-协议A-Raw83共享预处理实现报告.md`。
+- 不修改、不暂存、不回滚上述范围外的工作树改动。
+
+## 实现阶段错误记录
+
+- 本机 `uv run --no-sync` 导入 NumPy 失败：当前工作树未安装锁文件依赖。处置为按 `uv.lock` 与官方文档实现，本轮只做语法、导入入口和静态合同验收；服务器真实物化前仍须机械核对实际版本。
 
 ## 验证记录
 
