@@ -11,6 +11,12 @@
   },
   "source_product": {
     "dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/generations/source-v1/dataset-manifest.json",
+    "source_manifest_file_sha256": null,
+    "source_input_arm_receipt_path": null,
+    "source_input_arm_receipt_sha256": null,
+    "source_input_arm_sha256": null,
+    "winning_transform_state_sha256": null,
+    "winning_view_content_sha256": null,
     "qualification_seal": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/seals/source-qualification-seal.json",
     "qualification_seal_sha256": null
   },

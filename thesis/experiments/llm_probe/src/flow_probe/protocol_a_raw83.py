@@ -277,12 +277,34 @@ def validate_target_config(config: Mapping[str, Any]) -> None:
         raise ProtocolARaw83Error("年度 M 数组 SHA-256 不匹配")
     status = config["qualification_status"]
     winner = config["winning_arm"]
-    seal_sha = config["source_product"]["qualification_seal_sha256"]
+    source_product = config["source_product"]
+    qualification_keys = (
+        "source_manifest_file_sha256",
+        "source_input_arm_receipt_path",
+        "source_input_arm_receipt_sha256",
+        "source_input_arm_sha256",
+        "winning_transform_state_sha256",
+        "winning_view_content_sha256",
+        "qualification_seal_sha256",
+    )
+    if any(key not in source_product for key in qualification_keys):
+        raise ProtocolARaw83Error("年度配置缺少源资格绑定键")
     if status == "blocked-until-source-arm-seal":
-        if winner is not None or seal_sha is not None:
-            raise ProtocolARaw83Error("阻断态不得预设胜出臂或封印 SHA")
+        if winner is not None or any(source_product[key] is not None for key in qualification_keys):
+            raise ProtocolARaw83Error("阻断态不得预设任何源资格值")
     elif status == "qualified-source-arm-sealed":
-        if winner not in {"A", "B"} or not isinstance(seal_sha, str) or len(seal_sha) != 64:
+        hash_keys = tuple(key for key in qualification_keys if key.endswith("sha256"))
+        valid_hashes = all(
+            isinstance(source_product[key], str)
+            and len(source_product[key]) == 64
+            and all(character in "0123456789abcdef" for character in source_product[key])
+            for key in hash_keys
+        )
+        if (
+            winner not in {"A", "B"}
+            or not valid_hashes
+            or not isinstance(source_product["source_input_arm_receipt_path"], str)
+        ):
             raise ProtocolARaw83Error("可运行状态必须冻结胜出臂和封印 SHA")
     else:
         raise ProtocolARaw83Error("未知年度资格状态")
@@ -576,14 +598,46 @@ def materialize_source_raw83(
     receipts_root.mkdir(parents=True, exist_ok=True)
     final_set = (raw_final, entity_final, time_final)
     partial_set = (raw_partial, entity_partial, time_partial)
-    if all(path.exists() for path in final_set) and not any(path.exists() for path in partial_set):
-        work_paths = final_set
-        publish_partials = False
-    elif any(receipts_root.iterdir()) and not all(path.exists() for path in partial_set):
-        raise ProtocolARaw83Error("P1 批收据存在，但部分文件不完整")
-    else:
-        work_paths = partial_set
-        publish_partials = True
+    component_keys = ("raw_slice_sha256", "entity_slice_sha256", "time_slice_sha256")
+
+    def candidate_matches(path: Path, key: str) -> bool:
+        receipt_paths = sorted(receipts_root.glob("batch-*.json"))
+        if not path.exists() or not receipt_paths:
+            return False
+        candidate = np.load(path, mmap_mode="r", allow_pickle=False)
+        for receipt_path in receipt_paths:
+            receipt = load_json(receipt_path)
+            if key not in receipt:
+                return False
+            start = int(receipt["start_row"])
+            stop = int(receipt["end_row"])
+            observed = hashlib.sha256(
+                np.asarray(candidate[start:stop]).tobytes(order="C")
+            ).hexdigest()
+            if observed != receipt[key]:
+                return False
+        return True
+
+    selected_paths: list[Path] = []
+    rebuild_components: list[bool] = []
+    stale_partials: list[Path] = []
+    receipts_present = any(receipts_root.glob("batch-*.json"))
+    for final, partial, key in zip(final_set, partial_set, component_keys):
+        if receipts_present and candidate_matches(partial, key):
+            selected_paths.append(partial)
+            rebuild_components.append(False)
+        elif receipts_present and candidate_matches(final, key):
+            selected_paths.append(final)
+            rebuild_components.append(False)
+            if partial.exists():
+                stale_partials.append(partial)
+        elif receipts_present:
+            selected_paths.append(partial)
+            rebuild_components.append(True)
+        else:
+            selected_paths.append(partial if partial.exists() else final if final.exists() else partial)
+            rebuild_components.append(False)
+    work_paths = tuple(selected_paths)
     raw = _open_partial_npy(work_paths[0], dtype="<f4", shape=(expected_rows, len(DIJK_FEATURES)))
     entities = _open_partial_npy(work_paths[1], dtype="<u4", shape=(expected_rows,))
     times = _open_partial_npy(work_paths[2], dtype="<i8", shape=(expected_rows,))
@@ -633,6 +687,15 @@ def materialize_source_raw83(
         receipt_path = receipts_root / f"batch-{batch.batch_index:06d}.json"
         if receipt_path.exists():
             receipt = load_json(receipt_path)
+            if rebuild_components[0]:
+                raw[batch.start_row : batch.end_row] = batch.raw83
+                raw.flush()
+            if rebuild_components[1]:
+                entities[batch.start_row : batch.end_row] = ids
+                entities.flush()
+            if rebuild_components[2]:
+                times[batch.start_row : batch.end_row] = batch.start_time_ns
+                times.flush()
             written_digest = hashlib.sha256()
             written_digest.update(
                 np.asarray(raw[batch.start_row : batch.end_row], dtype="<f4").tobytes(order="C")
@@ -654,6 +717,13 @@ def materialize_source_raw83(
                 "cumulative_raw_content_sha256": raw_digest.hexdigest(),
                 "cumulative_label_content_sha256": label_digest.hexdigest(),
                 "written_slice_sha256": written_digest.hexdigest(),
+                "raw_slice_sha256": hashlib.sha256(
+                    batch.raw83.tobytes(order="C")
+                ).hexdigest(),
+                "entity_slice_sha256": hashlib.sha256(ids.tobytes(order="C")).hexdigest(),
+                "time_slice_sha256": hashlib.sha256(
+                    np.asarray(batch.start_time_ns, dtype="<i8").tobytes(order="C")
+                ).hexdigest(),
             }
             for key, value in expected.items():
                 if receipt.get(key) != value:
@@ -678,6 +748,13 @@ def materialize_source_raw83(
                     "cumulative_raw_content_sha256": raw_digest.hexdigest(),
                     "cumulative_label_content_sha256": label_digest.hexdigest(),
                     "written_slice_sha256": batch_sha,
+                    "raw_slice_sha256": hashlib.sha256(
+                        batch.raw83.tobytes(order="C")
+                    ).hexdigest(),
+                    "entity_slice_sha256": hashlib.sha256(ids.tobytes(order="C")).hexdigest(),
+                    "time_slice_sha256": hashlib.sha256(
+                        np.asarray(batch.start_time_ns, dtype="<i8").tobytes(order="C")
+                    ).hexdigest(),
                 },
             )
         observed_rows = batch.end_row
@@ -701,10 +778,12 @@ def materialize_source_raw83(
     if empty_fields:
         raise ProtocolARaw83Error(f"训练年出现无任何有限值的字段：{empty_fields}")
     del raw, entities, times
-    if publish_partials:
-        os.replace(raw_partial, raw_final)
-        os.replace(entity_partial, entity_final)
-        os.replace(time_partial, time_final)
+    for work_path, partial, final in zip(work_paths, partial_set, final_set):
+        if work_path == partial:
+            os.replace(partial, final)
+    for stale_partial in stale_partials:
+        if stale_partial.exists():
+            stale_partial.unlink()
     entity_summary_path = output_root / "sidecars" / "lspr23-entity-summaries.json"
     atomic_write_json(
         entity_summary_path,
@@ -1077,8 +1156,8 @@ def validate_source_qualification_seal(
     return seal
 
 
-def open_lspr24_parquet_after_seal(
-    parquet_path: Path,
+def _open_qualified_year_parquet(
+    config: Mapping[str, Any],
     *,
     source_qualification_seal: Path,
     expected_input_arm_sha256: str,
@@ -1091,7 +1170,7 @@ def open_lspr24_parquet_after_seal(
     )
     import pyarrow.parquet as pq
 
-    return pq.ParquetFile(parquet_path)
+    return pq.ParquetFile(Path(config["year_product"]["parquet_path"]))
 
 
 def _arrow_schema_identity(schema: Any) -> dict[str, Any]:
@@ -1120,6 +1199,21 @@ def materialize_qualified_year_product(
     if sha256_file(seal_path) != source_product["qualification_seal_sha256"]:
         raise ProtocolARaw83Error("源资格封印文件 SHA-256 不匹配")
     source_manifest_path = Path(source_product["dataset_manifest"])
+    if sha256_file(source_manifest_path) != source_product["source_manifest_file_sha256"]:
+        raise ProtocolARaw83Error("源数据清单文件 SHA-256 不匹配")
+    arm_receipt_path = Path(source_product["source_input_arm_receipt_path"])
+    if sha256_file(arm_receipt_path) != source_product["source_input_arm_receipt_sha256"]:
+        raise ProtocolARaw83Error("源输入臂收据文件 SHA-256 不匹配")
+    arm_receipt = load_json(arm_receipt_path)
+    expected_receipt_values = {
+        "winning_arm": winner,
+        "source_input_arm_sha256": source_product["source_input_arm_sha256"],
+        "transform_state_sha256": source_product["winning_transform_state_sha256"],
+        "view_content_sha256": source_product["winning_view_content_sha256"],
+    }
+    for key, value in expected_receipt_values.items():
+        if arm_receipt.get(key) != value:
+            raise ProtocolARaw83Error(f"源输入臂收据与年度配置不匹配：{key}")
     source_dataset = ProtocolADataset(
         source_manifest_path,
         year=SOURCE_YEAR,
@@ -1127,22 +1221,29 @@ def materialize_qualified_year_product(
         arm=None,
         source_qualification_seal=None,
     )
-    seal_preview = load_json(seal_path)
-    source_arm_sha = seal_preview.get("source_input_arm_sha256")
+    source_arm_sha = source_product["source_input_arm_sha256"]
     seal = validate_source_qualification_seal(
         seal_path,
         expected_input_arm_sha256=source_arm_sha,
     )
     if seal.get("winning_arm") != winner:
         raise ProtocolARaw83Error("目标配置胜出臂与源资格封印不匹配")
+    if source_dataset.manifest["transform_state_hashes"][winner] != source_product[
+        "winning_transform_state_sha256"
+    ]:
+        raise ProtocolARaw83Error("源清单的胜出变换状态 SHA-256 不匹配")
+    if source_dataset.manifest["view_content_sha256"][winner] != source_product[
+        "winning_view_content_sha256"
+    ]:
+        raise ProtocolARaw83Error("源清单的胜出视图内容 SHA-256 不匹配")
     product = config["year_product"]
     parquet_path = Path(product["parquet_path"])
     if parquet_path.stat().st_size != product["expected_bytes"]:
         raise ProtocolARaw83Error("年度 Parquet 字节数不匹配")
     if sha256_file(parquet_path) != product["expected_sha256"]:
         raise ProtocolARaw83Error("年度 Parquet SHA-256 不匹配")
-    parquet_file = open_lspr24_parquet_after_seal(
-        parquet_path,
+    parquet_file = _open_qualified_year_parquet(
+        config,
         source_qualification_seal=seal_path,
         expected_input_arm_sha256=source_arm_sha,
     )
@@ -1185,6 +1286,8 @@ def materialize_qualified_year_product(
     entity_ids: dict[bytes, int] = {}
     entity_summaries: list[str] = []
     label_digest = hashlib.sha256()
+    raw_content_digest = hashlib.sha256()
+    winning_view_content_digest = hashlib.sha256()
     label_counts = np.zeros(2, dtype=np.int64)
     receipts_root = run_root / "receipts" / "p6-batches"
     receipts_root.mkdir(parents=True, exist_ok=True)
@@ -1227,6 +1330,8 @@ def materialize_qualified_year_product(
             for payload in (raw_batch, ids, time_values, winning_batch):
                 content_digest.update(np.asarray(payload).tobytes(order="C"))
             content_sha = content_digest.hexdigest()
+            raw_content_digest.update(raw_batch.tobytes(order="C"))
+            winning_view_content_digest.update(winning_batch.tobytes(order="C"))
             receipt_path = receipts_root / f"batch-{batch_index:06d}.json"
             if receipt_path.exists():
                 receipt = load_json(receipt_path)
@@ -1354,10 +1459,14 @@ def materialize_qualified_year_product(
         "source_manifest_sha256": sha256_file(source_manifest_path),
         "source_qualification_seal_sha256": sha256_file(seal_path),
         "source_input_arm_sha256": source_arm_sha,
+        "source_transform_state_sha256": source_product["winning_transform_state_sha256"],
+        "source_view_content_sha256": source_product["winning_view_content_sha256"],
         "parquet_sha256": product["expected_sha256"],
         "parquet_path": str(parquet_path.resolve(strict=True)),
         "parquet_schema_sha256": product["expected_schema_sha256"],
         "row_count": row_count,
+        "raw_content_sha256": raw_content_digest.hexdigest(),
+        "winning_view_content_sha256": winning_view_content_digest.hexdigest(),
         "label_content_sha256": label_digest.hexdigest(),
         "label_aggregate": {"negative": int(label_counts[0]), "positive": int(label_counts[1])},
         "persisted_label_rows": 0,
@@ -1599,6 +1708,18 @@ class ProtocolADataset:
                 None if self.arm is None else self.manifest["transform_state_hashes"][self.arm]
             ),
         }
+
+    def training_weight_aggregate(self) -> dict[str, Any]:
+        if self.purpose != "train":
+            raise ProtocolARaw83Error("只有 train 消费者可读训练权重聚合")
+        aggregate = self.manifest.get("training_weight_aggregate")
+        if not isinstance(aggregate, dict):
+            raise ProtocolARaw83Error("源清单缺少 P2 训练权重聚合")
+        if aggregate.get("label_content_sha256") != self.manifest["source"][
+            "label_content_sha256"
+        ]:
+            raise ProtocolARaw83Error("训练权重聚合标签 SHA-256 不匹配")
+        return dict(aggregate)
 
 
 class StreamingLabelResolver:
@@ -1897,6 +2018,7 @@ def publish_dataset_manifest(
         },
         "raw_content_sha256": p1_receipt["raw_content_sha256"],
         "sequence_split_state_hash": p2_receipt["sequence_split_state_hash"],
+        "training_weight_aggregate": p2_receipt["weight_aggregate"],
         "transform_state_hashes": preprocessing_receipt["transform_state_hashes"],
         "view_content_sha256": preprocessing_receipt["view_content_sha256"],
         "source_input_arm_sha256": None,

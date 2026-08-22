@@ -419,19 +419,49 @@ def materialize_source_views(
     b_final = output_root / "views" / "lspr23-candidate-b-quantile.npy"
     a_partial = a_final.with_name(f"{a_final.name}.partial.{run_id}")
     b_partial = b_final.with_name(f"{b_final.name}.partial.{run_id}")
+    final_paths = (a_final, b_final)
+    partial_paths = (a_partial, b_partial)
     receipt_roots = (
         run_root / "receipts" / "p5-view-a-batches",
         run_root / "receipts" / "p5-view-b-batches",
     )
-    receipts_exist = any(root.exists() and any(root.iterdir()) for root in receipt_roots)
-    if a_final.exists() and b_final.exists() and not a_partial.exists() and not b_partial.exists():
-        work_a, work_b = a_final, b_final
-        publish_partials = False
-    elif receipts_exist and not (a_partial.exists() and b_partial.exists()):
-        raise ProtocolARaw83Error("P5 批收据存在，但视图部分文件不完整")
-    else:
-        work_a, work_b = a_partial, b_partial
-        publish_partials = True
+
+    def candidate_matches(path: Path, receipt_root: Path) -> bool:
+        receipt_paths = sorted(receipt_root.glob("batch-*.json"))
+        if not path.exists() or not receipt_paths:
+            return False
+        candidate = np.load(path, mmap_mode="r", allow_pickle=False)
+        for receipt_path in receipt_paths:
+            receipt = load_json(receipt_path)
+            start = int(receipt["start_row"])
+            stop = int(receipt["end_row"])
+            observed = hashlib.sha256(
+                np.asarray(candidate[start:stop], dtype="<f4").tobytes(order="C")
+            ).hexdigest()
+            if observed != receipt.get("content_sha256"):
+                return False
+        return True
+
+    selected_paths: list[Path] = []
+    rebuild_components: list[bool] = []
+    stale_partials: list[Path] = []
+    for final, partial, receipt_root in zip(final_paths, partial_paths, receipt_roots):
+        receipts_present = any(receipt_root.glob("batch-*.json"))
+        if receipts_present and candidate_matches(partial, receipt_root):
+            selected_paths.append(partial)
+            rebuild_components.append(False)
+        elif receipts_present and candidate_matches(final, receipt_root):
+            selected_paths.append(final)
+            rebuild_components.append(False)
+            if partial.exists():
+                stale_partials.append(partial)
+        elif receipts_present:
+            selected_paths.append(partial)
+            rebuild_components.append(True)
+        else:
+            selected_paths.append(partial if partial.exists() else final if final.exists() else partial)
+            rebuild_components.append(False)
+    work_a, work_b = selected_paths
     view_a = _open_partial_npy(work_a, dtype="<f4", shape=raw.shape)
     view_b = _open_partial_npy(work_b, dtype="<f4", shape=raw.shape)
     clip = tuple(float(value) for value in config["preprocessing"]["candidate_a"]["clip"])
@@ -449,6 +479,10 @@ def materialize_source_views(
             receipt_path = _view_batch_receipt_path(run_root, arm, batch_index)
             if receipt_path.exists():
                 receipt = load_json(receipt_path)
+                arm_index = 0 if arm == "A" else 1
+                if rebuild_components[arm_index]:
+                    destination[start:stop] = batch
+                    destination.flush()
                 written_sha = hashlib.sha256(
                     np.asarray(destination[start:stop], dtype="<f4").tobytes(order="C")
                 ).hexdigest()
@@ -478,9 +512,12 @@ def materialize_source_views(
         digest_b.update(batch_b.tobytes(order="C"))
         batch_index += 1
     del view_a, view_b
-    if publish_partials:
-        os.replace(a_partial, a_final)
-        os.replace(b_partial, b_final)
+    for work_path, partial, final in zip((work_a, work_b), partial_paths, final_paths):
+        if work_path == partial:
+            os.replace(partial, final)
+    for stale_partial in stale_partials:
+        if stale_partial.exists():
+            stale_partial.unlink()
     a_receipt = load_json(run_root / "receipts" / "p3-candidate-a-state.json")
     b_receipt = load_json(run_root / "receipts" / "p4-candidate-b-state.json")
     receipt = {

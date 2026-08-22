@@ -148,6 +148,7 @@ import json, pathlib, sys
 value = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 raise SystemExit(0 if value.get("state") == "finished" and value.get("sealed_through_stage") == "P6" else 1)
 ' "$OUTPUT_ROOT/status.json"; then
+    uv run --no-sync python "$TOOL_PATH" --config "$CONFIG_PATH" --through-stage P6 >/dev/null
     uv run --no-sync python "$TOOL_PATH" --config "$CONFIG_PATH" --validate-product >/dev/null
     printf '同名 P6 产品已完成，不重复启动。\n'
     exit 0

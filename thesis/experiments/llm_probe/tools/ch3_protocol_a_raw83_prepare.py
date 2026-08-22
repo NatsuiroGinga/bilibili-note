@@ -296,11 +296,25 @@ def _stage_identity(
         "stage": stage,
         "logical_config_sha256": canonical_sha256(_logical_config_identity(config)),
         "code_sha256": {str(path.relative_to(PROJECT_ROOT)): sha256_file(path) for path in code_paths},
-        "upstream_receipt_sha256": {
-            str(path.relative_to(Path(config["paths"]["output_root"]))): sha256_file(path)
+        "upstream_receipt_semantic_sha256": {
+            path.name: canonical_sha256(_without_paths(load_json(path)))
             for path in upstream_receipts
         },
     }
+
+
+def _without_paths(value: Any, parent_key: str = "") -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _without_paths(item, key)
+            for key, item in value.items()
+            if key != "path" and not key.endswith("_path")
+        }
+    if isinstance(value, list):
+        return [_without_paths(item, parent_key) for item in value]
+    if isinstance(value, str) and value.startswith("/"):
+        return "<absolute-path-removed>"
+    return value
 
 
 def _logical_config_identity(config: Mapping[str, Any]) -> dict[str, Any]:
@@ -330,6 +344,20 @@ def _logical_config_identity(config: Mapping[str, Any]) -> dict[str, Any]:
                 for item in config["vendor"]["files"]
             ],
         },
+        "path_roles": sorted(config["paths"]),
+    }
+
+
+def _logical_year_config_identity(config: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": config["schema_version"],
+        "run_id": config["run_id"],
+        "qualification_status": config["qualification_status"],
+        "winning_arm": config["winning_arm"],
+        "dependencies": config["dependencies"],
+        "source_product": _without_paths(config["source_product"]),
+        "year_product": _without_paths(config["year_product"]),
+        "resources": config["resources"],
         "path_roles": sorted(config["paths"]),
     }
 
@@ -469,7 +497,9 @@ def _dependency_receipt() -> dict[str, Any]:
     return result
 
 
-def validate_published_product(config: Mapping[str, Any]) -> dict[str, Any]:
+def validate_published_product(
+    config: Mapping[str, Any], *, require_completion_metadata: bool = True
+) -> dict[str, Any]:
     manifest_path = Path(config["paths"]["dataset_manifest"])
     if not manifest_path.is_file() or manifest_path.is_symlink():
         raise ProtocolARaw83Error("已发布清单缺失或为符号链接")
@@ -503,6 +533,33 @@ def validate_published_product(config: Mapping[str, Any]) -> dict[str, Any]:
     }
     if observed_files != expected_files:
         raise ProtocolARaw83Error("已发布世代不等于清单严格制品集")
+    if require_completion_metadata:
+        pointer_path = output_root / "current-source.json"
+        pointer = load_json(pointer_path)
+        unsigned_pointer = {
+            key: value for key, value in pointer.items() if key != "pointer_content_sha256"
+        }
+        if (
+            pointer.get("pointer_content_sha256") != canonical_sha256(unsigned_pointer)
+            or pointer.get("manifest_path") != str(manifest_path.resolve(strict=True))
+            or pointer.get("manifest_sha256") != sha256_file(manifest_path)
+        ):
+            raise ProtocolARaw83Error("源产品当前指针无效")
+        p5_receipt_path = output_root / "receipts" / "p5-stage-result.json"
+        p5_state_path = output_root / "states" / "pipeline" / "p5.json"
+        status_path = output_root / "status.json"
+        p5_receipt = load_json(p5_receipt_path)
+        p5_state = load_json(p5_state_path)
+        status = load_json(status_path)
+        if p5_receipt.get("dataset_manifest_sha256") != sha256_file(manifest_path):
+            raise ProtocolARaw83Error("P5 阶段收据未绑定当前清单")
+        if (
+            p5_state.get("state") != "sealed"
+            or p5_state.get("receipt_sha256") != sha256_file(p5_receipt_path)
+            or status.get("state") != "finished"
+            or status.get("sealed_through_stage") != "P5"
+        ):
+            raise ProtocolARaw83Error("源产品完成元数据不齐全")
     return {
         "schema_version": f"{SCHEMA_VERSION}-published-product-validation-v1",
         "manifest_file_sha256": sha256_file(manifest_path),
@@ -511,12 +568,168 @@ def validate_published_product(config: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def repair_source_completion_metadata(config: Mapping[str, Any]) -> None:
+    validation = validate_published_product(config, require_completion_metadata=False)
+    output_root = Path(config["paths"]["output_root"])
+    manifest_path = Path(config["paths"]["dataset_manifest"])
+    pointer = {
+        "schema_version": f"{SCHEMA_VERSION}-current-source-pointer-v1",
+        "generation": "source-v1",
+        "manifest_path": str(manifest_path.resolve(strict=True)),
+        "manifest_sha256": validation["manifest_file_sha256"],
+    }
+    pointer["pointer_content_sha256"] = canonical_sha256(pointer)
+    atomic_write_json(output_root / "current-source.json", pointer)
+    receipt_path = output_root / "receipts" / "p5-stage-result.json"
+    receipt = {
+        "schema_version": f"{SCHEMA_VERSION}-p5-completion-receipt-v1",
+        "dataset_manifest_path": str(manifest_path.resolve(strict=True)),
+        "dataset_manifest_sha256": validation["manifest_file_sha256"],
+        "manifest_content_sha256": validation["manifest_content_sha256"],
+        "generation_reused": True,
+    }
+    atomic_write_json(receipt_path, receipt)
+    upstream = [
+        output_root / "receipts" / f"p{stage}-stage-result.json"
+        for stage in range(1, 5)
+    ]
+    identity = _stage_identity(config, "P5", upstream)
+    state_path = output_root / "states" / "pipeline" / "p5.json"
+    atomic_write_json(
+        state_path,
+        {
+            "schema_version": f"{SCHEMA_VERSION}-stage-state-v1",
+            "stage": "P5",
+            "state": "sealed",
+            "identity": identity,
+            "identity_sha256": canonical_sha256(identity),
+            "receipt_path": str(receipt_path.resolve(strict=True)),
+            "receipt_sha256": sha256_file(receipt_path),
+            "finished_at_unix": time.time(),
+            "exit_code": 0,
+        },
+    )
+    atomic_write_json(
+        output_root / "status.json",
+        {
+            "schema_version": f"{SCHEMA_VERSION}-status-v1",
+            "run_id": config["run_id"],
+            "state": "finished",
+            "sealed_through_stage": "P5",
+            "updated_at_unix": time.time(),
+        },
+    )
+    validate_published_product(config)
+
+
+def validate_year_completion_metadata(config: Mapping[str, Any]) -> YearProtocolADataset:
+    output_root = Path(config["paths"]["output_root"])
+    manifest_path = Path(config["paths"]["dataset_manifest"])
+    dataset = YearProtocolADataset(
+        manifest_path,
+        Path(config["source_product"]["qualification_seal"]),
+    )
+    pointer = load_json(output_root / "current-year.json")
+    unsigned_pointer = {
+        key: value for key, value in pointer.items() if key != "pointer_content_sha256"
+    }
+    if (
+        pointer.get("pointer_content_sha256") != canonical_sha256(unsigned_pointer)
+        or pointer.get("manifest_path") != str(manifest_path.resolve(strict=True))
+        or pointer.get("manifest_sha256") != sha256_file(manifest_path)
+    ):
+        raise ProtocolARaw83Error("年度产品当前指针无效")
+    receipt_path = output_root / "receipts" / "p6-stage-result.json"
+    state_path = output_root / "states" / "pipeline" / "p6.json"
+    status_path = output_root / "status.json"
+    receipt = load_json(receipt_path)
+    state = load_json(state_path)
+    status = load_json(status_path)
+    if receipt.get("manifest_sha256") != sha256_file(manifest_path):
+        raise ProtocolARaw83Error("P6 阶段收据未绑定当前清单")
+    if (
+        state.get("state") != "sealed"
+        or state.get("receipt_sha256") != sha256_file(receipt_path)
+        or status.get("state") != "finished"
+        or status.get("sealed_through_stage") != "P6"
+    ):
+        raise ProtocolARaw83Error("年度产品完成元数据不齐全")
+    return dataset
+
+
+def repair_year_completion_metadata(config: Mapping[str, Any]) -> None:
+    output_root = Path(config["paths"]["output_root"])
+    manifest_path = Path(config["paths"]["dataset_manifest"])
+    dataset = YearProtocolADataset(
+        manifest_path,
+        Path(config["source_product"]["qualification_seal"]),
+    )
+    manifest_sha = sha256_file(manifest_path)
+    pointer = {
+        "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-current-pointer-v1",
+        "generation": "year-v1",
+        "manifest_path": str(manifest_path.resolve(strict=True)),
+        "manifest_sha256": manifest_sha,
+    }
+    pointer["pointer_content_sha256"] = canonical_sha256(pointer)
+    atomic_write_json(output_root / "current-year.json", pointer)
+    receipt_path = output_root / "receipts" / "p6-stage-result.json"
+    receipt = {
+        "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-p6-completion-receipt-v1",
+        "manifest_path": str(manifest_path.resolve(strict=True)),
+        "manifest_sha256": manifest_sha,
+        "artifact_count": len(dataset.artifact_paths),
+        "winning_arm": config["winning_arm"],
+    }
+    atomic_write_json(receipt_path, receipt)
+    identity = {
+        "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-stage-identity-v1",
+        "stage": "P6",
+        "logical_config_sha256": canonical_sha256(_logical_year_config_identity(config)),
+        "code_sha256": {
+            "src/flow_probe/protocol_a_raw83.py": sha256_file(
+                PROJECT_ROOT / "src" / "flow_probe" / "protocol_a_raw83.py"
+            ),
+            "src/flow_probe/protocol_a_preprocessing.py": sha256_file(
+                PROJECT_ROOT / "src" / "flow_probe" / "protocol_a_preprocessing.py"
+            ),
+            "tools/ch3_protocol_a_raw83_prepare.py": sha256_file(Path(__file__)),
+        },
+    }
+    state_path = output_root / "states" / "pipeline" / "p6.json"
+    atomic_write_json(
+        state_path,
+        {
+            "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-stage-state-v1",
+            "stage": "P6",
+            "state": "sealed",
+            "identity": identity,
+            "identity_sha256": canonical_sha256(identity),
+            "receipt_path": str(receipt_path.resolve(strict=True)),
+            "receipt_sha256": sha256_file(receipt_path),
+            "finished_at_unix": time.time(),
+            "exit_code": 0,
+        },
+    )
+    atomic_write_json(
+        output_root / "status.json",
+        {
+            "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-status-v1",
+            "state": "finished",
+            "sealed_through_stage": "P6",
+            "exit_code": 0,
+            "manifest_sha256": manifest_sha,
+        },
+    )
+    validate_year_completion_metadata(config)
+
+
 def run(config: Mapping[str, Any], through_stage: str) -> None:
     output_root = Path(config["paths"]["output_root"])
     output_root.mkdir(parents=True, exist_ok=True)
     _, _, final_generation = source_generation_roots(config)
     if final_generation.exists():
-        validate_published_product(config)
+        repair_source_completion_metadata(config)
         temporary_root = output_root / "temporary" / "candidate-b"
         for name in (
             f"official-row-major-noise.f8.partial.{config['run_id']}.npy",
@@ -728,10 +941,7 @@ def main() -> int:
             )
             return 0
         if args.validate_product:
-            dataset = YearProtocolADataset(
-                Path(config["paths"]["dataset_manifest"]),
-                Path(config["source_product"]["qualification_seal"]),
-            )
+            dataset = validate_year_completion_metadata(config)
             print(
                 json.dumps(
                     {
@@ -750,20 +960,7 @@ def main() -> int:
         run_root.mkdir(parents=True, exist_ok=True)
         year_manifest = Path(config["paths"]["dataset_manifest"])
         if year_manifest.is_file():
-            dataset = YearProtocolADataset(
-                year_manifest,
-                Path(config["source_product"]["qualification_seal"]),
-            )
-            atomic_write_json(
-                run_root / "status.json",
-                {
-                    "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-status-v1",
-                    "state": "finished",
-                    "sealed_through_stage": "P6",
-                    "exit_code": 0,
-                    "manifest_sha256": sha256_file(dataset.manifest_path),
-                },
-            )
+            repair_year_completion_metadata(config)
             return 0
         maximum, current = _read_cgroup_limit()
         if maximum is None:
@@ -793,16 +990,9 @@ def main() -> int:
             config,
             batch_rows=int(batch_rows),
         )
-        atomic_write_json(run_root / "receipts" / "p6-stage-result.json", receipt)
-        atomic_write_json(
-            run_root / "status.json",
-            {
-                "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-status-v1",
-                "state": "finished",
-                "sealed_through_stage": "P6",
-                "exit_code": 0,
-            },
-        )
+        if receipt.get("manifest_sha256") is None:
+            raise ProtocolARaw83Error("P6 产品收据缺少清单 SHA-256")
+        repair_year_completion_metadata(config)
         return 0
     if args.validate_product:
         print(json.dumps(validate_published_product(config), ensure_ascii=False, sort_keys=True))
