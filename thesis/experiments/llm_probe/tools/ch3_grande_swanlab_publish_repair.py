@@ -45,6 +45,17 @@ REQUIRED_UNITS = ("G-A", "G-B")
 ALLOWED_PARENT_MANIFEST_DRIFT = frozenset(
     ("source-screen-results.json", "resource-receipt.json", "status.json")
 )
+LAUNCHER_ADMISSION_ADDED_KEYS = frozenset(
+    (
+        "peak_cgroup_current_bytes_overall",
+        "peak_gpu_used_mib_overall",
+        "sample_count",
+        "sample_interval_seconds",
+        "training_finished_at_unix",
+        "training_started_at_unix",
+        "training_wall_seconds",
+    )
+)
 PROHIBITED_OPERATIONS = (
     "prepare",
     "resource-calibrate",
@@ -296,17 +307,25 @@ def validate_parent_semantics(
     status = load_json(parent_root / "status.json")
     if status.get("state") != "failed" or status.get("exit_code") != 1:
         raise RuntimeError("父运行原失败状态不符，拒绝覆盖或猜测修复")
-    source_without_admission = copy.deepcopy(source_result)
-    resource = source_without_admission.get("resource")
-    if not isinstance(resource, dict):
+    source_without_added_admission_keys = copy.deepcopy(source_result)
+    source_resource = source_without_added_admission_keys.get("resource")
+    grande_resource = grande_result.get("resource")
+    if not isinstance(source_resource, dict) or not isinstance(grande_resource, dict):
         raise RuntimeError("父源侧结果缺少资源对象")
-    launcher_admission = resource.pop("launcher_admission_receipt", None)
-    if not isinstance(launcher_admission, dict) or len(launcher_admission) != 7:
-        raise RuntimeError("父源侧结果后置资源收据必须精确包含 7 个键")
-    if launcher_admission != resource_receipt:
+    source_admission = source_resource.get("launcher_admission_receipt")
+    grande_admission = grande_resource.get("launcher_admission_receipt")
+    if not isinstance(source_admission, dict) or not isinstance(grande_admission, dict):
+        raise RuntimeError("父两个源侧结果都必须包含字典型启动器资源收据")
+    if set(source_admission) != set(grande_admission) | LAUNCHER_ADMISSION_ADDED_KEYS:
+        raise RuntimeError("父源侧结果启动器资源收据新增键集合不符")
+    if any(source_admission[key] != value for key, value in grande_admission.items()):
+        raise RuntimeError("父两个源侧结果启动器资源收据的共同键值不一致")
+    if source_admission != resource_receipt:
         raise RuntimeError("父源侧结果后置资源收据与当前资源收据不一致")
-    if source_without_admission != grande_result:
-        raise RuntimeError("父两个源侧结果除后置资源收据外存在差异")
+    for key in LAUNCHER_ADMISSION_ADDED_KEYS:
+        source_admission.pop(key)
+    if source_without_added_admission_keys != grande_result:
+        raise RuntimeError("父两个源侧结果除启动器资源收据新增七键外存在差异")
     if source_result.get("target_year_arrays_read") != 0:
         raise RuntimeError("父结果违反目标年零读取合同")
     source_selection = source_result.get("source_selection")
@@ -343,8 +362,13 @@ def validate_parent_semantics(
         "allowed_post_manifest_drift": sorted(ALLOWED_PARENT_MANIFEST_DRIFT),
         "manifest_current_records": manifest_current_records,
         "production_and_frozen_config_json_equal": True,
-        "source_results_only_added_launcher_admission_receipt": True,
-        "launcher_admission_receipt_key_count": 7,
+        "source_results_only_added_launcher_admission_receipt_keys": sorted(
+            LAUNCHER_ADMISSION_ADDED_KEYS
+        ),
+        "source_launcher_admission_receipt_key_count": len(resource_receipt),
+        "grande_launcher_admission_receipt_key_count": len(resource_receipt)
+        - len(LAUNCHER_ADMISSION_ADDED_KEYS),
+        "launcher_admission_common_key_values_equal": True,
         "launcher_admission_receipt_equals_resource_receipt": True,
     }
     return source_result, verification

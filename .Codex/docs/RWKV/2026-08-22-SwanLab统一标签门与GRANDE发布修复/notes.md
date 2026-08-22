@@ -26,6 +26,7 @@
 
 - 父生产配置和冻结配置分别绑定不同 SHA-256，并机械断言 JSON 深度全等。
 - 父 manifest 的 23 项文件完成反向核验；只允许结果、资源和状态三项已核历史后置漂移。
+- `source-screen-results.json` 与 `grande-c00-source-results.json` 都保留 `launcher_admission_receipt`；前者 22 键、后者 15 键。差异精确为 7 个训练完成后资源键，共同键值全等，前者完整收据与当前 `resource-receipt.json` 全等。
 - 完成态只有在 `publish_completed=true`、全部登记文件和五个生产身份文件通过哈希复核后才幂等返回。
 - 首次零步初始化 401 的第二次尝试固定为全新 Python 进程；非 401 和第二次失败均停止。
 - 真实扫描覆盖 98 个 JSON 和 102 个 YAML 文件、131 个 `swanlab`/`tracking` 节点；有效 106、非法 0、未决 25。
