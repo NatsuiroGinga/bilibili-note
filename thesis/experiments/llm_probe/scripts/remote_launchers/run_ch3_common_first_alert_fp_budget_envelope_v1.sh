@@ -11,6 +11,8 @@ readonly SCREEN_NAME=ch3-common-first-alert-envelope-v1
 readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch3-common-first-alert-fp-budget-envelope-v1.json"
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch3_common_first_alert_fp_budget_envelope.py"
 readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_common_first_alert_fp_budget_envelope_v1.sh"
+readonly TRACKING_PATH="$PROJECT_ROOT/src/flow_probe/tracking.py"
+readonly TAG_ALIAS_PATH="$PROJECT_ROOT/configs/swanlab-tag-aliases-v1.json"
 readonly OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$RUN_ID"
 readonly LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"
 readonly RUN_LOG="$OUTPUT_ROOT/run.log"
@@ -53,6 +55,7 @@ valid = (
     and sum(item["logical_target_score_calls"] for item in methods.values()) == 1
     and sum(item["logical_target_inference_calls"] for item in methods.values()) == 1
     and all(item["target_retrained"] is False for item in methods.values())
+    and all(item["probability_clip"] is None for item in methods.values())
     and config["common_budget"]["interpolation"] is False
     and config["common_budget"]["exact_fpr_intersection"] is False
     and config["common_budget"]["tie_group_rule"]
@@ -61,6 +64,9 @@ valid = (
     and config["evaluation"]["first_alert_axis"] == "exposure_index"
     and config["evaluation"]["exposure_index_base"] == 1
     and config["evaluation"]["time_delay_available"] is False
+    and config["status_contract"]["states"] == ["pending", "running", "complete", "failed"]
+    and config["status_contract"]["incomplete_state_forbidden"] is True
+    and config["tracking"]["tags"] == ["n16", "ch3", "fp-envelope", "lspr24", "descriptive"]
     and config["artifact_policy"]["persist_per_flow_scores"] is False
     and config["artifact_policy"]["persist_per_entity_scores"] is False
     and config["artifact_policy"]["persist_per_entity_first_alert"] is False
@@ -69,6 +75,39 @@ valid = (
 )
 raise SystemExit(0 if valid else 78)
 ' "$CONFIG_PATH" "$RUN_ID" "$DISPLAY_NAME" "runs/diagnostics/$RUN_ID"
+}
+
+validate_swanlab_health() {
+    local ping_code verify_code
+    set +e
+    uv run --no-sync swanlab ping > "$LAUNCHER_ROOT/swanlab-ping.log" 2>&1
+    ping_code=$?
+    uv run --no-sync swanlab verify > "$LAUNCHER_ROOT/swanlab-verify.log" 2>&1
+    verify_code=$?
+    set -e
+    uv run --no-sync python -c '
+import hashlib, json, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+def log_receipt(name):
+    log_path = path.parent / name
+    payload = log_path.read_bytes()
+    return {"relative_path": name, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+payload = {
+    "schema_version": "ch3-common-first-alert-swanlab-health-v1",
+    "ping_exit_code": int(sys.argv[2]),
+    "verify_exit_code": int(sys.argv[3]),
+    "passed": int(sys.argv[2]) == 0 and int(sys.argv[3]) == 0,
+    "logs": {
+        "ping": log_receipt("swanlab-ping.log"),
+        "verify": log_receipt("swanlab-verify.log"),
+    },
+}
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+' "$LAUNCHER_ROOT/swanlab-health-receipt.json" "$ping_code" "$verify_code"
+    if (( ping_code != 0 || verify_code != 0 )); then
+        printf 'SwanLab ping/verify 门失败：ping=%s verify=%s。\n' "$ping_code" "$verify_code" >&2
+        return 69
+    fi
 }
 
 validate_server_and_inputs() {
@@ -83,6 +122,8 @@ validate_server_and_inputs() {
         "$CONFIG_PATH" \
         "$SCRIPT_PATH" \
         "$MEMORY_GATE" \
+        "$TRACKING_PATH" \
+        "$TAG_ALIAS_PATH" \
         "$PROJECT_ROOT/tools/ch3_xgb_cpa_elp_operational_backfill.py" \
         "$PROJECT_ROOT/tools/ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py" \
         "$PROJECT_ROOT/runs/diagnostics/dijk-repro/cache/y24.npy" \
@@ -96,6 +137,27 @@ validate_server_and_inputs() {
             return 66
         }
     done
+    uv run --no-sync python -c '
+import hashlib, json, pathlib, sys
+config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+root = pathlib.Path(sys.argv[2]).resolve()
+items = {
+    method_key: config["methods"][method_key]["inputs"]["scoring_helper"]
+    for method_key in ("xgb_cpa_elp_c11", "full_mlp_o11")
+}
+items.update({f"tracking/{key}": value for key, value in config["tracking_inputs"].items()})
+for identity, item in items.items():
+    path = (root / item["relative_path"]).resolve()
+    if path.stat().st_size != item["bytes"]:
+        raise SystemExit(f"{identity} 冻结代码输入字节数不符")
+    if hashlib.sha256(path.read_bytes()).hexdigest() != item["sha256"]:
+        raise SystemExit(f"{identity} 冻结代码输入 SHA-256 不符")
+' "$CONFIG_PATH" "$PROJECT_ROOT"
+    uv run --no-sync python -c '
+import pathlib, sys
+sys.path.insert(0, str(pathlib.Path(sys.argv[1]) / "src"))
+from flow_probe.tracking import initialize_swanlab_run
+' "$PROJECT_ROOT"
 }
 
 admit_resources() {
@@ -204,7 +266,7 @@ if [[ $# -ne 0 ]]; then
     exit 64
 fi
 
-for command in uv screen flock nvidia-smi sha256sum rg awk df tail tee pgrep; do
+for command in uv swanlab screen flock nvidia-smi sha256sum rg awk df tail tee pgrep; do
     command -v "$command" >/dev/null 2>&1 || {
         printf '缺少命令：%s\n' "$command" >&2
         exit 69
@@ -220,7 +282,18 @@ validate_static_contract
 validate_server_and_inputs
 if [[ -s "$OUTPUT_ROOT/manifest.json" ]]; then
     finalize_only
-    printf 'COMMON_FIRST_ALERT_ENVELOPE_ALREADY_COMPLETE run=%s\n' "$OUTPUT_ROOT"
+    manifest_complete=$(uv run --no-sync python -c '
+import json, pathlib, sys
+value = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")).get("complete")
+if not isinstance(value, bool):
+    raise SystemExit("manifest.complete 不是布尔值")
+print("true" if value else "false")
+' "$OUTPUT_ROOT/manifest.json")
+    if [[ "$manifest_complete" == true ]]; then
+        printf 'COMMON_FIRST_ALERT_ENVELOPE_ALREADY_COMPLETE run=%s\n' "$OUTPUT_ROOT"
+    else
+        printf 'COMMON_FIRST_ALERT_WORKFLOW_ALREADY_COMPLETE_ENVELOPE_OPEN run=%s\n' "$OUTPUT_ROOT"
+    fi
     exit 0
 fi
 if screen -ls 2>/dev/null | rg -q "[.]${SCREEN_NAME}[[:space:]]"; then
@@ -231,8 +304,10 @@ if pgrep -f "$PEER_PATTERN" >/dev/null 2>&1; then
     printf '同名共同预算包络进程已经运行。\n' >&2
     exit 75
 fi
+validate_swanlab_health
 admit_resources
 sha256sum "$TOOL_PATH" "$CONFIG_PATH" "$SCRIPT_PATH" \
+    "$TRACKING_PATH" "$TAG_ALIAS_PATH" \
     "$PROJECT_ROOT/tools/ch3_xgb_cpa_elp_operational_backfill.py" \
     "$PROJECT_ROOT/tools/ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py" \
     "$PROJECT_ROOT/runs/diagnostics/dijk-repro/cache/y24.npy" \

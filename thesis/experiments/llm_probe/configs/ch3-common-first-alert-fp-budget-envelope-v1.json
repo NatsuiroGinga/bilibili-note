@@ -47,12 +47,17 @@
       "source_kind": "frozen_o11_checkpoint_single_logical_inference",
       "online_score": "running_power_mean_p_from_selection_receipt",
       "terminal_score": "complete_entity_power_mean_p_from_selection_receipt",
-      "probability_clip": [1e-7, 1.0],
+      "probability_clip": null,
       "logical_training_runs": 0,
       "logical_target_inference_calls": 1,
       "logical_target_score_calls": 0,
       "target_retrained": false,
       "inputs": {
+        "scoring_helper": {
+          "relative_path": "tools/ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py",
+          "bytes": 52575,
+          "sha256": "93ce84972441080340351f62bd2dead95a33aad5d13041b8c3f316eb3701c1b0"
+        },
         "selected_checkpoint": {
           "relative_path": "runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/checkpoints/selected-O11.pt",
           "bytes": 8604193,
@@ -90,12 +95,17 @@
       "source_kind": "frozen_semantic168_booster_single_logical_rescore",
       "online_score": "running_arithmetic_mean",
       "terminal_score": "complete_entity_arithmetic_mean",
-      "probability_clip": [1e-7, 1.0],
+      "probability_clip": null,
       "logical_training_runs": 0,
       "logical_target_inference_calls": 0,
       "logical_target_score_calls": 1,
       "target_retrained": false,
       "inputs": {
+        "scoring_helper": {
+          "relative_path": "tools/ch3_xgb_cpa_elp_operational_backfill.py",
+          "bytes": 54582,
+          "sha256": "853cedec2b2dcb19a283e645e188895e47c79265b4e2c61d0323251f5bc1d826"
+        },
         "semantic168_model": {
           "relative_path": "runs/diagnostics/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1/model_semantic168.json",
           "bytes": 4428293,
@@ -223,20 +233,27 @@
     "synthetic_best_of_baselines_forbidden": true
   },
   "full_flow_array_budget": {
-    "entity_id_int32": 1,
-    "stable_order_int64": 1,
-    "exposure_index_int64": 1,
-    "current_method_probability_float32": 1,
-    "online_running_score_float64": 1,
-    "transient_int64_first_alert_candidate": 1,
+    "entity_id_int32_N": 1,
+    "stable_order_int64_N": 1,
+    "stable_sort_workspace_int64_N_maximum": 1,
+    "current_method_probability_float32_N": 1,
+    "online_running_score_float64_N": 0,
+    "exposure_index_int64_N": 0,
+    "first_alert_candidate_int64_N": 0,
+    "timely_first_alert_int32_Q_by_E": 1,
+    "entity_block_gather_float32_maximum": 1,
+    "entity_block_running_float64_maximum": 1,
+    "entity_block_continuation_or_denominator_float64_maximum": 1,
+    "entity_block_threshold_boolean_maximum": 1,
     "dense_entity_by_exposure_matrix": 0,
     "threshold_by_flow_matrix": 0,
-    "note": "在线运行分数与首次跨越候选是运行均值/幂平均无法避免的全流级工作区，已在实施报告登记为对计划第五节数组清单的显式增补"
+    "note": "在线聚合按实体并在实体内按online_scan_block执行两遍有界扫描；局部工作区不超过扫描块，不建立额外全流在线分数、曝光序号或首次告警候选数组"
   },
   "execution": {
     "xgb_predict_batch": 2000000,
     "xgb_sequence_batch": 2048,
     "mlp_inference_batch_from_frozen_entry": 2048,
+    "online_scan_block": 2000000,
     "batching_is_engineering_detail_only": true,
     "reuses_frozen_production_entries": true
   },
@@ -252,10 +269,31 @@
     "stage_atomic_resume": true,
     "fair_efficiency_evidence": false
   },
+  "status_contract": {
+    "states": ["pending", "running", "complete", "failed"],
+    "workflow_complete_state": "complete",
+    "envelope_closed_status_field": "envelope_closed",
+    "envelope_closed_manifest_field": "complete",
+    "incomplete_state_forbidden": true
+  },
+  "tracking_inputs": {
+    "unified_tracking_helper": {
+      "relative_path": "src/flow_probe/tracking.py",
+      "bytes": 19868,
+      "sha256": "146cab0eb8779334c4afcc289f557e0adf26e5d45a61e6b1e6e21f1ef5d5c0b6"
+    },
+    "tag_alias_config": {
+      "relative_path": "configs/swanlab-tag-aliases-v1.json",
+      "bytes": 228,
+      "sha256": "d2bf7212068e6d7ced2fa916cd327dd24fea26bbb3bd3cbd9fd241c77a3f7a16"
+    }
+  },
   "tracking": {
     "workspace": "mortiswang",
     "project": "ns3-rwkv-lspr24",
     "mode": "online",
+    "expected_swanlab_version": "0.9.0",
+    "tags": ["n16", "ch3", "fp-envelope", "lspr24", "descriptive"],
     "aggregate_only": true
   },
   "artifact_policy": {

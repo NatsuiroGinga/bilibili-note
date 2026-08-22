@@ -21,7 +21,7 @@ import sys
 import time
 import traceback
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +35,7 @@ PATH_CURVE_SCHEMA = "ch3-common-first-alert-path-budget-curves-v1"
 TERMINAL_CURVE_SCHEMA = "ch3-common-first-alert-terminal-at-path-threshold-v1"
 TIMELY_SCHEMA = "ch3-common-first-alert-timely-detection-v1"
 MANIFEST_SCHEMA = "ch3-common-first-alert-fp-budget-envelope-manifest-v1"
+STATUS_STATES = frozenset({"pending", "running", "complete", "failed"})
 
 N_FLOW = 20_227_356
 N_ENTITY = 47_115
@@ -82,6 +83,7 @@ REQUIRED_METHOD_INPUTS: dict[str, set[str]] = {
     "gru_published_max": {"flow_scores"},
     "transformer_published_max": {"flow_scores"},
     "xgb_cpa_elp_c11": {
+        "scoring_helper",
         "semantic168_model",
         "selection_seal",
         "effective_config_receipts",
@@ -92,6 +94,7 @@ REQUIRED_METHOD_INPUTS: dict[str, set[str]] = {
         "target_sequence_mask",
     },
     "full_mlp_o11": {
+        "scoring_helper",
         "selected_checkpoint",
         "selection_receipt",
         "frozen_run_config",
@@ -136,10 +139,34 @@ FORBIDDEN_NAME_FRAGMENTS: tuple[str, ...] = (
     ".pt",
     ".ubj",
 )
+CORE_ARTIFACT_NAMES = frozenset(
+    {
+        "aggregate-results.json",
+        "complete-path-budget-curves.npz",
+        "complete-path-budget-curves-receipt.json",
+        "terminal-at-path-threshold-curves.npz",
+        "terminal-at-path-threshold-curves-receipt.json",
+        "first-alert-timing-curves.npz",
+        "first-alert-timing-curves-receipt.json",
+        "input-validation-receipt.json",
+        "score-source-receipt.json",
+        "resource-receipt.json",
+        "swanlab-receipt.json",
+        "swanlab-tag-receipt.json",
+        "status.json",
+        "config.json",
+        "run.log",
+        "manifest.json",
+    }
+)
 
 T0 = time.time()
 LAST_BEAT = [T0]
 np: Any = None
+
+
+class MethodIdentityUnavailable(RuntimeError):
+    """冻结模型或选择身份无法由原入口重放。"""
 
 
 # ----------------------------------------------------------------------------
@@ -182,11 +209,17 @@ def beat(stage: str, done: int, total: int, started: float, every: float = 30.0)
     )
 
 
-def sha256_file(path: Path) -> str:
+def sha256_file(path: Path, *, heartbeat: bool = False) -> str:
     digest = hashlib.sha256()
+    total = path.stat().st_size
+    done = 0
+    started = time.time()
     with path.open("rb") as handle:
         for chunk in iter(lambda: handle.read(8 * 1024 * 1024), b""):
             digest.update(chunk)
+            done += len(chunk)
+            if heartbeat:
+                beat(f"SHA-256/{path.name}", done, total, started)
     return digest.hexdigest()
 
 
@@ -253,7 +286,10 @@ def write_status(
     detail: str,
     exit_code: int | None,
     unreachable: Mapping[str, str] | None = None,
+    envelope_closed: bool | None = None,
 ) -> None:
+    if state not in STATUS_STATES:
+        raise RuntimeError(f"运行状态未冻结：{state}")
     status_path = output_root / "status.json"
     recovery_count = 0
     if status_path.is_file():
@@ -274,6 +310,8 @@ def write_status(
             "updated_at_unix": time.time(),
             "recovery_count": recovery_count,
             "unreachable_methods": dict(unreachable or {}),
+            "workflow_complete": state == "complete",
+            "envelope_closed": envelope_closed,
             "training_runs": 0,
             "hyperparameter_selection_runs": 0,
             "persist_per_flow_scores": False,
@@ -366,7 +404,7 @@ def validate_method_contract(key: str, contract: Mapping[str, Any]) -> None:
             "source_kind": "frozen_semantic168_booster_single_logical_rescore",
             "online_score": "running_arithmetic_mean",
             "terminal_score": "complete_entity_arithmetic_mean",
-            "probability_clip": [1e-7, 1.0],
+            "probability_clip": None,
             "logical_target_inference_calls": 0,
             "logical_target_score_calls": 1,
         }
@@ -375,7 +413,7 @@ def validate_method_contract(key: str, contract: Mapping[str, Any]) -> None:
             "source_kind": "frozen_o11_checkpoint_single_logical_inference",
             "online_score": "running_power_mean_p_from_selection_receipt",
             "terminal_score": "complete_entity_power_mean_p_from_selection_receipt",
-            "probability_clip": [1e-7, 1.0],
+            "probability_clip": None,
             "logical_target_inference_calls": 1,
             "logical_target_score_calls": 0,
         }
@@ -387,6 +425,15 @@ def validate_method_contract(key: str, contract: Mapping[str, Any]) -> None:
         raise SystemExit(f"方法输入清单为空：{key}")
     if set(inputs) != REQUIRED_METHOD_INPUTS[key]:
         raise SystemExit(f"方法输入名称集不符：{key}")
+    expected_helper_paths = {
+        "xgb_cpa_elp_c11": "tools/ch3_xgb_cpa_elp_operational_backfill.py",
+        "full_mlp_o11": "tools/ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py",
+    }
+    if (
+        key in expected_helper_paths
+        and inputs["scoring_helper"].get("relative_path") != expected_helper_paths[key]
+    ):
+        raise SystemExit(f"实际评分辅助脚本路径不符：{key}")
     for name, item in inputs.items():
         if (
             not isinstance(item, dict)
@@ -489,17 +536,23 @@ def validate_config(config: Mapping[str, Any]) -> None:
 
     arrays = config.get("full_flow_array_budget", {})
     if arrays != {
-        "entity_id_int32": 1,
-        "stable_order_int64": 1,
-        "exposure_index_int64": 1,
-        "current_method_probability_float32": 1,
-        "online_running_score_float64": 1,
-        "transient_int64_first_alert_candidate": 1,
+        "entity_id_int32_N": 1,
+        "stable_order_int64_N": 1,
+        "stable_sort_workspace_int64_N_maximum": 1,
+        "current_method_probability_float32_N": 1,
+        "online_running_score_float64_N": 0,
+        "exposure_index_int64_N": 0,
+        "first_alert_candidate_int64_N": 0,
+        "timely_first_alert_int32_Q_by_E": 1,
+        "entity_block_gather_float32_maximum": 1,
+        "entity_block_running_float64_maximum": 1,
+        "entity_block_continuation_or_denominator_float64_maximum": 1,
+        "entity_block_threshold_boolean_maximum": 1,
         "dense_entity_by_exposure_matrix": 0,
         "threshold_by_flow_matrix": 0,
         "note": (
-            "在线运行分数与首次跨越候选是运行均值/幂平均无法避免的全流级工作区，"
-            "已在实施报告登记为对计划第五节数组清单的显式增补"
+            "在线聚合按实体并在实体内按online_scan_block执行两遍有界扫描；"
+            "局部工作区不超过扫描块，不建立额外全流在线分数、曝光序号或首次告警候选数组"
         ),
     }:
         raise SystemExit("全流级数组种类或二维矩阵禁令不符")
@@ -509,6 +562,7 @@ def validate_config(config: Mapping[str, Any]) -> None:
         "xgb_predict_batch": 2_000_000,
         "xgb_sequence_batch": 2048,
         "mlp_inference_batch_from_frozen_entry": 2048,
+        "online_scan_block": 2_000_000,
         "batching_is_engineering_detail_only": True,
         "reuses_frozen_production_entries": True,
     }:
@@ -529,10 +583,39 @@ def validate_config(config: Mapping[str, Any]) -> None:
     }:
         raise SystemExit("资源准入、并发或无时长上限合同不符")
 
+    if config.get("status_contract") != {
+        "states": ["pending", "running", "complete", "failed"],
+        "workflow_complete_state": "complete",
+        "envelope_closed_status_field": "envelope_closed",
+        "envelope_closed_manifest_field": "complete",
+        "incomplete_state_forbidden": True,
+    }:
+        raise SystemExit("工作流完成与五方法包络闭合状态合同不符")
+
+    tracking_inputs = config.get("tracking_inputs", {})
+    expected_tracking_paths = {
+        "unified_tracking_helper": "src/flow_probe/tracking.py",
+        "tag_alias_config": "configs/swanlab-tag-aliases-v1.json",
+    }
+    if set(tracking_inputs) != set(expected_tracking_paths):
+        raise SystemExit("统一追踪模块与标签别名输入集合不符")
+    for name, relative_path in expected_tracking_paths.items():
+        item = tracking_inputs[name]
+        if (
+            item.get("relative_path") != relative_path
+            or not isinstance(item.get("bytes"), int)
+            or item["bytes"] <= 0
+            or not isinstance(item.get("sha256"), str)
+            or len(item["sha256"]) != 64
+        ):
+            raise SystemExit(f"统一追踪输入身份不符：{name}")
+
     if config.get("tracking") != {
         "workspace": "mortiswang",
         "project": "ns3-rwkv-lspr24",
         "mode": "online",
+        "expected_swanlab_version": "0.9.0",
+        "tags": ["n16", "ch3", "fp-envelope", "lspr24", "descriptive"],
         "aggregate_only": True,
     }:
         raise SystemExit("SwanLab 授权目的地或仅聚合上报合同不符")
@@ -607,7 +690,7 @@ def probe_frozen_file(project_root: Path, item: Mapping[str, Any]) -> tuple[dict
         raise SystemExit(
             f"冻结输入字节数不符：{item['relative_path']} 期望 {item['bytes']} 实际 {actual_bytes}"
         )
-    digest = sha256_file(path)
+    digest = sha256_file(path, heartbeat=actual_bytes >= N_FLOW * 4)
     if digest != item["sha256"]:
         raise SystemExit(f"冻结输入 SHA-256 不符：{item['relative_path']}")
     return {
@@ -615,6 +698,17 @@ def probe_frozen_file(project_root: Path, item: Mapping[str, Any]) -> tuple[dict
         "bytes": actual_bytes,
         "sha256": digest,
     }, None
+
+
+def require_scoring_helper_identity(
+    project_root: Path, method_key: str, contract: Mapping[str, Any]
+) -> dict[str, Any]:
+    """导入前再次核验实际评分辅助脚本，代码缺失属于整次运行失败。"""
+    item = contract["inputs"]["scoring_helper"]
+    receipt, missing = probe_frozen_file(project_root, item)
+    if missing is not None or receipt is None:
+        raise SystemExit(f"{method_key} 冻结评分辅助脚本不可用：{missing}")
+    return receipt
 
 
 # ----------------------------------------------------------------------------
@@ -635,31 +729,38 @@ def build_shared_layer(project_root: Path, config: Mapping[str, Any]) -> dict[st
     if flow_labels_raw.shape != (N_FLOW,):
         raise SystemExit(f"冻结逐流标签形状不符：{flow_labels_raw.shape}")
     flow_labels = np.asarray(flow_labels_raw)
-    if not np.isfinite(flow_labels).all() or not np.logical_or(flow_labels == 0, flow_labels == 1).all():
-        raise SystemExit("冻结逐流标签不是有限二值数组")
-    flow_positive_rate = float(np.mean(flow_labels, dtype=np.float64))
+    if not np.issubdtype(flow_labels.dtype, np.integer):
+        raise SystemExit(f"冻结逐流标签必须是整数二值数组：{flow_labels.dtype}")
+    positive_flow_count = 0
+    scan_block = int(config["execution"]["online_scan_block"])
+    for start in range(0, N_FLOW, scan_block):
+        values = flow_labels[start : start + scan_block]
+        if int(values.min()) < 0 or int(values.max()) > 1:
+            raise SystemExit("冻结逐流标签不是有限二值数组")
+        positive_flow_count += int(values.sum(dtype=np.int64))
+    flow_positive_rate = positive_flow_count / N_FLOW
     if abs(flow_positive_rate - FLOW_POSITIVE_RATE) >= 1e-9:
         raise SystemExit(f"LSPR24 逐流正例率不符：{flow_positive_rate:.12f}")
-    flow_labels = flow_labels.astype(np.int8, copy=False)
-
     source = np.load(source_path, allow_pickle=True)
     destination = np.load(destination_path, allow_pickle=True)
     if source.shape != (N_FLOW,) or destination.shape != (N_FLOW,):
         raise SystemExit("冻结源端或目的端地址数组形状不符")
-    entity_keys = np.fromiter(
-        (
-            f"{left}|{right}" if left <= right else f"{right}|{left}"
-            for left, right in zip(source, destination, strict=True)
-        ),
-        dtype=object,
-        count=N_FLOW,
-    )
+    entity = np.empty(N_FLOW, dtype=np.int32)
+    entity_ids: dict[tuple[Any, Any], int] = {}
+    entity_started = time.time()
+    for flow_index, (left, right) in enumerate(zip(source, destination, strict=True)):
+        key = (left, right) if left <= right else (right, left)
+        entity_id = entity_ids.get(key)
+        if entity_id is None:
+            entity_id = len(entity_ids)
+            entity_ids[key] = entity_id
+        entity[flow_index] = entity_id
+        if (flow_index + 1) % scan_block == 0 or flow_index + 1 == N_FLOW:
+            beat("共享实体编号", flow_index + 1, N_FLOW, entity_started)
     del source, destination
-    _, entity = np.unique(entity_keys, return_inverse=True)
-    del entity_keys
-    entity = entity.astype(np.int32, copy=False)
-    if int(entity.min()) != 0 or int(entity.max()) != N_ENTITY - 1:
+    if len(entity_ids) != N_ENTITY or int(entity.min()) != 0 or int(entity.max()) != N_ENTITY - 1:
         raise SystemExit(f"实体编号边界不符，实体数应为 {N_ENTITY:,}")
+    del entity_ids
     entity_counts = np.bincount(entity, minlength=N_ENTITY).astype(np.int64)
     if len(entity_counts) != N_ENTITY or int(entity_counts.min()) <= 0:
         raise SystemExit("实体编号不连续或存在零曝光实体")
@@ -668,35 +769,29 @@ def build_shared_layer(project_root: Path, config: Mapping[str, Any]) -> dict[st
 
     entity_labels = np.zeros(N_ENTITY, dtype=np.int8)
     np.maximum.at(entity_labels, entity, flow_labels)
+    del flow_labels, flow_labels_raw
     positive_count = int((entity_labels == 1).sum())
     negative_count = int((entity_labels == 0).sum())
     if positive_count != N_POSITIVE_ENTITY or negative_count != N_NEGATIVE_ENTITY:
         raise SystemExit(f"共同分母不符：正实体 {positive_count} 负实体 {negative_count}")
 
     order = np.argsort(entity, kind="stable").astype(np.int64, copy=False)
-    ordered_entity = entity[order]
-    starts = np.r_[0, np.flatnonzero(ordered_entity[1:] != ordered_entity[:-1]) + 1].astype(np.int64)
-    if not np.array_equal(ordered_entity[starts], np.arange(N_ENTITY, dtype=np.int32)):
+    starts = np.empty(N_ENTITY, dtype=np.int64)
+    starts[0] = 0
+    np.cumsum(entity_counts[:-1], dtype=np.int64, out=starts[1:])
+    if not np.array_equal(entity[order[starts]], np.arange(N_ENTITY, dtype=np.int32)):
         raise SystemExit("稳定排序未覆盖连续实体编号，曝光顺序不可信")
-    lengths = np.diff(np.r_[starts, N_FLOW]).astype(np.int64)
-    if not np.array_equal(lengths, entity_counts):
-        raise SystemExit("实体内曝光段长度与实体计数不一致")
-    exposure_index = (
-        np.arange(N_FLOW, dtype=np.int64) - np.repeat(starts, lengths) + 1
-    ).astype(np.int64)
-    if int(exposure_index.min()) != 1 or int(exposure_index.max()) != int(lengths.max()):
-        raise SystemExit("1 基实体内曝光序号构造异常")
-    del ordered_entity
+    del entity
+    lengths = entity_counts
+    maximum_entity_exposure_count = int(lengths.max())
     log(f"共享评价层构造完成，用时 {time.time() - started:.1f}s")
 
     return {
-        "entity": entity,
         "entity_labels": entity_labels,
         "entity_counts": entity_counts,
         "order": order,
         "starts": starts,
         "lengths": lengths,
-        "exposure_index": exposure_index,
         "flow_positive_rate": flow_positive_rate,
         "identity": {
             "flow_count": N_FLOW,
@@ -704,7 +799,7 @@ def build_shared_layer(project_root: Path, config: Mapping[str, Any]) -> dict[st
             "positive_entity_count": positive_count,
             "negative_entity_count": negative_count,
             "flow_positive_rate": flow_positive_rate,
-            "maximum_entity_exposure_count": int(lengths.max()),
+            "maximum_entity_exposure_count": maximum_entity_exposure_count,
             "maximum_positive_entity_exposure_count": int(entity_counts[entity_labels == 1].max()),
             "each_flow_in_exactly_one_entity": True,
             "every_entity_has_at_least_one_flow": True,
@@ -720,64 +815,120 @@ def build_shared_layer(project_root: Path, config: Mapping[str, Any]) -> dict[st
 # ----------------------------------------------------------------------------
 
 
-def ordered_probabilities(
-    flow_probabilities: Any,
-    shared: Mapping[str, Any],
-    clip: Sequence[float] | None,
-) -> tuple[Any, float, float]:
+def validate_flow_probabilities(flow_probabilities: Any, scan_block: int) -> tuple[float, float]:
+    """按块核验原始概率，不建立全流布尔候选或裁剪副本。"""
     if flow_probabilities.shape != (N_FLOW,):
         raise SystemExit(f"逐流概率形状不符：{flow_probabilities.shape}")
-    if not np.isfinite(flow_probabilities).all():
-        raise SystemExit("逐流概率含非有限值")
-    minimum = float(flow_probabilities.min())
-    maximum = float(flow_probabilities.max())
+    minimum = math.inf
+    maximum = -math.inf
+    for start in range(0, N_FLOW, scan_block):
+        values = flow_probabilities[start : start + scan_block]
+        if not np.isfinite(values).all():
+            raise SystemExit("逐流概率含非有限值")
+        minimum = min(minimum, float(values.min()))
+        maximum = max(maximum, float(values.max()))
     if minimum < 0.0 or maximum > 1.0:
         raise SystemExit(f"逐流概率越出 [0,1]：min={minimum} max={maximum}")
-    values = flow_probabilities[shared["order"]].astype(np.float64, copy=True)
-    if clip is not None:
-        np.clip(values, float(clip[0]), float(clip[1]), out=values)
-    return values, minimum, maximum
+    return minimum, maximum
 
 
-def running_prefix_maximum(values: Any, starts: Any, lengths: Any) -> Any:
-    """逐实体前缀最大值；并列组完整保留，不跨实体累计。"""
-    running = values
-    started = time.time()
-    total = len(starts)
-    for position, (start, length) in enumerate(
-        zip(starts.tolist(), lengths.tolist(), strict=True), start=1
-    ):
-        stop = start + length
-        np.maximum.accumulate(running[start:stop], out=running[start:stop])
-        if position % 4096 == 0 or position == total:
-            beat("在线前缀最大值", position, total, started)
-    return running
+def running_prefix_maximum(values: Any) -> Any:
+    """当前实体的前缀最大值；输入只含该实体的曝光。"""
+    np.maximum.accumulate(values, out=values)
+    return values
 
 
-def running_power_mean(values: Any, shared: Mapping[str, Any], exponent: float) -> Any:
-    """逐实体运行 p 幂平均；p=1 即运行算术平均。全部累加保持 FP64。"""
+def running_power_mean(
+    values: Any,
+    exponent: float,
+    exposure_offset: int = 0,
+    prior_power_sum: float = 0.0,
+) -> tuple[Any, float]:
+    """当前实体块的运行 p 幂平均，块间只携带累计幂和标量。"""
     if not math.isfinite(exponent) or exponent <= 0.0:
         raise SystemExit(f"幂平均指数必须是有限正数：{exponent}")
-    starts = shared["starts"]
-    lengths = shared["lengths"]
     running = values
     if exponent != 1.0:
         np.power(running, exponent, out=running)
-    np.cumsum(running, dtype=np.float64, out=running)
-    previous = np.zeros(len(starts), dtype=np.float64)
-    previous[1:] = running[starts[1:] - 1]
-    running -= np.repeat(previous, lengths)
-    running /= shared["exposure_index"]
+    if exposure_offset == 0:
+        np.cumsum(running, dtype=np.float64, out=running)
+    else:
+        continued = np.empty(len(running) + 1, dtype=np.float64)
+        continued[0] = prior_power_sum
+        continued[1:] = running
+        np.cumsum(continued, dtype=np.float64, out=continued)
+        running = continued[1:]
+    next_power_sum = float(running[-1])
+    denominator = np.arange(
+        exposure_offset + 1, exposure_offset + len(running) + 1, dtype=np.float64
+    )
+    running /= denominator
     if exponent != 1.0:
         np.power(running, 1.0 / exponent, out=running)
-    return running
+    return running, next_power_sum
 
 
-def path_and_terminal(running: Any, shared: Mapping[str, Any]) -> tuple[Any, Any]:
-    starts = shared["starts"]
-    lengths = shared["lengths"]
-    path_max = np.maximum.reduceat(running, starts).astype(np.float64, copy=False)
-    terminal = running[starts + lengths - 1].astype(np.float64, copy=False)
+def iter_entity_running_chunks(
+    flow_probabilities: Any,
+    ordered_flow_indices: Any,
+    online_score: str,
+    exponent: float | None,
+    scan_block: int,
+) -> Any:
+    """逐块生成当前实体在线分数，任何局部数组均不超过 `scan_block`。"""
+    prior_maximum = -math.inf
+    prior_power_sum = 0.0
+    for offset in range(0, len(ordered_flow_indices), scan_block):
+        stop = min(offset + scan_block, len(ordered_flow_indices))
+        running = np.asarray(
+            flow_probabilities[ordered_flow_indices[offset:stop]], dtype=np.float64
+        )
+        if online_score == "prefix_maximum":
+            running_prefix_maximum(running)
+            np.maximum(running, prior_maximum, out=running)
+            prior_maximum = float(running[-1])
+        else:
+            if exponent is None:
+                raise RuntimeError("幂平均在线分数缺少指数")
+            running, prior_power_sum = running_power_mean(
+                running,
+                exponent,
+                exposure_offset=offset,
+                prior_power_sum=prior_power_sum,
+            )
+        yield offset, running
+
+
+def path_and_terminal_by_entity(
+    flow_probabilities: Any,
+    shared: Mapping[str, Any],
+    online_score: str,
+    exponent: float | None,
+    scan_block: int,
+) -> tuple[Any, Any]:
+    """第一遍实体扫描只保存两个 `float64[E]` 聚合向量。"""
+    path_max = np.empty(N_ENTITY, dtype=np.float64)
+    terminal = np.empty(N_ENTITY, dtype=np.float64)
+    started = time.time()
+    for entity_id, (start, length) in enumerate(
+        zip(shared["starts"].tolist(), shared["lengths"].tolist(), strict=True)
+    ):
+        stop = start + length
+        entity_path_maximum = -math.inf
+        entity_terminal = math.nan
+        for _, running in iter_entity_running_chunks(
+            flow_probabilities,
+            shared["order"][start:stop],
+            online_score,
+            exponent,
+            scan_block,
+        ):
+            entity_path_maximum = max(entity_path_maximum, float(running.max()))
+            entity_terminal = float(running[-1])
+        path_max[entity_id] = entity_path_maximum
+        terminal[entity_id] = entity_terminal
+        if (entity_id + 1) % 4096 == 0 or entity_id + 1 == N_ENTITY:
+            beat("实体在线路径与终端", entity_id + 1, N_ENTITY, started)
     if not np.isfinite(path_max).all() or not np.isfinite(terminal).all():
         raise SystemExit("实体路径最大值或终端读数含非有限值")
     if not bool((terminal <= path_max).all()):
@@ -929,39 +1080,63 @@ def distribution(values: Any) -> dict[str, Any]:
 
 
 def first_alert_timely(
-    running: Any,
+    flow_probabilities: Any,
     shared: Mapping[str, Any],
-    curve: Mapping[str, Any],
     readouts: Mapping[str, Mapping[str, Any]],
+    online_score: str,
+    exponent: float | None,
+    scan_block: int,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """六档公共预算的首次告警阶梯；固定 P=752 分母，未告警正实体保留为删失。"""
+    """第二遍实体扫描生成 `int32[Q,E]` 首次位置，不建立全流候选。"""
     entity_labels = shared["entity_labels"]
     entity_counts = shared["entity_counts"]
-    starts = shared["starts"]
-    exposure_index = shared["exposure_index"]
     positive = entity_labels == 1
     benign = entity_labels == 0
-    sentinel = np.iinfo(np.int64).max
     summaries: dict[str, Any] = {}
     vectors: dict[str, Any] = {}
+    budget_items = list(readouts.items())
+    thresholds = np.asarray(
+        [float(readout["actual_reachable_point"]["threshold"]) for _, readout in budget_items],
+        dtype=np.float64,
+    )
+    first_alert = np.zeros((len(budget_items), N_ENTITY), dtype=np.int32)
+    started = time.time()
+    for entity_id, (start, length) in enumerate(
+        zip(shared["starts"].tolist(), shared["lengths"].tolist(), strict=True)
+    ):
+        stop = start + length
+        for exposure_offset, running in iter_entity_running_chunks(
+            flow_probabilities,
+            shared["order"][start:stop],
+            online_score,
+            exponent,
+            scan_block,
+        ):
+            for budget_index, threshold in enumerate(thresholds):
+                if first_alert[budget_index, entity_id] != 0:
+                    continue
+                crossing = running >= threshold
+                if bool(crossing.any()):
+                    first_alert[budget_index, entity_id] = (
+                        exposure_offset + int(np.argmax(crossing)) + 1
+                    )
+        if (entity_id + 1) % 4096 == 0 or entity_id + 1 == N_ENTITY:
+            beat("六档首次告警", entity_id + 1, N_ENTITY, started)
 
-    for budget_key, readout in readouts.items():
+    for budget_index, (budget_key, readout) in enumerate(budget_items):
         point = readout["actual_reachable_point"]
         threshold = float(point["threshold"])
-        candidate = np.where(running >= threshold, exposure_index, sentinel)
-        first_alert = np.minimum.reduceat(candidate, starts)
-        del candidate
-        first_alert[first_alert == sentinel] = 0
+        method_first_alert = first_alert[budget_index]
 
-        alerted_positive = positive & (first_alert > 0)
-        alerted_benign = benign & (first_alert > 0)
+        alerted_positive = positive & (method_first_alert > 0)
+        alerted_benign = benign & (method_first_alert > 0)
         benign_alert_count = int(alerted_benign.sum())
         if benign_alert_count != int(point["path_false_positive_entity_count"]):
             raise SystemExit(
                 f"{budget_key} 良性首次告警数 {benign_alert_count} 与该阈值 path_fp "
                 f"{point['path_false_positive_entity_count']} 不一致"
             )
-        positive_positions = first_alert[alerted_positive]
+        positive_positions = method_first_alert[alerted_positive]
         if len(positive_positions):
             breakpoints, counts = np.unique(positive_positions, return_counts=True)
             axis = np.r_[0, breakpoints].astype(np.int64)
@@ -971,7 +1146,7 @@ def first_alert_timely(
         else:
             axis = np.zeros(1, dtype=np.int64)
             rate = np.zeros(1, dtype=np.float64)
-        never_alerted = int((positive & (first_alert == 0)).sum())
+        never_alerted = int((positive & (method_first_alert == 0)).sum())
         summaries[budget_key] = {
             "nominal_budget": readout["nominal_budget"],
             "common_integer_budget": readout["common_integer_budget"],
@@ -997,7 +1172,7 @@ def first_alert_timely(
         }
         vectors[f"{budget_key}__exposure_index"] = axis
         vectors[f"{budget_key}__timely_detection_rate"] = rate
-        del first_alert, positive_positions
+        del positive_positions
 
     return (
         {
@@ -1096,28 +1271,35 @@ def aggregate_method(
     shared: Mapping[str, Any],
     flow_probabilities: Any,
     source_receipt: Mapping[str, Any],
+    scan_block: int,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """单方法在线聚合：只在逐流概率驻留一份时完成两次稳定顺序扫描。"""
     clip = contract["probability_clip"]
-    values, raw_minimum, raw_maximum = ordered_probabilities(flow_probabilities, shared, clip)
+    if clip is not None:
+        raise SystemExit(f"{method_key} 冻结合同禁止概率裁剪")
+    raw_minimum, raw_maximum = validate_flow_probabilities(flow_probabilities, scan_block)
     online = contract["online_score"]
     if online == "prefix_maximum":
-        running = running_prefix_maximum(values, shared["starts"], shared["lengths"])
         exponent: float | None = None
+        online_formula = "r_ej=max_{1<=u<=j}(q_eu)"
     elif online == "running_arithmetic_mean":
         exponent = 1.0
-        running = running_power_mean(values, shared, exponent)
+        online_formula = "r_ej=(1/j)*sum_{u=1}^j(q_eu)"
     else:
         exponent = float(source_receipt["power_mean_p"])
-        running = running_power_mean(values, shared, exponent)
+        online_formula = "r_ej=((1/j)*sum_{u=1}^j(q_eu^p))^(1/p)"
 
-    path_max, terminal = path_and_terminal(running, shared)
+    path_max, terminal = path_and_terminal_by_entity(
+        flow_probabilities, shared, online, exponent, scan_block
+    )
     if online == "prefix_maximum" and not np.array_equal(path_max, terminal):
         raise SystemExit(f"{method_key} 前缀最大池化的路径与终端读数未逐位相等")
     curve = complete_tie_group_curve(path_max, terminal, shared["entity_labels"])
     index_by_budget = project_integer_budgets(curve["path_false_positive_entity_count"])
     readouts = budget_readouts(curve, index_by_budget)
-    timely, timely_vectors = first_alert_timely(running, shared, curve, readouts)
+    timely, timely_vectors = first_alert_timely(
+        flow_probabilities, shared, readouts, online, exponent, scan_block
+    )
 
     vectors = {name: curve[name] for name in PATH_CURVE_FIELDS if name in curve}
     vectors["last_reachable_index_by_integer_budget"] = index_by_budget
@@ -1132,19 +1314,27 @@ def aggregate_method(
         "online_score": online,
         "terminal_score": contract["terminal_score"],
         "power_mean_p": exponent,
-        "probability_clip": None if clip is None else [float(clip[0]), float(clip[1])],
+        "probability_clip": None,
         "raw_probability_range": {"minimum": raw_minimum, "maximum": raw_maximum},
         "curve_point_count": int(len(curve["threshold"])),
         "path_max_equals_terminal": bool(np.array_equal(path_max, terminal)),
         "budget_readouts": readouts,
         "first_alert": timely,
-        "score_source": dict(source_receipt),
+        "score_source": {
+            **dict(source_receipt),
+            "raw_probability_range": {"minimum": raw_minimum, "maximum": raw_maximum},
+            "online_score": online,
+            "online_formula": online_formula,
+            "probability_clip": None,
+            "original_probabilities_used_without_clipping": True,
+            "power_mean_p": exponent,
+        },
         "persisted_per_flow_scores": False,
         "persisted_per_entity_scores": False,
         "persisted_per_entity_first_alert": False,
         "persisted_entity_mapping": False,
     }
-    del values, running, path_max, terminal, curve, index_by_budget
+    del path_max, terminal, curve, index_by_budget
     return aggregate, vectors
 
 
@@ -1158,6 +1348,18 @@ def stage_validate_shared_identity(context: dict[str, Any]) -> dict[str, Any]:
     project_root = context["project_root"]
     output_root = context["output_root"]
     write_status(output_root, "running", "validate_shared_identity", "核验共享数组、实体与全部冻结输入", None)
+    existing_receipt_path = output_root / "input-validation-receipt.json"
+    if existing_receipt_path.is_file():
+        if not context["resume"]:
+            raise SystemExit("阶段一输入收据已存在；仅允许严格恢复，禁止覆盖")
+        receipt = ensure_input_receipt(context)
+        revalidate_frozen_inputs(context)
+        shared = build_shared_layer(project_root, config)
+        if shared["identity"] != receipt.get("shared_identity"):
+            raise SystemExit("恢复时共享实体身份与阶段一收据不符")
+        context["shared"] = shared
+        log("阶段一输入文件、工具、配置与共享实体身份严格匹配，幂等复用")
+        return receipt
 
     files: dict[str, Any] = {}
     for name, item in config["shared_inputs"].items():
@@ -1165,6 +1367,11 @@ def stage_validate_shared_identity(context: dict[str, Any]) -> dict[str, Any]:
         if missing is not None:
             raise SystemExit(f"共享评价输入不可缺失：{missing}")
         files[f"shared/{name}"] = receipt
+    for name, item in config["tracking_inputs"].items():
+        receipt, missing = probe_frozen_file(project_root, item)
+        if missing is not None or receipt is None:
+            raise SystemExit(f"统一追踪输入不可缺失：{missing}")
+        files[f"tracking/{name}"] = receipt
 
     unreachable: dict[str, str] = {}
     for method_key, contract in config["methods"].items():
@@ -1172,6 +1379,8 @@ def stage_validate_shared_identity(context: dict[str, Any]) -> dict[str, Any]:
         for name, item in contract["inputs"].items():
             receipt, missing = probe_frozen_file(project_root, item)
             if missing is not None:
+                if name == "scoring_helper":
+                    raise SystemExit(f"评分辅助脚本不可缺失：{missing}")
                 reasons.append(missing)
             else:
                 files[f"{method_key}/{name}"] = receipt
@@ -1217,14 +1426,29 @@ def ensure_input_receipt(context: dict[str, Any]) -> dict[str, Any]:
             "请先执行 --stage validate_shared_identity 或使用 --stage compute"
         )
     receipt = load_json(receipt_path)
+    config_snapshot_path = context["output_root"] / "config.json"
     if (
         receipt.get("tool_sha256") != context["tool_sha256"]
         or receipt.get("config_sha256") != context["config_sha256"]
+        or not config_snapshot_path.is_file()
+        or load_json(config_snapshot_path) != context["config"]
     ):
         raise SystemExit("工具或配置身份自阶段一以来已变化，拒绝续跑")
     context["input_receipt"] = receipt
     context["unreachable"] = dict(receipt.get("unreachable_methods", {}))
     return receipt
+
+
+def record_method_unreachable(context: dict[str, Any], method_key: str, reason: str) -> None:
+    """只登记冻结模型身份或重放不可达；调用方不得用它吞掉工程异常。"""
+    receipt = ensure_input_receipt(context)
+    unreachable = dict(receipt.get("unreachable_methods", {}))
+    unreachable[method_key] = reason
+    receipt["unreachable_methods"] = unreachable
+    atomic_json(context["output_root"] / "input-validation-receipt.json", receipt)
+    context["input_receipt"] = receipt
+    context["unreachable"] = unreachable
+    log(f"方法不可达：{method_key}（{reason}）")
 
 
 def require_shared(context: dict[str, Any]) -> dict[str, Any]:
@@ -1239,9 +1463,38 @@ def require_shared(context: dict[str, Any]) -> dict[str, Any]:
     return shared
 
 
+def revalidate_frozen_inputs(context: Mapping[str, Any]) -> None:
+    """恢复时重新哈希全部冻结输入，并与阶段一文件集合严格比较。"""
+    config = context["config"]
+    project_root = context["project_root"]
+    receipt = load_json(context["output_root"] / "input-validation-receipt.json")
+    files: dict[str, Any] = {}
+    for name, item in config["shared_inputs"].items():
+        file_receipt, missing = probe_frozen_file(project_root, item)
+        if missing is not None or file_receipt is None:
+            raise SystemExit(f"恢复时共享输入不可达：{missing}")
+        files[f"shared/{name}"] = file_receipt
+    for name, item in config["tracking_inputs"].items():
+        file_receipt, missing = probe_frozen_file(project_root, item)
+        if missing is not None or file_receipt is None:
+            raise SystemExit(f"恢复时统一追踪输入不可达：{missing}")
+        files[f"tracking/{name}"] = file_receipt
+    for method_key, contract in config["methods"].items():
+        for name, item in contract["inputs"].items():
+            file_receipt, missing = probe_frozen_file(project_root, item)
+            if missing is None and file_receipt is not None:
+                files[f"{method_key}/{name}"] = file_receipt
+            elif name == "scoring_helper":
+                raise SystemExit(f"恢复时评分辅助脚本不可达：{missing}")
+    if files != receipt.get("files") or canonical_sha256(files) != receipt.get(
+        "files_canonical_sha256"
+    ):
+        raise SystemExit("恢复时冻结输入当前集合与阶段一输入收据不严格相等")
+
+
 def method_identity(context: dict[str, Any], method_key: str) -> dict[str, Any]:
     contract = context["config"]["methods"][method_key]
-    return {
+    identity = {
         "tool_sha256": context["tool_sha256"],
         "config_sha256": context["config_sha256"],
         "shared_identity_sha256": canonical_sha256(require_shared(context)["identity"]),
@@ -1250,7 +1503,11 @@ def method_identity(context: dict[str, Any], method_key: str) -> dict[str, Any]:
         ),
         "online_score": contract["online_score"],
         "terminal_score": contract["terminal_score"],
+        "probability_clip": contract["probability_clip"],
     }
+    if "scoring_helper" in contract["inputs"]:
+        identity["scoring_helper_sha256"] = contract["inputs"]["scoring_helper"]["sha256"]
+    return identity
 
 
 def skip_unreachable(context: dict[str, Any], method_key: str) -> bool:
@@ -1310,7 +1567,12 @@ def stage_published_neural_aggregate(context: dict[str, Any]) -> None:
             "target_scores_persisted": False,
         }
         aggregate, vectors = aggregate_method(
-            method_key, contract, shared, flow_probabilities, source_receipt
+            method_key,
+            contract,
+            shared,
+            flow_probabilities,
+            source_receipt,
+            int(config["execution"]["online_scan_block"]),
         )
         aggregate["stage_seconds"] = time.time() - started
         publish_method(output_root, method_key, identity, aggregate, vectors)
@@ -1345,6 +1607,7 @@ def stage_xgb_rescore_and_aggregate(context: dict[str, Any]) -> None:
         None,
         context.get("unreachable"),
     )
+    helper_receipt = require_scoring_helper_identity(project_root, method_key, contract)
     if str(TOOL_DIR) not in sys.path:
         sys.path.insert(0, str(TOOL_DIR))
     try:
@@ -1354,13 +1617,32 @@ def stage_xgb_rescore_and_aggregate(context: dict[str, Any]) -> None:
             f"无法导入冻结 XGBoost 回填入口以复用 semantic168 与打分逻辑：{error}"
         ) from error
     xgb_backfill.load_numeric_dependencies()
+    import torch as torch_runtime
+    import xgboost as xgboost_module
+
+    xgboost_build = xgboost_module.build_info()
+    if xgboost_module.__version__ != "3.2.0" or xgboost_build.get("USE_CUDA") is not True:
+        raise SystemExit(
+            f"XGBoost 工程环境不符：version={xgboost_module.__version__} "
+            f"USE_CUDA={xgboost_build.get('USE_CUDA')}"
+        )
+    if not torch_runtime.cuda.is_available():
+        raise SystemExit("CUDA 不可用，拒绝以 CPU 冒充 GPU 打分")
 
     parent_root = resolve_within(
         project_root, str(contract["inputs"]["semantic168_model"]["relative_path"])
     ).parent
-    booster, torch_module, xgboost_version = xgb_backfill.load_frozen_model(
-        {"paths": {"parent_run_root": str(parent_root)}}
-    )
+    try:
+        booster, torch_module, xgboost_version = xgb_backfill.load_frozen_model(
+            {"paths": {"parent_run_root": str(parent_root)}}
+        )
+    except (xgboost_module.core.XGBoostError, SystemExit) as error:
+        record_method_unreachable(
+            context,
+            method_key,
+            f"冻结 semantic168 模型无法由固定 XGBoost 入口重放：{type(error).__name__}: {error}",
+        )
+        return
     cache_root = resolve_within(project_root, str(contract["inputs"]["target_features"]["relative_path"])).parent
     started = time.time()
     features = np.load(cache_root / "X24.npy", mmap_mode="r", allow_pickle=False)
@@ -1371,7 +1653,7 @@ def stage_xgb_rescore_and_aggregate(context: dict[str, Any]) -> None:
         features,
         sequence_index,
         sequence_mask,
-        int(config["execution"]["xgb_predict_batch"]),
+        int(config["execution"]["online_scan_block"]),
         int(config["execution"]["xgb_sequence_batch"]),
     )
     del features, sequence_index, sequence_mask
@@ -1379,7 +1661,7 @@ def stage_xgb_rescore_and_aggregate(context: dict[str, Any]) -> None:
     flow_probabilities, api_batches = xgb_backfill.predict_once(
         booster,
         semantic,
-        int(config["execution"]["xgb_predict_batch"]),
+        int(config["execution"]["online_scan_block"]),
         torch_module,
     )
     scoring_seconds = time.time() - score_started
@@ -1390,6 +1672,7 @@ def stage_xgb_rescore_and_aggregate(context: dict[str, Any]) -> None:
         "source_kind": contract["source_kind"],
         "relative_path": contract["inputs"]["semantic168_model"]["relative_path"],
         "sha256": contract["inputs"]["semantic168_model"]["sha256"],
+        "scoring_helper": helper_receipt,
         "xgboost_version": xgboost_version,
         "prediction_device": "cuda:0",
         "semantic168_build_count": 1,
@@ -1404,7 +1687,12 @@ def stage_xgb_rescore_and_aggregate(context: dict[str, Any]) -> None:
         "target_scores_persisted": False,
     }
     aggregate, vectors = aggregate_method(
-        method_key, contract, shared, flow_probabilities, source_receipt
+        method_key,
+        contract,
+        shared,
+        flow_probabilities,
+        source_receipt,
+        int(config["execution"]["xgb_predict_batch"]),
     )
     aggregate["stage_seconds"] = time.time() - started
     publish_method(output_root, method_key, identity, aggregate, vectors)
@@ -1425,7 +1713,7 @@ def read_o11_power_mean_p(project_root: Path, contract: Mapping[str, Any], torch
     selection = load_json(receipt_path)
     value = selection.get("selection", {}).get("p_at_selection")
     if not isinstance(value, (int, float)) or not math.isfinite(float(value)) or float(value) <= 0.0:
-        raise SystemExit("O11 选择收据缺少有限正的 p_at_selection")
+        raise MethodIdentityUnavailable("O11 选择收据缺少有限正的 p_at_selection")
     receipt_p = float(value)
     checkpoint_path = resolve_within(
         project_root, str(contract["inputs"]["selected_checkpoint"]["relative_path"])
@@ -1433,13 +1721,13 @@ def read_o11_power_mean_p(project_root: Path, contract: Mapping[str, Any], torch
     payload = torch_module.load(checkpoint_path, map_location="cpu", weights_only=False)
     state = payload.get("model", {})
     if "p_log" not in state:
-        raise SystemExit("O11 选中检查点缺少学习幂平均参数 p_log")
+        raise MethodIdentityUnavailable("O11 选中检查点缺少学习幂平均参数 p_log")
     checkpoint_p = float(
         torch_module.exp(state["p_log"].float()).clamp(1e-3, 1e3).item()
     )
     tolerance = 4.0 * sys.float_info.epsilon * max(1.0, abs(receipt_p))
     if abs(checkpoint_p - receipt_p) > tolerance:
-        raise SystemExit(
+        raise MethodIdentityUnavailable(
             f"O11 检查点复算 p={checkpoint_p!r} 与选择收据 p={receipt_p!r} 不一致"
         )
     return {
@@ -1476,6 +1764,7 @@ def stage_mlp_infer_and_aggregate(context: dict[str, Any]) -> None:
         None,
         context.get("unreachable"),
     )
+    helper_receipt = require_scoring_helper_identity(project_root, method_key, contract)
     if str(TOOL_DIR) not in sys.path:
         sys.path.insert(0, str(TOOL_DIR))
     try:
@@ -1492,13 +1781,37 @@ def stage_mlp_infer_and_aggregate(context: dict[str, Any]) -> None:
         project_root, str(contract["inputs"]["frozen_run_config"]["relative_path"])
     )
     mlp_config = load_json(mlp_config_path)
-    mlp_bf16.validate_config(mlp_config)
+    try:
+        mlp_bf16.validate_config(mlp_config)
+    except (ValueError, SystemExit) as error:
+        record_method_unreachable(
+            context,
+            method_key,
+            f"O11 冻结运行配置无法通过固定入口身份门：{type(error).__name__}: {error}",
+        )
+        return
     mlp_bf16.install_runtime(mlp_config, argparse.Namespace(config=str(mlp_config_path)))
 
-    power = read_o11_power_mean_p(project_root, contract, torch_module)
+    try:
+        power = read_o11_power_mean_p(project_root, contract, torch_module)
+    except MethodIdentityUnavailable as error:
+        record_method_unreachable(
+            context,
+            method_key,
+            f"O11 检查点与选择收据身份不可重放：{type(error).__name__}: {error}",
+        )
+        return
     started = time.time()
     model = mlp_bf16.build_model(mlp_config, "O11")
-    model.load_state_dict(power.pop("state_dict"))
+    try:
+        model.load_state_dict(power.pop("state_dict"))
+    except RuntimeError as error:
+        record_method_unreachable(
+            context,
+            method_key,
+            f"O11 选中检查点状态与固定模型身份不兼容：{type(error).__name__}: {error}",
+        )
+        return
     device = torch_module.device("cuda:0")
     model = model.to(device)
     recomputed = float(model.p.detach().cpu().item())
@@ -1532,6 +1845,7 @@ def stage_mlp_infer_and_aggregate(context: dict[str, Any]) -> None:
         "source_kind": contract["source_kind"],
         "relative_path": contract["inputs"]["selected_checkpoint"]["relative_path"],
         "sha256": contract["inputs"]["selected_checkpoint"]["sha256"],
+        "scoring_helper": helper_receipt,
         "torch_version": str(torch_module.__version__),
         "precision_profile_id": mlp_bf16.PROFILE_ID,
         "probability_generated_in_fp32_island": True,
@@ -1545,7 +1859,12 @@ def stage_mlp_infer_and_aggregate(context: dict[str, Any]) -> None:
         **power,
     }
     aggregate, vectors = aggregate_method(
-        method_key, contract, shared, flow_probabilities, source_receipt
+        method_key,
+        contract,
+        shared,
+        flow_probabilities,
+        source_receipt,
+        int(config["execution"]["xgb_predict_batch"]),
     )
     aggregate["stage_seconds"] = time.time() - started
     publish_method(output_root, method_key, identity, aggregate, vectors)
@@ -1771,6 +2090,11 @@ def stage_common_budget_projection(context: dict[str, Any]) -> None:
             "schema_version": "ch3-common-first-alert-score-source-v1",
             "run_id": RUN_ID,
             "methods": score_sources,
+            "unreachable_methods": unreachable,
+            "scoring_helper_sha256": {
+                key: config["methods"][key]["inputs"]["scoring_helper"]["sha256"]
+                for key in ("xgb_cpa_elp_c11", "full_mlp_o11")
+            },
             "training_runs": 0,
             "hyperparameter_selection_runs": 0,
             "target_scores_persisted": False,
@@ -1881,6 +2205,7 @@ def collect_resource_receipt(context: dict[str, Any], admission: Mapping[str, An
         "authorized_server": context["config"]["resource_contract"]["authorized_server"],
         "hostname": platform.node(),
         "admission": dict(admission),
+        "swanlab_health_gate": dict(context["swanlab_health_gate"]),
         "stages": stages,
         "gpu": gpu_receipts,
         "process_peak_rss_mib": process_peak_rss_mib(),
@@ -1905,24 +2230,62 @@ def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
     output_root = context["output_root"]
     tracking = config["tracking"]
     aggregate = load_json(output_root / "aggregate-results.json")
-    import swanlab
+    tracking_input_receipts: dict[str, Any] = {}
+    for name, item in config["tracking_inputs"].items():
+        input_receipt, missing = probe_frozen_file(context["project_root"], item)
+        if missing is not None or input_receipt is None:
+            raise SystemExit(f"SwanLab 初始化前统一追踪输入不可达：{missing}")
+        tracking_input_receipts[name] = input_receipt
+    source_root = context["project_root"] / "src"
+    if str(source_root) not in sys.path:
+        sys.path.insert(0, str(source_root))
+    from flow_probe.tracking import initialize_swanlab_run
 
-    swanlab.init(
-        workspace=tracking["workspace"],
-        project=tracking["project"],
-        name=DISPLAY_NAME,
-        config={
-            "run_id": RUN_ID,
-            "display_name": DISPLAY_NAME,
-            "dataset": "LSPR24",
-            "method_count": aggregate["method_count"],
-            "verdict": aggregate["verdict"],
-            "tool_sha256": context["tool_sha256"],
-            "config_sha256": context["config_sha256"],
-        },
-        mode=tracking["mode"],
-        logdir=str(output_root / "swanlog"),
+    tracking_config = {
+        "run_id": RUN_ID,
+        "display_name": DISPLAY_NAME,
+        "dataset": "LSPR24",
+        "method_count": aggregate["method_count"],
+        "verdict": aggregate["verdict"],
+        "tool_sha256": context["tool_sha256"],
+        "config_sha256": context["config_sha256"],
+    }
+    destination = {
+        "workspace": tracking["workspace"],
+        "project": tracking["project"],
+        "name": DISPLAY_NAME,
+        "group": RUN_ID,
+        "mode": tracking["mode"],
+        "tags": tracking["tags"],
+    }
+    expected_destination = {
+        key: destination[key] for key in ("workspace", "project", "name", "group", "mode")
+    }
+    swanlab, run, tag_receipt = initialize_swanlab_run(
+        destination,
+        alias_config_path=resolve_within(
+            context["project_root"],
+            config["tracking_inputs"]["tag_alias_config"]["relative_path"],
+        ),
+        expected_alias_config_sha256=config["tracking_inputs"]["tag_alias_config"]["sha256"],
+        config=tracking_config,
+        log_dir=output_root / "swanlog/finalize",
+        tag_receipt_path=output_root / "swanlab-tag-receipt.json",
+        authorized_workspace=tracking["workspace"],
+        authorized_project=tracking["project"],
     )
+    if (
+        tag_receipt.get("expected_swanlab_version") != tracking["expected_swanlab_version"]
+        or tag_receipt.get("actual_swanlab_version") != tracking["expected_swanlab_version"]
+        or tag_receipt.get("alias_config_sha256")
+        != config["tracking_inputs"]["tag_alias_config"]["sha256"]
+        or tag_receipt.get("requested_destination") != expected_destination
+        or tag_receipt.get("effective_destination") != expected_destination
+        or tag_receipt.get("effective_tags") != tracking["tags"]
+        or tag_receipt.get("tag_count") != len(tracking["tags"])
+        or int(tag_receipt.get("maximum_tag_codepoints", 10**9)) > 20
+    ):
+        raise SystemExit("统一 SwanLab 收据的版本、别名或最终目的地不符")
     log_values: dict[str, float] = {}
     for method_key, payload in aggregate["methods"].items():
         for budget_key, readout in payload["budget_readouts"].items():
@@ -1935,8 +2298,13 @@ def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
             log_values[f"first_alert_fpr/{method_key}_{budget_key}"] = summary[
                 "actual_first_alert_false_positive_rate"
             ]
-    swanlab.log(log_values, step=0)
-    swanlab.finish()
+    try:
+        swanlab.log(log_values, step=0)
+    except BaseException as error:
+        swanlab.finish(state="crashed", error=str(error))
+        raise
+    else:
+        swanlab.finish()
     receipt = {
         "schema_version": "ch3-common-first-alert-swanlab-v1",
         "run_id": RUN_ID,
@@ -1944,7 +2312,19 @@ def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
         "workspace": tracking["workspace"],
         "project": tracking["project"],
         "mode": tracking["mode"],
+        "expected_swanlab_version": tag_receipt["expected_swanlab_version"],
+        "actual_swanlab_version": tag_receipt["actual_swanlab_version"],
+        "requested_destination": tag_receipt["requested_destination"],
+        "effective_destination": tag_receipt["effective_destination"],
+        "requested_mode": tag_receipt["requested_mode"],
+        "effective_mode": tag_receipt["effective_mode"],
+        "tracking_inputs": tracking_input_receipts,
         "aggregate_only": True,
+        "cloud_run_id": str(run.id),
+        "effective_tags": tag_receipt["effective_tags"],
+        "tag_count": tag_receipt["tag_count"],
+        "maximum_tag_codepoints": tag_receipt["maximum_tag_codepoints"],
+        "tag_contract_sha256": tag_receipt["contract_sha256"],
         "logged_scalar_count": len(log_values),
         "per_flow_scores_logged": False,
         "per_entity_scores_logged": False,
@@ -1955,25 +2335,48 @@ def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
     return receipt
 
 
-def assert_no_forbidden_artifacts(output_root: Path) -> list[str]:
+def artifact_name_is_allowed(relative: str, method_keys: set[str]) -> bool:
+    if relative in CORE_ARTIFACT_NAMES:
+        return True
+    if relative.startswith("swanlog/") and len(Path(relative).parts) > 1:
+        return True
+    if relative.startswith("stage-receipts/"):
+        return relative in {f"stage-receipts/{stage}.json" for stage in STAGES[:-1]}
+    return relative in {
+        name for method_key in method_keys for name in method_artifact_names(method_key)
+    }
+
+
+def assert_no_forbidden_artifacts(output_root: Path, method_keys: set[str]) -> list[str]:
     names: list[str] = []
     for path in sorted(output_root.rglob("*")):
-        if not path.is_file():
-            continue
         relative = str(path.relative_to(output_root))
-        if relative.startswith("swanlog/"):
-            continue
+        if path.is_symlink():
+            raise SystemExit(f"输出根存在符号链接，拒绝清单封口：{relative}")
+        if path.is_dir():
+            if relative in {"method-aggregates", "stage-receipts", "swanlog"}:
+                continue
+            if relative.startswith("swanlog/"):
+                continue
+            raise SystemExit(f"输出根存在未登记的额外目录：{relative}")
+        if not path.is_file():
+            raise SystemExit(f"输出根存在非常规文件系统对象：{relative}")
         names.append(relative)
         lowered = relative.lower()
         if any(fragment in lowered for fragment in FORBIDDEN_NAME_FRAGMENTS):
             raise SystemExit(f"发现禁止持久化的分数、映射、派生矩阵或模型制品：{relative}")
         if lowered.endswith(".partial") or ".partial." in lowered:
             raise SystemExit(f"输出根存在未发布临时文件，拒绝宣称完成：{relative}")
+        if not artifact_name_is_allowed(relative, method_keys):
+            raise SystemExit(f"输出根存在未登记的额外制品：{relative}")
     return names
 
 
-def validate_existing_manifest(output_root: Path, context: Mapping[str, Any]) -> dict[str, Any]:
+def validate_existing_manifest(
+    output_root: Path, context: Mapping[str, Any], *, revalidate_inputs: bool = True
+) -> dict[str, Any]:
     manifest = load_json(output_root / "manifest.json")
+    unreachable = manifest.get("unreachable_methods", {})
     if (
         manifest.get("schema_version") != MANIFEST_SCHEMA
         or manifest.get("run_id") != RUN_ID
@@ -1984,9 +2387,37 @@ def validate_existing_manifest(output_root: Path, context: Mapping[str, Any]) ->
         or manifest.get("per_entity_scores_persisted") is not False
         or manifest.get("per_entity_first_alert_persisted") is not False
         or manifest.get("entity_mapping_persisted") is not False
+        or manifest.get("workflow_complete") is not True
+        or not isinstance(manifest.get("complete"), bool)
+        or not isinstance(unreachable, dict)
+        or not set(unreachable).issubset(METHOD_KEYS)
+        or manifest.get("method_count") != len(METHOD_KEYS) - len(unreachable)
+        or manifest.get("complete") != (not unreachable)
+        or manifest.get("scoring_helper_sha256")
+        != {
+            key: context["config"]["methods"][key]["inputs"]["scoring_helper"]["sha256"]
+            for key in ("xgb_cpa_elp_c11", "full_mlp_o11")
+        }
+        or manifest.get("tracking_input_sha256")
+        != {
+            name: item["sha256"] for name, item in context["config"]["tracking_inputs"].items()
+        }
     ):
         raise SystemExit("已有最终清单的身份或零持久化合同不符，拒绝覆盖")
-    for name, item in manifest.get("files", {}).items():
+    if revalidate_inputs:
+        revalidate_frozen_inputs(context)
+    files = manifest.get("files", {})
+    if not isinstance(files, dict):
+        raise SystemExit("已有最终清单的文件表不是对象")
+    available_methods = set(METHOD_KEYS) - set(unreachable)
+    current_names = set(assert_no_forbidden_artifacts(output_root, available_methods))
+    if current_names != set(files) | {"manifest.json"}:
+        missing = sorted(set(files) - current_names)
+        extra = sorted(current_names - set(files) - {"manifest.json"})
+        raise SystemExit(
+            f"当前允许制品集合与清单不严格相等：missing={missing} extra={extra}"
+        )
+    for name, item in files.items():
         path = output_root / name
         if (
             not path.is_file()
@@ -1994,6 +2425,22 @@ def validate_existing_manifest(output_root: Path, context: Mapping[str, Any]) ->
             or sha256_file(path) != item.get("sha256")
         ):
             raise SystemExit(f"已有最终制品与清单不符：{name}")
+    aggregate = load_json(output_root / "aggregate-results.json")
+    status = load_json(output_root / "status.json")
+    score_source = load_json(output_root / "score-source-receipt.json")
+    if (
+        manifest.get("complete") != aggregate.get("complete")
+        or manifest.get("verdict") != aggregate.get("verdict")
+        or manifest.get("method_count") != aggregate.get("method_count")
+        or unreachable != aggregate.get("unreachable_methods")
+        or status.get("state") != "complete"
+        or status.get("workflow_complete") is not True
+        or status.get("envelope_closed") != manifest.get("complete")
+        or status.get("unreachable_methods") != unreachable
+        or status.get("exit_code") != 0
+        or score_source.get("scoring_helper_sha256") != manifest.get("scoring_helper_sha256")
+    ):
+        raise SystemExit("最终清单与聚合结果、状态或分数来源收据不一致")
     return manifest
 
 
@@ -2003,10 +2450,8 @@ def stage_finalize(context: dict[str, Any]) -> None:
         if not context["resume"]:
             raise SystemExit("最终清单已存在；仅允许用 --resume 幂等核验，禁止重复上报跟踪运行")
         manifest = validate_existing_manifest(output_root, context)
-        print(
-            f"RUN_ALREADY_COMPLETE run={RUN_ID} verdict={manifest.get('verdict')}",
-            flush=True,
-        )
+        marker = "RUN_ALREADY_COMPLETE" if manifest["complete"] else "RUN_COMPLETED_ENVELOPE_OPEN"
+        print(f"{marker} run={RUN_ID} verdict={manifest.get('verdict')}", flush=True)
         return
     admission_path = context["admission_receipt"]
     if admission_path is None:
@@ -2014,6 +2459,33 @@ def stage_finalize(context: dict[str, Any]) -> None:
     if not admission_path.is_file():
         raise SystemExit(f"资源准入读数缺失：{admission_path}")
     admission = load_json(admission_path)
+    swanlab_health_path = admission_path.parent / "swanlab-health-receipt.json"
+    if not swanlab_health_path.is_file():
+        raise SystemExit("启动器 SwanLab ping/verify 收据缺失")
+    swanlab_health = load_json(swanlab_health_path)
+    if (
+        swanlab_health.get("passed") is not True
+        or swanlab_health.get("ping_exit_code") != 0
+        or swanlab_health.get("verify_exit_code") != 0
+    ):
+        raise SystemExit("启动器 SwanLab ping/verify 门未通过")
+    expected_health_logs = {
+        "ping": "swanlab-ping.log",
+        "verify": "swanlab-verify.log",
+    }
+    if set(swanlab_health.get("logs", {})) != set(expected_health_logs):
+        raise SystemExit("启动器 SwanLab 健康门日志收据集合不符")
+    for key, filename in expected_health_logs.items():
+        item = swanlab_health["logs"][key]
+        path = swanlab_health_path.parent / filename
+        if (
+            item.get("relative_path") != filename
+            or not path.is_file()
+            or path.stat().st_size != item.get("bytes")
+            or sha256_file(path) != item.get("sha256")
+        ):
+            raise SystemExit(f"启动器 SwanLab 健康门日志摘要不符：{filename}")
+    context["swanlab_health_gate"] = swanlab_health
     for name in (
         "aggregate-results.json",
         "complete-path-budget-curves.npz",
@@ -2037,24 +2509,43 @@ def stage_finalize(context: dict[str, Any]) -> None:
     publish_tracking(context)
     aggregate = load_json(output_root / "aggregate-results.json")
     unreachable = aggregate.get("unreachable_methods", {})
-    state = "complete" if aggregate.get("complete") else "incomplete"
     detail = (
         "五方法共同首次告警包络已完整发布"
         if aggregate.get("complete")
         else "存在不可达方法，只发布已完成方法的描述性曲线"
     )
-    write_status(output_root, state, "complete", detail, 0, unreachable)
+    write_status(
+        output_root,
+        "complete",
+        "complete",
+        detail,
+        0,
+        unreachable,
+        envelope_closed=bool(aggregate.get("complete")),
+    )
 
-    names = assert_no_forbidden_artifacts(output_root)
+    available_methods = set(METHOD_KEYS) - set(unreachable)
+    names = assert_no_forbidden_artifacts(output_root, available_methods)
+    swanlog_names = [name for name in names if name.startswith("swanlog/")]
+    if not swanlog_names:
+        raise SystemExit("SwanLab 原始日志为空，拒绝最终清单封口")
     files = {name: artifact_receipt(output_root / name) for name in names if name != "manifest.json"}
     manifest = {
         "schema_version": MANIFEST_SCHEMA,
         "run_id": RUN_ID,
         "display_name": DISPLAY_NAME,
         "complete": bool(aggregate.get("complete")),
+        "workflow_complete": True,
         "verdict": aggregate.get("verdict"),
         "tool_sha256": context["tool_sha256"],
         "config_sha256": context["config_sha256"],
+        "scoring_helper_sha256": {
+            key: context["config"]["methods"][key]["inputs"]["scoring_helper"]["sha256"]
+            for key in ("xgb_cpa_elp_c11", "full_mlp_o11")
+        },
+        "tracking_input_sha256": {
+            name: item["sha256"] for name, item in context["config"]["tracking_inputs"].items()
+        },
         "method_count": aggregate.get("method_count"),
         "unreachable_methods": unreachable,
         "training_runs": 0,
@@ -2069,11 +2560,13 @@ def stage_finalize(context: dict[str, Any]) -> None:
         "files": files,
     }
     atomic_json(output_root / "manifest.json", manifest)
-    for name, item in files.items():
-        path = output_root / name
-        if path.stat().st_size != item["bytes"] or sha256_file(path) != item["sha256"]:
-            raise SystemExit(f"最终制品与清单不符：{name}")
-    print(f"COMMON_FIRST_ALERT_ENVELOPE_COMPLETE run={RUN_ID} verdict={aggregate.get('verdict')}", flush=True)
+    validate_existing_manifest(output_root, context, revalidate_inputs=False)
+    marker = (
+        "COMMON_FIRST_ALERT_ENVELOPE_COMPLETE"
+        if aggregate.get("complete")
+        else "COMMON_FIRST_ALERT_WORKFLOW_COMPLETE_ENVELOPE_OPEN"
+    )
+    print(f"{marker} run={RUN_ID} verdict={aggregate.get('verdict')}", flush=True)
 
 
 # ----------------------------------------------------------------------------
@@ -2103,6 +2596,14 @@ def run_stage(context: dict[str, Any], stage: str) -> None:
 def execute(context: dict[str, Any], stage: str) -> None:
     output_root = context["output_root"]
     output_root.mkdir(parents=True, exist_ok=True)
+    manifest_path = output_root / "manifest.json"
+    if manifest_path.is_file() and stage != "finalize":
+        if not context["resume"]:
+            raise SystemExit("最终清单已存在；仅允许用 --resume 严格核验，禁止续写完成目录")
+        manifest = validate_existing_manifest(output_root, context)
+        marker = "RUN_ALREADY_COMPLETE" if manifest["complete"] else "RUN_COMPLETED_ENVELOPE_OPEN"
+        print(f"{marker} run={RUN_ID} verdict={manifest.get('verdict')}", flush=True)
+        return
     if not (output_root / "status.json").is_file():
         write_status(output_root, "pending", stage, "运行目录已建立，尚未进入首个阶段", None)
     elif context["resume"] and stage != "finalize":
@@ -2146,7 +2647,14 @@ def main() -> int:
         execute(context, args.stage)
     except BaseException as error:  # noqa: BLE001 - 失败必须保留状态与原退出码
         output_root.mkdir(parents=True, exist_ok=True)
-        write_status(output_root, "failed", args.stage, f"{type(error).__name__}: {error}"[:1000], 1)
+        if not (output_root / "manifest.json").is_file():
+            write_status(
+                output_root,
+                "failed",
+                args.stage,
+                f"{type(error).__name__}: {error}"[:1000],
+                1,
+            )
         traceback.print_exc()
         return 1
     return 0
