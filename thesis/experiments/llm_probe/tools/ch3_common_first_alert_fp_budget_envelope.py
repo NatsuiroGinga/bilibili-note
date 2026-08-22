@@ -169,6 +169,10 @@ class MethodIdentityUnavailable(RuntimeError):
     """冻结模型或选择身份无法由原入口重放。"""
 
 
+class RetryableSwanLabInit401(RuntimeError):
+    """首次零步初始化 401，只有启动器可用全新进程重试一次。"""
+
+
 # ----------------------------------------------------------------------------
 # 基础设施
 # ----------------------------------------------------------------------------
@@ -363,6 +367,8 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="启动器写出的资源准入读数，finalize 阶段必填",
     )
+    parser.add_argument("--swanlab-attempt", type=int, choices=(1, 2), default=1, help="最终发布尝试编号")
+    parser.add_argument("--swanlab-health-receipt", type=Path, help="本次尝试的 ping/verify 健康门收据")
     return parser.parse_args()
 
 
@@ -619,6 +625,17 @@ def validate_config(config: Mapping[str, Any]) -> None:
         "aggregate_only": True,
     }:
         raise SystemExit("SwanLab 授权目的地或仅聚合上报合同不符")
+
+    if config.get("tracking_lifecycle") != {
+        "maximum_online_init_attempts": 2,
+        "retryable_first_attempt_error": "zero_step_init_401",
+        "retry_exit_code": 91,
+        "second_attempt_requires_fresh_python_process": True,
+        "health_gate_required_per_attempt": True,
+        "unknown_inflight_forbids_new_init": True,
+        "completed_receipt_allows_local_seal_only": True,
+    }:
+        raise SystemExit("SwanLab 两次上限恢复合同不符")
 
     if config.get("artifact_policy") != {
         "output_root": f"runs/diagnostics/{RUN_ID}",
@@ -2225,11 +2242,153 @@ def collect_resource_receipt(context: dict[str, Any], admission: Mapping[str, An
     }
 
 
+def production_identity_receipts(context: Mapping[str, Any]) -> dict[str, Any]:
+    project_root = context["project_root"]
+    paths = {
+        "tool": Path(__file__).resolve(),
+        "config": context["config_path"],
+        "launcher": project_root
+        / "scripts/remote_launchers/run_ch3_common_first_alert_fp_budget_envelope_v1.sh",
+    }
+    for name, item in context["config"]["tracking_inputs"].items():
+        paths[f"tracking/{name}"] = resolve_within(project_root, item["relative_path"])
+    for method_key in ("xgb_cpa_elp_c11", "full_mlp_o11"):
+        item = context["config"]["methods"][method_key]["inputs"]["scoring_helper"]
+        paths[f"scoring/{method_key}"] = resolve_within(project_root, item["relative_path"])
+    receipts: dict[str, Any] = {}
+    for name, path in paths.items():
+        if not path.is_file():
+            raise SystemExit(f"SwanLab 生产身份文件缺失：{path}")
+        receipts[name] = artifact_receipt(path) | {"path": str(path)}
+    return receipts
+
+
+def validate_swanlab_health_receipt(path: Path, attempt: int) -> dict[str, Any]:
+    if not path.is_file():
+        raise SystemExit(f"第 {attempt} 次 SwanLab 健康门收据缺失：{path}")
+    receipt = load_json(path)
+    if (
+        receipt.get("schema_version") != "ch3-common-first-alert-swanlab-health-v2"
+        or receipt.get("run_id") != RUN_ID
+        or receipt.get("attempt") != attempt
+        or receipt.get("passed") is not True
+        or receipt.get("ping_exit_code") != 0
+        or receipt.get("verify_exit_code") != 0
+    ):
+        raise SystemExit(f"第 {attempt} 次 SwanLab 健康门收据不合法")
+    expected = {"ping": "swanlab-ping.log", "verify": "swanlab-verify.log"}
+    if set(receipt.get("logs", {})) != set(expected):
+        raise SystemExit("SwanLab 健康门日志集合不符")
+    for key, filename in expected.items():
+        log_path = path.parent / filename
+        item = receipt["logs"][key]
+        if (
+            item.get("relative_path") != filename
+            or not log_path.is_file()
+            or log_path.stat().st_size != item.get("bytes")
+            or sha256_file(log_path) != item.get("sha256")
+        ):
+            raise SystemExit(f"SwanLab 健康门日志漂移：{filename}")
+    return receipt
+
+
+def validate_swanlab_success(context: dict[str, Any], attempt: int) -> dict[str, Any] | None:
+    output_root = context["output_root"]
+    attempt_root = output_root / "swanlab-attempts" / f"attempt-{attempt}"
+    success_path = attempt_root / "success-receipt.json"
+    if not success_path.is_file():
+        return None
+    success = load_json(success_path)
+    inflight = load_json(attempt_root / "inflight-receipt.json")
+    tag_path = attempt_root / "swanlab-tag-receipt.json"
+    health_path = attempt_root / "tracking-gate" / "health-receipt.json"
+    if (
+        success.get("schema_version") != "ch3-common-first-alert-swanlab-attempt-success-v1"
+        or success.get("run_id") != RUN_ID
+        or success.get("attempt") != attempt
+        or success.get("completed") is not True
+        or not isinstance(success.get("cloud_run_id"), str)
+        or not success["cloud_run_id"]
+        or inflight.get("cloud_run_id") != success["cloud_run_id"]
+        or inflight.get("stage") != "finished"
+        or success.get("tag_receipt_sha256") != sha256_file(tag_path)
+        or success.get("health_receipt_sha256") != sha256_file(health_path)
+        or success.get("production_identity") != production_identity_receipts(context)
+    ):
+        raise SystemExit(f"第 {attempt} 次 SwanLab 成功收据不完整或生产身份漂移")
+    validate_swanlab_health_receipt(health_path, attempt)
+    return success
+
+
+def recover_completed_swanlab_publish(context: dict[str, Any]) -> dict[str, Any] | None:
+    successes = [
+        success
+        for attempt in (1, 2)
+        if (success := validate_swanlab_success(context, attempt)) is not None
+    ]
+    if len(successes) > 1:
+        raise SystemExit("同一生产身份出现多个 SwanLab 成功运行，拒绝猜测封口")
+    if not successes:
+        return None
+    success = successes[0]
+    if context["swanlab_attempt"] != success["attempt"]:
+        raise SystemExit("本地封口尝试编号与成功收据不一致")
+    for number in (1, 2):
+        root = context["output_root"] / "swanlab-attempts" / f"attempt-{number}"
+        if number != success["attempt"] and (root / "inflight-receipt.json").is_file():
+            raise SystemExit("成功收据之外仍有未知在途运行，拒绝本地封口")
+    attempt_root = context["output_root"] / "swanlab-attempts" / f"attempt-{success['attempt']}"
+    atomic_json(
+        context["output_root"] / "swanlab-tag-receipt.json",
+        load_json(attempt_root / "swanlab-tag-receipt.json"),
+    )
+    atomic_json(context["output_root"] / "swanlab-receipt.json", success["swanlab_receipt"])
+    return success["swanlab_receipt"]
+
+
+def validate_new_swanlab_attempt(context: dict[str, Any], attempt: int) -> Path:
+    attempts_root = context["output_root"] / "swanlab-attempts"
+    first_root = attempts_root / "attempt-1"
+    second_root = attempts_root / "attempt-2"
+    for number, root in ((1, first_root), (2, second_root)):
+        if (root / "inflight-receipt.json").is_file() and not (root / "success-receipt.json").is_file():
+            raise SystemExit(f"第 {number} 次 SwanLab 运行已初始化但云端终态未知，拒绝重复 init")
+    first_failure = first_root / "failure-receipt.json"
+    if attempt == 1:
+        if first_failure.is_file() or second_root.exists():
+            raise SystemExit("首次 SwanLab 尝试已经留下终态证据，拒绝重复执行")
+        return first_root
+    if not first_failure.is_file():
+        raise SystemExit("缺少首次零步 401 失败收据，禁止第二次 SwanLab 初始化")
+    failure = load_json(first_failure)
+    if (
+        failure.get("attempt") != 1
+        or failure.get("stage") != "swanlab-init"
+        or failure.get("retryable_zero_step_init_401") is not True
+        or failure.get("production_identity") != production_identity_receipts(context)
+    ):
+        raise SystemExit("首次失败不是可重试的零步初始化 401")
+    if (second_root / "failure-receipt.json").is_file() or (second_root / "success-receipt.json").is_file():
+        raise SystemExit("第二次 SwanLab 尝试已完成，禁止第三次初始化")
+    return second_root
+
+
 def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
     config = context["config"]
     output_root = context["output_root"]
     tracking = config["tracking"]
     aggregate = load_json(output_root / "aggregate-results.json")
+    completed = recover_completed_swanlab_publish(context)
+    if completed is not None:
+        log("已有完整合法 SwanLab 成功收据，仅恢复本地封口")
+        return completed
+    attempt = context["swanlab_attempt"]
+    attempt_root = validate_new_swanlab_attempt(context, attempt)
+    health_path = context["swanlab_health_receipt"]
+    expected_health_path = (attempt_root / "tracking-gate" / "health-receipt.json").resolve()
+    if health_path != expected_health_path:
+        raise SystemExit("SwanLab 健康门收据路径与尝试身份不符")
+    validate_swanlab_health_receipt(expected_health_path, attempt)
     tracking_input_receipts: dict[str, Any] = {}
     for name, item in config["tracking_inputs"].items():
         input_receipt, missing = probe_frozen_file(context["project_root"], item)
@@ -2261,18 +2420,52 @@ def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
     expected_destination = {
         key: destination[key] for key in ("workspace", "project", "name", "group", "mode")
     }
-    swanlab, run, tag_receipt = initialize_swanlab_run(
-        destination,
-        alias_config_path=resolve_within(
-            context["project_root"],
-            config["tracking_inputs"]["tag_alias_config"]["relative_path"],
-        ),
-        expected_alias_config_sha256=config["tracking_inputs"]["tag_alias_config"]["sha256"],
-        config=tracking_config,
-        log_dir=output_root / "swanlog/finalize",
-        tag_receipt_path=output_root / "swanlab-tag-receipt.json",
-        authorized_workspace=tracking["workspace"],
-        authorized_project=tracking["project"],
+    attempt_root.mkdir(parents=True, exist_ok=True)
+    try:
+        swanlab, run, tag_receipt = initialize_swanlab_run(
+            destination,
+            alias_config_path=resolve_within(
+                context["project_root"],
+                config["tracking_inputs"]["tag_alias_config"]["relative_path"],
+            ),
+            expected_alias_config_sha256=config["tracking_inputs"]["tag_alias_config"]["sha256"],
+            config=tracking_config,
+            log_dir=attempt_root / "swanlog",
+            tag_receipt_path=attempt_root / "swanlab-tag-receipt.json",
+            authorized_workspace=tracking["workspace"],
+            authorized_project=tracking["project"],
+        )
+    except BaseException as error:
+        retryable = attempt == 1 and "401" in str(error)
+        atomic_json(
+            attempt_root / "failure-receipt.json",
+            {
+                "schema_version": "ch3-common-first-alert-swanlab-attempt-failure-v1",
+                "run_id": RUN_ID,
+                "attempt": attempt,
+                "stage": "swanlab-init",
+                "zero_step": True,
+                "retryable_zero_step_init_401": retryable,
+                "error_type": type(error).__name__,
+                "error": str(error),
+                "production_identity": production_identity_receipts(context),
+            },
+        )
+        if retryable:
+            raise RetryableSwanLabInit401(
+                "首次 SwanLab 零步初始化返回 401；已保留证据，允许启动器以新进程重试一次"
+            ) from error
+        raise
+    atomic_json(
+        attempt_root / "inflight-receipt.json",
+        {
+            "schema_version": "ch3-common-first-alert-swanlab-inflight-v1",
+            "run_id": RUN_ID,
+            "attempt": attempt,
+            "cloud_run_id": str(run.id),
+            "stage": "initialized",
+            "production_identity": production_identity_receipts(context),
+        },
     )
     if (
         tag_receipt.get("expected_swanlab_version") != tracking["expected_swanlab_version"]
@@ -2300,11 +2493,30 @@ def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
             ]
     try:
         swanlab.log(log_values, step=0)
-    except BaseException as error:
-        swanlab.finish(state="crashed", error=str(error))
-        raise
-    else:
+        inflight = load_json(attempt_root / "inflight-receipt.json")
+        inflight["stage"] = "logged"
+        atomic_json(attempt_root / "inflight-receipt.json", inflight)
         swanlab.finish()
+    except BaseException as error:
+        atomic_json(
+            attempt_root / "failure-receipt.json",
+            {
+                "schema_version": "ch3-common-first-alert-swanlab-attempt-failure-v1",
+                "run_id": RUN_ID,
+                "attempt": attempt,
+                "stage": "initialized-or-later",
+                "zero_step": False,
+                "retryable_zero_step_init_401": False,
+                "error_type": type(error).__name__,
+                "error": str(error),
+                "cloud_run_id": str(run.id),
+                "production_identity": production_identity_receipts(context),
+            },
+        )
+        raise SystemExit("SwanLab 初始化后的云端终态未知，拒绝自动重试") from error
+    inflight = load_json(attempt_root / "inflight-receipt.json")
+    inflight["stage"] = "finished"
+    atomic_json(attempt_root / "inflight-receipt.json", inflight)
     receipt = {
         "schema_version": "ch3-common-first-alert-swanlab-v1",
         "run_id": RUN_ID,
@@ -2330,15 +2542,34 @@ def publish_tracking(context: dict[str, Any]) -> dict[str, Any]:
         "per_entity_scores_logged": False,
         "per_entity_first_alert_logged": False,
         "completed": True,
+        "attempt": attempt,
     }
-    atomic_json(output_root / "swanlab-receipt.json", receipt)
-    return receipt
+    atomic_json(
+        attempt_root / "success-receipt.json",
+        {
+            "schema_version": "ch3-common-first-alert-swanlab-attempt-success-v1",
+            "run_id": RUN_ID,
+            "attempt": attempt,
+            "cloud_run_id": str(run.id),
+            "completed": True,
+            "health_receipt_sha256": sha256_file(expected_health_path),
+            "tag_receipt_sha256": sha256_file(attempt_root / "swanlab-tag-receipt.json"),
+            "production_identity": production_identity_receipts(context),
+            "swanlab_receipt": receipt,
+        },
+    )
+    recovered = recover_completed_swanlab_publish(context)
+    if recovered is None:
+        raise SystemExit("SwanLab 成功收据写入后无法通过本地复核")
+    return recovered
 
 
 def artifact_name_is_allowed(relative: str, method_keys: set[str]) -> bool:
     if relative in CORE_ARTIFACT_NAMES:
         return True
     if relative.startswith("swanlog/") and len(Path(relative).parts) > 1:
+        return True
+    if relative.startswith("swanlab-attempts/") and len(Path(relative).parts) > 2:
         return True
     if relative.startswith("stage-receipts/"):
         return relative in {f"stage-receipts/{stage}.json" for stage in STAGES[:-1]}
@@ -2354,9 +2585,9 @@ def assert_no_forbidden_artifacts(output_root: Path, method_keys: set[str]) -> l
         if path.is_symlink():
             raise SystemExit(f"输出根存在符号链接，拒绝清单封口：{relative}")
         if path.is_dir():
-            if relative in {"method-aggregates", "stage-receipts", "swanlog"}:
+            if relative in {"method-aggregates", "stage-receipts", "swanlog", "swanlab-attempts"}:
                 continue
-            if relative.startswith("swanlog/"):
+            if relative.startswith("swanlog/") or relative.startswith("swanlab-attempts/"):
                 continue
             raise SystemExit(f"输出根存在未登记的额外目录：{relative}")
         if not path.is_file():
@@ -2402,6 +2633,7 @@ def validate_existing_manifest(
         != {
             name: item["sha256"] for name, item in context["config"]["tracking_inputs"].items()
         }
+        or manifest.get("production_identity") != production_identity_receipts(context)
     ):
         raise SystemExit("已有最终清单的身份或零持久化合同不符，拒绝覆盖")
     if revalidate_inputs:
@@ -2459,32 +2691,12 @@ def stage_finalize(context: dict[str, Any]) -> None:
     if not admission_path.is_file():
         raise SystemExit(f"资源准入读数缺失：{admission_path}")
     admission = load_json(admission_path)
-    swanlab_health_path = admission_path.parent / "swanlab-health-receipt.json"
-    if not swanlab_health_path.is_file():
-        raise SystemExit("启动器 SwanLab ping/verify 收据缺失")
-    swanlab_health = load_json(swanlab_health_path)
-    if (
-        swanlab_health.get("passed") is not True
-        or swanlab_health.get("ping_exit_code") != 0
-        or swanlab_health.get("verify_exit_code") != 0
-    ):
-        raise SystemExit("启动器 SwanLab ping/verify 门未通过")
-    expected_health_logs = {
-        "ping": "swanlab-ping.log",
-        "verify": "swanlab-verify.log",
-    }
-    if set(swanlab_health.get("logs", {})) != set(expected_health_logs):
-        raise SystemExit("启动器 SwanLab 健康门日志收据集合不符")
-    for key, filename in expected_health_logs.items():
-        item = swanlab_health["logs"][key]
-        path = swanlab_health_path.parent / filename
-        if (
-            item.get("relative_path") != filename
-            or not path.is_file()
-            or path.stat().st_size != item.get("bytes")
-            or sha256_file(path) != item.get("sha256")
-        ):
-            raise SystemExit(f"启动器 SwanLab 健康门日志摘要不符：{filename}")
+    swanlab_health_path = context["swanlab_health_receipt"]
+    if swanlab_health_path is None:
+        raise SystemExit("finalize 阶段必须提供本次尝试的 SwanLab 健康门收据")
+    swanlab_health = validate_swanlab_health_receipt(
+        swanlab_health_path, context["swanlab_attempt"]
+    )
     context["swanlab_health_gate"] = swanlab_health
     for name in (
         "aggregate-results.json",
@@ -2526,7 +2738,13 @@ def stage_finalize(context: dict[str, Any]) -> None:
 
     available_methods = set(METHOD_KEYS) - set(unreachable)
     names = assert_no_forbidden_artifacts(output_root, available_methods)
-    swanlog_names = [name for name in names if name.startswith("swanlog/")]
+    swanlog_names = [
+        name
+        for name in names
+        if name.startswith("swanlog/") or (
+            name.startswith("swanlab-attempts/") and "/swanlog/" in name
+        )
+    ]
     if not swanlog_names:
         raise SystemExit("SwanLab 原始日志为空，拒绝最终清单封口")
     files = {name: artifact_receipt(output_root / name) for name in names if name != "manifest.json"}
@@ -2546,6 +2764,7 @@ def stage_finalize(context: dict[str, Any]) -> None:
         "tracking_input_sha256": {
             name: item["sha256"] for name, item in context["config"]["tracking_inputs"].items()
         },
+        "production_identity": production_identity_receipts(context),
         "method_count": aggregate.get("method_count"),
         "unreachable_methods": unreachable,
         "training_runs": 0,
@@ -2642,9 +2861,24 @@ def main() -> int:
         "shared": None,
         "input_receipt": None,
         "unreachable": {},
+        "swanlab_attempt": args.swanlab_attempt,
+        "swanlab_health_receipt": (
+            args.swanlab_health_receipt.resolve() if args.swanlab_health_receipt else None
+        ),
     }
     try:
         execute(context, args.stage)
+    except RetryableSwanLabInit401 as error:
+        output_root.mkdir(parents=True, exist_ok=True)
+        write_status(
+            output_root,
+            "failed",
+            args.stage,
+            str(error),
+            91,
+        )
+        traceback.print_exc()
+        return 91
     except BaseException as error:  # noqa: BLE001 - 失败必须保留状态与原退出码
         output_root.mkdir(parents=True, exist_ok=True)
         if not (output_root / "manifest.json").is_file():

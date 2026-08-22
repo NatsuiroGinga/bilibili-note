@@ -67,6 +67,10 @@ valid = (
     and config["status_contract"]["states"] == ["pending", "running", "complete", "failed"]
     and config["status_contract"]["incomplete_state_forbidden"] is True
     and config["tracking"]["tags"] == ["n16", "ch3", "fp-envelope", "lspr24", "descriptive"]
+    and config["tracking_lifecycle"]["maximum_online_init_attempts"] == 2
+    and config["tracking_lifecycle"]["retry_exit_code"] == 91
+    and config["tracking_lifecycle"]["second_attempt_requires_fresh_python_process"] is True
+    and config["tracking_lifecycle"]["unknown_inflight_forbids_new_init"] is True
     and config["artifact_policy"]["persist_per_flow_scores"] is False
     and config["artifact_policy"]["persist_per_entity_scores"] is False
     and config["artifact_policy"]["persist_per_entity_first_alert"] is False
@@ -78,36 +82,73 @@ raise SystemExit(0 if valid else 78)
 }
 
 validate_swanlab_health() {
+    local attempt=$1
+    local gate_root="$OUTPUT_ROOT/swanlab-attempts/attempt-$attempt/tracking-gate"
     local ping_code verify_code
+    mkdir -p -- "$gate_root"
+    if [[ -s "$gate_root/health-receipt.json" ]]; then
+        uv run --no-sync python -c '
+import json, pathlib, sys
+value = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+raise SystemExit(0 if value.get("passed") is True and value.get("attempt") == int(sys.argv[2]) else 69)
+' "$gate_root/health-receipt.json" "$attempt"
+        return $?
+    fi
     set +e
-    uv run --no-sync swanlab ping > "$LAUNCHER_ROOT/swanlab-ping.log" 2>&1
+    uv run --no-sync swanlab ping > "$gate_root/swanlab-ping.log" 2>&1
     ping_code=$?
-    uv run --no-sync swanlab verify > "$LAUNCHER_ROOT/swanlab-verify.log" 2>&1
+    uv run --no-sync swanlab verify > "$gate_root/swanlab-verify.log" 2>&1
     verify_code=$?
     set -e
     uv run --no-sync python -c '
-import hashlib, json, pathlib, sys
+import hashlib, json, os, pathlib, sys
 path = pathlib.Path(sys.argv[1])
 def log_receipt(name):
     log_path = path.parent / name
     payload = log_path.read_bytes()
     return {"relative_path": name, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
 payload = {
-    "schema_version": "ch3-common-first-alert-swanlab-health-v1",
-    "ping_exit_code": int(sys.argv[2]),
-    "verify_exit_code": int(sys.argv[3]),
-    "passed": int(sys.argv[2]) == 0 and int(sys.argv[3]) == 0,
+    "schema_version": "ch3-common-first-alert-swanlab-health-v2",
+    "run_id": sys.argv[2],
+    "attempt": int(sys.argv[3]),
+    "ping_exit_code": int(sys.argv[4]),
+    "verify_exit_code": int(sys.argv[5]),
+    "passed": int(sys.argv[4]) == 0 and int(sys.argv[5]) == 0,
     "logs": {
         "ping": log_receipt("swanlab-ping.log"),
         "verify": log_receipt("swanlab-verify.log"),
     },
 }
-path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-' "$LAUNCHER_ROOT/swanlab-health-receipt.json" "$ping_code" "$verify_code"
+temporary = path.with_name(path.name + f".partial.{os.getpid()}")
+temporary.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+os.replace(temporary, path)
+' "$gate_root/health-receipt.json" "$RUN_ID" "$attempt" "$ping_code" "$verify_code"
     if (( ping_code != 0 || verify_code != 0 )); then
         printf 'SwanLab ping/verify 门失败：ping=%s verify=%s。\n' "$ping_code" "$verify_code" >&2
         return 69
     fi
+}
+
+swanlab_attempt_state() {
+    uv run --no-sync python -c '
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1]) / "swanlab-attempts"
+success = []
+for attempt in (1, 2):
+    path = root / f"attempt-{attempt}" / "success-receipt.json"
+    if path.is_file():
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if value.get("completed") is True and value.get("attempt") == attempt:
+            success.append(attempt)
+if len(success) == 1:
+    print(f"success:{success[0]}")
+    raise SystemExit(0)
+failure = root / "attempt-1" / "failure-receipt.json"
+if failure.is_file():
+    value = json.loads(failure.read_text(encoding="utf-8"))
+    if value.get("retryable_zero_step_init_401") is True and value.get("attempt") == 1:
+        print("retryable:2")
+' "$OUTPUT_ROOT"
 }
 
 validate_server_and_inputs() {
@@ -232,29 +273,55 @@ run_compute_logged() {
 }
 
 finalize_only() {
-    local code
+    local attempt=$1 code
     set +e
     uv run --no-sync python "$TOOL_PATH" \
         --config "$CONFIG_PATH" \
         --project-root "$PROJECT_ROOT" \
         --stage finalize \
         --resume \
-        --admission-receipt "$ADMISSION_RECEIPT" > "$LAUNCHER_ROOT/finalize.log" 2>&1
+        --admission-receipt "$ADMISSION_RECEIPT" \
+        --swanlab-attempt "$attempt" \
+        --swanlab-health-receipt \
+        "$OUTPUT_ROOT/swanlab-attempts/attempt-$attempt/tracking-gate/health-receipt.json" \
+        > "$LAUNCHER_ROOT/finalize-attempt-$attempt.log" 2>&1
     code=$?
     set -e
-    printf '%s\n' "$code" > "$LAUNCHER_ROOT/finalize-exit-code.txt"
+    printf '%s\n' "$code" > "$LAUNCHER_ROOT/finalize-attempt-$attempt-exit-code.txt"
     return "$code"
 }
 
 worker() {
+    local code=0 swanlab_state=
     exec 9> "$LAUNCHER_ROOT/worker.lock"
     flock -n 9 || {
         printf '同名运行锁已占用。\n' >&2
         return 75
     }
     validate_static_contract
+    swanlab_state=$(swanlab_attempt_state)
+    if [[ "$swanlab_state" == success:* ]]; then
+        finalize_only "${swanlab_state#success:}"
+        return 0
+    fi
+    if [[ "$swanlab_state" == retryable:2 ]]; then
+        validate_swanlab_health 2
+        finalize_only 2
+        return $?
+    fi
     run_compute_logged
-    finalize_only
+    validate_swanlab_health 1
+    if finalize_only 1; then
+        code=0
+    else
+        code=$?
+    fi
+    if (( code == 91 )); then
+        validate_swanlab_health 2
+        finalize_only 2
+        return $?
+    fi
+    return "$code"
 }
 
 if [[ ${1:-} == --worker && $# -eq 1 ]]; then
@@ -281,7 +348,14 @@ flock -n 8 || {
 validate_static_contract
 validate_server_and_inputs
 if [[ -s "$OUTPUT_ROOT/manifest.json" ]]; then
-    finalize_only
+    completed_attempt=$(uv run --no-sync python -c '
+import json, pathlib, sys
+value = json.loads((pathlib.Path(sys.argv[1]) / "swanlab-receipt.json").read_text(encoding="utf-8"))
+attempt = value.get("attempt")
+if attempt not in (1, 2): raise SystemExit("SwanLab 完成收据缺少尝试编号")
+print(attempt)
+' "$OUTPUT_ROOT")
+    finalize_only "$completed_attempt"
     manifest_complete=$(uv run --no-sync python -c '
 import json, pathlib, sys
 value = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")).get("complete")
@@ -304,8 +378,15 @@ if pgrep -f "$PEER_PATTERN" >/dev/null 2>&1; then
     printf '同名共同预算包络进程已经运行。\n' >&2
     exit 75
 fi
-validate_swanlab_health
-admit_resources
+swanlab_state=$(swanlab_attempt_state)
+if [[ -n "$swanlab_state" ]]; then
+    [[ -s "$ADMISSION_RECEIPT" ]] || {
+        printf 'SwanLab 恢复证据存在但原资源准入收据缺失，拒绝猜测封口。\n' >&2
+        exit 66
+    }
+else
+    admit_resources
+fi
 sha256sum "$TOOL_PATH" "$CONFIG_PATH" "$SCRIPT_PATH" \
     "$TRACKING_PATH" "$TAG_ALIAS_PATH" \
     "$PROJECT_ROOT/tools/ch3_xgb_cpa_elp_operational_backfill.py" \

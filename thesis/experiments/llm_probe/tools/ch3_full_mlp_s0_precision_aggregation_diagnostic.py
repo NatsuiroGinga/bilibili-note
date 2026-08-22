@@ -58,6 +58,7 @@ EXIT_CONFIG = 2
 EXIT_INPUT = 3
 EXIT_DEPENDENCY = 4
 EXIT_STAGE_PRECONDITION = 5
+EXIT_RETRYABLE_SWANLAB_INIT_401 = 91
 
 FORBIDDEN_ARTIFACT_TOKENS = (
     "per-flow",
@@ -532,6 +533,19 @@ def validate_config(config: dict[str, Any]) -> None:
     )
     _require(tracking.get("central_api_commit") == "89ddecf", "SwanLab 中央 API 提交不符")
     validate_tracking_contract(config)
+    _require(
+        config.get("tracking_lifecycle")
+        == {
+            "maximum_online_init_attempts": 2,
+            "retryable_first_attempt_error": "zero_step_init_401",
+            "retry_exit_code": EXIT_RETRYABLE_SWANLAB_INIT_401,
+            "second_attempt_requires_fresh_python_process": True,
+            "health_gate_required_per_attempt": True,
+            "unknown_inflight_forbids_new_init": True,
+            "completed_receipt_allows_local_seal_only": True,
+        },
+        "SwanLab 两次上限恢复合同不符",
+    )
 
     isolation = config.get("isolation", {})
     _require(isolation.get("training_runs") == 0, "本任务禁止训练")
@@ -2054,6 +2068,166 @@ def collect_resource_summary(years: list[str], units: dict[str, dict[str, Any]])
     return summary
 
 
+def production_identity_paths(config: dict[str, Any], args: argparse.Namespace) -> dict[str, Path]:
+    return {
+        "tool": Path(__file__).resolve(),
+        "config": Path(args.config).resolve(),
+        "launcher": TOOL_DIR.parent
+        / "scripts/remote_launchers/run_ch3_full_mlp_s0_precision_aggregation_diagnostic_seed42_v1.sh",
+        "tracking_module": SRC_ROOT / "flow_probe/tracking.py",
+        "tag_aliases": tracking_alias_config_path(config).resolve(),
+    }
+
+
+def production_identity_receipts(config: dict[str, Any], args: argparse.Namespace) -> dict[str, Any]:
+    receipts: dict[str, Any] = {}
+    for name, path in production_identity_paths(config, args).items():
+        if not path.is_file():
+            raise StageError(f"SwanLab 生产身份文件缺失：{path}", EXIT_INPUT)
+        receipts[name] = {
+            "path": str(path),
+            "bytes": path.stat().st_size,
+            "sha256": sha256_file(path),
+        }
+    return receipts
+
+
+def validate_swanlab_health_receipt(path: Path, attempt: int) -> dict[str, Any]:
+    if not path.is_file():
+        raise StageError(f"第 {attempt} 次 SwanLab 健康门收据不存在：{path}", EXIT_STAGE_PRECONDITION)
+    receipt = load_json(path)
+    if (
+        receipt.get("schema_version") != "ch3-full-mlp-s0-swanlab-health-v2"
+        or receipt.get("run_id") != RUN_ID
+        or receipt.get("attempt") != attempt
+        or receipt.get("passed") is not True
+        or receipt.get("ping_exit_code") != 0
+        or receipt.get("verify_exit_code") != 0
+    ):
+        raise StageError(f"第 {attempt} 次 SwanLab 健康门收据不合法", EXIT_STAGE_PRECONDITION)
+    expected = {"ping": "swanlab-ping.log", "verify": "swanlab-verify.log"}
+    if set(receipt.get("logs", {})) != set(expected):
+        raise StageError("SwanLab 健康门日志集合不符", EXIT_STAGE_PRECONDITION)
+    for key, filename in expected.items():
+        log_path = path.parent / filename
+        item = receipt["logs"][key]
+        if (
+            item.get("relative_path") != filename
+            or not log_path.is_file()
+            or log_path.stat().st_size != item.get("bytes")
+            or sha256_file(log_path) != item.get("sha256")
+        ):
+            raise StageError(f"SwanLab 健康门日志漂移：{filename}", EXIT_STAGE_PRECONDITION)
+    return receipt
+
+
+def validate_swanlab_success(
+    config: dict[str, Any], args: argparse.Namespace, output_root: Path, attempt: int
+) -> dict[str, Any] | None:
+    attempt_root = output_root / "swanlab-attempts" / f"attempt-{attempt}"
+    success_path = attempt_root / "success-receipt.json"
+    if not success_path.is_file():
+        return None
+    success = load_json(success_path)
+    inflight = load_json(attempt_root / "inflight-receipt.json")
+    tag_path = attempt_root / "swanlab-tag-receipt.json"
+    health_path = attempt_root / "tracking-gate" / "health-receipt.json"
+    if (
+        success.get("schema_version") != "ch3-full-mlp-s0-swanlab-attempt-success-v1"
+        or success.get("run_id") != RUN_ID
+        or success.get("attempt") != attempt
+        or success.get("completed") is not True
+        or not isinstance(success.get("cloud_run_id"), str)
+        or not success["cloud_run_id"]
+        or inflight.get("cloud_run_id") != success["cloud_run_id"]
+        or inflight.get("stage") != "finished"
+        or success.get("tag_receipt_sha256") != sha256_file(tag_path)
+        or success.get("health_receipt_sha256") != sha256_file(health_path)
+        or success.get("production_identity") != production_identity_receipts(config, args)
+    ):
+        raise StageError(f"第 {attempt} 次 SwanLab 成功收据不完整或身份漂移", EXIT_STAGE_PRECONDITION)
+    validate_swanlab_health_receipt(health_path, attempt)
+    return success
+
+
+def recover_completed_swanlab_publish(
+    config: dict[str, Any], args: argparse.Namespace, output_root: Path
+) -> dict[str, Any] | None:
+    successes = [
+        success
+        for attempt in (1, 2)
+        if (success := validate_swanlab_success(config, args, output_root, attempt)) is not None
+    ]
+    if len(successes) > 1:
+        raise StageError("同一生产身份出现多个 SwanLab 成功运行，拒绝猜测封口", EXIT_STAGE_PRECONDITION)
+    if not successes:
+        return None
+    success = successes[0]
+    if args.swanlab_attempt != success["attempt"]:
+        raise StageError("本地封口尝试编号与成功收据不一致", EXIT_STAGE_PRECONDITION)
+    for number in (1, 2):
+        root = output_root / "swanlab-attempts" / f"attempt-{number}"
+        if number != success["attempt"] and (root / "inflight-receipt.json").is_file():
+            raise StageError("成功收据之外仍有未知在途运行，拒绝本地封口", EXIT_STAGE_PRECONDITION)
+    attempt_root = output_root / "swanlab-attempts" / f"attempt-{success['attempt']}"
+    atomic_json(output_root / "swanlab-tag-receipt.json", load_json(attempt_root / "swanlab-tag-receipt.json"))
+    atomic_json(output_root / "swanlab-receipt.json", success["swanlab_receipt"])
+    return success["swanlab_receipt"]
+
+
+def validate_new_swanlab_attempt(output_root: Path, attempt: int) -> Path:
+    attempts_root = output_root / "swanlab-attempts"
+    first_root = attempts_root / "attempt-1"
+    second_root = attempts_root / "attempt-2"
+    for number, root in ((1, first_root), (2, second_root)):
+        if (root / "inflight-receipt.json").is_file() and not (root / "success-receipt.json").is_file():
+            raise StageError(
+                f"第 {number} 次 SwanLab 运行已初始化但云端终态未知，拒绝重复 init",
+                EXIT_STAGE_PRECONDITION,
+            )
+    first_failure = first_root / "failure-receipt.json"
+    if attempt == 1:
+        if first_failure.is_file() or second_root.exists():
+            raise StageError("首次 SwanLab 尝试已经留下终态证据，拒绝重复执行", EXIT_STAGE_PRECONDITION)
+        return first_root
+    if not first_failure.is_file():
+        raise StageError("缺少首次零步 401 失败收据，禁止第二次 SwanLab 初始化", EXIT_STAGE_PRECONDITION)
+    failure = load_json(first_failure)
+    if (
+        failure.get("attempt") != 1
+        or failure.get("stage") != "swanlab-init"
+        or failure.get("retryable_zero_step_init_401") is not True
+        or failure.get("production_identity")
+        != production_identity_receipts_from_attempt(first_root)
+    ):
+        raise StageError("首次失败不是可重试的零步初始化 401", EXIT_STAGE_PRECONDITION)
+    if (second_root / "failure-receipt.json").is_file() or (second_root / "success-receipt.json").is_file():
+        raise StageError("第二次 SwanLab 尝试已完成，禁止第三次初始化", EXIT_STAGE_PRECONDITION)
+    return second_root
+
+
+def production_identity_receipts_from_attempt(attempt_root: Path) -> dict[str, Any]:
+    failure = load_json(attempt_root / "failure-receipt.json")
+    identity = failure.get("production_identity")
+    if not isinstance(identity, dict) or set(identity) != {
+        "tool",
+        "config",
+        "launcher",
+        "tracking_module",
+        "tag_aliases",
+    }:
+        raise StageError("SwanLab 失败收据缺少生产身份", EXIT_STAGE_PRECONDITION)
+    for name, item in identity.items():
+        path = Path(str(item.get("path", "")))
+        if (
+            not path.is_file()
+            or path.stat().st_size != item.get("bytes")
+            or sha256_file(path) != item.get("sha256")
+        ):
+            raise StageError(f"SwanLab 首次失败后的生产身份漂移：{name}", EXIT_STAGE_PRECONDITION)
+    return identity
+
+
 def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_root: Path, results: dict[str, Any]) -> None:
     tracking = config["tracking"]
     if args.authorized_swanlab_workspace is None or args.authorized_swanlab_project is None:
@@ -2068,6 +2242,17 @@ def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_ro
         or args.authorized_swanlab_project != tracking["project"]
     ):
         raise StageError("跟踪目的地与本轮授权不一致，拒绝创建在线运行", EXIT_STAGE_PRECONDITION)
+    completed = recover_completed_swanlab_publish(config, args, output_root)
+    if completed is not None:
+        log("已有完整合法 SwanLab 成功收据，仅恢复本地封口")
+        return
+    attempt = args.swanlab_attempt
+    attempt_root = validate_new_swanlab_attempt(output_root, attempt)
+    health_path = Path(args.swanlab_health_receipt).resolve() if args.swanlab_health_receipt else None
+    expected_health_path = (attempt_root / "tracking-gate" / "health-receipt.json").resolve()
+    if health_path != expected_health_path:
+        raise StageError("SwanLab 健康门收据路径与尝试身份不符", EXIT_STAGE_PRECONDITION)
+    validate_swanlab_health_receipt(expected_health_path, attempt)
     try:
         from flow_probe.tracking import initialize_swanlab_run
     except ImportError as error:
@@ -2082,21 +2267,6 @@ def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_ro
         "config_sha256": results["identity"]["config_sha256"],
         "code_sha256": results["identity"]["code_sha256"],
     }
-    try:
-        swanlab, _, tag_receipt = initialize_swanlab_run(
-            tracking_destination(config),
-            alias_config_path=tracking_alias_config_path(config),
-            expected_alias_config_sha256=tracking["alias_config_sha256"],
-            config=tracking_config,
-            log_dir=output_root / "swanlog",
-            tag_receipt_path=output_root / "swanlab-tag-receipt.json",
-            authorized_workspace=args.authorized_swanlab_workspace,
-            authorized_project=args.authorized_swanlab_project,
-        )
-    except ModuleNotFoundError as error:
-        raise StageError("缺少 swanlab：正式 GPU 实验需要在线跟踪，请在服务器环境中运行", EXIT_DEPENDENCY) from error
-    except ValueError as error:
-        raise StageError(f"SwanLab 中央初始化合同失败：{error}", EXIT_STAGE_PRECONDITION) from error
     values: dict[str, float] = {}
     for year, table in results["years"].items():
         for cell in CELL_ORDER:
@@ -2110,11 +2280,80 @@ def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_ro
                 for budget, readout in branch["actual_reachable_dr_at_fpr"].items():
                     values[f"{year}/{cell}/{arm['key']}/actual_dr_{budget}"] = readout["detection_rate"]
                     values[f"{year}/{cell}/{arm['key']}/actual_fpr_{budget}"] = readout["actual_reachable_fpr"]
-    swanlab.log(values, step=0)
-    swanlab.finish()
+    attempt_root.mkdir(parents=True, exist_ok=True)
+    try:
+        swanlab, run, tag_receipt = initialize_swanlab_run(
+            tracking_destination(config),
+            alias_config_path=tracking_alias_config_path(config),
+            expected_alias_config_sha256=tracking["alias_config_sha256"],
+            config=tracking_config,
+            log_dir=attempt_root / "swanlog",
+            tag_receipt_path=attempt_root / "swanlab-tag-receipt.json",
+            authorized_workspace=args.authorized_swanlab_workspace,
+            authorized_project=args.authorized_swanlab_project,
+        )
+    except ModuleNotFoundError as error:
+        raise StageError("缺少 swanlab：正式 GPU 实验需要在线跟踪，请在服务器环境中运行", EXIT_DEPENDENCY) from error
+    except BaseException as error:
+        retryable = attempt == 1 and "401" in str(error)
+        atomic_json(
+            attempt_root / "failure-receipt.json",
+            {
+                "schema_version": "ch3-full-mlp-s0-swanlab-attempt-failure-v1",
+                "run_id": RUN_ID,
+                "attempt": attempt,
+                "stage": "swanlab-init",
+                "zero_step": True,
+                "retryable_zero_step_init_401": retryable,
+                "error_type": type(error).__name__,
+                "error": str(error),
+                "production_identity": production_identity_receipts(config, args),
+            },
+        )
+        if retryable:
+            raise StageError(
+                "首次 SwanLab 零步初始化返回 401；已保留证据，允许启动器以新进程重试一次",
+                EXIT_RETRYABLE_SWANLAB_INIT_401,
+            ) from error
+        raise StageError(f"SwanLab 中央初始化合同失败：{error}", EXIT_STAGE_PRECONDITION) from error
     atomic_json(
-        output_root / "swanlab-receipt.json",
+        attempt_root / "inflight-receipt.json",
         {
+            "schema_version": "ch3-full-mlp-s0-swanlab-inflight-v1",
+            "run_id": RUN_ID,
+            "attempt": attempt,
+            "cloud_run_id": str(run.id),
+            "stage": "initialized",
+            "production_identity": production_identity_receipts(config, args),
+        },
+    )
+    try:
+        swanlab.log(values, step=0)
+        inflight = load_json(attempt_root / "inflight-receipt.json")
+        inflight["stage"] = "logged"
+        atomic_json(attempt_root / "inflight-receipt.json", inflight)
+        swanlab.finish()
+    except BaseException as error:
+        atomic_json(
+            attempt_root / "failure-receipt.json",
+            {
+                "schema_version": "ch3-full-mlp-s0-swanlab-attempt-failure-v1",
+                "run_id": RUN_ID,
+                "attempt": attempt,
+                "stage": "initialized-or-later",
+                "zero_step": False,
+                "retryable_zero_step_init_401": False,
+                "error_type": type(error).__name__,
+                "error": str(error),
+                "cloud_run_id": str(run.id),
+                "production_identity": production_identity_receipts(config, args),
+            },
+        )
+        raise StageError("SwanLab 初始化后的云端终态未知，拒绝自动重试", EXIT_STAGE_PRECONDITION) from error
+    inflight = load_json(attempt_root / "inflight-receipt.json")
+    inflight["stage"] = "finished"
+    atomic_json(attempt_root / "inflight-receipt.json", inflight)
+    swanlab_receipt = {
             "schema_version": "ch3-full-mlp-s0-swanlab-v1",
             "run_id": RUN_ID,
             "display_name": DISPLAY_NAME,
@@ -2133,17 +2372,33 @@ def publish_tracking(config: dict[str, Any], args: argparse.Namespace, output_ro
             "per_flow_scores_logged": False,
             "per_entity_scores_logged": False,
             "completed": True,
+            "attempt": attempt,
+            "cloud_run_id": str(run.id),
+        }
+    atomic_json(
+        attempt_root / "success-receipt.json",
+        {
+            "schema_version": "ch3-full-mlp-s0-swanlab-attempt-success-v1",
+            "run_id": RUN_ID,
+            "attempt": attempt,
+            "cloud_run_id": str(run.id),
+            "completed": True,
+            "health_receipt_sha256": sha256_file(expected_health_path),
+            "tag_receipt_sha256": sha256_file(attempt_root / "swanlab-tag-receipt.json"),
+            "production_identity": production_identity_receipts(config, args),
+            "swanlab_receipt": swanlab_receipt,
         },
     )
+    recover_completed_swanlab_publish(config, args, output_root)
 
 
-def build_manifest(output_root: Path) -> None:
+def build_manifest(config: dict[str, Any], args: argparse.Namespace, output_root: Path) -> None:
     files: dict[str, Any] = {}
     for path in sorted(output_root.rglob("*")):
         if not path.is_file():
             continue
         relative = path.relative_to(output_root).as_posix()
-        if relative == "manifest.json" or relative.startswith("swanlog/"):
+        if relative == "manifest.json":
             continue
         lowered = relative.lower()
         if any(token in lowered for token in FORBIDDEN_ARTIFACT_TOKENS):
@@ -2167,6 +2422,7 @@ def build_manifest(output_root: Path) -> None:
             "time_delay_available": False,
             "forbidden_artifacts_absent": True,
             "files": files,
+            "production_identity": production_identity_receipts(config, args),
         },
     )
 
@@ -2266,7 +2522,7 @@ def stage_finalize(config: dict[str, Any], args: argparse.Namespace) -> None:
     atomic_json(output_root / "aggregate-results.json", results)
     publish_tracking(config, args, output_root, results)
     write_status(output_root, "complete", "finalize", "S0 诊断制品齐备", 0)
-    build_manifest(output_root)
+    build_manifest(config, args, output_root)
     log("收尾完成：聚合结果、精度收据、资源收据、跟踪收据与清单已生成")
 
 
@@ -2284,6 +2540,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resource-receipt", help="启动器资源准入收据路径")
     parser.add_argument("--authorized-swanlab-workspace", help="本轮授权的跟踪工作区")
     parser.add_argument("--authorized-swanlab-project", help="本轮授权的跟踪项目")
+    parser.add_argument("--swanlab-attempt", type=int, choices=(1, 2), default=1, help="最终发布尝试编号")
+    parser.add_argument("--swanlab-health-receipt", help="本次尝试的 ping/verify 健康门收据")
     return parser.parse_args()
 
 

@@ -249,6 +249,15 @@
     "alias_config_sha256": "d2bf7212068e6d7ced2fa916cd327dd24fea26bbb3bd3cbd9fd241c77a3f7a16",
     "central_api_commit": "89ddecf"
   },
+  "tracking_lifecycle": {
+    "maximum_online_init_attempts": 2,
+    "retryable_first_attempt_error": "zero_step_init_401",
+    "retry_exit_code": 91,
+    "second_attempt_requires_fresh_python_process": true,
+    "health_gate_required_per_attempt": true,
+    "unknown_inflight_forbids_new_init": true,
+    "completed_receipt_allows_local_seal_only": true
+  },
   "isolation": {
     "training_runs": 0,
     "parameter_updates": 0,

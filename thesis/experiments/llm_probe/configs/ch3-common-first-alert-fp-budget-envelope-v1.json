@@ -296,6 +296,15 @@
     "tags": ["n16", "ch3", "fp-envelope", "lspr24", "descriptive"],
     "aggregate_only": true
   },
+  "tracking_lifecycle": {
+    "maximum_online_init_attempts": 2,
+    "retryable_first_attempt_error": "zero_step_init_401",
+    "retry_exit_code": 91,
+    "second_attempt_requires_fresh_python_process": true,
+    "health_gate_required_per_attempt": true,
+    "unknown_inflight_forbids_new_init": true,
+    "completed_receipt_allows_local_seal_only": true
+  },
   "artifact_policy": {
     "output_root": "runs/diagnostics/ch3-common-first-alert-fp-budget-envelope-v1",
     "atomic_json_and_npz": true,

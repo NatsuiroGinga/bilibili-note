@@ -70,6 +70,10 @@ valid = (
     and config["paths"]["cache_root"] == sys.argv[6]
     and config["tracking"]["workspace"] == sys.argv[7]
     and config["tracking"]["project"] == sys.argv[8]
+    and config["tracking_lifecycle"]["maximum_online_init_attempts"] == 2
+    and config["tracking_lifecycle"]["retry_exit_code"] == 91
+    and config["tracking_lifecycle"]["second_attempt_requires_fresh_python_process"] is True
+    and config["tracking_lifecycle"]["unknown_inflight_forbids_new_init"] is True
     and parent["run_id"] == "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1"
     and list(parent["checkpoints"]) == ["B00", "B10", "O01", "O11"]
     and config["target_arrays"] == ["X24", "y24", "I24", "M24", "s24", "d24"]
@@ -117,8 +121,17 @@ validate_file_inventory() {
 }
 
 tracking_gate() {
-    local gate_root="$LAUNCHER_ROOT/tracking-gates/attempt-1" ping_code verify_code
+    local attempt=$1
+    local gate_root="$OUTPUT_ROOT/swanlab-attempts/attempt-$attempt/tracking-gate" ping_code verify_code
     mkdir -p -- "$gate_root"
+    if [[ -s "$gate_root/health-receipt.json" ]]; then
+        uv run --no-sync python -c '
+import json, pathlib, sys
+value = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+raise SystemExit(0 if value.get("passed") is True and value.get("attempt") == int(sys.argv[2]) else 69)
+' "$gate_root/health-receipt.json" "$attempt"
+        return $?
+    fi
     set +e
     uv run --no-sync swanlab ping > "$gate_root/swanlab-ping.log" 2>&1
     ping_code=$?
@@ -127,10 +140,52 @@ tracking_gate() {
     set -e
     printf '%s\n' "$ping_code" > "$gate_root/swanlab-ping.exit-code.txt"
     printf '%s\n' "$verify_code" > "$gate_root/swanlab-verify.exit-code.txt"
+    uv run --no-sync python -c '
+import hashlib, json, os, pathlib, sys
+path = pathlib.Path(sys.argv[1])
+def record(filename):
+    value = path.parent / filename
+    payload = value.read_bytes()
+    return {"relative_path": filename, "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+receipt = {
+    "schema_version": "ch3-full-mlp-s0-swanlab-health-v2",
+    "run_id": sys.argv[2],
+    "attempt": int(sys.argv[3]),
+    "ping_exit_code": int(sys.argv[4]),
+    "verify_exit_code": int(sys.argv[5]),
+    "passed": int(sys.argv[4]) == 0 and int(sys.argv[5]) == 0,
+    "logs": {"ping": record("swanlab-ping.log"), "verify": record("swanlab-verify.log")},
+}
+temporary = path.with_name(path.name + f".partial.{os.getpid()}")
+temporary.write_text(json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+os.replace(temporary, path)
+' "$gate_root/health-receipt.json" "$RUN_ID" "$attempt" "$ping_code" "$verify_code"
     if (( ping_code != 0 || verify_code != 0 )); then
         printf 'SwanLab 前置门失败：ping=%s verify=%s\n' "$ping_code" "$verify_code" >&2
         return 15
     fi
+}
+
+swanlab_attempt_state() {
+    uv run --no-sync python -c '
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1]) / "swanlab-attempts"
+success = []
+for attempt in (1, 2):
+    path = root / f"attempt-{attempt}" / "success-receipt.json"
+    if path.is_file():
+        value = json.loads(path.read_text(encoding="utf-8"))
+        if value.get("completed") is True and value.get("attempt") == attempt:
+            success.append(attempt)
+if len(success) == 1:
+    print(f"success:{success[0]}")
+    raise SystemExit(0)
+failure = root / "attempt-1" / "failure-receipt.json"
+if failure.is_file():
+    value = json.loads(failure.read_text(encoding="utf-8"))
+    if value.get("retryable_zero_step_init_401") is True and value.get("attempt") == 1:
+        print("retryable:2")
+' "$OUTPUT_ROOT"
 }
 
 peer_process_count() {
@@ -289,6 +344,15 @@ required = {
     "precision-receipt.json", "compute-resource-receipt.json", "resource-receipt.json",
     "swanlab-receipt.json", "swanlab-tag-receipt.json", "status.json",
 }
+attempt = json.loads((root / "swanlab-receipt.json").read_text(encoding="utf-8"))["attempt"]
+attempt_root = f"swanlab-attempts/attempt-{attempt}"
+required.update({
+    f"{attempt_root}/inflight-receipt.json", f"{attempt_root}/success-receipt.json",
+    f"{attempt_root}/swanlab-tag-receipt.json",
+    f"{attempt_root}/tracking-gate/health-receipt.json",
+    f"{attempt_root}/tracking-gate/swanlab-ping.log",
+    f"{attempt_root}/tracking-gate/swanlab-verify.log",
+})
 for year in ("source", "target"):
     for cell in ("B00", "B10", "O01", "O11"):
         required.add(f"unit-aggregates/{year}/{cell}.json")
@@ -307,6 +371,20 @@ valid = (
     and manifest["forbidden_artifacts_absent"] is True
     and required <= set(manifest["files"])
 )
+identity_paths = {
+    "tool": pathlib.Path(sys.argv[3]), "config": pathlib.Path(sys.argv[4]),
+    "launcher": pathlib.Path(sys.argv[5]), "tracking_module": pathlib.Path(sys.argv[6]),
+    "tag_aliases": pathlib.Path(sys.argv[7]),
+}
+identities = manifest.get("production_identity", {})
+valid = valid and set(identities) == set(identity_paths)
+for key, path in identity_paths.items():
+    payload = path.read_bytes()
+    valid = valid and identities[key] == {
+        "path": str(path.resolve()), "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()
+    }
+current_names = {str(path.relative_to(root)) for path in root.rglob("*") if path.is_file()}
+valid = valid and current_names == set(manifest["files"]) | {"manifest.json"}
 status = json.loads((root / "status.json").read_text(encoding="utf-8"))
 results = json.loads((root / "aggregate-results.json").read_text(encoding="utf-8"))
 valid = valid and status["state"] == "complete" and status["exit_code"] == 0
@@ -316,7 +394,8 @@ for name, receipt in manifest["files"].items():
     valid = valid and path.is_file() and path.stat().st_size == receipt["bytes"]
     if path.is_file(): valid = valid and hashlib.sha256(path.read_bytes()).hexdigest() == receipt["sha256"]
 raise SystemExit(0 if valid else 7)
-' "$OUTPUT_ROOT" "$RUN_ID"
+' "$OUTPUT_ROOT" "$RUN_ID" "$TOOL_PATH" "$CONFIG_PATH" "$SCRIPT_PATH" \
+    "$PROJECT_ROOT/src/flow_probe/tracking.py" "$PROJECT_ROOT/configs/swanlab-tag-aliases-v1.json"
 }
 
 stop_monitor() {
@@ -339,8 +418,25 @@ run_stage() {
     return "$code"
 }
 
+run_finalize_attempt() {
+    local attempt=$1 code=0
+    launcher_status running finalize "swanlab_attempt_$attempt" null
+    set +e
+    run_logged "$LAUNCHER_ROOT/finalize-attempt-$attempt.log" uv run --no-sync python "$TOOL_PATH" \
+        --config "$CONFIG_PATH" --stage finalize --resume \
+        --resource-receipt "$RESOURCE_RECEIPT" \
+        --authorized-swanlab-workspace "$SWANLAB_WORKSPACE" \
+        --authorized-swanlab-project "$SWANLAB_PROJECT" \
+        --swanlab-attempt "$attempt" \
+        --swanlab-health-receipt \
+        "$OUTPUT_ROOT/swanlab-attempts/attempt-$attempt/tracking-gate/health-receipt.json"
+    code=$?
+    set -e
+    return "$code"
+}
+
 worker() {
-    local code=0 resume_flag=
+    local code=0 resume_flag= swanlab_state=
     MONITOR_PID=
     CLEANUP_NEEDED=0
     trap '
@@ -356,8 +452,21 @@ worker() {
         return 0
     fi
     validate_file_inventory
-    tracking_gate
     validate_admitted_resource_receipt
+    swanlab_state=$(swanlab_attempt_state)
+    if [[ "$swanlab_state" == success:* ]]; then
+        run_finalize_attempt "${swanlab_state#success:}"
+        validate_outputs
+        launcher_status finished complete s0_precision_aggregation_diagnostic_complete 0
+        return 0
+    fi
+    if [[ "$swanlab_state" == retryable:2 ]]; then
+        tracking_gate 2
+        run_finalize_attempt 2
+        validate_outputs
+        launcher_status finished complete s0_precision_aggregation_diagnostic_complete 0
+        return 0
+    fi
     CLEANUP_NEEDED=1
     resource_monitor &
     MONITOR_PID=$!
@@ -392,10 +501,18 @@ worker() {
     finalize_resources
     CLEANUP_NEEDED=0
 
-    run_stage finalize aggregate_receipts_and_manifest \
-        --resource-receipt "$RESOURCE_RECEIPT" \
-        --authorized-swanlab-workspace "$SWANLAB_WORKSPACE" \
-        --authorized-swanlab-project "$SWANLAB_PROJECT"
+    tracking_gate 1
+    if run_finalize_attempt 1; then
+        code=0
+    else
+        code=$?
+    fi
+    if (( code == 91 )); then
+        tracking_gate 2
+        run_finalize_attempt 2
+    elif (( code != 0 )); then
+        return "$code"
+    fi
     validate_outputs
     launcher_status finished complete s0_precision_aggregation_diagnostic_complete 0
 }
