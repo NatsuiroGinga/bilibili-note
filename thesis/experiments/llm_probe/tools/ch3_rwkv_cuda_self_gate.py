@@ -190,6 +190,7 @@ def validate_config(config: Mapping[str, Any]) -> None:
         {
             "torch_version",
             "cuda_version",
+            "cuda_home",
             "compute_capability",
             "cuda_arch_list",
             "required_commands",
@@ -200,6 +201,8 @@ def validate_config(config: Mapping[str, Any]) -> None:
         raise ValueError("PyTorch 版本合同不符")
     if environment["cuda_version"] != "13.0":
         raise ValueError("CUDA 版本合同不符")
+    if environment["cuda_home"] != "/usr/local/cuda":
+        raise ValueError("CUDA 工具链根目录合同不符")
     if environment["compute_capability"] != [12, 0]:
         raise ValueError("计算能力合同不符")
     if environment["cuda_arch_list"] != "12.0":
@@ -382,7 +385,21 @@ def _path_version(path: Path) -> dict[str, str]:
 def _environment_receipt(
     backend: Any, config: Mapping[str, Any]
 ) -> dict[str, Any]:
+    expected_cuda_home = str(config["environment"]["cuda_home"])
+    actual_cuda_home = os.environ.get("CUDA_HOME")
+    if actual_cuda_home != expected_cuda_home:
+        raise RuntimeError(
+            f"CUDA_HOME 不符：实际 {actual_cuda_home!r}，冻结 {expected_cuda_home!r}"
+        )
+    expected_nvcc = str(Path(expected_cuda_home) / "bin" / "nvcc")
+    actual_nvcc = shutil.which("nvcc")
+    if actual_nvcc != expected_nvcc:
+        raise RuntimeError(
+            f"nvcc 解析路径不符：实际 {actual_nvcc!r}，冻结 {expected_nvcc!r}"
+        )
     value = dict(backend.validate_build_environment())
+    if value.get("nvcc") != expected_nvcc:
+        raise RuntimeError("独立 CUDA 后端解析的 nvcc 路径不符")
     required_commands = config["environment"]["required_commands"]
     value["command_versions"] = {
         str(command): _command_version(str(command)) for command in required_commands
@@ -391,6 +408,9 @@ def _environment_receipt(
     value["active_cxx_version"] = _path_version(cxx_path)
     value["python_version"] = sys.version
     value["platform"] = sys.platform
+    value["cuda_home"] = actual_cuda_home
+    value["cuda_home_resolved"] = str(Path(actual_cuda_home).resolve())
+    value["nvcc_path"] = actual_nvcc
     value["cuda_arch_list"] = os.environ.get("TORCH_CUDA_ARCH_LIST", "12.0")
     return value
 

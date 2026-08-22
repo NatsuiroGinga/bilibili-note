@@ -73,6 +73,19 @@
 - 供应商四文件相对当前 `HEAD` 无差异；派生 C++ 与官方 C++ 的差异只包含文件头说明、格式和专用注册命名空间，CUDA 文件无派生副本且未修改。
 - 工具与启动器对九个身份文件生成的清单 SHA-256 算法实测一致。
 
+## B76 真实前置失败
+
+- 真实前置检查退出码：`69`。
+- 失败位置：启动器外层 `validate_commands` 的 `command -v nvcc`，早于 `mkdir`、`record_identity` 和持久工作进程。
+- 运行身份：未创建新的远端运行身份，可继续使用 `ch3-rwkv-cuda-self-gate-v1`。
+- 只读环境证据：PyTorch `2.13.0+cu130`、`torch.version.cuda=13.0`、`CUDA_HOME=/usr/local/cuda`。
+- 工具链证据：`/usr/local/cuda/bin/nvcc` 存在，报告 CUDA `13.0`。
+- 根因假设：CUDA 工具链完整，但环境激活后的非交互 PATH 没有包含冻结 `CUDA_HOME/bin`；因此 `command -v nvcc` 失败，不是工具链缺失或 CUDA 版本不符。
+- 单变量修复：配置新增并冻结 `cuda_home=/usr/local/cuda`；启动器在命令门前导出冻结 CUDA 环境；工具对环境变量和 `nvcc` 解析路径作双重断言。
+- 未改变：官方核、供应商摘要、`B/T/C/头大小/低秩维`、精度、固定种子、微扰、前缀、优化器、测量次数、路径和 gate_id。
+- 修复后本地静态检查：`py_compile`、延迟导入、帮助、配置、静态合同、`bash -n` 和 `git diff --check` 均通过。
+- 当前边界：本代理未重新访问服务器；修复后的真实 B76 前置检查尚未执行。
+
 ## PyTorch 技能适配
 
 - 已读取 `pytorch-patterns` 的确定性、显式形状、`train/eval`、`zero_grad(set_to_none=True)` 和显存意识条目。

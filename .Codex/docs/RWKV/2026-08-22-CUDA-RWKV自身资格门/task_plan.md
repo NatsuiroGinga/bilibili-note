@@ -70,12 +70,23 @@
 - 掩码语义由外层独立模型在输入、输出和损失处执行，避免声称核内存在未实现的掩码接口。
 - 本地环境不具备目标 GPU，因此本轮只交付静态实现；真实资格结论只能由目标环境收据给出。
 
+## 真实前置失败修复
+
+- [x] 读取真实 B76 前置检查证据：外层 `validate_commands` 因 `command -v nvcc` 未命中而以 `exit=69` 失败。
+- [x] 核对目标环境事实：`torch=2.13.0+cu130`、`torch.version.cuda=13.0`、`CUDA_HOME=/usr/local/cuda`，且 `/usr/local/cuda/bin/nvcc` 存在并报告 CUDA `13.0`。
+- [x] 确认失败发生在 `mkdir`、`record_identity` 和工作进程前，远端没有创建新的运行身份，可保持原 `gate_id`。
+- [x] 配置精确冻结 `cuda_home=/usr/local/cuda`。
+- [x] 启动器在环境激活后、任何命令门前核验 CUDA 根目录物理落点与 `nvcc` 可执行性，并导出 `CUDA_HOME`、`PATH` 和 `LD_LIBRARY_PATH`。
+- [x] 工具配置门与环境收据核对 `CUDA_HOME` 和 `nvcc` 解析路径。
+- [x] 重新执行 `py_compile`、导入、帮助、配置、`bash -n` 和 `git diff --check`，全部通过。
+
 ## 错误记录
 
 - Context7 命令未返回可用正文；已改用 PyTorch `2.13` 官方文档核验扩展加载、确定性、BF16 与显存接口，并在 `notes.md` 记录来源。
 - 本地 `uv run --no-sync` 环境未安装 PyTorch，首次导入检查报 `ModuleNotFoundError`；已将 PyTorch 改为仅在 `--run` 时延迟导入，随后 `py_compile`、导入、帮助和配置检查通过。目标 CUDA 运行仍按合同要求缺少依赖即失败，不提供回退。
 - 初版 Shell 快捷幂等判断只绑定静态文件，不能核对环境和动态库；已删除该弱判断，统一由 Python 单入口按文件、环境和二进制三层身份裁决。
+- 真实 B76 前置检查首次以 `exit=69` 失败；根因是冻结 CUDA 工具链存在，但非交互 PATH 未包含 `/usr/local/cuda/bin`。本轮只修正环境传播与路径断言，不修改核、门槛、输入或运行身份。
 
 ## 状态
 
-**已完成**。实现与本地静态验收已完成，六个目标范围已独占提交。CUDA 实测未执行，状态为“实验待证”。
+**修复静态就绪**。真实前置失败的单变量修复已完成本地静态验收，尚未重新访问 B76。CUDA 实测未执行，状态为“实验待证”。

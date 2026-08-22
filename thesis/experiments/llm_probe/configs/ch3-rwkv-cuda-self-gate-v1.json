@@ -26,6 +26,7 @@
   "environment": {
     "torch_version": "2.13.0+cu130",
     "cuda_version": "13.0",
+    "cuda_home": "/usr/local/cuda",
     "compute_capability": [12, 0],
     "cuda_arch_list": "12.0",
     "required_commands": ["nvcc", "ninja", "c++"]

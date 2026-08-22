@@ -14,9 +14,32 @@ readonly VENDOR_ROOT="$PROJECT_ROOT/vendor/rwkv7_k0_fused"
 readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_rwkv_cuda_self_gate_v1.sh"
 readonly OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$GATE_ID"
 readonly LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$GATE_ID"
+readonly FROZEN_CUDA_HOME=/usr/local/cuda
 
 cd "$PROJECT_ROOT"
 source tools/env/activate.sh
+
+[[ -d "$FROZEN_CUDA_HOME" ]] || {
+    printf '冻结CUDA工具链目录不存在：%s\n' "$FROZEN_CUDA_HOME" >&2
+    exit 68
+}
+CUDA_HOME_RESOLVED=$(cd "$FROZEN_CUDA_HOME" && pwd -P)
+readonly CUDA_HOME_RESOLVED
+case "$CUDA_HOME_RESOLVED" in
+    /usr/local/cuda | /usr/local/cuda-13.0) ;;
+    *)
+        printf '冻结CUDA工具链目录发生符号逃逸：%s -> %s\n' \
+            "$FROZEN_CUDA_HOME" "$CUDA_HOME_RESOLVED" >&2
+        exit 68
+        ;;
+esac
+[[ -x "$FROZEN_CUDA_HOME/bin/nvcc" ]] || {
+    printf '冻结nvcc不可执行：%s\n' "$FROZEN_CUDA_HOME/bin/nvcc" >&2
+    exit 68
+}
+export CUDA_HOME="$FROZEN_CUDA_HOME"
+export PATH="$CUDA_HOME/bin:$PATH"
+export LD_LIBRARY_PATH="$CUDA_HOME/lib64:${LD_LIBRARY_PATH:-}"
 
 write_status() {
     local state=$1 stage=$2 exit_code=$3
@@ -56,6 +79,10 @@ validate_commands() {
             return 69
         }
     done
+    [[ $(command -v nvcc) == "$CUDA_HOME/bin/nvcc" ]] || {
+        printf 'nvcc解析路径不符：%s\n' "$(command -v nvcc)" >&2
+        return 69
+    }
 }
 
 validate_static_contract() {
