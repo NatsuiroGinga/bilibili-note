@@ -1,0 +1,75 @@
+{
+  "schema_version": "ch3-rwkv-cuda-self-gate-config-v1",
+  "gate_id": "ch3-rwkv-cuda-self-gate-v1",
+  "display_name": "CUDA-RWKV小型容量自身资格门",
+  "source": {
+    "repository": "https://github.com/BlinkDL/RWKV-LM",
+    "commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+    "license": "Apache-2.0"
+  },
+  "shape": {
+    "batch": 2,
+    "sequence_length": 128,
+    "channels": 112,
+    "head_size": 16,
+    "heads": 7,
+    "low_rank": 8,
+    "chunk_length": 16
+  },
+  "precision": {
+    "kernel_input": "bfloat16",
+    "kernel_output": "bfloat16",
+    "kernel_gradient": "bfloat16",
+    "kernel_state": "float32",
+    "module_parameter": "float32"
+  },
+  "environment": {
+    "torch_version": "2.13.0+cu130",
+    "cuda_version": "13.0",
+    "compute_capability": [12, 0],
+    "cuda_arch_list": "12.0",
+    "required_commands": ["nvcc", "ninja", "c++"]
+  },
+  "backend": {
+    "module": "rwkv7_k0_fused_backend",
+    "extension_name": "rwkv7_k0_clampw_h16_c112_t128_v1",
+    "operator_namespace": "rwkv7_k0_clampw"
+  },
+  "fixed_input": {
+    "seed": 20260822,
+    "absolute_bound": 0.5,
+    "perturbation": 0.125,
+    "perturb_index": [0, 1, 0],
+    "prefix_length": 96
+  },
+  "optimizer": {
+    "name": "AdamW",
+    "learning_rate": 0.001,
+    "weight_decay": 0.01
+  },
+  "measurement": {
+    "warmup_iterations": 3,
+    "measured_iterations": 20
+  },
+  "paths": {
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv-cuda-self-gate-v1",
+    "build_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv-cuda-self-gate-v1/torch-extensions"
+  },
+  "identity_files": [
+    "configs/ch3-rwkv-cuda-self-gate-v1.json",
+    "tools/ch3_rwkv_cuda_self_gate.py",
+    "tools/rwkv7_k0_fused_backend.py",
+    "scripts/remote_launchers/run_ch3_rwkv_cuda_self_gate_v1.sh",
+    "vendor/rwkv7_k0_fused/LICENSE",
+    "vendor/rwkv7_k0_fused/manifest.json",
+    "vendor/rwkv7_k0_fused/upstream/rwkv7_clampw.cpp",
+    "vendor/rwkv7_k0_fused/upstream/rwkv7_clampw.cu",
+    "vendor/rwkv7_k0_fused/derived/rwkv7_k0_clampw.cpp"
+  ],
+  "artifacts": {
+    "completion_receipt": "completion-receipt.json",
+    "attempt_directory": "attempts",
+    "environment_receipt": "build-environment.json",
+    "binary_manifest": "extension-binaries.json"
+  }
+}

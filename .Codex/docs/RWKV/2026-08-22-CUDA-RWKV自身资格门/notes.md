@@ -59,3 +59,22 @@
 - 未读取任何数据。
 - 未创建 SwanLab 身份。
 - 当前科学状态：实验待证。
+
+## 本地静态验收
+
+- `uv run --no-sync python -m py_compile tools/ch3_rwkv_cuda_self_gate.py`：通过。
+- 使用 `importlib.util` 导入工具：通过；未初始化 CUDA，未编译扩展。
+- `--help`：通过，列出 `--validate-config`、`--print-contract`、`--run`。
+- `--validate-config`：通过，返回 `config_valid=true`。
+- `--print-contract`：通过，确认外部记录读取为假、跟踪身份创建为假、优化更新次数为一。
+- `bash -n scripts/remote_launchers/run_ch3_rwkv_cuda_self_gate_v1.sh`：通过。
+- 生产配置、工具和启动器禁止内容扫描：零命中。
+- 官方许可证、C++、CUDA 原件 SHA-256 分别为 `c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4`、`f6781adacbe0ab8638b666e0bd49098e262a861b7cc95fb1735ab54a43d82628`、`a879dd478457290ebe793a10fcd0c1b93db1e1afb9d51ff8f8f1245a0146bbfb`，与清单一致。
+- 供应商四文件相对当前 `HEAD` 无差异；派生 C++ 与官方 C++ 的差异只包含文件头说明、格式和专用注册命名空间，CUDA 文件无派生副本且未修改。
+- 工具与启动器对九个身份文件生成的清单 SHA-256 算法实测一致。
+
+## PyTorch 技能适配
+
+- 已读取 `pytorch-patterns` 的确定性、显式形状、`train/eval`、`zero_grad(set_to_none=True)` 和显存意识条目。
+- 技能默认建议设备无关实现，但本资格门的冻结对象就是 `sm_120` 官方 CUDA 核。这里按更近层实验合同采用 CUDA 硬门，缺少 CUDA、BF16 或冻结版本时直接失败，不提供 CPU 路径。
+- 本门使用固定种子、`torch.use_deterministic_algorithms(True, warn_only=False)`、`model.eval()` 掩码检查、`model.train()` 单步更新和 FP32 参数断言。
