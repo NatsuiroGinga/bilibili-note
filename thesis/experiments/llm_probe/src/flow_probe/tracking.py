@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import hashlib
+import importlib.metadata
 import os
+import re
 import sys
 import unicodedata
 from collections.abc import Iterator, Mapping
@@ -15,8 +17,16 @@ from typing import TextIO
 
 REQUIRED_SWANLAB_PROJECT = "malicious-traffic-llm"
 REQUIRED_SWANLAB_WORKSPACE = "mortiswang"
+EXPECTED_SWANLAB_VERSION = "0.9.0"
 SWANLAB_TAG_MAX_CODEPOINTS = 20
 SWANLAB_TAG_MAX_COUNT = 50
+SWANLAB_PROJECT_PATTERN = re.compile(r"[0-9A-Za-z_+.-]{1,100}\Z")
+SWANLAB_WORKSPACE_PATTERN = re.compile(r"[0-9A-Za-z_-]{1,25}\Z")
+SWANLAB_NAME_GROUP_MAX_CODEPOINTS = 512
+SWANLAB_REQUESTED_MODES = frozenset(("cloud", "online", "local", "disabled"))
+DEFAULT_SWANLAB_TAG_ALIAS_PATH = (
+    Path(__file__).resolve().parents[2] / "configs" / "swanlab-tag-aliases-v1.json"
+)
 
 
 class TrackingConfigError(ValueError):
@@ -29,6 +39,14 @@ def _require_exact_text(value: object, field: str) -> str:
     if not value or value != value.strip():
         raise TrackingConfigError(f"{field} 不能为空且首尾不得包含空白")
     return value
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def load_swanlab_tag_aliases(path: Path) -> dict[str, str]:
@@ -87,6 +105,23 @@ def validate_swanlab_contract(
         key: _require_exact_text(destination.get(key), f"SwanLab {key}")
         for key in ("workspace", "project", "name", "group", "mode")
     }
+    if SWANLAB_WORKSPACE_PATTERN.fullmatch(fields["workspace"]) is None:
+        raise TrackingConfigError(
+            "SwanLab workspace 必须为 1 至 25 位且只含字母、数字、下划线或连字符"
+        )
+    if SWANLAB_PROJECT_PATTERN.fullmatch(fields["project"]) is None:
+        raise TrackingConfigError(
+            "SwanLab project 必须为 1 至 100 位且只含字母、数字、下划线、加号、点或连字符"
+        )
+    for field in ("name", "group"):
+        if len(fields[field]) > SWANLAB_NAME_GROUP_MAX_CODEPOINTS:
+            raise TrackingConfigError(
+                f"SwanLab {field} 不得超过 {SWANLAB_NAME_GROUP_MAX_CODEPOINTS} 个码点"
+            )
+    if fields["mode"] not in SWANLAB_REQUESTED_MODES:
+        raise TrackingConfigError(
+            f"SwanLab mode 必须属于：{', '.join(sorted(SWANLAB_REQUESTED_MODES))}"
+        )
     if authorized_workspace is not None and fields["workspace"] != authorized_workspace:
         raise TrackingConfigError("SwanLab 工作区与本轮授权不一致")
     if authorized_project is not None and fields["project"] != authorized_project:
@@ -135,8 +170,10 @@ def validate_swanlab_contract(
         if parsed_environment_tags != effective_tags:
             raise TrackingConfigError("SWANLAB_TAGS 与最终有效标签发生漂移")
 
+    effective_fields = {**fields, "mode": "online" if fields["mode"] == "cloud" else fields["mode"]}
     canonical = {
-        "destination": fields,
+        "requested_destination": fields,
+        "effective_destination": effective_fields,
         "original_tags": original_tags,
         "effective_tags": effective_tags,
         "alias_applications": applications,
@@ -147,6 +184,8 @@ def validate_swanlab_contract(
     return {
         "schema_version": "swanlab-effective-tag-receipt-v1",
         **canonical,
+        "requested_mode": fields["mode"],
+        "effective_mode": effective_fields["mode"],
         "nfc_original_tags": original_nfc,
         "nfc_effective_tags": effective_nfc,
         "tag_count": len(effective_tags),
@@ -175,7 +214,9 @@ def write_swanlab_tag_receipt(path: Path, receipt: Mapping[str, object]) -> None
 def initialize_swanlab_run(
     destination: Mapping[str, object],
     *,
-    aliases: Mapping[str, str] | None,
+    aliases: Mapping[str, str] | None = None,
+    alias_config_path: Path = DEFAULT_SWANLAB_TAG_ALIAS_PATH,
+    expected_alias_config_sha256: str | None = None,
     config: Mapping[str, object],
     log_dir: Path,
     tag_receipt_path: Path,
@@ -184,11 +225,34 @@ def initialize_swanlab_run(
     extra_init_kwargs: Mapping[str, object] | None = None,
 ) -> tuple[object, object, dict[str, object]]:
     """先执行统一合同并写收据，再创建唯一 SwanLab 在线运行。"""
+    alias_config_path = Path(alias_config_path).resolve()
+    alias_config_sha256 = _sha256_file(alias_config_path)
+    if (
+        expected_alias_config_sha256 is not None
+        and alias_config_sha256 != expected_alias_config_sha256
+    ):
+        raise TrackingConfigError("SwanLab 标签别名文件哈希与冻结值不一致")
+    file_aliases = load_swanlab_tag_aliases(alias_config_path)
+    if aliases and dict(aliases) != file_aliases:
+        raise TrackingConfigError("显式标签别名不得偏离冻结别名文件")
     receipt = validate_swanlab_contract(
         destination,
-        aliases=aliases,
+        aliases=file_aliases,
         authorized_workspace=authorized_workspace,
         authorized_project=authorized_project,
+    )
+    actual_swanlab_version = importlib.metadata.version("swanlab")
+    if actual_swanlab_version != EXPECTED_SWANLAB_VERSION:
+        raise TrackingConfigError(
+            f"SwanLab 实际版本必须为 {EXPECTED_SWANLAB_VERSION}，当前为 {actual_swanlab_version}"
+        )
+    receipt.update(
+        {
+            "expected_swanlab_version": EXPECTED_SWANLAB_VERSION,
+            "actual_swanlab_version": actual_swanlab_version,
+            "alias_config_path": str(alias_config_path),
+            "alias_config_sha256": alias_config_sha256,
+        }
     )
     write_swanlab_tag_receipt(tag_receipt_path, receipt)
     protected = {"workspace", "project", "name", "group", "mode", "tags", "config", "log_dir"}
@@ -197,7 +261,7 @@ def initialize_swanlab_run(
     if overlap:
         raise TrackingConfigError(f"额外初始化参数不得覆盖统一字段：{', '.join(overlap)}")
     kwargs: dict[str, object] = {
-        **receipt["destination"],
+        **receipt["effective_destination"],
         "tags": list(receipt["effective_tags"]),
         "config": dict(config),
         "log_dir": str(log_dir),
@@ -399,7 +463,6 @@ def swanlab_run(
     init_kwargs.pop("log_dir")
     swanlab, run, _ = initialize_swanlab_run(
         destination,
-        aliases={},
         config=config,
         log_dir=log_dir,
         tag_receipt_path=artifact_dir / "swanlab-tag-receipt.json",

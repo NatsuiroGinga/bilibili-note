@@ -27,58 +27,76 @@ for path in "$CONFIG_PATH" "$ALIAS_PATH" "$TOOL_PATH" "$TRACKING_PATH" "$SCRIPT_
     [[ -s "$path" ]] || { printf '发布修复生产文件缺失：%s\n' "$path" >&2; exit 67; }
 done
 
-if [[ -s "$OUTPUT_ROOT/status.json" ]] && uv run --no-sync python -c '
-import json, pathlib, sys
-status = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-raise SystemExit(0 if status.get("state") == "complete" and status.get("exit_code") == 0 else 1)
-' "$OUTPUT_ROOT/status.json"; then
+tool_command=(uv run --no-sync python "$TOOL_PATH"
+    --config "$CONFIG_PATH"
+    --alias-config "$ALIAS_PATH"
+    --authorized-swanlab-workspace "$SWANLAB_WORKSPACE"
+    --authorized-swanlab-project "$SWANLAB_PROJECT")
+
+"${tool_command[@]}" --validate-config
+uv run --no-sync python -c 'import swanlab; from flow_probe.tracking import initialize_swanlab_run'
+
+if [[ -e "$OUTPUT_ROOT" ]] && "${tool_command[@]}" --verify-completed; then
     printf 'GRANDE_SWANLAB_PUBLISH_REPAIR_ALREADY_COMPLETE output=%s\n' "$OUTPUT_ROOT"
     exit 0
 fi
-[[ ! -e "$OUTPUT_ROOT" ]] || { printf '发布修复输出根已存在且未完成，拒绝覆盖。\n' >&2; exit 73; }
-[[ ! -e "$LAUNCHER_ROOT" ]] || { printf '发布修复启动器目录已存在，拒绝覆盖。\n' >&2; exit 73; }
 
-uv run --no-sync python "$TOOL_PATH" \
-    --config "$CONFIG_PATH" \
-    --alias-config "$ALIAS_PATH" \
-    --validate-config \
-    --authorized-swanlab-workspace "$SWANLAB_WORKSPACE" \
-    --authorized-swanlab-project "$SWANLAB_PROJECT"
-uv run --no-sync python -c 'import swanlab; from flow_probe.tracking import initialize_swanlab_run'
-
-mkdir -p -- "$LAUNCHER_ROOT"
-printf '%s\n' "bash $SCRIPT_PATH" > "$LAUNCHER_ROOT/command.txt"
-sha256sum "$CONFIG_PATH" "$ALIAS_PATH" "$TOOL_PATH" "$TRACKING_PATH" "$SCRIPT_PATH" \
-    > "$LAUNCHER_ROOT/input-sha256.txt"
-
-set +e
-uv run --no-sync python "$TOOL_PATH" \
-    --config "$CONFIG_PATH" \
-    --alias-config "$ALIAS_PATH" \
-    --publish \
-    --authorized-swanlab-workspace "$SWANLAB_WORKSPACE" \
-    --authorized-swanlab-project "$SWANLAB_PROJECT"
-code=$?
-set -e
-printf '%s\n' "$code" > "$LAUNCHER_ROOT/exit-code.txt"
-(( code == 0 )) || exit "$code"
-
-uv run --no-sync python -c '
+resume_second_attempt=false
+if [[ -e "$OUTPUT_ROOT" ]]; then
+    [[ -s "$OUTPUT_ROOT/status.json" && -s "$OUTPUT_ROOT/manifest.json" ]] \
+        || { printf '发布修复输出根不完整，拒绝继续。\n' >&2; exit 73; }
+    if uv run --no-sync python -c '
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 status = json.loads((root / "status.json").read_text(encoding="utf-8"))
-manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
-required = ["parent-binding.json", "tag-receipt.json", "swanlab-receipt.json", "status.json", "manifest.json", "publish-repair.log"]
 valid = (
-    status.get("state") == "complete"
-    and status.get("exit_code") == 0
-    and manifest.get("published_existing_aggregate_metrics_only") is True
-    and manifest.get("new_cells_trained") == []
-    and manifest.get("training_data_read") is False
-    and manifest.get("gpu_read") is False
-    and all((root / name).is_file() for name in required)
+    status.get("state") == "failed"
+    and status.get("attempt") == 1
+    and status.get("retryable_zero_step_init_401") is True
+    and not (root / "attempts" / "attempt-2").exists()
 )
-raise SystemExit(0 if valid else 7)
-' "$OUTPUT_ROOT"
+raise SystemExit(0 if valid else 1)
+' "$OUTPUT_ROOT"; then
+        resume_second_attempt=true
+    else
+        printf '既有输出既非完整成功，也非可重试的首次零步初始化 401。\n' >&2
+        exit 73
+    fi
+fi
+
+if [[ "$resume_second_attempt" == false ]]; then
+    [[ ! -e "$LAUNCHER_ROOT" ]] || { printf '发布修复启动器目录已存在，拒绝覆盖。\n' >&2; exit 73; }
+    mkdir -p -- "$LAUNCHER_ROOT"
+    printf '%s\n' "bash $SCRIPT_PATH" > "$LAUNCHER_ROOT/command.txt"
+    sha256sum "$CONFIG_PATH" "$ALIAS_PATH" "$TOOL_PATH" "$TRACKING_PATH" "$SCRIPT_PATH" \
+        > "$LAUNCHER_ROOT/input-sha256.txt"
+    set +e
+    "${tool_command[@]}" --publish --attempt 1
+    attempt_one_code=$?
+    set -e
+    printf '%s\n' "$attempt_one_code" > "$LAUNCHER_ROOT/attempt-1-exit-code.txt"
+    if (( attempt_one_code != 0 )); then
+        if uv run --no-sync python -c '
+import json, pathlib, sys
+status = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+raise SystemExit(0 if status.get("retryable_zero_step_init_401") is True else 1)
+' "$OUTPUT_ROOT/status.json"; then
+            resume_second_attempt=true
+        else
+            exit "$attempt_one_code"
+        fi
+    fi
+fi
+
+if [[ "$resume_second_attempt" == true ]]; then
+    set +e
+    "${tool_command[@]}" --publish --attempt 2
+    attempt_two_code=$?
+    set -e
+    printf '%s\n' "$attempt_two_code" > "$LAUNCHER_ROOT/attempt-2-exit-code.txt"
+    (( attempt_two_code == 0 )) || exit "$attempt_two_code"
+fi
+
+"${tool_command[@]}" --verify-completed
 printf 'GRANDE_SWANLAB_PUBLISH_REPAIR_COMPLETE output=%s parent=%s\n' \
     "$OUTPUT_ROOT" ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1

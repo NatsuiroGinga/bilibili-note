@@ -6,11 +6,19 @@
     "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-swanlab-publish-repair-v1",
     "parent_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1",
     "parent_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-grande-c00-protocol-a-source-q0-seed42-v1-bf16-v1.json",
-    "tag_aliases": "configs/swanlab-tag-aliases-v1.json"
+    "tag_aliases": "configs/swanlab-tag-aliases-v1.json",
+    "tag_aliases_sha256": "d2bf7212068e6d7ced2fa916cd327dd24fea26bbb3bd3cbd9fd241c77a3f7a16"
   },
   "parent_binding": {
     "run_id": "ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1",
-    "config_sha256": "af4b8cac2f4322498149d271ad8c93f3b118a31b718408038dfddef85c8d84a1",
+    "production_config_sha256": "af4b8cac2f4322498149d271ad8c93f3b118a31b718408038dfddef85c8d84a1",
+    "frozen_config_sha256": "11b2269788666060b42b1f37af1aaebb5c3a24ce03193ac1f77a2157c440193b",
+    "manifest_sha256": "b02ec174c7c107b232269b89038262ee7bd64b156967d25774bcabf212600d16",
+    "current_source_screen_results_sha256": "6dc3d8c06f42fb24d5429150f1ed0039a7bf7dd47df19bfbfa770d2220ff4e12",
+    "manifest_source_screen_results_sha256": "13291c39ff551c99f75b40cfa9f88c7edeee98f6afd05c279f3cddc9a877fab7",
+    "current_grande_source_results_sha256": "13291c39ff551c99f75b40cfa9f88c7edeee98f6afd05c279f3cddc9a877fab7",
+    "current_resource_receipt_sha256": "fa0f8ccfa7206487d8f24e7802f124e23040167850f78c932876444c15113ff3",
+    "current_status_sha256": "6ab7b838966876fc3e232820235f2e80cc6d0f5fdfe9a7d772d62209f2ab5418",
     "expected_status": {
       "state": "failed",
       "exit_code": 1
@@ -24,6 +32,7 @@
     "required_artifacts": {
       "frozen_config": "config.json",
       "source_screen_results": "source-screen-results.json",
+      "grande_source_results": "grande-c00-source-results.json",
       "selection_seal": "backbone_selection_frozen.json",
       "aggregate_curves": "complete-alert-budget-curves.npz",
       "aggregate_curves_receipt": "complete-alert-budget-curves-receipt.json",
