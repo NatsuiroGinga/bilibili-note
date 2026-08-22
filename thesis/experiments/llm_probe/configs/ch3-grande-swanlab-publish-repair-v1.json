@@ -1,0 +1,79 @@
+{
+  "schema_version": "ch3-grande-swanlab-publish-repair-config-v1",
+  "run_id": "ch3-grande-swanlab-publish-repair-v1",
+  "display_name": "GRANDE协议A源年BF16零重训发布修复",
+  "paths": {
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-swanlab-publish-repair-v1",
+    "parent_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1",
+    "parent_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-grande-c00-protocol-a-source-q0-seed42-v1-bf16-v1.json",
+    "tag_aliases": "configs/swanlab-tag-aliases-v1.json"
+  },
+  "parent_binding": {
+    "run_id": "ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1",
+    "config_sha256": "af4b8cac2f4322498149d271ad8c93f3b118a31b718408038dfddef85c8d84a1",
+    "expected_status": {
+      "state": "failed",
+      "exit_code": 1
+    },
+    "required_units": ["G-A", "G-B"],
+    "epochs_per_unit": 20,
+    "optimizer_steps_per_unit": 20000,
+    "expected_selected_epochs": {
+      "G-B": 9
+    },
+    "required_artifacts": {
+      "frozen_config": "config.json",
+      "source_screen_results": "source-screen-results.json",
+      "selection_seal": "backbone_selection_frozen.json",
+      "aggregate_curves": "complete-alert-budget-curves.npz",
+      "aggregate_curves_receipt": "complete-alert-budget-curves-receipt.json",
+      "selection_g_a": "receipts/selection-G-A.json",
+      "selection_g_b": "receipts/selection-G-B.json",
+      "checkpoint_g_a": "checkpoints/selected-G-A.pt",
+      "checkpoint_g_b": "checkpoints/selected-G-B.pt",
+      "resource_receipt": "resource-receipt.json",
+      "failed_status": "status.json",
+      "parent_manifest": "manifest.json"
+    }
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "name": "GRANDE协议A源年BF16零重训发布修复",
+    "group": "ch3-grande-swanlab-publish-repair-v1",
+    "mode": "cloud",
+    "tags": [
+      "chapter3",
+      "grande",
+      "protocol-a",
+      "source-q0",
+      "seed42",
+      "bf16",
+      "fp32-sensitive",
+      "same-precision-selection",
+      "publish-repair"
+    ]
+  },
+  "allowed_operations": [
+    "swanlab-ping",
+    "swanlab-verify",
+    "parent-artifact-hash-verification",
+    "aggregate-metric-upload"
+  ],
+  "prohibited_operations": [
+    "prepare",
+    "resource-calibrate",
+    "train-unit",
+    "aggregate",
+    "training-data-read",
+    "gpu-read",
+    "parent-artifact-write"
+  ],
+  "source_year_only": true,
+  "target_year_arrays_read": 0,
+  "target_year_paths_enumerated": 0,
+  "new_cells_trained": [],
+  "parent_artifacts_mutated": false,
+  "formal_paper_evidence": false,
+  "independent_test": false
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": "swanlab-tag-aliases-v1",
+  "aliases": {
+    "cuda-fused-numeric-variant": "cuda-fused-numeric",
+    "official-pytorch-postpaper": "official-pytorch",
+    "same-precision-selection": "same-precision"
+  }
+}

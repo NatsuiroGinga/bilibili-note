@@ -24,5 +24,7 @@
 
 ## 待实现细节
 
-- 根据父 GRANDE 实际制品模式冻结修复配置中的父运行根、必需相对路径、父配置哈希和发布身份。
-- 扫描器需要兼容项目内不同配置节名，但只对能明确识别的 SwanLab 映射执行合同校验；不能识别的配置列为未迁移入口而不是猜测转换。
+- 已冻结父运行 `ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1`、父配置 SHA-256 `af4b8cac2f4322498149d271ad8c93f3b118a31b718408038dfddef85c8d84a1`、十二项父制品和独立发布身份。
+- 真实配置扫描共发现 34 个 `swanlab` 映射。20 个可构造最终目的地的合同全部通过；14 个静态配置无法通用确定最终目的地，已列为未决而非猜测转换。
+- 扫描器发现 53 个尚未迁移的直接 `swanlab.init` 入口；统一入口自身单独登记，不计入剩余数。
+- 三项预注册违规别名均被真实配置命中：`official-pytorch-postpaper`、`same-precision-selection`、`cuda-fused-numeric-variant`。
