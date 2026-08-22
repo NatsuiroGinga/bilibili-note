@@ -1,0 +1,265 @@
+{
+  "schema_version": "ch3-full-mlp-s0-precision-aggregation-diagnostic-config-v1",
+  "run_id": "ch3-full-mlp-s0-precision-aggregation-diagnostic-seed42-v1",
+  "display_name": "全容量多层感知机S0双精度双聚合空间零训练诊断",
+  "model_key": "full_mlp",
+  "evidence_level": "zero_train_screening",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-s0-precision-aggregation-diagnostic-seed42-v1",
+    "parent_run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+    "precision_contract": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/neural-precision-profiles-v1.json"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24"],
+  "parent_selection": {
+    "run_id": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+    "seal_filename": "selection_frozen.json",
+    "source_inventory_json_pointer": "/source_data_inventory",
+    "identity": {
+      "config_sha256": "673bab8ef85e4653f8b104180dbe296f89e6a6468a4a91e53dc5bcfa65805161",
+      "code_sha256": "93ce84972441080340351f62bd2dead95a33aad5d13041b8c3f316eb3701c1b0",
+      "source_data_inventory_sha256": "195e3e3f081920c72f37493cba59faf34b596271a86083b7f3897543eb04e88d"
+    },
+    "source_split": {
+      "entity_count": 150680,
+      "train_sequences": 208598,
+      "validation_sequences": 22444,
+      "train_validation_row_intersection": 0
+    },
+    "checkpoints": {
+      "B00": {
+        "display_name": "无因果前缀无学习幂平均基线",
+        "filename": "checkpoints/selected-B00.pt",
+        "bytes": 8604193,
+        "sha256": "d9a89e0d40488686c5db2cca86bd8e2de9ab85200e23c4bc57b8171217531995",
+        "causal_prefix_aggregation": false,
+        "learned_lp_pooling": false,
+        "frozen_power_mean_p": 8.0,
+        "frozen_power_mean_source": "selection_frozen.derived_p.N01",
+        "selected_epoch": 12
+      },
+      "B10": {
+        "display_name": "含因果前缀无学习幂平均基线",
+        "filename": "checkpoints/selected-B10.pt",
+        "bytes": 8604193,
+        "sha256": "5816387f1af57518a22514d5e21b8343a65747e4ffff41c6e6ef4786dd60d763",
+        "causal_prefix_aggregation": true,
+        "learned_lp_pooling": false,
+        "frozen_power_mean_p": 8.0,
+        "frozen_power_mean_source": "selection_frozen.derived_p.N11",
+        "selected_epoch": 11
+      },
+      "O01": {
+        "display_name": "无因果前缀含学习幂平均辅助",
+        "filename": "checkpoints/selected-O01.pt",
+        "bytes": 8604193,
+        "sha256": "4010665d44cfd29657c4581be5f86047f801b7f1fe27fb25992929602443bb53",
+        "causal_prefix_aggregation": false,
+        "learned_lp_pooling": true,
+        "frozen_power_mean_p": 0.875860333442688,
+        "frozen_power_mean_source": "selection_frozen.cells.O01.p_at_selection",
+        "selected_epoch": 14
+      },
+      "O11": {
+        "display_name": "含因果前缀含学习幂平均辅助",
+        "filename": "checkpoints/selected-O11.pt",
+        "bytes": 8604193,
+        "sha256": "7226dd49852f18b7196fca134148f8a1263af4b461ebba5b6969220ff00ff9f6",
+        "causal_prefix_aggregation": true,
+        "learned_lp_pooling": true,
+        "frozen_power_mean_p": 1.6776543855667114,
+        "frozen_power_mean_source": "selection_frozen.cells.O11.p_at_selection",
+        "selected_epoch": 5
+      }
+    }
+  },
+  "model": {
+    "feature_count": 83,
+    "hidden_depth": 8,
+    "hidden_size": 512,
+    "activation": "relu",
+    "dropout": 0.1,
+    "sequence_length": 128,
+    "parameter_formula": "hidden_depth*hidden_size^2+(hidden_depth+feature_count+1)*hidden_size+2",
+    "parameter_count": 2144258
+  },
+  "split_reproduction": {
+    "seed": 42,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "source_evaluation_rows": "lspr23_entity_disjoint_validation_rows"
+  },
+  "precision": {
+    "bf16_profile_id": "cuda-bf16-amp-fp32-sensitive-v1",
+    "fp32_profile_id": "cuda-fp32-numerical-fallback-v1",
+    "fp32_profile_receipt_reason": "S0精度反事实需要同一权重的全FP32推理对照，属数值诊断显式例外",
+    "assert_bf16_forward_output_dtype": "bfloat16",
+    "assert_fp32_forward_output_dtype": "float32",
+    "assert_identical_weights_across_arms": true
+  },
+  "arms": [
+    {
+      "key": "bf16_probability_mean",
+      "display_name": "BF16推理·概率空间均值",
+      "candidate_label": "S0-PB",
+      "precision": "bf16",
+      "aggregation_space": "probability",
+      "clip": false,
+      "is_candidate_arm": true
+    },
+    {
+      "key": "bf16_logit_mean",
+      "display_name": "BF16推理·对数几率空间均值",
+      "candidate_label": "S0-LB",
+      "precision": "bf16",
+      "aggregation_space": "logit",
+      "clip": false,
+      "is_candidate_arm": true
+    },
+    {
+      "key": "fp32_probability_mean",
+      "display_name": "FP32推理·概率空间均值",
+      "candidate_label": "S0-PF",
+      "precision": "fp32",
+      "aggregation_space": "probability",
+      "clip": false,
+      "is_candidate_arm": true
+    },
+    {
+      "key": "fp32_logit_mean",
+      "display_name": "FP32推理·对数几率空间均值",
+      "candidate_label": "S0-LF",
+      "precision": "fp32",
+      "aggregation_space": "logit",
+      "clip": false,
+      "is_candidate_arm": true
+    }
+  ],
+  "controls": [
+    {
+      "key": "max_control",
+      "display_name": "最大值控制算子",
+      "aggregation_space": "max",
+      "clip": false,
+      "purpose": "单调变换等价与实现一致性锚"
+    },
+    {
+      "key": "frozen_power_mean_control",
+      "display_name": "冻结幂平均强基线",
+      "aggregation_space": "power_mean",
+      "clip": true,
+      "purpose": "当前生产强基线，只复算封印p，不新选p"
+    },
+    {
+      "key": "probability_mean_clipped_control",
+      "display_name": "概率均值加裁剪对照",
+      "aggregation_space": "power_mean_p1",
+      "clip": true,
+      "purpose": "把裁剪与聚合空间两个变量分开"
+    }
+  ],
+  "strong_baseline_arm_key": "bf16_frozen_power_mean_control",
+  "evaluation": {
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "curve_maximum_fpr": 0.08,
+    "tie_policy": "all_reachable_complete_negative_tie_groups",
+    "interpolation_allowed": false,
+    "nominal_readout_rule": "sorted_descending_negative_quantile_index",
+    "actual_readout_rule": "last_reachable_point_with_realized_fpr_not_greater_than_budget",
+    "common_integer_fp_budget_formula": "floor(nominal_target_fpr*negative_entity_denominator)",
+    "first_alert_axis": "exposure_index",
+    "exposure_index_base": 1,
+    "first_alert_exposure_order": "ascending_frozen_flow_index_within_entity",
+    "first_alert_threshold_sources": ["common_actual_fp_budget", "actual_reachable_terminal", "nominal_quantile"],
+    "first_alert_quantiles": [0.25, 0.5, 0.75, 0.9, 0.95],
+    "first_alert_branches": [
+      "bf16_probability_mean",
+      "bf16_logit_mean",
+      "fp32_probability_mean",
+      "fp32_logit_mean",
+      "bf16_frozen_power_mean_control",
+      "fp32_frozen_power_mean_control"
+    ],
+    "control_clip_epsilon": 1e-07,
+    "candidate_arm_clip_applied": false,
+    "time_delay_available": false,
+    "time_delay_unavailable_reason": "T23/t24不是完整流available_ns且available_ns顺序存在逆序",
+    "aggregation_dtype": "float64"
+  },
+  "inference": {
+    "sequence_batch": 2048,
+    "torch_no_grad": true,
+    "model_eval_mode": true
+  },
+  "data_selfcheck": {
+    "source_x_shape": [16353511, 83],
+    "source_index_shape": [271815, 128],
+    "target_x_shape": [20227356, 83],
+    "target_entity_count": 47115,
+    "target_positive_entity_count": 752,
+    "target_flow_positive_rate": 0.0257073138,
+    "target_flow_positive_rate_tolerance": 1e-09
+  },
+  "lesion_classification": {
+    "reference_arm": "bf16_probability_mean",
+    "rule": "largest_tie_group_membership_split_without_posthoc_tolerance",
+    "labels": [
+      "inference_quantization_dominant",
+      "aggregation_space_dominant",
+      "interaction",
+      "upstream_unresolved"
+    ],
+    "upstream_unresolved_forbids_training_bf16_verdict": true
+  },
+  "source_gate": {
+    "strict_improvement_axes": ["entity_average_precision", "complete_reachable_curve", "first_alert"],
+    "guard_axes": ["flow_average_precision", "common_reachable_false_positive_detection_rate"],
+    "forbid_larger_tie_cliff": true,
+    "forbid_nominal_only_improvement": true,
+    "float_tolerance": 0.0
+  },
+  "artifact_policy": {
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_per_entity_first_alert": false,
+    "persist_entity_mapping": false,
+    "persist_exposure_matrix": false,
+    "persist_new_checkpoints": false,
+    "persist_complete_tied_curve_aggregate": true,
+    "persist_first_alert_aggregate_only": true
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_mib": 20480,
+    "minimum_cgroup_available_memory_gib": 30,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_jobs": 1,
+    "resource_sample_interval_seconds": 5,
+    "wall_clock_limit": null
+  },
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "name": "全容量多层感知机S0双精度双聚合空间零训练诊断",
+    "group": "ch3-full-mlp-s0-precision-aggregation-diagnostic-seed42-v1",
+    "mode": "cloud",
+    "aggregate_only": true,
+    "tags": ["chapter3", "full-mlp", "s0", "zero-train", "precision", "aggregation", "seed42"],
+    "alias_config_path": "configs/swanlab-tag-aliases-v1.json",
+    "alias_config_sha256": "d2bf7212068e6d7ced2fa916cd327dd24fea26bbb3bd3cbd9fd241c77a3f7a16",
+    "central_api_commit": "89ddecf"
+  },
+  "isolation": {
+    "training_runs": 0,
+    "parameter_updates": 0,
+    "optimizer_steps": 0,
+    "new_checkpoints_written": 0,
+    "target_year_arrays_read_before_seal": 0,
+    "target_load_after_source_seal": true,
+    "target_evaluation_calls_per_checkpoint_per_precision": 1,
+    "target_previously_accessed": true,
+    "target_informed": true,
+    "formal_paper_evidence": false,
+    "independent_test": false
+  }
+}
