@@ -19,7 +19,7 @@ readonly RESOURCE_SAMPLES="$OUTPUT_ROOT/resource-samples.tsv"
 
 usage() {
     printf '%s\n' "用法：bash $SCRIPT_PATH [--help|--worker]"
-    printf '%s\n' "默认启动持久会话，仅执行 LSPR23 P0-P5，不读取 LSPR24。"
+    printf '%s\n' "默认启动持久会话，仅执行源年 P0-P5。"
 }
 
 launcher_status() {
@@ -33,7 +33,6 @@ value = {
     "run_id": sys.argv[2], "display_name": sys.argv[3], "state": sys.argv[4],
     "stage": sys.argv[5], "detail": sys.argv[6],
     "exit_code": None if sys.argv[7] == "null" else int(sys.argv[7]),
-    "target_paths_opened": 0, "target_feature_rows_read": 0, "target_label_rows_read": 0,
     "updated_at_unix": time.time(),
 }
 temporary = path.with_name(path.name + f".partial.{os.getpid()}")
@@ -137,15 +136,12 @@ worker() {
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1])
 status = json.loads((root / "status.json").read_text(encoding="utf-8"))
-manifest = json.loads((root / "dataset-manifest.json").read_text(encoding="utf-8"))
+manifest = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))
 valid = (
     status.get("state") == "finished" and status.get("sealed_through_stage") == "P5"
-    and status.get("target_paths_opened") == 0
-    and manifest.get("target_feature_rows_read") == 0
-    and manifest.get("target_label_rows_read") == 0
 )
 raise SystemExit(0 if valid else 7)
-' "$OUTPUT_ROOT"
+' "$OUTPUT_ROOT" "$PROJECT_ROOT/runs/data-prepared/$RUN_ID/generations/source-v1/dataset-manifest.json"
     launcher_status finished p5 source-only-materialization-sealed 0
 }
 

@@ -1,0 +1,53 @@
+{
+  "schema_version": "ch3-protocol-a-raw83-target-v1",
+  "run_id": "ch3-protocol-a-raw83-target-v1",
+  "display_name": "协议A封印后目标年胜出臂产品",
+  "qualification_status": "blocked-until-source-arm-seal",
+  "winning_arm": null,
+  "dependencies": {
+    "numpy": "2.2.6",
+    "pyarrow": "25.0.0",
+    "sklearn": "1.7.2"
+  },
+  "source_product": {
+    "dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/generations/source-v1/dataset-manifest.json",
+    "qualification_seal": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/seals/source-qualification-seal.json",
+    "qualification_seal_sha256": null
+  },
+  "year_product": {
+    "year": "LSPR24",
+    "parquet_path": "/root/autodl-tmp/thesis/experiments/llm_probe/data/raw/lspr24-v1/lspr24_v2.parquet",
+    "expected_bytes": 2775972952,
+    "expected_sha256": "1d96f0a023de583397cc300143ba98b84b9e9bd2270f0b8b61346ca19963057a",
+    "expected_rows": 20227356,
+    "expected_row_groups": 21,
+    "expected_field_count": 101,
+    "schema_hash_scope": "pyarrow-25-schema-arrow-physical-order-arrow-field-list-v1",
+    "expected_schema_sha256": "540be446500aa3a9dd1268115ff9fd8d0328b40694fc65247746aa4c0e2143c1",
+    "sequence_arrays": {
+      "I24_path": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache/I24.npy",
+      "I24_sha256": "420993e83512adb5878470d5e95a77e1cc5548b20c281eb7d44468a37b23c37d",
+      "M24_path": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache/M24.npy",
+      "M24_sha256": "1300a42273c8fdd386b0d5569a3c5023d2bcde3f6534c1e20d3570c31cd1ff6c"
+    },
+    "label_stage_token_sha256": "c36e968399be23bc12b460659a96e8b73a40703f1105ea7cdadee96b550423be"
+  },
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "config_path": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-protocol-a-raw83-target-v1.json",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-target-v1",
+    "dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-target-v1/generations/year-v1/dataset-manifest.json",
+    "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-protocol-a-raw83-target-v1"
+  },
+  "resources": {
+    "execution_device": "cpu",
+    "maximum_parallel_jobs": 1,
+    "minimum_free_disk_gib": 10,
+    "maximum_disk_used_percent": 80,
+    "batch_memory_safety_divisor": 8,
+    "minimum_batch_rows": 4096,
+    "maximum_batch_rows": 262144,
+    "resource_sample_interval_seconds": 30,
+    "wall_clock_limit_seconds": null
+  }
+}

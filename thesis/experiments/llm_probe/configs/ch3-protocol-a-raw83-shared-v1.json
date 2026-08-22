@@ -12,16 +12,10 @@
     "zip_path": "/root/autodl-tmp/thesis/experiments/llm_probe/data/raw/lspr23-v1/ls23pr_flows.zip",
     "expected_bytes": 1925103715,
     "expected_md5": "f3f5bf9f7cecf2186511eabb38f7accc",
+    "expected_sha256": "4c39f29a2e99ec58f6c167863d49d944ab5e46dc78a28afe78cc57ba85cd2885",
     "expected_rows": 16353511,
     "inner_csv": "ls23pr_v1.csv",
     "inner_csv_uncompressed_bytes": 10588252004
-  },
-  "target": {
-    "year": "LSPR24",
-    "parquet_path": "/root/autodl-tmp/thesis/experiments/llm_probe/data/raw/lspr24-v1/lspr24_v2.parquet",
-    "default_enabled": false,
-    "required_purpose": "target-evaluate",
-    "required_seal": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/seals/source-qualification-seal.json"
   },
   "protocol_a": {
     "feature_names": [
@@ -121,19 +115,31 @@
       "train_sequences": 208598,
       "validation_sequences": 22444
     },
+    "frozen_identity": {
+      "legacy_array_hash_scope": "npy-file-bytes-sha256-v1",
+      "derived_int64_hash_scope": "little-endian-int64-c-contiguous-raw-bytes-v1",
+      "bitmap_content_hash_scope": "uint8-length-16353511-raw-bytes-v1",
+      "I23_sha256": "4a24b1002c0ac96ceb83a867b659b9c090e02297d381a5aa3a977052a2f42d21",
+      "M23_sha256": "b972447e1d419a3963682e204c7caf34a5e3beb98fcb36944c650608cd4b8617",
+      "E23_sha256": "c1f1ee000e1c59c4695936864b2705c321e3b55876cfba7b1415f687c5e2e503",
+      "T23_sha256": "bd3229dd28ed0dc04808e517c38e21afaf55b985266aec7652c34359f55b5cc2",
+      "train_rows_count": 208598,
+      "train_rows_sha256": "abde6883d1b3c582a5d92e621606019610ccf0d4f00e9816372db68efb533830",
+      "validation_rows_count": 22444,
+      "validation_rows_sha256": "266597c2f3c741e5487971f086ce2b6296660f7e9c2959ec1946e2fb28392b85",
+      "validation_entities_count": 15068,
+      "validation_entities_sha256": "96b6629a6cbe3f5a71943b39b650eb63da1b2e96e0fe85d6deca75c0e5699fab",
+      "train_entities_sha256": "375872fb8e25bfe9c86f5194f9490522afba74a50c4a5db4323b0b75e8f8d84c",
+      "training_flow_bitmap_count": 11991315,
+      "training_flow_bitmap_sha256": "8ab7286575160d6cbaa40715367b36215553330cf3c52fb8a7e4339f66d90682",
+      "validation_flow_bitmap_count": 1238500,
+      "validation_flow_bitmap_sha256": "dba55be19c0311289a59c73c14bce224a803e7bc9268e4170322e8ddb81863ba",
+      "time_cut": 1678365316588433.5
+    },
     "label_stage_token_sha256": {
       "train": "3cc1be0fd58f5dbed540057b6d29d1011edf23e3069187c1a927838a31025d73",
-      "validate": "ef7a3fb286ffcb6120ba883c8a223f42e4a2eae827e20ca459def8690a8f44c7",
-      "target-evaluate": "c36e968399be23bc12b460659a96e8b73a40703f1105ea7cdadee96b550423be"
-    },
-    "forbidden_artifact_names": [
-      "entity_predictions.npy",
-      "flow_predictions.npy",
-      "labels.parquet",
-      "predictions.npy",
-      "y23.npy",
-      "y24.npy"
-    ]
+      "validate": "ef7a3fb286ffcb6120ba883c8a223f42e4a2eae827e20ca459def8690a8f44c7"
+    }
   },
   "preprocessing": {
     "candidate_a": {
@@ -160,7 +166,7 @@
     "config_path": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-protocol-a-raw83-shared-v1.json",
     "legacy_protocol_a_cache": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
     "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1",
-    "dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/dataset-manifest.json",
+    "dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/generations/source-v1/dataset-manifest.json",
     "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-protocol-a-raw83-shared-v1"
   },
   "resources": {

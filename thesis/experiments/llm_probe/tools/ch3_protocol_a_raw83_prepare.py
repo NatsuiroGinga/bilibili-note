@@ -34,18 +34,25 @@ from flow_probe.protocol_a_raw83 import (  # noqa: E402
     DIJK_FEATURES,
     SCHEMA_VERSION,
     SOURCE_ROW_COUNT,
+    YEAR_CONFIG_SCHEMA_VERSION,
+    YearProtocolADataset,
     ProtocolARaw83Error,
     atomic_write_json,
     bind_protocol_a_split,
     canonical_sha256,
     load_json,
     materialize_source_raw83,
+    materialize_qualified_year_product,
     publish_dataset_manifest,
     sha256_file,
+    source_data_root,
+    source_generation_roots,
     validate_config,
+    validate_year_config,
 )
 
-STAGES = ("P0", "P1", "P2", "P3", "P4", "P5")
+SOURCE_STAGES = ("P0", "P1", "P2", "P3", "P4", "P5")
+STAGES = SOURCE_STAGES + ("P6",)
 
 
 def parse_args() -> argparse.Namespace:
@@ -75,7 +82,10 @@ def parse_args() -> argparse.Namespace:
 
 def _load_config(path: Path) -> dict[str, Any]:
     config = load_json(path)
-    validate_config(config)
+    if config.get("schema_version") == YEAR_CONFIG_SCHEMA_VERSION:
+        validate_year_config(config)
+    else:
+        validate_config(config)
     configured_path = Path(config["paths"]["config_path"])
     if configured_path.exists():
         path_matches = path.resolve(strict=True) == configured_path.resolve(strict=True)
@@ -132,6 +142,8 @@ def validate_static_contract(config: Mapping[str, Any]) -> dict[str, Any]:
         raise ProtocolARaw83Error("LSPR23 冻结字节数不匹配")
     if source["expected_md5"] != "f3f5bf9f7cecf2186511eabb38f7accc":
         raise ProtocolARaw83Error("LSPR23 官方 MD5 不匹配")
+    if source["expected_sha256"] != "4c39f29a2e99ec58f6c167863d49d944ab5e46dc78a28afe78cc57ba85cd2885":
+        raise ProtocolARaw83Error("LSPR23 冻结 SHA-256 不匹配")
     preprocessing = config["preprocessing"]
     if preprocessing["candidate_a"] != {
         "imputation": "training-valid-flow-mean",
@@ -155,15 +167,28 @@ def validate_static_contract(config: Mapping[str, Any]) -> dict[str, Any]:
     }
     if candidate_b != required_b:
         raise ProtocolARaw83Error("候选 B 配置不等于官方参数任务适配合同")
-    if config["target"]["default_enabled"] is not False:
-        raise ProtocolARaw83Error("默认入口不得启用目标年")
     return {
         "schema_version": f"{SCHEMA_VERSION}-static-validation-v1",
         "config_sha256": canonical_sha256(config),
         "vendor_manifest_sha256": sha256_file(vendor_manifest_path),
-        "target_default_enabled": False,
-        "default_stages": list(STAGES),
+        "default_stages": list(SOURCE_STAGES),
         "dependencies": observed_dependencies,
+    }
+
+
+def validate_year_static_contract(config: Mapping[str, Any]) -> dict[str, Any]:
+    validate_year_config(config)
+    dependencies = _dependency_receipt()
+    observed = {key: dependencies[key] for key in ("numpy", "pyarrow", "sklearn")}
+    if observed != config["dependencies"]:
+        raise ProtocolARaw83Error(f"年度产品依赖版本不匹配：{observed}")
+    return {
+        "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-static-validation-v1",
+        "config_sha256": canonical_sha256(config),
+        "qualification_status": config["qualification_status"],
+        "winning_arm": config["winning_arm"],
+        "dependencies": observed,
+        "runtime_admitted": config["qualification_status"] == "qualified-source-arm-sealed",
     }
 
 
@@ -213,7 +238,8 @@ def runtime_resource_plan(config: Mapping[str, Any]) -> dict[str, Any]:
     )
     feature_bytes = SOURCE_ROW_COUNT * len(config["protocol_a"]["feature_names"]) * 4
     sidecar_bytes = SOURCE_ROW_COUNT * (4 + 8)
-    output_root = Path(config["paths"]["output_root"])
+    _, partial_generation, final_generation = source_generation_roots(config)
+    output_root = final_generation if final_generation.exists() else partial_generation
     final_specs = (
         (output_root / "raw" / "lspr23-raw83.npy", feature_bytes),
         (output_root / "sidecars" / "lspr23-flow-entity-id.npy", SOURCE_ROW_COUNT * 4),
@@ -228,7 +254,7 @@ def runtime_resource_plan(config: Mapping[str, Any]) -> dict[str, Any]:
             final_bytes += expected_bytes
     noise_bytes = SOURCE_ROW_COUNT * 76 * 8
     noisy_bytes = SOURCE_ROW_COUNT * 76 * 4
-    temporary_root = output_root / "temporary" / "candidate-b"
+    temporary_root = Path(config["paths"]["output_root"]) / "temporary" / "candidate-b"
     noise_path = temporary_root / f"official-row-major-noise.f8.partial.{config['run_id']}.npy"
     noisy_path = temporary_root / f"filled-noisy-training.f4.partial.{config['run_id']}.npy"
     quantile_temporary_bytes = (0 if noise_path.exists() else noise_bytes) + (
@@ -268,12 +294,43 @@ def _stage_identity(
     return {
         "schema_version": f"{SCHEMA_VERSION}-stage-identity-v1",
         "stage": stage,
-        "config_sha256": canonical_sha256(config),
+        "logical_config_sha256": canonical_sha256(_logical_config_identity(config)),
         "code_sha256": {str(path.relative_to(PROJECT_ROOT)): sha256_file(path) for path in code_paths},
         "upstream_receipt_sha256": {
             str(path.relative_to(Path(config["paths"]["output_root"]))): sha256_file(path)
             for path in upstream_receipts
         },
+    }
+
+
+def _logical_config_identity(config: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": config["schema_version"],
+        "run_id": config["run_id"],
+        "dependencies": config["dependencies"],
+        "source": {
+            key: config["source"][key]
+            for key in (
+                "year",
+                "expected_bytes",
+                "expected_md5",
+                "expected_sha256",
+                "expected_rows",
+                "inner_csv",
+                "inner_csv_uncompressed_bytes",
+            )
+        },
+        "protocol_a": config["protocol_a"],
+        "preprocessing": config["preprocessing"],
+        "resources": config["resources"],
+        "vendor": {
+            "commit": config["vendor"]["commit"],
+            "files": [
+                {key: item[key] for key in ("bytes", "sha256")}
+                for item in config["vendor"]["files"]
+            ],
+        },
+        "path_roles": sorted(config["paths"]),
     }
 
 
@@ -367,6 +424,8 @@ def _p0(config: Mapping[str, Any]) -> dict[str, Any]:
     observed_sha256 = sha256_digest.hexdigest()
     if observed_md5 != config["source"]["expected_md5"]:
         raise ProtocolARaw83Error("LSPR23 ZIP MD5 不匹配")
+    if observed_sha256 != config["source"]["expected_sha256"]:
+        raise ProtocolARaw83Error("LSPR23 ZIP SHA-256 不匹配")
     with zipfile.ZipFile(source_path) as archive:
         csv_members = [name for name in archive.namelist() if name.lower().endswith(".csv")]
         if csv_members != [config["source"]["inner_csv"]]:
@@ -396,9 +455,6 @@ def _p0(config: Mapping[str, Any]) -> dict[str, Any]:
         "inner_csv_uncompressed_bytes": member.file_size,
         "header_column_count": len(header),
         "header_sha256": canonical_sha256(header),
-        "target_paths_opened": 0,
-        "target_feature_rows_read": 0,
-        "target_label_rows_read": 0,
     }
 
 
@@ -426,6 +482,8 @@ def validate_published_product(config: Mapping[str, Any]) -> dict[str, Any]:
         raise ProtocolARaw83Error("已发布清单内容哈希不匹配")
     output_root = Path(config["paths"]["output_root"]).resolve(strict=True)
     verified: dict[str, str] = {}
+    generation_root = manifest_path.parent.resolve(strict=True)
+    expected_files = {"dataset-manifest.json"}
     for key, item in manifest["artifacts"].items():
         path = Path(item["path"])
         resolved = path.resolve(strict=True)
@@ -437,21 +495,51 @@ def validate_published_product(config: Mapping[str, Any]) -> dict[str, Any]:
         if observed != item["sha256"]:
             raise ProtocolARaw83Error(f"已发布制品 SHA-256 不匹配：{key}")
         verified[key] = observed
-    if manifest.get("target_feature_rows_read") != 0 or manifest.get("target_label_rows_read") != 0:
-        raise ProtocolARaw83Error("源产品已读取目标年")
+        expected_files.add(str(resolved.relative_to(generation_root)))
+    observed_files = {
+        str(path.resolve(strict=True).relative_to(generation_root))
+        for path in generation_root.rglob("*")
+        if path.is_file()
+    }
+    if observed_files != expected_files:
+        raise ProtocolARaw83Error("已发布世代不等于清单严格制品集")
     return {
         "schema_version": f"{SCHEMA_VERSION}-published-product-validation-v1",
         "manifest_file_sha256": sha256_file(manifest_path),
         "manifest_content_sha256": content_hash,
         "verified_artifact_sha256": verified,
-        "target_feature_rows_read": 0,
-        "target_label_rows_read": 0,
     }
 
 
 def run(config: Mapping[str, Any], through_stage: str) -> None:
     output_root = Path(config["paths"]["output_root"])
     output_root.mkdir(parents=True, exist_ok=True)
+    _, _, final_generation = source_generation_roots(config)
+    if final_generation.exists():
+        validate_published_product(config)
+        temporary_root = output_root / "temporary" / "candidate-b"
+        for name in (
+            f"official-row-major-noise.f8.partial.{config['run_id']}.npy",
+            f"filled-noisy-training.f4.partial.{config['run_id']}.npy",
+            f"quantiles.f8.partial.{config['run_id']}.npy",
+            f"references.f8.partial.{config['run_id']}.npy",
+        ):
+            cleanup_path = temporary_root / name
+            if cleanup_path.exists():
+                cleanup_path.unlink()
+        if temporary_root.exists() and not any(temporary_root.iterdir()):
+            temporary_root.rmdir()
+        atomic_write_json(
+            output_root / "status.json",
+            {
+                "schema_version": f"{SCHEMA_VERSION}-status-v1",
+                "run_id": config["run_id"],
+                "state": "finished",
+                "sealed_through_stage": "P5",
+                "updated_at_unix": time.time(),
+            },
+        )
+        return
     resource_plan = runtime_resource_plan(config)
     disk = shutil.disk_usage(output_root)
     used_percent = 100.0 * disk.used / disk.total
@@ -466,7 +554,9 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
     resource_plan["disk_free_bytes"] = disk.free
     resource_plan["disk_used_percent"] = used_percent
     atomic_write_json(output_root / "receipts" / "runtime-resource-plan.json", resource_plan)
-    stages_to_run = STAGES[: STAGES.index(through_stage) + 1]
+    if through_stage not in SOURCE_STAGES:
+        raise ProtocolARaw83Error("源年入口只允许 P0-P5")
+    stages_to_run = SOURCE_STAGES[: SOURCE_STAGES.index(through_stage) + 1]
     receipts: dict[str, Mapping[str, Any]] = {}
     p0_stage_path = output_root / "receipts" / "p0-stage-result.json"
     if "P0" in stages_to_run:
@@ -511,6 +601,27 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
     p4_stage_path = output_root / "receipts" / "p4-stage-result.json"
     if "P5" in stages_to_run:
         def p5_action() -> Mapping[str, Any]:
+            run_root, partial_root, final_root = source_generation_roots(config)
+            if final_root.exists():
+                validation = validate_published_product(config)
+                temporary_root = run_root / "temporary" / "candidate-b"
+                for name in (
+                    f"official-row-major-noise.f8.partial.{config['run_id']}.npy",
+                    f"filled-noisy-training.f4.partial.{config['run_id']}.npy",
+                    f"quantiles.f8.partial.{config['run_id']}.npy",
+                    f"references.f8.partial.{config['run_id']}.npy",
+                ):
+                    cleanup_path = temporary_root / name
+                    if cleanup_path.exists():
+                        cleanup_path.unlink()
+                if temporary_root.exists() and not any(temporary_root.iterdir()):
+                    temporary_root.rmdir()
+                return {
+                    "schema_version": f"{SCHEMA_VERSION}-p5-existing-generation-v1",
+                    "dataset_manifest_path": str(Path(config["paths"]["dataset_manifest"])),
+                    "dataset_manifest_sha256": validation["manifest_file_sha256"],
+                    "generation_reused": True,
+                }
             views = materialize_source_views(
                 config,
                 batch_rows=int(resource_plan["batch_rows"]),
@@ -524,15 +635,48 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
                 preprocessing_receipt=views,
                 runtime={**resource_plan, "dependencies": _dependency_receipt()},
             )
+            temporary_root = run_root / "temporary" / "candidate-b"
+            cleanup_paths = [
+                temporary_root / f"official-row-major-noise.f8.partial.{config['run_id']}.npy",
+                temporary_root / f"filled-noisy-training.f4.partial.{config['run_id']}.npy",
+                temporary_root / f"quantiles.f8.partial.{config['run_id']}.npy",
+                temporary_root / f"references.f8.partial.{config['run_id']}.npy",
+            ]
+            if final_root.exists() or not partial_root.is_dir():
+                raise ProtocolARaw83Error("源世代原子发布前目录状态非法")
+            os.replace(partial_root, final_root)
+            final_manifest = final_root / "dataset-manifest.json"
+            pointer = {
+                "schema_version": f"{SCHEMA_VERSION}-current-source-pointer-v1",
+                "generation": "source-v1",
+                "manifest_path": str(final_manifest.resolve(strict=True)),
+                "manifest_sha256": sha256_file(final_manifest),
+            }
+            pointer["pointer_content_sha256"] = canonical_sha256(pointer)
+            atomic_write_json(run_root / "current-source.json", pointer)
+            for cleanup_path in cleanup_paths:
+                if cleanup_path.exists():
+                    cleanup_path.unlink()
+            if temporary_root.exists() and not any(temporary_root.iterdir()):
+                temporary_root.rmdir()
+            published_views = dict(views)
+            published_views["artifacts"] = {
+                key: {
+                    **item,
+                    "path": str(
+                        final_root
+                        / Path(item["path"]).resolve(strict=False).relative_to(partial_root)
+                    ),
+                }
+                for key, item in views["artifacts"].items()
+            }
             return {
-                **views,
-                "dataset_manifest_path": str(
-                    Path(config["paths"]["dataset_manifest"]).resolve(strict=True)
-                ),
-                "dataset_manifest_sha256": sha256_file(
-                    Path(config["paths"]["dataset_manifest"])
-                ),
+                **published_views,
+                "dataset_manifest_path": str(final_manifest.resolve(strict=True)),
+                "dataset_manifest_sha256": sha256_file(final_manifest),
                 "manifest_content_sha256": manifest["manifest_content_sha256"],
+                "generation_reused": False,
+                "temporary_files_removed": [str(path) for path in cleanup_paths],
             }
 
         receipts["P5"] = _run_stage(
@@ -548,9 +692,6 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
             "run_id": config["run_id"],
             "state": "finished",
             "sealed_through_stage": through_stage,
-            "target_paths_opened": 0,
-            "target_feature_rows_read": 0,
-            "target_label_rows_read": 0,
             "updated_at_unix": time.time(),
         },
     )
@@ -559,9 +700,109 @@ def run(config: Mapping[str, Any], through_stage: str) -> None:
 def main() -> int:
     args = parse_args()
     config = _load_config(args.config)
-    static_receipt = validate_static_contract(config)
+    is_year_product = config["schema_version"] == YEAR_CONFIG_SCHEMA_VERSION
+    static_receipt = (
+        validate_year_static_contract(config)
+        if is_year_product
+        else validate_static_contract(config)
+    )
     if args.validate_config:
         print(json.dumps(static_receipt, ensure_ascii=False, sort_keys=True))
+        return 0
+    if is_year_product:
+        if args.print_resource_requirements:
+            row_count = int(config["year_product"]["expected_rows"])
+            payload_bytes = row_count * (len(DIJK_FEATURES) * 8 + 12)
+            required = payload_bytes + row_count * len(DIJK_FEATURES) * 4 + int(
+                config["resources"]["minimum_free_disk_gib"]
+            ) * 1024**3
+            print(
+                json.dumps(
+                    {
+                        "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-resource-plan-v1",
+                        "required_free_bytes": required,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if args.validate_product:
+            dataset = YearProtocolADataset(
+                Path(config["paths"]["dataset_manifest"]),
+                Path(config["source_product"]["qualification_seal"]),
+            )
+            print(
+                json.dumps(
+                    {
+                        "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-product-validation-v1",
+                        "manifest_sha256": sha256_file(dataset.manifest_path),
+                        "artifact_count": len(dataset.artifact_paths),
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if config["qualification_status"] != "qualified-source-arm-sealed":
+            raise ProtocolARaw83Error("源输入臂尚未封印，P6 在打开任何数据前硬失败")
+        run_root = Path(config["paths"]["output_root"])
+        run_root.mkdir(parents=True, exist_ok=True)
+        year_manifest = Path(config["paths"]["dataset_manifest"])
+        if year_manifest.is_file():
+            dataset = YearProtocolADataset(
+                year_manifest,
+                Path(config["source_product"]["qualification_seal"]),
+            )
+            atomic_write_json(
+                run_root / "status.json",
+                {
+                    "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-status-v1",
+                    "state": "finished",
+                    "sealed_through_stage": "P6",
+                    "exit_code": 0,
+                    "manifest_sha256": sha256_file(dataset.manifest_path),
+                },
+            )
+            return 0
+        maximum, current = _read_cgroup_limit()
+        if maximum is None:
+            raise ProtocolARaw83Error("无法获得 P6 cgroup 内存上界")
+        available = maximum - current
+        per_row = len(DIJK_FEATURES) * (8 + 4 + 8 + 4 + 1)
+        divisor = int(config["resources"]["batch_memory_safety_divisor"])
+        computed_batch_rows = available // (per_row * divisor)
+        if computed_batch_rows < int(config["resources"]["minimum_batch_rows"]):
+            raise ProtocolARaw83Error("P6 cgroup 可用内存不足")
+        batch_rows = min(
+            int(config["resources"]["maximum_batch_rows"]), computed_batch_rows
+        )
+        row_count = int(config["year_product"]["expected_rows"])
+        required_free = (
+            row_count * (len(DIJK_FEATURES) * 8 + 12)
+            + row_count * len(DIJK_FEATURES) * 4
+            + int(config["resources"]["minimum_free_disk_gib"]) * 1024**3
+        )
+        disk = shutil.disk_usage(run_root)
+        used_percent = 100.0 * disk.used / disk.total
+        if disk.free < required_free or used_percent >= float(
+            config["resources"]["maximum_disk_used_percent"]
+        ):
+            raise ProtocolARaw83Error("P6 磁盘资源门失败")
+        receipt = materialize_qualified_year_product(
+            config,
+            batch_rows=int(batch_rows),
+        )
+        atomic_write_json(run_root / "receipts" / "p6-stage-result.json", receipt)
+        atomic_write_json(
+            run_root / "status.json",
+            {
+                "schema_version": f"{YEAR_CONFIG_SCHEMA_VERSION}-status-v1",
+                "state": "finished",
+                "sealed_through_stage": "P6",
+                "exit_code": 0,
+            },
+        )
         return 0
     if args.validate_product:
         print(json.dumps(validate_published_product(config), ensure_ascii=False, sort_keys=True))

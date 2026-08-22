@@ -23,6 +23,7 @@ from flow_probe.protocol_a_raw83 import (
     canonical_sha256,
     load_json,
     sha256_file,
+    source_data_root,
     validate_config,
 )
 
@@ -82,7 +83,8 @@ def fit_candidate_a(
     from sklearn import __version__ as sklearn_version
     from sklearn.preprocessing import StandardScaler
 
-    output_root = Path(config["paths"]["output_root"])
+    run_root = Path(config["paths"]["output_root"])
+    output_root = source_data_root(config)
     raw = np.load(output_root / "raw" / "lspr23-raw83.npy", mmap_mode="r", allow_pickle=False)
     indices = _training_indices(output_root)
     width = len(DIJK_FEATURES)
@@ -126,7 +128,7 @@ def fit_candidate_a(
         finite_counts=np.asarray(finite_counts, dtype="<i8"),
         missing_or_invalid_counts=np.asarray(missing_counts, dtype="<i8"),
     )
-    identity = {
+    hash_payload = {
         "schema_version": f"{SCHEMA_VERSION}-candidate-a-state-v1",
         "algorithm": "mean-impute-standardscaler-ddof0-clip-v1",
         "clip": list(config["preprocessing"]["candidate_a"]["clip"]),
@@ -136,11 +138,14 @@ def fit_candidate_a(
         ),
         "raw_file_sha256": sha256_file(output_root / "raw" / "lspr23-raw83.npy"),
         "sklearn_version": sklearn_version,
-        "state_artifact": _artifact(state_path),
         "state_content_sha256": _state_content_hash(state_path),
     }
-    identity["transform_state_hash"] = canonical_sha256(identity)
-    atomic_write_json(output_root / "receipts" / "p3-candidate-a-state.json", identity)
+    identity = {
+        **hash_payload,
+        "transform_state_hash": canonical_sha256(hash_payload),
+        "state_artifact": _artifact(state_path),
+    }
+    atomic_write_json(run_root / "receipts" / "p3-candidate-a-state.json", identity)
     return identity
 
 
@@ -176,7 +181,8 @@ def fit_candidate_b(
     from sklearn import __version__ as sklearn_version
     from sklearn.preprocessing import QuantileTransformer
 
-    output_root = Path(config["paths"]["output_root"])
+    run_root = Path(config["paths"]["output_root"])
+    output_root = source_data_root(config)
     run_id = str(config["run_id"])
     raw = np.load(output_root / "raw" / "lspr23-raw83.npy", mmap_mode="r", allow_pickle=False)
     indices = _training_indices(output_root)
@@ -189,7 +195,7 @@ def fit_candidate_b(
         raise ProtocolARaw83Error(
             f"分位数数量与冻结配置不一致：{n_quantiles}"
         )
-    temporary_root = output_root / "temporary" / "candidate-b"
+    temporary_root = run_root / "temporary" / "candidate-b"
     temporary_root.mkdir(parents=True, exist_ok=True)
     noise_path = temporary_root / f"official-row-major-noise.f8.partial.{run_id}.npy"
     filled_path = temporary_root / f"filled-noisy-training.f4.partial.{run_id}.npy"
@@ -237,7 +243,7 @@ def fit_candidate_b(
         dtype="<f8",
         shape=(n_quantiles,),
     )
-    column_receipts = output_root / "receipts" / "p4-quantile-columns"
+    column_receipts = run_root / "receipts" / "p4-quantile-columns"
     column_receipts.mkdir(parents=True, exist_ok=True)
     references: np.ndarray | None = None
     for local_index in range(len(QUANTILE_INDICES)):
@@ -306,7 +312,7 @@ def fit_candidate_b(
         quantiles=np.asarray(quantiles, dtype="<f8"),
         references=np.asarray(references, dtype="<f8"),
     )
-    identity = {
+    hash_payload = {
         "schema_version": f"{SCHEMA_VERSION}-candidate-b-state-v1",
         "algorithm": "official-quantile-parameters-seven-a-columns-task-adaptation-v1",
         "official_commit": config["vendor"]["commit"],
@@ -326,11 +332,14 @@ def fit_candidate_b(
         "sklearn_version": sklearn_version,
         "noise_temporary_sha256": sha256_file(noise_path),
         "noisy_training_temporary_sha256": noisy_training_sha256,
-        "state_artifact": _artifact(state_path),
         "state_content_sha256": _state_content_hash(state_path),
     }
-    identity["transform_state_hash"] = canonical_sha256(identity)
-    atomic_write_json(output_root / "receipts" / "p4-candidate-b-state.json", identity)
+    identity = {
+        **hash_payload,
+        "transform_state_hash": canonical_sha256(hash_payload),
+        "state_artifact": _artifact(state_path),
+    }
+    atomic_write_json(run_root / "receipts" / "p4-candidate-b-state.json", identity)
     return identity
 
 
@@ -400,7 +409,8 @@ def materialize_source_views(
     batch_rows: int,
 ) -> dict[str, Any]:
     validate_config(config)
-    output_root = Path(config["paths"]["output_root"])
+    run_root = Path(config["paths"]["output_root"])
+    output_root = source_data_root(config)
     run_id = str(config["run_id"])
     raw = np.load(output_root / "raw" / "lspr23-raw83.npy", mmap_mode="r", allow_pickle=False)
     a_state_path = output_root / "states" / "candidate-a-standard.npz"
@@ -410,8 +420,8 @@ def materialize_source_views(
     a_partial = a_final.with_name(f"{a_final.name}.partial.{run_id}")
     b_partial = b_final.with_name(f"{b_final.name}.partial.{run_id}")
     receipt_roots = (
-        output_root / "receipts" / "p5-view-a-batches",
-        output_root / "receipts" / "p5-view-b-batches",
+        run_root / "receipts" / "p5-view-a-batches",
+        run_root / "receipts" / "p5-view-b-batches",
     )
     receipts_exist = any(root.exists() and any(root.iterdir()) for root in receipt_roots)
     if a_final.exists() and b_final.exists() and not a_partial.exists() and not b_partial.exists():
@@ -436,13 +446,17 @@ def materialize_source_views(
         batch_b = _transform_b(raw_batch, batch_a, b_state_path, transformer)
         for arm, batch, destination in (("A", batch_a, view_a), ("B", batch_b, view_b)):
             content_sha = hashlib.sha256(batch.tobytes(order="C")).hexdigest()
-            receipt_path = _view_batch_receipt_path(output_root, arm, batch_index)
+            receipt_path = _view_batch_receipt_path(run_root, arm, batch_index)
             if receipt_path.exists():
                 receipt = load_json(receipt_path)
+                written_sha = hashlib.sha256(
+                    np.asarray(destination[start:stop], dtype="<f4").tobytes(order="C")
+                ).hexdigest()
                 if (
                     receipt.get("start_row") != start
                     or receipt.get("end_row") != stop
                     or receipt.get("content_sha256") != content_sha
+                    or receipt.get("written_slice_sha256") != written_sha
                 ):
                     raise ProtocolARaw83Error(f"视图断点收据不匹配：{receipt_path}")
             else:
@@ -457,6 +471,7 @@ def materialize_source_views(
                         "start_row": start,
                         "end_row": stop,
                         "content_sha256": content_sha,
+                        "written_slice_sha256": content_sha,
                     },
                 )
         digest_a.update(batch_a.tobytes(order="C"))
@@ -466,8 +481,8 @@ def materialize_source_views(
     if publish_partials:
         os.replace(a_partial, a_final)
         os.replace(b_partial, b_final)
-    a_receipt = load_json(output_root / "receipts" / "p3-candidate-a-state.json")
-    b_receipt = load_json(output_root / "receipts" / "p4-candidate-b-state.json")
+    a_receipt = load_json(run_root / "receipts" / "p3-candidate-a-state.json")
+    b_receipt = load_json(run_root / "receipts" / "p4-candidate-b-state.json")
     receipt = {
         "schema_version": f"{SCHEMA_VERSION}-p5-source-views-v1",
         "source_row_count": SOURCE_ROW_COUNT,
@@ -487,7 +502,7 @@ def materialize_source_views(
         },
     }
     receipt["receipt_content_sha256"] = canonical_sha256(receipt)
-    atomic_write_json(output_root / "receipts" / "p5-source-views.json", receipt)
+    atomic_write_json(run_root / "receipts" / "p5-source-views.json", receipt)
     for path in (a_final, b_final):
         path.chmod(0o440)
     return receipt
