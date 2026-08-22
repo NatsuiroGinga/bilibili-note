@@ -1,0 +1,60 @@
+{
+  "schema_version": "cuda-rwkv-official-vendor-manifest-v1",
+  "name": "BlinkDL RWKV-7 官方 CUDA 前反向核",
+  "upstream_repository": "https://github.com/BlinkDL/RWKV-LM",
+  "upstream_commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+  "license": "Apache-2.0",
+  "license_file": "LICENSE",
+  "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+  "upstream_files": [
+    {
+      "path": "upstream/rwkv7_clampw.cpp",
+      "upstream_path": "RWKV-v7/train_temp/cuda/rwkv7_clampw.cpp",
+      "sha256": "f6781adacbe0ab8638b666e0bd49098e262a861b7cc95fb1735ab54a43d82628"
+    },
+    {
+      "path": "upstream/rwkv7_clampw.cu",
+      "upstream_path": "RWKV-v7/train_temp/cuda/rwkv7_clampw.cu",
+      "sha256": "a879dd478457290ebe793a10fcd0c1b93db1e1afb9d51ff8f8f1245a0146bbfb"
+    }
+  ],
+  "derived_files": [
+    {
+      "path": "derived/cuda_rwkv_clampw.cpp",
+      "based_on": "upstream/rwkv7_clampw.cpp",
+      "sha256": "db73fa2e1cbbfc45ffc53d1443246feb79a932b55479e5e097cfdcb328f230c6",
+      "changes": [
+        "TORCH_LIBRARY 命名空间改为编译时必填的 CUDA_RWKV_NAMESPACE",
+        "重排 C++ 格式并增加修改通知"
+      ]
+    }
+  ],
+  "compile_contracts": {
+    "small": {
+      "channels": 112,
+      "head_size": 16,
+      "heads": 7,
+      "sequence_length": 128,
+      "chunk_length": 16,
+      "extension_name": "cuda_rwkv_small_h16_c112_t128_v1",
+      "operator_namespace": "cuda_rwkv_small_clampw",
+      "defines": ["_N_=16", "_CHUNK_LEN_=16"]
+    },
+    "large": {
+      "channels": 768,
+      "head_size": 64,
+      "heads": 12,
+      "sequence_length": 128,
+      "chunk_length": 16,
+      "extension_name": "cuda_rwkv_large_h64_c768_t128_v1",
+      "operator_namespace": "cuda_rwkv_large_clampw",
+      "defines": ["_N_=64", "_CHUNK_LEN_=16"]
+    }
+  },
+  "numeric_contract": {
+    "input_dtype": "bfloat16",
+    "output_dtype": "bfloat16",
+    "gradient_dtype": "bfloat16",
+    "state_dtype": "float32"
+  }
+}

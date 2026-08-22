@@ -1,0 +1,263 @@
+{
+  "schema_version": "ch3-cuda-rwkv-raw83-qualification-v1",
+  "run_id": "ch3-cuda-rwkv-raw83-qualification-seed42-v1",
+  "display_name": "独立CUDA-RWKV Raw83资格与四格消融",
+  "seed": 42,
+  "dependencies": {
+    "numpy_version": "2.2.6",
+    "pyarrow_version": "25.0.0",
+    "sklearn_version": "1.7.2",
+    "torch_version": "2.13.0+cu130",
+    "swanlab_version": "0.9.0",
+    "evaluation_code_path": "/root/autodl-tmp/thesis/experiments/llm_probe/src/flow_probe/cuda_rwkv_evaluation.py",
+    "allowed_local_imports": [
+      "src/flow_probe/__init__.py",
+      "src/flow_probe/cuda_rwkv_evaluation.py",
+      "src/flow_probe/cuda_rwkv_model.py",
+      "src/flow_probe/cuda_rwkv_training.py",
+      "src/flow_probe/protocol_a_preprocessing.py",
+      "src/flow_probe/protocol_a_raw83.py",
+      "src/flow_probe/tracking.py",
+      "tools/ch3_cuda_rwkv_raw83_qualification.py",
+      "tools/cuda_rwkv_official_backend.py",
+      "tools/neural_precision_runtime.py"
+    ]
+  },
+  "data": {
+    "source_year": "LSPR23",
+    "target_year": "LSPR24",
+    "source_dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/generations/source-v1/dataset-manifest.json",
+    "expected_source_manifest_sha256": "703b3e20fd26b16bfe1a57c8260df7a16f45c1c66858af5a5f897259eb543929",
+    "expected_source_manifest_content_sha256": "93be34eb43ef3dfb3fb2a6586c27416a20b824b81709e3d31fe096261c7b7abc",
+    "source_product_validation_receipt": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/receipts/launcher-product-validation.json",
+    "target_dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-target-v1/generations/year-v1/dataset-manifest.json",
+    "target_materialization_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-protocol-a-raw83-target-v1.json",
+    "field_count": 83,
+    "field_list_sha256": "8b36026f04837dd9fe70b266daaefc836135543782e16289a0d99b98553187ec",
+    "sequence_length": 128,
+    "views": ["A", "B"],
+    "finite_negative_policy": "preserve_and_count-v1",
+    "label_stage_token_environment": {
+      "train": "CUDA_RWKV_TRAIN_LABEL_STAGE_TOKEN",
+      "validate": "CUDA_RWKV_VALIDATE_LABEL_STAGE_TOKEN",
+      "target-evaluate": "CUDA_RWKV_TARGET_LABEL_STAGE_TOKEN"
+    },
+    "prohibit_direct_label_files": true,
+    "persisted_score_rows": 0,
+    "persisted_label_rows": 0,
+    "persisted_member_rows": 0
+  },
+  "cuda": {
+    "upstream_commit": "952102498e9ed367ea0a59ee64106916d474d30f",
+    "license": "Apache-2.0",
+    "vendor_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/vendor/cuda_rwkv_official/manifest.json",
+    "target_compute_capability": [12, 0],
+    "environment": {
+      "torch_version": "2.13.0+cu130",
+      "torch_cuda_version": "13.0",
+      "device_name": "NVIDIA GeForce RTX 5090"
+    },
+    "small_kernel_qualification_input": {
+      "reference_commit": "703c3d3",
+      "role": "implementation_qualification_only",
+      "effect_evidence": false
+    },
+    "large_first_compile_requires_same_self_gate": true,
+    "capacity_build_roots_must_be_disjoint": true
+  },
+  "model": {
+    "adapters": ["R1", "R2"],
+    "semantic_group_count": 12,
+    "semantic_groups_cover_exactly_0_through_82": true,
+    "capacities": {
+      "small": {
+        "channels": 112,
+        "head_size": 16,
+        "low_rank": 8,
+        "layers": 1,
+        "sequence_length": 128,
+        "R1_parameters": 104274,
+        "R2_parameters": 104274
+      },
+      "large": {
+        "channels": 768,
+        "head_size": 64,
+        "low_rank": 32,
+        "layers": 3,
+        "sequence_length": 128,
+        "R1_parameters": 8977842,
+        "R2_parameters": 9490178
+      }
+    }
+  },
+  "cells": {
+    "C00": {
+      "causal_prefix_module": false,
+      "learned_entity_pooling_module": false
+    },
+    "C01": {
+      "causal_prefix_module": false,
+      "learned_entity_pooling_module": true
+    },
+    "C10": {
+      "causal_prefix_module": true,
+      "learned_entity_pooling_module": false
+    },
+    "C11": {
+      "causal_prefix_module": true,
+      "learned_entity_pooling_module": true
+    }
+  },
+  "selection": {
+    "metric": "LSPR23_validation_flow_average_precision",
+    "maximum_epoch_tie_break": "earliest_epoch",
+    "candidate_tie_break": "preregistered_simple_or_lower_parameter_order",
+    "source_target_read_counters_required_zero": true,
+    "stages": {
+      "S1": {
+        "vary_only": "shared_numeric_view",
+        "units": [
+          "A-R2-small-C00",
+          "B-R2-small-C00"
+        ],
+        "tie_order": [
+          "A-R2-small-C00",
+          "B-R2-small-C00"
+        ]
+      },
+      "S2": {
+        "vary_only": "input_adapter",
+        "reuse_winning_R2_small_C00": true,
+        "new_unit_template": "{winning_arm}-R1-small-C00",
+        "tie_order": ["R2", "R1"]
+      },
+      "S3": {
+        "vary_only": "capacity",
+        "reuse_winning_small_C00": true,
+        "new_unit_template": "{winning_arm}-{winning_adapter}-large-C00",
+        "tie_order": ["small", "large"]
+      }
+    },
+    "maximum_new_selection_training_units": 4,
+    "cartesian_expansion_forbidden": true
+  },
+  "training": {
+    "seed": 42,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "effective_batch_sequences": 64,
+    "microbatch_sequences": 4,
+    "accumulation_steps": 16,
+    "normalization_unit": "effective_valid_flow",
+    "learning_rate": 0.0003,
+    "minimum_learning_rate": 0.00003,
+    "decay_learning_rate_scale": 2.0,
+    "weight_decay": 0.01,
+    "betas": [0.9, 0.99],
+    "epsilon": 1e-8,
+    "dropout": 0.1,
+    "gradient_clip_norm": 1.0,
+    "entity_loss_weight": 1.0,
+    "checkpoint_interval_optimizer_steps": 20,
+    "checkpoint_atomic_replace": true,
+    "wall_clock_limit_seconds": null,
+    "numeric_basis": "Protocol_A_common_task_budget_and_source_only_recipe_v1",
+    "direct_literature_basis": false
+  },
+  "precision": {
+    "contract_path": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/neural-precision-profiles-v1.json",
+    "contract_sha256": "49a1d04a7af5a4d898ff46815f649461672eeaba7acf1e415b4a07613e03ad0d",
+    "profile_id": "cuda-bf16-amp-fp32-sensitive-v1",
+    "parameter_dtype": "float32",
+    "optimizer_state_dtype": "float32",
+    "kernel_input_output_gradient_dtype": "bfloat16",
+    "kernel_state_dtype": "float32",
+    "grad_scaler": null
+  },
+  "evaluation": {
+    "batch_sequences": 64,
+    "selection_metric_only_each_epoch": true,
+    "selected_checkpoint_full_metrics": [
+      "flow_average_precision",
+      "entity_average_precision",
+      "maximum_entity_average_precision",
+      "complete_common_integer_fp_terminal_curve",
+      "complete_common_integer_fp_first_alert_curve",
+      "resource_receipt"
+    ],
+    "display_fpr_anchors": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_tie_groups": true,
+    "interpolation": false,
+    "target_independent_test": false,
+    "target_previously_accessed": true,
+    "target_evaluation_calls_per_cell": 1
+  },
+  "source_qualification": {
+    "required_cells": ["C00", "C01", "C10", "C11"],
+    "reuse_C00_only_on_exact_training_identity": true,
+    "new_cells_from_seed": ["C01", "C10", "C11"],
+    "seal_path": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/seals/source-qualification-seal.json",
+    "target_schema_reads_before_seal": 0,
+    "target_feature_rows_read_before_seal": 0,
+    "target_label_rows_read_before_seal": 0
+  },
+  "resources": {
+    "minimum_free_gpu_memory_gib": 20,
+    "minimum_available_cgroup_memory_gib": 40,
+    "stop_available_cgroup_memory_gib": 5,
+    "minimum_free_disk_gib": 25,
+    "maximum_disk_used_percent_at_start": 80,
+    "notify_disk_used_percent": 80,
+    "stop_disk_used_percent": 90,
+    "notify_free_disk_gib": 10,
+    "stop_free_disk_gib": 5,
+    "sample_interval_seconds": 5,
+    "checkpoint_storage_bound": {
+      "maximum_unique_training_units": 7,
+      "maximum_large_training_units": 4,
+      "retained_checkpoints_per_unit": 2,
+      "parameter_and_optimizer_bytes_per_parameter": 12,
+      "serialization_safety_factor": 1.25,
+      "extension_and_logs_upper_bound_gib": 2,
+      "maximum_atomic_temporary_files": 1,
+      "additional_free_space_headroom_gib": 10
+    },
+    "unauthorized_concurrent_training_forbidden": true,
+    "wall_clock_limit_seconds": null
+  },
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "name": "独立CUDA-RWKV Raw83资格",
+    "group": "ch3-cuda-rwkv-raw83-v1",
+    "mode": "cloud",
+    "tags": [
+      "chapter3",
+      "cuda-rwkv",
+      "raw83",
+      "qualification",
+      "four-cell",
+      "seed42"
+    ],
+    "alias_config_path": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/swanlab-tag-aliases-v1.json",
+    "alias_config_sha256": "d2bf7212068e6d7ced2fa916cd327dd24fea26bbb3bd3cbd9fd241c77a3f7a16",
+    "central_module_path": "/root/autodl-tmp/thesis/experiments/llm_probe/src/flow_probe/tracking.py",
+    "expected_swanlab_version": "0.9.0",
+    "single_final_online_aggregate_run": true,
+    "maximum_attempts": 2,
+    "retry_exit_code": 91,
+    "retry_only_first_zero_step_401": true,
+    "lifecycle_reference_commits": ["89ddecf", "d6313ca", "70a8a2b"]
+  },
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "config_path": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-cuda-rwkv-raw83-qualification-seed42-v1.json",
+    "run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1",
+    "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-cuda-rwkv-raw83-qualification-seed42-v1",
+    "dependency_closure": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/dependency-closure.json",
+    "resource_samples": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/resource-samples.tsv",
+    "source_seal": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/seals/source-qualification-seal.json",
+    "target_results": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/target-results.json",
+    "tracking_attempts": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/tracking-attempts"
+  }
+}
