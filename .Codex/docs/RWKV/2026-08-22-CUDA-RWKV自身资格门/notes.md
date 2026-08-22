@@ -1,0 +1,61 @@
+# CUDA-RWKV 自身资格门证据笔记
+
+## 冻结依据
+
+- 方案提交：`334ed1d19827ea5eb791f84900a020916e11354a`。
+- 官方固定提交：`952102498e9ed367ea0a59ee64106916d474d30f`。
+- 官方原件：`vendor/rwkv7_k0_fused/upstream/rwkv7_clampw.cpp`、`vendor/rwkv7_k0_fused/upstream/rwkv7_clampw.cu`。
+- 官方原件 SHA-256：C++ 为 `f6781adacbe0ab8638b666e0bd49098e262a861b7cc95fb1735ab54a43d82628`，CUDA 为 `a879dd478457290ebe793a10fcd0c1b93db1e1afb9d51ff8f8f1245a0146bbfb`。
+- 许可证：Apache-2.0，许可证文件 SHA-256 为 `c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4`。
+- 小型容量：`B=2`、`T=128`、`C=112`、头大小 `16`、头数 `7`、低秩维 `8`、分块长度 `16`。
+
+## 源码核验
+
+- 官方 CUDA 前向核在每个批次和头开始时把递归状态置零，随后按时间步递推，因此块首状态重置由计算核实现。
+- 官方 CUDA 核没有掩码参数；全零掩码和补零语义必须由外层独立模型处理。
+- 官方反向核显式生成 `dr,dw,dk,dv,da,db` 六个 BF16 梯度张量。
+- 现有独立加载接口在模块导入时不编译，仅在显式加载或调用时核验目标环境和构建扩展。
+
+## 第三方接口核验
+
+### PyTorch 版本
+
+- 项目声明：`torch>=2.8,<3`。
+- 冻结目标环境：`torch==2.13.0+cu130`、CUDA `13.0`、计算能力 `12.0`。
+
+### 官方文档来源
+
+- `https://docs.pytorch.org/docs/main/cpp_extension.html`
+  - `torch.utils.cpp_extension.load` 接收 `name`、`sources`、`extra_cflags`、`extra_cuda_cflags`、`build_directory`、`verbose`、`with_cuda`、`is_python_module` 等参数。
+  - `build_directory` 可把 Ninja 构建文件和动态库固定到持久目录；`is_python_module=False` 会把动态库加载进进程而不要求 Python 模块绑定。
+  - `TORCH_CUDA_ARCH_LIST` 可显式限定目标计算能力。
+- `https://docs.pytorch.org/docs/stable/notes/randomness.html`
+  - `torch.use_deterministic_algorithms(True)` 会为已知算子选择确定性实现或在无确定性实现时抛错；该设置本身不能替代同进程逐位复核。
+- `https://docs.pytorch.org/docs/stable/generated/torch.cuda.is_bf16_supported.html`
+  - `torch.cuda.is_bf16_supported()` 返回当前设备是否支持 BF16。
+- `https://docs.pytorch.org/docs/stable/cuda.html`
+  - `memory_allocated`、`memory_reserved`、`max_memory_allocated`、`max_memory_reserved` 分别报告当前与峰值的已分配和保留显存。
+
+### 采用接口
+
+- 继续使用目标后端已核验的 `torch.utils.cpp_extension.load(..., extra_cuda_cflags=..., is_python_module=False)` 路径。
+- 资格工具使用 `torch.use_deterministic_algorithms(True, warn_only=False)`，并直接用 `torch.equal` 比较两次输出、损失和六梯度。
+- 显存收据记录当前和峰值两组 allocated/reserved 指标。
+
+## 资格门判据
+
+- 六输入全部满足 `[2,128,112]`、BF16、CUDA、连续、可求梯度。
+- 两次运行输出、标量损失和六梯度逐位相等。
+- 输出、损失和六梯度全部有限；每个梯度张量至少一个元素非零。
+- 六个单张量微扰分别使输出或损失至少一个发生变化，且变化结果有限。
+- 有效前缀输出不受尾部补零影响；全零掩码的输出和损失贡献严格为零。
+- 输入投影、CUDA 块、输出头的 FP32 参数均有限，且每个模块至少一个参数在单次优化步后变化。
+- 完成收据必须绑定配置、工具、启动器、官方源、派生注册源、扩展二进制和环境身份。
+
+## 当前边界
+
+- 未访问服务器。
+- 未运行 CUDA 编译、前向、反向或优化步。
+- 未读取任何数据。
+- 未创建 SwanLab 身份。
+- 当前科学状态：实验待证。
