@@ -14,7 +14,6 @@
 | ResMLP2＋CPA-ELP | 骨干升级候选 | 是 | ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1 | LSPR23实体不相交验证集 | 单轮逐流AP | 0.999649147724 | 12 | 0.999649147724 | 0.998496055603 | 协议A：源年验证集单轮逐流AP择优 | 单次运行直接可比 | /Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-resmlp2-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json | — |
 | TabM4＋CPA-ELP | 骨干升级候选 | 是 | ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1 | LSPR23实体不相交验证集 | 单轮逐流AP | 0.999609176422 | 6 | 0.999609176422 | 1.03322803974 | 协议A：源年验证集单轮逐流AP择优 | 单次运行直接可比 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1/aggregate-results.json | — |
 | 全容量多层感知机＋完整实体幂平均（BF16） | 骨干专属全容量配方 | 是 | ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1 | LSPR23实体不相交验证集 | 单轮逐流AP | 0.999693506366 | 5 | 0.999693506366 | 1.67765438557 | 协议A：源年验证集单轮逐流AP择优；O11为完整系统 | 单次运行直接可比（BF16） | /Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/aggregate-results.json | — |
-| RWKV-7固定R2与封印容量＋CPA-ELP | 骨干升级候选 | 是 | ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-bf16-v1 | — | — | — | — | — | — | — | 运行中待回收 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1-bf16-v1/aggregate-results.json | 统一BF16运行尚无本地聚合结果；不得从旧停止运行推导 |
 | GRANDE | 骨干升级候选 | 是 | ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1 | — | — | — | — | — | — | — | 运行中待回收 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1/grande-c00-source-results.json | 统一BF16源年运行尚无本地聚合结果；没有目标年评价 |
 | TabM32骨干专属论文配方＋CPA-ELP | 论文配方 | 是 | ch3-tabm32-paper-recipe-protocol-a-seed42-v1 | — | — | — | — | — | — | — | 未运行 | /Users/bilibili/personal/note/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm32-paper-recipe-protocol-a-seed42-v1/aggregate-results.json | 版本化接入已预留，但真实聚合制品尚未形成 |
 
@@ -26,7 +25,6 @@
 - 门控循环网络：选定幂指数：该模型或选择规则不使用幂平均指数。
 - 全注意力网络：选定幂指数：该模型或选择规则不使用幂平均指数。
 - XGBoost＋CPA-ELP：选定轮次：该来源没有单轮检查点选择，或未持久化选定轮次；验证逐流AP：该来源未持久化可比较的源年验证逐流AP。
-- RWKV-7固定R2与封印容量＋CPA-ELP：选定轮次：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选定幂指数：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选择指标：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选择口径：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；选择分数：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导；验证逐流AP：统一BF16运行尚无本地聚合结果；不得从旧停止运行推导。
 - GRANDE：选定轮次：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选定幂指数：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选择指标：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选择口径：统一BF16源年运行尚无本地聚合结果；没有目标年评价；选择分数：统一BF16源年运行尚无本地聚合结果；没有目标年评价；验证逐流AP：统一BF16源年运行尚无本地聚合结果；没有目标年评价。
 - TabM32骨干专属论文配方＋CPA-ELP：选定轮次：版本化接入已预留，但真实聚合制品尚未形成；选定幂指数：版本化接入已预留，但真实聚合制品尚未形成；选择指标：版本化接入已预留，但真实聚合制品尚未形成；选择口径：版本化接入已预留，但真实聚合制品尚未形成；选择分数：版本化接入已预留，但真实聚合制品尚未形成；验证逐流AP：版本化接入已预留，但真实聚合制品尚未形成。
 
