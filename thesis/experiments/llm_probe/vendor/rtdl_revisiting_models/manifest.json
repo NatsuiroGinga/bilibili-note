@@ -1,0 +1,21 @@
+{
+  "schema_version": "rtdl-revisiting-models-official-snapshot-v1",
+  "repository": "https://github.com/yandex-research/rtdl-revisiting-models",
+  "commit": "e3ed46cac38568785289d8fa16b8cfa585bde27e",
+  "license": "Apache-2.0",
+  "retrieved_at": "2026-08-22",
+  "files": [
+    {
+      "path": "LICENSE",
+      "source_url": "https://raw.githubusercontent.com/yandex-research/rtdl-revisiting-models/e3ed46cac38568785289d8fa16b8cfa585bde27e/LICENSE",
+      "bytes": 11339,
+      "sha256": "bd39fcc730a79d256b14fcdccbfc8ac9f0c7fad4a2e8d01fc513def67980fe35"
+    },
+    {
+      "path": "lib/data.py",
+      "source_url": "https://raw.githubusercontent.com/yandex-research/rtdl-revisiting-models/e3ed46cac38568785289d8fa16b8cfa585bde27e/lib/data.py",
+      "bytes": 9448,
+      "sha256": "cabfcf8b5e86af243dd4b6a90eca1015a97e27e3a8013bb57b27db70058e297f"
+    }
+  ]
+}
