@@ -115,6 +115,7 @@ def _timely_detection_ladder(
         "exposure_index_base": 1,
         "right_continuous": True,
         "positive_entity_denominator": total,
+        "positive_entity_denominator_fixed": True,
         "positive_entities": total,
         "alerted_positive_entities": alerted,
         "unalerted_positive_entities": total - alerted,
@@ -190,20 +191,6 @@ def complete_integer_fp_curve(
         fp: (reachable[index + 1] if index + 1 < len(reachable) else None)
         for index, fp in enumerate(reachable)
     }
-    timely_detection_ladders: list[dict[str, Any]] = []
-    ladder_references: dict[float, tuple[int, str]] = {}
-    if positive_paths is not None:
-        for fp in reachable:
-            threshold = float(best_at_fp[fp]["threshold"])
-            if threshold in ladder_references:
-                continue
-            ladder = _timely_detection_ladder(positive_paths, threshold)
-            ladder_index = len(timely_detection_ladders)
-            timely_detection_ladders.append(ladder)
-            ladder_references[threshold] = (
-                ladder_index,
-                str(ladder["ladder_sha256"]),
-            )
     curve: list[dict[str, Any]] = []
     reachable_index = 0
     selected_fp = reachable[0]
@@ -215,32 +202,55 @@ def complete_integer_fp_curve(
             reachable_index += 1
             selected_fp = reachable[reachable_index]
         state = best_at_fp[selected_fp]
+        detection_rate = None if positives == 0 else state["tp"] / positives
         point = {
             "budget_fp": budget,
             "threshold": state["threshold"],
             "tp": state["tp"],
             "fp": state["fp"],
             "actual_fpr": None if negatives == 0 else state["fp"] / negatives,
-            "detection_rate": None if positives == 0 else state["tp"] / positives,
+            "detection_rate": detection_rate,
             "tie_group_size": state["tie_group_size"],
             "tie_group_positive": state["tie_group_positive"],
             "tie_group_negative": state["tie_group_negative"],
             "next_reachable_fp": next_reachable[selected_fp],
         }
         if positive_paths is not None:
-            threshold = float(state["threshold"])
-            ladder_index, ladder_sha256 = ladder_references[threshold]
-            point.update(
-                {
-                    "timely_detection_ladder_index": ladder_index,
-                    "timely_detection_ladder_sha256": ladder_sha256,
-                }
+            point["unalerted_fraction"] = (
+                None if detection_rate is None else 1.0 - detection_rate
             )
         curve.append(point)
     anchors = []
     for nominal_fpr in DISPLAY_FPR_ANCHORS:
         budget = min(negatives, int(np.floor(nominal_fpr * negatives)))
         anchors.append({"nominal_fpr": nominal_fpr, **curve[budget]})
+    timely_detection_ladders: list[dict[str, Any]] = []
+    if positive_paths is not None:
+        ladder_references: dict[float, tuple[int, str]] = {}
+        for anchor in anchors:
+            threshold = float(anchor["threshold"])
+            if threshold not in ladder_references:
+                ladder = _timely_detection_ladder(positive_paths, threshold)
+                ladder_index = len(timely_detection_ladders)
+                timely_detection_ladders.append(ladder)
+                ladder_references[threshold] = (
+                    ladder_index,
+                    str(ladder["ladder_sha256"]),
+                )
+            ladder_index, ladder_sha256 = ladder_references[threshold]
+            anchor.update(
+                {
+                    "timely_detection_ladder_index": ladder_index,
+                    "timely_detection_ladder_sha256": ladder_sha256,
+                }
+            )
+        total_ladder_points = sum(
+            len(ladder["points"]) for ladder in timely_detection_ladders
+        )
+        if len(timely_detection_ladders) > len(DISPLAY_FPR_ANCHORS):
+            raise RuntimeError("及时检出阶梯数超过六个预注册锚点")
+        if total_ladder_points > len(DISPLAY_FPR_ANCHORS) * positives:
+            raise RuntimeError("及时检出压缩阶梯点数超过 6×正实体上界")
     result = {
         "schema_version": "common-integer-fp-curve-v1",
         "positive_entities": positives,
@@ -259,13 +269,25 @@ def complete_integer_fp_curve(
                     "schema_version": "integer-fp-ladder-reference-v1",
                     "exposure_index_base": 1,
                     "right_continuous": True,
+                    "positive_entity_denominator_fixed": True,
+                    "anchor_only": True,
                     "same_threshold_stored_once": True,
-                    "curve_reference_fields": [
+                    "anchor_reference_fields": [
                         "timely_detection_ladder_index",
                         "timely_detection_ladder_sha256",
                     ],
+                    "maximum_ladders": len(DISPLAY_FPR_ANCHORS),
+                    "maximum_total_points_formula": (
+                        "display_anchor_count*positive_entity_denominator"
+                    ),
                 },
                 "timely_detection_ladders": timely_detection_ladders,
+                "timely_detection_ladder_count": len(
+                    timely_detection_ladders
+                ),
+                "timely_detection_ladder_total_points": sum(
+                    len(ladder["points"]) for ladder in timely_detection_ladders
+                ),
                 "timely_detection_ladders_sha256": canonical_sha256(
                     timely_detection_ladders
                 ),

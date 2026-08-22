@@ -179,6 +179,26 @@ def _validate_action_manifest(
     return manifest_path, sha256_file(manifest_path)
 
 
+def _action_result_envelope(
+    *,
+    action: str,
+    business_result: Mapping[str, Any],
+    idempotent_completion_reused: bool,
+    action_manifest_path: Path,
+    action_manifest_sha256: str,
+) -> dict[str, Any]:
+    return {
+        "schema_version": "cuda-rwkv-action-result-envelope-v1",
+        "action": action,
+        "business_result": dict(business_result),
+        "action_metadata": {
+            "idempotent_completion_reused": idempotent_completion_reused,
+            "action_manifest_path": str(action_manifest_path),
+            "action_manifest_sha256": action_manifest_sha256,
+        },
+    }
+
+
 def _static_backend_contract() -> dict[str, Any]:
     vendor_root = PROJECT_ROOT / "vendor" / "cuda_rwkv_official"
     manifest_path = vendor_root / "manifest.json"
@@ -1187,15 +1207,15 @@ def _aggregate_source_resources(
             for value in summaries.values()
         ),
         "gpu_process_memory_peak_mib": max(
-            float(value["full_run_samples"]["gpu_process_memory_peak_mib"])
+            float(value["unit_resource_samples"]["gpu_process_memory_peak_mib"])
             for value in summaries.values()
         ),
         "cgroup_memory_peak_bytes": max(
-            int(value["full_run_samples"]["cgroup_memory_peak_bytes"])
+            int(value["unit_resource_samples"]["cgroup_memory_peak_bytes"])
             for value in summaries.values()
         ),
         "disk_available_minimum_kib": min(
-            int(value["full_run_samples"]["disk_available_minimum_kib"])
+            int(value["unit_resource_samples"]["disk_available_minimum_kib"])
             for value in summaries.values()
         ),
         "fair_evidence": True,
@@ -1297,7 +1317,7 @@ def run_source(
                 "resource_admission_history"
             ],
         )
-        _validate_action_manifest(
+        source_manifest_path, source_manifest_sha256 = _validate_action_manifest(
             run_root=run_root,
             action="source",
             scoped_paths=_source_scoped_paths(
@@ -1306,7 +1326,13 @@ def run_source(
             expected_identity=source_identity,
         )
         summary = load_json(run_root / "source-summary.json")
-        return {**summary, "idempotent_completion_reused": True}
+        return _action_result_envelope(
+            action="source",
+            business_result=summary,
+            idempotent_completion_reused=True,
+            action_manifest_path=source_manifest_path,
+            action_manifest_sha256=source_manifest_sha256,
+        )
     from cuda_rwkv_official_backend import run_kernel_self_gate
     from flow_probe import protocol_a_preprocessing as _shared_preprocessing
     from flow_probe.cuda_rwkv_training import (
@@ -1598,11 +1624,13 @@ def run_source(
         ),
         identity=source_identity,
     )
-    return {
-        **summary,
-        "source_action_manifest_path": str(source_manifest_path),
-        "source_action_manifest_sha256": source_manifest_sha256,
-    }
+    return _action_result_envelope(
+        action="source",
+        business_result=summary,
+        idempotent_completion_reused=False,
+        action_manifest_path=source_manifest_path,
+        action_manifest_sha256=source_manifest_sha256,
+    )
 
 
 def _load_frozen_cell_model(
@@ -1965,7 +1993,7 @@ def run_target(
                 "resource_admission_history"
             ],
         )
-        _validate_action_manifest(
+        target_manifest_path, target_manifest_sha256 = _validate_action_manifest(
             run_root=run_root,
             action="target",
             scoped_paths=_target_scoped_paths(
@@ -1973,7 +2001,13 @@ def run_target(
             ),
             expected_identity=target_action_identity,
         )
-        return {**result, "idempotent_completion_reused": True}
+        return _action_result_envelope(
+            action="target",
+            business_result=result,
+            idempotent_completion_reused=True,
+            action_manifest_path=target_manifest_path,
+            action_manifest_sha256=target_manifest_sha256,
+        )
     import torch
 
     from flow_probe.cuda_rwkv_evaluation import evaluate_dataset
@@ -2139,11 +2173,13 @@ def run_target(
         ),
         identity=target_action_identity,
     )
-    return {
-        **result,
-        "target_action_manifest_path": str(target_manifest_path),
-        "target_action_manifest_sha256": target_manifest_sha256,
-    }
+    return _action_result_envelope(
+        action="target",
+        business_result=result,
+        idempotent_completion_reused=False,
+        action_manifest_path=target_manifest_path,
+        action_manifest_sha256=target_manifest_sha256,
+    )
 
 
 def _tracking_metrics(config: Mapping[str, Any]) -> dict[str, float | int]:

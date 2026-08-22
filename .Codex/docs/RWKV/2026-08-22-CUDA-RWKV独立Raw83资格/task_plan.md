@@ -96,8 +96,8 @@
 
 | 任务 | 状态 | 不可变验收 |
 | --- | --- | --- |
-| 完整 path-max/terminal 整数 FP 曲线与六锚点及时阶梯分层 | 进行中 | 完整曲线仍逐点保存实际 FP/FPR/DR/阈值/并列/next；`unalerted_fraction=1-detection_rate`；及时阶梯只对六个预注册共同实际 FP 锚点生成，按阈值去重，`len(ladders)<=6`且总点数不超过 `6×正实体数` |
-| 训练单元资源时窗与本地冻结切片 | 待处理 | 首次启动持久化全局采样起始偏移/时刻，恢复沿用；完成时以完整行终止偏移原子写入单元 `resource-samples.tsv`；资源汇总只读本地切片，无法机械证明时 `fair_evidence=false` 并阻断资格 |
-| 业务结果哈希与动作元数分层 | 待处理 | 任何已含 `result_sha256` 的业务对象不再扁平追加 action manifest 或幂等 marker；正常/幂等返回统一使用外层 envelope |
+| 完整 path-max/terminal 整数 FP 曲线与六锚点及时阶梯分层 | 已完成 | 完整曲线仍逐点保存实际 FP/FPR/DR/阈值/并列/next；`unalerted_fraction=1-detection_rate`；及时阶梯只对六个预注册共同实际 FP 锚点生成，按阈值去重，`len(ladders)<=6`且总点数不超过 `6×正实体数` |
+| 训练单元资源时窗与本地冻结切片 | 已完成 | 首次启动持久化全局采样起始偏移/时刻，恢复沿用；完成时以完整行终止偏移原子写入单元 `resource-samples.tsv`；资源汇总只读本地切片，无法机械证明时 `fair_evidence=false` 并阻断资格 |
+| 业务结果哈希与动作元数分层 | 已完成 | 任何已含 `result_sha256` 的业务对象不再扁平追加 action manifest 或幂等 marker；正常/幂等返回统一使用外层 envelope |
 
 依据边界：完整首次告警 path 曲线服务统一 Goal/N16 的共同整数 FP 比较；暴露及时阶梯只服务六个预注册展示锚点。禁止为所有可达阈值生成“阈值×暴露位置”二维稠密阶梯。

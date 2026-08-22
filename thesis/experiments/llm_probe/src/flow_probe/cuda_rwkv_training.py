@@ -10,6 +10,7 @@ import random
 import shutil
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
@@ -82,6 +83,164 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
+RESOURCE_SAMPLE_HEADER = (
+    "timestamp\tgpu_process_memory_mib\tcgroup_memory_bytes\tdisk_available_kib\n"
+)
+
+
+def _atomic_write_bytes(path: Path, payload: bytes) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f"{path.name}.partial.{os.getpid()}")
+    with temporary.open("wb") as handle:
+        handle.write(payload)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, path)
+
+
+def _complete_line_offset(path: Path) -> int:
+    if not path.is_file() or path.is_symlink():
+        raise RuntimeError("CUDA-RWKV 全局资源采样文件缺失或为符号链接")
+    size = path.stat().st_size
+    if size == 0:
+        return 0
+    with path.open("rb") as handle:
+        handle.seek(max(size - 8192, 0))
+        tail = handle.read()
+    newline = tail.rfind(b"\n")
+    if newline < 0:
+        return 0
+    return max(size - len(tail), 0) + newline + 1
+
+
+def _initialize_resource_window(
+    *,
+    global_path: Path,
+    window_path: Path,
+    spec: TrainingUnitSpec,
+    training_identity_sha256: str,
+) -> dict[str, Any]:
+    if window_path.is_file():
+        window = load_json(window_path)
+        if (
+            window.get("unit") != spec.key
+            or window.get("training_identity_sha256")
+            != training_identity_sha256
+            or window.get("global_resource_samples_path") != str(global_path)
+            or not isinstance(window.get("start_offset_bytes"), int)
+            or int(window["start_offset_bytes"]) < 0
+        ):
+            raise RuntimeError(f"{spec.key} 资源采样起始窗口身份漂移")
+        return window
+    window = {
+        "schema_version": "cuda-rwkv-unit-resource-window-v1",
+        "unit": spec.key,
+        "training_identity_sha256": training_identity_sha256,
+        "global_resource_samples_path": str(global_path),
+        "start_offset_bytes": _complete_line_offset(global_path),
+        "started_at_unix": time.time(),
+        "state": "open",
+    }
+    atomic_write_json(window_path, window)
+    return window
+
+
+def _freeze_unit_resource_samples(
+    *,
+    global_path: Path,
+    local_path: Path,
+    window_path: Path,
+    spec: TrainingUnitSpec,
+    training_identity_sha256: str,
+) -> dict[str, Any]:
+    window = _initialize_resource_window(
+        global_path=global_path,
+        window_path=window_path,
+        spec=spec,
+        training_identity_sha256=training_identity_sha256,
+    )
+    if window.get("state") == "frozen":
+        _validate_resource_window(
+            global_path=global_path,
+            local_path=local_path,
+            window=window,
+            spec=spec,
+            training_identity_sha256=training_identity_sha256,
+        )
+        return window
+    start_offset = int(window["start_offset_bytes"])
+    end_offset = _complete_line_offset(global_path)
+    if end_offset < start_offset:
+        raise RuntimeError(f"{spec.key} 资源采样终止偏移早于起始偏移")
+    with global_path.open("rb") as handle:
+        handle.seek(start_offset)
+        raw_slice = handle.read(end_offset - start_offset)
+    decoded = raw_slice.decode("utf-8")
+    sample_lines = [
+        line
+        for line in decoded.splitlines()
+        if line and not line.startswith("timestamp\t")
+    ]
+    local_payload = RESOURCE_SAMPLE_HEADER + "".join(
+        f"{line}\n" for line in sample_lines
+    )
+    _atomic_write_bytes(local_path, local_payload.encode("utf-8"))
+    frozen = {
+        **window,
+        "end_offset_bytes": end_offset,
+        "completed_at_unix": time.time(),
+        "global_slice_bytes": len(raw_slice),
+        "global_slice_sha256": hashlib.sha256(raw_slice).hexdigest(),
+        "local_resource_samples_path": str(local_path),
+        "local_resource_samples_sha256": sha256_file(local_path),
+        "sample_line_count": len(sample_lines),
+        "state": "frozen",
+    }
+    atomic_write_json(window_path, frozen)
+    _validate_resource_window(
+        global_path=global_path,
+        local_path=local_path,
+        window=frozen,
+        spec=spec,
+        training_identity_sha256=training_identity_sha256,
+    )
+    return frozen
+
+
+def _validate_resource_window(
+    *,
+    global_path: Path,
+    local_path: Path,
+    window: Mapping[str, Any],
+    spec: TrainingUnitSpec,
+    training_identity_sha256: str,
+) -> None:
+    if (
+        window.get("state") != "frozen"
+        or window.get("unit") != spec.key
+        or window.get("training_identity_sha256") != training_identity_sha256
+        or window.get("global_resource_samples_path") != str(global_path)
+        or window.get("local_resource_samples_path") != str(local_path)
+        or not local_path.is_file()
+        or local_path.is_symlink()
+        or sha256_file(local_path) != window.get("local_resource_samples_sha256")
+    ):
+        raise RuntimeError(f"{spec.key} 本地资源切片身份无效")
+    start = int(window["start_offset_bytes"])
+    end = int(window["end_offset_bytes"])
+    if start < 0 or end < start or global_path.stat().st_size < end:
+        raise RuntimeError(f"{spec.key} 资源采样字节窗口非法")
+    with global_path.open("rb") as handle:
+        handle.seek(start)
+        raw_slice = handle.read(end - start)
+    if (
+        len(raw_slice) != int(window["global_slice_bytes"])
+        or hashlib.sha256(raw_slice).hexdigest()
+        != window["global_slice_sha256"]
+    ):
+        raise RuntimeError(f"{spec.key} 全局采样原始字节窗已漂移")
+
+
 def _artifact_entry(path: Path, root: Path) -> dict[str, Any]:
     resolved = path.resolve(strict=True)
     root_resolved = root.resolve(strict=True)
@@ -94,32 +253,64 @@ def _artifact_entry(path: Path, root: Path) -> dict[str, Any]:
     }
 
 
-def _resource_samples_summary(path: Path) -> dict[str, Any]:
+def _resource_samples_summary(
+    path: Path, window: Mapping[str, Any]
+) -> dict[str, Any]:
     if not path.is_file() or path.is_symlink():
-        raise RuntimeError("CUDA-RWKV 单元缺少全程资源采样")
+        raise RuntimeError("CUDA-RWKV 单元缺少本地资源采样切片")
     gpu_values: list[float] = []
     memory_values: list[int] = []
     disk_values: list[int] = []
+    timestamps: list[float] = []
+    invalid_rows = 0
     for line in path.read_text(encoding="utf-8").splitlines():
+        if line == RESOURCE_SAMPLE_HEADER.rstrip("\n"):
+            continue
         fields = line.split("\t")
         if len(fields) != 4:
+            if line and not line.startswith("timestamp\t"):
+                invalid_rows += 1
             continue
         try:
+            timestamps.append(
+                datetime.fromisoformat(fields[0].replace("Z", "+00:00")).timestamp()
+            )
             gpu_values.append(float(fields[1]))
             memory_values.append(int(fields[2]))
             disk_values.append(int(fields[3]))
         except ValueError:
+            invalid_rows += 1
             continue
-    if not gpu_values or not memory_values or not disk_values:
-        raise RuntimeError("CUDA-RWKV 全程资源采样不含完整数值行")
-    if min(gpu_values) < 0 or min(memory_values) < 0 or min(disk_values) <= 0:
-        raise RuntimeError("CUDA-RWKV 全程资源采样包含非法负值或零磁盘余量")
+    reasons: list[str] = []
+    if not gpu_values or not memory_values or not disk_values or not timestamps:
+        reasons.append("no_complete_numeric_sample")
+    if invalid_rows:
+        reasons.append("invalid_sample_rows")
+    if gpu_values and min(gpu_values) < 0:
+        reasons.append("negative_gpu_memory")
+    if memory_values and min(memory_values) < 0:
+        reasons.append("negative_cgroup_memory")
+    if disk_values and min(disk_values) <= 0:
+        reasons.append("nonpositive_disk_available")
+    if timestamps and timestamps != sorted(timestamps):
+        reasons.append("nonmonotonic_timestamps")
+    if len(timestamps) != int(window.get("sample_line_count", -1)):
+        reasons.append("window_line_count_mismatch")
     return {
-        "sample_count": len(gpu_values),
-        "gpu_process_memory_peak_mib": max(gpu_values),
-        "cgroup_memory_peak_bytes": max(memory_values),
-        "disk_available_minimum_kib": min(disk_values),
+        "sample_count": len(timestamps),
+        "invalid_row_count": invalid_rows,
+        "first_sample_at_unix": None if not timestamps else timestamps[0],
+        "last_sample_at_unix": None if not timestamps else timestamps[-1],
+        "gpu_process_memory_peak_mib": None if not gpu_values else max(gpu_values),
+        "cgroup_memory_peak_bytes": None if not memory_values else max(memory_values),
+        "disk_available_minimum_kib": None if not disk_values else min(disk_values),
         "samples_file_sha256": sha256_file(path),
+        "resource_window_content_sha256": canonical_sha256(window),
+        "window_started_at_unix": float(window["started_at_unix"]),
+        "window_completed_at_unix": float(window["completed_at_unix"]),
+        "timestamp_resolution_seconds": 1,
+        "mechanically_proven": not reasons,
+        "proof_failure_reasons": reasons,
     }
 
 
@@ -139,6 +330,8 @@ def _write_unit_manifest(
         "checkpoints/best.pt",
         "validation-history.json",
         "source-metrics.json",
+        "resource-samples.tsv",
+        "resource-window.json",
         "resource-summary.json",
         "completed.json",
         "status.json",
@@ -216,6 +409,8 @@ def _validate_unit_manifest(
         "checkpoints/best.pt",
         "validation-history.json",
         "source-metrics.json",
+        "resource-samples.tsv",
+        "resource-window.json",
         "resource-summary.json",
         "completed.json",
         "status.json",
@@ -236,7 +431,24 @@ def _validate_unit_manifest(
     ):
         raise RuntimeError(f"{spec.key} 首步六梯度收据无效")
     resource_summary = load_json(unit_root / "resource-summary.json")
-    if resource_summary.get("fair_evidence") is not True:
+    resource_window = load_json(unit_root / "resource-window.json")
+    _validate_resource_window(
+        global_path=Path(resource_window["global_resource_samples_path"]),
+        local_path=unit_root / "resource-samples.tsv",
+        window=resource_window,
+        spec=spec,
+        training_identity_sha256=canonical_sha256(expected_identities),
+    )
+    unit_samples = resource_summary.get("unit_resource_samples")
+    if (
+        not isinstance(unit_samples, dict)
+        or unit_samples.get("samples_file_sha256")
+        != sha256_file(unit_root / "resource-samples.tsv")
+        or unit_samples.get("resource_window_content_sha256")
+        != canonical_sha256(resource_window)
+        or unit_samples.get("mechanically_proven") is not True
+        or resource_summary.get("fair_evidence") is not True
+    ):
         raise RuntimeError(f"{spec.key} 缺少完整公平资源证据")
     completed = load_json(unit_root / "completed.json")
     status = load_json(unit_root / "status.json")
@@ -340,11 +552,17 @@ def make_optimizer(
     return optimizer, receipt
 
 
-def _external_gpu_peak_mib(path: Path) -> float:
+def _external_gpu_peak_mib(path: Path, *, start_offset_bytes: int) -> float:
     if not path.is_file() or path.is_symlink():
         raise RuntimeError("CUDA-RWKV 首步门缺少外部 GPU 进程显存采样")
     values: list[float] = []
-    for line in path.read_text(encoding="utf-8").splitlines():
+    end_offset = _complete_line_offset(path)
+    if start_offset_bytes < 0 or end_offset < start_offset_bytes:
+        raise RuntimeError("CUDA-RWKV 首步资源采样字节窗口非法")
+    with path.open("rb") as handle:
+        handle.seek(start_offset_bytes)
+        payload = handle.read(end_offset - start_offset_bytes).decode("utf-8")
+    for line in payload.splitlines():
         fields = line.split("\t")
         if len(fields) >= 2:
             try:
@@ -680,6 +898,9 @@ def train_unit(
     optimizer_groups_path = unit_root / "optimizer-groups.json"
     first_step_receipt_path = unit_root / "first-complete-step-receipt.json"
     volatile_progress_path = unit_root / "volatile-progress.json"
+    resource_window_path = unit_root / "resource-window.json"
+    unit_resource_samples_path = unit_root / "resource-samples.tsv"
+    global_resource_samples_path = Path(config["paths"]["resource_samples"])
     completed = load_json(completed_path) if completed_path.is_file() else None
     if unit_root.exists() and not resume and completed is None:
         existing = [path for path in unit_root.rglob("*") if path.is_file()]
@@ -788,6 +1009,29 @@ def train_unit(
             unit_manifest_path=unit_manifest_path,
             unit_manifest_sha256=unit_manifest_sha256,
         )
+    resource_window = _initialize_resource_window(
+        global_path=global_resource_samples_path,
+        window_path=resource_window_path,
+        spec=spec,
+        training_identity_sha256=training_identity_sha256,
+    )
+    if resource_window.get("state") == "frozen":
+        resource_window = {
+            "schema_version": "cuda-rwkv-unit-resource-window-v1",
+            "unit": spec.key,
+            "training_identity_sha256": training_identity_sha256,
+            "global_resource_samples_path": str(global_resource_samples_path),
+            "start_offset_bytes": int(resource_window["start_offset_bytes"]),
+            "started_at_unix": float(resource_window["started_at_unix"]),
+            "reopened_after_incomplete_completion_count": int(
+                resource_window.get(
+                    "reopened_after_incomplete_completion_count", 0
+                )
+            )
+            + 1,
+            "state": "open",
+        }
+        atomic_write_json(resource_window_path, resource_window)
     train_rows = np.asarray(
         np.load(
             _verified_artifact_path(train_dataset, "train_rows"),
@@ -1050,10 +1294,14 @@ def train_unit(
                     processed_valid_units=valid_flow_count,
                     elapsed_seconds=elapsed,
                     external_process_gpu_memory_mib=_external_gpu_peak_mib(
-                        Path(config["paths"]["resource_samples"])
+                        global_resource_samples_path,
+                        start_offset_bytes=int(
+                            resource_window["start_offset_bytes"]
+                        ),
                     ),
-                    external_measurement_source=str(
-                        config["paths"]["resource_samples"]
+                    external_measurement_source=(
+                        f"{global_resource_samples_path}#bytes>="
+                        f"{resource_window['start_offset_bytes']}"
                     ),
                     torch_module=torch,
                     device=device,
@@ -1297,8 +1545,16 @@ def train_unit(
         progress["source_evaluation_seconds"]
     ) + source_evaluation_seconds
     first_step_receipt = load_json(first_step_receipt_path)
+    resource_window = _freeze_unit_resource_samples(
+        global_path=global_resource_samples_path,
+        local_path=unit_resource_samples_path,
+        window_path=resource_window_path,
+        spec=spec,
+        training_identity_sha256=training_identity_sha256,
+    )
     sampled_resources = _resource_samples_summary(
-        Path(config["paths"]["resource_samples"])
+        unit_resource_samples_path,
+        resource_window,
     )
     training_seconds = float(progress["training_seconds_total"])
     resource_summary = {
@@ -1338,8 +1594,9 @@ def train_unit(
         "first_step_cuda_resource_receipt": first_step_receipt[
             "resource_receipt"
         ],
-        "full_run_samples": sampled_resources,
-        "fair_evidence": True,
+        "unit_resource_samples": sampled_resources,
+        "resource_window": resource_window,
+        "fair_evidence": bool(sampled_resources["mechanically_proven"]),
         "fair_evidence_boundary": (
             "engineering-resource-completeness-only-not-effect-evidence"
         ),
