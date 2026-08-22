@@ -267,7 +267,9 @@ class CudaRwkvTimeMix(nn.Module):
             w_raw = self.w0 + torch.tanh(xw32 @ self.w1) @ self.w2
         with fp32_island(xa, device_type="cuda", torch_module=torch) as (xa32,):
             gate_a = torch.sigmoid(self.a0 + (xa32 @ self.a1) @ self.a2)
-        g = torch.sigmoid(xg @ self.g1) @ self.g2
+        with fp32_island(xg, device_type="cuda", torch_module=torch) as (xg32,):
+            gate_g32 = torch.sigmoid(xg32 @ self.g1.float()) @ self.g2.float()
+        g = gate_g32.to(dtype=r.dtype)
         with fp32_island(k, gate_a, device_type="cuda", torch_module=torch) as (
             k32,
             gate_a32,

@@ -83,7 +83,7 @@ def _sequence_sidecars(dataset: Any, purpose: str) -> tuple[np.ndarray, np.ndarr
     return entities, times
 
 
-def _first_alert_summary(
+def _timely_detection_ladder(
     positive_paths: Mapping[int, np.ndarray], threshold: float
 ) -> dict[str, Any]:
     exposures: list[int] = []
@@ -93,29 +93,35 @@ def _first_alert_summary(
             exposures.append(int(reached[0]) + 1)
     total = len(positive_paths)
     alerted = len(exposures)
-    if not exposures:
-        distribution = {
-            "minimum": None,
-            "median": None,
-            "mean": None,
-            "maximum": None,
-        }
-    else:
-        array = np.asarray(exposures, dtype=np.float64)
-        distribution = {
-            "minimum": int(array.min()),
-            "median": float(np.median(array)),
-            "mean": float(array.mean()),
-            "maximum": int(array.max()),
-        }
-    return {
+    points: list[dict[str, Any]] = []
+    if exposures:
+        unique_exposures, counts = np.unique(
+            np.asarray(exposures, dtype=np.int64), return_counts=True
+        )
+        cumulative = 0
+        for exposure_index, count in zip(unique_exposures, counts, strict=True):
+            cumulative += int(count)
+            points.append(
+                {
+                    "exposure_index": int(exposure_index),
+                    "cumulative_detected_entities": cumulative,
+                    "timely_detection_rate": None if total == 0 else cumulative / total,
+                    "unalerted_fraction": None if total == 0 else (total - cumulative) / total,
+                }
+            )
+    unsigned = {
+        "schema_version": "first-alert-right-continuous-ladder-v1",
+        "threshold": threshold,
+        "exposure_index_base": 1,
+        "right_continuous": True,
+        "positive_entity_denominator": total,
         "positive_entities": total,
         "alerted_positive_entities": alerted,
         "unalerted_positive_entities": total - alerted,
-        "unalerted_fraction": None if total == 0 else (total - alerted) / total,
-        "timely_detection_rate": None if total == 0 else alerted / total,
-        "first_exposure_distribution": distribution,
+        "final_unalerted_fraction": None if total == 0 else (total - alerted) / total,
+        "points": points,
     }
+    return {**unsigned, "ladder_sha256": canonical_sha256(unsigned)}
 
 
 def _complete_group_states(
@@ -184,7 +190,20 @@ def complete_integer_fp_curve(
         fp: (reachable[index + 1] if index + 1 < len(reachable) else None)
         for index, fp in enumerate(reachable)
     }
-    first_alert_cache: dict[float, dict[str, Any]] = {}
+    timely_detection_ladders: list[dict[str, Any]] = []
+    ladder_references: dict[float, tuple[int, str]] = {}
+    if positive_paths is not None:
+        for fp in reachable:
+            threshold = float(best_at_fp[fp]["threshold"])
+            if threshold in ladder_references:
+                continue
+            ladder = _timely_detection_ladder(positive_paths, threshold)
+            ladder_index = len(timely_detection_ladders)
+            timely_detection_ladders.append(ladder)
+            ladder_references[threshold] = (
+                ladder_index,
+                str(ladder["ladder_sha256"]),
+            )
     curve: list[dict[str, Any]] = []
     reachable_index = 0
     selected_fp = reachable[0]
@@ -210,17 +229,19 @@ def complete_integer_fp_curve(
         }
         if positive_paths is not None:
             threshold = float(state["threshold"])
-            if threshold not in first_alert_cache:
-                first_alert_cache[threshold] = _first_alert_summary(
-                    positive_paths, threshold
-                )
-            point.update(first_alert_cache[threshold])
+            ladder_index, ladder_sha256 = ladder_references[threshold]
+            point.update(
+                {
+                    "timely_detection_ladder_index": ladder_index,
+                    "timely_detection_ladder_sha256": ladder_sha256,
+                }
+            )
         curve.append(point)
     anchors = []
     for nominal_fpr in DISPLAY_FPR_ANCHORS:
         budget = min(negatives, int(np.floor(nominal_fpr * negatives)))
         anchors.append({"nominal_fpr": nominal_fpr, **curve[budget]})
-    return {
+    result = {
         "schema_version": "common-integer-fp-curve-v1",
         "positive_entities": positives,
         "negative_entities": negatives,
@@ -231,6 +252,26 @@ def complete_integer_fp_curve(
         "curve": curve,
         "anchors": anchors,
     }
+    if positive_paths is not None:
+        result.update(
+            {
+                "timely_detection_ladder_contract": {
+                    "schema_version": "integer-fp-ladder-reference-v1",
+                    "exposure_index_base": 1,
+                    "right_continuous": True,
+                    "same_threshold_stored_once": True,
+                    "curve_reference_fields": [
+                        "timely_detection_ladder_index",
+                        "timely_detection_ladder_sha256",
+                    ],
+                },
+                "timely_detection_ladders": timely_detection_ladders,
+                "timely_detection_ladders_sha256": canonical_sha256(
+                    timely_detection_ladders
+                ),
+            }
+        )
+    return result
 
 
 def _entity_aggregates(

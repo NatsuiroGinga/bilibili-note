@@ -225,6 +225,13 @@
     "unauthorized_concurrent_training_forbidden": true,
     "wall_clock_limit_seconds": null
   },
+  "resource_admission": {
+    "schema_version": "cuda-rwkv-resource-admission-contract-v1",
+    "receipt_ttl_seconds": 600,
+    "python_direct_entry_requires_unconsumed_receipt": true,
+    "atomic_run_lock_required": true,
+    "receipt_binds_config_dependency_gpu_cgroup_disk_concurrency_time": true
+  },
   "tracking": {
     "workspace": "mortiswang",
     "project": "ns3-rwkv-lspr24",
@@ -256,8 +263,11 @@
     "launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-cuda-rwkv-raw83-qualification-seed42-v1",
     "dependency_closure": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/dependency-closure.json",
     "resource_samples": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/resource-samples.tsv",
+    "target_resource_samples": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/target-resource-samples.tsv",
     "source_seal": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/seals/source-qualification-seal.json",
     "target_results": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/target-results.json",
-    "tracking_attempts": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/tracking-attempts"
+    "tracking_attempts": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/tracking-attempts",
+    "resource_admission_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/resource-admission",
+    "run_lock": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-cuda-rwkv-raw83-qualification-seed42-v1/run.lock"
   }
 }

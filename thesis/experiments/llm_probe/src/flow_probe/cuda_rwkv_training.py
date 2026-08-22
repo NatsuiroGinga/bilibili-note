@@ -59,6 +59,8 @@ class TrainingUnitResult:
     cuda_execution_identity_sha256: str
     source_metrics_path: Path
     source_metrics_sha256: str
+    unit_manifest_path: Path
+    unit_manifest_sha256: str
 
 
 def atomic_write_json(path: Path, value: Mapping[str, Any]) -> None:
@@ -78,6 +80,169 @@ def load_json(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise RuntimeError(f"JSON 顶层必须为对象：{path}")
     return value
+
+
+def _artifact_entry(path: Path, root: Path) -> dict[str, Any]:
+    resolved = path.resolve(strict=True)
+    root_resolved = root.resolve(strict=True)
+    if path.is_symlink() or not resolved.is_relative_to(root_resolved):
+        raise RuntimeError(f"单元制品路径越界或为符号链接：{path}")
+    return {
+        "path": str(resolved.relative_to(root_resolved)),
+        "bytes": resolved.stat().st_size,
+        "sha256": sha256_file(resolved),
+    }
+
+
+def _resource_samples_summary(path: Path) -> dict[str, Any]:
+    if not path.is_file() or path.is_symlink():
+        raise RuntimeError("CUDA-RWKV 单元缺少全程资源采样")
+    gpu_values: list[float] = []
+    memory_values: list[int] = []
+    disk_values: list[int] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        fields = line.split("\t")
+        if len(fields) != 4:
+            continue
+        try:
+            gpu_values.append(float(fields[1]))
+            memory_values.append(int(fields[2]))
+            disk_values.append(int(fields[3]))
+        except ValueError:
+            continue
+    if not gpu_values or not memory_values or not disk_values:
+        raise RuntimeError("CUDA-RWKV 全程资源采样不含完整数值行")
+    if min(gpu_values) < 0 or min(memory_values) < 0 or min(disk_values) <= 0:
+        raise RuntimeError("CUDA-RWKV 全程资源采样包含非法负值或零磁盘余量")
+    return {
+        "sample_count": len(gpu_values),
+        "gpu_process_memory_peak_mib": max(gpu_values),
+        "cgroup_memory_peak_bytes": max(memory_values),
+        "disk_available_minimum_kib": min(disk_values),
+        "samples_file_sha256": sha256_file(path),
+    }
+
+
+def _write_unit_manifest(
+    *,
+    unit_root: Path,
+    spec: TrainingUnitSpec,
+    identities: Mapping[str, Any],
+) -> tuple[Path, str]:
+    manifest_path = unit_root / "unit-manifest.json"
+    required = {
+        "training-identities.json",
+        "model-spec.json",
+        "optimizer-groups.json",
+        "first-complete-step-receipt.json",
+        "checkpoints/latest.pt",
+        "checkpoints/best.pt",
+        "validation-history.json",
+        "source-metrics.json",
+        "resource-summary.json",
+        "completed.json",
+        "status.json",
+    }
+    files = sorted(
+        path
+        for path in unit_root.rglob("*")
+        if path.is_file()
+        and path != manifest_path
+        and ".partial." not in path.name
+    )
+    observed = {str(path.relative_to(unit_root)) for path in files}
+    missing = sorted(required - observed)
+    if missing:
+        raise RuntimeError(f"{spec.key} 单元清单缺少必需制品：{missing}")
+    artifacts = [_artifact_entry(path, unit_root) for path in files]
+    unsigned = {
+        "schema_version": "cuda-rwkv-source-unit-manifest-v1",
+        "unit": spec.key,
+        "training_identity_sha256": canonical_sha256(identities),
+        "required_artifacts": sorted(required),
+        "artifact_count": len(artifacts),
+        "artifacts": artifacts,
+    }
+    manifest = {**unsigned, "manifest_content_sha256": canonical_sha256(unsigned)}
+    atomic_write_json(manifest_path, manifest)
+    return manifest_path, sha256_file(manifest_path)
+
+
+def _validate_unit_manifest(
+    *,
+    unit_root: Path,
+    spec: TrainingUnitSpec,
+    expected_identities: Mapping[str, Any],
+) -> tuple[Path, str]:
+    manifest_path = unit_root / "unit-manifest.json"
+    if not manifest_path.is_file() or manifest_path.is_symlink():
+        raise RuntimeError(f"{spec.key} 完成快路径缺少单元清单")
+    manifest = load_json(manifest_path)
+    unsigned = {
+        key: value for key, value in manifest.items() if key != "manifest_content_sha256"
+    }
+    if manifest.get("manifest_content_sha256") != canonical_sha256(unsigned):
+        raise RuntimeError(f"{spec.key} 单元清单内容 SHA-256 无效")
+    if (
+        manifest.get("unit") != spec.key
+        or manifest.get("training_identity_sha256")
+        != canonical_sha256(expected_identities)
+    ):
+        raise RuntimeError(f"{spec.key} 单元清单训练身份漂移")
+    listed = set()
+    for item in manifest.get("artifacts", []):
+        relative = str(item["path"])
+        path = unit_root / relative
+        if relative in listed or not path.is_file() or path.is_symlink():
+            raise RuntimeError(f"{spec.key} 单元清单制品缺失、重复或为链接：{relative}")
+        listed.add(relative)
+        if path.stat().st_size != int(item["bytes"]) or sha256_file(path) != item["sha256"]:
+            raise RuntimeError(f"{spec.key} 单元制品身份漂移：{relative}")
+    observed = {
+        str(path.relative_to(unit_root))
+        for path in unit_root.rglob("*")
+        if path.is_file()
+        and path != manifest_path
+        and ".partial." not in path.name
+    }
+    if listed != observed or int(manifest.get("artifact_count", -1)) != len(listed):
+        raise RuntimeError(f"{spec.key} 单元制品集与清单不等")
+    expected_required = {
+        "training-identities.json",
+        "model-spec.json",
+        "optimizer-groups.json",
+        "first-complete-step-receipt.json",
+        "checkpoints/latest.pt",
+        "checkpoints/best.pt",
+        "validation-history.json",
+        "source-metrics.json",
+        "resource-summary.json",
+        "completed.json",
+        "status.json",
+    }
+    required = set(manifest.get("required_artifacts", []))
+    if required != expected_required or not required.issubset(listed):
+        raise RuntimeError(f"{spec.key} 单元清单必需制品不齐")
+    if load_json(unit_root / "training-identities.json") != dict(expected_identities):
+        raise RuntimeError(f"{spec.key} 训练身份文件漂移")
+    first_step = load_json(unit_root / "first-complete-step-receipt.json")
+    if (
+        first_step.get("training_identity_sha256") != canonical_sha256(expected_identities)
+        or not first_step.get("six_gradients")
+        or any(
+            item.get("finite") is not True or int(item.get("nonzero", 0)) <= 0
+            for item in first_step.get("six_gradients", [])
+        )
+    ):
+        raise RuntimeError(f"{spec.key} 首步六梯度收据无效")
+    resource_summary = load_json(unit_root / "resource-summary.json")
+    if resource_summary.get("fair_evidence") is not True:
+        raise RuntimeError(f"{spec.key} 缺少完整公平资源证据")
+    completed = load_json(unit_root / "completed.json")
+    status = load_json(unit_root / "status.json")
+    if completed.get("state") != "finished" or status.get("state") != "finished":
+        raise RuntimeError(f"{spec.key} 完成收据或状态未封口")
+    return manifest_path, sha256_file(manifest_path)
 
 
 def _atomic_torch_save(path: Path, payload: Mapping[str, Any]) -> None:
@@ -355,6 +520,8 @@ def _checkpoint_payload(
     best_flow_ap: float | None,
     resource_state: Mapping[str, Any],
     completed_unit_keys: Sequence[str],
+    progress: Mapping[str, Any],
+    first_step_receipt_sha256: str,
 ) -> dict[str, Any]:
     return {
         "schema_version": "cuda-rwkv-complete-step-checkpoint-v1",
@@ -374,6 +541,8 @@ def _checkpoint_payload(
         "swanlab_publish_state": "not_initialized_until_final_aggregate",
         "failure_count": 0,
         "completed_unit_keys": list(completed_unit_keys),
+        "progress": dict(progress),
+        "first_step_receipt_sha256": first_step_receipt_sha256,
         "optimizer_step_boundary": True,
     }
 
@@ -506,6 +675,11 @@ def train_unit(
     latest_checkpoint = unit_root / "checkpoints" / "latest.pt"
     best_checkpoint = unit_root / "checkpoints" / "best.pt"
     completed_path = unit_root / "completed.json"
+    identities_path = unit_root / "training-identities.json"
+    model_spec_path = unit_root / "model-spec.json"
+    optimizer_groups_path = unit_root / "optimizer-groups.json"
+    first_step_receipt_path = unit_root / "first-complete-step-receipt.json"
+    volatile_progress_path = unit_root / "volatile-progress.json"
     completed = load_json(completed_path) if completed_path.is_file() else None
     if unit_root.exists() and not resume and completed is None:
         existing = [path for path in unit_root.rglob("*") if path.is_file()]
@@ -561,12 +735,29 @@ def train_unit(
         unit_spec=spec,
         extension=extension,
     )
+    training_identity_sha256 = canonical_sha256(identities)
+    existing_files = [path for path in unit_root.rglob("*") if path.is_file()]
+    if identities_path.is_file():
+        if load_json(identities_path) != identities:
+            raise RuntimeError(f"{spec.key} 现有单元与当前 CUDA 或训练身份漂移")
+    elif existing_files:
+        raise RuntimeError(f"{spec.key} 存在制品但缺少可先验的训练身份")
+    else:
+        atomic_write_json(identities_path, identities)
+    expected_model_spec = identities["model_spec"]
+    expected_optimizer_groups = {"groups": optimizer_group_receipt}
+    for path, expected, name in (
+        (model_spec_path, expected_model_spec, "模型规格"),
+        (optimizer_groups_path, expected_optimizer_groups, "优化器分组"),
+    ):
+        if path.is_file():
+            if load_json(path) != expected:
+                raise RuntimeError(f"{spec.key} 现有{name}与当前身份漂移")
+        else:
+            atomic_write_json(path, expected)
     if completed is not None:
-        saved_identities_path = unit_root / "training-identities.json"
-        if not saved_identities_path.is_file():
+        if not identities_path.is_file():
             raise RuntimeError(f"{spec.key} 完成收据缺少训练身份")
-        if load_json(saved_identities_path) != identities:
-            raise RuntimeError(f"{spec.key} 已完成单元与当前 CUDA 或训练身份漂移")
         source_metrics_path = unit_root / "source-metrics.json"
         if not best_checkpoint.is_file() or not source_metrics_path.is_file():
             raise RuntimeError(f"{spec.key} 完成收据存在但检查点或源指标缺失")
@@ -574,6 +765,11 @@ def train_unit(
             raise RuntimeError(f"{spec.key} 已完成检查点 SHA-256 漂移")
         if sha256_file(source_metrics_path) != completed["source_metrics_sha256"]:
             raise RuntimeError(f"{spec.key} 已完成源指标 SHA-256 漂移")
+        unit_manifest_path, unit_manifest_sha256 = _validate_unit_manifest(
+            unit_root=unit_root,
+            spec=spec,
+            expected_identities=identities,
+        )
         return TrainingUnitResult(
             spec=spec,
             unit_root=unit_root,
@@ -589,13 +785,9 @@ def train_unit(
             ),
             source_metrics_path=source_metrics_path,
             source_metrics_sha256=str(completed["source_metrics_sha256"]),
+            unit_manifest_path=unit_manifest_path,
+            unit_manifest_sha256=unit_manifest_sha256,
         )
-    atomic_write_json(unit_root / "model-spec.json", identities["model_spec"])
-    atomic_write_json(unit_root / "training-identities.json", identities)
-    atomic_write_json(
-        unit_root / "optimizer-groups.json",
-        {"groups": optimizer_group_receipt},
-    )
     train_rows = np.asarray(
         np.load(
             _verified_artifact_path(train_dataset, "train_rows"),
@@ -617,9 +809,32 @@ def train_unit(
     validation_history: list[dict[str, Any]] = []
     best_epoch: int | None = None
     best_flow_ap: float | None = None
+    progress: dict[str, Any] = {
+        "training_seconds_total": 0.0,
+        "selection_validation_seconds": 0.0,
+        "source_evaluation_seconds": 0.0,
+        "checkpoint_io_seconds": 0.0,
+        "processed_valid_flows_total": 0,
+        "effective_processed_valid_flows": 0,
+        "resume_count": 0,
+        "repeated_optimizer_steps": 0,
+    }
+    prior_volatile = (
+        load_json(volatile_progress_path) if volatile_progress_path.is_file() else None
+    )
+    if prior_volatile is not None and prior_volatile.get(
+        "training_identity_sha256"
+    ) != training_identity_sha256:
+        raise RuntimeError(f"{spec.key} 断点前进度收据身份漂移")
+    if first_step_receipt_path.is_file():
+        existing_first_step = load_json(first_step_receipt_path)
+        if existing_first_step.get("training_identity_sha256") != training_identity_sha256:
+            raise RuntimeError(f"{spec.key} 旧首步六梯度收据身份漂移")
     if latest_checkpoint.is_file():
         if not resume:
             raise RuntimeError(f"{spec.key} 发现断点但未显式启用续训")
+        if not first_step_receipt_path.is_file():
+            raise RuntimeError(f"{spec.key} 有断点但缺少首步六梯度收据")
         checkpoint = _load_checkpoint(
             latest_checkpoint,
             model=model,
@@ -634,6 +849,32 @@ def train_unit(
         validation_history = list(checkpoint["validation_history"])
         best_epoch = checkpoint["best_epoch"]
         best_flow_ap = checkpoint["best_flow_average_precision"]
+        if checkpoint.get("first_step_receipt_sha256") != sha256_file(
+            first_step_receipt_path
+        ):
+            raise RuntimeError(f"{spec.key} 断点未绑定当前首步六梯度收据")
+        checkpoint_progress = checkpoint.get("progress")
+        if not isinstance(checkpoint_progress, dict):
+            raise RuntimeError(f"{spec.key} 断点缺少累计进度")
+        progress.update(checkpoint_progress)
+        progress["resume_count"] = int(progress["resume_count"]) + 1
+        if prior_volatile is not None:
+            repeated = max(
+                int(prior_volatile.get("optimizer_step", optimizer_step))
+                - optimizer_step,
+                0,
+            )
+            progress["repeated_optimizer_steps"] = int(
+                progress["repeated_optimizer_steps"]
+            ) + repeated
+            progress["training_seconds_total"] = max(
+                float(progress["training_seconds_total"]),
+                float(prior_volatile.get("training_seconds_total", 0.0)),
+            )
+            progress["processed_valid_flows_total"] = max(
+                int(progress["processed_valid_flows_total"]),
+                int(prior_volatile.get("processed_valid_flows_total", 0)),
+            )
         epoch_already_validated = bool(
             validation_history
             and int(validation_history[-1].get("epoch", -1)) == completed_epoch
@@ -644,13 +885,40 @@ def train_unit(
         else:
             start_epoch = completed_epoch
     elif resume:
+        if first_step_receipt_path.is_file():
+            old_first_step_sha256 = sha256_file(first_step_receipt_path)
+            first_step_receipt_path.unlink()
+            atomic_write_json(
+                unit_root / "precheckpoint-first-step-replay.json",
+                {
+                    "schema_version": "cuda-rwkv-precheckpoint-first-step-replay-v1",
+                    "unit": spec.key,
+                    "training_identity_sha256": training_identity_sha256,
+                    "removed_first_step_receipt_sha256": old_first_step_sha256,
+                    "reason": "no_complete_twenty_step_checkpoint",
+                },
+            )
+        if prior_volatile is not None:
+            progress["training_seconds_total"] = float(
+                prior_volatile.get("training_seconds_total", 0.0)
+            )
+            progress["processed_valid_flows_total"] = int(
+                prior_volatile.get("processed_valid_flows_total", 0)
+            )
+            progress["repeated_optimizer_steps"] = int(
+                prior_volatile.get("optimizer_step", 0)
+            )
+        progress["resume_count"] = int(progress["resume_count"]) + 1
         atomic_write_json(
             unit_root / "resume-from-random-initialization.json",
             {
                 "schema_version": "cuda-rwkv-resume-before-first-checkpoint-v1",
                 "unit": spec.key,
                 "reason": "no_complete_twenty_step_checkpoint",
-                "replayed_optimizer_steps_from": 0,
+                "replayed_optimizer_steps_from": int(
+                    progress["repeated_optimizer_steps"]
+                ),
+                "training_identity_sha256": training_identity_sha256,
             },
         )
     reset_cuda_peak_memory(torch, device)
@@ -658,12 +926,12 @@ def train_unit(
         unit_root / "status.json",
         {"state": "running", "unit": spec.key, "optimizer_step": optimizer_step},
     )
-    first_step_receipt_path = unit_root / "first-complete-step-receipt.json"
     start_time = time.monotonic()
     for epoch in range(start_epoch, int(training["epochs"]) + 1):
         model.train()
         epoch_step_start = step_in_epoch if epoch == start_epoch else 0
         for local_step in range(epoch_step_start, int(training["steps_per_epoch"])):
+            step_started = time.monotonic()
             batch_rows = sampler.choice(
                 train_rows, size=effective_batch, replace=False
             ).astype(np.int64, copy=False)
@@ -756,6 +1024,16 @@ def train_unit(
             optimizer_step += 1
             scheduler.step()
             validate_model_optimizer_fp32(model, optimizer, torch)
+            step_seconds = max(time.monotonic() - step_started, 0.0)
+            progress["training_seconds_total"] = float(
+                progress["training_seconds_total"]
+            ) + step_seconds
+            progress["processed_valid_flows_total"] = int(
+                progress["processed_valid_flows_total"]
+            ) + valid_flow_count
+            progress["effective_processed_valid_flows"] = int(
+                progress["effective_processed_valid_flows"]
+            ) + valid_flow_count
             if first_step:
                 if before_parameters is None:
                     raise AssertionError("CUDA-RWKV 首步参数快照缺失")
@@ -785,6 +1063,7 @@ def train_unit(
                     {
                         "schema_version": "cuda-rwkv-first-complete-step-receipt-v1",
                         "unit": spec.key,
+                        "training_identity_sha256": training_identity_sha256,
                         "optimizer_step": optimizer_step,
                         "loss_sum": loss_sum_value,
                         "normalized_loss": loss_sum_value / valid_flow_count,
@@ -805,6 +1084,18 @@ def train_unit(
                         "resource_receipt": resource_receipt,
                     },
                 )
+            atomic_write_json(
+                volatile_progress_path,
+                {
+                    "schema_version": "cuda-rwkv-volatile-progress-v1",
+                    "unit": spec.key,
+                    "training_identity_sha256": training_identity_sha256,
+                    "epoch": epoch,
+                    "step_in_epoch": local_step + 1,
+                    "optimizer_step": optimizer_step,
+                    **progress,
+                },
+            )
             checkpoint_due = optimizer_step % int(
                 training["checkpoint_interval_optimizer_steps"]
             ) == 0
@@ -842,8 +1133,16 @@ def train_unit(
                         path.parent.name
                         for path in unit_root.parent.glob("*/completed.json")
                     ),
+                    progress=progress,
+                    first_step_receipt_sha256=sha256_file(
+                        first_step_receipt_path
+                    ),
                 )
+                checkpoint_started = time.monotonic()
                 _atomic_torch_save(latest_checkpoint, payload)
+                progress["checkpoint_io_seconds"] = float(
+                    progress["checkpoint_io_seconds"]
+                ) + max(time.monotonic() - checkpoint_started, 0.0)
                 atomic_write_json(
                     unit_root / "status.json",
                     {
@@ -877,6 +1176,7 @@ def train_unit(
                     raise RuntimeError(
                         "CUDA-RWKV 已在最近完整断点后因资源门停止"
                     )
+        validation_started = time.monotonic()
         validation_flow_ap = _flow_validation_average_precision(
             model=model,
             dataset=validation_dataset,
@@ -884,6 +1184,9 @@ def train_unit(
             batch_sequences=int(config["evaluation"]["batch_sequences"]),
             device=device,
         )
+        progress["selection_validation_seconds"] = float(
+            progress["selection_validation_seconds"]
+        ) + max(time.monotonic() - validation_started, 0.0)
         history_item = {
             "epoch": epoch,
             "optimizer_step": optimizer_step,
@@ -926,11 +1229,29 @@ def train_unit(
                 path.parent.name
                 for path in unit_root.parent.glob("*/completed.json")
             ),
+            progress=progress,
+            first_step_receipt_sha256=sha256_file(first_step_receipt_path),
         )
+        checkpoint_started = time.monotonic()
         _atomic_torch_save(latest_checkpoint, payload)
         if best_epoch == epoch:
             _atomic_torch_save(best_checkpoint, payload)
+        progress["checkpoint_io_seconds"] = float(
+            progress["checkpoint_io_seconds"]
+        ) + max(time.monotonic() - checkpoint_started, 0.0)
         atomic_write_json(unit_root / "validation-history.json", {"history": validation_history})
+        atomic_write_json(
+            volatile_progress_path,
+            {
+                "schema_version": "cuda-rwkv-volatile-progress-v1",
+                "unit": spec.key,
+                "training_identity_sha256": training_identity_sha256,
+                "epoch": epoch,
+                "step_in_epoch": int(training["steps_per_epoch"]),
+                "optimizer_step": optimizer_step,
+                **progress,
+            },
+        )
         if resource_gate["warning"]:
             atomic_write_json(unit_root / "resource-warning.json", resource_gate)
         if resource_gate["stop_after_complete_checkpoint"]:
@@ -960,6 +1281,7 @@ def train_unit(
         expected_identities=identities,
         sampler=sampler,
     )
+    source_evaluation_started = time.monotonic()
     source_metrics = evaluate_dataset(
         model=model,
         dataset=validation_dataset,
@@ -967,6 +1289,75 @@ def train_unit(
         label_stage_token=validation_label_stage_token,
         batch_sequences=int(config["evaluation"]["batch_sequences"]),
         device=device,
+    )
+    source_evaluation_seconds = max(
+        time.monotonic() - source_evaluation_started, 0.0
+    )
+    progress["source_evaluation_seconds"] = float(
+        progress["source_evaluation_seconds"]
+    ) + source_evaluation_seconds
+    first_step_receipt = load_json(first_step_receipt_path)
+    sampled_resources = _resource_samples_summary(
+        Path(config["paths"]["resource_samples"])
+    )
+    training_seconds = float(progress["training_seconds_total"])
+    resource_summary = {
+        "schema_version": "cuda-rwkv-source-unit-resource-summary-v1",
+        "unit": spec.key,
+        "training_identity_sha256": training_identity_sha256,
+        "training_seconds": training_seconds,
+        "selection_validation_seconds": float(
+            progress["selection_validation_seconds"]
+        ),
+        "source_evaluation_seconds": float(
+            progress["source_evaluation_seconds"]
+        ),
+        "pure_inference_seconds": float(progress["source_evaluation_seconds"]),
+        "checkpoint_io_seconds": float(progress["checkpoint_io_seconds"]),
+        "processed_valid_flows_total": int(
+            progress["processed_valid_flows_total"]
+        ),
+        "effective_processed_valid_flows": int(
+            progress["effective_processed_valid_flows"]
+        ),
+        "effective_training_flow_throughput_per_second": (
+            None
+            if training_seconds <= 0
+            else int(progress["effective_processed_valid_flows"])
+            / training_seconds
+        ),
+        "resume_count": int(progress["resume_count"]),
+        "repeated_optimizer_steps": int(progress["repeated_optimizer_steps"]),
+        "optimizer_steps": optimizer_step,
+        "checkpoint_interval_optimizer_steps": int(
+            training["checkpoint_interval_optimizer_steps"]
+        ),
+        "latest_checkpoint_bytes": latest_checkpoint.stat().st_size,
+        "best_checkpoint_bytes": best_checkpoint.stat().st_size,
+        "retained_checkpoint_count": 2,
+        "first_step_cuda_resource_receipt": first_step_receipt[
+            "resource_receipt"
+        ],
+        "full_run_samples": sampled_resources,
+        "fair_evidence": True,
+        "fair_evidence_boundary": (
+            "engineering-resource-completeness-only-not-effect-evidence"
+        ),
+    }
+    resource_summary_path = unit_root / "resource-summary.json"
+    atomic_write_json(resource_summary_path, resource_summary)
+    atomic_write_json(
+        volatile_progress_path,
+        {
+            "schema_version": "cuda-rwkv-volatile-progress-v1",
+            "unit": spec.key,
+            "training_identity_sha256": training_identity_sha256,
+            "epoch": int(training["epochs"]),
+            "step_in_epoch": int(training["steps_per_epoch"]),
+            "optimizer_step": optimizer_step,
+            "state": "finished",
+            **progress,
+        },
     )
     source_metrics.update(
         {
@@ -978,6 +1369,7 @@ def train_unit(
             "cuda_execution_identity_sha256": identities[
                 "cuda_execution_identity_sha256"
             ],
+            "resource_summary_sha256": sha256_file(resource_summary_path),
         }
     )
     source_metrics["result_sha256"] = canonical_sha256(
@@ -987,6 +1379,7 @@ def train_unit(
     atomic_write_json(source_metrics_path, source_metrics)
     completed = {
         "schema_version": "cuda-rwkv-source-unit-complete-v1",
+        "state": "finished",
         "unit": spec.key,
         "best_epoch": best_epoch,
         "validation_flow_average_precision": best_flow_ap,
@@ -996,6 +1389,7 @@ def train_unit(
             "cuda_execution_identity_sha256"
         ],
         "source_metrics_sha256": sha256_file(source_metrics_path),
+        "resource_summary_sha256": sha256_file(resource_summary_path),
         "persisted_score_rows": 0,
         "persisted_label_rows": 0,
         "persisted_member_rows": 0,
@@ -1004,6 +1398,16 @@ def train_unit(
     atomic_write_json(
         unit_root / "status.json",
         {"state": "finished", "unit": spec.key, **completed},
+    )
+    unit_manifest_path, unit_manifest_sha256 = _write_unit_manifest(
+        unit_root=unit_root,
+        spec=spec,
+        identities=identities,
+    )
+    _validate_unit_manifest(
+        unit_root=unit_root,
+        spec=spec,
+        expected_identities=identities,
     )
     return TrainingUnitResult(
         spec=spec,
@@ -1018,6 +1422,8 @@ def train_unit(
         ],
         source_metrics_path=source_metrics_path,
         source_metrics_sha256=completed["source_metrics_sha256"],
+        unit_manifest_path=unit_manifest_path,
+        unit_manifest_sha256=unit_manifest_sha256,
     )
 
 
@@ -1034,6 +1440,11 @@ def reuse_training_unit(
         raise RuntimeError("复用训练单元的检查点 SHA-256 漂移")
     if sha256_file(result.source_metrics_path) != result.source_metrics_sha256:
         raise RuntimeError("复用训练单元的源年指标 SHA-256 漂移")
+    if (
+        not result.unit_manifest_path.is_file()
+        or sha256_file(result.unit_manifest_path) != result.unit_manifest_sha256
+    ):
+        raise RuntimeError("复用训练单元的完整清单 SHA-256 漂移")
     return result
 
 

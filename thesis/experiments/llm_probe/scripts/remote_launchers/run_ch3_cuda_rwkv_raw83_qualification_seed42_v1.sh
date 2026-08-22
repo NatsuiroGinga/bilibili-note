@@ -13,22 +13,68 @@ LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"
 SOURCE_MANIFEST="$PROJECT_ROOT/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/generations/source-v1/dataset-manifest.json"
 TARGET_MANIFEST="$PROJECT_ROOT/runs/data-prepared/ch3-protocol-a-raw83-target-v1/generations/year-v1/dataset-manifest.json"
 SOURCE_SEAL="$RUN_ROOT/seals/source-qualification-seal.json"
-RESOURCE_SAMPLES="$RUN_ROOT/resource-samples.tsv"
+SOURCE_RESOURCE_SAMPLES="$RUN_ROOT/resource-samples.tsv"
+TARGET_RESOURCE_SAMPLES="$RUN_ROOT/target-resource-samples.tsv"
 ACTION="${1:-source}"
+RESOURCE_SAMPLES="$SOURCE_RESOURCE_SAMPLES"
+if [ "$ACTION" = "target" ]; then
+    RESOURCE_SAMPLES="$TARGET_RESOURCE_SAMPLES"
+fi
+LOCK_PATH="$LAUNCHER_ROOT/run.lock"
+LOCK_TOKEN=""
+RESOURCE_ADMISSION_RECEIPT=""
+ACTIVE_SAMPLER_PID=""
 
 cd "$PROJECT_ROOT"
 source tools/env/activate.sh
 export OMP_NUM_THREADS=1
 mkdir -p "$RUN_ROOT" "$LAUNCHER_ROOT"
 
+release_run_lock() {
+    if [ -n "$ACTIVE_SAMPLER_PID" ]; then
+        kill "$ACTIVE_SAMPLER_PID" 2>/dev/null || true
+        wait "$ACTIVE_SAMPLER_PID" 2>/dev/null || true
+        ACTIVE_SAMPLER_PID=""
+    fi
+    if [ -n "$LOCK_TOKEN" ] && [ -f "$LOCK_PATH/token" ]; then
+        local observed_token
+        observed_token="$(< "$LOCK_PATH/token")"
+        if [ "$observed_token" = "$LOCK_TOKEN" ]; then
+            rm -f "$LOCK_PATH/owner.json" "$LOCK_PATH/token"
+            rmdir "$LOCK_PATH" 2>/dev/null || true
+        fi
+    fi
+}
+
+acquire_run_lock() {
+    if ! mkdir "$LOCK_PATH" 2>/dev/null; then
+        printf '%s\n' "CUDA-RWKV 原子运行锁已被占用：$LOCK_PATH" >&2
+        return 75
+    fi
+    if [ ! -r /proc/sys/kernel/random/uuid ]; then
+        printf '%s\n' "CUDA-RWKV 无法生成原子运行锁令牌" >&2
+        return 1
+    fi
+    LOCK_TOKEN="$(< /proc/sys/kernel/random/uuid)"
+    printf '%s\n' "$LOCK_TOKEN" > "$LOCK_PATH/token"
+    printf '{"schema_version":"cuda-rwkv-run-lock-owner-v1","run_id":"%s","action":"%s","token":"%s","launcher_pid":%s}\n' \
+        "$RUN_ID" "$ACTION" "$LOCK_TOKEN" "$$" > "$LOCK_PATH/owner.json.partial.$$"
+    mv "$LOCK_PATH/owner.json.partial.$$" "$LOCK_PATH/owner.json"
+}
+
 run_static_gates() {
     uv run --no-sync python "$ENTRY" --config "$CONFIG" --validate-config
-    uv run --no-sync python "$ENTRY" --config "$CONFIG" --write-dependency-closure
+    if [ "$ACTION" = "source" ] && [ ! -f "$RUN_ROOT/dependency-closure.json" ]; then
+        uv run --no-sync python "$ENTRY" --config "$CONFIG" --write-dependency-closure
+    fi
     uv run --no-sync python "$ENTRY" --config "$CONFIG" --check-dependency-closure
     uv run --no-sync python "$ENTRY" --config "$CONFIG" --check-target-isolation
 }
 
 run_compute_resource_gates() {
+    local mode="$1"
+    local receipt_path="$RUN_ROOT/resource-admission/${LOCK_TOKEN}-${mode}.json"
+    mkdir -p "$RUN_ROOT/resource-admission"
     uv run --no-sync python "$ENTRY" --config "$CONFIG" --check-storage-gate
     MEMORY_SAFETY_MARGIN=1 bash tools/memory_admission_gate.sh 40 "$RUN_ID"
     local gpu_rows gpu_free_mib compute_pids
@@ -47,13 +93,23 @@ run_compute_resource_gates() {
         printf '%s\n' "CUDA-RWKV 检测到未授权 GPU 计算进程，拒绝启动" >&2
         return 1
     fi
+    uv run --no-sync python "$ENTRY" --config "$CONFIG" \
+        --write-resource-admission-receipt \
+        --resource-action "$mode" \
+        --resource-admission-receipt "$receipt_path" \
+        --run-lock-path "$LOCK_PATH" \
+        --run-lock-token "$LOCK_TOKEN" >/dev/null
+    RESOURCE_ADMISSION_RECEIPT="$receipt_path"
 }
 
 sample_resources() {
+    local stop_path="$1"
+    local stopped_path="$2"
+    local mode="$3"
     if [ ! -s "$RESOURCE_SAMPLES" ]; then
         printf 'timestamp\tgpu_process_memory_mib\tcgroup_memory_bytes\tdisk_available_kib\n' >> "$RESOURCE_SAMPLES"
     fi
-    while true; do
+    while [ ! -f "$stop_path" ]; do
         local timestamp gpu_mib cgroup_bytes disk_kib
         timestamp="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
         gpu_mib="$(nvidia-smi --query-compute-apps=used_memory --format=csv,noheader,nounits 2>/dev/null | awk 'NF && $1 != "No" {sum+=$1} END{print int(sum+0)}')"
@@ -68,27 +124,42 @@ sample_resources() {
         printf '%s\t%s\t%s\t%s\n' "$timestamp" "$gpu_mib" "$cgroup_bytes" "$disk_kib" >> "$RESOURCE_SAMPLES"
         sleep 5
     done
+    printf '{"schema_version":"cuda-rwkv-resource-sampler-stopped-v1","run_id":"%s","action":"%s","lock_token":"%s"}\n' \
+        "$RUN_ID" "$mode" "$LOCK_TOKEN" > "$stopped_path.partial.$$"
+    mv "$stopped_path.partial.$$" "$stopped_path"
 }
 
 run_compute_action() {
     local mode="$1"
+    local resource_receipt="$2"
     local log_path="$LAUNCHER_ROOT/${mode}.log"
+    local sampler_stop_path="$RUN_ROOT/resource-admission/${LOCK_TOKEN}-${mode}.sampler-stop"
+    local sampler_stopped_path="$RUN_ROOT/resource-admission/${LOCK_TOKEN}-${mode}.sampler-stopped"
     local sampler_pid command_code tee_code
     local -a pipeline_codes
-    sample_resources &
-    sampler_pid=$!
+    sampler_pid=""
+    if [ ! -f "$RUN_ROOT/${mode}-action-manifest.json" ]; then
+        sample_resources "$sampler_stop_path" "$sampler_stopped_path" "$mode" &
+        sampler_pid=$!
+        ACTIVE_SAMPLER_PID="$sampler_pid"
+    fi
     set +e
     if [ "$mode" = "source" ]; then
-        uv run --no-sync python "$ENTRY" --config "$CONFIG" --run-source --resume 2>&1 | tee "$log_path"
+        uv run --no-sync python "$ENTRY" --config "$CONFIG" --run-source --resume \
+            --resource-admission-receipt "$resource_receipt" 2>&1 | tee -a "$log_path"
     else
-        uv run --no-sync python "$ENTRY" --config "$CONFIG" --run-target 2>&1 | tee "$log_path"
+        uv run --no-sync python "$ENTRY" --config "$CONFIG" --run-target \
+            --resource-admission-receipt "$resource_receipt" 2>&1 | tee -a "$log_path"
     fi
     pipeline_codes=("${PIPESTATUS[@]}")
     command_code="${pipeline_codes[0]}"
     tee_code="${pipeline_codes[1]}"
     set -e
-    kill "$sampler_pid" 2>/dev/null || true
-    wait "$sampler_pid" 2>/dev/null || true
+    if [ -n "$sampler_pid" ]; then
+        kill "$sampler_pid" 2>/dev/null || true
+        wait "$sampler_pid" 2>/dev/null || true
+        ACTIVE_SAMPLER_PID=""
+    fi
     if [ "$tee_code" -ne 0 ]; then
         printf '%s\n' "CUDA-RWKV 启动日志 tee 失败，退出码=$tee_code" >&2
         return "$tee_code"
@@ -100,6 +171,11 @@ run_tracking_gate() {
     local attempt="$1"
     local attempt_root="$RUN_ROOT/tracking-attempts/attempt-$attempt"
     mkdir -p "$attempt_root"
+    if [ -f "$attempt_root/success-receipt.json" ] \
+        || [ -f "$attempt_root/failure-receipt.json" ] \
+        || [ -f "$attempt_root/inflight-receipt.json" ]; then
+        return 0
+    fi
     uv run --no-sync swanlab ping > "$attempt_root/swanlab-ping.log" 2>&1
     uv run --no-sync swanlab verify > "$attempt_root/swanlab-verify.log" 2>&1
 }
@@ -144,6 +220,9 @@ run_publish() {
     return "$second_code"
 }
 
+acquire_run_lock
+trap release_run_lock EXIT
+trap 'exit 130' HUP INT TERM
 run_static_gates
 
 case "$ACTION" in
@@ -153,8 +232,8 @@ case "$ACTION" in
             exit 1
         fi
         uv run --no-sync python "$ENTRY" --config "$CONFIG" --check-source-product
-        run_compute_resource_gates
-        run_compute_action source
+        run_compute_resource_gates source
+        run_compute_action source "$RESOURCE_ADMISSION_RECEIPT"
         ;;
     target)
         if [ ! -f "$SOURCE_SEAL" ] || [ -L "$SOURCE_SEAL" ]; then
@@ -165,8 +244,8 @@ case "$ACTION" in
             printf '%s\n' "CUDA-RWKV 目标评价缺少封印后 P6 清单" >&2
             exit 1
         fi
-        run_compute_resource_gates
-        run_compute_action target
+        run_compute_resource_gates target
+        run_compute_action target "$RESOURCE_ADMISSION_RECEIPT"
         ;;
     publish)
         run_publish
