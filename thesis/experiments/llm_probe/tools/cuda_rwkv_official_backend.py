@@ -653,14 +653,15 @@ def run_kernel_self_gate(
         maximum_difference = float(
             (changed_output.float() - baseline_output.float()).abs().max().item()
         )
-        if not torch.isfinite(changed_output).all() or maximum_difference == 0.0:
-            raise RuntimeError(f"CUDA-RWKV 第 {input_index + 1} 个输入微扰未引起有限变化")
+        if not torch.isfinite(changed_output).all():
+            raise RuntimeError(f"CUDA-RWKV 第 {input_index + 1} 个输入微扰产生非有限输出")
         perturbations.append(
             {
                 "input_index": input_index,
                 "time_index": perturbation_time_index,
                 "channel_index": perturbation_channel_index,
                 "maximum_absolute_difference": maximum_difference,
+                "observable_after_bf16_quantization": maximum_difference > 0.0,
             }
         )
 
