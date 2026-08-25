@@ -544,11 +544,11 @@ QUANTILE_LANDMARK_MINIMUM = 10
 # 已实测分块抽取与一次性抽取的随机流逐位相同，因此不改变数值结果。
 QUANTILE_NOISE_CHUNK_ELEMENTS = 4_194_304
 
-# 组装式变换器的实现漂移绊线，不是科学阈值。推导：地标数为 n 时中位数附近一格地标的
-# 概率间距为 1/(n-1)；标准正态分位函数在 p=0.5 处斜率为 sqrt(2*pi)≈2.5066，
-# 故 n=1000 时插值位移的解析上界约 2.5e-3。下列容差约为该上界的 40 倍，
-# 只在 sklearn 行为实质改变（输出分布变更、网格转置、私有属性语义变化）时触发。
-QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE = 0.1
+# 组装式变换器的实现漂移绊线，不是科学阈值。探针是变换器自身的地标：在 quantiles_
+# 严格递增的位置上，transform(quantiles_[k, j]) 与 Phi^-1(references_[k]) 是同一个数的
+# 两条计算路径，解析偏差为 0，实测在四列合成算例的 2905 个严格递增地标上最大绝对偏差
+# 亦为 0.000e+00。下列容差只为容纳 float32 往返舍入，任何实质语义改变都会远超它。
+QUANTILE_LANDMARK_SELF_CHECK_TOLERANCE = 1e-6
 
 
 def expected_parameter_count(input_dimension: int) -> int:
@@ -975,6 +975,7 @@ def fit_input_transform(
 
     import numpy as np
     import sklearn
+    from scipy.stats import norm as scipy_norm
     from sklearn.preprocessing import QuantileTransformer
 
     if candidate_key not in {candidate["key"] for candidate in INPUT_CANDIDATES}:
@@ -1068,20 +1069,59 @@ def fit_input_transform(
     quantile_transformer.n_features_in_ = len(numeric_indices)
 
     # 组装式变换器直接写入了 scikit-learn 的私有拟合属性，未来版本一旦改变这些属性的
-    # 语义就会静默产出错误数值。这里加一条运行时自检：把各字段的训练区中位数送进
-    # transform，output_distribution="normal" 应把中位数映射到约 0；偏差超过绊线即停止。
-    median_probe = np.asarray(fill_values, dtype=np.float32).reshape(1, -1)
-    median_response = quantile_transformer.transform(median_probe)
-    median_deviation = float(np.max(np.abs(median_response)))
-    if median_deviation > QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE:
+    # 语义就会静默产出错误数值。自检用变换器自身的地标作探针：在 quantiles_ 严格递增的
+    # 位置上，transform(quantiles_[k, j]) 必须精确等于 Phi^-1(references_[k])。该恒等式
+    # 直接检验被写入的私有属性语义，且与字段的并列结构无关。
+    #
+    # 早期版本改用「训练区中位数应映射到约 0」作探针，在本数据上必然误报：中位数取自
+    # 未加噪的干净列（NaN 填补需要它），而 quantiles_ 拟合在加噪列上。当某字段过半数行
+    # 取同一值时，干净中位数落在加噪并列平台的正中，被映到平台的中点分位而非 0.5。
+    # 合成算例复现：平台占 60% 时映射值 +0.522099，与真实运行报错的 0.521619 同量级；
+    # 平台占 40%（中位数不在平台内）与几乎无并列的两个对照均映到约 0，证明变换本身正确。
+    # 本数据 83 个字段中有 5 个最高频值占比超过 50%（如 External_src 占 0.7387、仅 2 个
+    # 唯一值），故旧探针对本数据结构性不适用，属探针缺陷而非变换缺陷。
+    landmark_grid = quantile_transformer.quantiles_
+    landmark_response = quantile_transformer.transform(landmark_grid)
+    bounds_threshold = float(np.finfo(np.float32).eps)
+    landmark_expected = scipy_norm.ppf(
+        np.clip(quantile_transformer.references_, bounds_threshold, 1.0 - bounds_threshold)
+    )
+    landmark_deviation = 0.0
+    landmark_checked = 0
+    for column_position in range(landmark_grid.shape[1]):
+        column_grid = landmark_grid[:, column_position]
+        ascending = np.diff(column_grid) > 0
+        # 只检验严格递增的内部地标：并列位的正反向插值本就取平台中点，两端受
+        # scikit-learn 的边界裁剪影响，二者都不构成组装语义的判据。
+        strictly_increasing = np.r_[False, ascending] & np.r_[ascending, False]
+        strictly_increasing[0] = False
+        strictly_increasing[-1] = False
+        selected = np.flatnonzero(strictly_increasing)
+        if selected.size == 0:
+            continue
+        landmark_checked += int(selected.size)
+        landmark_deviation = max(
+            landmark_deviation,
+            float(np.max(np.abs(
+                landmark_response[selected, column_position] - landmark_expected[selected]
+            ))),
+        )
+    if landmark_checked == 0:
         raise RuntimeError(
-            f"组装式分位数变换器自检失败：训练区中位数映射后的最大绝对值为 {median_deviation:.6g}，"
-            f"超过绊线 {QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE}；"
+            "组装式分位数变换器自检无可检地标：全部字段的分位数网格均无严格递增位置，"
+            "无法确认私有拟合属性语义，拒绝继续拟合"
+        )
+    if landmark_deviation > QUANTILE_LANDMARK_SELF_CHECK_TOLERANCE:
+        raise RuntimeError(
+            f"组装式分位数变换器自检失败：{landmark_checked} 个严格递增地标中，"
+            f"transform 输出与 Phi^-1(references_) 的最大绝对偏差为 {landmark_deviation:.6g}，"
+            f"超过绊线 {QUANTILE_LANDMARK_SELF_CHECK_TOLERANCE}；"
             f"scikit-learn {sklearn.__version__} 的私有拟合属性语义可能已改变，拒绝继续拟合"
         )
     logger.info(
-        "组装式变换器自检通过：中位数映射最大绝对值=%.6g（绊线 %.3g），scikit-learn=%s",
-        median_deviation, QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE, sklearn.__version__,
+        "组装式变换器自检通过：%d 个严格递增地标的最大绝对偏差=%.6g（绊线 %.3g），scikit-learn=%s",
+        landmark_checked, landmark_deviation, QUANTILE_LANDMARK_SELF_CHECK_TOLERANCE,
+        sklearn.__version__,
     )
 
     vocabularies: list[tuple[float, ...]] = []
@@ -1162,8 +1202,9 @@ def fit_input_transform(
             # 必须进封印制品而不是只留在注释里。
             "noise_seed_derivation": "per_feature_seed_plus_dijk_feature_index",
             "scikit_learn_version": sklearn.__version__,
-            "median_self_check_max_absolute_value": median_deviation,
-            "median_self_check_tolerance": QUANTILE_MEDIAN_SELF_CHECK_TOLERANCE,
+            "landmark_self_check_strictly_increasing_count": landmark_checked,
+            "landmark_self_check_max_absolute_deviation": landmark_deviation,
+            "landmark_self_check_tolerance": QUANTILE_LANDMARK_SELF_CHECK_TOLERANCE,
         },
         # integer_like 只作事实记录、不参与任何分支，但必须随封印可追溯。
         "field_integer_like": {
