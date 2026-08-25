@@ -552,7 +552,7 @@ def make_optimizer(
     return optimizer, receipt
 
 
-def _external_gpu_peak_mib(path: Path, *, start_offset_bytes: int) -> float:
+def _external_gpu_peak_mib(path: Path, *, start_offset_bytes: int) -> float | None:
     if not path.is_file() or path.is_symlink():
         raise RuntimeError("CUDA-RWKV 首步门缺少外部 GPU 进程显存采样")
     values: list[float] = []
@@ -569,9 +569,7 @@ def _external_gpu_peak_mib(path: Path, *, start_offset_bytes: int) -> float:
                 values.append(float(fields[1]))
             except ValueError:
                 continue
-    if not values:
-        raise RuntimeError("CUDA-RWKV 外部 GPU 显存采样不含有效数值")
-    return max(values)
+    return max(values) if values else None
 
 
 def _runtime_resource_check(config: Mapping[str, Any], run_root: Path) -> dict[str, Any]:
@@ -1284,6 +1282,21 @@ def train_unit(
                 six_gradients = _six_gradient_receipt(model)
                 updates = _parameter_update_receipt(model, before_parameters)
                 elapsed = max(time.monotonic() - start_time, 1e-9)
+                external_gpu_peak = _external_gpu_peak_mib(
+                    global_resource_samples_path,
+                    start_offset_bytes=int(resource_window["start_offset_bytes"]),
+                )
+                external_measurement_source = (
+                    f"{global_resource_samples_path}#bytes>="
+                    f"{resource_window['start_offset_bytes']}"
+                )
+                if external_gpu_peak is None:
+                    external_gpu_peak = float(
+                        torch.cuda.max_memory_reserved(device) / 1024**2
+                    )
+                    external_measurement_source = (
+                        "torch.cuda.max_memory_reserved:first-step-before-external-sample"
+                    )
                 resource_receipt = collect_resource_receipt(
                     profile_id=profile_id,
                     device_type="cuda",
@@ -1293,16 +1306,8 @@ def train_unit(
                     normalization_unit="flow",
                     processed_valid_units=valid_flow_count,
                     elapsed_seconds=elapsed,
-                    external_process_gpu_memory_mib=_external_gpu_peak_mib(
-                        global_resource_samples_path,
-                        start_offset_bytes=int(
-                            resource_window["start_offset_bytes"]
-                        ),
-                    ),
-                    external_measurement_source=(
-                        f"{global_resource_samples_path}#bytes>="
-                        f"{resource_window['start_offset_bytes']}"
-                    ),
+                    external_process_gpu_memory_mib=external_gpu_peak,
+                    external_measurement_source=external_measurement_source,
                     torch_module=torch,
                     device=device,
                 )

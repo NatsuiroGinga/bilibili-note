@@ -299,8 +299,8 @@ def validate_config(config: Mapping[str, Any]) -> dict[str, Any]:
         "epochs": 20,
         "steps_per_epoch": 1000,
         "effective_batch_sequences": 64,
-        "microbatch_sequences": 4,
-        "accumulation_steps": 16,
+        "microbatch_sequences": 64,
+        "accumulation_steps": 1,
         "checkpoint_interval_optimizer_steps": 20,
         "wall_clock_limit_seconds": None,
     }
