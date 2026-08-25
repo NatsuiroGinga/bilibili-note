@@ -44,20 +44,20 @@
 - 输出：`status.json`、`input-identity.json`、`unit-aggregates/<structure>.json`、`curves/<structure>.npz`、`aggregate-results.json`、`artifact-manifest.json`。
 - 复用：`grande.build_model`、`grande.expected_candidates`、`s0.complete_tied_budget_curve`、`s0.actual_reachable_readouts`、`s0.common_integer_fp_budget_readouts`、`s0.first_alert_aggregate`。
 
-- [ ] 读取父配置、选择收据、检查点与摘要，只要 G-A/G-B 都完成即允许描述性评价，不读取源门数值做选择。
-- [ ] 用 `np.load` 对 `X24/y24/s24/d24` 各调用一次，构造 47,115 个无向实体和 752 个正实体的冻结自检。
-- [ ] 每个结构回载一次检查点，以 BF16 autocast、FP32 sigmoid 按 X24 顺序每流恰好打分一次。
-- [ ] 每结构计算逐流 AP、实体 AP、最大池化实体 AP、六档完整并列组实际 FPR/DR、完整曲线、1 基曝光首次告警与资源。
-- [ ] 单元 JSON 与 NPZ 先写临时目录后原子发布；`--resume` 只复用身份和曲线摘要一致的完成单元。
-- [ ] 聚合表固定两行 G-A/G-B，`selection_performed=false`、`winner=null`、`target_used_for_selection=false`。
+- [x] 读取父配置、选择收据、检查点与摘要，只要 G-A/G-B 都完成即允许描述性评价，不读取源门数值做选择。
+- [x] 用 `np.load` 对 `X24/y24/s24/d24` 各调用一次，构造 47,115 个无向实体和 752 个正实体的冻结自检。
+- [x] 每个结构回载一次检查点，以 BF16 autocast、FP32 sigmoid 按 X24 顺序每流恰好打分一次。
+- [x] 每结构计算逐流 AP、实体 AP、最大池化实体 AP、六档完整并列组实际 FPR/DR、完整曲线、1 基曝光首次告警与资源。
+- [x] 单元 JSON 与 NPZ 先写临时目录后原子发布；`--resume` 只复用身份和曲线摘要一致的完成单元。
+- [x] 聚合表固定两行 G-A/G-B，`selection_performed=false`、`winner=null`、`target_used_for_selection=false`。
 
 ### 任务 2：冻结配置与启动器
 
 **交付物：** 独立运行身份、路径、父运行、年度隔离、评价口径、制品政策和资源入场的冻结 JSON 及薄 Bash 包装。
 
-- [ ] 配置固定运行身份、父运行身份、G-A/G-B 结构、LSPR24 四数组、BF16 推理、六档误报预算和首次告警分位。
-- [ ] 配置明示拒绝训练、参数更新、新检查点、逐样本制品、目标年选择和正式证据身份。
-- [ ] 启动器仅调用资源准入门与新工具，保留日志和原退出码，不自动重试。
+- [x] 配置固定运行身份、父运行身份、G-A/G-B 结构、LSPR24 四数组、BF16 推理、六档误报预算和首次告警分位。
+- [x] 配置明示拒绝训练、参数更新、新检查点、逐样本制品、目标年选择和正式证据身份。
+- [x] 启动器仅调用资源准入门与新工具，保留日志和原退出码，不自动重试。
 
 ### 任务 3：静态验收与实施报告
 
@@ -73,9 +73,9 @@ bash -n scripts/remote_launchers/run_ch3_grande_lspr24_zero_train_descriptive_ev
 git diff --check -- <本任务六个文件>
 ```
 
-- [ ] 语法、导入、`--help`、配置核验、`bash -n` 和差异检查全部通过。
-- [ ] 实施报告记录已修改文件、未修改范围、通过命令、未运行真实实验和剩余风险。
-- [ ] 只暂存并提交本任务的 6 个独占文件，不夹带工作树中的他人改动。
+- [x] 语法、导入、`--help`、配置核验、`bash -n` 和差异检查全部通过。
+- [x] 实施报告记录已修改文件、未修改范围、通过命令、未运行真实实验和剩余风险。
+- [x] 只暂存并提交本任务的 6 个独占文件，不夹带工作树中的他人改动。
 
 ## 错误记录
 
@@ -83,4 +83,4 @@ git diff --check -- <本任务六个文件>
 
 ## 状态
 
-**当前执行任务 1**：已完成恢复与薄复用边界核对，正在实现零训练评价入口。
+**实现与静态验收已完成**：真实 LSPR24 评价未运行，当前证据等级为实验待证。
