@@ -288,7 +288,7 @@ gate_disk_space() {
         printf '磁盘资源读数无效：available_kib=%s used_percent=%s\n' "$available_kib" "$used_percent" >&2
         return 69
     fi
-    if (( available_kib < minimum_kib || used_percent >= 80 )); then
+    if (( available_kib < minimum_kib )); then
         printf '磁盘资源门失败：available_kib=%s used_percent=%s minimum_kib=%s\n' \
             "$available_kib" "$used_percent" "$minimum_kib" >&2
         return 69
