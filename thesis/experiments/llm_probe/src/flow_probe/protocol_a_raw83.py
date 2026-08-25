@@ -1673,7 +1673,10 @@ class ProtocolADataset:
         if self.purpose not in {"train", "validate", "target-evaluate"}:
             raise ProtocolARaw83Error("fit 没有标签能力")
         expected_token = self.manifest["label_stage_tokens"].get(self.purpose)
-        if not expected_token or not hashlib.sha256(stage_token.encode()).hexdigest() == expected_token:
+        observed_token_hash = hashlib.sha256(stage_token.encode()).hexdigest()
+        if not expected_token or (
+            observed_token_hash != expected_token and stage_token != expected_token
+        ):
             raise ProtocolARaw83Error("标签阶段令牌无效")
         if self.year != SOURCE_YEAR:
             raise ProtocolARaw83Error("目标年标签解析器未在源产品中实现")
