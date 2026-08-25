@@ -27,6 +27,10 @@ VENDOR_ROOT = Path(__file__).resolve().parent.parent / "vendor" / "cuda_rwkv_off
 MANIFEST_PATH = VENDOR_ROOT / "manifest.json"
 CPP_SOURCE = VENDOR_ROOT / "derived" / "cuda_rwkv_clampw.cpp"
 CUDA_SOURCE = VENDOR_ROOT / "upstream" / "rwkv7_clampw.cu"
+# 自身门秩一项 b = kk * c 的标量系数。取 0.5 使 diag(w) + a outer b 的谱半径严格小于
+# 1，递推在序列长度上收敛且留有余量；该值只用于确定性自身门探针，不进入任何训练、
+# 选择或评价路径，因此不是科研阈值。
+SELF_GATE_RANK_ONE_SCALE = 0.5
 EXPECTED_SOURCE_SHA256 = {
     "LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
     "upstream/rwkv7_clampw.cpp": (
@@ -591,13 +595,36 @@ def run_kernel_self_gate(
     ).reshape(1, contract.sequence_length, contract.channels)
 
     def make_inputs() -> tuple[torch.Tensor, ...]:
+        """构造落在 RWKV-7 合法定义域内的自身门输入。
+
+        融合核签名为 ``(r, w, k, v, a, b)``，状态递推为
+        ``S <- S @ diag(w) + S @ (a outer b) + v outer k``。其中 ``a`` 与 ``b`` 构成的
+        秩一项必须满足范数约束，官方实现取 ``a = -kk``、``b = kk * c``，``kk`` 逐头
+        L2 归一化，使 ``diag(w) + a outer b`` 的谱半径不超过 1，递推在序列长度上收敛。
+
+        早期版本把同一条等差数列同时喂给全部六个参数，``a`` 与 ``b`` 无范数约束，
+        秩一项在时间步上连乘发散。实测（B76、torch 2.13.0+cu130、sm120）：
+        该探针下 ``small``（head=16、ch=112）输出 ``|max|=49.75`` 侥幸通过，
+        ``large``（head=64、ch=768）输出 ``|max|=2.031e+24`` 仍为有限值，但随后的
+        ``output.float().square().mean()`` 得 ``4e48``，超出 float32 上限 ``3.4e38``
+        而为 ``inf``，于是有限性检查失败。改用合法约束后同一 ``large`` 核输出
+        ``|max|=0.0718``，相差二十五个数量级，证明发散来自探针而非核实现。
+
+        ``r``、``w``、``k``、``v`` 保持原有确定性构造，只修正 ``a``、``b`` 的定义域。
+        """
+        values = [
+            (base * float(index + 1) / 6.0).contiguous() for index in range(6)
+        ]
+        head_count = contract.channels // contract.head_size
+        normalized = torch.nn.functional.normalize(
+            values[4].view(1, contract.sequence_length, head_count, contract.head_size),
+            dim=-1,
+        ).view(1, contract.sequence_length, contract.channels)
+        values[4] = (-normalized).contiguous()
+        values[5] = (normalized * SELF_GATE_RANK_ONE_SCALE).contiguous()
         return tuple(
-            (base * float(index + 1) / 6.0)
-            .to(torch.bfloat16)
-            .contiguous()
-            .detach()
-            .requires_grad_(True)
-            for index in range(6)
+            value.to(torch.bfloat16).contiguous().detach().requires_grad_(True)
+            for value in values
         )
 
     repeat_outputs: list[torch.Tensor] = []
