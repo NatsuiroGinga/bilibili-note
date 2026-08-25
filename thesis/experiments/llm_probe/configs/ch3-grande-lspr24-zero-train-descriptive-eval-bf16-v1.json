@@ -1,0 +1,112 @@
+{
+  "schema_version": "ch3-grande-lspr24-zero-train-descriptive-eval-config-v1",
+  "run_id": "ch3-grande-lspr24-zero-train-descriptive-eval-bf16-v1",
+  "display_name": "GRANDE G-A与G-B LSPR24零重训练描述性评价",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "parent_run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-grande-lspr24-zero-train-descriptive-eval-bf16-v1"
+  },
+  "parent": {
+    "run_id": "ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1",
+    "required_structures": ["G-A", "G-B"],
+    "source_gate_required": false,
+    "source_gate_used_for_structure_selection": false,
+    "precision_profile": "cuda-bf16-amp-fp32-sensitive-v1",
+    "target_year_arrays_read": 0
+  },
+  "target_arrays": ["X24", "y24", "s24", "d24"],
+  "structures": [
+    {
+      "unit_key": "G-A",
+      "display_name": "GRANDE论文最大数据结构",
+      "depth": 4,
+      "n_estimators": 512,
+      "dropout": 0.2,
+      "selected_variables": 0.8,
+      "data_subset_fraction": 1.0,
+      "bootstrap": false,
+      "use_category_embeddings": false,
+      "use_numeric_embeddings": false,
+      "use_freq_enc": false,
+      "use_robust_scale_smoothing": false,
+      "implementation_role": "official-pytorch-postpaper"
+    },
+    {
+      "unit_key": "G-B",
+      "display_name": "GRANDE当前官方默认结构",
+      "depth": 5,
+      "n_estimators": 1024,
+      "dropout": 0.2,
+      "selected_variables": 0.8,
+      "data_subset_fraction": 1.0,
+      "bootstrap": false,
+      "use_category_embeddings": false,
+      "use_numeric_embeddings": false,
+      "use_freq_enc": false,
+      "use_robust_scale_smoothing": false,
+      "implementation_role": "official-pytorch-postpaper"
+    }
+  ],
+  "inference": {
+    "device": "cuda",
+    "precision": "cuda_bf16_autocast",
+    "parameters_fp32": true,
+    "sigmoid_fp32": true,
+    "feature_count": 83,
+    "flow_batch_size": 2048,
+    "one_forward_pass_per_structure": true
+  },
+  "evaluation": {
+    "dataset": "LSPR24",
+    "role": "previously_accessed_target_year_descriptive_evaluation",
+    "entity_key": "unordered_source_destination_ip_pair_grouping_only",
+    "entity_score": "maximum_flow_probability",
+    "maximum_entity_score": "maximum_flow_probability",
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_negative_tie_group_curve": true,
+    "first_alert_axis": "exposure_index",
+    "first_alert_exposure_index_base": 1,
+    "first_alert_order": "ascending_frozen_flow_index_within_entity",
+    "first_alert_quantiles": [0.25, 0.5, 0.75, 0.9, 0.95]
+  },
+  "artifact_policy": {
+    "persist_unit_aggregate_json": true,
+    "persist_complete_curve_npz": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_per_entity_first_alert": false,
+    "persist_entity_mapping": false,
+    "persist_exposure_matrix": false,
+    "persist_new_checkpoints": false
+  },
+  "isolation": {
+    "training_runs": 0,
+    "optimizer_steps": 0,
+    "parameter_updates": 0,
+    "new_checkpoints_written": 0,
+    "target_array_load_passes": 1,
+    "target_used_for_selection": false,
+    "selection_performed": false,
+    "winner": null
+  },
+  "evidence": {
+    "formal_paper_evidence": false,
+    "independent_test": false,
+    "target_previously_accessed": true,
+    "target_metrics_used_for_selection_or_tuning": false
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_gib": 12,
+    "minimum_cgroup_available_memory_gib": 30,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_evaluations": 1,
+    "wall_clock_limit": null
+  },
+  "numeric_basis": {
+    "83_fields": "RWKV路线总控共同数据合同，101减18个禁用字段",
+    "flow_batch_size_2048": "父GRANDE BF16运行已冻结数学等效流微批",
+    "fpr_grid": "第三章统一评价合同预注册六档锚点",
+    "first_alert_quantiles": "第三章统一评价合同已冻结曝光分位"
+  }
+}
