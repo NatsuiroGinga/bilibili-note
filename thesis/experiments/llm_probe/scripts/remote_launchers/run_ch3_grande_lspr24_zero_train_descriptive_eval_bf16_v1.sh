@@ -80,9 +80,9 @@ admit_resources() {
         printf '资源读数无效。\n' >&2
         return 69
     fi
-    if (( gpu_free < 12288 || disk_available < 10485760 || disk_used >= 80 )); then
-        printf '资源门失败：GPU空闲=%sMiB，磁盘可用=%sKiB，使用率=%s%%。\n' \
-            "$gpu_free" "$disk_available" "$disk_used" >&2
+    if (( gpu_free < 12288 || disk_available < 10485760 )); then
+        printf '资源检查失败：GPU空闲=%sMiB，磁盘可用=%sKiB。\n' \
+            "$gpu_free" "$disk_available" >&2
         return 69
     fi
     uv run --no-sync python -c '
