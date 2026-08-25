@@ -341,7 +341,10 @@ def validate_config(config: Mapping[str, Any]) -> dict[str, Any]:
     resources = config["resources"]
     _require(resources["minimum_free_gpu_memory_gib"] == 20, "GPU 显存启动门必须为 20 GiB")
     _require(resources["minimum_available_cgroup_memory_gib"] == 40, "cgroup 主存启动门必须为 40 GiB")
-    _require(resources["minimum_free_disk_gib"] == 25, "磁盘启动门必须为 25 GiB")
+    _require(
+        resources["minimum_free_disk_gib"] == 0,
+        "磁盘准入必须由检查点、原子临时文件、扩展日志和安全余量公式决定",
+    )
     _require(resources["wall_clock_limit_seconds"] is None, "资源合同不得设墙钟上限")
     admission = config["resource_admission"]
     _require(
@@ -365,6 +368,26 @@ def validate_config(config: Mapping[str, Any]) -> dict[str, Any]:
     backend = _static_backend_contract()
     _require(backend["upstream_commit"] == config["cuda"]["upstream_commit"], "CUDA 官方提交不符")
     _require(backend["license"] == "Apache-2.0", "CUDA 许可证不符")
+    _require(
+        config["cuda"]["target_compute_capability"] == [12, 0],
+        "CUDA 目标计算能力不符",
+    )
+    _require(
+        config["cuda"]["environment"]
+        == {
+            "torch_version": "2.13.0+cu130",
+            "torch_cuda_version": "13.0",
+            "device_name": "NVIDIA GeForce RTX 5090",
+            "cuda_home": "/usr/local/cuda",
+            "allowed_resolved_cuda_homes": [
+                "/usr/local/cuda",
+                "/usr/local/cuda-13.0",
+            ],
+            "nvcc_path": "/usr/local/cuda/bin/nvcc",
+            "cuda_library_path": "/usr/local/cuda/lib64",
+        },
+        "CUDA 工具链冻结环境不符",
+    )
     reference = config["cuda"]["small_kernel_qualification_input"]
     _require(reference == {"reference_commit": "703c3d3", "role": "implementation_qualification_only", "effect_evidence": False}, "small 自身门参考身份不符")
     precision_path = _project_path(config["precision"]["contract_path"])

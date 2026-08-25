@@ -55,7 +55,14 @@
     "environment": {
       "torch_version": "2.13.0+cu130",
       "torch_cuda_version": "13.0",
-      "device_name": "NVIDIA GeForce RTX 5090"
+      "device_name": "NVIDIA GeForce RTX 5090",
+      "cuda_home": "/usr/local/cuda",
+      "allowed_resolved_cuda_homes": [
+        "/usr/local/cuda",
+        "/usr/local/cuda-13.0"
+      ],
+      "nvcc_path": "/usr/local/cuda/bin/nvcc",
+      "cuda_library_path": "/usr/local/cuda/lib64"
     },
     "small_kernel_qualification_input": {
       "reference_commit": "703c3d3",
@@ -205,7 +212,7 @@
     "minimum_free_gpu_memory_gib": 20,
     "minimum_available_cgroup_memory_gib": 40,
     "stop_available_cgroup_memory_gib": 5,
-    "minimum_free_disk_gib": 25,
+    "minimum_free_disk_gib": 0,
     "maximum_disk_used_percent_at_start": 80,
     "notify_disk_used_percent": 80,
     "stop_disk_used_percent": 90,

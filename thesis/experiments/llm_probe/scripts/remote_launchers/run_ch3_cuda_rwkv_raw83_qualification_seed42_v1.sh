@@ -28,6 +28,38 @@ ACTIVE_SAMPLER_PID=""
 cd "$PROJECT_ROOT"
 source tools/env/activate.sh
 export OMP_NUM_THREADS=1
+CUDA_HOME="/usr/local/cuda"
+if [ ! -d "$CUDA_HOME" ]; then
+    printf '%s\n' "CUDA-RWKV 冻结 CUDA_HOME 不是可用目录：$CUDA_HOME" >&2
+    exit 69
+fi
+CUDA_HOME_RESOLVED="$(cd -P "$CUDA_HOME" && pwd)"
+case "$CUDA_HOME_RESOLVED" in
+    /usr/local/cuda|/usr/local/cuda-13.0)
+        ;;
+    *)
+        printf '%s\n' "CUDA-RWKV CUDA_HOME 物理落点非法：$CUDA_HOME_RESOLVED" >&2
+        exit 69
+        ;;
+esac
+CUDA_NVCC="$CUDA_HOME/bin/nvcc"
+CUDA_LIBRARY_PATH="$CUDA_HOME/lib64"
+if [ ! -x "$CUDA_NVCC" ]; then
+    printf '%s\n' "CUDA-RWKV 冻结 nvcc 不可执行：$CUDA_NVCC" >&2
+    exit 69
+fi
+if [ ! -d "$CUDA_LIBRARY_PATH" ]; then
+    printf '%s\n' "CUDA-RWKV 冻结 CUDA lib64 目录缺失：$CUDA_LIBRARY_PATH" >&2
+    exit 69
+fi
+export CUDA_HOME
+export PATH="$CUDA_HOME/bin:$PATH"
+export LD_LIBRARY_PATH="$CUDA_LIBRARY_PATH${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+NVCC_DISCOVERED="$(command -v nvcc || true)"
+if [ "$NVCC_DISCOVERED" != "$CUDA_NVCC" ]; then
+    printf '%s\n' "CUDA-RWKV nvcc PATH 首命中漂移：$NVCC_DISCOVERED" >&2
+    exit 69
+fi
 mkdir -p "$RUN_ROOT" "$LAUNCHER_ROOT"
 
 release_run_lock() {

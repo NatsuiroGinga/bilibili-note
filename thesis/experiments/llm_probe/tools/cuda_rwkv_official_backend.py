@@ -202,6 +202,12 @@ def validate_build_environment(expected: Mapping[str, Any]) -> dict[str, Any]:
 
     expected_torch = str(expected["torch_version"])
     expected_cuda = str(expected["torch_cuda_version"])
+    expected_cuda_home = str(expected["cuda_home"])
+    allowed_resolved_cuda_homes = tuple(
+        str(value) for value in expected["allowed_resolved_cuda_homes"]
+    )
+    expected_nvcc_path = str(expected["nvcc_path"])
+    expected_cuda_library_path = str(expected["cuda_library_path"])
     if torch.__version__ != expected_torch:
         raise RuntimeError(
             f"PyTorch 版本不符：实际 {torch.__version__}，冻结 {expected_torch}"
@@ -219,6 +225,30 @@ def validate_build_environment(expected: Mapping[str, Any]) -> dict[str, Any]:
         )
     if not torch.cuda.is_bf16_supported():
         raise RuntimeError("目标 GPU 不支持 BF16")
+    actual_cuda_home = os.environ.get("CUDA_HOME")
+    if actual_cuda_home != expected_cuda_home:
+        raise RuntimeError(
+            f"CUDA_HOME 不符：实际 {actual_cuda_home}，冻结 {expected_cuda_home}"
+        )
+    cuda_home_path = Path(expected_cuda_home)
+    if not cuda_home_path.is_dir():
+        raise RuntimeError(f"冻结 CUDA_HOME 不是目录：{cuda_home_path}")
+    resolved_cuda_home = str(cuda_home_path.resolve(strict=True))
+    if resolved_cuda_home not in allowed_resolved_cuda_homes:
+        raise RuntimeError(
+            f"CUDA_HOME 物理落点不符：{resolved_cuda_home}"
+        )
+    path_entries = os.environ.get("PATH", "").split(os.pathsep)
+    expected_cuda_bin = str(cuda_home_path / "bin")
+    if not path_entries or path_entries[0] != expected_cuda_bin:
+        raise RuntimeError(
+            f"PATH 未以冻结 CUDA bin 开头：{path_entries[:1]}"
+        )
+    library_entries = os.environ.get("LD_LIBRARY_PATH", "").split(os.pathsep)
+    if not library_entries or library_entries[0] != expected_cuda_library_path:
+        raise RuntimeError(
+            "LD_LIBRARY_PATH 未以冻结 CUDA lib64 开头"
+        )
     nvcc = shutil.which("nvcc")
     ninja = shutil.which("ninja")
     cxx = shutil.which(os.environ.get("CXX", "c++"))
@@ -228,6 +258,18 @@ def validate_build_environment(expected: Mapping[str, Any]) -> dict[str, Any]:
             f"编译或 GPU 工具不完整：nvcc={nvcc}, ninja={ninja}, "
             f"cxx={cxx}, nvidia-smi={nvidia_smi}"
         )
+    if nvcc != expected_nvcc_path:
+        raise RuntimeError(
+            f"nvcc PATH 首命中不符：实际 {nvcc}，冻结 {expected_nvcc_path}"
+        )
+    resolved_nvcc = str(Path(nvcc).resolve(strict=True))
+    expected_resolved_nvcc = str(
+        (Path(resolved_cuda_home) / "bin" / "nvcc").resolve(strict=True)
+    )
+    if resolved_nvcc != expected_resolved_nvcc:
+        raise RuntimeError(
+            f"nvcc 物理路径不符：{resolved_nvcc} != {expected_resolved_nvcc}"
+        )
     environment = {
         "torch_version": torch.__version__,
         "torch_cuda_version": torch.version.cuda,
@@ -235,7 +277,13 @@ def validate_build_environment(expected: Mapping[str, Any]) -> dict[str, Any]:
         "device_name": torch.cuda.get_device_name(),
         "gpu_uuid": _gpu_uuid(),
         "bf16_supported": True,
+        "cuda_home": actual_cuda_home,
+        "resolved_cuda_home": resolved_cuda_home,
+        "allowed_resolved_cuda_homes": list(allowed_resolved_cuda_homes),
+        "cuda_bin_path": expected_cuda_bin,
+        "cuda_library_path": expected_cuda_library_path,
         "nvcc_path": nvcc,
+        "resolved_nvcc_path": resolved_nvcc,
         "nvcc_version": _run_version([nvcc, "--version"]),
         "ninja_path": ninja,
         "ninja_version": _run_version([ninja, "--version"]),
@@ -592,9 +640,13 @@ def run_kernel_self_gate(
         build_root=build_root,
         expected_environment=expected_environment,
     ).detach()
+    perturbation_time_index = contract.sequence_length // 2
+    perturbation_channel_index = 0
     for input_index in range(6):
         changed = [value.detach().clone() for value in baseline_inputs]
-        changed[input_index].view(-1)[0] += torch.tensor(
+        changed[input_index][
+            0, perturbation_time_index, perturbation_channel_index
+        ] += torch.tensor(
             0.03125, device=device, dtype=torch.bfloat16
         )
         changed_output = cuda_rwkv_fused(
@@ -609,7 +661,12 @@ def run_kernel_self_gate(
         if not torch.isfinite(changed_output).all() or maximum_difference == 0.0:
             raise RuntimeError(f"CUDA-RWKV 第 {input_index + 1} 个输入微扰未引起有限变化")
         perturbations.append(
-            {"input_index": input_index, "maximum_absolute_difference": maximum_difference}
+            {
+                "input_index": input_index,
+                "time_index": perturbation_time_index,
+                "channel_index": perturbation_channel_index,
+                "maximum_absolute_difference": maximum_difference,
+            }
         )
 
     zero_inputs = tuple(
