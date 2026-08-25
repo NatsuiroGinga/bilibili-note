@@ -24,7 +24,27 @@ if [ -r /sys/fs/cgroup/memory.max ]; then                 # cgroup v2
   CGROUP_MAX=$(cat /sys/fs/cgroup/memory.max)
   CGROUP_CUR=$(cat /sys/fs/cgroup/memory.current 2>/dev/null || echo 0)
   if [ -r /sys/fs/cgroup/memory.stat ]; then
-    CGROUP_RECLAIMABLE=$(awk '$1 == "inactive_file" {print $2; found=1} END {if (!found) print 0}' /sys/fs/cgroup/memory.stat)
+    # 可回收量 = 干净页缓存（inactive_file + active_file）− tmpfs/shmem。
+    # shmem 无 swap 时不可回收，必须扣除；其余文件页内核在有压力时按需回收，
+    # 从不导致 OOM。
+    #
+    # 2026-08-25 B76 实测：active_file 达 31.49 GiB，全部是读 X24.npy（6.7 GB）
+    # 等冻结制品留下的干净页缓存。旧口径只计 inactive_file（2.69 GiB），把这
+    # 31.49 GiB 记成永久占用，算出"可用 44.41 GiB < 需要 62.40 GiB"并以退出码
+    # 10 连续拦下本可正常进行的 N-16 共同预算包络实验；同一时刻真实可用为
+    # 90.00 − anon 13.84 − slab 0.16 ≈ 76.0 GiB。取证见对应运行目录的
+    # memory-admission-gate.log。
+    #
+    # 本次只修正可回收量口径，不放宽预计峰值，也不放宽 1.3× 安全余量：
+    # 进程真实占用（anon）紧张时该门仍然照常拒绝。
+    CGROUP_RECLAIMABLE=$(awk '
+      $1 == "inactive_file" {inactive = $2}
+      $1 == "active_file"   {active = $2}
+      $1 == "shmem"         {shmem = $2}
+      # 必须用 %.0f 而非 %d：本机 awk 为 mawk，%d 走 32 位整型，超过 2^31 的
+      # 字节数会饱和成 2147483648（2026-08-25 实测把 34.14 GiB 截成 2.00 GiB）。
+      END {value = inactive + active - shmem; if (value < 0) value = 0; printf "%.0f", value}
+    ' /sys/fs/cgroup/memory.stat)
   fi
 elif [ -r /sys/fs/cgroup/memory/memory.limit_in_bytes ]; then  # cgroup v1
   CGROUP_MAX=$(cat /sys/fs/cgroup/memory/memory.limit_in_bytes)
@@ -47,6 +67,12 @@ echo "[准入门禁] 运行=$RUN_NAME"
 echo "[准入门禁] cgroup 上限=${LIMIT_GIB} GiB  当前=${USED_GIB} GiB  可回收页缓存=${RECLAIMABLE_GIB} GiB"
 echo "[准入门禁] 有效已用=${EFFECTIVE_USED_GIB} GiB  有效可用=${AVAIL_GIB} GiB"
 echo "[准入门禁] 预计峰值=${ESTIMATED_PEAK_GIB} GiB  含 ${SAFETY_MARGIN}× 余量后需要=${NEEDED_GIB} GiB"
+
+# 机器可读收据行。启动器按 `^cgroup_available_gib=([0-9.]+)$` 解析本行写入资源
+# 准入收据；本行此前从未输出，导致解析空值 + pipefail + errexit 静默终止启动器
+# （见 run_ch3_common_first_alert_fp_budget_envelope_v1.sh 的 admit_resources）。
+# 必须在任何 exit 之前输出，使拒绝路径同样留下可追溯读数。
+echo "cgroup_available_gib=${AVAIL_GIB}"
 
 # ---- 2. 跨运行并发检查：任何 flow_probe 进程都算占用 ----
 # 匹配口径：项目 venv 起的任何 Python，或任何跑在 runs/ 下的脚本。

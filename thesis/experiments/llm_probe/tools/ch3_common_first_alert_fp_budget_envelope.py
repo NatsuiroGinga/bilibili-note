@@ -746,15 +746,27 @@ def build_shared_layer(project_root: Path, config: Mapping[str, Any]) -> dict[st
     if flow_labels_raw.shape != (N_FLOW,):
         raise SystemExit(f"冻结逐流标签形状不符：{flow_labels_raw.shape}")
     flow_labels = np.asarray(flow_labels_raw)
-    if not np.issubdtype(flow_labels.dtype, np.integer):
-        raise SystemExit(f"冻结逐流标签必须是整数二值数组：{flow_labels.dtype}")
+    # 冻结制品 y24.npy 实测为 float32，取值恰为 {0.0, 1.0}（2026-08-25 B76 实测：
+    # unique=[0. 1.]、正例数 519,991、正例率 0.025707314391）。仓库内另有约二十个
+    # 消费端按该 dtype 直接读取，本文件 1848 行自身也不限制 dtype，因此原先"必须
+    # 是整数"的断言与它所校验的冻结制品自相矛盾，使 N-16 无法启动。
+    #
+    # 同时原先的 `int(values.min()) < 0 or int(values.max()) > 1` 对浮点标签是失效
+    # 的：`int()` 向零截断，0.5 这类非二值标签会被放过。此处改为逐块精确判定
+    # `(values == 0) | (values == 1)`，对整数与浮点一律成立。标签合法性没有放宽，
+    # 反而比原实现更严格。
+    if not (
+        np.issubdtype(flow_labels.dtype, np.integer)
+        or np.issubdtype(flow_labels.dtype, np.floating)
+    ):
+        raise SystemExit(f"冻结逐流标签必须是整数或浮点二值数组：{flow_labels.dtype}")
     positive_flow_count = 0
     scan_block = int(config["execution"]["online_scan_block"])
     for start in range(0, N_FLOW, scan_block):
         values = flow_labels[start : start + scan_block]
-        if int(values.min()) < 0 or int(values.max()) > 1:
+        if not bool(np.all((values == 0) | (values == 1))):
             raise SystemExit("冻结逐流标签不是有限二值数组")
-        positive_flow_count += int(values.sum(dtype=np.int64))
+        positive_flow_count += int((values == 1).sum(dtype=np.int64))
     flow_positive_rate = positive_flow_count / N_FLOW
     if abs(flow_positive_rate - FLOW_POSITIVE_RATE) >= 1e-9:
         raise SystemExit(f"LSPR24 逐流正例率不符：{flow_positive_rate:.12f}")
@@ -785,7 +797,17 @@ def build_shared_layer(project_root: Path, config: Mapping[str, Any]) -> dict[st
         raise SystemExit("每条流未恰好属于一个实体")
 
     entity_labels = np.zeros(N_ENTITY, dtype=np.int8)
-    np.maximum.at(entity_labels, entity, flow_labels)
+    # 冻结标签为 float32，直接 `np.maximum.at(int8, ..., float32)` 会因 same_kind
+    # 转换规则报错。按 online_scan_block 分块并逐块转 int8（上面已逐块证明取值恰为
+    # {0,1}，转换无损），既避免类型错误，也不新增全流级数组：临时工作区上界是
+    # 一个 int8[online_scan_block]，与既有有界扫描设计一致。
+    for start in range(0, N_FLOW, scan_block):
+        stop = min(start + scan_block, N_FLOW)
+        np.maximum.at(
+            entity_labels,
+            entity[start:stop],
+            np.asarray(flow_labels[start:stop]).astype(np.int8, copy=False),
+        )
     del flow_labels, flow_labels_raw
     positive_count = int((entity_labels == 1).sum())
     negative_count = int((entity_labels == 0).sum())
