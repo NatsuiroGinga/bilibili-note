@@ -1,0 +1,61 @@
+{
+  "schema_version": "ch3-cuda-rwkv-lspr24-inmemory-descriptive-eval-v1",
+  "run_id": "ch3-cuda-rwkv-lspr24-inmemory-descriptive-eval-v1",
+  "display_name": "封印后CUDA-RWKV四格LSPR24零物化内存直读描述性评价",
+  "boundary": {
+    "trains_model": false,
+    "materializes_data": false,
+    "writes_into_frozen_data_roots": false,
+    "modifies_threshold": false,
+    "modifies_source_seal": false,
+    "independent_test": false,
+    "target_previously_accessed": true,
+    "evidence_class": "descriptive_only"
+  },
+  "qualification": {
+    "config_path": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-cuda-rwkv-raw83-qualification-seed42-v1.json",
+    "run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1",
+    "source_seal": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-raw83-qualification-seed42-v1/seals/source-qualification-seal.json",
+    "source_seal_content_sha256": "611f4f9b3346bf50260646a1a05a8d71c3e9c5b0c3a046adeff05958f9888b40",
+    "source_seal_file_sha256": "4f601163f05056033d27c9c8a2fa05fa97af381dd94fecd34b4ab382b63327e6"
+  },
+  "source_product": {
+    "dataset_manifest": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-prepared/ch3-protocol-a-raw83-shared-v1/generations/source-v1/dataset-manifest.json"
+  },
+  "target_materialization_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-protocol-a-raw83-target-v1.json",
+  "cache": {
+    "root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "consumed_arrays": ["I24", "M24", "y23"],
+    "cross_checked_arrays": ["y24", "t24"],
+    "rejected_arrays": ["X23", "X24"],
+    "rejection_reason": "实测 X23/X24 是 dijk 复现管线自己标准化后的特征矩阵，不是 Dijk 83 字段原值"
+  },
+  "contract": {
+    "n_flow": 20227356,
+    "n_entity": 47115,
+    "n_positive_entity": 752,
+    "flow_positive_rate": 0.0257073138,
+    "n_sequence": 200825,
+    "sequence_width": 128,
+    "raw_feature": 83,
+    "source_row_count": 16353511,
+    "source_sequence_count": 271815,
+    "validation_sequence_count": 22444,
+    "transform_clip": [-10.0, 10.0],
+    "fpr_budgets": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "entity_key_recipe": "undirected-address-pair-sorted-string-join-v1"
+  },
+  "evaluation": {
+    "cells": ["C00", "C01", "C10", "C11"],
+    "batch_sequences": 64,
+    "transform_batch_rows": 1048576,
+    "parquet_batch_rows": 262144,
+    "sidecar_batch_sequences": 8192,
+    "autocast": false,
+    "selfcheck_metric_tolerance": 1e-09
+  },
+  "paths": {
+    "project_root": "/root/autodl-tmp/thesis/experiments/llm_probe",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-cuda-rwkv-lspr24-inmemory-descriptive-eval-v1"
+  }
+}
