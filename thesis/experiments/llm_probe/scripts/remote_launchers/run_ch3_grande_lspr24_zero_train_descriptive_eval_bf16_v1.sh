@@ -17,7 +17,9 @@ readonly PARENT_ROOT="$PROJECT_ROOT/runs/diagnostics/ch3-grande-c00-protocolA-so
 
 mkdir -p -- "$LAUNCHER_ROOT" "$OUTPUT_ROOT"
 if [[ -r "$HOME/.bashrc" ]]; then
+    set +u
     source "$HOME/.bashrc" >> "$LAUNCHER_ROOT/shell-init.log" 2>&1 || true
+    set -u
 fi
 cd "$PROJECT_ROOT"
 source tools/env/activate.sh
