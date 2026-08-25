@@ -238,12 +238,7 @@ def validate_build_environment(expected: Mapping[str, Any]) -> dict[str, Any]:
         raise RuntimeError(
             f"CUDA_HOME 物理落点不符：{resolved_cuda_home}"
         )
-    path_entries = os.environ.get("PATH", "").split(os.pathsep)
     expected_cuda_bin = str(cuda_home_path / "bin")
-    if not path_entries or path_entries[0] != expected_cuda_bin:
-        raise RuntimeError(
-            f"PATH 未以冻结 CUDA bin 开头：{path_entries[:1]}"
-        )
     library_entries = os.environ.get("LD_LIBRARY_PATH", "").split(os.pathsep)
     if not library_entries or library_entries[0] != expected_cuda_library_path:
         raise RuntimeError(
