@@ -8,6 +8,12 @@
 - 修订实现后的唯一静态验收中，`py_compile`、主入口导入、`--help`、`--validate-config` 与 `bash -n` 均一次通过；配置验证仍明确输出 `cuda_initialized=false`、`data_products_opened=0`、`swanlab_initialized=false`。
 - 本地没有 `torch`，因此导入验收只覆盖延迟依赖的主控入口。CUDA 后端、模型、资源收据消费、单元清单、目标缓存和 SwanLab 状态机只获得静态语法证据，仍必须由目标环境真实运行裁决。
 
+## 2026-08-25 CUDA 工具链环境根因收据
+
+- 症状只出现在正式启动器激活项目环境之后：`NVCC_AVAILABLE=0`。
+- 物理编译器 `/usr/local/cuda/bin/nvcc` 和同 GPU/PyTorch/CUDA 组合已被真实自身门验证，故“未安装 nvcc”假设被否决。
+- 启动器现状是激活后只重申 `OMP_NUM_THREADS=1`，没有重申 `CUDA_HOME`、CUDA `bin` 或 `lib64`；后端现状是仅用 `shutil.which("nvcc")`。这两个边界共同解释了已安装编译器在正式进程中不可见的现象。
+
 ## 一、检索收据
 
 - 本地文献检索作用域：`paper`。

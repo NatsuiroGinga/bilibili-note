@@ -101,3 +101,18 @@
 | 业务结果哈希与动作元数分层 | 已完成 | 任何已含 `result_sha256` 的业务对象不再扁平追加 action manifest 或幂等 marker；正常/幂等返回统一使用外层 envelope |
 
 依据边界：完整首次告警 path 曲线服务统一 Goal/N16 的共同整数 FP 比较；暴露及时阶梯只服务六个预注册展示锚点。禁止为所有可达阈值生成“阈值×暴露位置”二维稠密阶梯。
+
+## 十六、CUDA 工具链环境边界定点修复（2026-08-25）
+
+- **真实症状**：B76 上同步后的正式启动器在 `source tools/env/activate.sh` 之后报 `NVCC_AVAILABLE=0`。
+- **已知反证**：`/usr/local/cuda/bin/nvcc` 已由 `761f2c6` 对应的真实自身门验证；PyTorch `2.13.0+cu130`、CUDA `13.0` 和 RTX 5090 正常。因此不是编译器未安装或 GPU 故障。
+- **根因**：项目环境激活后的 `PATH` 未保留 CUDA `bin`，首版配置也未冻结 `CUDA_HOME`/物理落点/nvcc 路径，后端只能依赖漂移后的 `shutil.which("nvcc")`。
+- **单一假设**：在环境激活后、任何 Python/torch/CUDA 导入前，显式冻结 `CUDA_HOME=/usr/local/cuda`，只允许物理落点 `/usr/local/cuda` 或 `/usr/local/cuda-13.0`，并前置导出 `PATH`/`LD_LIBRARY_PATH`，就能恢复且唯一化正式 nvcc 发现。
+
+| 修复层 | 状态 | 验收 |
+| --- | --- | --- |
+| 正式启动器 | 进行中 | 激活后冻结/解析 CUDA 根，导出 `CUDA_HOME/PATH/LD_LIBRARY_PATH`，`command -v nvcc` 必须精确为 `/usr/local/cuda/bin/nvcc` |
+| 冻结配置 | 待处理 | 登记逻辑根、允许物理根、nvcc 和 `lib64` 路径，静态验证精确值 |
+| 官方 CUDA 后端 | 待处理 | 在编译前比对环境、物理根、PATH 首命中、`LD_LIBRARY_PATH` 和 nvcc 逻辑/物理路径，并纳入 CUDA 执行身份 |
+
+本修复不改模型、数据、容量、预算、运行身份或资源门槛。
