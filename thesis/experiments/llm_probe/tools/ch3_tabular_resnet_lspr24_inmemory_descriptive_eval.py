@@ -1198,6 +1198,10 @@ def run(arguments: argparse.Namespace) -> None:
     if parent_root.name != config["parent"]["run_id"]:
         raise RuntimeError("父运行根与登记的父运行身份不符")
     source_manifest_path = Path(config["source_product"]["dataset_manifest"]).resolve(strict=True)
+    parent_config_path = Path(config["parent"]["config_path"]).resolve(strict=True)
+    parent_manifest_path = Path(load_json(parent_config_path)["paths"]["source_dataset_manifest"]).resolve(strict=True)
+    if parent_manifest_path != source_manifest_path:
+        raise RuntimeError(f"本配置与父配置指向不同的源清单：{source_manifest_path} vs {parent_manifest_path}")
 
     write_status(output_root, "running", "parent-validation", None, "只读核验四格源年封印与检查点")
     parent_receipt = validate_parent(parent_root, source_manifest_path)
