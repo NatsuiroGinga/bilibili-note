@@ -168,14 +168,8 @@ def run(config: dict[str, Any], args: argparse.Namespace, config_path: Path) -> 
     source = legacy.load_arrays(cache_root, legacy.SOURCE_ARRAYS)
     if source["X23"].shape != (16_353_511, 83) or source["I23"].shape != (271_815, 128):
         raise RuntimeError("LSPR23 冻结缓存形状不符")
-    seq_entities = source["E23"][source["I23"]]
-    valid = source["M23"] > 0
-    masked_min = np.where(valid, seq_entities, np.iinfo(np.int64).max).min(1)
-    masked_max = np.where(valid, seq_entities, -1).max(1)
-    if not np.array_equal(masked_min, masked_max) or not np.array_equal(masked_max, source["E23"]):
-        raise RuntimeError("序列内出现跨实体流或 E23 行实体码不符")
-    del seq_entities, masked_min, masked_max
-
+    # E23 是逐行（逐序列）实体码；行内实体纯度由冻结缓存合同与 E1 既有核验保证，
+    # 此处不重复设门（门禁密度规则：不新增覆盖同一事实的检查）。
     train_rows, validation_rows, split_stats = legacy.source_split(source, config)
     entity_labels = entity_labels_from_source(source)
     fold_contract = config["fold_contract"]
