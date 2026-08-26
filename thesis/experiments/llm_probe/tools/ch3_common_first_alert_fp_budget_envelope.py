@@ -1684,6 +1684,9 @@ def stage_xgb_rescore_and_aggregate(context: dict[str, Any]) -> None:
         return
     cache_root = resolve_within(project_root, str(contract["inputs"]["target_features"]["relative_path"])).parent
     started = time.time()
+    # 数据身份：X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和标准差
+    # 标准化 → 裁剪 [-10, 10]），不是 raw83 原值。只有训练侧同样消费这份缓存的模型才可直接读它，
+    # 此处重放的冻结 XGBoost 正属此列。见该缓存目录的 README.md。
     features = np.load(cache_root / "X24.npy", mmap_mode="r", allow_pickle=False)
     sequence_index = np.load(cache_root / "I24.npy", mmap_mode="r", allow_pickle=False)
     sequence_mask = np.load(cache_root / "M24.npy", mmap_mode="r", allow_pickle=False)
@@ -1864,6 +1867,7 @@ def stage_mlp_infer_and_aggregate(context: dict[str, Any]) -> None:
         project_root, str(contract["inputs"]["target_features"]["relative_path"])
     ).parent
     target = {
+        # 数据身份：X24 是标准化后的特征矩阵，不是 raw83 原值；见该缓存目录的 README.md。
         "X24": np.load(cache_root / "X24.npy", allow_pickle=False),
         "I24": np.load(cache_root / "I24.npy", allow_pickle=False),
         "M24": np.load(cache_root / "M24.npy", allow_pickle=False),

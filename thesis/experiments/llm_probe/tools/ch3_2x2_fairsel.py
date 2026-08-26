@@ -66,6 +66,9 @@ CELLS = [("C00", False, False), ("C01", False, True),
 # =====================================================================================
 log("=" * 96)
 log("阶段一 选择：只读入 LSPR23，LSPR24 不进入本进程")
+# 数据身份：X23/X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和
+# 标准差标准化 → 裁剪 [-10, 10]），不是 raw83 原值；形状、dtype 与文件字节数都与 raw83 产品相同
+# 但内容不同。只有训练侧同样消费这份缓存的模型才可直接用。见该缓存目录的 README.md。
 X23 = np.load(f"{CACHE}/X23.npy")
 y23 = np.load(f"{CACHE}/y23.npy")
 I23 = np.load(f"{CACHE}/I23.npy")
@@ -236,6 +239,7 @@ assert SELECTION_FROZEN, "阶段闸门未开：禁止在选择阶段读入 LSPR2
 _N24_LOADS += 1
 log("=" * 96)
 log("阶段二 评价：首次读入 LSPR24（选择已冻结）")
+# 数据身份：X24 与上面的 X23 同源，是标准化后的特征矩阵，不是 raw83 原值。见缓存目录 README.md。
 X24 = np.load(f"{CACHE}/X24.npy")
 y24 = np.load(f"{CACHE}/y24.npy")
 I24 = np.load(f"{CACHE}/I24.npy")

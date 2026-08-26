@@ -1206,6 +1206,9 @@ log(f"实体分组 {N_FOLD} 折已建：同一实体只在一折，正例实体�
 # ---- 三路源年候选输入 ----
 log("-" * 116)
 log("构造 raw83、mean166 与 semantic168；上下文适配器只在源年折外结果上选择")
+# 数据身份：X23/X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和标准差
+# 标准化 → 裁剪 [-10, 10]），不是 raw83 原值。下面 MATRICES 里的键名 "raw83" 只表示「前 83 列」，
+# 不表示未标准化原值；本脚本训练与评价同用这份缓存，口径自洽。见该缓存目录的 README.md。
 XM23 = build_prefix_matrix(f"{CACHE}/X23.npy", N_FLOW_23, I23, M23, "LSPR23/mean166")
 XS23 = build_semantic_matrix(f"{CACHE}/X23.npy", N_FLOW_23, I23, M23, "LSPR23/semantic168")
 del I23, M23
@@ -1448,6 +1451,7 @@ del _cpu_sc, _es
 # 只构造源年选中的目标年上下文输入，两路最终模型各打一次分
 # -------------------------------------------------------------------------------------
 log("-" * 116)
+# 数据身份：X24 与源年 X23 同源，是标准化后的特征矩阵，不是 raw83 原值。见缓存目录 README.md。
 if CONTEXT_SELECTED == "mean166":
     XC24 = build_prefix_matrix(f"{CACHE}/X24.npy", N_FLOW_24, I24, M24, "LSPR24/mean166")
 elif CONTEXT_SELECTED == "semantic168":

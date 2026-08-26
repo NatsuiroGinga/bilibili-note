@@ -915,6 +915,9 @@ def main() -> None:
             raise SystemExit("LSPR23 序列跨实体")
     assert_sequence_contract(time23, indices23, mask23, N_FLOW_23, "LSPR23")
     del time23, sequence_entity23
+    # 数据身份：X23/X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和
+    # 标准差标准化 → 裁剪 [-10, 10]），不是 raw83 原值；形状与文件字节数和 raw83 产品相同但内容不同。
+    # 本链路的 XGBoost 训练与评价同用这份缓存，口径自洽。见该缓存目录的 README.md。
     source_matrix, source_feature_timing = build_fixed_dyadic_matrix(
         CACHE / "X23.npy",
         N_FLOW_23,
@@ -1181,6 +1184,7 @@ def main() -> None:
     if int(entity24.max()) + 1 != N_ENTITY_24:
         raise SystemExit("LSPR24 实体数不符")
     del entity_key24, source24, destination24
+    # 数据身份：X24 与源年 X23 同源，是标准化后的特征矩阵，不是 raw83 原值。见缓存目录 README.md。
     target_matrix, target_feature_timing = build_fixed_dyadic_matrix(
         CACHE / "X24.npy",
         N_FLOW_24,

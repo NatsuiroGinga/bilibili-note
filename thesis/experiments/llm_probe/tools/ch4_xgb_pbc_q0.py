@@ -1092,6 +1092,9 @@ def main() -> None:
         parent["selection"]["fold_stat"],
         int(config["seed"]),
     )
+    # 数据身份：X23/X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和
+    # 标准差标准化 → 裁剪 [-10, 10]），不是 raw83 原值；形状与文件字节数和 raw83 产品相同但内容不同。
+    # 本链路的 XGBoost 训练与评价同用这份缓存，口径自洽。见该缓存目录的 README.md。
     source_semantic = build_semantic_matrix(
         CACHE / "X23.npy",
         N_FLOW_23,
@@ -1169,6 +1172,7 @@ def main() -> None:
     if int(target_entity.max()) + 1 != N_ENTITY_24:
         raise SystemExit(f"LSPR24 实体数不符：{int(target_entity.max()) + 1:,}")
     del entity_key, source_address, destination_address
+    # 数据身份：X24 与源年 X23 同源，是标准化后的特征矩阵，不是 raw83 原值。见缓存目录 README.md。
     target_semantic = build_semantic_matrix(
         CACHE / "X24.npy",
         N_FLOW_24,

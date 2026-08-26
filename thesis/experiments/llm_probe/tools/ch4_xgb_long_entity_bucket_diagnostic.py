@@ -393,6 +393,9 @@ def main() -> None:
     del entity_key, source_address, destination_address
 
     log("阶段二：仅在内存重建 raw83/semantic168")
+    # 数据身份：X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和标准差
+    # 标准化 → 裁剪 [-10, 10]），不是 raw83 原值；"raw83" 在这里只表示前 83 列。冻结 XGBoost 与它
+    # 同源，故可直接读；按 raw83 拟合的模型不得读它。见该缓存目录的 README.md。
     semantic = build_semantic_matrix(
         CACHE / "X24.npy", indices, mask, args.predict_batch, args.sequence_batch
     )

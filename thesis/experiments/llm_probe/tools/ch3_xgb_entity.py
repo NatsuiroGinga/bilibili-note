@@ -55,6 +55,9 @@ ANCHOR = {"flow_ap": 0.2244424863, "ent_ap_n1": 0.523326, "ent_ap_n100": 0.54748
 DEVICE = os.environ.get("XGB_DEVICE", "cpu")
 N_JOBS = int(os.environ.get("XGB_NJOBS", "96"))
 
+# 数据身份：X23/X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和
+# 标准差标准化 → 裁剪 [-10, 10]），不是 raw83 原值；形状、dtype 与文件字节数都与 raw83 产品相同
+# 但内容不同。本脚本训练与评价都用它，口径自洽；换成 raw83 拟合的模型则不可直接读。见缓存 README.md。
 X23 = np.load(f"{CACHE}/X23.npy"); y23 = np.load(f"{CACHE}/y23.npy")
 X24 = np.load(f"{CACHE}/X24.npy"); y24 = np.load(f"{CACHE}/y24.npy")
 s24 = np.load(f"{CACHE}/s24.npy", allow_pickle=True)

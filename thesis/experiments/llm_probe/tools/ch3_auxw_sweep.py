@@ -106,6 +106,8 @@ M23 = np.load(f"{CACHE}/M23.npy")
 I24 = np.load(f"{CACHE}/I24.npy")
 M24 = np.load(f"{CACHE}/M24.npy")
 ent23 = np.load(f"{CACHE}/ent23.npy")
+# 数据身份：X23 是 dijk 复现管线标准化后的特征矩阵，不是 raw83 原值；此处只取列数，
+# 不受影响，但任何取值的用法都要先读该缓存目录的 README.md 确认训练侧与评价侧同源。
 D = int(np.load(f"{CACHE}/X23.npy", mmap_mode="r").shape[1])
 log(f"特征数 D={D} 训练流={len(y23):,} 评价流={len(y24):,} "
     f"训练序列={len(I23):,} 评价序列={len(I24):,}")

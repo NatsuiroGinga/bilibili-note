@@ -318,6 +318,11 @@ def build_target_view(
     import numpy as np
 
     started = time.time()
+    # 数据身份缺陷（2026-08-25 实测，尚未修）：X24.npy 不是 raw83 原值，而是 dijk 复现管线标准化
+    # 后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和标准差标准化 → 裁剪 [-10, 10]）。在它上面
+    # 再叠加候选 A/B 变换等于变换了两次，与本模型源年训练消费的共享 Raw83 产品不同源，结果无效。
+    # 正确路径是直读冻结 Parquet 并在内存内重建视图，见 ch3_cuda_rwkv_lspr24_inmemory_descriptive_eval.py
+    # 与该缓存目录的 README.md。
     raw = np.load(cache_root / "X24.npy", mmap_mode="r", allow_pickle=False)
     if raw.shape != (N_FLOW, N_RAW_FEATURE):
         raise RuntimeError("LSPR24 原始 83 字段形状不符")

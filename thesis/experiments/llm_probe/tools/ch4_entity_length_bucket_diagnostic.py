@@ -1015,6 +1015,9 @@ def execute(config_path: Path) -> None:
         input_receipt = validate_inputs(paths)
         excluded = set(config["excluded_feature_columns"])
         features = feature_names(paths["lspr24_schema_parquet"], excluded)
+        # 数据身份：X23 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和
+        # 标准差标准化 → 裁剪 [-10, 10]），不是 raw83 原值。下面这步正是从原始 zip 复算同一套
+        # mu/sd 并与缓存抽样对表，用来证明该约定；不要把 X23 当原值使用。见缓存目录 README.md。
         mu, sd, normalization_receipt = recompute_normalization(
             paths["lspr23_zip"],
             features,

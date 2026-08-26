@@ -264,6 +264,9 @@ def load_target_once(config: dict[str, Any]) -> dict[str, Any]:
     np = shared_eval.require_numpy()
     cache_root = Path(config["paths"]["cache_root"])
     arrays = {
+        # 数据身份：X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和
+        # 标准差标准化 → 裁剪 [-10, 10]），不是 raw83 原值。本入口直接送模型是对的，因为 GRANDE
+        # 源年就训练在这份缓存上，两侧同源；不得在其上再叠加候选 A/B 变换。见缓存目录 README.md。
         "X24": np.load(cache_root / "X24.npy", mmap_mode="r", allow_pickle=False),
         "y24": np.load(cache_root / "y24.npy", mmap_mode="r", allow_pickle=False),
         "s24": np.load(cache_root / "s24.npy", allow_pickle=True),

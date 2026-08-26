@@ -11,6 +11,9 @@
   --input-convention standardized-cache
       X 已经是缓存约定：先用 LSPR23 逐列均值/标准差标准化、再裁剪到 [-10, 10]。
       `runs/diagnostics/dijk-repro/cache/X23.npy`、`X24.npy` 就是这个约定。
+      注意这两个数组**不是** raw83 原值，虽然形状、dtype 与文件字节数都和协议A的
+      raw83 产品相同。要喂本入口只能用这个约定，或改用 `--input-convention raw`
+      并显式给出 `--normalization-json`。见该缓存目录的 `README.md`。
   --input-convention raw
       X 是未标准化的原始 83 维特征，此时必须同时给 --normalization-json，
       入口会按 `(x - mean) / std` 后裁剪到 [-10, 10]，并把非有限值置 0。

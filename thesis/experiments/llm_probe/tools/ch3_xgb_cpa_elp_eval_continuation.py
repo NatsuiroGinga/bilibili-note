@@ -611,6 +611,9 @@ def main() -> None:
     regression_gate = run_regression_gate(y24, entity, entity_labels)
 
     log("阶段二：从共享缓存重新构建 LSPR24 raw83/semantic168")
+    # 数据身份：X24 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和标准差
+    # 标准化 → 裁剪 [-10, 10]），不是 raw83 原值；下面的 "raw83" 只表示前 83 列。冻结 XGBoost 就训练
+    # 在这份缓存上，两侧同源；按 raw83 拟合的模型不得读它。见该缓存目录的 README.md。
     semantic = build_semantic_matrix(
         CACHE / "X24.npy", indices, mask, args.predict_batch, args.sequence_batch
     )

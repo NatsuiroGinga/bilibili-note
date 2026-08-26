@@ -926,6 +926,9 @@ def run(args: argparse.Namespace, config: dict[str, Any]) -> None:
     )
 
     base.log("阶段二：构造 semantic168 并按三个冻结折模型重建路径分数")
+    # 数据身份：X23 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和标准差
+    # 标准化 → 裁剪 [-10, 10]），不是 raw83 原值。三个冻结折模型与它同源，故可直接读；
+    # 按 raw83 拟合的模型不得读它。见该缓存目录的 README.md。
     semantic = base.build_semantic_matrix(base.CACHE / "X23.npy", indices, masks)
     import xgboost as xgb
 

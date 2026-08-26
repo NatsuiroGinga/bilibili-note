@@ -286,6 +286,9 @@ class EntityIndex:
 
 
 def load_source_cache(cache_root: Path, config: dict[str, Any]) -> SourceData:
+    # 数据身份：X23 是 dijk 复现管线标准化后的特征矩阵（非有限值置 0 → 按 LSPR23 逐列均值和标准差
+    # 标准化 → 裁剪 [-10, 10]），不是 raw83 原值；形状与文件字节数和 raw83 产品相同但内容不同。
+    # 只有训练侧同样消费这份缓存的模型才可直接读它。见该缓存目录的 README.md。
     x = np.load(cache_root / "X23.npy", mmap_mode="r", allow_pickle=False)
     y = np.load(cache_root / "y23.npy", mmap_mode="r", allow_pickle=False)
     sequences = np.load(cache_root / "I23.npy", mmap_mode="r", allow_pickle=False)
