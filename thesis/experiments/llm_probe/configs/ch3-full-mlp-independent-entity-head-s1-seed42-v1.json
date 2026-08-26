@@ -1,0 +1,49 @@
+{
+  "schema_version": "ch3-full-mlp-independent-entity-head-s1-config-v1",
+  "run_id": "ch3-full-mlp-independent-entity-head-s1-seed42-v1",
+  "display_name": "全容量多层感知机B10冻结骨干独立多算子实体头S1",
+  "contract_revision": "S1-r0-lbfgs-3param-20260826",
+  "source_config_path": "configs/ch3-full-mlp-valid-2x2-source-s0-seed42-v1.json",
+  "source_config_sha256": "29bcf2304485d893ddf3b9a8ecb0999e7ba0e7f77aa8cd683fe31b1d93f574d0",
+  "source_tool_path": "tools/ch3_full_mlp_valid_2x2_source_s0.py",
+  "source_tool_sha256": "60db9352d80e2bb36bd27e6aa29094c5cc57c999002713f7640178f30d21c89a",
+  "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-independent-entity-head-s1-seed42-v1",
+  "parent_checkpoint": "B10",
+  "parent_checkpoint_sha256": "5816387f1af57518a22514d5e21b8343a65747e4ffff41c6e6ef4786dd60d763",
+  "heads": {
+    "candidate_mean_max": {"features": ["prefix_mean", "prefix_max"], "parameter_count": 3},
+    "control_mean_mean": {"features": ["prefix_mean", "prefix_mean"], "parameter_count": 3}
+  },
+  "optimizer": {
+    "name": "torch.optim.LBFGS",
+    "lr": 1.0,
+    "max_iter": 100,
+    "max_eval": 125,
+    "tolerance_grad": 1e-7,
+    "tolerance_change": 1e-9,
+    "history_size": 10,
+    "line_search_fn": "strong_wolfe",
+    "full_batch": true,
+    "parameter_dtype": "float64",
+    "loss": "weighted_binary_cross_entropy_with_logits",
+    "initialization": "all_zero",
+    "hyperparameter_searches": 0
+  },
+  "evaluation": {
+    "fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "curve_maximum_fpr": 0.08,
+    "first_alert_quantiles": [0.25, 0.5, 0.75, 0.9, 0.95],
+    "low_budget_count": 3,
+    "interpolation_allowed": false
+  },
+  "isolation": {
+    "dataset_year": "LSPR23",
+    "fit_rows": "protocol_a_training_entities_only",
+    "evaluation_rows": "protocol_a_entity_disjoint_validation_entities_only",
+    "validation_labels_used_for_fit": false,
+    "target_reads": 0,
+    "backbone_parameter_updates": 0,
+    "formal_paper_evidence": false
+  },
+  "resource_contention": true
+}
