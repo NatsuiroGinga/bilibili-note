@@ -1,0 +1,45 @@
+{
+  "schema_version": "ch3-full-mlp-valid-2x2-source-s0-config-v1",
+  "run_id": "ch3-full-mlp-valid-2x2-source-s0-seed42-v1",
+  "display_name": "全容量多层感知机有效2x2源年mean-max零训练实验",
+  "evidence_level": "zero_train_source_screening",
+  "approved_plan_sha256": "3f8333da65f1fb7acf0f3aae7c1729114ce2b1ad043cb179ec74e38c191f2d38",
+  "reference": {
+    "config_path": "configs/ch3-full-mlp-s0-precision-aggregation-diagnostic-seed42-v1.json",
+    "config_sha256": "094b1ced3d61ef1c10b5e62a32b1ded68f45c99b3cca3d32e086ae89f3091008",
+    "tool_path": "tools/ch3_full_mlp_s0_precision_aggregation_diagnostic.py",
+    "tool_sha256": "dd6d776f2fc10106a81a707e39d5064c3821e81e896a171fbec2cc93d68c64cc"
+  },
+  "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-valid-2x2-source-s0-seed42-v1",
+  "dataset_year": "LSPR23",
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "target_arrays_read": 0,
+  "precision_profile": "cuda-bf16-amp-fp32-sensitive-v1",
+  "inference_sequence_batch": 2048,
+  "cells": {
+    "C00": {"checkpoint": "B00", "operator": "max"},
+    "C01p": {"checkpoint": "B00", "operator": "mean_max_mix"},
+    "C10": {"checkpoint": "B10", "operator": "max"},
+    "C11p": {"checkpoint": "B10", "operator": "mean_max_mix"}
+  },
+  "mix_weights": {"mean": 0.5, "max": 0.5},
+  "evaluation": {
+    "fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "curve_maximum_fpr": 0.08,
+    "first_alert_quantiles": [0.25, 0.5, 0.75, 0.9, 0.95],
+    "first_alert_axis": "exposure_index",
+    "exposure_index_base": 1,
+    "interpolation_allowed": false
+  },
+  "isolation": {
+    "training_runs": 0,
+    "parameter_updates": 0,
+    "new_checkpoints": 0,
+    "target_reads": 0,
+    "formal_paper_evidence": false
+  },
+  "resource_disclosure": {
+    "resource_contention": true,
+    "reason": "用户授权利用现有实验空余显存并发执行；科学指标有效，效率指标不作独占比较"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "ch3-full-mlp-valid-2x2-target-s0-config-v1",
+  "run_id": "ch3-full-mlp-valid-2x2-target-s0-seed42-v1",
+  "display_name": "全容量多层感知机有效2x2目标年mean-max零训练描述",
+  "source_config_path": "configs/ch3-full-mlp-valid-2x2-source-s0-seed42-v1.json",
+  "source_config_sha256": "29bcf2304485d893ddf3b9a8ecb0999e7ba0e7f77aa8cd683fe31b1d93f574d0",
+  "source_run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-valid-2x2-source-s0-seed42-v1",
+  "source_artifacts": {
+    "source-seal.json": "f77e07abc356a93381309d984c694ae6256560951feba827493bc5523933c178",
+    "aggregate-results.json": "013fcb0654626316ed3405e8f67bf1e8dd04149b04f0c46f7d7ec4de21db9163",
+    "formula-identity-receipt.json": "5e713865e982da0417ec15465079fb381e911303dbe79b8105b88b78e966349f"
+  },
+  "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-valid-2x2-target-s0-seed42-v1",
+  "dataset_year": "LSPR24",
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24"],
+  "target_informed": true,
+  "independent_test": false,
+  "selection_or_tuning_on_target": false,
+  "training_runs": 0,
+  "parameter_updates": 0,
+  "resource_contention": true
+}
