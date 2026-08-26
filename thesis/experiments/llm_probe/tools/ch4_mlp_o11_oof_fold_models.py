@@ -89,8 +89,14 @@ def validate_config(config: dict[str, Any]) -> None:
 
 
 def sha256_array(values: Any) -> str:
+    """与 E1 的 sha256_array 逐字节同构：dtype 字符串＋JSON 形状＋连续字节。"""
+    import json as _json
+
+    array = legacy.np.ascontiguousarray(values)
     digest = hashlib.sha256()
-    digest.update(values.tobytes())
+    digest.update(str(array.dtype).encode("ascii"))
+    digest.update(_json.dumps(array.shape).encode("ascii"))
+    digest.update(memoryview(array).cast("B"))
     return digest.hexdigest()
 
 
