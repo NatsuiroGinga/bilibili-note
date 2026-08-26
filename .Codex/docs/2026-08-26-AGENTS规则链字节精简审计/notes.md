@@ -4,7 +4,7 @@
 
 - 工作树：`/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819`。
 - 仅审计规则发现、链路字节和层级职责；不修改现有 `AGENTS.md`，不访问服务器，不改生产代码。
-- 初始计划快照：`5e8b6bdce99b29cb5d538d9b3fb6c6481b25cda1`，提交说明为 `docs(rules): snapshot agents byte audit plan`。
+- 初始计划快照：`5e8b6bd1a9f39a7cca8d81cc712fd8dbbea2add2`，提交说明为 `docs(rules): snapshot agents byte audit plan`。
 - 工作树存在大量其他任务的已修改与未跟踪文件，本任务未暂存、修改或清理这些文件。
 
 ## 规则发现事实
