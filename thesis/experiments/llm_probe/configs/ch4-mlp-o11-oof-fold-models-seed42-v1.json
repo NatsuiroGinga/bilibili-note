@@ -1,0 +1,71 @@
+{
+  "schema_version": "ch4-mlp-o11-oof-fold-models-config-v1",
+  "run_id": "ch4-mlp-o11-oof-fold-models-seed42-v1",
+  "display_name": "第四章D0全容量MLP-O11三折折外评分模型物化",
+  "model_key": "full_mlp",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-mlp-o11-oof-fold-models-seed42-v1",
+    "precision_contract": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/neural-precision-profiles-v1.json",
+    "parent_selection_receipt": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/parent-selection-receipt.json"
+  },
+  "candidate": {
+    "unit_key": "mlp-depth8-width512-full--paper-log-median",
+    "hidden_depth": 8,
+    "hidden_size": 512,
+    "activation": "relu",
+    "dropout": 0.1,
+    "parameter_formula": "m*d^2+(m+84)*d+2",
+    "parameter_count": 2144258
+  },
+  "cells": {
+    "B00": {"causal_prefix_aggregation": false, "learned_lp_pooling": false},
+    "B10": {"causal_prefix_aggregation": true, "learned_lp_pooling": false},
+    "O01": {"causal_prefix_aggregation": false, "learned_lp_pooling": true},
+    "O11": {"causal_prefix_aggregation": true, "learned_lp_pooling": true}
+  },
+  "training": {
+    "seed": 42,
+    "sequence_length": 128,
+    "batch_size": 64,
+    "microbatch_size": 64,
+    "accumulation_steps": 1,
+    "normalization_unit": "flow",
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.0003162277660168379,
+    "weight_decay": 0.0,
+    "dropout": 0.1,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "selection_metric": "lspr23_entity_disjoint_validation_flow_ap",
+    "selection_rule": "single_epoch_argmax_earliest_tie_no_early_stopping",
+    "checkpoint_interval_optimizer_steps": 20,
+    "precision_profile_id": "cuda-bf16-amp-fp32-sensitive-v1"
+  },
+  "fold_contract": {
+    "count": 3,
+    "seed": 42,
+    "assignment": "seeded-stratified-entity-round-robin",
+    "entity_count": 150680,
+    "positive_entity_count": 239,
+    "map_rows_via": "E23",
+    "require_each_entity_once_oof": true,
+    "e1_run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch4-e1-source-entity-oof-gate-seed42-v1"
+  },
+  "artifact_policy": {
+    "persist_selected_checkpoint_per_fold": true,
+    "persist_every_epoch_checkpoint_per_fold": true,
+    "persist_inflight_optimizer_step_checkpoint": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false
+  },
+  "materialization_support": true,
+  "screening_only": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "target_year_arrays_read": 0
+}
