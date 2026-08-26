@@ -100,7 +100,7 @@ XGBoost 冻结 `raw83 + max` 与 `semantic168 + p=1.0` 的五桶实体 AP 增量
 
 相对 B0，Tong M1 少 `434` 个 FP、多 `3` 个 TP；相对经验分位路径最大，少 `434` 个 FP、少 `1` 个 TP。Tong 有限样本保证只适用于本次冻结的 6 个方向和源年路径支持，不外推至跨年度或正式论文结论。该结果的证据等级仅为源年单种子 Q0 实验支持，详细证据见[实体路径最大风险控制源年 Q0 结果记录](2026-08-19-实体路径最大风险控制源年Q0结果记录.md)。
 
-用户已于 2026-08-20 取消三种子扩展。机制一当前只允许 `seed=42` 的最终单模型 LSPR23 源年实验，保持 Tong 合同和冻结的 `semantic168` 六臂框架；实现仍在进行。当前服务器无 GPU，禁止启动训练；不得以 CPU 替代该训练，也不得追加 `seed=43/44` 或把已观察的 LSPR24 包装为独立最终评价域。该项为设计可行、实验待证，现有 Tong Q0 支持不等同于最终单模型结果。
+用户已于 2026-08-20 取消三种子扩展。机制一当前只允许 `seed=42` 的最终单模型 LSPR23 源年实验，保持 Tong 合同和冻结的 `semantic168` 六臂框架。**2026-08-26 服务器 status.json 核验**：`runs/candidates/ch4-xgb-path-max-tong-final-model-source-seed42-v1` 与 `-rerun1` 均 `failed/final_single_model_source/python_failed/exit=1`；`-rerun2` 为 `finished/complete/success/exit=0` 且 `target_year_arrays_read=0`。最终单模型运行机械完成，结果数字待验收；不得再写「实现仍在进行」。不得追加 `seed=43/44` 或把已观察的 LSPR24 包装为独立最终评价域。
 
 ### 5.4 机制二路径风险长度桶源年诊断
 
@@ -137,7 +137,7 @@ M1 池化 FPR=`0.03711089397`、DR=`0.9832635983`，但五个长度桶 FPR 为 `
 ## 八、当前候选状态与下一动作
 
 - 机制一已取得“病灶存在”资格，并已通过正式修正源年 Q0 的 Tong 有限样本实体路径最大控制；当前只得到源年单种子 Q0 实验支持。机制二旧 Q0 无效，随后两次同模型三分 Q0 均有效否决；路径风险长度桶诊断已支持源年长度条件风险病灶，但反射累积仍为最小 Q0 待证候选。因此尚不存在可命名的第四章双机制算法。
-- A 线保持冻结 `XGBoost + CPA + ELP` 验证 Tong 路径最大与反射累积的联合算法：M1 rerun1 `ch4-xgb-path-max-tong-final-model-source-seed42-v1-rerun1` 与 M2 Q0 `ch4-xgb-reflected-cumulative-dual-evidence-lspr23-q0-seed42-v1` 均为 `running`，不得写为已完成或机制成立。该方法有效性门与第三章神经骨干升级资格门并行且证据互不替代；详见[第三章骨干升级与第四章双证据方法双线推进记录](2026-08-20-第三章骨干升级与第四章双证据方法双线推进记录.md)。
+- A 线状态已由 2026-08-26 服务器制品更新：M1 最终单模型 rerun1 `failed/python_failed`，**rerun2 `finished/complete/exit=0`（结果待验收）**；M2 反射累积 `ch4-xgb-reflected-cumulative-dual-evidence-lspr23-q0-seed42-v1-rerun2` 为 `finished/complete/exit=0` 且机械裁决 **`REJECTED_SOURCE_Q0`**——九方向联合 Tong 证书全部成立、池化 J1 FPR `0.03613377` ≤ 4%，但 `J1_adds_at_least_one_TP_with_reflected_only_new_TP=False`（`reflected_only_TP=0`，J1 与 M1 的 TP 完全重合 `235`）且 `both_long_buckets_J1_FPR_le_0_04_and_not_above_M1=False`。**反射累积为有效科学否决**，不得再写「running」或「工程待修」；证书封印于评价指标之前（`certificate_sealed_before_evaluation_metrics=true`），覆盖两遍共 `32,707,022` 流。旧的双线推进记录见[第三章骨干升级与第四章双证据方法双线推进记录](2026-08-20-第三章骨干升级与第四章双证据方法双线推进记录.md)。
 - 朱焱雷第四章只提供“一个总问题拆成两个互补维度”的组织参照。本课题的两个维度是跨年度阈值失配和重复曝光决策，不借用其过滤、缓存、公式或效果数字。
 - 本章基线与对标采用同一冻结 `semantic168` 骨干六臂，主指标为实体实际 FPR、DR、迟到检出、首次告警曝光或时延、预算曲线和效率，AP 不作决策层主指标；精确对标范围见[实体路径最大风险控制源年 Q0 结果记录](2026-08-19-实体路径最大风险控制源年Q0结果记录.md)。
 - 当前候选输入暂冻结为 `semantic168`，只用于单变量诊断；历史上已比较 `raw83`、`mean166` 与 `fixed_dyadic251`，不得把 `semantic168` 写成永久最优或据此扩展模型选择。
