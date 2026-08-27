@@ -1,28 +1,48 @@
 # -*- coding: utf-8 -*-
-"""第四章 S_a 本机筛选：MLP 底座长度分层 Tong 证书 2×2 消融（screening_only）。
+"""第四章 S_a/S_b 本机筛选：MLP 底座长度分层 Tong 证书 2×2 消融（screening_only）。
 
 四臂『Tong 证书×长度分层』2×2 消融，同一分数底座（D0 三折折外 O11）：
   C00 = 固定阈值（无证书、无分层）；
-  C01 = 仅分层校准（各层独立经验阈值，无 CP 证书）；
+  C01 = 仅分层校准（各层独立阈值，无 Tong 池化联合重校准）；
   C10 = 仅池化 Tong（=M1'，字面复用 ``ch4_mlp_o11_tong_pooled_q0_local_screen.run_m1_prime``）；
-  C11 = 分层 Tong（六方向×四证书层阈值表，联合告警事件重校准 δ'=0.05/24）。
+  C11 = 分层 Tong（六方向×四证书层阈值表）。
 
 四臂共用同一六方向切半（同种子 42、同构造函数，见 Task1），保证四格严格
-可比（仅阈值构造逻辑不同，评价人群与切分完全一致）。
+可比（仅阈值构造逻辑不同，评价人群与切分完全一致）。C00/C10 与构造版本
+无关，两种构造下完全相同；C01/C11 按 ``--construction`` 切换构造逻辑。
 
-方案 A 单调性设计（实施计划四点五-4，2026-08-27 数学分析裁决）：
-  - 校准分组键 = 实体『固定属性』（最终观测长度所在层，仅作记账，与阈值
-    向量无关，规避『首次穿越时刻所在桶』反例——抬高 τ_b 会让穿越时刻本身
-    移动，导致分组随阈值变化、非逐坐标单调）；
-  - 决策事件 = 在整条路径上，按『决策时刻已观测曝光计数』在线因果查表，
-    一旦某次曝光的累计路径最大值达到当前层阈值即告警（首次命中即停）；
-  - 因每个 τ_b 只影响该层曝光窗口内的比较，抬高 τ_b 只会让『在该层内触发』
-    变难，不影响其余层判定，故各分组告警计数关于任一 τ_b 单调不增——
-    实现后须重放核验（见 ``monotonicity_replay_direction``，main() 内默认执行）。
+**构造 A（默认，``--construction a``，2026-08-27 首版）**：证书对象＝『层窗口
+边际风险』——每层 τ_b 各自独立通过 CP 上界（或纯经验）校准，只保证『该层
+自己的窗口内、该层良性实体的告警率≤预算』。方案 A 单调性设计（实施计划
+四点五-4，恢复选项 A）：校准分组键＝实体『固定属性』（最终观测长度所在层，
+仅作记账），决策事件＝在整条路径上按『决策时刻已观测曝光计数』在线因果
+查表，一旦命中即告警。
 
-CP 证书数学（``cp_upper_bound`` 等）复用 Task1
-``ch4_mlp_o11_tong_pooled_q0_local_screen`` 模块，不重写；六方向切半、
-池化 Tong（C10=M1'）同样直接复用该模块的 ``run_m1_prime``。
+**构造 A 的败因（2026-08-27 真实数据诊断，登记进计划四点九）**：24 格证书
+逐格成立，但聚合到『实体最终层』后 FPR 远超预算（101+ 层实测 17.07%），
+根因是『分层证书只保证单层边际风险，未控制实体跨层累计（序贯检验）风险』
+——一个最终落入长层的实体，其路径必然依次经过更短层的窗口，每个窗口都要
+与该窗口独立校准的阈值比较一次，相当于对同一实体做多次序贯检验，各自边际
+合规不代表并集事件合规。
+
+**构造 B（``--construction b``，实施计划四点九，源自构造 A 败因诊断）**：
+  1. 证书对象换掉：不再证层窗口边际，改证『按实体最终层分组的条件事件——
+     该实体整条路径上曾按阈值表告警』（即方案 A 的记账事件本身作为被证
+     对象，直接对齐聚合口径与门①②③衡量的量，修复构造 A 的校准-评价口径
+     不一致）。
+  2. 阈值族改一维参数化（计划四点五-4 恢复选项 B）：公共分位水平 λ 驱动
+     全部层阈值 τ_b(λ)＝层 b 良性校准分数的 (1−λ) 分位——λ 单调驱动全部层
+     阈值同向变化，是 Bates Thm 1 要求的嵌套单调族（构造 A 的分坐标单调
+     重放已证明『任一 τ_b 独立抬高，各组计数非增』，λ 驱动的联合变化是
+     该性质的直接推论）。在校准半上选最大 λ 使每个最终层组的『整条路径
+     曾告警』条件率的 CP 上界≤q=0.04（δ 分配沿用 6 方向×4 层=24 份，
+     δ'=0.05/24，与构造 A 相同）；C01（无 Tong 证书）用相同一维族但改选
+     『经验率≤q』的最大 λ（无 CP 上界margin）。
+  3. 决策规则仍在线因果（按当前层查 τ_b(λ)）；六方向同模型交叉结构不变。
+  4. 五门定义不改，单调性重放照跑（对最终选中的阈值表逐坐标扰动核验）。
+
+CP 证书数学（``cp_upper_bound`` 等）与六方向切半、池化 Tong（C10=M1'）
+均复用 Task1 ``ch4_mlp_o11_tong_pooled_q0_local_screen`` 模块，不重写。
 
 证据边界：``screening_only=true``，fp32 折外模型（本机），结果不进论文；
 正式再确认在服务器资源恢复后按冻结合同重跑。LSPR24 零读取。依赖
@@ -64,7 +84,11 @@ from ch4_mlp_o11_pathology_diagnostics_local_screen import (  # noqa: E402
 # 运行身份改名为 -recal-v1 家族（2026-08-27，解冻执行指令），与 Task1/D1D2
 # 诊断的家族命名保持一致；本工具依赖的 threshold_for_allowed_count 已在
 # pooled_q0 模块自查修复（见该模块 -recal-v1 重命名处的说明）。
-RUN_ID = "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1"
+# 构造 A（旧、默认，保留旧结果）与构造 B（新，四点九）分别使用独立运行身份，
+# 互不覆盖；具体选用见 main() 内 --construction 分支。
+RUN_ID_CONSTRUCTION_A = "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1"
+RUN_ID_CONSTRUCTION_B = "ch4-mlp-o11-stratified-tong-2x2-local-screen-sb-v1"
+RUN_ID = RUN_ID_CONSTRUCTION_A  # 向后兼容：模块级默认导出仍指构造 A
 SEED = pooled_q0.SEED
 FOLD_COUNT = pooled_q0.FOLD_COUNT
 DIRECTION_COUNT = pooled_q0.DIRECTION_COUNT
@@ -74,6 +98,9 @@ LAYER_BOUNDS: tuple[tuple[int, int | None], ...] = ((1, 2), (3, 10), (11, 100), 
 LAYER_COUNT = len(LAYER_BOUNDS)
 DELTA_PER_CELL = DELTA_GLOBAL / (DIRECTION_COUNT * LAYER_COUNT)  # 0.05/24，六方向×四证书层均分
 MONOTONICITY_PERTURBATIONS: tuple[float, ...] = (0.0, 0.02, 0.10)
+# 构造 B 的一维公共分位 λ 二分迭代数：2^24≈16.7M 远超任何一层校准良性实体数
+# （最大约 17,500），保证收敛到整数级精度而非仅浮点数值精度。
+LAMBDA_SEARCH_ITERATIONS = 24
 T0 = time.time()
 
 
@@ -153,29 +180,48 @@ def direction_subsequence(
     }
 
 
-def first_crossing(
-    ordered_scores: np.ndarray, starts: np.ndarray, lengths: np.ndarray, threshold_at_position: np.ndarray
-) -> tuple[np.ndarray, np.ndarray]:
-    """给定按实体分段排序的逐位置分数与逐位置阈值，求『运行最大值首次达到
-    位置阈值』的实体级告警状态与首次命中的段内 1-based 曝光位置（未告警为 -1）。
-
-    在线因果：位置阈值只依赖决策时刻已观测的累计曝光计数（层号=f(该计数)），
-    不使用实体最终长度——四点五对位表新增冻结项，避免事后信息泄漏进决策。
-    """
+def cummax_sequence(ordered_scores: np.ndarray, starts: np.ndarray, lengths: np.ndarray) -> np.ndarray:
+    """预计算逐位置运行最大值序列（不依赖阈值）。构造 B 的 λ 二分需要在同一
+    子序列上反复试探不同阈值表，把与阈值无关的 O(实体数) Python 循环拆出来
+    只算一次，供多次阈值比较复用，避免 λ 搜索重复付出该循环成本。"""
     if len(ordered_scores) == 0:
-        return np.zeros(0, dtype=bool), np.zeros(0, dtype=np.int64)
+        return np.zeros(0, dtype=np.float64)
     cummax = np.empty_like(ordered_scores, dtype=np.float64)
     for start, length in zip(starts.tolist(), lengths.tolist()):
         end = start + length
         cummax[start:end] = np.maximum.accumulate(ordered_scores[start:end])
+    return cummax
+
+
+def crossing_from_cummax(
+    cummax: np.ndarray, starts: np.ndarray, lengths: np.ndarray, threshold_at_position: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """给定预计算的运行最大值序列与逐位置阈值，向量化求『运行最大值首次达到
+    位置阈值』的实体级告警状态与首次命中的段内 1-based 曝光位置（未告警为 -1）。
+    不含 Python 循环，是 ``first_crossing`` 可复用的阈值比较核心。
+
+    在线因果：位置阈值只依赖决策时刻已观测的累计曝光计数（层号=f(该计数)），
+    不使用实体最终长度——四点五对位表新增冻结项，避免事后信息泄漏进决策。
+    """
+    if len(cummax) == 0:
+        return np.zeros(0, dtype=bool), np.zeros(0, dtype=np.int64)
     crossing = cummax >= threshold_at_position
-    sentinel = len(ordered_scores)
-    marked = np.where(crossing, np.arange(len(ordered_scores)), sentinel)
+    sentinel = len(cummax)
+    marked = np.where(crossing, np.arange(len(cummax)), sentinel)
     first_global = np.minimum.reduceat(marked, starts)
     ends = starts + lengths
     alerted = first_global < ends
     first_local_position = np.where(alerted, first_global - starts + 1, -1)
     return alerted, first_local_position
+
+
+def first_crossing(
+    ordered_scores: np.ndarray, starts: np.ndarray, lengths: np.ndarray, threshold_at_position: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """``cummax_sequence`` + ``crossing_from_cummax`` 的薄封装，行为与重构前
+    完全一致；单次阈值比较（评价期、单调性重放）仍走这条一次性路径。"""
+    cummax = cummax_sequence(ordered_scores, starts, lengths)
+    return crossing_from_cummax(cummax, starts, lengths, threshold_at_position)
 
 
 # ---------------------------------------------------------------------------
@@ -235,6 +281,139 @@ def layer_thresholds_for_direction(
             cert = pooled_q0.certificate_threshold(scores, delta_per_cell, budget)
             receipts.append({"layer": layer, **cert})
     return receipts
+
+
+# ---------------------------------------------------------------------------
+# 构造 B：一维公共分位 λ 嵌套族（实施计划四点九，源自构造 A 败因诊断）
+# ---------------------------------------------------------------------------
+
+
+def layer_calibration_score_pools(
+    calibration_benign: np.ndarray, entity_length: np.ndarray, path_max: np.ndarray
+) -> tuple[list[np.ndarray], list[int]]:
+    """按最终层分组的校准良性 path_max 分数池——τ_b(λ) 分位阈值的分母，与
+    构造 A 的 ``layer_calibration_groups`` 使用同一分组口径（仅作校准记账）。"""
+    groups = layer_calibration_groups(calibration_benign, entity_length)
+    pools = [path_max[members] for members in groups]
+    sizes = [int(len(members)) for members in groups]
+    return pools, sizes
+
+
+def lambda_threshold_table(layer_score_pools: list[np.ndarray], lam: float) -> np.ndarray:
+    """一维公共分位水平 λ 驱动的逐层阈值表：τ_b(λ)=层 b 良性校准分数的
+    (1−λ) 分位（计划四点五-4 恢复选项 B）。λ 越大，全部层阈值同步降低、
+    越容易告警——嵌套单调族，Bates Thm 1 直接适用。分位阈值复用
+    ``pooled_q0.threshold_for_allowed_count``（已修复的『预算内尽量压低阈值』
+    语义），配额=floor(λ*n_b)。"""
+    thresholds = np.empty(LAYER_COUNT, dtype=np.float64)
+    for layer, scores in enumerate(layer_score_pools):
+        n_b = len(scores)
+        if n_b == 0:
+            thresholds[layer] = math.inf
+            continue
+        allowed = int(math.floor(lam * n_b))
+        thresholds[layer] = pooled_q0.threshold_for_allowed_count(scores, allowed)
+    return thresholds
+
+
+def replay_group_counts_from_cummax(
+    cummax: np.ndarray,
+    starts: np.ndarray,
+    lengths: np.ndarray,
+    layer_id: np.ndarray,
+    thresholds: np.ndarray,
+    group_key: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    """给定预计算 cummax 与阈值表，重放『整条路径是否曾按阈值表告警』的在线
+    判定，按 group_key（实体最终层）汇总告警计数——构造 B 的被证对象直接是
+    该重放结果本身，不再是单层窗口边际（修复构造 A 的败因：校准检查的是
+    层内局部风险，评价聚合的却是跨层并集风险，二者口径不一致）。"""
+    alerted, _ = crossing_from_cummax(cummax, starts, lengths, thresholds[layer_id])
+    counts = np.bincount(group_key, weights=alerted.astype(np.float64), minlength=LAYER_COUNT).astype(np.int64)
+    return alerted, counts
+
+
+def select_lambda(
+    sub_calibration: dict[str, np.ndarray],
+    cummax_calibration: np.ndarray,
+    layer_score_pools: list[np.ndarray],
+    layer_sizes: list[int],
+    group_key_calibration: np.ndarray,
+    feasible_cell: Any,
+    iterations: int = LAMBDA_SEARCH_ITERATIONS,
+) -> dict[str, Any]:
+    """二分求满足『每个最终层组 feasible_cell(n_b,k_b(λ))』的最大共享 λ。
+
+    可行性关于 λ 单调不增：λ 越大，全层阈值越低，各层重放告警计数只增不减，
+    经验率或 CP 上界随之只增不减——标准二分求根收敛到最大可行 λ。
+    ``feasible_cell`` 只是可行性谓词，C01 传经验率判据、C11 传 CP 上界判据，
+    共享同一搜索框架，不为两臂各写一套二分。
+    """
+
+    def feasible(lam: float) -> tuple[bool, np.ndarray]:
+        thresholds = lambda_threshold_table(layer_score_pools, lam)
+        _, counts = replay_group_counts_from_cummax(
+            cummax_calibration,
+            sub_calibration["starts"],
+            sub_calibration["lengths"],
+            sub_calibration["layer_id"],
+            thresholds,
+            group_key_calibration,
+        )
+        ok = all(feasible_cell(layer_sizes[b], int(counts[b])) for b in range(LAYER_COUNT))
+        return ok, counts
+
+    zero_ok, zero_counts = feasible(0.0)
+    if not zero_ok:
+        return {
+            "available": False,
+            "lambda": 0.0,
+            "thresholds": lambda_threshold_table(layer_score_pools, 0.0).tolist(),
+            "calibration_group_counts": zero_counts.tolist(),
+            "calibration_group_sizes": layer_sizes,
+        }
+    low, high = 0.0, 1.0
+    for _ in range(iterations):
+        mid = (low + high) / 2.0
+        ok, _ = feasible(mid)
+        if ok:
+            low = mid
+        else:
+            high = mid
+    thresholds = lambda_threshold_table(layer_score_pools, low)
+    _, counts = replay_group_counts_from_cummax(
+        cummax_calibration,
+        sub_calibration["starts"],
+        sub_calibration["lengths"],
+        sub_calibration["layer_id"],
+        thresholds,
+        group_key_calibration,
+    )
+    return {
+        "available": True,
+        "lambda": low,
+        "thresholds": thresholds.tolist(),
+        "calibration_group_counts": counts.tolist(),
+        "calibration_group_sizes": layer_sizes,
+    }
+
+
+def c01_feasible_cell(n_b: int, k_b: int) -> bool:
+    """C01（无 Tong 证书）判据：整条路径条件告警经验率≤预算，无 CP 上界margin。"""
+    if n_b == 0:
+        return True
+    return (k_b / n_b) <= BUDGET_FPR
+
+
+def c11_feasible_cell_factory(delta_per_cell: float) -> Any:
+    """C11（Tong 证书）判据：整条路径条件告警计数的 CP 上界≤预算，δ'=0.05/24。"""
+
+    def _feasible(n_b: int, k_b: int) -> bool:
+        if n_b == 0:
+            return True
+        return pooled_q0.cp_upper_bound(n_b, k_b, delta_per_cell) <= BUDGET_FPR
+
+    return _feasible
 
 
 def monotonicity_replay_direction(
@@ -302,14 +481,28 @@ def five_bucket_rates(alerts: np.ndarray, labels: np.ndarray, entity_length: np.
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="第四章 S_a 本机筛选：长度分层 Tong 证书 2x2（MLP 底座）")
+    parser = argparse.ArgumentParser(description="第四章 S_a/S_b 本机筛选：长度分层 Tong 证书 2x2（MLP 底座）")
     parser.add_argument("--cache-root", default="runs/diagnostics/dijk-repro/cache")
     parser.add_argument("--d0-root", default=f"runs/diagnostics/{D0_RUN_ID}")
-    parser.add_argument("--output-root", default=f"runs/diagnostics/{RUN_ID}")
+    parser.add_argument(
+        "--construction",
+        choices=("a", "b"),
+        default="a",
+        help=(
+            "C01/C11 阈值构造：a=构造 A（默认，独立分层 CP/经验阈值，保留旧结果）；"
+            "b=构造 B（一维公共分位 λ 嵌套族，四点九，证书对象改为整条路径条件事件）"
+        ),
+    )
+    parser.add_argument(
+        "--output-root",
+        default=None,
+        help="默认按 --construction 选择运行身份目录（a→RUN_ID_CONSTRUCTION_A，b→RUN_ID_CONSTRUCTION_B）",
+    )
     args = parser.parse_args()
+    run_id = RUN_ID_CONSTRUCTION_A if args.construction == "a" else RUN_ID_CONSTRUCTION_B
     cache_root = Path(args.cache_root)
     d0_root = Path(args.d0_root)
-    output_root = Path(args.output_root)
+    output_root = Path(args.output_root) if args.output_root else Path(f"runs/diagnostics/{run_id}")
 
     missing_folds = pooled_q0.d0_checkpoints_missing(d0_root)
     if missing_folds:
@@ -361,17 +554,76 @@ def main() -> int:
         tau_c00 = calibrate_threshold(tables["path_max"][calibration_benign], BUDGET_FPR)
         global_c00[evaluation] = tables["path_max"][evaluation] >= tau_c00
 
-        # C01：仅分层校准（无证书）
-        receipts_01 = layer_thresholds_for_direction(
-            calibration_benign, tables["length"], tables["path_max"], None, BUDGET_FPR
-        )
-        thresholds_01 = np.array([r["threshold"] for r in receipts_01], dtype=np.float64)
+        if args.construction == "a":
+            # 构造 A：C01 仅分层经验校准，C11 分层 CP 证书（δ'=0.05/24），
+            # 两者各层独立校准，校准统计量=path_max 聚合值（不重放在线决策）。
+            receipts_01 = layer_thresholds_for_direction(
+                calibration_benign, tables["length"], tables["path_max"], None, BUDGET_FPR
+            )
+            thresholds_01 = np.array([r["threshold"] for r in receipts_01], dtype=np.float64)
 
-        # C11：分层 Tong（CP 证书，δ'=0.05/24）
-        receipts_11 = layer_thresholds_for_direction(
-            calibration_benign, tables["length"], tables["path_max"], DELTA_PER_CELL, BUDGET_FPR
-        )
-        thresholds_11 = np.array([r["threshold"] for r in receipts_11], dtype=np.float64)
+            receipts_11 = layer_thresholds_for_direction(
+                calibration_benign, tables["length"], tables["path_max"], DELTA_PER_CELL, BUDGET_FPR
+            )
+            thresholds_11 = np.array([r["threshold"] for r in receipts_11], dtype=np.float64)
+            lambda_receipt_01: dict[str, Any] | None = None
+            lambda_receipt_11: dict[str, Any] | None = None
+        else:
+            # 构造 B：一维公共分位 λ 驱动全部层阈值，校准检查直接重放『整条路径
+            # 是否曾按当前阈值表告警』（first_crossing 在线因果逻辑），按最终层
+            # 分组统计条件告警率，与评价期聚合口径一致（四点九）。
+            sub_calibration = direction_subsequence(sequences, calibration_benign, total_entities)
+            cummax_calibration = cummax_sequence(
+                sub_calibration["scores"], sub_calibration["starts"], sub_calibration["lengths"]
+            )
+            group_key_calibration = layer_of_length(tables["length"][sub_calibration["entity_ids"]])
+            pools, sizes = layer_calibration_score_pools(
+                calibration_benign, tables["length"], tables["path_max"]
+            )
+
+            lambda_receipt_01 = select_lambda(
+                sub_calibration, cummax_calibration, pools, sizes, group_key_calibration, c01_feasible_cell
+            )
+            thresholds_01 = np.array(lambda_receipt_01["thresholds"], dtype=np.float64)
+            receipts_01 = [
+                {
+                    "layer": layer,
+                    "n": sizes[layer],
+                    "threshold": float(thresholds_01[layer]),
+                    "lambda": lambda_receipt_01["lambda"],
+                    "calibration_replay_count": lambda_receipt_01["calibration_group_counts"][layer],
+                    "empirical_rate": (
+                        lambda_receipt_01["calibration_group_counts"][layer] / sizes[layer]
+                        if sizes[layer]
+                        else 0.0
+                    ),
+                    "certificate_valid": None,
+                }
+                for layer in range(LAYER_COUNT)
+            ]
+
+            c11_feasible_cell = c11_feasible_cell_factory(DELTA_PER_CELL)
+            lambda_receipt_11 = select_lambda(
+                sub_calibration, cummax_calibration, pools, sizes, group_key_calibration, c11_feasible_cell
+            )
+            thresholds_11 = np.array(lambda_receipt_11["thresholds"], dtype=np.float64)
+            receipts_11 = []
+            for layer in range(LAYER_COUNT):
+                n_b = sizes[layer]
+                k_b = lambda_receipt_11["calibration_group_counts"][layer]
+                cp_upper = pooled_q0.cp_upper_bound(n_b, k_b, DELTA_PER_CELL) if n_b else None
+                receipts_11.append(
+                    {
+                        "layer": layer,
+                        "n": n_b,
+                        "max_k": k_b,
+                        "threshold": float(thresholds_11[layer]),
+                        "lambda": lambda_receipt_11["lambda"],
+                        "cp_upper_bound_at_k": cp_upper,
+                        "empirical_rate": (k_b / n_b if n_b else 0.0),
+                        "certificate_valid": bool(cp_upper <= BUDGET_FPR) if n_b else True,
+                    }
+                )
 
         sub = direction_subsequence(sequences, evaluation, total_entities)
         alerted_01, _ = first_crossing(sub["scores"], sub["starts"], sub["lengths"], thresholds_01[sub["layer_id"]])
@@ -413,16 +665,23 @@ def main() -> int:
                 "c10_threshold": tau_c10,
                 "c01_layer_thresholds": thresholds_01.tolist(),
                 "c11_layer_thresholds": thresholds_11.tolist(),
+                "lambda_receipt_01": lambda_receipt_01,
+                "lambda_receipt_11": lambda_receipt_11,
             }
+        )
+        lambda_summary = (
+            f" λ(C01)={lambda_receipt_01['lambda']:.6f} λ(C11)={lambda_receipt_11['lambda']:.6f}"
+            if args.construction == "b"
+            else ""
         )
         log(
             f"方向{direction_def['direction']} 完成：C00τ={tau_c00:.6f} C10τ={tau_c10:.6f} "
             f"C11证书成立={all(r.get('certificate_valid') for r in receipts_11)} "
-            f"单调性={'过' if replay['monotonic'] else '不过'}"
+            f"单调性={'过' if replay['monotonic'] else '不过'}{lambda_summary}"
         )
 
     if not np.array_equal(evaluation_coverage, np.ones(total_entities, dtype=np.int32)):
-        raise RuntimeError("六方向评价半未恰好覆盖全部实体一次，S_a 池化汇总失效")
+        raise RuntimeError("六方向评价半未恰好覆盖全部实体一次，S_a/S_b 池化汇总失效")
 
     global_c10 = m1_outcome["global_alerts"]["M1"]
     metrics = {
@@ -466,9 +725,29 @@ def main() -> int:
     monotonic_overall = all(report["monotonic"] for report in monotonicity_reports)
     qualified = bool(gate1 and gate2 and gate3 and gate4 and gate5)
 
+    lambda_summary_top = (
+        None
+        if args.construction == "a"
+        else [
+            {
+                "direction": d["direction"],
+                "lambda_c01": d["lambda_receipt_01"]["lambda"],
+                "lambda_c11": d["lambda_receipt_11"]["lambda"],
+                "lambda_c01_available": d["lambda_receipt_01"]["available"],
+                "lambda_c11_available": d["lambda_receipt_11"]["available"],
+            }
+            for d in direction_reports
+        ]
+    )
+
     result = {
-        "schema_version": "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1",
-        "run_id": RUN_ID,
+        "schema_version": (
+            "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1"
+            if args.construction == "a"
+            else "ch4-mlp-o11-stratified-tong-2x2-local-screen-sb-v1"
+        ),
+        "run_id": run_id,
+        "construction": args.construction,
         "screening_only": True,
         "formal_paper_evidence": False,
         "target_year_arrays_read": 0,
@@ -499,6 +778,11 @@ def main() -> int:
         "c11_layer_rates": c11_layer_rates,
         "c01_layer_threshold_table": layer_receipts_table_01,
         "c11_certificate_table_24": certificate_table_11,
+        "lambda_search": (
+            None
+            if args.construction == "a"
+            else {"iterations": LAMBDA_SEARCH_ITERATIONS, "per_direction": lambda_summary_top}
+        ),
         "monotonicity_replay": {
             "perturbations": list(MONOTONICITY_PERTURBATIONS),
             "per_direction": monotonicity_reports,
@@ -516,22 +800,21 @@ def main() -> int:
             "qualified": qualified,
             "monotonicity_replay_passed": monotonic_overall,
             "verdict": (
-                "S_A_STRATIFIED_TONG_LOCAL_SCREEN_SUPPORTED"
-                if qualified
-                else "S_A_STRATIFIED_TONG_LOCAL_SCREEN_NOT_SUPPORTED"
+                f"S_{args.construction.upper()}_STRATIFIED_TONG_LOCAL_SCREEN_"
+                f"{'SUPPORTED' if qualified else 'NOT_SUPPORTED'}"
             ),
             "rule": (
                 "gate1 AND gate2 AND gate3 AND gate4 AND gate5"
-                "（任一失败=>机制a否决或缩小，四-S_a预注册）"
+                "（任一失败=>机制a否决或缩小，四-S_a预注册；构造 B 沿用同一预注册规则）"
             ),
         },
     }
     atomic_json(output_root / "results.json", result)
     log(
-        f"S_a 门={'过' if qualified else '不过'}：g1={gate1} g2={gate2} g3={gate3} g4={gate4} g5={gate5} "
-        f"单调性重放={'过' if monotonic_overall else '不过'}"
+        f"S_{args.construction} 门={'过' if qualified else '不过'}：g1={gate1} g2={gate2} g3={gate3} "
+        f"g4={gate4} g5={gate5} 单调性重放={'过' if monotonic_overall else '不过'}"
     )
-    print("LOCAL_SCREEN_STRATIFIED_2X2_DONE", flush=True)
+    print(f"LOCAL_SCREEN_STRATIFIED_2X2_{args.construction.upper()}_DONE", flush=True)
     return 0
 
 
