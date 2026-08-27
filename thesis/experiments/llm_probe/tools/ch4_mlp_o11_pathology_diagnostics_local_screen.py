@@ -40,6 +40,12 @@ from ch4_mlp_o11_oof_fold_models_local_screen import LocalFullMLP, prepare, atom
 
 RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-v1"
 D0_RUN_ID = "ch4-mlp-o11-oof-fold-models-local-screen-v1"
+# 服务器正式 D0（BF16、CUDA）身份：与本机筛选 D0 共用同一诊断入口，
+# 见 tools/ch4_mlp_o11_oof_fold_models.py（RUN_ID）与
+# tools/ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py（选择检查点 schema）。
+LOCAL_CHECKPOINT_SCHEMA = "ch4-mlp-o11-local-screen-checkpoint-v1"
+SERVER_D0_RUN_ID = "ch4-mlp-o11-oof-fold-models-seed42-v1"
+SERVER_CHECKPOINT_SCHEMA = "ch3-full-mlp-bf16-selected-checkpoint-v1"
 SEQ_LEN = 128
 BUDGET_FPR = 0.04
 LENGTH_BUCKETS = ((1, 2), (3, 10), (11, 100), (101, 1000), (1001, None))
@@ -48,6 +54,40 @@ T0 = time.time()
 
 def log(message: str) -> None:
     print(f"[{time.time() - T0:8.1f}s] {message}", flush=True)
+
+
+def _load_fold_state_dict(d0_root: Path, fold: int) -> dict[str, Any]:
+    """加载折外检查点的 state dict，接受两种身份 schema 二选一：
+
+    - 本机 local-screen 布局：``<d0_root>/checkpoints/selected-O11-fold{k}.pt``，
+      顶层 ``schema_version``/``run_id``/``fold`` 字段（见
+      ``ch4_mlp_o11_oof_fold_models_local_screen.py`` 的落盘逻辑）。
+    - 服务器 bf16 布局：``<d0_root>/fold-{k}/checkpoints/selected-O11.pt``，
+      身份嵌套在 ``identity`` 字典内（见
+      ``ch3_full_mlp_complete_entity_lp_protocol_a_q0_bf16.py`` 的 ``train_cell``），
+      state dict 结构（encoder.*/fusion.*/output.*/p_log）与 ``LocalFullMLP`` 同构。
+
+    校验只放宽到「身份 schema 二选一且 fold 匹配」，不取消校验；两种布局都缺失
+    或都不匹配身份时直接报错，不静默回退。
+    """
+    local_path = d0_root / "checkpoints" / f"selected-O11-fold{fold}.pt"
+    server_path = d0_root / f"fold-{fold}" / "checkpoints" / "selected-O11.pt"
+    if local_path.is_file():
+        payload = torch.load(local_path, map_location="cpu", weights_only=False)
+        if payload.get("schema_version") != LOCAL_CHECKPOINT_SCHEMA or payload.get("run_id") != D0_RUN_ID or payload.get("fold") != fold:
+            raise RuntimeError(f"fold{fold} 本机检查点身份不符：{local_path}")
+        return payload["model"]
+    if server_path.is_file():
+        payload = torch.load(server_path, map_location="cpu", weights_only=False)
+        identity = payload.get("identity", {})
+        if (
+            payload.get("schema_version") != SERVER_CHECKPOINT_SCHEMA
+            or identity.get("run_id") != SERVER_D0_RUN_ID
+            or identity.get("fold") != fold
+        ):
+            raise RuntimeError(f"fold{fold} 服务器检查点身份不符：{server_path}")
+        return payload["model"]
+    raise FileNotFoundError(f"fold{fold} 检查点未找到：{local_path} 或 {server_path}")
 
 
 def oof_flow_scores(
@@ -64,12 +104,9 @@ def oof_flow_scores(
     scores = np.zeros(flow_count, dtype=np.float32)
     seen = np.zeros(flow_count, dtype=bool)
     for fold in range(3):
-        checkpoint_path = d0_root / "checkpoints" / f"selected-O11-fold{fold}.pt"
-        payload = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
-        if payload.get("run_id") != D0_RUN_ID or payload.get("fold") != fold:
-            raise RuntimeError(f"fold{fold} 检查点身份不符")
+        state_dict = _load_fold_state_dict(d0_root, fold)
         model = LocalFullMLP(aggregate=True).to(device)
-        model.load_state_dict(payload["model"])
+        model.load_state_dict(state_dict)
         model.eval()
         rows = np.flatnonzero(fold_of_entity[E23] == fold)
         log(f"fold{fold} 折外打分：{len(rows):,} 序列")
