@@ -54,7 +54,6 @@ from ch4_mlp_o11_pathology_diagnostics_local_screen import (  # noqa: E402
     calibrate_threshold,
     entity_tables,
     oof_flow_scores,
-    rates,
 )
 
 RUN_ID = "ch4-mlp-o11-tong-pooled-q0-local-screen-v1"
