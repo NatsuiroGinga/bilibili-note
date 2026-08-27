@@ -329,12 +329,17 @@ def val_metrics(net, lp):
     net.train()
     sc_np = sc.cpu().numpy(); sn_np = sn.cpu().numpy()
     flow_ap = float(average_precision_score(y23[sn_np], sc_np[sn_np]))
-    p_value = float(net.p.item()) if lp else None
-    ent_sc = entity_scores(sc_np, sn_np, flow_entity23, entity_count23, p_value)
+    # p_actual：无论 lp 与否都记录模型当前真实 p（与协议 A 的 pv 记录口径一致，供 best["p"]
+    # 与目标评价阶段回载校验使用，二者都要求 p 恒为实数，不能是 None）。
+    # p_readout：只有 lp=True 才用 Lp 池化做实体级读出，lp=False 退化为 max（None 触发 entity_scores
+    # 的 max 分支），这与目标评价阶段 evaluate_entity_branch 的 p_value 语义完全一致。
+    p_actual = float(net.p.item())
+    p_readout = p_actual if lp else None
+    ent_sc = entity_scores(sc_np, sn_np, flow_entity23, entity_count23, p_readout)
     ok = np.isfinite(ent_sc)
     assert ok.sum() > 0, "验证期实体评分为空，选轮信号无效"
     entity_ap = float(average_precision_score(entity_labels23[ok], ent_sc[ok]))
-    return entity_ap, flow_ap, p_value
+    return entity_ap, flow_ap, p_actual
 
 
 # =====================================================================================
