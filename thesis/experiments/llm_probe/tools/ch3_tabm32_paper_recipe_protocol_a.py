@@ -2800,7 +2800,30 @@ def score_target(
     y = target["y24"]
     scores = np.zeros(len(y), dtype=np.float32)
     seen = np.zeros(len(y), dtype=bool)
-    batch_sequences = 2048
+    # 2026-08-27 OOM 修复：本行此前写死 batch_sequences=2048，是从同族 k=4 成员
+    # 工具 tools/ch3_resmlp2_tabm_protocol_a_2x2.py 的 score_target（同一行常量）
+    # 原样搬来的，未按 TabM32 的 32 成员重新核算。该常量只控制多少条流共享同一次
+    # 前向调用，forward 内部仍会把每条流按 shared_batch_flow_probability→
+    # expand_to_members 展开出完整成员维（成员维在展开后与批维同阶，而不是均摊），
+    # 三层 BatchEnsemble 的隐藏张量实际形状是
+    # (batch_sequences, ensemble_members, sequence_length, hidden_size)。
+    # 按精度合同计算类型（bf16，2 字节）展开：
+    #   2048(batch) × 32(members) × 128(length) × 512(hidden) × 2(bytes)
+    #     = 8,589,934,592 字节 = 8.00 GiB
+    # 与故障日志 `Tried to allocate 8.00 GiB` 逐位相符，确认根因是成员数从 k=4
+    # 变为 k=32 后未同比例缩小批量（8x 放大未被察觉，因 k=4 时同一常量只需
+    # 1 GiB：2048×4×128×512×2 = 1,073,741,824 字节，不会触发 OOM）。
+    # 修复复用 evaluate_validation_flow_ap（第 1892-1893 行）已有且已验证安全的
+    # 推理批约定——同一批对象数下 no_grad 保留的显存严格低于训练步，因此直接取
+    # training.effective_batch_size（=64），不新立未经依据的推理批常数：
+    #   64 × 32 × 128 × 512 × 2 = 268,435,456 字节 = 256 MiB，
+    # 较此前的 8.00 GiB 上界低 32 倍，同时与训练阶段验证前向共用同一已核验批量，
+    # 不需要为本行单独登记新的魔法数字依据。
+    # 数学等价性：分块大小只改变本循环每次前向处理多少条流，不改变结果——
+    # 每条流的推理只依赖其自身 I24/M24/X24 行与训练区拟合状态，32 个成员概率的
+    # 算术平均（member_mean_probability）与实体聚合（entity_scores）均逐流/逐实体
+    # 独立计算，不跨批边界耦合；不同分块大小只改变累加顺序，不改变逐流概率值本身。
+    batch_sequences = config["training"]["effective_batch_size"]
     model.eval()
     with torch.no_grad():
         for start in range(0, len(I), batch_sequences):
