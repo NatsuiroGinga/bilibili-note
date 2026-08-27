@@ -223,6 +223,22 @@ def load_ckpt(path):
     return torch.load(path, map_location="cpu", weights_only=False)
 
 
+def recovered_p(record):
+    """迁移垫片：修复早期版本 val_metrics() 把 lp=False 格的 best["p"] 存成 None 的历史检查点
+    （2026-08-27 修复前，transformer-C00 与 gru 的 lr0-C00 在服务器上已用该版本训练完成并落盘）。
+
+    record 形如磁盘 selected.pt 顶层字典，含 "p" 与 "state" 两键。若 "p" 已是历史遗留的
+    None，从 state_dict 的 p_log 参数按 Model.p 属性同一公式重算真实 p；否则原样返回，
+    对修复后新写入的检查点是恒等操作，不改变任何数值。
+    """
+    if record["p"] is not None:
+        return record["p"]
+    if record.get("state") is None:
+        return None  # 尚未产生任何 best（例如 inflight 的初始占位），不是待修复的历史脏数据
+    p_log = record["state"]["p_log"]
+    return float(torch.exp(p_log).clamp(1e-3, 1e3).item())
+
+
 def rng_snapshot(gen):
     return {"torch_cpu": torch.get_rng_state(),
             "torch_cuda_all": (torch.cuda.get_rng_state_all()
@@ -403,7 +419,8 @@ def train_and_select(backbone, agg, lp, seed, lr, tag, cell_dir):
             f"{tag} 在途检查点 hist 的 epoch 序列不连续"
         net.load_state_dict(ck["model"])
         opt.load_state_dict(ck["opt"])
-        best = ck["best"]
+        best = dict(ck["best"])
+        best["p"] = recovered_p(best)  # 迁移垫片：修复历史检查点里 lp=False 格 best["p"]=None 的脏数据
         hist = list(ck["hist"])
         prev_seconds = float(ck["train_seconds"])
         rng_restore(ck["rng"], gen)
@@ -487,7 +504,7 @@ for idx, lr in enumerate(LR_GRID) if FIXED_LR is None else []:
         assert s["npar"] == npar_formula(BK), f"{key} 逐格检查点参数量不符"
         assert len(s["hist"]) == N_EPOCH, f"{key} 逐格检查点 hist 长度 {len(s['hist'])} 应为 {N_EPOCH}"
         LR_RESULTS[idx] = {"lr": lr, "entity_ap": s["entity_ap"], "flow_ap": s["flow_ap"],
-                           "epoch": s["epoch"], "p": s["p"], "hist": s["hist"],
+                           "epoch": s["epoch"], "p": recovered_p(s), "hist": s["hist"],
                            "train_seconds": s["train_seconds"], "state": s["state"], "npar": s["npar"]}
         log(f"--- {key} (lr={lr:.10g}) 已完成，跳过训练："
             f"选中 epoch={s['epoch']} 验证实体AP={s['entity_ap']:.6f} ---")
@@ -590,7 +607,7 @@ if FIXED_LR is None:
     _TRAINED_NOW, _TRAINED_RESUMED = 1, 0
     _c00 = load_ckpt(_c00_sel_path)
     SEL["C00"] = {"backbone": BK, "cell": "C00", "agg": False, "lp": False,
-                 "best": {"ap": _c00["entity_ap"], "epoch": _c00["epoch"], "p": _c00["p"],
+                 "best": {"ap": _c00["entity_ap"], "epoch": _c00["epoch"], "p": recovered_p(_c00),
                           "state": _c00["state"], "flow_ap": _c00["flow_ap"]},
                  "hist": _c00["hist"], "tr": _c00["train_seconds"], "npar": _c00["npar"]}
     _CELLS_TO_TRAIN = [t for t in ALL_CELLS if t[0] != "C00"]
@@ -613,7 +630,7 @@ for cid, agg, lp in _CELLS_TO_TRAIN:
         assert s["npar"] == npar_formula(BK), f"{key} 逐格检查点参数量不符"
         assert len(s["hist"]) == N_EPOCH, f"{key} 逐格检查点 hist 长度 {len(s['hist'])} 应为 {N_EPOCH}"
         SEL[cid] = {"backbone": BK, "cell": cid, "agg": agg, "lp": lp,
-                    "best": {"ap": s["entity_ap"], "epoch": s["epoch"], "p": s["p"],
+                    "best": {"ap": s["entity_ap"], "epoch": s["epoch"], "p": recovered_p(s),
                              "state": s["state"], "flow_ap": s["flow_ap"]},
                     "hist": s["hist"], "tr": s["train_seconds"], "npar": s["npar"]}
         _TRAINED_RESUMED += 1
