@@ -88,6 +88,7 @@ from ch4_mlp_o11_pathology_diagnostics_local_screen import (  # noqa: E402
 # 互不覆盖；具体选用见 main() 内 --construction 分支。
 RUN_ID_CONSTRUCTION_A = "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1"
 RUN_ID_CONSTRUCTION_B = "ch4-mlp-o11-stratified-tong-2x2-local-screen-sb-v1"
+RUN_ID_CONSTRUCTION_C = "ch4-mlp-o11-stratified-tong-2x2-local-screen-sc-v1"
 RUN_ID = RUN_ID_CONSTRUCTION_A  # 向后兼容：模块级默认导出仍指构造 A
 SEED = pooled_q0.SEED
 FOLD_COUNT = pooled_q0.FOLD_COUNT
@@ -416,6 +417,63 @@ def c11_feasible_cell_factory(delta_per_cell: float) -> Any:
     return _feasible
 
 
+# ---------------------------------------------------------------------------
+# 构造 C：逐层前向独立预算（四点九末轮，综合 A/B 互补败因）
+# ---------------------------------------------------------------------------
+
+
+def select_layer_threshold(
+    sub_group: dict[str, np.ndarray],
+    cummax_group: np.ndarray,
+    scores_pool: np.ndarray,
+    n_b: int,
+    fixed_thresholds: np.ndarray,
+    layer_index: int,
+    feasible_cell: Any,
+    iterations: int = LAMBDA_SEARCH_ITERATIONS,
+) -> dict[str, Any]:
+    """前向顺序校准：更早层阈值已固定（``fixed_thresholds`` 中 < layer_index
+    的位置），更晚层占位为 +inf（该组实体的路径不会到达那些层，取值不影响
+    结果），二分求当前层最大可行整数配额（配额越大阈值越低——单调不增，
+    与构造 A 单调性重放验证的『固定更早坐标、抬高当前坐标使计数非增』互为
+    逆命题，故标准二分收敛）。``sub_group``/``cummax_group`` 限定在『最终层
+    =layer_index』的校准良性实体，只有一个分组（不需要 group_key 区分多组）。
+    """
+    if n_b == 0:
+        return {
+            "available": True,
+            "threshold": math.inf,
+            "allowed": 0,
+            "k": 0,
+            "n": 0,
+        }
+    zero_group_key = np.zeros(len(sub_group["entity_ids"]), dtype=np.int64)
+
+    def feasible(allowed: int) -> tuple[bool, float, int]:
+        threshold = pooled_q0.threshold_for_allowed_count(scores_pool, allowed)
+        trial = fixed_thresholds.copy()
+        trial[layer_index] = threshold
+        _, counts = replay_group_counts_from_cummax(
+            cummax_group, sub_group["starts"], sub_group["lengths"], sub_group["layer_id"], trial, zero_group_key
+        )
+        k_b = int(counts[0])
+        return feasible_cell(n_b, k_b), threshold, k_b
+
+    ok0, th0, k0 = feasible(0)
+    if not ok0:
+        return {"available": False, "threshold": th0, "allowed": 0, "k": k0, "n": n_b}
+    low, high = 0, n_b - 1
+    while low < high:
+        mid = (low + high + 1) // 2
+        ok, _, _ = feasible(mid)
+        if ok:
+            low = mid
+        else:
+            high = mid - 1
+    _, threshold_final, k_final = feasible(low)
+    return {"available": True, "threshold": threshold_final, "allowed": low, "k": k_final, "n": n_b}
+
+
 def monotonicity_replay_direction(
     sub: dict[str, np.ndarray],
     base_thresholds: np.ndarray,
@@ -486,20 +544,29 @@ def main() -> int:
     parser.add_argument("--d0-root", default=f"runs/diagnostics/{D0_RUN_ID}")
     parser.add_argument(
         "--construction",
-        choices=("a", "b"),
+        choices=("a", "b", "c"),
         default="a",
         help=(
-            "C01/C11 阈值构造：a=构造 A（默认，独立分层 CP/经验阈值，保留旧结果）；"
-            "b=构造 B（一维公共分位 λ 嵌套族，四点九，证书对象改为整条路径条件事件）"
+            "C01/C11 阈值构造：a=构造 A（默认，独立分层 CP/经验阈值，层窗口边际证书，保留旧结果）；"
+            "b=构造 B（一维公共分位 λ 嵌套族，四点九，证书对象改为整条路径条件事件，桶间预算不可独立调）；"
+            "c=构造 C（四点九末轮，逐层前向独立预算：固定更早层阈值后再序贯求当前层最大可行阈值，"
+            "证书对象沿用 B 的路径条件事件，但恢复各层独立预算）"
         ),
     )
     parser.add_argument(
         "--output-root",
         default=None,
-        help="默认按 --construction 选择运行身份目录（a→RUN_ID_CONSTRUCTION_A，b→RUN_ID_CONSTRUCTION_B）",
+        help=(
+            "默认按 --construction 选择运行身份目录"
+            "（a→RUN_ID_CONSTRUCTION_A，b→RUN_ID_CONSTRUCTION_B，c→RUN_ID_CONSTRUCTION_C）"
+        ),
     )
     args = parser.parse_args()
-    run_id = RUN_ID_CONSTRUCTION_A if args.construction == "a" else RUN_ID_CONSTRUCTION_B
+    run_id = {
+        "a": RUN_ID_CONSTRUCTION_A,
+        "b": RUN_ID_CONSTRUCTION_B,
+        "c": RUN_ID_CONSTRUCTION_C,
+    }[args.construction]
     cache_root = Path(args.cache_root)
     d0_root = Path(args.d0_root)
     output_root = Path(args.output_root) if args.output_root else Path(f"runs/diagnostics/{run_id}")
@@ -568,7 +635,9 @@ def main() -> int:
             thresholds_11 = np.array([r["threshold"] for r in receipts_11], dtype=np.float64)
             lambda_receipt_01: dict[str, Any] | None = None
             lambda_receipt_11: dict[str, Any] | None = None
-        else:
+            layer_receipts_01_c: list[dict[str, Any]] | None = None
+            layer_receipts_11_c: list[dict[str, Any]] | None = None
+        elif args.construction == "b":
             # 构造 B：一维公共分位 λ 驱动全部层阈值，校准检查直接重放『整条路径
             # 是否曾按当前阈值表告警』（first_crossing 在线因果逻辑），按最终层
             # 分组统计条件告警率，与评价期聚合口径一致（四点九）。
@@ -624,6 +693,70 @@ def main() -> int:
                         "certificate_valid": bool(cp_upper <= BUDGET_FPR) if n_b else True,
                     }
                 )
+            layer_receipts_01_c = None
+            layer_receipts_11_c = None
+        else:
+            # 构造 C：逐层前向独立预算（四点九末轮，综合 A/B 互补败因）。恢复
+            # 各层独立预算（不像 B 那样共享单一 λ），但证书对象沿用 B 的路径
+            # 条件事件（不像 A 那样只证层内边际）：先在校准半上按层0→1→2→3
+            # 的顺序，固定更早层已选阈值后，序贯求当前层『整条路径条件事件』
+            # CP 上界（或经验率）≤ 预算的最大可行阈值。短层不再被长层拖累
+            # （不共享 λ），长层的证书仍把更早层的携带风险计入（不再是 A 的
+            # 纯层内边际）。
+            groups_c = layer_calibration_groups(calibration_benign, tables["length"])
+            fixed_thresholds_01 = np.full(LAYER_COUNT, math.inf, dtype=np.float64)
+            fixed_thresholds_11 = np.full(LAYER_COUNT, math.inf, dtype=np.float64)
+            layer_receipts_01_c = []
+            layer_receipts_11_c = []
+            for layer in range(LAYER_COUNT):
+                group_entities = groups_c[layer]
+                n_b = int(len(group_entities))
+                sub_group = direction_subsequence(sequences, group_entities, total_entities)
+                cummax_group = cummax_sequence(sub_group["scores"], sub_group["starts"], sub_group["lengths"])
+                scores_pool = tables["path_max"][group_entities]
+
+                result_01 = select_layer_threshold(
+                    sub_group, cummax_group, scores_pool, n_b, fixed_thresholds_01, layer, c01_feasible_cell
+                )
+                fixed_thresholds_01[layer] = result_01["threshold"]
+                layer_receipts_01_c.append(
+                    {
+                        "layer": layer,
+                        "n": n_b,
+                        "threshold": result_01["threshold"],
+                        "allowed_count": result_01["allowed"],
+                        "empirical_exceedances": result_01["k"],
+                        "empirical_rate": (result_01["k"] / n_b if n_b else 0.0),
+                        "available": result_01["available"],
+                        "certificate_valid": None,
+                    }
+                )
+
+                c11_feasible_cell = c11_feasible_cell_factory(DELTA_PER_CELL)
+                result_11 = select_layer_threshold(
+                    sub_group, cummax_group, scores_pool, n_b, fixed_thresholds_11, layer, c11_feasible_cell
+                )
+                fixed_thresholds_11[layer] = result_11["threshold"]
+                cp_upper = pooled_q0.cp_upper_bound(n_b, result_11["k"], DELTA_PER_CELL) if n_b else None
+                layer_receipts_11_c.append(
+                    {
+                        "layer": layer,
+                        "n": n_b,
+                        "max_k": result_11["k"],
+                        "threshold": result_11["threshold"],
+                        "cp_upper_bound_at_k": cp_upper,
+                        "empirical_rate": (result_11["k"] / n_b if n_b else 0.0),
+                        "available": result_11["available"],
+                        "certificate_valid": bool(cp_upper <= BUDGET_FPR) if n_b else True,
+                    }
+                )
+
+            thresholds_01 = fixed_thresholds_01
+            thresholds_11 = fixed_thresholds_11
+            receipts_01 = layer_receipts_01_c
+            receipts_11 = layer_receipts_11_c
+            lambda_receipt_01 = None
+            lambda_receipt_11 = None
 
         sub = direction_subsequence(sequences, evaluation, total_entities)
         alerted_01, _ = first_crossing(sub["scores"], sub["starts"], sub["lengths"], thresholds_01[sub["layer_id"]])
@@ -667,17 +800,21 @@ def main() -> int:
                 "c11_layer_thresholds": thresholds_11.tolist(),
                 "lambda_receipt_01": lambda_receipt_01,
                 "lambda_receipt_11": lambda_receipt_11,
+                "sequential_receipt_01": layer_receipts_01_c,
+                "sequential_receipt_11": layer_receipts_11_c,
             }
         )
-        lambda_summary = (
-            f" λ(C01)={lambda_receipt_01['lambda']:.6f} λ(C11)={lambda_receipt_11['lambda']:.6f}"
-            if args.construction == "b"
-            else ""
-        )
+        if args.construction == "b":
+            extra_summary = f" λ(C01)={lambda_receipt_01['lambda']:.6f} λ(C11)={lambda_receipt_11['lambda']:.6f}"
+        elif args.construction == "c":
+            tau11_str = " ".join(f"{t:.4f}" for t in thresholds_11.tolist())
+            extra_summary = f" τ(C11逐层)=[{tau11_str}]"
+        else:
+            extra_summary = ""
         log(
             f"方向{direction_def['direction']} 完成：C00τ={tau_c00:.6f} C10τ={tau_c10:.6f} "
             f"C11证书成立={all(r.get('certificate_valid') for r in receipts_11)} "
-            f"单调性={'过' if replay['monotonic'] else '不过'}{lambda_summary}"
+            f"单调性={'过' if replay['monotonic'] else '不过'}{extra_summary}"
         )
 
     if not np.array_equal(evaluation_coverage, np.ones(total_entities, dtype=np.int32)):
@@ -726,9 +863,7 @@ def main() -> int:
     qualified = bool(gate1 and gate2 and gate3 and gate4 and gate5)
 
     lambda_summary_top = (
-        None
-        if args.construction == "a"
-        else [
+        [
             {
                 "direction": d["direction"],
                 "lambda_c01": d["lambda_receipt_01"]["lambda"],
@@ -738,14 +873,30 @@ def main() -> int:
             }
             for d in direction_reports
         ]
+        if args.construction == "b"
+        else None
+    )
+    sequential_summary_top = (
+        [
+            {
+                "direction": d["direction"],
+                "tau_c01": [r["threshold"] for r in d["sequential_receipt_01"]],
+                "tau_c11": [r["threshold"] for r in d["sequential_receipt_11"]],
+                "c01_available": [r["available"] for r in d["sequential_receipt_01"]],
+                "c11_available": [r["available"] for r in d["sequential_receipt_11"]],
+            }
+            for d in direction_reports
+        ]
+        if args.construction == "c"
+        else None
     )
 
     result = {
-        "schema_version": (
-            "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1"
-            if args.construction == "a"
-            else "ch4-mlp-o11-stratified-tong-2x2-local-screen-sb-v1"
-        ),
+        "schema_version": {
+            "a": "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1",
+            "b": "ch4-mlp-o11-stratified-tong-2x2-local-screen-sb-v1",
+            "c": "ch4-mlp-o11-stratified-tong-2x2-local-screen-sc-v1",
+        }[args.construction],
         "run_id": run_id,
         "construction": args.construction,
         "screening_only": True,
@@ -779,9 +930,14 @@ def main() -> int:
         "c01_layer_threshold_table": layer_receipts_table_01,
         "c11_certificate_table_24": certificate_table_11,
         "lambda_search": (
-            None
-            if args.construction == "a"
-            else {"iterations": LAMBDA_SEARCH_ITERATIONS, "per_direction": lambda_summary_top}
+            {"iterations": LAMBDA_SEARCH_ITERATIONS, "per_direction": lambda_summary_top}
+            if args.construction == "b"
+            else None
+        ),
+        "sequential_layer_search": (
+            {"iterations": LAMBDA_SEARCH_ITERATIONS, "per_direction": sequential_summary_top}
+            if args.construction == "c"
+            else None
         ),
         "monotonicity_replay": {
             "perturbations": list(MONOTONICITY_PERTURBATIONS),
