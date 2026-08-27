@@ -184,7 +184,21 @@ def run(config: dict[str, Any], args: argparse.Namespace, config_path: Path) -> 
             f"实体规模或正实体数不符：{len(entity_labels)}/{int(entity_labels.sum())}"
         )
     fold_of_entity = make_entity_folds(entity_labels, fold_contract["seed"], FOLD_COUNT)
-    fold_sha = sha256_array(fold_of_entity)
+    # E1 的 fold_assignment_sha256 是两层构造：canonical_sha256 包裹 sha256_array，
+    # 逐字节复刻其 json.dumps(ensure_ascii=False, sort_keys=True, separators=(",",":"))。
+    import json as _json
+
+    inner_payload = _json.dumps(
+        {
+            "dtype": str(fold_of_entity.dtype),
+            "shape": list(fold_of_entity.shape),
+            "sha256": sha256_array(fold_of_entity),
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    fold_sha = hashlib.sha256(inner_payload.encode("utf-8")).hexdigest()
     crosscheck = crosscheck_e1_fold_sha(config, fold_sha)
 
     run_identity = {
