@@ -56,7 +56,14 @@ from ch4_mlp_o11_pathology_diagnostics_local_screen import (  # noqa: E402
     oof_flow_scores,
 )
 
-RUN_ID = "ch4-mlp-o11-tong-pooled-q0-local-screen-v1"
+PRE_FIX_RUN_ID = "ch4-mlp-o11-tong-pooled-q0-local-screen-v1"
+# 运行身份改名为 -recal-v1 家族（2026-08-27，解冻执行指令）：本工具的
+# threshold_for_allowed_count 曾与 pathology 模块修复前的 calibrate_threshold
+# 同型 bug（候选降序遍历遇到第一个满足条件即返回，阈值退化为全局最大良性分），
+# 已在首次真实运行前自查并对齐 983ff49/a43909c 的修复语义（见函数 docstring）。
+# 本工具此前从未用旧逻辑产出过正式结果，故无需另立 PRE_FIX 运行根；沿用
+# -recal-v1 命名只为与 D1/D2 诊断的家族命名保持一致，供总控统一追踪。
+RUN_ID = "ch4-mlp-o11-tong-pooled-q0-local-screen-recal-v1"
 SEED = 42
 FOLD_COUNT = 3
 DIRECTION_COUNT = 6
@@ -160,21 +167,32 @@ def max_certified_exceedances(n: int, delta: float, budget: float) -> dict[str, 
 
 
 def threshold_for_allowed_count(benign_scores: np.ndarray, allowed: int) -> float:
-    """良性实体分数上取恰好<=allowed 个>=阈值的最大阈值（并列组整体处理）。
+    """良性实体分数上取恰好<=allowed 个>=阈值的最小可达阈值（在预算内尽量压低阈值，
+    并列组整体处理）。
 
-    与 pathology 模块 ``calibrate_threshold`` 同一 tie-safe 惯例（``>=`` 比较，
-    从大到小扫描候选阈值），改为直接接受整数配额而非浮点预算比例，供
-    CP 证书调用。"""
+    与 pathology 模块修复后的 ``calibrate_threshold``（983ff49/a43909c）同一
+    tie-safe 惯例（``>=`` 比较，从大到小扫描候选，持续更新最优解直到下一候选
+    会突破预算才停止），改为直接接受整数配额而非浮点预算比例，供 CP 证书调用。
+
+    2026-08-27 自查修复：本函数首版遇到第一个满足 count(>=t)<=allowed 的候选就
+    立即返回——最高候选恒满足（count=1<=allowed），阈值退化为全局最大良性分，
+    预算利用率≈0，与 pathology 诊断工具曾经的同型 bug（983ff49 记录、a43909c
+    修复）完全同构。此处同步修正，不再提前 return。
+    """
     ordered = np.sort(np.asarray(benign_scores, np.float64))[::-1]
     if len(ordered) == 0:
         raise RuntimeError("空校准良性分数集合")
     if allowed < 0:
         return float(np.nextafter(ordered[0], np.inf))
     candidates = np.unique(ordered)[::-1]
+    best = float(np.nextafter(ordered[0], np.inf))
     for threshold in candidates:
-        if int((ordered >= threshold).sum()) <= allowed:
-            return float(threshold)
-    return float(np.nextafter(ordered[0], np.inf))
+        count = int((ordered >= threshold).sum())
+        if count <= allowed:
+            best = float(threshold)
+        else:
+            break
+    return best
 
 
 def certificate_threshold(benign_scores: np.ndarray, delta: float, budget: float) -> dict[str, Any]:
@@ -348,11 +366,19 @@ def run_m1_prime(
 
 
 def d0_checkpoints_missing(d0_root: Path) -> list[int]:
-    return [
-        fold
-        for fold in range(FOLD_COUNT)
-        if not (d0_root / "checkpoints" / f"selected-O11-fold{fold}.pt").is_file()
-    ]
+    """双 schema 就绪性检查，与 pathology 模块 ``_load_fold_state_dict``
+    （d1c9335 引入）的双路径逻辑保持一致：本机 local-screen 布局
+    ``<d0_root>/checkpoints/selected-O11-fold{k}.pt`` 或服务器 bf16 布局
+    ``<d0_root>/fold-{k}/checkpoints/selected-O11.pt`` 任一存在即视为就绪
+    （身份字段的强校验留给 ``oof_flow_scores`` 实际加载时执行，此处只做
+    路径存在性预检，避免误报『缺失』阻断已就绪的服务器布局检查点）。"""
+    missing = []
+    for fold in range(FOLD_COUNT):
+        local_path = d0_root / "checkpoints" / f"selected-O11-fold{fold}.pt"
+        server_path = d0_root / f"fold-{fold}" / "checkpoints" / "selected-O11.pt"
+        if not local_path.is_file() and not server_path.is_file():
+            missing.append(fold)
+    return missing
 
 
 def main() -> int:
@@ -393,13 +419,27 @@ def main() -> int:
     )
 
     result = {
-        "schema_version": "ch4-mlp-o11-tong-pooled-q0-local-screen-v1",
+        "schema_version": "ch4-mlp-o11-tong-pooled-q0-local-screen-recal-v1",
         "run_id": RUN_ID,
         "screening_only": True,
         "formal_paper_evidence": False,
         "target_year_arrays_read": 0,
         "precision": "fp32",
         "device_type": device.type,
+        "calibration_fix": {
+            "fixed_2026_08_27_before_first_run": True,
+            "bug": (
+                "threshold_for_allowed_count 首版候选降序遍历遇到第一个满足 "
+                "count(>=t)<=allowed 即返回，最高候选恒满足（count=1<=allowed），"
+                "阈值退化为全局最大良性分，预算利用率约等于0"
+            ),
+            "same_bug_family_as": (
+                "tools/ch4_mlp_o11_pathology_diagnostics_local_screen.py 旧版 "
+                "calibrate_threshold（983ff49 记录、a43909c 修复）；本工具在解冻执行、"
+                "首次真实运行前自查发现并同步修正，未曾用旧逻辑产出过正式结果"
+            ),
+            "pre_fix_formal_results_exist": False,
+        },
         "fold_assignment_sha256": context["fold_sha"],
         "half_assignment_sha256": outcome["halves_sha256"],
         "seed": SEED,

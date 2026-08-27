@@ -61,7 +61,10 @@ from ch4_mlp_o11_pathology_diagnostics_local_screen import (  # noqa: E402
     oof_flow_scores,
 )
 
-RUN_ID = "ch4-mlp-o11-stratified-tong-2x2-local-screen-v1"
+# 运行身份改名为 -recal-v1 家族（2026-08-27，解冻执行指令），与 Task1/D1D2
+# 诊断的家族命名保持一致；本工具依赖的 threshold_for_allowed_count 已在
+# pooled_q0 模块自查修复（见该模块 -recal-v1 重命名处的说明）。
+RUN_ID = "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1"
 SEED = pooled_q0.SEED
 FOLD_COUNT = pooled_q0.FOLD_COUNT
 DIRECTION_COUNT = pooled_q0.DIRECTION_COUNT
@@ -464,13 +467,22 @@ def main() -> int:
     qualified = bool(gate1 and gate2 and gate3 and gate4 and gate5)
 
     result = {
-        "schema_version": "ch4-mlp-o11-stratified-tong-2x2-local-screen-v1",
+        "schema_version": "ch4-mlp-o11-stratified-tong-2x2-local-screen-recal-v1",
         "run_id": RUN_ID,
         "screening_only": True,
         "formal_paper_evidence": False,
         "target_year_arrays_read": 0,
         "precision": "fp32",
         "device_type": device.type,
+        "calibration_fix": {
+            "fixed_2026_08_27_before_first_run": True,
+            "note": (
+                "C00/C01/C10/C11 全部经由 pooled_q0.threshold_for_allowed_count / "
+                "pathology 模块 calibrate_threshold 取阈值，两者均已在首次真实运行前"
+                "自查并对齐 983ff49/a43909c 的『预算内尽量压低阈值』修复语义，"
+                "详见 ch4_mlp_o11_tong_pooled_q0_local_screen.py 的同名字段"
+            ),
+        },
         "fold_assignment_sha256": context["fold_sha"],
         "half_assignment_sha256": m1_outcome["halves_sha256"],
         "seed": SEED,
