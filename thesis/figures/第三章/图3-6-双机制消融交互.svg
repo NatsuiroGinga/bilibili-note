@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="425.19685pt" height="283.464567pt" viewBox="0 0 425.19685 283.464567" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="425.19685pt" height="255.11811pt" viewBox="0 0 425.19685 255.11811" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>图3-6-双机制消融交互</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>图3-6-双机制消融交互</dc:title>
-    <dc:date>2026-08-13T09:08:40.191666</dc:date>
+    <dc:date>2026-08-27T10:49:56.369962</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -23,8 +23,8 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 283.464567 
-L 425.19685 283.464567 
+   <path d="M 0 255.11811 
+L 425.19685 255.11811 
 L 425.19685 0 
 L 0 0 
 z
@@ -32,10 +32,10 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 36.141732 128.976378 
-L 136.062992 128.976378 
-L 136.062992 25.511811 
-L 36.141732 25.511811 
+    <path d="M 36.141732 153.070866 
+L 140.314961 153.070866 
+L 140.314961 29.338583 
+L 36.141732 29.338583 
 z
 " style="fill: #ffffff"/>
    </g>
@@ -43,711 +43,624 @@ z
     <g id="xtick_1">
      <g id="line2d_1">
       <defs>
-       <path id="m46b0a211cc" d="M 0 0 
+       <path id="m74e309a00b" d="M 0 0 
 L 0 2.5 
-" style="stroke: #1f2a30; stroke-width: 0.8"/>
+" style="stroke: #1f1f1f; stroke-width: 0.7"/>
       </defs>
       <g>
-       <use xlink:href="#m46b0a211cc" x="49.076204" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="52.057087" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_1">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(42.408079 139.988565)">C00</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(39.855579 148.111065)">A-,B-</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="52.057087" y="164.216179" transform="rotate(-0 52.057087 164.216179)">基线</text>
      </g>
     </g>
     <g id="xtick_2">
      <g id="line2d_2">
       <g>
-       <use xlink:href="#m46b0a211cc" x="73.760309" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="76.17126" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_2">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(67.092184 139.988565)">C01</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(63.615934 148.111065)">A-,B+</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="76.17126" y="164.341179" transform="rotate(-0 76.17126 164.341179)">仅 A</text>
      </g>
     </g>
     <g id="xtick_3">
      <g id="line2d_3">
       <g>
-       <use xlink:href="#m46b0a211cc" x="98.444415" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="100.285433" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_3">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(91.77629 139.988565)">C10</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(88.30004 148.111065)">A+,B-</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="100.285433" y="164.341179" transform="rotate(-0 100.285433 164.341179)">仅 B</text>
      </g>
     </g>
     <g id="xtick_4">
      <g id="line2d_4">
       <g>
-       <use xlink:href="#m46b0a211cc" x="123.128521" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="124.399606" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_4">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(116.608521 139.988565)">C11</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(112.060396 148.111065)">A+,B+</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="124.399606" y="164.143679" transform="rotate(-0 124.399606 164.143679)">A+B</text>
      </g>
     </g>
    </g>
    <g id="matplotlib.axis_2">
     <g id="ytick_1">
      <g id="line2d_5">
-      <path d="M 36.141732 128.976378 
-L 136.062992 128.976378 
-" clip-path="url(#p5f6e720ee9)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 36.141732 153.070866 
+L 140.314961 153.070866 
+" clip-path="url(#pdf50aa8dd9)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_6">
       <defs>
-       <path id="m99eed528a7" d="M 0 0 
+       <path id="m3c9c934d34" d="M 0 0 
 L -2.5 0 
-" style="stroke: #1f2a30; stroke-width: 0.8"/>
+" style="stroke: #1f1f1f; stroke-width: 0.7"/>
       </defs>
       <g>
-       <use xlink:href="#m99eed528a7" x="36.141732" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="36.141732" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_5">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="32.141732" y="131.749815" transform="rotate(-0 32.141732 131.749815)">0.0</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="32.141732" y="155.844304" transform="rotate(-0 32.141732 155.844304)">0.0</text>
      </g>
     </g>
     <g id="ytick_2">
      <g id="line2d_7">
-      <path d="M 36.141732 108.820877 
-L 136.062992 108.820877 
-" clip-path="url(#p5f6e720ee9)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 36.141732 120.558357 
+L 140.314961 120.558357 
+" clip-path="url(#pdf50aa8dd9)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_8">
       <g>
-       <use xlink:href="#m99eed528a7" x="36.141732" y="108.820877" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="36.141732" y="120.558357" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_6">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="32.141732" y="111.594314" transform="rotate(-0 32.141732 111.594314)">0.1</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="32.141732" y="123.331795" transform="rotate(-0 32.141732 123.331795)">0.2</text>
      </g>
     </g>
     <g id="ytick_3">
      <g id="line2d_9">
-      <path d="M 36.141732 88.665376 
-L 136.062992 88.665376 
-" clip-path="url(#p5f6e720ee9)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 36.141732 88.045848 
+L 140.314961 88.045848 
+" clip-path="url(#pdf50aa8dd9)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_10">
       <g>
-       <use xlink:href="#m99eed528a7" x="36.141732" y="88.665376" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="36.141732" y="88.045848" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_7">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="32.141732" y="91.438813" transform="rotate(-0 32.141732 91.438813)">0.2</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="32.141732" y="90.819285" transform="rotate(-0 32.141732 90.819285)">0.4</text>
      </g>
     </g>
     <g id="ytick_4">
      <g id="line2d_11">
-      <path d="M 36.141732 68.509875 
-L 136.062992 68.509875 
-" clip-path="url(#p5f6e720ee9)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 36.141732 55.533339 
+L 140.314961 55.533339 
+" clip-path="url(#pdf50aa8dd9)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_12">
       <g>
-       <use xlink:href="#m99eed528a7" x="36.141732" y="68.509875" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="36.141732" y="55.533339" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_8">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="32.141732" y="71.283312" transform="rotate(-0 32.141732 71.283312)">0.3</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="32.141732" y="58.306776" transform="rotate(-0 32.141732 58.306776)">0.6</text>
      </g>
     </g>
-    <g id="ytick_5">
-     <g id="line2d_13">
-      <path d="M 36.141732 48.354373 
-L 136.062992 48.354373 
-" clip-path="url(#p5f6e720ee9)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
-     </g>
-     <g id="line2d_14">
-      <g>
-       <use xlink:href="#m99eed528a7" x="36.141732" y="48.354373" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
-      </g>
-     </g>
-     <g id="text_9">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="32.141732" y="51.127811" transform="rotate(-0 32.141732 51.127811)">0.4</text>
-     </g>
-    </g>
-    <g id="ytick_6">
-     <g id="line2d_15">
-      <path d="M 36.141732 28.198872 
-L 136.062992 28.198872 
-" clip-path="url(#p5f6e720ee9)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
-     </g>
-     <g id="line2d_16">
-      <g>
-       <use xlink:href="#m99eed528a7" x="36.141732" y="28.198872" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
-      </g>
-     </g>
-     <g id="text_10">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="32.141732" y="30.97231" transform="rotate(-0 32.141732 30.97231)">0.5</text>
-     </g>
-    </g>
-    <g id="text_11">
-     <text style="font-size: 9px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="18.199349" y="77.244094" transform="rotate(-90 18.199349 77.244094)">逐流 AP</text>
+    <g id="text_9">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="17.199349" y="91.204724" transform="rotate(-90 17.199349 91.204724)">实体平均精确率</text>
     </g>
    </g>
    <g id="patch_3">
-    <path d="M 36.141732 128.976378 
-L 36.141732 25.511811 
-" style="fill: none; stroke: #1f2a30; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+    <path d="M 36.141732 153.070866 
+L 36.141732 29.338583 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_4">
-    <path d="M 36.141732 128.976378 
-L 136.062992 128.976378 
-" style="fill: none; stroke: #1f2a30; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+    <path d="M 36.141732 153.070866 
+L 140.314961 153.070866 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_5">
-    <path d="M 40.683608 128.976378 
-L 57.4688 128.976378 
-L 57.4688 81.940209 
-L 40.683608 81.940209 
+    <path d="M 44.099409 153.070866 
+L 60.014764 153.070866 
+L 60.014764 93.794192 
+L 44.099409 93.794192 
 z
-" clip-path="url(#p5f6e720ee9)" style="fill: #e6ebee; stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#pdf50aa8dd9)" style="fill: #f2f2f2; stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_12">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="49.076204" y="79.004316" transform="rotate(-0 49.076204 79.004316)">0.233</text>
+   <g id="text_10">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="52.057087" y="88.736376" transform="rotate(-0 52.057087 88.736376)">0.3646</text>
    </g>
    <g id="patch_6">
-    <path d="M 65.367713 128.976378 
-L 82.152905 128.976378 
-L 82.152905 84.646747 
-L 65.367713 84.646747 
+    <path d="M 68.213583 153.070866 
+L 84.128937 153.070866 
+L 84.128937 80.320317 
+L 68.213583 80.320317 
 z
-" clip-path="url(#p5f6e720ee9)" style="fill: url(#h3e6f1d9e44); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#pdf50aa8dd9)" style="fill: url(#h0942aaa60b); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_13">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="73.760309" y="81.710854" transform="rotate(-0 73.760309 81.710854)">0.220</text>
+   <g id="text_11">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="76.17126" y="75.2625" transform="rotate(-0 76.17126 75.2625)">0.4475</text>
    </g>
    <g id="patch_7">
-    <path d="M 90.051819 128.976378 
-L 106.837011 128.976378 
-L 106.837011 42.755906 
-L 90.051819 42.755906 
+    <path d="M 92.327756 153.070866 
+L 108.24311 153.070866 
+L 108.24311 77.628749 
+L 92.327756 77.628749 
 z
-" clip-path="url(#p5f6e720ee9)" style="fill: url(#h9054a8934b); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#pdf50aa8dd9)" style="fill: url(#h365e7e6f67); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_14">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="98.444415" y="39.820013" transform="rotate(-0 98.444415 39.820013)">0.428</text>
+   <g id="text_12">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="100.285433" y="72.570933" transform="rotate(-0 100.285433 72.570933)">0.4641</text>
    </g>
    <g id="patch_8">
-    <path d="M 114.735925 128.976378 
-L 131.521117 128.976378 
-L 131.521117 82.302004 
-L 114.735925 82.302004 
+    <path d="M 116.441929 153.070866 
+L 132.357283 153.070866 
+L 132.357283 57.892187 
+L 116.441929 57.892187 
 z
-" clip-path="url(#p5f6e720ee9)" style="fill: url(#h30505d9800); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#pdf50aa8dd9)" style="fill: url(#hedbf314dd0); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_15">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="123.128521" y="79.366111" transform="rotate(-0 123.128521 79.366111)">0.232</text>
+   <g id="text_13">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="124.399606" y="52.83437" transform="rotate(-0 124.399606 52.83437)">0.5855</text>
    </g>
-   <g id="text_16">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="86.102362" y="22.511811" transform="rotate(-0 86.102362 22.511811)">(a) 逐流 AP</text>
+   <g id="text_14">
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="88.228346" y="26.338583" transform="rotate(-0 88.228346 26.338583)">(a) 实体平均精确率</text>
    </g>
   </g>
   <g id="axes_2">
    <g id="patch_9">
-    <path d="M 170.07874 128.976378 
-L 270 128.976378 
-L 270 25.511811 
-L 170.07874 25.511811 
+    <path d="M 170.07874 153.070866 
+L 274.251969 153.070866 
+L 274.251969 29.338583 
+L 170.07874 29.338583 
 z
 " style="fill: #ffffff"/>
    </g>
    <g id="matplotlib.axis_3">
     <g id="xtick_5">
-     <g id="line2d_17">
+     <g id="line2d_13">
       <g>
-       <use xlink:href="#m46b0a211cc" x="183.013212" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="185.994094" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_17">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(176.345087 139.988565)">C00</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(173.792587 148.111065)">A-,B-</text>
+     <g id="text_15">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="185.994094" y="164.216179" transform="rotate(-0 185.994094 164.216179)">基线</text>
      </g>
     </g>
     <g id="xtick_6">
-     <g id="line2d_18">
+     <g id="line2d_14">
       <g>
-       <use xlink:href="#m46b0a211cc" x="207.697317" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="210.108268" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_18">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(201.029192 139.988565)">C01</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(197.552942 148.111065)">A-,B+</text>
+     <g id="text_16">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="210.108268" y="164.341179" transform="rotate(-0 210.108268 164.341179)">仅 A</text>
      </g>
     </g>
     <g id="xtick_7">
-     <g id="line2d_19">
+     <g id="line2d_15">
       <g>
-       <use xlink:href="#m46b0a211cc" x="232.381423" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="234.222441" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_19">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(225.713298 139.988565)">C10</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(222.237048 148.111065)">A+,B-</text>
+     <g id="text_17">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="234.222441" y="164.341179" transform="rotate(-0 234.222441 164.341179)">仅 B</text>
      </g>
     </g>
     <g id="xtick_8">
-     <g id="line2d_20">
+     <g id="line2d_16">
       <g>
-       <use xlink:href="#m46b0a211cc" x="257.065529" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="258.336614" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_20">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(250.545529 139.988565)">C11</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(245.997404 148.111065)">A+,B+</text>
+     <g id="text_18">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="258.336614" y="164.143679" transform="rotate(-0 258.336614 164.143679)">A+B</text>
      </g>
     </g>
    </g>
    <g id="matplotlib.axis_4">
+    <g id="ytick_5">
+     <g id="line2d_17">
+      <path d="M 170.07874 153.070866 
+L 274.251969 153.070866 
+" clip-path="url(#p69052fb4ef)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_18">
+      <g>
+       <use xlink:href="#m3c9c934d34" x="170.07874" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_19">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="166.07874" y="155.844304" transform="rotate(-0 166.07874 155.844304)">0.00</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_19">
+      <path d="M 170.07874 132.593428 
+L 274.251969 132.593428 
+" clip-path="url(#p69052fb4ef)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_20">
+      <g>
+       <use xlink:href="#m3c9c934d34" x="170.07874" y="132.593428" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_20">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="166.07874" y="135.366866" transform="rotate(-0 166.07874 135.366866)">0.05</text>
+     </g>
+    </g>
     <g id="ytick_7">
      <g id="line2d_21">
-      <path d="M 170.07874 128.976378 
-L 270 128.976378 
-" clip-path="url(#p85ecb49bc1)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 170.07874 112.11599 
+L 274.251969 112.11599 
+" clip-path="url(#p69052fb4ef)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_22">
       <g>
-       <use xlink:href="#m99eed528a7" x="170.07874" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="170.07874" y="112.11599" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_21">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="166.07874" y="131.749815" transform="rotate(-0 166.07874 131.749815)">0.0</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="166.07874" y="114.889428" transform="rotate(-0 166.07874 114.889428)">0.10</text>
      </g>
     </g>
     <g id="ytick_8">
      <g id="line2d_23">
-      <path d="M 170.07874 110.353766 
-L 270 110.353766 
-" clip-path="url(#p85ecb49bc1)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 170.07874 91.638553 
+L 274.251969 91.638553 
+" clip-path="url(#p69052fb4ef)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_24">
       <g>
-       <use xlink:href="#m99eed528a7" x="170.07874" y="110.353766" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="170.07874" y="91.638553" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_22">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="166.07874" y="113.127203" transform="rotate(-0 166.07874 113.127203)">0.1</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="166.07874" y="94.41199" transform="rotate(-0 166.07874 94.41199)">0.15</text>
      </g>
     </g>
     <g id="ytick_9">
      <g id="line2d_25">
-      <path d="M 170.07874 91.731154 
-L 270 91.731154 
-" clip-path="url(#p85ecb49bc1)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 170.07874 71.161115 
+L 274.251969 71.161115 
+" clip-path="url(#p69052fb4ef)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_26">
       <g>
-       <use xlink:href="#m99eed528a7" x="170.07874" y="91.731154" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="170.07874" y="71.161115" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_23">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="166.07874" y="94.504591" transform="rotate(-0 166.07874 94.504591)">0.2</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="166.07874" y="73.934552" transform="rotate(-0 166.07874 73.934552)">0.20</text>
      </g>
     </g>
     <g id="ytick_10">
      <g id="line2d_27">
-      <path d="M 170.07874 73.108542 
-L 270 73.108542 
-" clip-path="url(#p85ecb49bc1)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 170.07874 50.683677 
+L 274.251969 50.683677 
+" clip-path="url(#p69052fb4ef)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_28">
       <g>
-       <use xlink:href="#m99eed528a7" x="170.07874" y="73.108542" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="170.07874" y="50.683677" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_24">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="166.07874" y="75.881979" transform="rotate(-0 166.07874 75.881979)">0.3</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="166.07874" y="53.457114" transform="rotate(-0 166.07874 53.457114)">0.25</text>
      </g>
     </g>
     <g id="ytick_11">
      <g id="line2d_29">
-      <path d="M 170.07874 54.485929 
-L 270 54.485929 
-" clip-path="url(#p85ecb49bc1)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 170.07874 30.206239 
+L 274.251969 30.206239 
+" clip-path="url(#p69052fb4ef)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_30">
       <g>
-       <use xlink:href="#m99eed528a7" x="170.07874" y="54.485929" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="170.07874" y="30.206239" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_25">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="166.07874" y="57.259367" transform="rotate(-0 166.07874 57.259367)">0.4</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="166.07874" y="32.979676" transform="rotate(-0 166.07874 32.979676)">0.30</text>
      </g>
     </g>
-    <g id="ytick_12">
-     <g id="line2d_31">
-      <path d="M 170.07874 35.863317 
-L 270 35.863317 
-" clip-path="url(#p85ecb49bc1)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
-     </g>
-     <g id="line2d_32">
-      <g>
-       <use xlink:href="#m99eed528a7" x="170.07874" y="35.863317" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
-      </g>
-     </g>
-     <g id="text_26">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="166.07874" y="38.636755" transform="rotate(-0 166.07874 38.636755)">0.5</text>
-     </g>
-    </g>
-    <g id="text_27">
-     <text style="font-size: 9px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="152.136357" y="77.244094" transform="rotate(-90 152.136357 77.244094)">实体 AP</text>
+    <g id="text_26">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="147.136357" y="91.204724" transform="rotate(-90 147.136357 91.204724)">逐流平均精确率</text>
     </g>
    </g>
    <g id="patch_10">
-    <path d="M 170.07874 128.976378 
-L 170.07874 25.511811 
-" style="fill: none; stroke: #1f2a30; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+    <path d="M 170.07874 153.070866 
+L 170.07874 29.338583 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_11">
-    <path d="M 170.07874 128.976378 
-L 270 128.976378 
-" style="fill: none; stroke: #1f2a30; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+    <path d="M 170.07874 153.070866 
+L 274.251969 153.070866 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_12">
-    <path d="M 174.620616 128.976378 
-L 191.405807 128.976378 
-L 191.405807 59.682441 
-L 174.620616 59.682441 
+    <path d="M 178.036417 153.070866 
+L 193.951772 153.070866 
+L 193.951772 57.892187 
+L 178.036417 57.892187 
 z
-" clip-path="url(#p85ecb49bc1)" style="fill: #e6ebee; stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p69052fb4ef)" style="fill: #f2f2f2; stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_28">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="183.013212" y="56.838522" transform="rotate(-0 183.013212 56.838522)">0.372</text>
+   <g id="text_27">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="185.994094" y="52.83437" transform="rotate(-0 185.994094 52.83437)">0.2324</text>
    </g>
    <g id="patch_13">
-    <path d="M 199.304721 128.976378 
-L 216.089913 128.976378 
-L 216.089913 55.580133 
-L 199.304721 55.580133 
+    <path d="M 202.150591 153.070866 
+L 218.065945 153.070866 
+L 218.065945 95.747735 
+L 202.150591 95.747735 
 z
-" clip-path="url(#p85ecb49bc1)" style="fill: url(#h3e6f1d9e44); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p69052fb4ef)" style="fill: url(#h0942aaa60b); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_29">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="207.697317" y="52.736213" transform="rotate(-0 207.697317 52.736213)">0.394</text>
+   <g id="text_28">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="210.108268" y="90.689919" transform="rotate(-0 210.108268 90.689919)">0.1400</text>
    </g>
    <g id="patch_14">
-    <path d="M 223.988827 128.976378 
-L 240.774019 128.976378 
-L 240.774019 63.854708 
-L 223.988827 63.854708 
+    <path d="M 226.264764 153.070866 
+L 242.180118 153.070866 
+L 242.180118 95.727434 
+L 226.264764 95.727434 
 z
-" clip-path="url(#p85ecb49bc1)" style="fill: url(#h9054a8934b); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p69052fb4ef)" style="fill: url(#h365e7e6f67); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_30">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="232.381423" y="61.010789" transform="rotate(-0 232.381423 61.010789)">0.350</text>
+   <g id="text_29">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="234.222441" y="90.669618" transform="rotate(-0 234.222441 90.669618)">0.1400</text>
    </g>
    <g id="patch_15">
-    <path d="M 248.672933 128.976378 
-L 265.458125 128.976378 
-L 265.458125 42.755906 
-L 248.672933 42.755906 
+    <path d="M 250.378937 153.070866 
+L 266.294291 153.070866 
+L 266.294291 98.719407 
+L 250.378937 98.719407 
 z
-" clip-path="url(#p85ecb49bc1)" style="fill: url(#h30505d9800); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p69052fb4ef)" style="fill: url(#hedbf314dd0); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_30">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="258.336614" y="93.661591" transform="rotate(-0 258.336614 93.661591)">0.1327</text>
    </g>
    <g id="text_31">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="257.065529" y="39.911986" transform="rotate(-0 257.065529 39.911986)">0.463</text>
-   </g>
-   <g id="text_32">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="220.03937" y="22.511811" transform="rotate(-0 220.03937 22.511811)">(b) 实体 AP（Lp 池化）</text>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="222.165354" y="26.338583" transform="rotate(-0 222.165354 26.338583)">(b) 逐流平均精确率</text>
    </g>
   </g>
   <g id="axes_3">
    <g id="patch_16">
-    <path d="M 304.015748 128.976378 
-L 403.937008 128.976378 
-L 403.937008 25.511811 
-L 304.015748 25.511811 
+    <path d="M 304.015748 153.070866 
+L 408.188976 153.070866 
+L 408.188976 29.338583 
+L 304.015748 29.338583 
 z
 " style="fill: #ffffff"/>
    </g>
    <g id="matplotlib.axis_5">
     <g id="xtick_9">
-     <g id="line2d_33">
+     <g id="line2d_31">
       <g>
-       <use xlink:href="#m46b0a211cc" x="316.950219" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="319.931102" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_33">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(310.282094 139.988565)">C00</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(307.729594 148.111065)">A-,B-</text>
+     <g id="text_32">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="319.931102" y="164.216179" transform="rotate(-0 319.931102 164.216179)">基线</text>
      </g>
     </g>
     <g id="xtick_10">
-     <g id="line2d_34">
+     <g id="line2d_32">
       <g>
-       <use xlink:href="#m46b0a211cc" x="341.634325" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="344.045276" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_34">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(334.9662 139.988565)">C01</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(331.48995 148.111065)">A-,B+</text>
+     <g id="text_33">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="344.045276" y="164.341179" transform="rotate(-0 344.045276 164.341179)">仅 A</text>
      </g>
     </g>
     <g id="xtick_11">
-     <g id="line2d_35">
+     <g id="line2d_33">
       <g>
-       <use xlink:href="#m46b0a211cc" x="366.318431" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="368.159449" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_35">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(359.650306 139.988565)">C10</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(356.174056 148.111065)">A+,B-</text>
+     <g id="text_34">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="368.159449" y="164.341179" transform="rotate(-0 368.159449 164.341179)">仅 B</text>
      </g>
     </g>
     <g id="xtick_12">
-     <g id="line2d_36">
+     <g id="line2d_34">
       <g>
-       <use xlink:href="#m46b0a211cc" x="391.002536" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m74e309a00b" x="392.273622" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
-     <g id="text_36">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(384.482536 139.988565)">C11</text>
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(379.934411 148.111065)">A+,B+</text>
+     <g id="text_35">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="392.273622" y="164.143679" transform="rotate(-0 392.273622 164.143679)">A+B</text>
      </g>
     </g>
    </g>
    <g id="matplotlib.axis_6">
+    <g id="ytick_12">
+     <g id="line2d_35">
+      <path d="M 304.015748 153.070866 
+L 408.188976 153.070866 
+" clip-path="url(#p63c582d63c)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_36">
+      <g>
+       <use xlink:href="#m3c9c934d34" x="304.015748" y="153.070866" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_36">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="300.015748" y="155.844304" transform="rotate(-0 300.015748 155.844304)">0.0</text>
+     </g>
+    </g>
     <g id="ytick_13">
      <g id="line2d_37">
-      <path d="M 304.015748 128.976378 
-L 403.937008 128.976378 
-" clip-path="url(#pd07d5e0bce)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 304.015748 127.689885 
+L 408.188976 127.689885 
+" clip-path="url(#p63c582d63c)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_38">
       <g>
-       <use xlink:href="#m99eed528a7" x="304.015748" y="128.976378" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="304.015748" y="127.689885" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_37">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="300.015748" y="131.749815" transform="rotate(-0 300.015748 131.749815)">0.0</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="300.015748" y="130.463322" transform="rotate(-0 300.015748 130.463322)">0.2</text>
      </g>
     </g>
     <g id="ytick_14">
      <g id="line2d_39">
-      <path d="M 304.015748 104.18181 
-L 403.937008 104.18181 
-" clip-path="url(#pd07d5e0bce)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 304.015748 102.308904 
+L 408.188976 102.308904 
+" clip-path="url(#p63c582d63c)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_40">
       <g>
-       <use xlink:href="#m99eed528a7" x="304.015748" y="104.18181" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="304.015748" y="102.308904" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_38">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="300.015748" y="106.955247" transform="rotate(-0 300.015748 106.955247)">0.2</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="300.015748" y="105.082341" transform="rotate(-0 300.015748 105.082341)">0.4</text>
      </g>
     </g>
     <g id="ytick_15">
      <g id="line2d_41">
-      <path d="M 304.015748 79.387242 
-L 403.937008 79.387242 
-" clip-path="url(#pd07d5e0bce)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 304.015748 76.927922 
+L 408.188976 76.927922 
+" clip-path="url(#p63c582d63c)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_42">
       <g>
-       <use xlink:href="#m99eed528a7" x="304.015748" y="79.387242" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="304.015748" y="76.927922" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_39">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="300.015748" y="82.160679" transform="rotate(-0 300.015748 82.160679)">0.4</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="300.015748" y="79.70136" transform="rotate(-0 300.015748 79.70136)">0.6</text>
      </g>
     </g>
     <g id="ytick_16">
      <g id="line2d_43">
-      <path d="M 304.015748 54.592674 
-L 403.937008 54.592674 
-" clip-path="url(#pd07d5e0bce)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
+      <path d="M 304.015748 51.546941 
+L 408.188976 51.546941 
+" clip-path="url(#p63c582d63c)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
      </g>
      <g id="line2d_44">
       <g>
-       <use xlink:href="#m99eed528a7" x="304.015748" y="54.592674" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
+       <use xlink:href="#m3c9c934d34" x="304.015748" y="51.546941" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.7"/>
       </g>
      </g>
      <g id="text_40">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="300.015748" y="57.366112" transform="rotate(-0 300.015748 57.366112)">0.6</text>
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #1f1f1f" x="300.015748" y="54.320379" transform="rotate(-0 300.015748 54.320379)">0.8</text>
      </g>
     </g>
-    <g id="ytick_17">
-     <g id="line2d_45">
-      <path d="M 304.015748 29.798106 
-L 403.937008 29.798106 
-" clip-path="url(#pd07d5e0bce)" style="fill: none; stroke: #d5dce0; stroke-width: 0.5; stroke-linecap: square"/>
-     </g>
-     <g id="line2d_46">
-      <g>
-       <use xlink:href="#m99eed528a7" x="304.015748" y="29.798106" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.8"/>
-      </g>
-     </g>
-     <g id="text_41">
-      <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: end; fill: #1f2a30" x="300.015748" y="32.571544" transform="rotate(-0 300.015748 32.571544)">0.8</text>
-     </g>
-    </g>
-    <g id="text_42">
-     <text style="font-size: 9px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="286.073365" y="77.244094" transform="rotate(-90 286.073365 77.244094)">DR@4%FPR</text>
+    <g id="text_41">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="285.073365" y="91.204724" transform="rotate(-90 285.073365 91.204724)">检出率</text>
     </g>
    </g>
    <g id="patch_17">
-    <path d="M 304.015748 128.976378 
-L 304.015748 25.511811 
-" style="fill: none; stroke: #1f2a30; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+    <path d="M 304.015748 153.070866 
+L 304.015748 29.338583 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_18">
-    <path d="M 304.015748 128.976378 
-L 403.937008 128.976378 
-" style="fill: none; stroke: #1f2a30; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+    <path d="M 304.015748 153.070866 
+L 408.188976 153.070866 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
    </g>
    <g id="patch_19">
-    <path d="M 308.557623 128.976378 
-L 325.342815 128.976378 
-L 325.342815 54.131073 
-L 308.557623 54.131073 
+    <path d="M 311.973425 153.070866 
+L 327.88878 153.070866 
+L 327.88878 93.837326 
+L 311.973425 93.837326 
 z
-" clip-path="url(#pd07d5e0bce)" style="fill: #e6ebee; stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p63c582d63c)" style="fill: #f2f2f2; stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_43">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="316.950219" y="51.660673" transform="rotate(-0 316.950219 51.660673)">0.604</text>
+   <g id="text_42">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="319.931102" y="88.77951" transform="rotate(-0 319.931102 88.77951)">0.4668</text>
    </g>
    <g id="patch_20">
-    <path d="M 333.241729 128.976378 
-L 350.026921 128.976378 
-L 350.026921 48.855633 
-L 333.241729 48.855633 
+    <path d="M 336.087598 153.070866 
+L 352.002953 153.070866 
+L 352.002953 81.01183 
+L 336.087598 81.01183 
 z
-" clip-path="url(#pd07d5e0bce)" style="fill: url(#h3e6f1d9e44); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p63c582d63c)" style="fill: url(#h0942aaa60b); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_44">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="341.634325" y="46.385233" transform="rotate(-0 341.634325 46.385233)">0.646</text>
+   <g id="text_43">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="344.045276" y="75.954014" transform="rotate(-0 344.045276 75.954014)">0.5678</text>
    </g>
    <g id="patch_21">
-    <path d="M 357.925835 128.976378 
-L 374.711027 128.976378 
-L 374.711027 50.174493 
-L 357.925835 50.174493 
+    <path d="M 360.201772 153.070866 
+L 376.117126 153.070866 
+L 376.117126 81.855613 
+L 360.201772 81.855613 
 z
-" clip-path="url(#pd07d5e0bce)" style="fill: url(#h9054a8934b); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p63c582d63c)" style="fill: url(#h365e7e6f67); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
    </g>
-   <g id="text_45">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="366.318431" y="47.704093" transform="rotate(-0 366.318431 47.704093)">0.636</text>
+   <g id="text_44">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="368.159449" y="76.797797" transform="rotate(-0 368.159449 76.797797)">0.5612</text>
    </g>
    <g id="patch_22">
-    <path d="M 382.609941 128.976378 
-L 399.395132 128.976378 
-L 399.395132 42.755906 
-L 382.609941 42.755906 
+    <path d="M 384.315945 153.070866 
+L 400.231299 153.070866 
+L 400.231299 57.892187 
+L 384.315945 57.892187 
 z
-" clip-path="url(#pd07d5e0bce)" style="fill: url(#h30505d9800); stroke: #1f2a30; stroke-width: 0.9; stroke-linejoin: miter"/>
+" clip-path="url(#p63c582d63c)" style="fill: url(#hedbf314dd0); stroke: #1f1f1f; stroke-width: 0.9; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_45">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="392.273622" y="52.83437" transform="rotate(-0 392.273622 52.83437)">0.7500</text>
    </g>
    <g id="text_46">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="391.002536" y="40.285506" transform="rotate(-0 391.002536 40.285506)">0.695</text>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="356.102362" y="26.338583" transform="rotate(-0 356.102362 26.338583)">(c) 检出率（实际假阳率 2%）</text>
    </g>
-   <g id="text_47">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'Heiti TC'; text-anchor: middle; fill: #1f2a30" x="353.976378" y="22.511811" transform="rotate(-0 353.976378 22.511811)">(c) DR@4%FPR</text>
-   </g>
+  </g>
+  <g id="text_47">
+   <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #555555" transform="translate(130.750925 179.640301)">A = 因果前缀跨流聚合，B = 实体级幂平均池化</text>
+   <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #555555" transform="translate(100.785925 189.241239)">基线＝两个机制都不启用，A+B＝双机制并用（本章完整方法）</text>
   </g>
   <g id="text_48">
    <g id="patch_23">
-    <path d="M 40.102362 210.763937 
-L 132.102362 210.763937 
-Q 134.502362 210.763937 134.502362 208.363937 
-L 134.502362 152.503937 
-Q 134.502362 150.103937 132.102362 150.103937 
-L 40.102362 150.103937 
-Q 37.702362 150.103937 37.702362 152.503937 
-L 37.702362 208.363937 
-Q 37.702362 210.763937 40.102362 210.763937 
+    <path d="M 25.98405 228.944882 
+L 399.2128 228.944882 
+Q 401.6128 228.944882 401.6128 226.544882 
+L 401.6128 207.343007 
+Q 401.6128 204.943007 399.2128 204.943007 
+L 25.98405 204.943007 
+Q 23.58405 204.943007 23.58405 207.343007 
+L 23.58405 226.544882 
+Q 23.58405 228.944882 25.98405 228.944882 
 z
-" style="fill: #ffffff; stroke: #b03a2e; stroke-width: 0.7; stroke-linejoin: miter"/>
+" style="fill: #ffffff; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(56.178612 160.007062)">A 主效应 +0.1944</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(57.102362 169.317062)">B 主效应 -0.0134</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(58.846737 178.638937)">之和      +0.1810</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(59.770487 187.928937)">组合      -0.0018</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(58.418612 197.234562)">交互 Δ    -0.1828</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(40.102362 206.520812)">判据一 不通过／二 不通过</text>
+   <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #1f1f1f" transform="translate(25.98405 214.846601)">以实体平均精确率计：A 单开 +0.0829，B 单开 +0.0994，两者之和 +0.1823；并用 +0.2209，交互项 +0.0385</text>
+   <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #1f1f1f" transform="translate(64.598425 224.447538)">两个单机制对基线均为正贡献，并用格在目标年四格中最高；交互项只作描述性读数</text>
   </g>
   <g id="text_49">
-   <g id="patch_24">
-    <path d="M 182.03937 210.763937 
-L 258.03937 210.763937 
-Q 260.43937 210.763937 260.43937 208.363937 
-L 260.43937 152.503937 
-Q 260.43937 150.103937 258.03937 150.103937 
-L 182.03937 150.103937 
-Q 179.63937 150.103937 179.63937 152.503937 
-L 179.63937 208.363937 
-Q 179.63937 210.763937 182.03937 210.763937 
-z
-" style="fill: #ffffff; stroke: #1f2a30; stroke-width: 0.7; stroke-linejoin: miter"/>
-   </g>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(191.03937 160.007062)">A 主效应 -0.0224</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(190.11562 169.317062)">B 主效应 +0.0220</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(193.707495 178.638937)">之和      -0.0004</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(192.783745 187.928937)">组合      +0.0909</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(191.43187 197.234562)">交互 Δ    +0.0913</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(182.03937 206.520812)">判据一 通过／二 通过</text>
-  </g>
-  <g id="text_50">
-   <g id="patch_25">
-    <path d="M 315.976378 210.763937 
-L 391.976378 210.763937 
-Q 394.376378 210.763937 394.376378 208.363937 
-L 394.376378 152.503937 
-Q 394.376378 150.103937 391.976378 150.103937 
-L 315.976378 150.103937 
-Q 313.576378 150.103937 313.576378 152.503937 
-L 313.576378 208.363937 
-Q 313.576378 210.763937 315.976378 210.763937 
-z
-" style="fill: #ffffff; stroke: #1f2a30; stroke-width: 0.7; stroke-linejoin: miter"/>
-   </g>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(324.052628 160.007062)">A 主效应 +0.0319</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(324.052628 169.317062)">B 主效应 +0.0426</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(326.720753 178.638937)">之和      +0.0745</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(326.720753 187.928937)">组合      +0.0918</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(325.368878 197.234562)">交互 Δ    +0.0173</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #1f2a30" transform="translate(315.976378 206.520812)">判据一 通过／二 通过</text>
-  </g>
-  <g id="text_51">
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #5c6a73" transform="translate(67.630925 227.707542)">C00 基线序列编码器　C01 仅实体级 Lp 池化　C10 仅因果前缀聚合　C11 完整方法</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #5c6a73" transform="translate(17.98655 237.131136)">A = 因果前缀聚合，B = 实体级 Lp 池化；Δ = C11 - C10 - C01 + C00；判据一 Δ &gt; 0；判据二 C11 &gt; max(C01, C10)</text>
-  </g>
-  <g id="text_52">
-   <g id="patch_26">
-    <path d="M 89.94405 282.622992 
-L 335.2528 282.622992 
-Q 337.8128 282.622992 337.8128 280.062992 
-L 337.8128 260.424711 
-Q 337.8128 257.864711 335.2528 257.864711 
-L 89.94405 257.864711 
-Q 87.38405 257.864711 87.38405 260.424711 
-L 87.38405 280.062992 
-Q 87.38405 282.622992 89.94405 282.622992 
-z
-" style="fill: #fdf2f0; stroke: #b03a2e; stroke-width: 0.7; stroke-linejoin: miter"/>
-   </g>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(89.94405 267.759281)">三个评价口径结论不一致：实体 AP 与 DR@4%FPR 两条判据均通过，</text>
-   <text style="font-size: 8px; font-family: 'Times New Roman', 'Heiti TC'; fill: #b03a2e" transform="translate(93.633425 277.981547)">逐流 AP 判据一、判据二均不通过。此处如实并列呈现，不作取舍。</text>
+   <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="212.598425" y="246.636057" transform="rotate(-0 212.598425 246.636057)">(c) 的四格实际假阳率依次为 0.019930、0.019994、0.019994、0.019994；单种子 seed42</text>
   </g>
  </g>
  <defs>
-  <clipPath id="p5f6e720ee9">
-   <rect x="36.141732" y="25.511811" width="99.92126" height="103.464567"/>
+  <clipPath id="pdf50aa8dd9">
+   <rect x="36.141732" y="29.338583" width="104.173228" height="123.732283"/>
   </clipPath>
-  <clipPath id="p85ecb49bc1">
-   <rect x="170.07874" y="25.511811" width="99.92126" height="103.464567"/>
+  <clipPath id="p69052fb4ef">
+   <rect x="170.07874" y="29.338583" width="104.173228" height="123.732283"/>
   </clipPath>
-  <clipPath id="pd07d5e0bce">
-   <rect x="304.015748" y="25.511811" width="99.92126" height="103.464567"/>
+  <clipPath id="p63c582d63c">
+   <rect x="304.015748" y="29.338583" width="104.173228" height="123.732283"/>
   </clipPath>
  </defs>
  <defs>
-  <pattern id="h3e6f1d9e44" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
-   <rect x="0" y="0" width="73" height="73" fill="#b7c3cb"/>
+  <pattern id="h0942aaa60b" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+   <rect x="0" y="0" width="73" height="73" fill="#c9c9c9"/>
    <path d="M -36 36 
 L 36 -36 
 M -30 42 
@@ -774,10 +687,10 @@ M 30 102
 L 102 30 
 M 36 108 
 L 108 36 
-" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.6; stroke-linecap: butt; stroke-linejoin: miter"/>
+" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
   </pattern>
-  <pattern id="h9054a8934b" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
-   <rect x="0" y="0" width="73" height="73" fill="#7c8b95"/>
+  <pattern id="h365e7e6f67" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+   <rect x="0" y="0" width="73" height="73" fill="#8f8f8f"/>
    <path d="M 0 72.6 
 C 0.159122 72.6 0.311748 72.53678 0.424264 72.424264 
 C 0.53678 72.311748 0.6 72.159122 0.6 72 
@@ -2408,10 +2321,10 @@ C 71.46322 -0.311748 71.4 -0.159122 71.4 0
 C 71.4 0.159122 71.46322 0.311748 71.575736 0.424264 
 C 71.688252 0.53678 71.840878 0.6 72 0.6 
 z
-" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.6; stroke-linecap: butt; stroke-linejoin: miter"/>
+" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
   </pattern>
-  <pattern id="h30505d9800" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
-   <rect x="0" y="0" width="73" height="73" fill="#3b4e5a"/>
+  <pattern id="hedbf314dd0" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+   <rect x="0" y="0" width="73" height="73" fill="#4a4a4a"/>
    <path d="M -36 36 
 L 36 -36 
 M -30 42 
@@ -2464,7 +2377,7 @@ M 30 -30
 L 102 42 
 M 36 -36 
 L 108 36 
-" style="fill: #1f2a30; stroke: #1f2a30; stroke-width: 0.6; stroke-linecap: butt; stroke-linejoin: miter"/>
+" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
   </pattern>
  </defs>
 </svg>

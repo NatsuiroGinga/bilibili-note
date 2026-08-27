@@ -1,13 +1,13 @@
-"""生成第三章七张实验结果图（图3-5 ~ 图3-11）。
+"""生成第三章实验结果图（图3-5、图3-6、图3-7、图3-8、图3-9、图3-11、图3-12）。
 
-唯一数据源（不得从别处取数）：
-  thesis/experiments/llm_probe/runs/diagnostics/ch3-full/ch3_full_results.json
-  thesis/experiments/llm_probe/runs/diagnostics/ch3-full/run.log
+数据只来自 `resultdata.py` 登记的权威制品，图内每个数字都可指回制品字段；本脚本不含
+任何手工录入的实验数值。字体、尺寸与灰度可读规格来自 `figstyle.py`，与机制图同源，
+不再自建字体解析——`.ttc` 未指定 face_index 曾使图 3-5 至图 3-11 内嵌繁体 STHeitiTC，
+该根因已由改用 `figstyle.resolve_cjk_font()` 关闭。
 
-外部参照常量（Dijk 2026 表 5、XGBoost、逐流 MLP、随机先验）来自同族冻结脚本
-thesis/experiments/llm_probe/tools/ch3_main.py 第 282、302-304 行，在图内与清单中显式标注来源。
+图 3-10（攻击类别分面）在当前权威制品中没有任何按攻击类别的分面字段，已随本次改造
+撤下，理由与恢复路径写在 `图件清单.json` 的 `withdrawn` 段。
 
-输出 PNG(400 ppi) + PDF + SVG，落 thesis/figures/第三章/，并把本脚本负责的条目合并进 图件清单.json。
 执行：uv run --project thesis/figures/第三章 python thesis/figures/第三章/绘制第三章结果图.py
 """
 
@@ -15,121 +15,46 @@ from __future__ import annotations
 
 import json
 import logging
-import re
-from collections.abc import Callable
+import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
-import matplotlib
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-matplotlib.use("Agg")
-
-import matplotlib.pyplot as plt
+import figstyle as fs
 import numpy as np
-from matplotlib import font_manager
+import resultdata as rd
+from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
-logging.basicConfig(level=logging.WARNING, format="%(message)s")
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 ROOT = Path(__file__).resolve().parent
-REPO = ROOT.parents[2]
-RUN_DIR = REPO / "thesis/experiments/llm_probe/runs/diagnostics/ch3-full"
-JSON_PATH = RUN_DIR / "ch3_full_results.json"
-LOG_PATH = RUN_DIR / "run.log"
 MANIFEST_PATH = ROOT / "图件清单.json"
+GENERATOR = "绘制第三章结果图.py"
+MECHANISM_GENERATOR = "绘制第三章机制图.py"
 
-# 学位论文图件合同：中文黑体。macOS 无 SimHei，按黑体族优先级回退到华文黑体。
-CJK_FONT_CANDIDATES = (
-    Path("/System/Library/Fonts/STHeiti Medium.ttc"),
-    Path("/System/Library/Fonts/STHeiti Light.ttc"),
-    Path("/System/Library/Fonts/Hiragino Sans GB.ttc"),
-    Path("/Library/Fonts/Arial Unicode.ttf"),
-)
-LATIN_FONT_CANDIDATES = (Path("/System/Library/Fonts/Supplemental/Times New Roman.ttf"),)
+INK, MUTED, HAIRLINE = fs.INK, fs.MUTED, fs.HAIRLINE
+GRID = "#D9D9D9"
+ACCENT = fs.M2_EDGE
+FS_MIN, FS_MAIN = fs.MIN_FONT_PT, fs.MAIN_FONT_PT
 
-PNG_DPI = 400
-FS_MIN = 8.0  # 图内最小字号
-FS_MAIN = 9.0  # 主标注字号
-
-INK = "#1F2A30"
-MUTED = "#5C6A73"
-GRID = "#D5DCE0"
-ACCENT = "#B03A2E"
-FILL_C00 = "#E6EBEE"
-FILL_C01 = "#B7C3CB"
-FILL_C10 = "#7C8B95"
-FILL_C11 = "#3B4E5A"
-FILL_OWN_BASE = "#FFFFFF"
-FILL_EXTERNAL = "#FFFFFF"
-
-# 外部参照常量，来源 tools/ch3_main.py:282 与 302-304（同一冻结评价池）
-FLOW_PRIOR = 0.0257073138
-EXTERNAL_REFS = {
-    "XGBoost全量": 0.224442,
-    "逐流MLP": 0.159013,
-    "Dijk表5-XGB": 0.2416,
-    "Dijk表5-GRU+SesH": 0.1758,
-    "Dijk表5-Transformer+2-H": 0.0742,
-}
-ENTITY_FLOW_MEDIAN = 2  # run.log 第 5 行：实体内时序秩已建，实体流数中位=2
-
-CELL_NAMES = {
-    "C00": "基线序列编码器",
-    "C01": "仅实体级Lp池化",
-    "C10": "仅因果前缀聚合",
-    "C11": "完整方法",
-}
-CELL_TAGS = {"C00": "A-,B-", "C01": "A-,B+", "C10": "A+,B-", "C11": "A+,B+"}
-CELL_FILLS = {"C00": FILL_C00, "C01": FILL_C01, "C10": FILL_C10, "C11": FILL_C11}
-CELL_HATCH = {"C00": "", "C01": "//", "C10": "..", "C11": "xx"}
-CELL_ORDER = ("C00", "C01", "C10", "C11")
-
-
-def register_fonts() -> dict[str, str]:
-    """注册中文黑体与西文 Times New Roman，返回实际生效的字体名。"""
-
-    def pick(candidates: tuple[Path, ...], kind: str) -> str:
-        for path in candidates:
-            if path.exists():
-                font_manager.fontManager.addfont(str(path))
-                return font_manager.FontProperties(fname=str(path)).get_name()
-        raise FileNotFoundError(f"未找到可用的{kind}字体，候选={candidates}")
-
-    cjk = pick(CJK_FONT_CANDIDATES, "中文黑体")
-    latin = pick(LATIN_FONT_CANDIDATES, "西文")
-    return {"cjk": cjk, "latin": latin}
-
-
-FONTS = register_fonts()
+# 四格填充：明度单调递增，配合填充图案，灰度打印仍可区分。
+CELL_FILL = {"B00": "#F2F2F2", "B10": "#C9C9C9", "O01": "#8F8F8F", "O11": "#4A4A4A"}
+CELL_HATCH = {"B00": "", "B10": "//", "O01": "..", "O11": "xx"}
 
 plt.rcParams.update(
     {
-        # 西文优先 Times New Roman，中文逐字形回退到黑体
-        "font.family": [FONTS["latin"], FONTS["cjk"]],
-        "axes.unicode_minus": False,
-        "mathtext.fontset": "stix",
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-        "svg.fonttype": "none",
-        "figure.facecolor": "white",
-        "savefig.facecolor": "white",
-        "savefig.transparent": False,
-        "font.size": FS_MIN,
         "axes.labelsize": FS_MAIN,
         "axes.titlesize": FS_MAIN,
-        "xtick.labelsize": FS_MIN,
-        "ytick.labelsize": FS_MIN,
         "legend.fontsize": FS_MIN,
-        "axes.linewidth": 0.8,
-        "xtick.major.width": 0.8,
-        "ytick.major.width": 0.8,
-        "grid.linewidth": 0.5,
-        "lines.linewidth": 1.4,
-        "hatch.linewidth": 0.6,
+        "font.size": FS_MIN,
+        "grid.linewidth": fs.AUX_LINE_PT,
+        "lines.linewidth": fs.MAIN_LINE_PT,
+        "hatch.linewidth": fs.AUX_LINE_PT,
         "axes.edgecolor": INK,
         "text.color": INK,
         "axes.labelcolor": INK,
@@ -139,161 +64,148 @@ plt.rcParams.update(
 )
 
 
-@dataclass(frozen=True)
-class FigureSpec:
-    """一张结果图的尺寸、绘制入口与溯源信息。"""
-
-    stem: str
-    width_mm: float
-    height_mm: float
-    draw: Callable[[dict[str, Any], dict[str, Any]], Figure]
-    json_keys: tuple[str, ...]
-    caption: str
-
-
-def mm_to_inch(value: float) -> float:
-    return value / 25.4
+# ------------------------------------------------------------------ 版面原语
 
 
 def new_figure(width_mm: float, height_mm: float) -> Figure:
-    return plt.figure(figsize=(mm_to_inch(width_mm), mm_to_inch(height_mm)), dpi=150)
+    if width_mm > fs.MAX_WIDTH_MM:
+        raise ValueError(f"宽度 {width_mm} mm 超过合同上限 {fs.MAX_WIDTH_MM} mm")
+    if height_mm > fs.MAX_HEIGHT_MM:
+        raise ValueError(f"高度 {height_mm} mm 超过合同上限 {fs.MAX_HEIGHT_MM} mm")
+    return plt.figure(figsize=(width_mm / 25.4, height_mm / 25.4), dpi=200)
 
 
 def style_axes(ax: Axes, *, grid_axis: str = "y") -> None:
     ax.spines["top"].set_visible(False)
     ax.spines["right"].set_visible(False)
-    ax.grid(True, axis=grid_axis, color=GRID, linewidth=0.5, zorder=0)
+    ax.grid(True, axis=grid_axis, color=GRID, linewidth=fs.AUX_LINE_PT, zorder=0)
     ax.set_axisbelow(True)
-    ax.tick_params(length=2.5, pad=1.5)
+    ax.tick_params(length=2.5, pad=1.5, width=0.7)
 
 
-def warning_box(fig: Figure, text: str, *, y: float = 0.015) -> None:
-    """把已知缺陷说明直接钉在图面上，保证与图件不可分离。"""
+def say(
+    fig: Figure,
+    x: float,
+    y: float,
+    value: str,
+    *,
+    size: float = FS_MIN,
+    color: str = INK,
+    ha: str = "center",
+    va: str = "bottom",
+    box: str | None = None,
+) -> None:
+    """图面文字，逐字核验字形覆盖后再落笔。"""
 
-    fig.text(
-        0.5,
-        y,
-        text,
-        ha="center",
-        va="bottom",
-        fontsize=FS_MIN,
-        color=ACCENT,
-        linespacing=1.35,
-        bbox={"boxstyle": "round,pad=0.32", "facecolor": "#FDF2F0", "edgecolor": ACCENT, "linewidth": 0.7},
-    )
-
-
-def load_sources() -> tuple[dict[str, Any], dict[str, Any]]:
-    """读取冻结 JSON 与 run.log，解析 Lp 指数逐 epoch 轨迹（若存在）。"""
-
-    if not JSON_PATH.exists():
-        raise FileNotFoundError(f"冻结结果不存在：{JSON_PATH}")
-    with JSON_PATH.open(encoding="utf-8") as handle:
-        data = json.load(handle)
-
-    log_text = LOG_PATH.read_text(encoding="utf-8") if LOG_PATH.exists() else ""
-    # 逐 epoch 轨迹须同时含 epoch/step 标记与 p 值；本次为顺序执行，预期无匹配。
-    traj_pattern = re.compile(
-        r"(?:epoch|ep|step)\s*[=: ]\s*(\d+)[^\n]*?\b(C\d{2})\b[^\n]*?p=([0-9.]+)", re.IGNORECASE
-    )
-    trajectory: dict[str, list[tuple[int, float]]] = {}
-    for step, cell, value in traj_pattern.findall(log_text):
-        trajectory.setdefault(cell, []).append((int(step), float(value)))
-    has_trajectory = any(len(v) >= 2 for v in trajectory.values())
-
-    # 终值 p（无 epoch 标记的行），用于回退柱状图的三种子标注
-    seed_pattern = re.compile(r"(C\d{2})-s(\d+)[^\n]*?p=([0-9.]+)")
-    seed_p: dict[str, dict[int, float]] = {}
-    for cell, seed, value in seed_pattern.findall(log_text):
-        seed_p.setdefault(cell, {})[int(seed)] = float(value)
-
-    log_facts = {"trajectory": trajectory, "has_trajectory": has_trajectory, "seed_p": seed_p}
-    return data, log_facts
-
-
-def interaction(cells: dict[str, Any], key: str) -> dict[str, float]:
-    """按预注册设计计算 2x2 主效应与交互项。"""
-
-    v = {c: float(cells[c][key]) for c in CELL_ORDER}
-    a_main = v["C10"] - v["C00"]
-    b_main = v["C01"] - v["C00"]
-    combo = v["C11"] - v["C00"]
-    delta = v["C11"] - v["C10"] - v["C01"] + v["C00"]
-    return {
-        **v,
-        "A": a_main,
-        "B": b_main,
-        "sum": a_main + b_main,
-        "combo": combo,
-        "delta": delta,
-        "crit1": float(delta > 0.0),
-        "crit2": float(v["C11"] > max(v["C01"], v["C10"])),
+    fs.check_label(value, size)
+    kwargs: dict[str, Any] = {
+        "ha": ha,
+        "va": va,
+        "fontsize": size,
+        "color": color,
+        "linespacing": 1.32,
     }
+    if box is not None:
+        kwargs["bbox"] = {
+            "boxstyle": "round,pad=0.3",
+            "facecolor": "white",
+            "edgecolor": box,
+            "linewidth": 0.7,
+        }
+    fig.text(x, y, value, **kwargs)
 
 
-def draw_main_comparison(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-5 跨年度主性能对比（逐流 AP 横向条形）。"""
+def ticks(ax: Axes, axis: str, labels: list[str], size: float = FS_MIN) -> None:
+    for label in labels:
+        fs.check_label(label, size)
+    setter = ax.set_xticklabels if axis == "x" else ax.set_yticklabels
+    setter(labels, fontsize=size, linespacing=1.2)
 
-    cells = data["cells"]
-    rows = [
-        (f"本章 {CELL_NAMES['C11']}（前缀聚合+Lp池化）", float(cells["C11"]["fap"]), "own_cell", "C11"),
-        (f"本章 {CELL_NAMES['C10']}", float(cells["C10"]["fap"]), "own_cell", "C10"),
-        (f"本章 {CELL_NAMES['C01']}", float(cells["C01"]["fap"]), "own_cell", "C01"),
-        (f"本章 {CELL_NAMES['C00']}", float(cells["C00"]["fap"]), "own_cell", "C00"),
-        ("本课题 XGBoost 全量字段", EXTERNAL_REFS["XGBoost全量"], "own_base", None),
-        ("本课题 逐流 MLP", EXTERNAL_REFS["逐流MLP"], "own_base", None),
-        ("Dijk 2026 表5 XGBoost", EXTERNAL_REFS["Dijk表5-XGB"], "external", None),
-        ("Dijk 2026 表5 GRU + SesH", EXTERNAL_REFS["Dijk表5-GRU+SesH"], "external", None),
-        ("Dijk 2026 表5 Transformer + 2-H", EXTERNAL_REFS["Dijk表5-Transformer+2-H"], "external", None),
-    ]
 
-    fig = new_figure(150, 95)
-    ax = fig.add_axes((0.335, 0.335, 0.635, 0.615))
-    style_axes(ax, grid_axis="x")
+def label(ax: Axes, axis: str, value: str) -> None:
+    fs.check_label(value, FS_MAIN)
+    (ax.set_xlabel if axis == "x" else ax.set_ylabel)(value, fontsize=FS_MAIN, labelpad=3)
 
-    ypos = np.arange(len(rows))[::-1]
-    for y, (label, value, kind, cell) in zip(ypos, rows, strict=True):
-        if kind == "own_cell" and cell is not None:
-            face, hatch, edge = CELL_FILLS[cell], CELL_HATCH[cell], INK
-        elif kind == "own_base":
-            face, hatch, edge = FILL_OWN_BASE, "\\\\", MUTED
-        else:
-            face, hatch, edge = FILL_EXTERNAL, "///", ACCENT
-        ax.barh(y, value, height=0.66, facecolor=face, edgecolor=edge, linewidth=0.9, hatch=hatch, zorder=3)
-        ax.text(value + 0.006, y, f"{value:.4f}", va="center", ha="left", fontsize=FS_MIN, color=INK, zorder=4)
 
-    ax.vlines(FLOW_PRIOR, -0.7, len(rows) - 0.52, color=ACCENT, linestyle=(0, (4, 2)), linewidth=1.1, zorder=5)
-    ax.text(
-        FLOW_PRIOR + 0.008,
-        len(rows) - 0.35,
-        f"随机先验 {FLOW_PRIOR:.6f}",
-        fontsize=FS_MIN,
-        color=ACCENT,
-        va="center",
-        ha="left",
+def title(ax: Axes, value: str) -> None:
+    fs.check_label(value, FS_MAIN)
+    ax.set_title(value, fontsize=FS_MAIN, pad=3)
+
+
+# ------------------------------------------------------------------ 图 3-5
+
+
+def draw_method_positions(ctx: dict[str, Any]) -> Figure:
+    """图 3-5 六个方法在三个指标上的相对位置。"""
+
+    rows = sorted(ctx["methods"], key=lambda m: m.entity_ap, reverse=True)
+    fig = new_figure(165, 95)
+    panels = (
+        ("(a) 逐流\n平均精确率", [m.flow_ap for m in rows], 0.40),
+        ("(b) 实体\n平均精确率", [m.entity_ap for m in rows], 0.70),
+        ("(c) 检出率\n（4% 假阳率预算）", [m.dr_at_4pct for m in rows], 1.00),
     )
+    # 面板之间留 9 mm 空档，避免相邻面板的首尾刻度标签相撞。
+    lefts = (0.265, 0.505, 0.745)
+    ypos = np.arange(len(rows))[::-1]
 
-    ax.set_yticks(ypos)
-    ax.set_yticklabels([r[0] for r in rows], fontsize=FS_MIN)
-    ax.set_xlim(0, 0.50)
-    ax.set_xlabel("跨年度逐流平均精确率 AP（LSPR23 训练 → LSPR24 评价）", fontsize=FS_MAIN, labelpad=4)
-    ax.set_ylim(-0.7, len(rows) + 0.1)
+    for (name, values, upper), left in zip(panels, lefts, strict=True):
+        ax = fig.add_axes((left, 0.335, 0.185, 0.545))
+        style_axes(ax, grid_axis="x")
+        for y, row, value in zip(ypos, rows, values, strict=True):
+            own = row.config_type == "骨干专属全容量配方"
+            face = CELL_FILL["O11"] if own else "white"
+            hatch = "xx" if own else ("///" if row.has_complete_curve else "\\\\")
+            edge = INK if own else MUTED
+            ax.barh(
+                y,
+                value,
+                height=0.64,
+                facecolor=face,
+                edgecolor=edge,
+                linewidth=0.9,
+                hatch=hatch,
+                zorder=3,
+            )
+            ax.text(
+                value + upper * 0.035,
+                y,
+                f"{value:.4f}",
+                va="center",
+                ha="left",
+                fontsize=FS_MIN,
+                color=INK,
+                zorder=4,
+            )
+        ax.set_yticks(ypos)
+        ax.set_ylim(-0.66, len(rows) - 0.34)
+        ax.set_xlim(0.0, upper)
+        ax.set_xticks(np.linspace(0.0, upper, 3))
+        ticks(ax, "x", [f"{v:.2f}" for v in np.linspace(0.0, upper, 3)])
+        title(ax, name)
+        if left == lefts[0]:
+            ticks(ax, "y", [m.display_name for m in rows])
+        else:
+            ax.set_yticklabels([])
+        ax.tick_params(axis="y", length=0)
 
     handles = [
-        plt.Rectangle((0, 0), 1, 1, facecolor=FILL_C11, edgecolor=INK, linewidth=0.9, hatch="xx"),
-        plt.Rectangle((0, 0), 1, 1, facecolor=FILL_OWN_BASE, edgecolor=MUTED, linewidth=0.9, hatch="\\\\"),
-        plt.Rectangle((0, 0), 1, 1, facecolor=FILL_EXTERNAL, edgecolor=ACCENT, linewidth=0.9, hatch="///"),
+        plt.Rectangle((0, 0), 1, 1, facecolor=CELL_FILL["O11"], edgecolor=INK, hatch="xx", linewidth=0.9),
+        plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=MUTED, hatch="///", linewidth=0.9),
+        plt.Rectangle((0, 0), 1, 1, facecolor="white", edgecolor=MUTED, hatch="\\\\", linewidth=0.9),
     ]
     labels = [
-        "本章 2×2 四格（同一冻结评价池）",
-        "本课题同协议基线",
-        "Dijk 2026 表5 论文原始数字，协议不完全等同",
+        "本章方法",
+        "已发表配置基线，有完整告警预算曲线，(c) 取实际可达工作点",
+        "已发表配置基线，只持久化名义 4% 单点，(c) 无实际假阳率收据",
     ]
+    for item in labels:
+        fs.check_label(item, FS_MIN)
     fig.legend(
         handles,
         labels,
         loc="lower center",
-        bbox_to_anchor=(0.5, 0.012),
+        bbox_to_anchor=(0.5, 0.108),
         frameon=True,
         framealpha=1.0,
         edgecolor=GRID,
@@ -301,539 +213,673 @@ def draw_main_comparison(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
         borderpad=0.4,
         handlelength=1.6,
         handleheight=1.0,
-        labelspacing=0.35,
+        labelspacing=0.34,
     )
-    return fig
-
-
-def draw_interaction(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-6 双机制消融交互（三个口径并列，结论不一致如实呈现）。"""
-
-    cells = data["cells"]
-    panels = [
-        ("(a) 逐流 AP", "fap", "逐流 AP"),
-        ("(b) 实体 AP（Lp 池化）", "e_lp", "实体 AP"),
-        ("(c) DR@4%FPR", "dr", "DR@4%FPR"),
-    ]
-
-    fig = new_figure(150, 100)
-    axes = [fig.add_axes((0.085 + i * 0.315, 0.545, 0.235, 0.365)) for i in range(3)]
-
-    for idx, (ax, (title, key, ylabel)) in enumerate(zip(axes, panels, strict=True)):
-        stat = interaction(cells, key)
-        style_axes(ax)
-        xs = np.arange(4)
-        for x, cell in zip(xs, CELL_ORDER, strict=True):
-            ax.bar(
-                x,
-                stat[cell],
-                width=0.68,
-                facecolor=CELL_FILLS[cell],
-                edgecolor=INK,
-                linewidth=0.9,
-                hatch=CELL_HATCH[cell],
-                zorder=3,
-            )
-            ax.text(x, stat[cell] + 0.006, f"{stat[cell]:.3f}", ha="center", va="bottom", fontsize=FS_MIN)
-
-        top = max(stat[c] for c in CELL_ORDER)
-        ax.set_ylim(0, top * 1.20)
-        ax.set_xticks(xs)
-        ax.set_xticklabels([f"{c}\n{CELL_TAGS[c]}" for c in CELL_ORDER], fontsize=FS_MIN, linespacing=1.2)
-        ax.set_ylabel(ylabel, fontsize=FS_MAIN, labelpad=2)
-        ax.set_title(title, fontsize=FS_MAIN, pad=3)
-
-        mark1 = "通过" if stat["crit1"] > 0 else "不通过"
-        mark2 = "通过" if stat["crit2"] > 0 else "不通过"
-        color = INK if stat["crit1"] > 0 and stat["crit2"] > 0 else ACCENT
-        note = (
-            f"A 主效应 {stat['A']:+.4f}\n"
-            f"B 主效应 {stat['B']:+.4f}\n"
-            f"之和      {stat['sum']:+.4f}\n"
-            f"组合      {stat['combo']:+.4f}\n"
-            f"交互 Δ    {stat['delta']:+.4f}\n"
-            f"判据一 {mark1}／二 {mark2}"
-        )
-        fig.text(
-            0.085 + idx * 0.315 + 0.1175,
-            0.462,
-            note,
-            ha="center",
-            va="top",
-            fontsize=FS_MIN,
-            linespacing=1.28,
-            color=color,
-            bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "edgecolor": color, "linewidth": 0.7},
-        )
-
-    fig.text(
-        0.5,
-        0.222,
-        "C00 基线序列编码器　C01 仅实体级 Lp 池化　C10 仅因果前缀聚合　C11 完整方法\n"
-        "A = 因果前缀聚合，B = 实体级 Lp 池化；Δ = C11 - C10 - C01 + C00；"
-        "判据一 Δ > 0；判据二 C11 > max(C01, C10)",
-        ha="center",
-        va="top",
-        fontsize=FS_MIN,
-        linespacing=1.3,
-        color=MUTED,
-    )
-    warning_box(
+    meta = ctx["meta"]
+    say(
         fig,
-        "三个评价口径结论不一致：实体 AP 与 DR@4%FPR 两条判据均通过，\n逐流 AP 判据一、判据二均不通过。此处如实并列呈现，不作取舍。",
-        y=0.012,
-    )
-    return fig
-
-
-def draw_stability(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-7 训练稳定性（三种子逐流 AP）。"""
-
-    stab = data["stability"]
-    groups = [("C00", f"{CELL_NAMES['C00']}\nC00"), ("C11", f"{CELL_NAMES['C11']}\nC11")]
-    seeds = (42, 43, 44)
-    markers = ("o", "s", "^")
-
-    fig = new_figure(110, 85)
-    ax = fig.add_axes((0.185, 0.215, 0.775, 0.70))
-    style_axes(ax)
-
-    for gi, (cell, label) in enumerate(groups):
-        vals = np.asarray(stab[cell], dtype=float)
-        mean, sd = float(vals.mean()), float(vals.std(ddof=1))
-        ax.add_patch(
-            plt.Rectangle(
-                (gi - 0.26, mean - sd),
-                0.52,
-                2 * sd,
-                facecolor="#EEF2F4",
-                edgecolor=MUTED,
-                linewidth=0.6,
-                hatch=CELL_HATCH[cell] or None,
-                zorder=2,
-            )
-        )
-        ax.hlines(mean, gi - 0.28, gi + 0.28, color=INK, linewidth=1.4, zorder=4)
-        for si, (seed, marker) in enumerate(zip(seeds, markers, strict=True)):
-            ax.plot(
-                gi,
-                vals[si],
-                marker=marker,
-                markersize=5.0,
-                markerfacecolor="white",
-                markeredgecolor=INK,
-                markeredgewidth=1.0,
-                linestyle="none",
-                zorder=5,
-                label=f"种子 {seed}" if gi == 0 else None,
-            )
-            ax.text(
-                gi + 0.30,
-                vals[si],
-                f"{vals[si]:.4f}",
-                ha="left",
-                va="center",
-                fontsize=FS_MIN,
-                zorder=6,
-            )
-        ax.text(
-            gi,
-            mean - sd - 0.008,
-            f"均值 {mean:.4f}\nσ {sd:.6f}",
-            ha="center",
-            va="top",
-            fontsize=FS_MIN,
-            color=ACCENT,
-            linespacing=1.3,
-            zorder=6,
-        )
-
-    ax.set_xticks(range(len(groups)))
-    ax.set_xticklabels([g[1] for g in groups], fontsize=FS_MIN)
-    ax.set_xlim(-0.60, len(groups) - 0.40)
-    ax.set_ylim(0.138, 0.335)
-    ax.set_ylabel("跨年度逐流 AP", fontsize=FS_MAIN)
-    ax.legend(loc="upper left", frameon=True, framealpha=1.0, edgecolor=GRID, fontsize=FS_MIN, borderpad=0.35)
-    fig.text(
         0.5,
-        0.045,
-        "阴影为 ±1σ（σ 按 ddof=1 计），协议：20000 步、末 5 检查点平均、顺序执行",
-        ha="center",
-        va="bottom",
-        fontsize=FS_MIN,
+        0.030,
+        f"LSPR23 训练、LSPR24 评价；{meta['entity_count']:,} 个实体，其中正实体 "
+        f"{meta['positive_entity_count']:,} 个\n"
+        "各方法实体分数按其自身设计的聚合算子得到，均为单次运行",
         color=MUTED,
     )
     return fig
 
 
-def draw_lp_exponent(data: dict[str, Any], log_facts: dict[str, Any]) -> Figure:
-    """图3-8 Lp 指数：有逐 epoch 轨迹则画轨迹，否则画四格终值柱状图。"""
+# ------------------------------------------------------------------ 图 3-6
 
-    cells = data["cells"]
-    fig = new_figure(130, 85)
-    ax = fig.add_axes((0.135, 0.215, 0.83, 0.70))
-    style_axes(ax)
 
-    if log_facts["has_trajectory"]:
-        for cell, points in sorted(log_facts["trajectory"].items()):
-            if len(points) < 2:
-                continue
-            pts = sorted(points)
-            ax.plot(
-                [p[0] for p in pts],
-                [p[1] for p in pts],
-                marker="o",
-                markersize=3.5,
-                label=f"{CELL_NAMES.get(cell, cell)} {cell}",
-            )
-        ax.set_xlabel("训练轮次", fontsize=FS_MAIN)
-    else:
-        xs = np.arange(4)
-        trained = {"C01", "C11"}
-        for x, cell in zip(xs, CELL_ORDER, strict=True):
-            value = float(cells[cell]["p"])
-            is_trained = cell in trained
+def draw_ablation(ctx: dict[str, Any]) -> Figure:
+    """图 3-6 因果前缀聚合与实体级幂平均池化的 2×2 消融。"""
+
+    cells = ctx["cells"]
+    effects = ctx["effects"]
+    fig = new_figure(150, 90)
+    panels = (
+        ("(a) 实体平均精确率", lambda c: c.entity_ap, "实体平均精确率"),
+        ("(b) 逐流平均精确率", lambda c: c.flow_ap, "逐流平均精确率"),
+        ("(c) 检出率（实际假阳率 2%）", lambda c: c.dr_at_2pct, "检出率"),
+    )
+    lefts = (0.085, 0.400, 0.715)
+    xs = np.arange(len(rd.CELL_ORDER))
+
+    for (name, pick, ylabel), left in zip(panels, lefts, strict=True):
+        ax = fig.add_axes((left, 0.400, 0.245, 0.485))
+        style_axes(ax)
+        values = [pick(cells[key]) for key in rd.CELL_ORDER]
+        for x, key, value in zip(xs, rd.CELL_ORDER, values, strict=True):
             ax.bar(
                 x,
                 value,
-                width=0.62,
-                facecolor=CELL_FILLS[cell] if is_trained else "white",
-                edgecolor=INK if is_trained else MUTED,
+                width=0.66,
+                facecolor=CELL_FILL[key],
+                edgecolor=INK,
                 linewidth=0.9,
-                hatch=CELL_HATCH[cell] if is_trained else "..",
+                hatch=CELL_HATCH[key],
                 zorder=3,
             )
-            tail = "" if is_trained else "\n(未参与训练，初值)"
             ax.text(
                 x,
-                value + 0.045,
-                f"p = {value:.4f}{tail}",
+                value + max(values) * 0.035,
+                f"{value:.4f}",
                 ha="center",
                 va="bottom",
                 fontsize=FS_MIN,
-                color=INK if is_trained else MUTED,
-                linespacing=1.25,
             )
+        ax.set_ylim(0.0, max(values) * 1.30)
         ax.set_xticks(xs)
-        ax.set_xticklabels([f"{CELL_NAMES[c]}\n{c}" for c in CELL_ORDER], fontsize=FS_MIN)
-        ax.set_xlim(-0.65, 4.15)
-        ax.set_ylim(0, 2.62)
+        ticks(ax, "x", ["基线", "仅 A", "仅 B", "A+B"])
+        ax.set_xlim(-0.66, len(xs) - 0.34)
+        label(ax, "y", ylabel)
+        title(ax, name)
 
-    ax.axhline(1.0, color=ACCENT, linestyle=(0, (4, 2)), linewidth=1.1, zorder=5)
-    ax.text(4.10, 1.04, "p = 1（算术平均）", ha="right", va="bottom", fontsize=FS_MIN, color=ACCENT)
-    ax.set_ylabel("学到的 Lp 池化指数 p", fontsize=FS_MAIN)
-
-    seed_p = log_facts["seed_p"].get("C11", {})
-    extra = ""
-    if seed_p:
-        joined = " / ".join(f"{seed_p[s]:.4f}" for s in sorted(seed_p))
-        extra = f"\nC11 另两种子（43／44）终值 p = {joined}，同样落在 p = 1 与 p → ∞ 之间（run.log）"
-    fig.text(
+    say(
+        fig,
         0.5,
-        0.035,
-        f"run.log 未记录逐 epoch 轨迹（本次为顺序执行），故本图只画各格终值{extra}",
-        ha="center",
-        va="bottom",
-        fontsize=FS_MIN,
+        0.250,
+        "A = 因果前缀跨流聚合，B = 实体级幂平均池化\n"
+        "基线＝两个机制都不启用，A+B＝双机制并用（本章完整方法）",
         color=MUTED,
-        linespacing=1.35,
+    )
+    say(
+        fig,
+        0.5,
+        0.112,
+        f"以实体平均精确率计：A 单开 {effects['causal_prefix']:+.4f}，"
+        f"B 单开 {effects['entity_pooling']:+.4f}，两者之和 {effects['sum']:+.4f}；"
+        f"并用 {effects['combined']:+.4f}，交互项 {effects['interaction']:+.4f}\n"
+        "两个单机制对基线均为正贡献，并用格在目标年四格中最高；交互项只作描述性读数",
+        box=INK,
+    )
+    say(
+        fig,
+        0.5,
+        0.024,
+        "(c) 的四格实际假阳率依次为 "
+        + "、".join(f"{cells[k].realized_fpr_at_2pct:.6f}" for k in rd.CELL_ORDER)
+        + "；单种子 seed42",
+        color=MUTED,
     )
     return fig
 
 
-def draw_length(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-9 序列长度敏感性（实验已知有缺陷，仅作趋势参考）。"""
+# ------------------------------------------------------------------ 图 3-7
 
-    lengths = sorted(int(k) for k in data["length"])
-    flow_ap = [float(data["length"][str(L)][0]) for L in lengths]
-    ent_ap = [float(data["length"][str(L)][1]) for L in lengths]
 
-    fig = new_figure(130, 85)
-    ax = fig.add_axes((0.135, 0.365, 0.72, 0.545))
-    style_axes(ax)
-    ax2 = ax.twinx()
-    ax2.spines["top"].set_visible(False)
+def draw_training_stability(ctx: dict[str, Any]) -> Figure:
+    """图 3-7 四格的逐轮源年验证表现与选中轮次。"""
 
-    xs = np.arange(len(lengths))
-    ax.plot(xs, flow_ap, marker="o", markersize=4.5, linestyle="-", color=INK, markerfacecolor="white", zorder=4)
-    ax2.plot(
-        xs, ent_ap, marker="s", markersize=4.5, linestyle=(0, (5, 2)), color=MUTED, markerfacecolor="white", zorder=4
+    cells = ctx["cells"]
+    fig = new_figure(140, 90)
+    ax = fig.add_axes((0.130, 0.395, 0.845, 0.545))
+    style_axes(ax, grid_axis="both")
+
+    styles = {
+        "B00": ("-", "o"),
+        "B10": ((0, (5, 2)), "s"),
+        "O01": ((0, (1, 1.6)), "^"),
+        "O11": ((0, (5, 1.4, 1, 1.4)), "D"),
+    }
+    shades = {"B00": "#B0B0B0", "B10": "#8A8A8A", "O01": "#5A5A5A", "O11": INK}
+    for key in rd.CELL_ORDER:
+        cell = cells[key]
+        epochs = [item[0] for item in cell.validation_history]
+        values = [item[1] for item in cell.validation_history]
+        style, marker = styles[key]
+        name = rd.CELL_NAMES[key]
+        fs.check_label(name, FS_MIN)
+        ax.plot(
+            epochs,
+            values,
+            linestyle=style,
+            linewidth=fs.MAIN_LINE_PT,
+            color=shades[key],
+            marker=marker,
+            markersize=2.8,
+            markerfacecolor="white",
+            markeredgewidth=0.7,
+            label=name,
+            zorder=3,
+        )
+        selected = cell.selected_epoch
+        picked = values[epochs.index(selected)]
+        ax.plot(
+            selected,
+            picked,
+            marker=marker,
+            markersize=5.4,
+            markerfacecolor=shades[key],
+            markeredgecolor=INK,
+            markeredgewidth=0.8,
+            linestyle="none",
+            zorder=5,
+        )
+
+    ax.set_xlim(0.4, 20.6)
+    ax.set_xticks([1, 5, 10, 15, 20])
+    ticks(ax, "x", ["1", "5", "10", "15", "20"])
+    ax.set_ylim(0.870, 1.004)
+    ax.set_yticks([0.88, 0.90, 0.92, 0.94, 0.96, 0.98, 1.00])
+    ticks(ax, "y", ["0.88", "0.90", "0.92", "0.94", "0.96", "0.98", "1.00"])
+    label(ax, "x", "训练轮次")
+    label(ax, "y", "源年验证逐流平均精确率")
+    handles, texts = ax.get_legend_handles_labels()
+    fig.legend(
+        handles,
+        texts,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.115),
+        ncol=2,
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=GRID,
+        fontsize=FS_MIN,
+        borderpad=0.4,
+        labelspacing=0.32,
+        columnspacing=1.4,
+        handlelength=2.4,
     )
-    # 两条曲线在 L=64、128 处的像素位置接近，标签左右分置并加白底避免叠压
-    label_bg = {"boxstyle": "square,pad=0.12", "facecolor": "white", "edgecolor": "none"}
-    for x, v in zip(xs, flow_ap, strict=True):
-        ax.text(x - 0.09, v, f"{v:.4f}", ha="right", va="center", fontsize=FS_MIN, color=INK, bbox=label_bg)
-    for x, v in zip(xs, ent_ap, strict=True):
-        ax2.text(x + 0.09, v, f"{v:.4f}", ha="left", va="center", fontsize=FS_MIN, color=MUTED, bbox=label_bg)
+    spans = {
+        key: max(v for _, v, _ in cells[key].validation_history)
+        - min(v for _, v, _ in cells[key].validation_history)
+        for key in rd.CELL_ORDER
+    }
+    say(
+        fig,
+        0.5,
+        0.028,
+        "实心大标记为按「验证逐流平均精确率最早最大」选中的轮次，依次为第 "
+        + "、".join(str(cells[k].selected_epoch) for k in rd.CELL_ORDER)
+        + " 轮\n二十轮取值的极差依次为 "
+        + "、".join(f"{spans[k]:.4f}" for k in rd.CELL_ORDER)
+        + "；20 轮跑满不早停，单种子 seed42",
+        color=MUTED,
+    )
+    return fig
+
+
+# ------------------------------------------------------------------ 图 3-8
+
+
+def draw_pooling_exponent(ctx: dict[str, Any]) -> Figure:
+    """图 3-8 实体级幂平均池化指数的逐轮轨迹。"""
+
+    cells = ctx["cells"]
+    fig = new_figure(130, 85)
+    ax = fig.add_axes((0.135, 0.290, 0.825, 0.630))
+    style_axes(ax, grid_axis="both")
+
+    learnable = [key for key in rd.CELL_ORDER if cells[key].learned_p is not None]
+    styles = {"O01": ((0, (1, 1.6)), "^", "#5A5A5A"), "O11": ("-", "D", INK)}
+    # 标注落点：并用格向右上、单机制格向右下，避开 p = 1 参考线与图例。
+    annotate_at = {"O11": (7.4, 1.94), "O01": (16.4, 0.70)}
+    for key in learnable:
+        cell = cells[key]
+        epochs = [item[0] for item in cell.validation_history]
+        values = [item[2] for item in cell.validation_history]
+        style, marker, color = styles[key]
+        name = rd.CELL_NAMES[key]
+        fs.check_label(name, FS_MIN)
+        ax.plot(
+            epochs,
+            values,
+            linestyle=style,
+            linewidth=fs.MAIN_LINE_PT,
+            color=color,
+            marker=marker,
+            markersize=2.8,
+            markerfacecolor="white",
+            markeredgewidth=0.7,
+            label=name,
+            zorder=4,
+        )
+        selected = cell.selected_epoch
+        ax.plot(
+            selected,
+            values[epochs.index(selected)],
+            marker=marker,
+            markersize=5.4,
+            markerfacecolor=color,
+            markeredgecolor=INK,
+            markeredgewidth=0.8,
+            linestyle="none",
+            zorder=5,
+        )
+        note = f"选中第 {selected} 轮，p = {cell.learned_p:.4f}"
+        fs.check_label(note, FS_MIN)
+        ax.annotate(
+            note,
+            xy=(selected, values[epochs.index(selected)]),
+            xytext=annotate_at[key],
+            fontsize=FS_MIN,
+            color=INK,
+            ha="center",
+            va="center",
+            arrowprops={"arrowstyle": "->", "color": INK, "linewidth": 0.8, "shrinkB": 3},
+            bbox={"boxstyle": "round,pad=0.26", "facecolor": "white", "edgecolor": color, "linewidth": 0.7},
+            zorder=6,
+        )
+
+    frozen = [key for key in rd.CELL_ORDER if cells[key].learned_p is None]
+    ax.axhline(2.0, color=MUTED, linestyle=(0, (4, 2)), linewidth=fs.AUX_LINE_PT, zorder=2)
+    ax.text(20.4, 2.04, "p = 2（未启用池化两格的初值）", ha="right", va="bottom", fontsize=FS_MIN, color=MUTED)
+    ax.axhline(1.0, color=ACCENT, linestyle=(0, (4, 2)), linewidth=fs.MAIN_LINE_PT, zorder=2)
+    ax.text(1.0, 1.03, "p = 1（算术平均）", ha="left", va="bottom", fontsize=FS_MIN, color=ACCENT)
+
+    ax.set_xlim(0.4, 20.6)
+    ax.set_xticks([1, 5, 10, 15, 20])
+    ticks(ax, "x", ["1", "5", "10", "15", "20"])
+    ax.set_ylim(0.55, 2.30)
+    label(ax, "x", "训练轮次")
+    label(ax, "y", "实体级幂平均池化指数 p")
+    handles, texts = ax.get_legend_handles_labels()
+    ax.legend(
+        handles,
+        texts,
+        loc="lower left",
+        bbox_to_anchor=(0.02, 0.02),
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=GRID,
+        fontsize=FS_MIN,
+        borderpad=0.35,
+        labelspacing=0.3,
+        handlelength=2.4,
+    )
+    say(
+        fig,
+        0.5,
+        0.040,
+        "两条可学轨迹都从初值 p = 2 单调下行\n"
+        + "未启用池化的"
+        + "、".join(rd.CELL_NAMES[k] for k in frozen)
+        + "两格 p 恒为 2 且不参与训练，未画线",
+        color=MUTED,
+    )
+    return fig
+
+
+# ------------------------------------------------------------------ 图 3-9
+
+
+def draw_length_buckets(ctx: dict[str, Any]) -> Figure:
+    """图 3-9 按实体流数分桶的四格检测能力。"""
+
+    cells = ctx["cells"]
+    buckets = [item["bucket"] for item in cells["B00"].length_buckets]
+    fig = new_figure(150, 90)
+    ax = fig.add_axes((0.095, 0.400, 0.885, 0.560))
+    style_axes(ax)
+
+    xs = np.arange(len(buckets))
+    width = 0.20
+    for offset, key in zip(np.linspace(-1.5, 1.5, 4) * width, rd.CELL_ORDER, strict=True):
+        values = [float(item["entity_average_precision"]) for item in cells[key].length_buckets]
+        name = rd.CELL_NAMES[key]
+        fs.check_label(name, FS_MIN)
+        ax.bar(
+            xs + offset,
+            values,
+            width=width,
+            facecolor=CELL_FILL[key],
+            edgecolor=INK,
+            linewidth=0.8,
+            hatch=CELL_HATCH[key],
+            label=name,
+            zorder=3,
+        )
+
+    def bucket_label(raw: str) -> str:
+        """把制品里的桶名转成中文区间；开区间桶写成「条以上」。"""
+
+        low, _, high = raw.partition("-")
+        return f"{low} 条以上" if high == "+" else f"{low}～{high} 条流"
 
     ax.set_xticks(xs)
-    ax.set_xticklabels([str(L) for L in lengths])
-    ax.set_xlim(-0.62, len(lengths) - 0.38)
-    ax.set_xlabel("序列长度 L（8000 步固定步数预算）", fontsize=FS_MAIN)
-    ax.set_ylabel("逐流 AP（实线圆点）", fontsize=FS_MAIN)
-    ax2.set_ylabel("实体 AP（虚线方点）", fontsize=FS_MAIN, color=MUTED)
-    ax.set_ylim(0.165, 0.222)
-    ax2.set_ylim(0.325, 0.435)
-    ax2.tick_params(axis="y", colors=MUTED, length=2.5, pad=1.5)
-
-    warning_box(
-        fig,
-        "本实验已知存在缺陷，仅作趋势参考，不支持「长上下文更好」的结论：\n"
-        "(1) 截断取固定 L=128 块的前 L 个位置，逐流覆盖率约 L/128（L=16 时仅约 12.5% 的流被打分）；\n"
-        "(2) 评价集正类基率随 L 改变，四点分母不同不可直接比较；\n"
-        "(3) 8000 步固定预算下各 L 的训练流量预算最多相差 8 倍。",
-        y=0.02,
+    ticks(
+        ax,
+        "x",
+        [
+            f"{bucket_label(item['bucket'])}\n正实体 {item['positive_entities']:,}"
+            for item in cells["B00"].length_buckets
+        ],
     )
-    return fig
-
-
-def draw_facet(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-10 攻击类别分面（AP 与 AP/基率 lift 并列，标注每类正例数）。"""
-
-    facet = data["facet"]
-    items = sorted(facet.items(), key=lambda kv: kv[1][1], reverse=True)
-    names = [k for k, _ in items]
-    aps = np.array([float(v[0]) for _, v in items])
-    pos = np.array([int(v[1]) for _, v in items])
-
-    # 负例池由冻结逐流先验反推：所有类别共享同一负例集合（见 tools/ch3_full.py E6 掩码构造）
-    pos_total = int(pos.sum())
-    n_neg = pos_total * (1.0 - FLOW_PRIOR) / FLOW_PRIOR
-    base = pos / (pos + n_neg)
-    lift = aps / base
-
-    short = [n if len(n) <= 22 else n[:21] + "…" for n in names]
-    labels = [f"{s}\n正例 {p:,}" for s, p in zip(short, pos, strict=True)]
-
-    fig = new_figure(130, 90)
-    ax1 = fig.add_axes((0.335, 0.395, 0.285, 0.485))
-    ax2 = fig.add_axes((0.700, 0.395, 0.270, 0.485))
-    ypos = np.arange(len(names))[::-1]
-    hatches = ["xx", "//", "..", "\\\\", "++"]
-
-    def fmt_lift(value: float) -> str:
-        return f"{value:.1f}×" if value < 100 else f"{value:,.0f}×"
-
-    for ax, values, title, fmt, log_scale in (
-        (ax1, aps, "(a) 类内 AP（跨类不可比）", lambda v: f"{v:.4f}", False),
-        (ax2, lift, "(b) AP / 基率 lift（可比口径）", fmt_lift, True),
-    ):
-        style_axes(ax, grid_axis="x")
-        left = 1.0 if log_scale else 0.0
-        for y, value, hatch in zip(ypos, values, hatches, strict=True):
-            ax.barh(
-                y,
-                value - left,
-                left=left,
-                height=0.62,
-                facecolor=FILL_C01,
-                edgecolor=INK,
-                linewidth=0.9,
-                hatch=hatch,
-                zorder=3,
-            )
-            ax.text(value * 1.12, y, fmt(value), va="center", ha="left", fontsize=FS_MIN)
-        ax.set_yticks(ypos)
-        ax.set_ylim(-0.65, len(names) - 0.35)
-        ax.set_title(title, fontsize=FS_MAIN, pad=3)
-        if log_scale:
-            ax.set_xscale("log")
-            ax.set_xlim(1.0, 4.0e5)
-            ax.set_xticks([1e1, 1e3, 1e5])
-            ax.set_xlabel("对数刻度", fontsize=FS_MIN, labelpad=1)
-        else:
-            ax.set_xlim(0, float(values.max()) * 1.45)
-
-    ax1.set_yticklabels(labels, fontsize=FS_MIN, linespacing=1.25)
-    ax2.set_yticklabels([])
-
-    warning_box(
-        fig,
-        "本实验已知存在缺陷，只作定性参考：\n"
-        f"(1) Category 字段对恶意流几乎全空：「(空)」类含 {pos[0]:,} 个正例，占五类\n"
-        f"　　正例合计的 {pos[0] / pos_total * 100:.2f}%，其余四类各仅 {pos.min()}～{sorted(pos)[-2]} 例；\n"
-        "(2) 各类按「该类正例 + 全部负例」构造，评价基率相差数个数量级，故\n"
-        "　　(a) 的类内 AP 跨类不可比；\n"
-        f"(3) (b) 的基率按共享负例池 {n_neg:,.0f} 折算（冻结逐流先验 {FLOW_PRIOR:.6f}\n"
-        f"　　与五类正例合计 {pos_total:,} 反推）；正例 ≤ {sorted(pos)[-2]} 的四类 lift 方差极大。",
-        y=0.014,
-    )
-    return fig
-
-
-def draw_latency_curve(data: dict[str, Any], _log: dict[str, Any]) -> Figure:
-    """图3-11 受限观测下的检测能力（每实体只用按时间的前 k 条流）。"""
-
-    curve = data["curve"]["C11"]
-    full_x = 260.0
-    xs = [float(row[0]) if row[0] is not None else full_x for row in curve]
-    aps = [float(row[1]) for row in curve]
-    drs = [float(row[2]) for row in curve]
-    covs = [float(row[4]) for row in curve]
-    full_ap = aps[-1]
-
-    fig = new_figure(140, 95)
-    ax = fig.add_axes((0.135, 0.315, 0.735, 0.595))
-    style_axes(ax)
-    ax2 = ax.twinx()
-    ax2.spines["top"].set_visible(False)
-
-    ax.set_xscale("log")
-    ax.plot(xs, aps, marker="o", markersize=4.5, linestyle="-", color=INK, markerfacecolor="white", zorder=5)
-    ax2.plot(
-        xs, drs, marker="s", markersize=4.5, linestyle=(0, (5, 2)), color=MUTED, markerfacecolor="white", zorder=5
-    )
-
-    ax.axvline(ENTITY_FLOW_MEDIAN, color=ACCENT, linestyle=(0, (1, 1.6)), linewidth=1.1, zorder=3)
-    ax.text(
-        ENTITY_FLOW_MEDIAN * 1.10,
-        0.4965,
-        f"实体流数中位 = {ENTITY_FLOW_MEDIAN}",
+    ax.set_xlim(-0.58, len(buckets) - 0.42)
+    ax.set_ylim(0.0, 0.80)
+    label(ax, "x", "实体内流数分桶")
+    label(ax, "y", "目标年实体平均精确率")
+    handles, texts = ax.get_legend_handles_labels()
+    fig.legend(
+        handles,
+        texts,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.115),
+        ncol=2,
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=GRID,
         fontsize=FS_MIN,
-        color=ACCENT,
-        va="top",
-        ha="left",
+        borderpad=0.4,
+        labelspacing=0.32,
+        columnspacing=1.2,
+        handlelength=1.6,
+        handleheight=1.0,
     )
-
-    idx50 = next(i for i, row in enumerate(curve) if row[0] == 50)
-    ax.annotate(
-        f"k = 50：用 {covs[idx50] * 100:.2f}% 的流达到\n"
-        f"全量 AP 的 {aps[idx50] / full_ap * 100:.1f}%（≥95%）\n"
-        f"实体 AP {aps[idx50]:.6f} / {full_ap:.6f}",
-        xy=(xs[idx50], aps[idx50]),
-        xytext=(9.0, 0.3115),
-        fontsize=FS_MIN,
-        color=INK,
-        linespacing=1.3,
-        va="center",
-        arrowprops={"arrowstyle": "->", "color": INK, "linewidth": 0.9, "shrinkB": 3},
-        bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "edgecolor": INK, "linewidth": 0.7},
-    )
-
-    ticks = [1, 2, 3, 5, 10, 20, 50, 100, full_x]
-    ax.set_xticks(ticks)
-    ax.set_xticklabels(["1", "2", "3", "5", "10", "20", "50", "100", "全部"], fontsize=FS_MIN)
-    ax.minorticks_off()
-    ax.set_xlim(0.82, 400)
-    ax.set_ylim(0.28, 0.50)
-    ax2.set_ylim(0.46, 0.74)
-    ax.set_xlabel("每实体按时间使用的前 k 条流（对数刻度）", fontsize=FS_MAIN)
-    ax.set_ylabel("实体 AP（实线圆点）", fontsize=FS_MAIN)
-    ax2.set_ylabel("DR@4%FPR（虚线方点）", fontsize=FS_MAIN, color=MUTED)
-    ax2.tick_params(axis="y", colors=MUTED, length=2.5, pad=1.5)
-
-    ax.text(xs[0] * 1.14, aps[0] - 0.007, f"{aps[0]:.4f}（{covs[0] * 100:.2f}% 流）", ha="left", va="top", fontsize=FS_MIN)
-    ax.text(xs[-1] * 1.35, aps[-1] - 0.020, f"{aps[-1]:.4f}（全部流）", ha="right", va="top", fontsize=FS_MIN)
-
-    fig.text(
+    say(
+        fig,
         0.5,
-        0.035,
-        "C11 完整方法，末 5 检查点平均；增益主要来自长尾实体——半数实体仅含 2 条流，\n"
-        "k > 2 的收益只作用于流数更多的实体",
-        ha="center",
-        va="bottom",
-        fontsize=FS_MIN,
+        0.030,
+        "分桶按实体在目标年的流数划分，五桶的实体与正实体数对四格相同\n"
+        "最右两桶正实体分别只有 84 与 40 个，桶内取值不支持排序结论",
         color=MUTED,
-        linespacing=1.35,
     )
     return fig
+
+
+# ------------------------------------------------------------------ 图 3-11
+
+
+def draw_first_alert(ctx: dict[str, Any]) -> Figure:
+    """图 3-11 完整方法在受限观测下的首次告警及时检出。"""
+
+    steps = [s for s in ctx["first_alert"] if s.realized_fpr <= 0.08]
+    dropped = [s for s in ctx["first_alert"] if s.realized_fpr > 0.08]
+    fig = new_figure(140, 90)
+    ax = fig.add_axes((0.125, 0.320, 0.845, 0.600))
+    style_axes(ax, grid_axis="both")
+    ax.set_xscale("log")
+
+    styles = [("-", "o", INK), ((0, (5, 2)), "s", "#3F3F3F"), ((0, (1, 1.6)), "^", "#6E6E6E"), ((0, (5, 1.4, 1, 1.4)), "D", "#9A9A9A")]
+    for step, (style, marker, color) in zip(steps, styles, strict=True):
+        xs = np.asarray(step.exposure_index, dtype=float)
+        ys = np.asarray(step.on_time_detection_rate, dtype=float)
+        keep = xs >= 1
+        name = f"实际首次告警假阳率 {step.realized_fpr * 100:.2f}%"
+        fs.check_label(name, FS_MIN)
+        ax.step(
+            xs[keep],
+            ys[keep],
+            where="post",
+            linestyle=style,
+            linewidth=fs.MAIN_LINE_PT,
+            color=color,
+            marker=marker,
+            markersize=2.8,
+            markerfacecolor="white",
+            markeredgewidth=0.7,
+            label=name,
+            zorder=4,
+        )
+        ax.text(
+            1.0,
+            ys[keep][0] + 0.014,
+            f"{ys[keep][0]:.4f}",
+            ha="left",
+            va="bottom",
+            fontsize=FS_MIN,
+            color=color,
+            zorder=6,
+            bbox={"boxstyle": "square,pad=0.10", "facecolor": "white", "edgecolor": "none"},
+        )
+
+    ax.set_xlim(0.85, 2.4e4)
+    ax.set_xticks([1, 10, 100, 1000, 10000])
+    ticks(ax, "x", ["1", "10", "100", "1000", "10000"])
+    ax.minorticks_off()
+    ax.set_ylim(0.0, 0.82)
+    label(ax, "x", "实体内已观测到的流数（对数刻度）")
+    label(ax, "y", "及时检出率（分母为全部正实体）")
+    handles, texts = ax.get_legend_handles_labels()
+    ax.legend(
+        handles,
+        texts,
+        loc="lower right",
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=GRID,
+        fontsize=FS_MIN,
+        borderpad=0.35,
+        labelspacing=0.3,
+        handlelength=2.4,
+    )
+    say(
+        fig,
+        0.5,
+        0.038,
+        "每条阶梯为「在实体的前若干条流之内已经首次告警」的正实体占比，分母固定为 "
+        f"{ctx['meta']['positive_entity_count']:,} 个正实体\n"
+        f"名义 4% 与 8% 两档的首次告警阈值落进并列块，实际假阳率达 "
+        f"{dropped[0].realized_fpr * 100:.2f}%，预算不成立，故未画",
+        color=MUTED,
+    )
+    return fig
+
+
+# ------------------------------------------------------------------ 图 3-12
+
+
+def draw_budget_curves(ctx: dict[str, Any]) -> Figure:
+    """图 3-12 检出率随告警预算的变化。"""
+
+    curves = ctx["budget_curves"]
+    fig = new_figure(150, 95)
+    ax = fig.add_axes((0.115, 0.300, 0.860, 0.625))
+    style_axes(ax, grid_axis="both")
+    ax.set_xscale("log")
+
+    styles = [
+        ("-", "o", INK),
+        ((0, (5, 2)), "s", "#4A4A4A"),
+        ((0, (1, 1.6)), "^", "#787878"),
+        ((0, (5, 1.4, 1, 1.4)), "D", "#A6A6A6"),
+    ]
+    own = curves[0]
+    for curve, (style, marker, color) in zip(curves, styles, strict=True):
+        keep = (curve.realized_fpr >= 8e-5) & (curve.realized_fpr <= 0.08)
+        fs.check_label(curve.display_name, FS_MIN)
+        ax.plot(
+            curve.realized_fpr[keep],
+            curve.detection_rate[keep],
+            linestyle=style,
+            linewidth=fs.MAIN_LINE_PT,
+            color=color,
+            label=curve.display_name,
+            zorder=4,
+        )
+        points = [curve.readout[n] for n in rd.NOMINAL_BUDGETS if curve.readout[n][0] <= 0.08]
+        ax.plot(
+            [p[0] for p in points],
+            [p[1] for p in points],
+            linestyle="none",
+            marker=marker,
+            markersize=4.0,
+            markerfacecolor="white",
+            markeredgecolor=color,
+            markeredgewidth=0.9,
+            zorder=5,
+        )
+
+    ceiling = own.reachable_fpr_ceiling
+    ax.axvline(ceiling, color=ACCENT, linestyle=(0, (4, 2)), linewidth=fs.MAIN_LINE_PT, zorder=3)
+    say(
+        fig,
+        0.795,
+        0.345,
+        f"本章方法可达上限\n实际假阳率 {ceiling * 100:.2f}%",
+        color=ACCENT,
+        ha="center",
+    )
+
+    ax.set_xlim(8e-5, 0.085)
+    ax.set_xticks([1e-4, 1e-3, 1e-2, 0.08])
+    ticks(ax, "x", ["0.01%", "0.1%", "1%", "8%"])
+    ax.minorticks_off()
+    ax.set_ylim(0.0, 0.92)
+    label(ax, "x", "实体级实际假阳率（对数刻度）")
+    label(ax, "y", "实体级检出率")
+    handles, texts = ax.get_legend_handles_labels()
+    ax.legend(
+        handles,
+        texts,
+        loc="upper left",
+        frameon=True,
+        framealpha=1.0,
+        edgecolor=GRID,
+        fontsize=FS_MIN,
+        borderpad=0.35,
+        labelspacing=0.3,
+        handlelength=2.4,
+    )
+    meta = ctx["meta"]
+    say(
+        fig,
+        0.5,
+        0.038,
+        "空心标记为名义 0.1%、0.5%、1%、2%、4%、8% 六档预算上的实际可达工作点；"
+        f"{meta['negative_entity_count']:,} 个负实体、{meta['positive_entity_count']:,} 个正实体\n"
+        f"本章方法曲线在实际假阳率 {ceiling * 100:.2f}% 之后落进并列块，"
+        "下一可达点即为全告警，故 4% 与 8% 取同一工作点",
+        color=MUTED,
+    )
+    return fig
+
+
+# ------------------------------------------------------------------ 规格与产出
+
+
+@dataclass(frozen=True)
+class FigureSpec:
+    stem: str
+    width_mm: float
+    height_mm: float
+    draw: Callable[[dict[str, Any]], Figure]
+    data_keys: tuple[str, ...]
+    caption: str
 
 
 SPECS: tuple[FigureSpec, ...] = (
     FigureSpec(
-        stem="图3-5-跨年度主性能对比",
-        width_mm=150,
+        stem="图3-5-六个方法在三个指标上的相对位置",
+        width_mm=165,
         height_mm=95,
-        draw=draw_main_comparison,
-        json_keys=("cells.C00.fap", "cells.C01.fap", "cells.C10.fap", "cells.C11.fap"),
+        draw=draw_method_positions,
+        data_keys=(
+            "ch3-metrics-table-20260825b/lspr24-evaluation.json[].flow_ap",
+            "ch3-metrics-table-20260825b/lspr24-evaluation.json[].entity_ap",
+            "ch3-metrics-table-20260825b/lspr24-evaluation.json[].dr_fpr_0.04",
+            "ch3-metrics-table-20260825b/lspr24-evaluation.json[].actual_fpr_fpr_0.04",
+        ),
         caption=(
-            "图3-5 LSPR23 训练、LSPR24 零样本评价下的跨年度逐流平均精确率对比。"
-            "本章 2×2 四格与本课题 XGBoost、逐流 MLP 基线在同一冻结评价池上测得；"
-            "Dijk 2026 表 5 三行为论文原始数字，协议不完全等同，仅作背景参照，"
-            "以不同填充图案标出。竖直虚线为随机先验 0.025707。"
+            "图3-5　六个方法在三个指标上的相对位置（LSPR23 训练、LSPR24 评价，47,115 个实体、"
+            "其中正实体 752 个，三个面板依次为逐流平均精确率、实体平均精确率与假阳率 4% 预算下的检出率，"
+            "各方法实体分数按其自身设计的聚合算子得到，各点为单次运行；随机森林与已发表配置 XGBoost "
+            "只持久化名义 4% 单点，没有实际假阳率收据，以不同填充图案标出）"
         ),
     ),
     FigureSpec(
         stem="图3-6-双机制消融交互",
         width_mm=150,
-        height_mm=100,
-        draw=draw_interaction,
-        json_keys=(
-            "cells.*.fap",
-            "cells.*.e_lp",
-            "cells.*.dr",
+        height_mm=90,
+        draw=draw_ablation,
+        data_keys=(
+            "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.entity_average_precision",
+            "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.flow_average_precision",
+            "bf16/complete-alert-budget-curves.npz {B00,B10,O01,O11}__{realized_fpr,detection_rate}",
         ),
         caption=(
-            "图3-6 因果前缀聚合（A）与实体级 Lp 池化（B）的 2×2 消融，在逐流 AP、实体 AP（Lp 池化）与 "
-            "DR@4%FPR 三个口径下并列呈现。交互项 Δ = C11 − C10 − C01 + C00；判据一为 Δ > 0（超可加），"
-            "判据二为 C11 > max(C01, C10)（组合优于最佳单机制）。三个口径结论不一致："
-            "实体 AP（Δ = +0.091268）与 DR@4%FPR（Δ = +0.017287）两条判据均通过，"
-            "逐流 AP（Δ = −0.182777）两条判据均不通过。此处如实并列，不作取舍。"
+            "图3-6　因果前缀跨流聚合（A）与实体级幂平均池化（B）的 2×2 消融（LSPR23 训练、LSPR24 评价，"
+            "单种子 seed42，三个面板依次为实体平均精确率、逐流平均精确率与实际假阳率 2% 预算下的检出率）。"
+            "以实体平均精确率计，A 单开 +0.0829、B 单开 +0.0994，两者之和 +0.1823，双机制并用 +0.2209，"
+            "交互项 +0.0385。两个单机制对基线均为正贡献，并用格在目标年四格中最高；交互项只作描述性读数。"
+            "逐流平均精确率的次序与实体级两个口径相反，此处如实并列，不作取舍"
         ),
     ),
     FigureSpec(
         stem="图3-7-训练稳定性",
-        width_mm=110,
-        height_mm=85,
-        draw=draw_stability,
-        json_keys=("stability.C00", "stability.C11"),
+        width_mm=140,
+        height_mm=90,
+        draw=draw_training_stability,
+        data_keys=(
+            "bf16/selection_frozen.json cells.{B00,B10,O01,O11}.history[].epoch",
+            "bf16/selection_frozen.json cells.{B00,B10,O01,O11}.history[].validation_flow_ap",
+            "bf16/selection_frozen.json cells.{B00,B10,O01,O11}.selected_epoch",
+        ),
         caption=(
-            "图3-7 基线序列编码器（C00）与完整方法（C11）在种子 42/43/44 下的跨年度逐流 AP。"
-            "横线为三种子均值，阴影为 ±1σ（ddof=1）。σ 是协议的属性："
-            "本图协议为 20000 步、末 5 检查点平均、顺序执行，σ(C00) = 0.023248、σ(C11) = 0.058622。"
+            "图3-7　四格在 LSPR23 源年验证集上的逐轮表现与选中轮次（20 轮跑满不早停，单种子 seed42，"
+            "选择准则为验证逐流平均精确率最早最大，实心大标记为选中轮）。无机制基线、仅因果前缀聚合与"
+            "仅实体级幂平均池化三格二十轮取值的极差分别为 0.0056、0.0075 与 0.0077，双机制并用格为 0.1158，"
+            "约为前三者的 15 至 21 倍；该格在第 7、12 两轮跌到 0.89 以下，选轮结果对轮次高度敏感"
         ),
     ),
     FigureSpec(
         stem="图3-8-Lp指数收敛轨迹",
         width_mm=130,
         height_mm=85,
-        draw=draw_lp_exponent,
-        json_keys=("cells.C00.p", "cells.C01.p", "cells.C10.p", "cells.C11.p"),
+        draw=draw_pooling_exponent,
+        data_keys=(
+            "bf16/selection_frozen.json cells.{O01,O11}.history[].p",
+            "bf16/aggregate-results.json target_year_table.{O01,O11}.p",
+        ),
         caption=(
-            "图3-8 四格学到的 Lp 池化指数 p 终值。run.log 为顺序执行日志，未记录逐 epoch 轨迹，"
-            "故本图只有各格终值，不呈现收敛过程。C00 与 C10 未启用 Lp 池化，p 保持初值 2.0，不参与训练；"
-            "C01 收敛到 0.6069、C11 收敛到 1.2236，均落在 p = 1（算术平均）与 p → ∞（上界）之间的内部值。"
+            "图3-8　实体级幂平均池化指数 p 的逐轮轨迹（单种子 seed42，横轴为训练轮次）。两格都由初值 "
+            "p = 2 单调下行：仅实体级幂平均池化格在选中的第 14 轮取 p = 0.8759，双机制并用格在选中的第 5 轮取 "
+            "p = 1.6777，两者都落在 p = 1（算术平均）与 p 趋于正无穷（取最大）之间。无机制基线与仅因果前缀聚合"
+            "两格未启用池化，p 恒为初值 2 且不参与训练"
         ),
     ),
     FigureSpec(
-        stem="图3-9-序列长度敏感性",
-        width_mm=130,
-        height_mm=85,
-        draw=draw_length,
-        json_keys=("length.16", "length.32", "length.64", "length.128"),
-        caption=(
-            "图3-9 序列长度 L 的逐流与实体级 AP（本实验已知存在缺陷，仅作趋势参考，"
-            "不支持「长上下文更好」的结论）。缺陷有三：其一，截断实现取固定 L=128 块的前 L 个位置，"
-            "逐流覆盖率约 L/128，L=16 时仅约 12.5% 的流被打分；其二，评价集正类基率随 L 改变，"
-            "四点分母不同不可直接比较；其三，8000 步固定步数预算下各 L 的训练流量预算最多相差 8 倍。"
-        ),
-    ),
-    FigureSpec(
-        stem="图3-10-攻击类别分面",
-        width_mm=130,
+        stem="图3-9-实体流数分桶敏感性",
+        width_mm=150,
         height_mm=90,
-        draw=draw_facet,
-        json_keys=("facet.*",),
+        draw=draw_length_buckets,
+        data_keys=(
+            "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.length_buckets[].bucket",
+            "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.length_buckets[].entity_average_precision",
+            "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.length_buckets[].positive_entities",
+        ),
         caption=(
-            "图3-10 按 Category 字段的攻击类别分面（本实验已知存在缺陷，只作定性参考）。"
-            "缺陷有三：其一，Category 字段对恶意流几乎全空，「(空)」类含 519,138 个正例，"
-            "占五类正例总数的 99.84%，其余四类各仅 81～452 例；其二，各类按「该类正例 + 全部负例」构造，"
-            "评价基率相差数个数量级，(a) 的类内 AP 跨类不可比；其三，(b) 给出 AP / 基率 lift 作为可比口径，"
-            "基率按共享负例池折算，负例池由冻结逐流先验 0.025707 与五类正例合计反推。"
-            "每类条形上同时标注该类正例数。"
+            "图3-9　按实体内流数分桶的四格检测能力（LSPR24 评价，单种子 seed42，五个桶的实体与正实体数对四格相同）。"
+            "双机制并用格在 3～10 与 11～100 两桶上取得四格最高值；101～1000 与 1001 条流以上两桶的正实体分别只有 "
+            "84 与 40 个，桶内取值不支持排序结论"
         ),
     ),
     FigureSpec(
         stem="图3-11-受限观测下的检测能力",
         width_mm=140,
-        height_mm=95,
-        draw=draw_latency_curve,
-        json_keys=("curve.C11",),
+        height_mm=90,
+        draw=draw_first_alert,
+        data_keys=(
+            "bf16/complete-alert-budget-curves.npz O11__first_alert__fpr_*__exposure_index",
+            "bf16/complete-alert-budget-curves.npz O11__first_alert__fpr_*__on_time_detection_rate",
+            "bf16/aggregate-results.json target_year_table.O11.first_alert.*.realized_first_alert_fpr",
+        ),
         caption=(
-            "图3-11 完整方法（C11）在每实体只使用按时间前 k 条流时的实体 AP 与 DR@4%FPR，横轴为对数刻度。"
-            "实体 AP 从 k=1 的 0.299964 升到使用全部流的 0.462988，DR@4%FPR 从 0.4973 升到 0.6955。"
-            "k=50 时用 2.27% 的流即达到全量 AP 的 98.8%（≥95%）。竖直点线标出实体流数中位 = 2："
-            "半数实体仅含 2 条流，故 k > 2 的增益主要来自长尾实体。"
+            "图3-11　本章完整方法在受限观测下的首次告警及时检出（LSPR24 评价，横轴为实体内已观测到的流数，"
+            "对数刻度，分母固定为 752 个正实体）。四条阶梯对应四档可用的告警预算；在实际首次告警假阳率 2.18% 一档，"
+            "只看每个实体的第一条流即可及时检出 61.84% 的正实体，前 10 条流内升到 72.07%，"
+            "读完全部流为 75.27%——增量主要落在前两条流上。"
+            "名义 4% 与 8% 两档的首次告警阈值落进并列块，实际首次告警假阳率达 79.05%，预算不成立，未画入"
+        ),
+    ),
+    FigureSpec(
+        stem="图3-12-检出率随告警预算的变化",
+        width_mm=150,
+        height_mm=95,
+        draw=draw_budget_curves,
+        data_keys=(
+            "bf16/complete-alert-budget-curves.npz O11__{realized_fpr,detection_rate}",
+            "published-neural/complete-alert-budget-curves.npz {transformer,cnn,gru}__{actual_fpr,detection_rate}",
+            "ch3-metrics-table-20260825b/lspr24-evaluation.json[].dr_fpr_*（六档自校基准）",
+        ),
+        caption=(
+            "图3-12　检出率随告警预算的变化（LSPR23 训练、LSPR24 评价，46,363 个负实体与 752 个正实体，"
+            "横轴为实体级实际假阳率，对数刻度；空心标记为名义 0.1%、0.5%、1%、2%、4%、8% 六档预算上的实际可达工作点）。"
+            "在本章方法可达区间内的 1,721 个共同预算点上，本章方法的检出率全部高于发表配置的全注意力网络，"
+            "二者在该区间内不相交；与一维卷积网络只在实际假阳率 0.0539% 处相交一次，交点之后本章方法在 98.84% 的点上更高。"
+            "本章方法的完整曲线在实际假阳率 3.72% 之后落进一个并列块，下一个可达点即为全告警，"
+            "故名义 4% 与 8% 两档取同一工作点"
         ),
     ),
 )
@@ -851,7 +897,7 @@ def save_figure(spec: FigureSpec, fig: Figure) -> dict[str, str]:
             "pad_inches": 0,
         }
         if suffix == "png":
-            kwargs["dpi"] = PNG_DPI
+            kwargs["dpi"] = fs.PNG_DPI
         else:
             kwargs["metadata"] = {"Title": spec.stem, "Creator": "Matplotlib"}
         fig.savefig(path, **kwargs)
@@ -860,194 +906,211 @@ def save_figure(spec: FigureSpec, fig: Figure) -> dict[str, str]:
     return outputs
 
 
-def report_values(data: dict[str, Any], log_facts: dict[str, Any]) -> None:
-    """逐图打印所用数值与 JSON 键路径，供人工核对。"""
+def measure(stem: str, outputs: dict[str, str], width_mm: float, height_mm: float) -> dict[str, Any]:
+    """核对三种格式可解析，回报 PNG 实测像素与实测 ppi，低于 300 直接报错。"""
 
-    cells = data["cells"]
-    logger.info("=" * 88)
-    logger.info("数据源 JSON：%s", JSON_PATH)
-    logger.info("数据源 日志：%s", LOG_PATH)
-    logger.info("=" * 88)
+    from xml.etree import ElementTree
 
-    logger.info("[图3-5] 键路径 cells.{C00,C01,C10,C11}.fap")
-    for cell in CELL_ORDER:
-        logger.info("  cells.%s.fap = %.10f  (%s)", cell, cells[cell]["fap"], CELL_NAMES[cell])
-    for name, value in EXTERNAL_REFS.items():
-        logger.info("  外部参照 %s = %.6f  (来源 tools/ch3_main.py:302-304)", name, value)
-    logger.info("  随机先验 = %.10f  (来源 tools/ch3_main.py:282)", FLOW_PRIOR)
+    from PIL import Image
 
-    logger.info("[图3-6] 键路径 cells.*.fap / cells.*.e_lp / cells.*.dr")
-    for key, label in (("fap", "逐流AP"), ("e_lp", "实体AP(Lp)"), ("dr", "DR@4%FPR")):
-        stat = interaction(cells, key)
-        logger.info(
-            "  %-11s C00=%.6f C01=%.6f C10=%.6f C11=%.6f | A=%+.6f B=%+.6f 和=%+.6f 组合=%+.6f 交互=%+.6f "
-            "| 判据一=%s 判据二=%s",
-            label,
-            stat["C00"],
-            stat["C01"],
-            stat["C10"],
-            stat["C11"],
-            stat["A"],
-            stat["B"],
-            stat["sum"],
-            stat["combo"],
-            stat["delta"],
-            "通过" if stat["crit1"] > 0 else "不通过",
-            "通过" if stat["crit2"] > 0 else "不通过",
-        )
-
-    logger.info("[图3-7] 键路径 stability.C00 / stability.C11")
-    for cell, vals in data["stability"].items():
-        arr = np.asarray(vals, dtype=float)
-        logger.info(
-            "  stability.%s = %s | 均值=%.6f σ(ddof=1)=%.6f",
-            cell,
-            " ".join(f"{v:.6f}" for v in arr),
-            arr.mean(),
-            arr.std(ddof=1),
-        )
-
-    logger.info("[图3-8] 键路径 cells.*.p；run.log 逐 epoch 轨迹=%s", log_facts["has_trajectory"])
-    for cell in CELL_ORDER:
-        logger.info("  cells.%s.p = %.10f", cell, cells[cell]["p"])
-    for cell, seeds in log_facts["seed_p"].items():
-        logger.info("  run.log %s 其他种子 p = %s", cell, {k: f"{v:.4f}" for k, v in sorted(seeds.items())})
-
-    logger.info("[图3-9] 键路径 length.{16,32,64,128} = [逐流AP, 实体AP, p]")
-    for key in sorted(data["length"], key=int):
-        flow, ent, p = data["length"][key]
-        logger.info("  length.%-3s 逐流AP=%.6f 实体AP=%.6f p=%.6f", key, flow, ent, p)
-
-    logger.info("[图3-10] 键路径 facet.* = [AP, 正例数]")
-    pos_total = sum(int(v[1]) for v in data["facet"].values())
-    n_neg = pos_total * (1.0 - FLOW_PRIOR) / FLOW_PRIOR
-    logger.info("  五类正例合计=%d 反推共享负例池=%.0f（由 FLOW_PRIOR=%.10f 折算）", pos_total, n_neg, FLOW_PRIOR)
-    for name, (ap, n) in sorted(data["facet"].items(), key=lambda kv: kv[1][1], reverse=True):
-        base = n / (n + n_neg)
-        logger.info("  facet['%s'] AP=%.8f 正例=%d 基率=%.8f lift=%.3f", name, ap, n, base, ap / base)
-    logger.info(
-        "  一致性核对：整体 C11 逐流 AP/先验 = %.3f，(空) 类 lift = %.3f",
-        cells["C11"]["fap"] / FLOW_PRIOR,
-        data["facet"]["(空)"][0] / (data["facet"]["(空)"][1] / (data["facet"]["(空)"][1] + n_neg)),
-    )
-
-    logger.info("[图3-11] 键路径 curve.C11 = [k, 实体AP, DR@4%%FPR, 覆盖实体数, 用流占比]")
-    full_ap = float(data["curve"]["C11"][-1][1])
-    for k, ap, dr, n_ent, cov in data["curve"]["C11"]:
-        logger.info(
-            "  k=%-5s 实体AP=%.6f DR@4%%FPR=%.4f 覆盖实体=%d 用流占比=%.6f 占全量AP=%.1f%%",
-            "全部" if k is None else k,
-            ap,
-            dr,
-            n_ent,
-            cov,
-            ap / full_ap * 100,
-        )
-    logger.info("  run.log 第 5 行：实体流数中位=%d", ENTITY_FLOW_MEDIAN)
-    logger.info("=" * 88)
+    ElementTree.parse(ROOT / outputs["svg"])
+    if not (ROOT / outputs["pdf"]).read_bytes().startswith(b"%PDF"):
+        raise ValueError(f"PDF 文件头无效：{stem}")
+    with Image.open(ROOT / outputs["png"]) as image:
+        image.verify()
+    with Image.open(ROOT / outputs["png"]) as image:
+        px_w, px_h = image.size
+    ppi_w = px_w / (width_mm / 25.4)
+    ppi_h = px_h / (height_mm / 25.4)
+    if min(ppi_w, ppi_h) < 300.0 - 1e-6:
+        raise ValueError(f"{stem} 实测 {ppi_w:.1f} ppi 低于合同下限 300 ppi")
+    return {"png_pixels": [px_w, px_h], "png_ppi_measured": [round(ppi_w, 1), round(ppi_h, 1)]}
 
 
-def write_manifest(entries: list[dict[str, Any]]) -> None:
-    """把本脚本的条目合并进 图件清单.json，保留机制图脚本的既有条目。"""
+# 图 3-1 至图 3-4 由机制图脚本产出，本脚本不重绘，只在清单中沿用并补全题注行。
+MECHANISM_CAPTIONS: dict[str, str] = {
+    "图3-1-整体方法框架": (
+        "图3-1　本章方法的整体框架：逐流特征经因果前缀跨流聚合进入表示层，"
+        "实体级幂平均池化在决策层把同一实体的逐流分数汇成实体分数；"
+        "表示层机制与决策层机制分别以斜线、反斜线填充标出"
+    ),
+    "图3-2-二IP无向对序列构造": (
+        "图3-2　二 IP 无向对序列构造：双向流经无向对键归并到同一实体，"
+        "键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记"
+    ),
+    "图3-3-因果前缀跨流聚合": (
+        "图3-3　因果前缀跨流聚合：下三角因果掩码与非因果整窗聚合的对照，"
+        "以及前缀聚合的常数代价增量更新"
+    ),
+    "图3-4-实体级可学Lp池化": (
+        "图3-4　实体级可学幂平均池化：广义幂平均关于池化指数的单调曲线，"
+        "标出几何平均、算术平均与上界三个特例"
+    ),
+}
 
-    manifest: dict[str, Any] = {}
+WITHDRAWN: tuple[dict[str, Any], ...] = (
+    {
+        "stem": "图3-10-攻击类别分面",
+        "withdrawn_at": "2026-08-26",
+        "reason": (
+            "旧图取自已作废的 runs/diagnostics/ch3-full 运行；当前权威制品"
+            "（正式 CPA×ELP 四格 BF16 运行、统一指标总表、共同首次告警预算包络）"
+            "均不含任何按攻击类别的分面字段，无法换底重绘。"
+        ),
+        "recovery": (
+            "若正文保留攻击类别分面，需要新增一次按 Category 字段分面的目标年评价运行；"
+            "在此之前正文不应引用图 3-10。"
+        ),
+        "files_moved_to": "作废/",
+    },
+)
+
+
+def build_manifest(entries: list[dict[str, Any]], sources: list[dict[str, Any]]) -> None:
+    """重写图件清单：按生成器分段登记环境与字体，逐图登记数据来源键路径。"""
+
+    import PIL
+
+    previous: dict[str, Any] = {}
     if MANIFEST_PATH.exists():
-        with MANIFEST_PATH.open(encoding="utf-8") as handle:
-            manifest = json.load(handle)
+        previous = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    prior = {item.get("stem"): item for item in previous.get("figures", [])}
 
-    mine = {e["stem"] for e in entries}
-    kept = [e for e in manifest.get("figures", []) if e.get("stem") not in mine and not _is_result_stem(e.get("stem"))]
-
-    generators = manifest.get("generators", [])
-    if isinstance(generators, list):
-        generators = [g for g in generators if g.get("script") != "绘制第三章结果图.py"]
-    else:
-        generators = []
-    if manifest.get("generator") and manifest["generator"] != "绘制第三章结果图.py":
-        generators = [g for g in generators if g.get("script") != manifest["generator"]] + [
-            {"script": manifest["generator"], "evidence_mode": manifest.get("evidence_mode", "unknown")}
-        ]
-    generators.append(
-        {
-            "script": "绘制第三章结果图.py",
-            "evidence_mode": "frozen_experiment_results",
-            "data_source_json": str(JSON_PATH.relative_to(REPO)),
-            "data_source_log": str(LOG_PATH.relative_to(REPO)),
-            "external_reference_source": "thesis/experiments/llm_probe/tools/ch3_main.py:282,302-304",
-            "figures": sorted(mine),
+    mechanism_entries: list[dict[str, Any]] = []
+    for stem, caption in MECHANISM_CAPTIONS.items():
+        old = prior.get(stem)
+        if old is None:
+            raise KeyError(f"图件清单缺少机制图条目：{stem}")
+        outputs = old["outputs"]
+        if not all((ROOT / name).exists() for name in outputs.values()):
+            raise FileNotFoundError(f"机制图输出缺失：{stem}")
+        entry = {
+            "stem": stem,
+            "generator": MECHANISM_GENERATOR,
+            "caption": caption,
+            "width_mm": old["width_mm"],
+            "height_mm": old["height_mm"],
+            "png_dpi": old["png_dpi"],
+            "evidence_mode": "method_schematic_without_experimental_results",
+            "data_source": "不承载实验数据",
+            "data_keys": [],
+            "outputs": outputs,
         }
+        entry.update(measure(stem, outputs, float(old["width_mm"]), float(old["height_mm"])))
+        mechanism_entries.append(entry)
+
+    typography = {
+        "cjk_font_requested": fs.CJK_FONT.requested,
+        "cjk_font_used": fs.CJK_FONT.family,
+        "cjk_font_path": fs.CJK_FONT.path,
+        "cjk_face_index": fs.CJK_FONT.face_index,
+        "latin_font_used": fs.LATIN_FONT.family,
+        "latin_font_path": fs.LATIN_FONT.path,
+        "math_font_used": None if fs.MATH_FONT is None else fs.MATH_FONT.family,
+        "min_font_pt": fs.MIN_FONT_PT,
+        "main_font_pt": fs.MAIN_FONT_PT,
+        "main_line_pt": fs.MAIN_LINE_PT,
+        "aux_line_pt": fs.AUX_LINE_PT,
+    }
+    environment = {
+        "python": ".".join(str(v) for v in sys.version_info[:3]),
+        "matplotlib": __import__("matplotlib").__version__,
+        "numpy": np.__version__,
+        "pillow": PIL.__version__,
+    }
+
+    manifest = {
+        "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）；thesis/figures/AGENTS.md",
+        "updated_at": "2026-08-26",
+        "grayscale_readable": True,
+        "generators": [
+            {
+                "script": MECHANISM_GENERATOR,
+                "evidence_mode": "method_schematic_without_experimental_results",
+                "figures": sorted(MECHANISM_CAPTIONS),
+                "typography": typography,
+                "environment": environment,
+                "note": (
+                    "两个生成脚本共用 figstyle.py 的字体解析，故字体登记相同；"
+                    "本条的尺寸与分辨率由本轮 PIL 实测复核，题注行在本轮补全。"
+                ),
+            },
+            {
+                "script": GENERATOR,
+                "evidence_mode": "frozen_experiment_artifacts",
+                "figures": sorted(entry["stem"] for entry in entries),
+                "typography": typography,
+                "environment": environment,
+                "data_sources": sources,
+                "readout_rule": (
+                    "检出率一律在完整可达告警预算曲线上取实际假阳率不超过名义预算的最后一个点；"
+                    "制品中 dr_at_fpr 的名义秩位键不使用。该规则已对四个方法、六档预算与"
+                    "统一指标总表逐位自校一致。"
+                ),
+            },
+        ],
+        "withdrawn": list(WITHDRAWN),
+        "figures": sorted(
+            mechanism_entries + entries,
+            key=lambda item: int(str(item["stem"]).split("-")[1]),
+        ),
+    }
+    MANIFEST_PATH.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
-
-    manifest["generators"] = generators
-    manifest["python"] = f"{__import__('sys').version_info.major}.{__import__('sys').version_info.minor}." + str(
-        __import__("sys").version_info.micro
-    )
-    manifest["matplotlib"] = matplotlib.__version__
-    manifest["font"] = {"cjk": FONTS["cjk"], "latin": FONTS["latin"], "math": "STIX (mathtext.fontset=stix)"}
-    manifest["png_dpi"] = PNG_DPI
-    manifest["figures"] = sorted(kept + entries, key=_figure_sort_key)
-
-    with MANIFEST_PATH.open("w", encoding="utf-8") as handle:
-        json.dump(manifest, handle, ensure_ascii=False, indent=2)
-        handle.write("\n")
-
-
-def _is_result_stem(stem: str | None) -> bool:
-    """判定条目是否落在本脚本负责的 图3-5 ~ 图3-11 编号区间。"""
-
-    if not stem:
-        return False
-    match = re.match(r"图3-(\d+)-", stem)
-    return bool(match) and 5 <= int(match.group(1)) <= 11
-
-
-def _figure_sort_key(entry: dict[str, Any]) -> tuple[int, str]:
-    match = re.match(r"图3-(\d+)-", str(entry.get("stem", "")))
-    return (int(match.group(1)) if match else 999, str(entry.get("stem", "")))
 
 
 def main() -> None:
-    data, log_facts = load_sources()
-    report_values(data, log_facts)
+    registry = rd.Registry()
+    for line in rd.verify_against_metrics_table(registry):
+        logger.info("自校　%s", line)
+
+    cells, meta = rd.load_ablation(registry)
+    ctx: dict[str, Any] = {
+        "methods": rd.load_metrics_table(registry),
+        "cells": cells,
+        "meta": meta,
+        "effects": rd.ablation_effects(cells),
+        "first_alert": rd.load_first_alert(registry),
+        "budget_curves": rd.load_budget_curves(registry),
+    }
 
     entries: list[dict[str, Any]] = []
     for spec in SPECS:
-        fig = spec.draw(data, log_facts)
-        outputs = save_figure(spec, fig)
-        png = ROOT / outputs["png"]
-        px_w, px_h = _png_pixels(png)
-        entries.append(
-            {
-                "stem": spec.stem,
-                "width_mm": spec.width_mm,
-                "height_mm": spec.height_mm,
-                "png_dpi": PNG_DPI,
-                "png_pixels": [px_w, px_h],
-                "json_keys": list(spec.json_keys),
-                "caption": spec.caption,
-                "outputs": outputs,
-            }
-        )
+        outputs = save_figure(spec, spec.draw(ctx))
+        entry: dict[str, Any] = {
+            "stem": spec.stem,
+            "generator": GENERATOR,
+            "caption": spec.caption,
+            "width_mm": spec.width_mm,
+            "height_mm": spec.height_mm,
+            "png_dpi": fs.PNG_DPI,
+            "evidence_mode": "frozen_experiment_artifacts",
+            "data_source": meta["run_id"],
+            "data_keys": list(spec.data_keys),
+            "outputs": outputs,
+        }
+        entry.update(measure(spec.stem, outputs, spec.width_mm, spec.height_mm))
+        entries.append(entry)
         logger.info(
-            "已生成 %s：%.0f×%.0f mm，PNG %d×%d px @ %d ppi，键路径 %s",
+            "已生成 %s：%g×%g mm，PNG %d×%d px，实测 %.1f ppi",
             spec.stem,
             spec.width_mm,
             spec.height_mm,
-            px_w,
-            px_h,
-            PNG_DPI,
-            ", ".join(spec.json_keys),
+            entry["png_pixels"][0],
+            entry["png_pixels"][1],
+            entry["png_ppi_measured"][0],
         )
 
-    write_manifest(entries)
-    logger.info("图件清单已更新：%s", MANIFEST_PATH)
-
-
-def _png_pixels(path: Path) -> tuple[int, int]:
-    """读取 PNG 头部的像素尺寸，不引入额外依赖。"""
-
-    raw = path.read_bytes()[16:24]
-    return int.from_bytes(raw[0:4], "big"), int.from_bytes(raw[4:8], "big")
+    build_manifest(entries, registry.dump())
+    logger.info("图件清单已重写：%s", MANIFEST_PATH)
+    logger.info(
+        "字体　中文 %s（%s#%d）／西文 %s",
+        fs.CJK_FONT.family,
+        fs.CJK_FONT.path,
+        fs.CJK_FONT.face_index,
+        fs.LATIN_FONT.family,
+    )
 
 
 if __name__ == "__main__":

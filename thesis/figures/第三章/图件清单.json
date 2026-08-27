@@ -1,32 +1,142 @@
 {
-  "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）",
-  "environment": {
-    "generator": "绘制第三章机制图.py",
-    "python": "3.12.13",
-    "matplotlib": "3.11.1",
-    "pillow": "12.3.0"
-  },
-  "typography": {
-    "cjk_font_requested": "Heiti SC",
-    "cjk_font_used": "Heiti SC",
-    "cjk_font_path": "/System/Library/Fonts/STHeiti Medium.ttc",
-    "cjk_face_index": 1,
-    "latin_font_used": "Times New Roman",
-    "latin_font_path": "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
-    "math_fontset": "stix",
-    "min_font_pt": 8.0,
-    "main_font_pt": 9.0,
-    "main_line_pt": 1.0,
-    "aux_line_pt": 0.5
-  },
+  "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）；thesis/figures/AGENTS.md",
+  "updated_at": "2026-08-26",
   "grayscale_readable": true,
+  "generators": [
+    {
+      "script": "绘制第三章机制图.py",
+      "evidence_mode": "method_schematic_without_experimental_results",
+      "figures": [
+        "图3-1-整体方法框架",
+        "图3-2-二IP无向对序列构造",
+        "图3-3-因果前缀跨流聚合",
+        "图3-4-实体级可学Lp池化"
+      ],
+      "typography": {
+        "cjk_font_requested": "SimHei",
+        "cjk_font_used": "SimHei",
+        "cjk_font_path": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/SimHei.ttf",
+        "cjk_face_index": 0,
+        "latin_font_used": "Times New Roman",
+        "latin_font_path": "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+        "math_font_used": "Cambria Math",
+        "min_font_pt": 8.0,
+        "main_font_pt": 9.0,
+        "main_line_pt": 1.0,
+        "aux_line_pt": 0.5
+      },
+      "environment": {
+        "python": "3.12.13",
+        "matplotlib": "3.11.1",
+        "numpy": "2.5.1",
+        "pillow": "12.3.0"
+      },
+      "note": "两个生成脚本共用 figstyle.py 的字体解析，故字体登记相同；本条的尺寸与分辨率由本轮 PIL 实测复核，题注行在本轮补全。"
+    },
+    {
+      "script": "绘制第三章结果图.py",
+      "evidence_mode": "frozen_experiment_artifacts",
+      "figures": [
+        "图3-11-受限观测下的检测能力",
+        "图3-12-检出率随告警预算的变化",
+        "图3-5-六个方法在三个指标上的相对位置",
+        "图3-6-双机制消融交互",
+        "图3-7-训练稳定性",
+        "图3-8-Lp指数收敛轨迹",
+        "图3-9-实体流数分桶敏感性"
+      ],
+      "typography": {
+        "cjk_font_requested": "SimHei",
+        "cjk_font_used": "SimHei",
+        "cjk_font_path": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/SimHei.ttf",
+        "cjk_face_index": 0,
+        "latin_font_used": "Times New Roman",
+        "latin_font_path": "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+        "math_font_used": "Cambria Math",
+        "min_font_pt": 8.0,
+        "main_font_pt": 9.0,
+        "main_line_pt": 1.0,
+        "aux_line_pt": 0.5
+      },
+      "environment": {
+        "python": "3.12.13",
+        "matplotlib": "3.11.1",
+        "numpy": "2.5.1",
+        "pillow": "12.3.0"
+      },
+      "data_sources": [
+        {
+          "role": "正式 CPA×ELP 四格聚合结果",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/aggregate-results.json",
+          "sha256": "f9c20e03893aeae73914e67926721ecc358d2016e79d05f6299ddb09c9338e07",
+          "bytes": 275163
+        },
+        {
+          "role": "正式四格完整告警预算曲线收据",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/complete-alert-budget-curves-receipt.json",
+          "sha256": "98e435ff4bec9cde9184358fc52a2f2df048c7b46e97d6a7cb2897fa8bb8a16a",
+          "bytes": 767
+        },
+        {
+          "role": "正式四格完整告警预算曲线",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/complete-alert-budget-curves.npz",
+          "sha256": "3820e783d1b594bcae7ac1fd14537a69f8984621bd95783f75773518e07d96ef",
+          "bytes": 1845651
+        },
+        {
+          "role": "正式 CPA×ELP 四格选轮冻结",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1/selection_frozen.json",
+          "sha256": "025072897b213246fff92817f5630c9dae59be6c0e057509529421d8212e999e",
+          "bytes": 89152
+        },
+        {
+          "role": "统一指标总表 LSPR24 评价",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-metrics-table-20260825b/lspr24-evaluation.json",
+          "sha256": "8c60893dc89555486f11ad897f1d3e59ac3533ba1844339949eb463689e5569c",
+          "bytes": 76078
+        },
+        {
+          "role": "统一指标总表溯源",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-metrics-table-20260825b/provenance.json",
+          "sha256": "3355060147b0518a2082fdbbbe933d75ae549daeb3bf2ea87ea0a00ace3bf8db",
+          "bytes": 18968
+        },
+        {
+          "role": "已发表神经基线运行结果",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-published-neural-operational-backfill-v1/aggregate-results.json",
+          "sha256": "5dd66aacce33eeaa8f3f125e449f301c1fc89b4eaa356b9dc009a28bc63dbd67",
+          "bytes": 54230
+        },
+        {
+          "role": "已发表神经基线完整告警预算曲线",
+          "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-published-neural-operational-backfill-v1/complete-alert-budget-curves.npz",
+          "sha256": "eb5e91d44029c47eaca0ae1b209e582a26bf1c87f4e70a5ed4a3c1be1c628a56",
+          "bytes": 1453657
+        }
+      ],
+      "readout_rule": "检出率一律在完整可达告警预算曲线上取实际假阳率不超过名义预算的最后一个点；制品中 dr_at_fpr 的名义秩位键不使用。该规则已对四个方法、六档预算与统一指标总表逐位自校一致。"
+    }
+  ],
+  "withdrawn": [
+    {
+      "stem": "图3-10-攻击类别分面",
+      "withdrawn_at": "2026-08-26",
+      "reason": "旧图取自已作废的 runs/diagnostics/ch3-full 运行；当前权威制品（正式 CPA×ELP 四格 BF16 运行、统一指标总表、共同首次告警预算包络）均不含任何按攻击类别的分面字段，无法换底重绘。",
+      "recovery": "若正文保留攻击类别分面，需要新增一次按 Category 字段分面的目标年评价运行；在此之前正文不应引用图 3-10。",
+      "files_moved_to": "作废/"
+    }
+  ],
   "figures": [
     {
       "stem": "图3-1-整体方法框架",
-      "caption": "逐流特征到实体级告警的整体流程；表示层机制一与决策层机制二分别以斜线、反斜线填充标出。",
+      "generator": "绘制第三章机制图.py",
+      "caption": "图3-1　本章方法的整体框架：逐流特征经因果前缀跨流聚合进入表示层，实体级幂平均池化在决策层把同一实体的逐流分数汇成实体分数；表示层机制与决策层机制分别以斜线、反斜线填充标出",
       "width_mm": 150.0,
       "height_mm": 95.0,
       "png_dpi": 400,
+      "evidence_mode": "method_schematic_without_experimental_results",
+      "data_source": "不承载实验数据",
+      "data_keys": [],
       "outputs": {
         "svg": "图3-1-整体方法框架.svg",
         "pdf": "图3-1-整体方法框架.pdf",
@@ -39,15 +149,18 @@
       "png_ppi_measured": [
         400.0,
         400.0
-      ],
-      "evidence_mode": "method_schematic_without_experimental_results"
+      ]
     },
     {
       "stem": "图3-2-二IP无向对序列构造",
-      "caption": "双向流经无向对键归并到同一实体，键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记。",
+      "generator": "绘制第三章机制图.py",
+      "caption": "图3-2　二 IP 无向对序列构造：双向流经无向对键归并到同一实体，键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记",
       "width_mm": 150.0,
       "height_mm": 80.0,
       "png_dpi": 400,
+      "evidence_mode": "method_schematic_without_experimental_results",
+      "data_source": "不承载实验数据",
+      "data_keys": [],
       "outputs": {
         "svg": "图3-2-二IP无向对序列构造.svg",
         "pdf": "图3-2-二IP无向对序列构造.pdf",
@@ -60,15 +173,18 @@
       "png_ppi_measured": [
         400.0,
         399.7
-      ],
-      "evidence_mode": "method_schematic_without_experimental_results"
+      ]
     },
     {
       "stem": "图3-3-因果前缀跨流聚合",
-      "caption": "下三角因果掩码与非因果整窗聚合的对照，以及前缀聚合的常数代价增量更新。",
+      "generator": "绘制第三章机制图.py",
+      "caption": "图3-3　因果前缀跨流聚合：下三角因果掩码与非因果整窗聚合的对照，以及前缀聚合的常数代价增量更新",
       "width_mm": 140.0,
       "height_mm": 95.0,
       "png_dpi": 400,
+      "evidence_mode": "method_schematic_without_experimental_results",
+      "data_source": "不承载实验数据",
+      "data_keys": [],
       "outputs": {
         "svg": "图3-3-因果前缀跨流聚合.svg",
         "pdf": "图3-3-因果前缀跨流聚合.pdf",
@@ -81,15 +197,18 @@
       "png_ppi_measured": [
         399.9,
         400.0
-      ],
-      "evidence_mode": "method_schematic_without_experimental_results"
+      ]
     },
     {
       "stem": "图3-4-实体级可学Lp池化",
-      "caption": "广义幂平均关于池化指数的单调曲线，标出几何平均、算术平均与上界三个特例。",
+      "generator": "绘制第三章机制图.py",
+      "caption": "图3-4　实体级可学幂平均池化：广义幂平均关于池化指数的单调曲线，标出几何平均、算术平均与上界三个特例",
       "width_mm": 140.0,
       "height_mm": 95.0,
       "png_dpi": 400,
+      "evidence_mode": "method_schematic_without_experimental_results",
+      "data_source": "不承载实验数据",
+      "data_keys": [],
       "outputs": {
         "svg": "图3-4-实体级可学Lp池化.svg",
         "pdf": "图3-4-实体级可学Lp池化.pdf",
@@ -102,179 +221,203 @@
       "png_ppi_measured": [
         399.9,
         400.0
-      ],
-      "evidence_mode": "method_schematic_without_experimental_results"
+      ]
     },
     {
-      "stem": "图3-5-跨年度主性能对比",
-      "width_mm": 150,
+      "stem": "图3-5-六个方法在三个指标上的相对位置",
+      "generator": "绘制第三章结果图.py",
+      "caption": "图3-5　六个方法在三个指标上的相对位置（LSPR23 训练、LSPR24 评价，47,115 个实体、其中正实体 752 个，三个面板依次为逐流平均精确率、实体平均精确率与假阳率 4% 预算下的检出率，各方法实体分数按其自身设计的聚合算子得到，各点为单次运行；随机森林与已发表配置 XGBoost 只持久化名义 4% 单点，没有实际假阳率收据，以不同填充图案标出）",
+      "width_mm": 165,
       "height_mm": 95,
       "png_dpi": 400,
+      "evidence_mode": "frozen_experiment_artifacts",
+      "data_source": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+      "data_keys": [
+        "ch3-metrics-table-20260825b/lspr24-evaluation.json[].flow_ap",
+        "ch3-metrics-table-20260825b/lspr24-evaluation.json[].entity_ap",
+        "ch3-metrics-table-20260825b/lspr24-evaluation.json[].dr_fpr_0.04",
+        "ch3-metrics-table-20260825b/lspr24-evaluation.json[].actual_fpr_fpr_0.04"
+      ],
+      "outputs": {
+        "svg": "图3-5-六个方法在三个指标上的相对位置.svg",
+        "pdf": "图3-5-六个方法在三个指标上的相对位置.pdf",
+        "png": "图3-5-六个方法在三个指标上的相对位置.png"
+      },
       "png_pixels": [
-        2362,
+        2598,
         1496
       ],
-      "json_keys": [
-        "cells.C00.fap",
-        "cells.C01.fap",
-        "cells.C10.fap",
-        "cells.C11.fap"
-      ],
-      "caption": "图3-5 LSPR23 训练、LSPR24 零样本评价下的跨年度逐流平均精确率对比。本章 2×2 四格与本课题 XGBoost、逐流 MLP 基线在同一冻结评价池上测得；Dijk 2026 表 5 三行为论文原始数字，协议不完全等同，仅作背景参照，以不同填充图案标出。竖直虚线为随机先验 0.025707。",
-      "outputs": {
-        "svg": "图3-5-跨年度主性能对比.svg",
-        "pdf": "图3-5-跨年度主性能对比.pdf",
-        "png": "图3-5-跨年度主性能对比.png"
-      }
+      "png_ppi_measured": [
+        399.9,
+        400.0
+      ]
     },
     {
       "stem": "图3-6-双机制消融交互",
+      "generator": "绘制第三章结果图.py",
+      "caption": "图3-6　因果前缀跨流聚合（A）与实体级幂平均池化（B）的 2×2 消融（LSPR23 训练、LSPR24 评价，单种子 seed42，三个面板依次为实体平均精确率、逐流平均精确率与实际假阳率 2% 预算下的检出率）。以实体平均精确率计，A 单开 +0.0829、B 单开 +0.0994，两者之和 +0.1823，双机制并用 +0.2209，交互项 +0.0385。两个单机制对基线均为正贡献，并用格在目标年四格中最高；交互项只作描述性读数。逐流平均精确率的次序与实体级两个口径相反，此处如实并列，不作取舍",
       "width_mm": 150,
-      "height_mm": 100,
+      "height_mm": 90,
       "png_dpi": 400,
-      "png_pixels": [
-        2362,
-        1574
+      "evidence_mode": "frozen_experiment_artifacts",
+      "data_source": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+      "data_keys": [
+        "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.entity_average_precision",
+        "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.flow_average_precision",
+        "bf16/complete-alert-budget-curves.npz {B00,B10,O01,O11}__{realized_fpr,detection_rate}"
       ],
-      "json_keys": [
-        "cells.*.fap",
-        "cells.*.e_lp",
-        "cells.*.dr"
-      ],
-      "caption": "图3-6 因果前缀聚合（A）与实体级 Lp 池化（B）的 2×2 消融，在逐流 AP、实体 AP（Lp 池化）与 DR@4%FPR 三个口径下并列呈现。交互项 Δ = C11 − C10 − C01 + C00；判据一为 Δ > 0（超可加），判据二为 C11 > max(C01, C10)（组合优于最佳单机制）。三个口径结论不一致：实体 AP（Δ = +0.091268）与 DR@4%FPR（Δ = +0.017287）两条判据均通过，逐流 AP（Δ = −0.182777）两条判据均不通过。此处如实并列，不作取舍。",
       "outputs": {
         "svg": "图3-6-双机制消融交互.svg",
         "pdf": "图3-6-双机制消融交互.pdf",
         "png": "图3-6-双机制消融交互.png"
-      }
+      },
+      "png_pixels": [
+        2362,
+        1417
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.9
+      ]
     },
     {
       "stem": "图3-7-训练稳定性",
-      "width_mm": 110,
-      "height_mm": 85,
+      "generator": "绘制第三章结果图.py",
+      "caption": "图3-7　四格在 LSPR23 源年验证集上的逐轮表现与选中轮次（20 轮跑满不早停，单种子 seed42，选择准则为验证逐流平均精确率最早最大，实心大标记为选中轮）。无机制基线、仅因果前缀聚合与仅实体级幂平均池化三格二十轮取值的极差分别为 0.0056、0.0075 与 0.0077，双机制并用格为 0.1158，约为前三者的 15 至 21 倍；该格在第 7、12 两轮跌到 0.89 以下，选轮结果对轮次高度敏感",
+      "width_mm": 140,
+      "height_mm": 90,
       "png_dpi": 400,
-      "png_pixels": [
-        1732,
-        1338
+      "evidence_mode": "frozen_experiment_artifacts",
+      "data_source": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+      "data_keys": [
+        "bf16/selection_frozen.json cells.{B00,B10,O01,O11}.history[].epoch",
+        "bf16/selection_frozen.json cells.{B00,B10,O01,O11}.history[].validation_flow_ap",
+        "bf16/selection_frozen.json cells.{B00,B10,O01,O11}.selected_epoch"
       ],
-      "json_keys": [
-        "stability.C00",
-        "stability.C11"
-      ],
-      "caption": "图3-7 基线序列编码器（C00）与完整方法（C11）在种子 42/43/44 下的跨年度逐流 AP。横线为三种子均值，阴影为 ±1σ（ddof=1）。σ 是协议的属性：本图协议为 20000 步、末 5 检查点平均、顺序执行，σ(C00) = 0.023248、σ(C11) = 0.058622。",
       "outputs": {
         "svg": "图3-7-训练稳定性.svg",
         "pdf": "图3-7-训练稳定性.pdf",
         "png": "图3-7-训练稳定性.png"
-      }
+      },
+      "png_pixels": [
+        2204,
+        1417
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.9
+      ]
     },
     {
       "stem": "图3-8-Lp指数收敛轨迹",
+      "generator": "绘制第三章结果图.py",
+      "caption": "图3-8　实体级幂平均池化指数 p 的逐轮轨迹（单种子 seed42，横轴为训练轮次）。两格都由初值 p = 2 单调下行：仅实体级幂平均池化格在选中的第 14 轮取 p = 0.8759，双机制并用格在选中的第 5 轮取 p = 1.6777，两者都落在 p = 1（算术平均）与 p 趋于正无穷（取最大）之间。无机制基线与仅因果前缀聚合两格未启用池化，p 恒为初值 2 且不参与训练",
       "width_mm": 130,
       "height_mm": 85,
       "png_dpi": 400,
-      "png_pixels": [
-        2047,
-        1338
+      "evidence_mode": "frozen_experiment_artifacts",
+      "data_source": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+      "data_keys": [
+        "bf16/selection_frozen.json cells.{O01,O11}.history[].p",
+        "bf16/aggregate-results.json target_year_table.{O01,O11}.p"
       ],
-      "json_keys": [
-        "cells.C00.p",
-        "cells.C01.p",
-        "cells.C10.p",
-        "cells.C11.p"
-      ],
-      "caption": "图3-8 四格学到的 Lp 池化指数 p 终值。run.log 为顺序执行日志，未记录逐 epoch 轨迹，故本图只有各格终值，不呈现收敛过程。C00 与 C10 未启用 Lp 池化，p 保持初值 2.0，不参与训练；C01 收敛到 0.6069、C11 收敛到 1.2236，均落在 p = 1（算术平均）与 p → ∞（上界）之间的内部值。",
       "outputs": {
         "svg": "图3-8-Lp指数收敛轨迹.svg",
         "pdf": "图3-8-Lp指数收敛轨迹.pdf",
         "png": "图3-8-Lp指数收敛轨迹.png"
-      }
-    },
-    {
-      "stem": "图3-9-序列长度敏感性",
-      "width_mm": 130,
-      "height_mm": 85,
-      "png_dpi": 400,
+      },
       "png_pixels": [
         2047,
         1338
       ],
-      "json_keys": [
-        "length.16",
-        "length.32",
-        "length.64",
-        "length.128"
-      ],
-      "caption": "图3-9 序列长度 L 的逐流与实体级 AP（本实验已知存在缺陷，仅作趋势参考，不支持「长上下文更好」的结论）。缺陷有三：其一，截断实现取固定 L=128 块的前 L 个位置，逐流覆盖率约 L/128，L=16 时仅约 12.5% 的流被打分；其二，评价集正类基率随 L 改变，四点分母不同不可直接比较；其三，8000 步固定步数预算下各 L 的训练流量预算最多相差 8 倍。",
-      "outputs": {
-        "svg": "图3-9-序列长度敏感性.svg",
-        "pdf": "图3-9-序列长度敏感性.pdf",
-        "png": "图3-9-序列长度敏感性.png"
-      }
+      "png_ppi_measured": [
+        400.0,
+        399.8
+      ]
     },
     {
-      "stem": "图3-10-攻击类别分面",
-      "width_mm": 130,
+      "stem": "图3-9-实体流数分桶敏感性",
+      "generator": "绘制第三章结果图.py",
+      "caption": "图3-9　按实体内流数分桶的四格检测能力（LSPR24 评价，单种子 seed42，五个桶的实体与正实体数对四格相同）。双机制并用格在 3～10 与 11～100 两桶上取得四格最高值；101～1000 与 1001 条流以上两桶的正实体分别只有 84 与 40 个，桶内取值不支持排序结论",
+      "width_mm": 150,
       "height_mm": 90,
       "png_dpi": 400,
+      "evidence_mode": "frozen_experiment_artifacts",
+      "data_source": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+      "data_keys": [
+        "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.length_buckets[].bucket",
+        "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.length_buckets[].entity_average_precision",
+        "bf16/aggregate-results.json target_year_table.{B00,B10,O01,O11}.length_buckets[].positive_entities"
+      ],
+      "outputs": {
+        "svg": "图3-9-实体流数分桶敏感性.svg",
+        "pdf": "图3-9-实体流数分桶敏感性.pdf",
+        "png": "图3-9-实体流数分桶敏感性.png"
+      },
       "png_pixels": [
-        2047,
+        2362,
         1417
       ],
-      "json_keys": [
-        "facet.*"
-      ],
-      "caption": "图3-10 按 Category 字段的攻击类别分面（本实验已知存在缺陷，只作定性参考）。缺陷有三：其一，Category 字段对恶意流几乎全空，「(空)」类含 519,138 个正例，占五类正例总数的 99.84%，其余四类各仅 81～452 例；其二，各类按「该类正例 + 全部负例」构造，评价基率相差数个数量级，(a) 的类内 AP 跨类不可比；其三，(b) 给出 AP / 基率 lift 作为可比口径，基率按共享负例池折算，负例池由冻结逐流先验 0.025707 与五类正例合计反推。每类条形上同时标注该类正例数。",
-      "outputs": {
-        "svg": "图3-10-攻击类别分面.svg",
-        "pdf": "图3-10-攻击类别分面.pdf",
-        "png": "图3-10-攻击类别分面.png"
-      }
+      "png_ppi_measured": [
+        400.0,
+        399.9
+      ]
     },
     {
       "stem": "图3-11-受限观测下的检测能力",
+      "generator": "绘制第三章结果图.py",
+      "caption": "图3-11　本章完整方法在受限观测下的首次告警及时检出（LSPR24 评价，横轴为实体内已观测到的流数，对数刻度，分母固定为 752 个正实体）。四条阶梯对应四档可用的告警预算；在实际首次告警假阳率 2.18% 一档，只看每个实体的第一条流即可及时检出 61.84% 的正实体，前 10 条流内升到 72.07%，读完全部流为 75.27%——增量主要落在前两条流上。名义 4% 与 8% 两档的首次告警阈值落进并列块，实际首次告警假阳率达 79.05%，预算不成立，未画入",
       "width_mm": 140,
-      "height_mm": 95,
+      "height_mm": 90,
       "png_dpi": 400,
-      "png_pixels": [
-        2204,
-        1496
+      "evidence_mode": "frozen_experiment_artifacts",
+      "data_source": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+      "data_keys": [
+        "bf16/complete-alert-budget-curves.npz O11__first_alert__fpr_*__exposure_index",
+        "bf16/complete-alert-budget-curves.npz O11__first_alert__fpr_*__on_time_detection_rate",
+        "bf16/aggregate-results.json target_year_table.O11.first_alert.*.realized_first_alert_fpr"
       ],
-      "json_keys": [
-        "curve.C11"
-      ],
-      "caption": "图3-11 完整方法（C11）在每实体只使用按时间前 k 条流时的实体 AP 与 DR@4%FPR，横轴为对数刻度。实体 AP 从 k=1 的 0.299964 升到使用全部流的 0.462988，DR@4%FPR 从 0.4973 升到 0.6955。k=50 时用 2.27% 的流即达到全量 AP 的 98.8%（≥95%）。竖直点线标出实体流数中位 = 2：半数实体仅含 2 条流，故 k > 2 的增益主要来自长尾实体。",
       "outputs": {
         "svg": "图3-11-受限观测下的检测能力.svg",
         "pdf": "图3-11-受限观测下的检测能力.pdf",
         "png": "图3-11-受限观测下的检测能力.png"
-      }
-    }
-  ],
-  "generators": [
+      },
+      "png_pixels": [
+        2204,
+        1417
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.9
+      ]
+    },
     {
-      "script": "绘制第三章结果图.py",
-      "evidence_mode": "frozen_experiment_results",
-      "data_source_json": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full/ch3_full_results.json",
-      "data_source_log": "thesis/experiments/llm_probe/runs/diagnostics/ch3-full/run.log",
-      "external_reference_source": "thesis/experiments/llm_probe/tools/ch3_main.py:282,302-304",
-      "figures": [
-        "图3-10-攻击类别分面",
-        "图3-11-受限观测下的检测能力",
-        "图3-5-跨年度主性能对比",
-        "图3-6-双机制消融交互",
-        "图3-7-训练稳定性",
-        "图3-8-Lp指数收敛轨迹",
-        "图3-9-序列长度敏感性"
+      "stem": "图3-12-检出率随告警预算的变化",
+      "generator": "绘制第三章结果图.py",
+      "caption": "图3-12　检出率随告警预算的变化（LSPR23 训练、LSPR24 评价，46,363 个负实体与 752 个正实体，横轴为实体级实际假阳率，对数刻度；空心标记为名义 0.1%、0.5%、1%、2%、4%、8% 六档预算上的实际可达工作点）。在本章方法可达区间内的 1,721 个共同预算点上，本章方法的检出率全部高于发表配置的全注意力网络，二者在该区间内不相交；与一维卷积网络只在实际假阳率 0.0539% 处相交一次，交点之后本章方法在 98.84% 的点上更高。本章方法的完整曲线在实际假阳率 3.72% 之后落进一个并列块，下一个可达点即为全告警，故名义 4% 与 8% 两档取同一工作点",
+      "width_mm": 150,
+      "height_mm": 95,
+      "png_dpi": 400,
+      "evidence_mode": "frozen_experiment_artifacts",
+      "data_source": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+      "data_keys": [
+        "bf16/complete-alert-budget-curves.npz O11__{realized_fpr,detection_rate}",
+        "published-neural/complete-alert-budget-curves.npz {transformer,cnn,gru}__{actual_fpr,detection_rate}",
+        "ch3-metrics-table-20260825b/lspr24-evaluation.json[].dr_fpr_*（六档自校基准）"
+      ],
+      "outputs": {
+        "svg": "图3-12-检出率随告警预算的变化.svg",
+        "pdf": "图3-12-检出率随告警预算的变化.pdf",
+        "png": "图3-12-检出率随告警预算的变化.png"
+      },
+      "png_pixels": [
+        2362,
+        1496
+      ],
+      "png_ppi_measured": [
+        400.0,
+        400.0
       ]
     }
-  ],
-  "python": "3.12.13",
-  "matplotlib": "3.11.1",
-  "font": {
-    "cjk": "Heiti TC",
-    "latin": "Times New Roman",
-    "math": "STIX (mathtext.fontset=stix)"
-  },
-  "png_dpi": 400
+  ]
 }
