@@ -37,11 +37,20 @@ if str(TOOL_DIR) not in sys.path:
 
 import ch4_mlp_o11_oof_fold_models as d0
 from ch4_mlp_o11_oof_fold_models_local_screen import LocalFullMLP, prepare, atomic_json
+from ch4_mlp_o11_crossyear_threshold_transfer_diag import calibrate_threshold
 
-RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-v1"
-# 追加诊断（2026-08-27，排查 float32 sigmoid 饱和假象）：logit 空间打分的独立运行身份，
-# 不替换 RUN_ID 的预注册（probability 空间）结果，两者输出根互不覆盖。
-LOGIT_RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-logit-v1"
+# 校准 bug 修复（2026-08-27）：本文件旧版 calibrate_threshold 候选降序遍历遇到第一个
+# 满足 count(>=t)<=allowed 就立即返回——最高候选恒满足（count=1<=allowed），阈值退化
+# 为全局最大良性分，预算利用率≈0，导致此前两轮「病灶不存在」结论无效。跨年诊断代理
+# （tools/ch4_mlp_o11_crossyear_threshold_transfer_diag.py，commit 983ff49）已用合成
+# 数据独立证实并修复：正确语义是「在预算内尽量压低阈值」（用满预算的最小可达阈值）。
+# 本文件不再自行实现，直接 import 复用该已验证实现，避免两套并存分叉。旧（错误）结果
+# 保留在 PRE_FIX_RUN_ID/PRE_FIX_LOGIT_RUN_ID 对应的运行根，作 bug 留痕不覆盖；默认运行
+# 身份改名为 -recal-v1 家族，避免与旧结果同名混淆。
+PRE_FIX_RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-v1"
+PRE_FIX_LOGIT_RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-logit-v1"
+RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-recal-v1"
+LOGIT_RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-logit-recal-v1"
 D0_RUN_ID = "ch4-mlp-o11-oof-fold-models-local-screen-v1"
 # 服务器正式 D0（BF16、CUDA）身份：与本机筛选 D0 共用同一诊断入口，
 # 见 tools/ch4_mlp_o11_oof_fold_models.py（RUN_ID）与
@@ -181,17 +190,6 @@ def entity_tables(
     return {"first": first_scores, "path_max": path_max, "length": entity_length}
 
 
-def calibrate_threshold(benign_scores: np.ndarray, budget: float) -> float:
-    """良性实体分数上取实体 FPR≤budget 的最小可达阈值（并列组整体处理）。"""
-    ordered = np.sort(benign_scores)[::-1]
-    allowed = int(len(ordered) * budget)
-    candidates = np.unique(ordered)[::-1]
-    for threshold in candidates:
-        if int((ordered >= threshold).sum()) <= allowed:
-            return float(threshold)
-    return float(np.nextafter(ordered[0], np.inf))
-
-
 def rates(entity_scores: np.ndarray, labels: np.ndarray, threshold: float) -> dict[str, Any]:
     alerts = entity_scores >= threshold
     benign = labels == 0
@@ -212,7 +210,11 @@ def main() -> int:
     parser.add_argument(
         "--output-root",
         default=None,
-        help="默认按 --score-space 选择运行身份目录（probability→RUN_ID，logit→LOGIT_RUN_ID）",
+        help=(
+            "默认按 --score-space 选择运行身份目录（probability→RUN_ID=-recal-v1，"
+            "logit→LOGIT_RUN_ID=-logit-recal-v1；旧校准 bug 的历史结果在 "
+            "PRE_FIX_RUN_ID/PRE_FIX_LOGIT_RUN_ID 对应目录，不受本次默认值变更影响）"
+        ),
     )
     parser.add_argument(
         "--score-space",
@@ -288,6 +290,23 @@ def main() -> int:
             "pooled_path_max_calibrated": m0,
             "buckets": buckets,
             "gate_some_long_bucket_fpr_gt_budget": bool(long_bucket_violation),
+        },
+        "calibration_fix": {
+            "fixed_2026_08_27": True,
+            "bug": (
+                "旧 calibrate_threshold 候选降序遍历遇到第一个满足 count(>=t)<=allowed 即返回，"
+                "最高候选恒满足（count=1<=allowed），阈值退化为全局最大良性分，预算利用率≈0"
+            ),
+            "fix_source": (
+                "tools/ch4_mlp_o11_crossyear_threshold_transfer_diag.py::calibrate_threshold"
+                "（commit 983ff49，本文件 import 复用，未重新实现）"
+            ),
+            "pre_fix_run_id": PRE_FIX_RUN_ID if args.score_space == "probability" else PRE_FIX_LOGIT_RUN_ID,
+            "pre_fix_results_path": (
+                f"runs/diagnostics/{PRE_FIX_RUN_ID if args.score_space == 'probability' else PRE_FIX_LOGIT_RUN_ID}"
+                "/pathology-results.json"
+            ),
+            "pre_fix_results_note": "旧（错误校准）结果按 bug 留痕原样保留，未被本次重跑覆盖",
         },
     }
     if args.score_space == "logit":
