@@ -39,6 +39,9 @@ import ch4_mlp_o11_oof_fold_models as d0
 from ch4_mlp_o11_oof_fold_models_local_screen import LocalFullMLP, prepare, atomic_json
 
 RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-v1"
+# 追加诊断（2026-08-27，排查 float32 sigmoid 饱和假象）：logit 空间打分的独立运行身份，
+# 不替换 RUN_ID 的预注册（probability 空间）结果，两者输出根互不覆盖。
+LOGIT_RUN_ID = "ch4-mlp-o11-pathology-diagnostics-local-screen-logit-v1"
 D0_RUN_ID = "ch4-mlp-o11-oof-fold-models-local-screen-v1"
 # 服务器正式 D0（BF16、CUDA）身份：与本机筛选 D0 共用同一诊断入口，
 # 见 tools/ch4_mlp_o11_oof_fold_models.py（RUN_ID）与
@@ -95,8 +98,17 @@ def oof_flow_scores(
     X: np.ndarray,
     d0_root: Path,
     device: torch.device,
+    score_space: str = "probability",
 ) -> tuple[np.ndarray, np.ndarray]:
-    """每个实体由其折外模型打分；返回逐流分数与 seen 掩码。"""
+    """每个实体由其折外模型打分；返回逐流分数与 seen 掩码。
+
+    ``score_space="probability"``（默认）：sigmoid 后打分，与既有预注册结果一致。
+    ``score_space="logit"``：跳过 sigmoid，直接用模型原始 logit——排查 float32
+    sigmoid 在高置信区间饱和为 {0.0, 1.0} 压缩次序统计的假象。下游首曝/路径最大/
+    阈值校准/FPR-DR 全部是次序统计（`>=` 比较），量纲无关，无需改动。
+    """
+    if score_space not in ("probability", "logit"):
+        raise ValueError(f"未知打分空间：{score_space}")
     source = context["source"]
     I23, M23, E23 = source["I23"], source["M23"], source["E23"]
     fold_of_entity = context["fold_of_entity"]
@@ -109,7 +121,7 @@ def oof_flow_scores(
         model.load_state_dict(state_dict)
         model.eval()
         rows = np.flatnonzero(fold_of_entity[E23] == fold)
-        log(f"fold{fold} 折外打分：{len(rows):,} 序列")
+        log(f"fold{fold} 折外打分（{score_space}）：{len(rows):,} 序列")
         with torch.no_grad():
             for start in range(0, len(rows), 1024):
                 chunk = rows[start : start + 1024]
@@ -117,9 +129,10 @@ def oof_flow_scores(
                 valid_np = M23[chunk][:, :SEQ_LEN] > 0
                 values = torch.from_numpy(X[indices.reshape(-1)]).reshape(len(chunk), SEQ_LEN, 83).to(device)
                 valid = torch.from_numpy(valid_np).to(device)
-                probabilities = torch.sigmoid(model(values, valid)).cpu().numpy()
+                logits = model(values, valid)
+                raw = (logits if score_space == "logit" else torch.sigmoid(logits)).cpu().numpy()
                 flat_ids = indices.reshape(-1)[valid_np.reshape(-1)]
-                scores[flat_ids] = probabilities.reshape(-1)[valid_np.reshape(-1)]
+                scores[flat_ids] = raw.reshape(-1)[valid_np.reshape(-1)]
                 seen[flat_ids] = True
         del model
     if not seen.all():
@@ -196,17 +209,31 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="第四章 D1/D2 本机病灶诊断（MLP 底座，筛选级）")
     parser.add_argument("--cache-root", default="runs/diagnostics/dijk-repro/cache")
     parser.add_argument("--d0-root", default=f"runs/diagnostics/{D0_RUN_ID}")
-    parser.add_argument("--output-root", default=f"runs/diagnostics/{RUN_ID}")
+    parser.add_argument(
+        "--output-root",
+        default=None,
+        help="默认按 --score-space 选择运行身份目录（probability→RUN_ID，logit→LOGIT_RUN_ID）",
+    )
+    parser.add_argument(
+        "--score-space",
+        choices=("probability", "logit"),
+        default="probability",
+        help=(
+            "决策层打分空间：probability（默认，sigmoid 后打分，既有预注册结果不变）或 "
+            "logit（sigmoid 前原始 logit，排查 float32 sigmoid 饱和假象的追加诊断，非替换）"
+        ),
+    )
     args = parser.parse_args()
     cache_root = Path(args.cache_root)
-    output_root = Path(args.output_root)
+    run_id = RUN_ID if args.score_space == "probability" else LOGIT_RUN_ID
+    output_root = Path(args.output_root) if args.output_root else Path(f"runs/diagnostics/{run_id}")
     output_root.mkdir(parents=True, exist_ok=True)
 
     context = prepare(cache_root)
     X = np.load(cache_root / "X23.npy")
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-    log(f"设备 {device.type}；折哈希 {context['fold_sha'][:16]}…")
-    scores, seen = oof_flow_scores(context, X, Path(args.d0_root), device)
+    log(f"设备 {device.type}；折哈希 {context['fold_sha'][:16]}…；打分空间={args.score_space}")
+    scores, seen = oof_flow_scores(context, X, Path(args.d0_root), device, args.score_space)
     flow_entity = build_flow_entity(context["source"])
     labels = context["entity_labels"]
     tables = entity_tables(scores, seen, flow_entity, labels)
@@ -242,7 +269,8 @@ def main() -> int:
 
     result = {
         "schema_version": "ch4-mlp-o11-pathology-local-screen-v1",
-        "run_id": RUN_ID,
+        "run_id": run_id,
+        "score_space": args.score_space,
         "screening_only": True,
         "formal_paper_evidence": False,
         "target_year_arrays_read": 0,
@@ -262,6 +290,11 @@ def main() -> int:
             "gate_some_long_bucket_fpr_gt_budget": bool(long_bucket_violation),
         },
     }
+    if args.score_space == "logit":
+        result["diagnostic_purpose"] = (
+            "float32 sigmoid 饱和假象排查的追加诊断，非替换预注册（probability 空间）结果；"
+            f"预注册结果见 runs/diagnostics/{RUN_ID}/pathology-results.json"
+        )
     atomic_json(output_root / "pathology-results.json", result)
     log(f"D1 门={'过' if d1_gate else '不过'}：FPR(B1)={b1['entity_fpr']:.6f} 迟到TP={late_positive}")
     log(f"D2 门={'过' if long_bucket_violation else '不过'}：各桶 FPR=" + " ".join(
