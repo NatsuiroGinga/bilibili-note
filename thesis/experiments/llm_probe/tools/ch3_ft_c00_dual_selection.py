@@ -1136,6 +1136,10 @@ def assert_zero_gate_degeneracy(
     reference = base.build_model(base_config, view.transform, input_key=config["data"]["input_candidate"])
     reference.load_state_dict(model.state_dict())
     reference = reference.to(device).eval()
+    # 参照模型必须与被测模型走同一条数值路径，否则本断言测的是「编译 vs 未编译」的
+    # 已知差异（服务器实测最大绝对差 8.94e-07），而不是「z1=0 是否改变输出」。
+    # 编译只改执行路径，故对参照做同样处理后，两者仍应逐位相等。
+    reference = maybe_compile(reference, config, torch_module)
 
     probe_rows = train_rows[: min(4, len(train_rows))]
     indices, valid, _ = view.gather_sequences(probe_rows, config["training"]["sequence_length"])
