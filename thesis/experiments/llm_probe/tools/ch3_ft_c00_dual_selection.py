@@ -45,8 +45,27 @@ LOGGER = logging.getLogger("ch3_ft_c00_dual_selection")
 BARE_FT_PARAMETER_COUNT = 924283
 
 # mechanism 键在既有两份 C00 配置（cuda-formal / mps-screening）中不存在；缺省即
-# 机制一关闭，行为与这两份配置历史上的语义完全一致，因此不需要改动它们。
-DEFAULT_MECHANISM: dict[str, Any] = {"entity_memory": {"enabled": False, "slots": None}}
+# 机制一、机制二均关闭，行为与这两份配置历史上的语义完全一致，因此不需要改动它们。
+# entity_ranking 与 entity_memory 对称新增，机制二实现报告见
+# .Codex/docs/RWKV/2026-08-28-机制二实现报告.md。
+DEFAULT_MECHANISM: dict[str, Any] = {
+    "entity_memory": {"enabled": False, "slots": None},
+    "entity_ranking": {
+        "enabled": False,
+        "budgets": None,
+        "bag_policy": None,
+        "n_pos": None,
+        "n_neg": None,
+        "truncate_length": None,
+        "num_length_buckets": None,
+        "xi_learning_rate": None,
+    },
+}
+
+# 机制二袋处置策略枚举，与 ch3_ft_entity_ranking_loss.BagPolicyConfig 的
+# _VALID_POLICIES 逐字一致；这里独立重复一份纯字符串常量，使
+# --validate-config 路径不必导入 torch（该模块顶层无条件 import torch）。
+ENTITY_RANKING_BAG_POLICIES = ("full", "causal_prefix_truncation", "stratified_weighting")
 
 # 任务 1 接口约定的角色编码（与 ch3_ft_entity_memory_interface.load_role_ids 逐字一致）：
 # 0＝训练实体，1＝验证实体；本任务只读 LSPR23，不存在第三档目标年角色。
@@ -127,9 +146,16 @@ def validate_config(config: dict[str, Any]) -> None:
     entity_memory = mechanism.get("entity_memory", {})
     entity_memory_enabled = entity_memory.get("enabled", False)
     require(isinstance(entity_memory_enabled, bool), "mechanism.entity_memory.enabled 必须是布尔值")
-    expected_candidate_key = (
-        "causal-entity-memory-c10-dual-selection" if entity_memory_enabled else "bare-ft-c00-dual-selection"
-    )
+    # 对称新增：entity_ranking 缺省即机制二关闭，与 entity_memory 的缺省语义一致。
+    entity_ranking = mechanism.get("entity_ranking", {})
+    entity_ranking_enabled = entity_ranking.get("enabled", False)
+    require(isinstance(entity_ranking_enabled, bool), "mechanism.entity_ranking.enabled 必须是布尔值")
+    expected_candidate_key = {
+        (False, False): "bare-ft-c00-dual-selection",
+        (True, False): "causal-entity-memory-c10-dual-selection",
+        (False, True): "budget-aware-entity-ranking-c01-dual-selection",
+        (True, True): "cem-ber-c11-dual-selection",
+    }[(entity_memory_enabled, entity_ranking_enabled)]
     require(identity.get("candidate_key") == expected_candidate_key, "候选身份不符")
     require(identity.get("science_contract_version") == "ch3-ft-c00-dual-selection-science-v1", "科学合同版本不符")
     require(identity.get("run_tier") in {"screening_only", "formal"}, "运行级别不符")
@@ -182,6 +208,34 @@ def validate_config(config: dict[str, Any]) -> None:
             "old_elp_enabled": False,
             "old_mechanism_scaffold_present": False,
         }, "裸 FT 模型合同不符")
+
+    if entity_ranking_enabled:
+        budgets = entity_ranking.get("budgets")
+        require(
+            isinstance(budgets, list) and len(budgets) > 0
+            and all(isinstance(k, int) and not isinstance(k, bool) and k > 0 for k in budgets),
+            "z2=1 时 mechanism.entity_ranking.budgets 必须是非空正整数列表",
+        )
+        require(entity_ranking.get("bag_policy") in ENTITY_RANKING_BAG_POLICIES, "mechanism.entity_ranking.bag_policy 取值不合法")
+        n_pos = entity_ranking.get("n_pos")
+        n_neg = entity_ranking.get("n_neg")
+        require(isinstance(n_pos, int) and not isinstance(n_pos, bool) and n_pos >= 1, "n_pos 必须是 ≥1 的整数")
+        require(isinstance(n_neg, int) and not isinstance(n_neg, bool) and n_neg >= 1, "n_neg 必须是 ≥1 的整数")
+        truncate_length = entity_ranking.get("truncate_length")
+        require(
+            isinstance(truncate_length, int) and not isinstance(truncate_length, bool) and truncate_length > 0,
+            "truncate_length 必须是正整数",
+        )
+        num_length_buckets = entity_ranking.get("num_length_buckets")
+        require(
+            isinstance(num_length_buckets, int) and not isinstance(num_length_buckets, bool) and num_length_buckets >= 1,
+            "num_length_buckets 必须是 ≥1 的整数",
+        )
+        xi_learning_rate = entity_ranking.get("xi_learning_rate")
+        require(
+            isinstance(xi_learning_rate, (int, float)) and not isinstance(xi_learning_rate, bool) and xi_learning_rate > 0,
+            "xi_learning_rate 必须是正数",
+        )
     require(config.get("optimizer", {}).get("candidate_key") == "ft-transformer-official-default", "优化器候选不符")
 
     training = config.get("training", {})
@@ -1031,6 +1085,433 @@ def build_entity_memory_state(config: dict[str, Any], base_config: dict[str, Any
     )
 
 
+# ---------------------------------------------------------------------------
+# 机制二（预算感知实体排序，z2）宿主接线。
+#
+# 与机制一（z1）完全对称：统一读取入口 entity_ranking_enabled_from_config、
+# mechanism.entity_ranking 配置段、z2=0 时下列函数全部不被调用（不构造采样器、
+# 不计算排序损失）。三个独立模块（ch3_ft_entity_stratified_sampler、
+# ch3_ft_entity_ranking_loss、ch3_ft_gradient_controller）本身不改动，只在此处
+# 接线；引用的公开接口见各模块文档字符串与
+# .Codex/docs/RWKV/2026-08-28-机制二实现报告.md。
+# ---------------------------------------------------------------------------
+
+
+def entity_ranking_enabled_from_config(config: dict[str, Any]) -> bool:
+    """统一的 z2 读取入口，对称于 entity_memory_enabled_from_config。"""
+    mechanism = config.get("mechanism", DEFAULT_MECHANISM)
+    return bool(mechanism.get("entity_ranking", {}).get("enabled", False))
+
+
+def prepare_entity_ranking_sampler(config: dict[str, Any], arrays: dict[str, Any], train_rows: Any) -> Any:
+    """只在 z2=1 时被调用：构建实体分层采样器，限定在训练角色片段内。
+
+    ``ch3_ft_entity_stratified_sampler.EntityStratifiedSampler`` 按其构造参数的
+    行下标直接建立实体索引，不知道"训练/验证角色"这一概念；若直接传入全量
+    E23/I23/M23/T23（如该模块自身诊断脚本 main() 的做法），正/负实体池会混入
+    验证角色实体，构成训练-验证实体交叉污染。这里显式只切 ``train_rows`` 对应的
+    片段行传入，``sample()`` 返回的 ``segment_rows`` 因此是相对于该切片的局部下标，
+    调用方须用 ``train_rows[segment_rows]`` 换回全局片段行号（见 ``_ranking_phase``）。
+    """
+    import ch3_ft_entity_stratified_sampler as stratified  # 延迟导入，模块顶层 import numpy 但不 import torch
+
+    ranking_cfg = config["mechanism"]["entity_ranking"]
+    sampler_config = stratified.EntityStratifiedSamplerConfig(
+        n_pos=ranking_cfg["n_pos"], n_neg=ranking_cfg["n_neg"], max_bag_flows=ranking_cfg["truncate_length"],
+    )
+    return stratified.EntityStratifiedSampler(
+        entity_of_segment=arrays["E23"][train_rows],
+        segment_flow_indices=arrays["I23"][train_rows],
+        segment_valid_mask=arrays["M23"][train_rows],
+        segment_timestamp=arrays["T23"][train_rows],
+        flow_labels=arrays["y23"],
+        config=sampler_config,
+    )
+
+
+def _cap_segments_per_entity_rows(sorted_rows: Any, entity_of_sorted_rows: Any, max_segments: int) -> Any:
+    """按 (entity,T23) 升序输入的全局片段行数组，保留每实体因果最早 ``max_segments`` 段。
+
+    ``ch3_ft_entity_ranking_loss.py``/``ch3_ft_gradient_controller.py`` 的诊断脚本
+    main() 内各自独立实现了同名私有工具（用于避免诊断脚本吃到最大 2,475,228 条流
+    的极端实体袋）；宿主接线面临同一问题的生产版本——``EntityStratifiedSampler``
+    返回抽中实体的"完整"片段行清单，但完整袋对单步计算不可行（机制二实现报告
+    第三节引用的实测：最大袋对单步 8,192 条流预算差 302 倍）。这里在宿主侧独立
+    重复同一原理的实现（不依赖两个诊断脚本 main() 内的私有函数），把"编码哪些
+    片段"这一步收敛到与 5.3.1 节生产 ``truncate_length`` 等价的规模，再交给
+    ``bag_policy_diagnostics`` 内部的 ``_causal_truncate_valid`` 做逐流精确截断。
+    """
+    import numpy as np
+
+    if sorted_rows.size == 0:
+        return sorted_rows
+    boundaries = np.flatnonzero(np.r_[True, entity_of_sorted_rows[1:] != entity_of_sorted_rows[:-1]])
+    ends = np.r_[boundaries[1:], len(entity_of_sorted_rows)]
+    parts = [sorted_rows[start : min(start + max_segments, end)] for start, end in zip(boundaries, ends)]
+    return np.concatenate(parts) if parts else sorted_rows
+
+
+def _shared_parameters(model: Any) -> list[Any]:
+    """两个损失（逐流／排序）流经的共享参数清单，两阶段调用须用同一顺序。"""
+    return [parameter for parameter in model.parameters() if parameter.requires_grad]
+
+
+def _flat_grad_from_params(shared_params: list[Any], torch_module: Any) -> Any:
+    """把当前 ``.grad``（若为 None 补零）展平拼接为一维 FP32 张量，不清空 ``.grad``。"""
+    return torch_module.cat(
+        [
+            (parameter.grad.detach().clone() if parameter.grad is not None else torch_module.zeros_like(parameter)).reshape(-1)
+            for parameter in shared_params
+        ]
+    ).to(torch_module.float32)
+
+
+def _flow_phase_bare(
+    config: dict[str, Any], model: Any, optimizer: Any, view: Any, train_rows: Any, generator: Any,
+    device: Any, profile: dict[str, Any], precision: Any, torch_module: Any, positive_weight: Any,
+) -> tuple[Any, dict[str, Any]]:
+    """z2=1、z1=0（C01）的第一步：原有逐流批照常前向，得 L_flow 与 g_f。
+
+    与既有 ``training_step`` 的采样、微批、损失计算逐字一致，唯一差异是不调用
+    ``accumulator.finish()``（不在此处清空 ``.grad`` 或 ``optimizer.step()``）——
+    调用方须在读出 ``g_flow`` 后自行合成梯度并更新，因此本函数独立实现而不是
+    改造 ``training_step`` 本身：``training_step`` 是 z2=0 阻断条件的被保护对象，
+    任何改造都有意外改变 z1=0/z2=0 既有路径的风险，重复少量代码换取零风险。
+    """
+    effective = config["training"]["effective_batch_size"]
+    micro = config["training"]["micro_batch_sequences"]
+    positions = base.sample_distinct_positions(len(train_rows), effective, generator)
+    rows = train_rows[positions.numpy()]
+    indices, valid, labels = view.gather_sequences(rows, config["training"]["sequence_length"])
+    total_valid = int(valid.sum())
+    loss_fn = torch_module.nn.BCEWithLogitsLoss(reduction="none", pos_weight=positive_weight)
+    accumulator = base.no_clip_accumulator_class()(
+        total_valid_units=total_valid, normalization_unit=base.NORMALIZATION_UNIT,
+        torch_module=torch_module, expected_microbatches=config["training"]["gradient_accumulation_steps"],
+    )
+    accumulator.begin(optimizer)
+    loss_total = 0.0
+    model.train()
+    for start in range(0, effective, micro):
+        stop = start + micro
+        numeric, categorical = view.features(indices[start:stop])
+        logits, valid_t = forward_bare(model, numeric, categorical, valid[start:stop], device, profile, precision, torch_module)
+        labels_t = torch_module.from_numpy(labels[start:stop]).to(device)
+        mask32 = valid_t.to(torch_module.float32)
+        with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
+            loss_sum = (loss_fn(logits32, labels_t.to(torch_module.float32)) * mask32).sum()
+        normalized = accumulator.backward(loss_sum, int(valid[start:stop].sum()), scaler=None)
+        loss_total += float(normalized.detach().cpu())
+    require(accumulator.consumed_valid_units == accumulator.total_valid_units, "逐流阶段未覆盖全部有效流", EXIT_RUNTIME)
+    shared_params = _shared_parameters(model)
+    g_flow = _flat_grad_from_params(shared_params, torch_module)
+    require(bool(torch_module.isfinite(g_flow).all()), "逐流阶段梯度非有限", EXIT_RUNTIME)
+    return g_flow, {"loss": loss_total, "valid_flows": total_valid, "sampled_sequences": effective}
+
+
+def _flow_phase_entity_memory(
+    config: dict[str, Any], model: Any, optimizer: Any, view: Any, scheduler: "EntityChainScheduler",
+    memory_state: Any, interface: dict[str, Any], entity_of_row: Any, generator: Any, device: Any,
+    profile: dict[str, Any], precision: Any, torch_module: Any, positive_weight: Any,
+) -> tuple[Any, dict[str, Any]]:
+    """z2=1、z1=1（C11）的第一步：与既有 ``entity_memory_training_step`` 逐字一致的
+    实体链前向，唯一差异同样是不调用 ``accumulator.finish()``。理由与
+    ``_flow_phase_bare`` 相同：``entity_memory_training_step`` 是 z1 零门核验保护
+    的既有函数，不在此处改造。
+    """
+    import numpy as np
+
+    effective = config["training"]["effective_batch_size"]
+    micro = config["training"]["micro_batch_sequences"]
+    rows, entity_ids_np = scheduler.sample_rows(effective, generator)
+    assert_recovery_adjacency(rows, interface, entity_of_row)
+    indices, valid, labels = view.gather_sequences(rows, config["training"]["sequence_length"])
+    is_start_np = interface["is_entity_start"][rows]
+    total_valid = int(valid.sum())
+    loss_fn = torch_module.nn.BCEWithLogitsLoss(reduction="none", pos_weight=positive_weight)
+    accumulator = base.no_clip_accumulator_class()(
+        total_valid_units=total_valid, normalization_unit=base.NORMALIZATION_UNIT,
+        torch_module=torch_module, expected_microbatches=config["training"]["gradient_accumulation_steps"],
+    )
+    accumulator.begin(optimizer)
+    loss_total = 0.0
+    reset_count = 0
+    recovery_count = 0
+    model.train()
+    for start in range(0, effective, micro):
+        stop = start + micro
+        micro_rows = rows[start:stop]
+        micro_entity_ids = torch_module.from_numpy(entity_ids_np[start:stop].astype(np.int64)).to(device)
+        micro_is_start = torch_module.from_numpy(is_start_np[start:stop]).to(device)
+        micro_valid = valid[start:stop]
+        if bool(micro_is_start.any()):
+            memory_state.reset_entities(micro_entity_ids[micro_is_start])
+            reset_count += int(micro_is_start.sum().item())
+        recovery_count += int(micro_rows.shape[0]) - int(micro_is_start.sum().item())
+        segment_memory = memory_state.read(micro_entity_ids)
+        segment_valid = memory_state.valid(micro_entity_ids)
+        numeric, categorical = view.features(indices[start:stop])
+        numeric_t = torch_module.from_numpy(numeric).to(device)
+        categorical_t = torch_module.from_numpy(categorical).to(device) if categorical is not None else None
+        valid_t = torch_module.from_numpy(micro_valid).to(device)
+        batch, length = micro_valid.shape
+        flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
+        flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
+        with precision.autocast_context(profile, device.type, torch_module):
+            representation = model.encode(flat_num, flat_cat)
+            width = representation.shape[-1]
+            broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
+            injected = model.inject(representation, broadcast_memory, broadcast_valid)
+            logits = model.predict(injected).reshape(batch, length)
+        summary = _segment_summary_from_injected(injected, micro_valid, batch, length, width, torch_module, device)
+        memory_state.write(micro_entity_ids, summary)
+        labels_t = torch_module.from_numpy(labels[start:stop]).to(device)
+        mask32 = valid_t.to(torch_module.float32)
+        with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
+            loss_sum = (loss_fn(logits32, labels_t.to(torch_module.float32)) * mask32).sum()
+        normalized = accumulator.backward(loss_sum, int(micro_valid.sum()), scaler=None)
+        loss_total += float(normalized.detach().cpu())
+    require(accumulator.consumed_valid_units == accumulator.total_valid_units, "逐流阶段未覆盖全部有效流", EXIT_RUNTIME)
+    shared_params = _shared_parameters(model)
+    g_flow = _flat_grad_from_params(shared_params, torch_module)
+    require(bool(torch_module.isfinite(g_flow).all()), "逐流阶段梯度非有限", EXIT_RUNTIME)
+    return g_flow, {
+        "loss": loss_total, "valid_flows": total_valid, "sampled_sequences": effective,
+        "state_reset_count": reset_count, "cross_segment_recovery_count": recovery_count,
+        "gate": model.memory.gate_statistics(),
+    }
+
+
+def _entity_ranking_bare_forward(
+    config: dict[str, Any], model: Any, view: Any, indices: Any, valid: Any, device: Any,
+    profile: dict[str, Any], precision: Any, torch_module: Any,
+) -> tuple[Any, Any]:
+    """z1=0：实体排序批各片段互不依赖（裸 FT 无跨片段状态），可分微批并行前向。"""
+    micro = config["training"]["micro_batch_sequences"]
+    logits_parts = []
+    valid_parts = []
+    for start in range(0, indices.shape[0], micro):
+        stop = start + micro
+        numeric, categorical = view.features(indices[start:stop])
+        logits, valid_t = forward_bare(model, numeric, categorical, valid[start:stop], device, profile, precision, torch_module)
+        logits_parts.append(logits)
+        valid_parts.append(valid_t)
+    return torch_module.cat(logits_parts, dim=0), torch_module.cat(valid_parts, dim=0)
+
+
+def _entity_ranking_memory_forward(
+    config: dict[str, Any], model: Any, view: Any, indices: Any, valid: Any, entity_rows: Any,
+    is_start_np: Any, entity_of_row: Any, scratch_memory_state: Any, device: Any,
+    profile: dict[str, Any], precision: Any, torch_module: Any,
+) -> tuple[Any, Any]:
+    """z1=1：实体排序批复用严格过去记忆交叉注意力，须按段顺序读写状态，不能整体并行。
+
+    只使用宿主专用的 scratch 记忆状态（与训练角色链式调度器持有的持久
+    ``memory_state`` 完全隔离的第二个 ``EntityMemoryState`` 实例），不写回持久
+    ``memory_state``。理由：``EntityStratifiedSampler`` 抽出的实体袋（经
+    ``_cap_segments_per_entity_rows`` 截断后）总是从该实体因果最早的片段开始
+    （任务 1 docstring："按 (entity, T23) 升序排列"，截断只保留最早若干段），
+    这是一次独立的"从头重放"；若直接读写训练角色的持久 ``memory_state``，当
+    同一实体在同一优化步内也被机制一的链式调度器（``EntityChainScheduler``）
+    抽中时，两条独立的遍历会相互覆盖对方推进的状态——链式调度器凭
+    ``self.cursor``（与 ``memory_state`` 张量本身无关）决定"下次该实体从哪段
+    继续"，但排序批的重放会把该实体状态直接写到"重放末段之后"，链式调度器下次
+    按游标读到的会是"未来"状态，违反设计规约第 4.3 节的严格过去约束、也违反
+    8.5 节"硬失败：任何未来信息"的判据。scratch 状态按 ``is_entity_start`` 在
+    每次经过实体首段时自动重置（``EntityMemoryState.reset_entities`` 语义），
+    故不需要在此额外清零；这是宿主接线新增的隔离设计，机制一、机制二两个模块
+    本身均未涉及这一问题（各自独立正确，只是从未被设计成共享同一状态实例）。
+    """
+    import numpy as np
+
+    micro = config["training"]["micro_batch_sequences"]
+    logits_parts = []
+    valid_parts = []
+    for start in range(0, indices.shape[0], micro):
+        stop = start + micro
+        micro_rows = entity_rows[start:stop]
+        micro_entity_ids = torch_module.from_numpy(entity_of_row[micro_rows].astype(np.int64)).to(device)
+        micro_is_start = torch_module.from_numpy(is_start_np[start:stop]).to(device)
+        micro_valid = valid[start:stop]
+        if bool(micro_is_start.any()):
+            scratch_memory_state.reset_entities(micro_entity_ids[micro_is_start])
+        segment_memory = scratch_memory_state.read(micro_entity_ids)
+        segment_valid = scratch_memory_state.valid(micro_entity_ids)
+        numeric, categorical = view.features(indices[start:stop])
+        numeric_t = torch_module.from_numpy(numeric).to(device)
+        categorical_t = torch_module.from_numpy(categorical).to(device) if categorical is not None else None
+        valid_t = torch_module.from_numpy(micro_valid).to(device)
+        batch, length = micro_valid.shape
+        flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
+        flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
+        with precision.autocast_context(profile, device.type, torch_module):
+            representation = model.encode(flat_num, flat_cat)
+            width = representation.shape[-1]
+            broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
+            injected = model.inject(representation, broadcast_memory, broadcast_valid)
+            logits = model.predict(injected).reshape(batch, length)
+        summary = _segment_summary_from_injected(injected, micro_valid, batch, length, width, torch_module, device)
+        scratch_memory_state.write(micro_entity_ids, summary)
+        logits_parts.append(logits)
+        valid_parts.append(valid_t)
+    return torch_module.cat(logits_parts, dim=0), torch_module.cat(valid_parts, dim=0)
+
+
+def _ranking_phase(
+    config: dict[str, Any], model: Any, optimizer: Any, view: Any, arrays: dict[str, Any], train_rows: Any,
+    np_rng: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any, sampler: Any,
+    xi_state: Any, entity_memory_enabled: bool, interface: dict[str, Any] | None, entity_of_row: Any,
+    scratch_memory_state: Any,
+) -> tuple[Any, dict[str, Any]]:
+    """z2=1 的第二步：抽实体批、编码、算 CVaR-pAUC 排序损失，反传得 g_r。
+
+    对应实施计划任务 1 步骤 2 的第 2～3 条：「用 EntityStratifiedSampler 抽实体批，
+    编码其片段，得实体前缀分数」「cvar_pauc_loss(...) 得 L_rank 与 CVaR 活动率
+    诊断」。调用方须先 ``optimizer.zero_grad(set_to_none=True)``（这里不重复做，
+    因为 C11 路径下第一阶段的 accumulator 已在其自身 begin() 里清过一次，本函数
+    自己的 zero_grad 放在最前，覆盖两种调用场景）。
+    """
+    import numpy as np
+
+    import ch3_ft_entity_ranking_loss as ranking  # 延迟导入，模块顶层 import torch
+
+    optimizer.zero_grad(set_to_none=True)
+    ranking_cfg = config["mechanism"]["entity_ranking"]
+    length = config["training"]["sequence_length"]
+    max_segments = -(-int(ranking_cfg["truncate_length"]) // int(length))  # ceil(truncate_length/sequence_length)
+
+    batch = sampler.sample(np_rng)
+    rows_all = train_rows[batch["segment_rows"]]
+    entity_raw_all = arrays["E23"][rows_all]
+    entity_rows = _cap_segments_per_entity_rows(rows_all, entity_raw_all, max_segments)
+    indices, valid, _labels = view.gather_sequences(entity_rows, length)
+    entity_raw = arrays["E23"][entity_rows]
+    unique_entities, segment_owner_np = np.unique(entity_raw, return_inverse=True)
+    segment_owner = torch_module.from_numpy(segment_owner_np.astype(np.int64)).to(device)
+    entity_is_positive = torch_module.from_numpy(np.isin(unique_entities, batch["positive_entities"])).to(device)
+    entity_chain_length = torch_module.from_numpy(sampler.flows_per_entity[unique_entities].astype(np.int64)).to(device)
+
+    if entity_memory_enabled:
+        is_start_np = interface["is_entity_start"][entity_rows]
+        assert_recovery_adjacency(entity_rows, interface, entity_of_row)
+        entity_logits, entity_valid_t = _entity_ranking_memory_forward(
+            config, model, view, indices, valid, entity_rows, is_start_np, entity_of_row,
+            scratch_memory_state, device, profile, precision, torch_module,
+        )
+    else:
+        entity_logits, entity_valid_t = _entity_ranking_bare_forward(
+            config, model, view, indices, valid, device, profile, precision, torch_module,
+        )
+
+    positive_entity_ids = unique_entities[entity_is_positive.detach().cpu().numpy()]
+    require(positive_entity_ids.size > 0, "实体排序批不含任何正实体", EXIT_RUNTIME)
+    eff_budgets = [
+        ranking.effective_budget(int(k), sampler.negative_pool_size, ranking_cfg["n_neg"]) for k in xi_state.budgets
+    ]
+    xi = xi_state.get(positive_entity_ids).to(device)
+    xi.retain_grad()
+
+    with precision.fp32_island(entity_logits, device_type=device.type, torch_module=torch_module) as (entity_logits32,):
+        bag_config = ranking.BagPolicyConfig(
+            active_policy=ranking_cfg["bag_policy"],
+            truncate_length=int(ranking_cfg["truncate_length"]),
+            num_length_buckets=int(ranking_cfg["num_length_buckets"]),
+        )
+        bag_result = ranking.bag_policy_diagnostics(
+            entity_logits32, entity_valid_t, segment_owner, entity_is_positive,
+            entity_chain_length, eff_budgets, xi, bag_config,
+        )
+        loss_rank = bag_result["loss"]
+    loss_rank.backward()
+
+    require(xi.grad is not None, "xi 未接收到梯度，检查是否进入了 cvar_pauc_loss 的反传图", EXIT_RUNTIME)
+    xi_updated = (xi.detach() - float(ranking_cfg["xi_learning_rate"]) * xi.grad).cpu()
+    xi_state.commit(positive_entity_ids, xi_updated)
+
+    shared_params = _shared_parameters(model)
+    g_rank = _flat_grad_from_params(shared_params, torch_module)
+    require(bool(torch_module.isfinite(g_rank).all()), "排序阶段梯度非有限", EXIT_RUNTIME)
+
+    diagnostics = {
+        "batch_composition": sampler.batch_composition_receipt(batch),
+        "capped_segment_count": int(entity_rows.shape[0]),
+        "active_policy": bag_config.active_policy,
+        "bag_policy_loss_values": {
+            name: info["loss_value"] for name, info in bag_result["policies"].items()
+        },
+        "per_budget_active_rate": {
+            name: info.get("per_budget_active_rate") for name, info in bag_result["policies"].items()
+        },
+    }
+    return g_rank, diagnostics
+
+
+def _combine_and_step(model: Any, optimizer: Any, g_flow: Any, g_rank: Any, torch_module: Any) -> dict[str, Any]:
+    """把 g_f、g_r 交给梯度控制器合成，机械核验一阶不变量，写回 ``.grad`` 并
+    ``optimizer.step()``。对应实施计划任务 1 步骤 2 的第 4～5 条。
+    """
+    import ch3_ft_gradient_controller as controller  # 延迟导入，模块顶层 import torch
+
+    combined, diagnostics = controller.combine_gradients(g_flow, g_rank)
+    require(bool(torch_module.isfinite(combined).all()), "合成梯度非有限", EXIT_RUNTIME)
+    invariants = controller.verify_first_order_invariants(combined, g_flow, diagnostics)
+    require(invariants["both_hold"], "梯度控制器一阶不变量在真实梯度上不成立", EXIT_RUNTIME)
+
+    shared_params = _shared_parameters(model)
+    optimizer.zero_grad(set_to_none=True)
+    offset = 0
+    with torch_module.no_grad():
+        for parameter in shared_params:
+            count = parameter.numel()
+            parameter.grad = combined[offset : offset + count].reshape(parameter.shape).to(parameter.dtype).clone()
+            offset += count
+    optimizer.step()
+    return {**diagnostics, "invariants": invariants}
+
+
+def entity_ranking_training_step(
+    config: dict[str, Any], model: Any, optimizer: Any, view: Any, arrays: dict[str, Any], train_rows: Any,
+    generator: Any, np_rng: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any,
+    positive_weight: Any, sampler: Any, xi_state: Any,
+) -> dict[str, Any]:
+    """C01（z1=0,z2=1）训练步：裸 FT 逐流批 + 独立实体排序批，梯度控制器合成后一次更新。"""
+    g_flow, flow_diag = _flow_phase_bare(
+        config, model, optimizer, view, train_rows, generator, device, profile, precision, torch_module, positive_weight,
+    )
+    g_rank, rank_diag = _ranking_phase(
+        config, model, optimizer, view, arrays, train_rows, np_rng, device, profile, precision, torch_module,
+        sampler, xi_state, entity_memory_enabled=False, interface=None, entity_of_row=None, scratch_memory_state=None,
+    )
+    combine_diag = _combine_and_step(model, optimizer, g_flow, g_rank, torch_module)
+    return {**flow_diag, "entity_ranking": {**rank_diag, "gradient_control": combine_diag}}
+
+
+def combined_mechanism_training_step(
+    config: dict[str, Any], model: Any, optimizer: Any, view: Any, arrays: dict[str, Any], train_rows: Any,
+    scheduler: "EntityChainScheduler", memory_state: Any, interface: dict[str, Any], entity_of_row: Any,
+    generator: Any, np_rng: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any,
+    positive_weight: Any, sampler: Any, xi_state: Any, scratch_memory_state: Any,
+) -> dict[str, Any]:
+    """C11（z1=1,z2=1）训练步：机制一实体链流批 + 机制二独立实体排序批（用 scratch
+    记忆状态，见 ``_entity_ranking_memory_forward`` 文档字符串），梯度控制器合成后
+    一次更新。排序分数当前不复用机制一链式调度器正在推进的持久状态——这是宿主
+    接线阶段的简化版联合（对称遵循实施计划任务 1 的字面五步伪代码，未实现设计
+    规约第六节"同一 M_(t-1) 同时产生流表示与排序分数"的完全共享状态联合算法，
+    后者留待源年前缀分数曲线裁决袋处置方案后再设计，见任务 1 报告遗留风险）。
+    """
+    g_flow, flow_diag = _flow_phase_entity_memory(
+        config, model, optimizer, view, scheduler, memory_state, interface, entity_of_row,
+        generator, device, profile, precision, torch_module, positive_weight,
+    )
+    g_rank, rank_diag = _ranking_phase(
+        config, model, optimizer, view, arrays, train_rows, np_rng, device, profile, precision, torch_module,
+        sampler, xi_state, entity_memory_enabled=True, interface=interface, entity_of_row=entity_of_row,
+        scratch_memory_state=scratch_memory_state,
+    )
+    combine_diag = _combine_and_step(model, optimizer, g_flow, g_rank, torch_module)
+    return {**flow_diag, "entity_ranking": {**rank_diag, "gradient_control": combine_diag}}
+
+
 def initialize_run(config: dict[str, Any], config_path: Path) -> tuple[Path, dict[str, Any], dict[str, Any]]:
     output_root = Path(config["paths"]["output_root"])
     output_root.mkdir(parents=True, exist_ok=True)
@@ -1088,6 +1569,21 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
     if entity_memory_enabled:
         entity_memory_context = prepare_entity_memory_context(config, arrays, train_rows, validation_rows, output_root)
         memory_state = build_entity_memory_state(config, base_config, entity_memory_context, torch_module, device)
+    entity_ranking_enabled = entity_ranking_enabled_from_config(config)
+    sampler = None
+    xi_state = None
+    scratch_memory_state = None
+    if entity_ranking_enabled:
+        import ch3_ft_entity_ranking_loss as ranking  # 延迟导入，只在 z2=1 时需要 torch
+
+        sampler = prepare_entity_ranking_sampler(config, arrays, train_rows)
+        xi_state = ranking.CvarThresholdState(budgets=config["mechanism"]["entity_ranking"]["budgets"])
+        if entity_memory_enabled:
+            scratch_memory_state = build_entity_memory_state(config, base_config, entity_memory_context, torch_module, device)
+    require(
+        entity_ranking_enabled or (sampler is None and xi_state is None and scratch_memory_state is None),
+        "z2=0 时不得构造实体排序采样器或阈值状态", EXIT_RUNTIME,
+    )
     assert_zero_gate_degeneracy(
         config, base_config, model, memory_state, view, train_rows, device, profile, precision, torch_module
     )
@@ -1098,6 +1594,7 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
         torch_module.cuda.manual_seed_all(config["training"]["seed"])
         torch_module.cuda.reset_peak_memory_stats(device)
     generator = torch_module.Generator().manual_seed(config["training"]["seed"])
+    entity_ranking_rng = np.random.default_rng(config["training"]["seed"])
     training_flow_mask = build_training_flow_mask(
         arrays, train_rows, config["training"]["sequence_length"]
     )
@@ -1109,11 +1606,23 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
     )
     synchronize_device(torch_module, device)
     step_started = time.time()
-    if entity_memory_enabled:
+    if entity_memory_enabled and entity_ranking_enabled:
+        step = combined_mechanism_training_step(
+            config, model, optimizer, view, arrays, train_rows, entity_memory_context["train_scheduler"],
+            memory_state, entity_memory_context["interface"], entity_memory_context["entity_of_row"],
+            generator, entity_ranking_rng, device, profile, precision, torch_module, positive_weight,
+            sampler, xi_state, scratch_memory_state,
+        )
+    elif entity_memory_enabled:
         step = entity_memory_training_step(
             config, base_config, model, optimizer, view, entity_memory_context["train_scheduler"],
             memory_state, entity_memory_context["interface"], entity_memory_context["entity_of_row"],
             generator, device, profile, precision, torch_module, positive_weight,
+        )
+    elif entity_ranking_enabled:
+        step = entity_ranking_training_step(
+            config, model, optimizer, view, arrays, train_rows, generator, entity_ranking_rng,
+            device, profile, precision, torch_module, positive_weight, sampler, xi_state,
         )
     else:
         step = training_step(
@@ -1226,6 +1735,24 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         require(not resume, "机制一暂不支持 --resume：调度器游标与记忆状态尚未纳入检查点", EXIT_CONFIG)
         entity_memory_context = prepare_entity_memory_context(config, arrays, train_rows, validation_rows, output_root)
         memory_state = build_entity_memory_state(config, base_config, entity_memory_context, torch_module, device)
+    entity_ranking_enabled = entity_ranking_enabled_from_config(config)
+    sampler = None
+    xi_state = None
+    scratch_memory_state = None
+    if entity_ranking_enabled:
+        # 采样器与 CvarThresholdState 目前不进检查点，与机制一的 --resume 限制同理：
+        # 静默丢失会产生不可察觉的排序阈值轨迹错误，因此同样直接拒绝而不是猜测重建。
+        require(not resume, "机制二暂不支持 --resume：实体分层采样器与 CVaR 阈值状态尚未纳入检查点", EXIT_CONFIG)
+        import ch3_ft_entity_ranking_loss as ranking  # 延迟导入，只在 z2=1 时需要 torch
+
+        sampler = prepare_entity_ranking_sampler(config, arrays, train_rows)
+        xi_state = ranking.CvarThresholdState(budgets=config["mechanism"]["entity_ranking"]["budgets"])
+        if entity_memory_enabled:
+            scratch_memory_state = build_entity_memory_state(config, base_config, entity_memory_context, torch_module, device)
+    require(
+        entity_ranking_enabled or (sampler is None and xi_state is None and scratch_memory_state is None),
+        "z2=0 时不得构造实体排序采样器或阈值状态", EXIT_RUNTIME,
+    )
     assert_zero_gate_degeneracy(
         config, base_config, model, memory_state, view, train_rows, device, profile, precision, torch_module
     )
@@ -1235,6 +1762,7 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
     if device.type == "cuda":
         torch_module.cuda.manual_seed_all(config["training"]["seed"])
     generator = torch_module.Generator().manual_seed(config["training"]["seed"])
+    entity_ranking_rng = np.random.default_rng(config["training"]["seed"])
     training_flow_mask = build_training_flow_mask(arrays, train_rows, config["training"]["sequence_length"])
     train_positive_rate = float(np.asarray(arrays["y23"])[training_flow_mask].mean())
     positive_weight = torch_module.tensor(
@@ -1277,8 +1805,20 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         epoch_reset_count = 0
         epoch_recovery_count = 0
         epoch_gate_means: list[float] = []
+        epoch_ranking_diagnostics: list[dict[str, Any]] = []
         for step_in_epoch in range(1, steps_per_epoch + 1):
-            if entity_memory_enabled:
+            if entity_memory_enabled and entity_ranking_enabled:
+                result = combined_mechanism_training_step(
+                    config, model, optimizer, view, arrays, train_rows, entity_memory_context["train_scheduler"],
+                    memory_state, entity_memory_context["interface"], entity_memory_context["entity_of_row"],
+                    generator, entity_ranking_rng, device, profile, precision, torch_module, positive_weight,
+                    sampler, xi_state, scratch_memory_state,
+                )
+                epoch_reset_count += result["state_reset_count"]
+                epoch_recovery_count += result["cross_segment_recovery_count"]
+                epoch_gate_means.append(result["gate"]["gate_mean"])
+                epoch_ranking_diagnostics.append(result["entity_ranking"])
+            elif entity_memory_enabled:
                 result = entity_memory_training_step(
                     config, base_config, model, optimizer, view, entity_memory_context["train_scheduler"],
                     memory_state, entity_memory_context["interface"], entity_memory_context["entity_of_row"],
@@ -1287,6 +1827,12 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
                 epoch_reset_count += result["state_reset_count"]
                 epoch_recovery_count += result["cross_segment_recovery_count"]
                 epoch_gate_means.append(result["gate"]["gate_mean"])
+            elif entity_ranking_enabled:
+                result = entity_ranking_training_step(
+                    config, model, optimizer, view, arrays, train_rows, generator, entity_ranking_rng,
+                    device, profile, precision, torch_module, positive_weight, sampler, xi_state,
+                )
+                epoch_ranking_diagnostics.append(result["entity_ranking"])
             else:
                 result = training_step(
                     config, base_config, model, optimizer, view, train_rows, generator, device,
@@ -1324,6 +1870,31 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             metrics = validation_metrics(
                 config, model, view, arrays, validation_rows, device, profile, precision, torch_module
             )
+        if entity_ranking_enabled:
+            # 对应实施计划任务 1 步骤 4：批构成、CVaR 活动率、梯度范数/夹角/投影触发率/
+            # 上限触发率、三种袋处置的并行数值。每轮落盘一次，取本轮全部步的中位数与
+            # 末步快照，避免每步逐条写盘。
+            # _combine_and_step 返回 {**combine_gradients 的诊断字典（扁平）, "invariants": {...}}，
+            # 键直接是 grad_norm_flow/grad_norm_rank/c_scaling/projection_triggered 等，无嵌套。
+            gradient_controls = [entry["gradient_control"] for entry in epoch_ranking_diagnostics]
+            c_values = [float(g["c_scaling"]) for g in gradient_controls]
+            grad_norm_flow_values = [float(g["grad_norm_flow"]) for g in gradient_controls]
+            grad_norm_rank_values = [float(g["grad_norm_rank"]) for g in gradient_controls]
+            projection_triggered_count = sum(1 for g in gradient_controls if bool(g["projection_triggered"]))
+            atomic_json(output_root / "receipts" / f"entity-ranking-diagnostics-{epoch}.json", {
+                "schema_version": "ch3-ft-c01-entity-ranking-diagnostics-receipt-v1",
+                "epoch": epoch,
+                "target_reads": 0,
+                "step_count": len(epoch_ranking_diagnostics),
+                "gradient_control": {
+                    "c_scaling_median": float(np.median(c_values)) if c_values else None,
+                    "c_equal_one_step_count": int(sum(1 for c in c_values if c >= 1.0 - 1e-9)),
+                    "grad_norm_flow_median": float(np.median(grad_norm_flow_values)) if grad_norm_flow_values else None,
+                    "grad_norm_rank_median": float(np.median(grad_norm_rank_values)) if grad_norm_rank_values else None,
+                    "projection_triggered_step_count": projection_triggered_count,
+                },
+                "last_step_snapshot": epoch_ranking_diagnostics[-1] if epoch_ranking_diagnostics else None,
+            })
         entry = {
             "epoch": epoch,
             "mean_training_loss": float(np.mean(losses)),
