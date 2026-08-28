@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "frozen_before_first_run": true,
+  "built_at": "2026-08-28",
+  "top_k": 10,
+  "judging_rules": [
+    "相关性由人工打开笔记正文核对后判定，依据为笔记的 title、tags、key_finding 与正文内容，不依据文件名推测。",
+    "同一篇论文在仓库中的所有笔记都计为相关，包含重定向页与占位页，因为用户的信息需求是找到这篇论文本身。",
+    "INDEX.md 汇总页（MOC 导航页）一律不计为相关：它们是导航页而非论文证据，检索到它们代替论文属于失败。",
+    "只在能够指出具体笔记路径时才登记查询；无法确定相关笔记的查询已剔除。"
+  ],
+  "intent_types": {
+    "known_item": "找特定论文：用户已知论文的名称或标志性机制，要定位到那一篇。",
+    "topic_survey": "找主题综述：用户要一篇覆盖该主题的综述。",
+    "method_neighbor": "找方法近邻：用户要该方法的一组直接相邻工作。",
+    "citation_check": "找引用核验：用户记得某个论断或数字，要回到出处核验。"
+  },
+  "queries": [
+    {
+      "id": "K01",
+      "intent": "known_item",
+      "query": "TESSERACT 时空实验偏置 AUT 时间感知指标",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2019-Pendlebury-TESSERACT时空实验偏置与AUT.md"
+      ],
+      "basis": "该笔记 key_finding 明确记载 C1–C3 三条时空约束与 AUT 时间感知指标（第 6–7 页），tags 含时间偏置、评价指标。全库唯一。"
+    },
+    {
+      "id": "K02",
+      "intent": "known_item",
+      "query": "CADE 对比自编码器 漂移样本检测与解释",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2021-Yang-CADE漂移样本检测与解释.md"
+      ],
+      "basis": "笔记 key_finding 记载用对比自编码器学低维距离并以 MAD 判离群，tags 含对比学习、可解释性。全库唯一。"
+    },
+    {
+      "id": "K03",
+      "intent": "known_item",
+      "query": "安全机器学习十大陷阱 数据泄漏 缺少简单基线",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/2022-Arp-安全机器学习十大陷阱.md"
+      ],
+      "basis": "笔记标题为 Dos and Don'ts of Machine Learning in Computer Security，tags 含数据泄漏、简单基线。全库唯一。"
+    },
+    {
+      "id": "K04",
+      "intent": "known_item",
+      "query": "NetMamba 单向 Mamba 预训练 高效流量分类",
+      "relevant_paths": [
+        "wiki/papers/pinn/NetMamba-高效流量序列表征.md",
+        "wiki/papers/traffic-foundation-models/2024-Wang-NetMamba-高效流量分类状态空间.md",
+        "wiki/papers/rwkv/2024-Wang-NetMamba-网络流量分类.md"
+      ],
+      "basis": "三篇笔记标题同为 NetMamba: Efficient Network Traffic Classification via Pre-training Unidirectional Mamba，属同一篇论文的重复笔记（第三篇为 78 字跳转页）。NetMamba+ 是另一篇论文，不计入。"
+    },
+    {
+      "id": "K05",
+      "intent": "known_item",
+      "query": "RWKV-7 Goose 广义 Delta 规则 动态状态演化",
+      "relevant_paths": [
+        "wiki/papers/rwkv/2025-Peng-RWKV7-Goose.md"
+      ],
+      "basis": "笔记 key_finding 记载 RWKV-7 以向量值门和广义 Delta 规则更新矩阵状态，tags 含 RWKV7、动态状态。全库唯一。"
+    },
+    {
+      "id": "K06",
+      "intent": "known_item",
+      "query": "为什么树模型在表格数据上仍然优于深度学习",
+      "relevant_paths": [
+        "wiki/papers/methodology/2022-Grinsztajn-树模型为何优于表格深度学习.md"
+      ],
+      "basis": "笔记标题即 Why do tree-based models still outperform deep learning on tabular data?，key_finding 记载 45 个数据集、20000 计算小时的统一预算结论。"
+    },
+    {
+      "id": "K07",
+      "intent": "known_item",
+      "query": "StelLA Stiefel 流形子空间学习 低秩适配",
+      "relevant_paths": [
+        "wiki/papers/manifold/StelLA-Stiefel子空间低秩适配.md",
+        "wiki/papers/manifold/StelLA- Subspace Learning in Low-rank Adaptation using Stiefel Manifold.md"
+      ],
+      "basis": "两篇笔记标题同为 StelLA: Subspace Learning in Low-rank Adaptation using Stiefel Manifold，第二篇 key_finding 为「待补充」的占位页，属同一论文。"
+    },
+    {
+      "id": "K08",
+      "intent": "known_item",
+      "query": "流量基础模型冻结嵌入 各向异性 内在表征评测",
+      "relevant_paths": [
+        "wiki/papers/traffic-foundation-models/2025-Beltiukov-网络基础模型内在评测批评.md"
+      ],
+      "basis": "笔记 key_finding 记载四个流量基础模型冻结嵌入余弦相似度均值 0.86±0.09 的各向异性结论，tags 含表征评测、各向异性。全库唯一。"
+    },
+    {
+      "id": "S01",
+      "intent": "topic_survey",
+      "query": "加密流量检测分类与识别研究综述",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md"
+      ],
+      "basis": "笔记标题即该综述题名，tags 含综述、中文文献。全库唯一的中文加密流量综述。"
+    },
+    {
+      "id": "S02",
+      "intent": "topic_survey",
+      "query": "NetFlow 上下文感知深度学习入侵检测综述",
+      "relevant_paths": [
+        "wiki/papers/datasets/2026-ElMahdaouy-上下文感知NetFlow入侵检测综述.md"
+      ],
+      "basis": "笔记标题为 Deep Learning for Contextualized NetFlow-Based Network Intrusion Detection，tags 含综述、NetFlow、上下文建模。全库唯一。"
+    },
+    {
+      "id": "S03",
+      "intent": "topic_survey",
+      "query": "QUIC 协议安全与隐私攻击面综述",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2024-Sengupta-QUIC安全与隐私攻击韧性综述.md"
+      ],
+      "basis": "笔记标题为 How Resilient is QUIC to Security and Privacy Attacks?，tags 含 QUIC、综述、攻击面。全库唯一的 QUIC 安全综述。"
+    },
+    {
+      "id": "M01",
+      "intent": "method_neighbor",
+      "query": "保形预测 风险控制 有限样本覆盖保证",
+      "relevant_paths": [
+        "wiki/papers/methodology/2024-Angelopoulos-保形风险控制.md",
+        "wiki/papers/methodology/2024-Farinhas-非交换保形风险控制.md",
+        "wiki/papers/methodology/2019-Tibshirani-协变量移位加权保形.md",
+        "wiki/papers/pinn/network-calculus-boundary/Gibbs-分布漂移下自适应共形推断.md",
+        "wiki/papers/pinn/network-calculus-boundary/Podina-共形物理信息网络.md",
+        "wiki/papers/pinn/network-calculus-boundary/Stankeviciute-共形时间序列预测.md",
+        "wiki/papers/pinn/network-calculus-boundary/Yu-局部共形物理信息网络.md"
+      ],
+      "basis": "全部七篇的 tags 都含「保形预测」或「共形预测」，key_finding 都围绕覆盖保证与校准。注意仓库中同一概念存在「保形」与「共形」两种译名，methodology 目录用前者、pinn 目录用后者，这是本查询的关键考点。"
+    },
+    {
+      "id": "M02",
+      "intent": "method_neighbor",
+      "query": "测试时适应 无监督异常检测 污染鲁棒 伪正常",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2024-Kim-TTA-AD新正常测试时适应.md",
+        "wiki/papers/attack-detection/2026-Huang-RTTAD风险感知测试时适应.md",
+        "wiki/papers/attack-detection/2023-Gong-SoTTA噪声流鲁棒适应.md",
+        "wiki/papers/attack-detection/2025-Su-RTTDP现实测试时数据投毒.md",
+        "wiki/papers/attack-detection/2026-Kim-CANDI精选测试时适应.md",
+        "wiki/papers/attack-detection/2026-Park-COMET代码本在线适应异常检测.md"
+      ],
+      "basis": "六篇 tags 都含「测试时适应」，其中四篇另含「污染鲁棒」或「伪正常」；key_finding 都描述测试流上的在线适应机制。"
+    },
+    {
+      "id": "M03",
+      "intent": "method_neighbor",
+      "query": "Delta 规则 线性循环模型 状态更新与并行化",
+      "relevant_paths": [
+        "wiki/papers/rwkv/2021-Schlag-快速权重DeltaNet.md",
+        "wiki/papers/rwkv/2024-Yang-并行DeltaNet.md",
+        "wiki/papers/rwkv/2025-Yang-门控DeltaNet.md",
+        "wiki/papers/rwkv/2026-Merrill-线性RNN为何更易并行.md",
+        "wiki/papers/rwkv/2025-Peng-RWKV7-Goose.md"
+      ],
+      "basis": "前三篇 tags 含「Delta规则」，Merrill 一篇 tags 含 DeltaNet 与线性RNN 且 key_finding 讨论 RWKV-7 与 DeltaNet 的表达力，RWKV7-Goose 的 key_finding 明写「广义 Delta 规则」。"
+    },
+    {
+      "id": "M04",
+      "intent": "method_neighbor",
+      "query": "词元级低秩专家混合 动态适配器融合",
+      "relevant_paths": [
+        "wiki/papers/pinn/MixLoRA词元级低秩专家混合.md",
+        "wiki/papers/pinn/2024-Li-MixLoRA.md",
+        "wiki/papers/pinn/LoRA-Flow词元级动态低秩融合.md",
+        "wiki/papers/pinn/2024-Wang-LoRA-Flow.md",
+        "wiki/papers/pinn/MoLE分层低秩专家组合.md",
+        "wiki/papers/pinn/2024-Wu-MoLE.md",
+        "wiki/papers/pinn/LoRA-Switch动态适配器切换.md",
+        "wiki/papers/pinn/2024-Kong-LoRA-Switch.md"
+      ],
+      "basis": "四篇实质笔记的 tags 都含「主题/低秩适配」，并分别含「主题/混合专家」「主题/动态融合」「主题/模型组合」「主题/动态适配器」；另四篇是对应的重定向页，指向同一论文。"
+    },
+    {
+      "id": "M05",
+      "intent": "method_neighbor",
+      "query": "网络演算 随机服务曲线 带宽估计",
+      "relevant_paths": [
+        "wiki/papers/pinn/network-calculus-boundary/Burchard-统计有效服务曲线.md",
+        "wiki/papers/pinn/network-calculus-boundary/Liebeherr-系统论带宽估计.md",
+        "wiki/papers/pinn/multiscale-observability-closure/2008-Liebeherr-Bandwidth-Estimation.md",
+        "wiki/papers/pinn/network-calculus-boundary/Luebben-随机服务带宽估计基础.md",
+        "wiki/papers/pinn/network-calculus-boundary/Luebben-随机服务统计带宽估计.md"
+      ],
+      "basis": "五篇 tags 都含「网络演算」，且 key_finding 都围绕服务曲线与带宽估计。Liebeherr 两篇为同一论文的中英双份笔记。TAILING 只做时延分位数预测、不含服务曲线反演，不计入。"
+    },
+    {
+      "id": "M06",
+      "intent": "method_neighbor",
+      "query": "恶意软件分类 概念漂移 共形评价器 拒识",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2017-Jordaney-TRANSCEND漂移检测与共形评价.md",
+        "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md"
+      ],
+      "basis": "两篇 tags 都同时含「概念漂移」「共形预测」「拒识」「恶意软件分类」，key_finding 都围绕共形评价器；TRANSCENDENT 是 TRANSCEND 的直接续作。"
+    },
+    {
+      "id": "M07",
+      "intent": "method_neighbor",
+      "query": "QUIC 网站指纹识别攻击与防御评估",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2021-Smith-QUIC时代的网站指纹识别.md",
+        "wiki/papers/datasets/quic/2021-Zhan-早期QUIC流量的网站指纹识别.md",
+        "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md"
+      ],
+      "basis": "三篇 tags 都同时含「QUIC」与「网站指纹」，key_finding 分别给出跨协议迁移、早期流量计数特征与防御评估的实测数字。"
+    },
+    {
+      "id": "M08",
+      "intent": "method_neighbor",
+      "query": "表格数据深度学习与梯度提升树的统一基准比较",
+      "relevant_paths": [
+        "wiki/papers/methodology/2021-Gorishniy-表格数据深度学习模型再审视.md",
+        "wiki/papers/methodology/2022-Grinsztajn-树模型为何优于表格深度学习.md",
+        "wiki/papers/methodology/2022-ShwartzZiv-表格数据深度学习并非必需.md"
+      ],
+      "basis": "三篇 tags 都含「表格数据」，key_finding 都在统一调参预算下比较深度模型与 XGBoost/GBDT。"
+    },
+    {
+      "id": "M09",
+      "intent": "method_neighbor",
+      "query": "课程学习 自步学习 训练样本难度调度",
+      "relevant_paths": [
+        "wiki/papers/methodology/2009-Bengio-课程学习.md",
+        "wiki/papers/methodology/2020-Klink-自步深度强化学习.md"
+      ],
+      "basis": "两篇 tags 都含「课程学习」，Bengio 一篇另含「延拓法」「样本重加权」，Klink 一篇另含「自步学习」。"
+    },
+    {
+      "id": "M10",
+      "intent": "method_neighbor",
+      "query": "选择性预测 拒识选项 风险覆盖率权衡",
+      "relevant_paths": [
+        "wiki/papers/methodology/Geifman2019-SelectiveNet选择性预测.md",
+        "wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md"
+      ],
+      "basis": "SelectiveNet 的 tags 为「选择性预测」「拒识」「风险覆盖」；Luxemburk 一篇 tags 含「开集识别」「拒识」，key_finding 给出 5% FPR 下拒识 91.94% 未知服务的风险覆盖实测。"
+    },
+    {
+      "id": "C01",
+      "intent": "citation_check",
+      "query": "把时间一致划分搬到网络入侵检测后 不更新的深度模型 F1 几乎为零",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2021-Andresini-INSOMNIA网络入侵检测漂移鲁棒.md"
+      ],
+      "basis": "该笔记 key_finding 精确记载：不更新的深度 NIDS 与 Kitsune 在 3 天测试数据上 F1 分别只有 0.0019% 与 0.0113%（PDF p.7 表 1）。查询用自然语言复述该论断，考察能否回到出处。"
+    },
+    {
+      "id": "C02",
+      "intent": "citation_check",
+      "query": "十秒窗口包频率箱线图基线胜过 Kitsune 自编码器集成",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/2022-Arp-安全机器学习十大陷阱.md"
+      ],
+      "basis": "该笔记 key_finding 精确记载：仅用 10 秒窗口包频率的箱线图基线（AUC 0.998）全面胜过 Kitsune（AUC 0.968）。查询复述该论断。"
+    },
+    {
+      "id": "C03",
+      "intent": "citation_check",
+      "query": "骨干网全年 TLS 数据集 每周训练测试后八周 准确率从 96.3% 降到 90.5%",
+      "relevant_paths": [
+        "wiki/papers/datasets/2024-Hynek-CESNET-TLS-Year22跨年度TLS流量数据集.md"
+      ],
+      "basis": "该笔记 key_finding 精确记载：T+1 周平均准确率 96.3%，T+8 周降到 90.5%（第 7 页 Data Drift Analysis）。查询复述该论断。"
+    },
+    {
+      "id": "C04",
+      "intent": "citation_check",
+      "query": "在第一周标定的 5% 误报率阈值搬到第二周实际变成 6.5%",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md"
+      ],
+      "basis": "该笔记 key_finding 精确记载：第 1 周验证集标定的 5% FPR 阈值搬到第 2 周后实际约 6.5% FPR（第 11–12 页 5.2 节）。查询复述该论断。"
+    }
+  ]
+}
