@@ -34,7 +34,7 @@ import ch3_ft_transformer_field_token_protocol_a as base
 
 
 SCHEMA_VERSION = "ch3-ft-c00-dual-selection-config-v1"
-CHECKPOINT_SCHEMA_VERSION = "ch3-ft-candidate-unified-checkpoint-v1"
+CHECKPOINT_SCHEMA_VERSION = "ch3-ft-candidate-unified-checkpoint-v2"
 SOURCE_ARRAYS = ("X23", "y23", "I23", "M23", "E23", "T23")
 EXIT_CONFIG = 2
 EXIT_INPUT = 3
@@ -523,6 +523,44 @@ class EntityChainScheduler:
     def entity_count(self) -> int:
         return len(self.entity_ids)
 
+    def state_dict(self) -> dict[str, Any]:
+        """导出续训所需的可变游标。
+
+        ``chain_rows``/``chain_offsets``/``chain_lengths``/``entity_ids`` 由冻结的
+        ``rows``、``entity_of_row``、``segment_ordinal`` 确定性地重建，不需入检查点；
+        唯一随训练推进而改变的是 ``cursor``（每个实体下一次应取的链内位置）。
+        同时导出实体身份供恢复时机械核对，防止跨划分或跨角色错配游标。
+        """
+        import numpy as np
+
+        return {
+            "entity_count": int(self.entity_count),
+            "entity_ids_sha256": canonical_sha256(np.asarray(self.entity_ids).tolist()),
+            "cursor": np.asarray(self.cursor).astype(np.int64).tolist(),
+        }
+
+    def load_state_dict(self, payload: dict[str, Any]) -> None:
+        """恢复游标；实体数与实体身份不符即拒绝，不静默按缺省值继续。"""
+        import numpy as np
+
+        require(
+            int(payload["entity_count"]) == self.entity_count,
+            f"调度器实体数不符：检查点 {payload['entity_count']}，当前 {self.entity_count}",
+            EXIT_RUNTIME,
+        )
+        require(
+            payload["entity_ids_sha256"] == canonical_sha256(np.asarray(self.entity_ids).tolist()),
+            "调度器实体身份不符，拒绝恢复游标",
+            EXIT_RUNTIME,
+        )
+        cursor = np.asarray(payload["cursor"], dtype=np.int64)
+        require(
+            bool((cursor >= 0).all() and (cursor < self.chain_lengths).all()),
+            "调度器游标越出链长范围",
+            EXIT_RUNTIME,
+        )
+        self.cursor = cursor
+
     def sample_rows(self, count: int, generator: Any) -> tuple[Any, Any]:
         """抽 ``count`` 个互不相同的实体，取各自当前应处理的片段行，并推进游标。
 
@@ -687,7 +725,41 @@ def build_model_optimizer(config: dict[str, Any], base_config: dict[str, Any], v
 
     model = model.to(device)
     optimizer, optimizer_receipt = base.make_optimizer(base_config, model, config["optimizer"]["candidate_key"])
+    model = maybe_compile(model, config, torch_module)
     return model, optimizer, optimizer_receipt
+
+
+def maybe_compile(model: Any, config: dict[str, Any], torch_module: Any) -> Any:
+    """按运行配置启用 torch.compile；未启用时原样返回。
+
+    数值边界（2026-08-28 服务器实测，PyTorch 2.13.0+cu130 / sm_120）：编译前后 logits
+    **非逐位相等**，最大绝对差 8.940697e-07；训练步提速 1.316 倍。因此 compile 属于
+    改变数值路径的运行配置，**必须在比较集第一个臂启动前统一决定**——四格若混用编译与
+    非编译，训练轨迹自第一步分叉，单种子下无法区分机制效应与轨迹噪声。
+
+    用户 2026-08-28 裁决：四格统一启用 compile 并重跑 C00、C10。故本函数的开关值由
+    各格配置的 ``runtime.torch_compile`` 给出，四格必须一致；不一致由 ``run_training``
+    的收据比对暴露，本函数只负责按配置执行并把实际生效值写进运行收据。
+
+    优化器在编译前创建（``build_model_optimizer`` 已保证该顺序），因为编译返回的包装体
+    与原模块共享同一批 ``Parameter`` 对象，先建优化器可避免参数身份分叉。
+    """
+    settings = config["runtime"].get("torch_compile")
+    if not isinstance(settings, dict) or not settings.get("enabled"):
+        return model
+    mode = settings.get("mode", "default")
+    require(
+        mode in ("default", "reduce-overhead", "max-autotune"),
+        f"未知的 torch.compile 模式：{mode}",
+        EXIT_INPUT,
+    )
+    require(
+        hasattr(torch_module, "compile"),
+        f"当前 PyTorch {torch_module.__version__} 无 torch.compile",
+        EXIT_RUNTIME,
+    )
+    log(f"启用 torch.compile：mode={mode}（数值路径与非编译运行不同，四格须一致）")
+    return torch_module.compile(model, mode=mode)
 
 
 def forward_bare(model: Any, numeric: Any, categorical: Any, valid: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any) -> Any:
@@ -1681,14 +1753,68 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
     }, ensure_ascii=False), flush=True)
 
 
+def restore_mechanism_state(
+    checkpoint: dict[str, Any], train_scheduler: Any, memory_state: Any, xi_state: Any,
+    numpy_rng: Any, *, entity_memory_enabled: bool, entity_ranking_enabled: bool,
+) -> None:
+    """恢复机制侧状态；开关不一致或缺状态即拒绝，不静默按初值继续。
+
+    拒绝而非降级的理由：若带 `z1` 的检查点在 `z1=0` 的运行里被加载，或反之，恢复出的
+    训练轨迹与任一完整运行都不对应，产出的读数无法解释。这属于「原子断点恢复不能成立」，
+    是根 AGENTS.md 允许阻断实验的硬门之一。
+    """
+    mechanism = checkpoint.get("mechanism_state")
+    require(isinstance(mechanism, dict), "在途检查点缺 mechanism_state，无法安全续训", EXIT_INPUT)
+    require(
+        bool(mechanism["entity_memory_enabled"]) == entity_memory_enabled
+        and bool(mechanism["entity_ranking_enabled"]) == entity_ranking_enabled,
+        "在途检查点的机制开关与当前配置不一致，拒绝恢复",
+        EXIT_INPUT,
+    )
+    if train_scheduler is not None and mechanism.get("train_scheduler") is not None:
+        train_scheduler.load_state_dict(mechanism["train_scheduler"])
+    if entity_memory_enabled:
+        require(mechanism.get("entity_memory") is not None, "z1 检查点缺实体记忆状态", EXIT_INPUT)
+        memory_state.load_state_dict(mechanism["entity_memory"])
+    if entity_ranking_enabled:
+        require(mechanism.get("cvar_threshold") is not None, "z2 检查点缺 CVaR 阈值状态", EXIT_INPUT)
+        xi_state.load_state_dict(mechanism["cvar_threshold"])
+        require(mechanism.get("numpy_rng_state") is not None, "z2 检查点缺采样 RNG 状态", EXIT_INPUT)
+        numpy_rng.bit_generator.state = mechanism["numpy_rng_state"]
+    log(
+        f"机制状态已恢复：z1={entity_memory_enabled} z2={entity_ranking_enabled}"
+        f" 调度器游标={'已还原' if mechanism.get('train_scheduler') is not None else '无'}"
+    )
+
+
 def checkpoint_payload(
     config: dict[str, Any], science_receipt: dict[str, Any], runtime_receipt: dict[str, Any],
     model: Any, optimizer: Any, epoch: int, step_count: int, history: list[dict[str, Any]],
     best_flow: dict[str, Any], best_entity: dict[str, Any], generator: Any,
     torch_module: Any, device: Any, profile: dict[str, Any], input_transform_state_hash: str,
+    train_scheduler: Any = None, memory_state: Any = None, xi_state: Any = None,
+    numpy_rng: Any = None,
 ) -> dict[str, Any]:
+    """构造检查点载荷。
+
+    机制状态（2026-08-28 补齐）：`z1` 臂的实体链调度器游标与 ``EntityMemoryState``、
+    `z2` 臂的 CVaR 阈值状态与 numpy 采样 RNG 一并入盘，使带机制的臂可原子续训。
+    未启用对应机制时相应键为 ``None``，恢复端据此校验开关一致性。
+
+    ``EntityMemoryState.state_dict`` 已是稀疏导出（只含 ``count > 0`` 的已激活实体），
+    全量 150,680 实体 × R=8 × d=192 × 4B ≈ 0.93 GB，稀疏后随训练进度增长而远小于该上界。
+    """
+    mechanism_state: dict[str, Any] = {
+        "entity_memory_enabled": memory_state is not None,
+        "entity_ranking_enabled": xi_state is not None,
+        "train_scheduler": train_scheduler.state_dict() if train_scheduler is not None else None,
+        "entity_memory": memory_state.state_dict() if memory_state is not None else None,
+        "cvar_threshold": xi_state.state_dict() if xi_state is not None else None,
+        "numpy_rng_state": numpy_rng.bit_generator.state if numpy_rng is not None else None,
+    }
     return {
         "schema_version": CHECKPOINT_SCHEMA_VERSION,
+        "mechanism_state": mechanism_state,
         "science_identity": science_receipt,
         "runtime_identity": runtime_receipt,
         "run_id": config["identity"]["run_id"],
@@ -1729,10 +1855,8 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
     entity_memory_context = None
     memory_state = None
     if entity_memory_enabled:
-        # 机制一的调度器游标与 EntityMemoryState 目前不进检查点（见任务 3 实现报告的
-        # 遗留风险）；--resume 与 z1=1 同时出现会静默丢失游标与状态，产生不可察觉的
-        # 因果顺序错误，因此直接拒绝而不是猜测性地重建。
-        require(not resume, "机制一暂不支持 --resume：调度器游标与记忆状态尚未纳入检查点", EXIT_CONFIG)
+        # 2026-08-28：调度器游标与 EntityMemoryState 已纳入检查点（见 checkpoint_payload
+        # 的 mechanism_state 与 restore_mechanism_state），z1=1 支持原子续训。
         entity_memory_context = prepare_entity_memory_context(config, arrays, train_rows, validation_rows, output_root)
         memory_state = build_entity_memory_state(config, base_config, entity_memory_context, torch_module, device)
     entity_ranking_enabled = entity_ranking_enabled_from_config(config)
@@ -1740,9 +1864,8 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
     xi_state = None
     scratch_memory_state = None
     if entity_ranking_enabled:
-        # 采样器与 CvarThresholdState 目前不进检查点，与机制一的 --resume 限制同理：
-        # 静默丢失会产生不可察觉的排序阈值轨迹错误，因此同样直接拒绝而不是猜测重建。
-        require(not resume, "机制二暂不支持 --resume：实体分层采样器与 CVaR 阈值状态尚未纳入检查点", EXIT_CONFIG)
+        # 2026-08-28：CvarThresholdState 与 numpy 采样 RNG 已纳入检查点；采样器本身无可变
+        # 游标（正负实体轮转由传入的 numpy RNG 决定），还原 RNG 即还原抽样序列。
         import ch3_ft_entity_ranking_loss as ranking  # 延迟导入，只在 z2=1 时需要 torch
 
         sampler = prepare_entity_ranking_sampler(config, arrays, train_rows)
@@ -1791,6 +1914,14 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         generator.set_state(checkpoint["rng_state"]["sampler_state"])
         start_epoch = int(checkpoint["epoch"]) + 1
         step_count = int(checkpoint["optimizer_step"])
+        restore_mechanism_state(
+            checkpoint, train_scheduler,
+            memory_state if entity_memory_enabled else None,
+            xi_state if entity_ranking_enabled else None,
+            entity_ranking_rng,
+            entity_memory_enabled=entity_memory_enabled,
+            entity_ranking_enabled=entity_ranking_enabled,
+        )
     atomic_json(output_root / "environment-receipt.json", environment_receipt(config, torch_module, device, profile))
     atomic_json(output_root / "status.json", {
         "run_id": config["identity"]["run_id"], "state": "running", "stage": "train",
@@ -1912,6 +2043,10 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             config, science_receipt, runtime_receipt, model, optimizer, epoch, step_count,
             history, best_flow, best_entity, generator, torch_module, device, profile,
             view.transform.state_hash,
+            train_scheduler=train_scheduler,
+            memory_state=memory_state if entity_memory_enabled else None,
+            xi_state=xi_state if entity_ranking_enabled else None,
+            numpy_rng=entity_ranking_rng,
         )
         atomic_torch(inflight_path, payload, torch_module)
         print(json.dumps({

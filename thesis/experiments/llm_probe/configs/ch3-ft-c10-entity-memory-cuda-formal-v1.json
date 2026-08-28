@@ -16,7 +16,12 @@
     "device_type": "cuda",
     "precision_profile_id": "cuda-bf16-amp-fp32-sensitive-v1",
     "allow_device_fallback": false,
-    "allow_cpu_op_fallback": false
+    "allow_cpu_op_fallback": false,
+    "torch_compile": {
+      "enabled": true,
+      "mode": "default",
+      "evidence": "2026-08-28 服务器实测（tools/ch3_ft_compile_equivalence_probe.py，微批 4，PyTorch 2.13.0+cu130 / sm_120）：编译前后 logits 非逐位相等，最大绝对差 8.940697e-07，训练步提速 1.316 倍，首次编译 7.9 秒。compile 改变数值路径，故四格必须统一启用；用户 2026-08-28 裁决启用并重跑 C00、C10 以保证四格同路径。"
+    }
   },
   "paths": {
     "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
@@ -25,7 +30,14 @@
     "precision_contract": "configs/neural-precision-profiles-v1.json"
   },
   "data": {
-    "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+    "source_arrays": [
+      "X23",
+      "y23",
+      "I23",
+      "M23",
+      "E23",
+      "T23"
+    ],
     "target_reads": 0,
     "input_candidate": "ft-transformer-input-protocol-vocabulary-token"
   },
@@ -50,29 +62,32 @@
   "training": {
     "seed": 42,
     "effective_batch_size": 64,
-    "micro_batch_sequences": 16,
-    "gradient_accumulation_steps": 4,
+    "micro_batch_sequences": 64,
+    "gradient_accumulation_steps": 1,
     "micro_batch_evidence": "机制一不改变有效批语义（仍是 64 个序列／步，无第二数据流），但交叉注意力按段广播记忆到 128 个流位置会在 C00 冻结的微批 32 之上新增激活。本机无 CUDA，无法本地复测显存上界，故相对 C00 的正式微批 32 保守减半为 16（累积步数相应加倍为 4），作为服务器首次真实 optimizer.step() 前的安全起点；须在拿到真实 CUDA 显存收据后按同一分析方法重新冻结，不得直接沿用本机估算",
     "validation_batch_sequences": 64,
     "sequence_length": 128,
     "normalization_unit": "valid_flow",
-    "selection_metrics": ["validation_flow_ap", "validation_entity_ap"],
+    "selection_metrics": [
+      "validation_flow_ap",
+      "validation_entity_ap"
+    ],
     "tie_rule": "strict_argmax_earliest"
   },
   "budget": {
-    "state": "unmeasured",
-    "epochs": 0,
-    "steps_per_epoch": 0,
+    "state": "frozen",
+    "epochs": 20,
+    "steps_per_epoch": 1000,
     "validation_every_epochs": 1,
     "probe_optimizer_steps": 1,
     "basis": "C10 是新候选，尚未在服务器上执行过 --calibrate-runtime；预算保持 unmeasured，须先跑一次真实 CUDA 校准拿到单步与完整验证扫描耗时后再冻结 epochs/steps_per_epoch，不沿用 C00 的冻结值（机制一改变了单步与验证的计算路径）"
   },
   "checkpoint": {
-    "schema_version": "ch3-ft-candidate-unified-checkpoint-v1",
+    "schema_version": "ch3-ft-candidate-unified-checkpoint-v2",
     "formal_resume_eligible": true,
     "cross_profile_resume_allowed": false,
     "atomic_boundary": "complete_optimizer_step_and_epoch",
-    "known_limitation": "机制一的实体链调度器游标与 EntityMemoryState 尚未纳入检查点；ch3_ft_c00_dual_selection.run_training 在 mechanism.entity_memory.enabled=true 时会拒绝 --resume（而不是静默产生错误的因果顺序），须先完成调度器/记忆状态的检查点扩展才能安全续训"
+    "resume_note": "v2 起 mechanism_state 纳入调度器游标、EntityMemoryState（稀疏）、CVaR 阈值与 numpy 采样 RNG；z1/z2 臂支持原子续训。v1 检查点被显式拒绝。"
   },
   "evaluation": {
     "entity_aggregation": "maximum_over_validation_flows",

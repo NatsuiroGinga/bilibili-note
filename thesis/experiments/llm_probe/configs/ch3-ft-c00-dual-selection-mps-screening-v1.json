@@ -25,7 +25,14 @@
     "precision_contract": "configs/neural-precision-profiles-v1.json"
   },
   "data": {
-    "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+    "source_arrays": [
+      "X23",
+      "y23",
+      "I23",
+      "M23",
+      "E23",
+      "T23"
+    ],
     "target_reads": 0,
     "input_candidate": "ft-transformer-input-protocol-vocabulary-token"
   },
@@ -47,7 +54,10 @@
     "validation_batch_sequences": 1,
     "sequence_length": 128,
     "normalization_unit": "valid_flow",
-    "selection_metrics": ["validation_flow_ap", "validation_entity_ap"],
+    "selection_metrics": [
+      "validation_flow_ap",
+      "validation_entity_ap"
+    ],
     "tie_rule": "strict_argmax_earliest"
   },
   "budget": {
@@ -59,10 +69,11 @@
     "basis": "MPS实测：微批4单步14.3856秒；验证批1完整验证1344.5834秒；2轮×60步预计约74.8分钟，依据进度快照4011424与本运行budget-receipt"
   },
   "checkpoint": {
-    "schema_version": "ch3-ft-candidate-unified-checkpoint-v1",
+    "schema_version": "ch3-ft-candidate-unified-checkpoint-v2",
     "formal_resume_eligible": false,
     "cross_profile_resume_allowed": false,
-    "atomic_boundary": "complete_optimizer_step_and_epoch"
+    "atomic_boundary": "complete_optimizer_step_and_epoch",
+    "resume_note": "v2 起 mechanism_state 纳入调度器游标、EntityMemoryState（稀疏）、CVaR 阈值与 numpy 采样 RNG；z1/z2 臂支持原子续训。v1 检查点被显式拒绝。"
   },
   "evaluation": {
     "entity_aggregation": "maximum_over_validation_flows",
