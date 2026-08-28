@@ -1,3 +1,17 @@
 # `thesis/experiments/llm_probe/scripts/` 目录的 Claude Code 规则
 
-@AGENTS.md
+<!-- 本文件内容由 AGENTS.md 同步而来，AGENTS.md 是规则唯一来源。
+     修改规则请改 AGENTS.md 再重新同步；直接改本文件会在下次同步时丢失。
+     同步日期：2026-08-28 -->
+
+# 远程启动与脚本规则
+
+<!-- 规则加载哨兵：NOTE_LLM_PROBE_SCRIPTS -->
+
+修改、同步或运行 `scripts/` 前，完整读取 `.Codex/docs/agents-split/remote-script-execution-contract.md`；该合同与上级规则同等强制。
+
+- 远程操作可直接使用 SSH、持久化脚本或现有启动器，不强制包装器或同步白名单；优先选择步骤最少且能保留退出码、状态和日志的方式。复杂多行任务仍应使用项目内持久化脚本，避免难以复现的多层引号。
+- 禁止 `rsync --delete`；状态、检查点、日志和制品必须持久化，不依赖 `screen` 套接字。
+- 管道前创建日志目录；关闭 `errexit` 时立即保存完整 `PIPESTATUS`，分别检查主命令与 `tee`。失败保留原始退出码和脱敏日志。
+- 正式训练、评估和物化包装器必须使用 `uv run --no-sync`，禁止在正式进程启动时自动解析或同步环境；依赖变更须在启动前单独完成并核验，不能让并行运行争用同一虚拟环境。
+- 修改的 Shell 脚本只在交付、审查或提交前集中一次 `bash -n`；`0644` 包装器用 `bash` 启动。
