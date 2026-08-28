@@ -172,6 +172,25 @@ class EntityMemoryState:
         self.count[selected] = 0
         self.filled[selected] = 0
 
+    def reset_entities(self, rows: torch.Tensor) -> None:
+        """把指定实体行的状态清零；用于按实体链顺序调度时的"链首/游标回绕"场景。
+
+        ``EntityMemoryState`` 按实体持续累积（``write`` 只会递增计数、滑动队列，
+        不会自己知道"这是一次全新的重放"），调用方在处理 ``is_entity_start`` 为真
+        的片段前必须先调用本方法，否则 ``read`` 会返回上一次经过该实体时遗留的
+        累积值，而不是设计规约第 4.3 节要求的严格零状态。``rows`` 内出现重复实体
+        行时按与 ``write`` 相同的理由拒绝——清零操作本身对重复下标是幂等的，但
+        拒绝重复能在调用方出现调度 bug（同一批次内重复选中同一实体）时尽早报错。
+        """
+        if rows.numel() == 0:
+            return
+        if rows.numel() != torch.unique(rows).numel():
+            raise RuntimeError("同一批次内出现重复实体行，reset_entities 的调用方存在调度错误")
+        self.mean[rows] = 0.0
+        self.queue[rows] = 0.0
+        self.count[rows] = 0
+        self.filled[rows] = 0
+
     def reset_all(self) -> None:
         """把全部实体状态清零，不区分角色；供没有角色隔离需求的场景使用。"""
         self.mean.zero_()
