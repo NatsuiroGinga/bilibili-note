@@ -102,6 +102,22 @@ REQUIRED_METHOD_INPUTS: dict[str, set[str]] = {
         "target_sequence_index",
         "target_sequence_mask",
     },
+    # CEM-BER 四格（2026-08-28 接入）：与 full_mlp_o11 同为「检查点＋评分辅助脚本」
+    # 模式——目标年逐流分数由冻结检查点在评价时现算，不预先落盘，故所需输入相同。
+    # 四格各自独立注册，因为它们是四个独立运行身份、四份检查点；共同预算包络要求
+    # 四条曲线在同一 FP 预算网格上对齐，缺任一格则交互项无法在曲线层面比较。
+    **{
+        f"ft_cem_ber_{cell}": {
+            "scoring_helper",
+            "selected_checkpoint",
+            "selection_receipt",
+            "frozen_run_config",
+            "target_features",
+            "target_sequence_index",
+            "target_sequence_mask",
+        }
+        for cell in ("c00", "c10", "c01", "c11")
+    },
 }
 
 PATH_CURVE_FIELDS: tuple[str, ...] = (
