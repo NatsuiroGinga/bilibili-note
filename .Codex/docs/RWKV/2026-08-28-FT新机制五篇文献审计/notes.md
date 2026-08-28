@@ -32,6 +32,46 @@
 - `2016-Pevny-神经网络形式化求解多示例问题.md`：实体可视为实例袋的构件证据，但不含 FT、加密流量、跨年度或低误报预算。
 - 本地检索尚未命中“严格过去实体状态 token + FT”或“实体 AP/低 FPR 可微目标 + FT”的直接论文，形成扩展检索的两个主要缺口。
 
+### 本地混合查询第二组
+
+首次携带 `--no-auto-build` 查询时，索引因本任务文档和并行代理新增文档再次变旧，命令按门禁拒绝执行。重建后索引包含 522 篇论文笔记、39,823 个全文块，SHA256 为 `60afc85c6e3c2256839a6cdddaaaa4f3b9a294480574a6da16816a0cc7cb5d4d`。
+
+查询式：
+
+1. `causal prefix representation tabular transformer entity temporal history token`
+2. `deep multiple instance learning transformer tabular bag level differentiable ranking`
+3. `partial AUC optimization low false positive differentiable ranking neural network`
+4. `distribution shift adaptive numerical embedding tokenizer tabular transformer`
+
+关键命中：SAINT 行间注意力、TabR 检索增强、Ilse 注意力多示例学习、SOAP 直接 AP、MIDAM 多示例 AUC、大小不变对象损失、Tong 纽曼—皮尔逊阈值。它们分别占用跨行信息、检索、袋级池化、AP、AUC、等对象测度和低误报校准构件。
+
+### 联网检索与饱和停止
+
+只把 arXiv、PMLR、NeurIPS、ACM/IEEE 作者原件和官方 GitHub 当作技术证据。Google Scholar CLI 已安装，但本轮因无认证 Cookie 拒绝运行；没有用记忆补题录。
+
+产生新直接近邻的查询组：
+
+- `TabFormer tabular time series transformer transaction history`：发现 TabFormer。
+- `differentiable average precision loss partial AUC low false positive deep learning`：确认 SOAP、深度 pAUC-DRO。
+- `transformer entity memory cross attention transaction fraud tabular`：发现 FATA-Trans、Fieldy、STEP。
+- `multi-instance partial AUC deep learning`：发现 NeurIPS 2023 已直接实现多示例双向部分 AUC。
+
+达到饱和的最后两组：
+
+1. `current event query past events cross-attention tabular`、`cross-attention entity history tabular transformer`、`online causal tabular sequence transformer memory bank`、`low false positive temporal multi-instance partial AUC`。
+2. `prefix-consistent entity ranking false positive`、`current record cross-attention historical records tabular`、`entity-uniform false positive rate optimization sequence`、`causal prefix multi-instance partial AUC`。
+
+这两组均未发现同时覆盖以下任一精确差量的直接论文：
+
+- FT 当前流 `[CLS]` 单向查询严格 `t^-` 实体记忆，历史只能作 K/V，预测后才更新记忆；
+- 以同一因果前缀部署分数为单位，执行实体均匀、源年冻结低误报预算的排序训练。
+
+### Zotero 状态
+
+- 本地 API 偏好已启用，但 Zotero Desktop 未运行，`127.0.0.1:23119` 拒绝连接；本轮未重启应用、未导入新条目。
+- 既有条目：FT 原论文 `N4MRAEZF`、SOAP `MHNH9QBM`、MIDAM `N3WQX553`、Ilse 注意力 MIL 与其他既有笔记按原记录保留。
+- 六篇新增强近邻统一标记“全文已归档，Zotero 未操作”，不得声称已同步。
+
 ## 原件核验台账
 
 | 原件 | 纠正后题名与版本 | 页数 | 文本状态 | 既有全文笔记 | 本轮状态 |
@@ -84,6 +124,47 @@
 - 关键有效性缺陷：物理第 7 页明确“若测试准确率连续 16 个周期不提升则早停”，并在图 4 逐周期观察测试损失和测试准确率。该协议使表 3–5 的性能与收敛结论受到测试集反复访问污染，只能用于确认“组件已发表”，不能作为效果量级或公平优越性证据。
 - PDF 未给公开源码或代码可用性声明；训练超参数还存在排版歧义（学习率显示为 `1×10^4`、Adam 的 `ε` 显示为 `10^8`，语义应核官方代码但代码不可得）。
 
+## 扩展全文证据
+
+### TabFormer：同实体层次序列 Transformer
+
+- ICASSP 2021，arXiv `2011.01843v2`。物理第 2 页公式（1）把同一用户连续 `T` 行作为窗口，先做字段 Transformer，再做行序列 Transformer。
+- 信用卡任务使用 10 条交易窗口；表 1 中原始 LSTM F1 为 `0.83`，加入 TabBERT 特征为 `0.86`（物理第 3 页）。
+- TabBERT 用双向窗口，TabGPT 才是因果生成；没有当前流查询独立只读记忆。
+- 官方源码：`https://github.com/IBM/TabFormer`。
+
+### FATA-Trans：字段类型与时间感知
+
+- CIKM 2023，DOI `10.1145/3583780.3614879`。物理第 3 页公式（1）–（3）定义同标识符连续窗口；第 4–5 页公式（4）–（10）分开静态/动态字段并注入时间间隔。
+- 物理第 6 页已把历史均值、计数和频率当静态字段，说明“普通历史特征”已占用；但全文未给逐时点严格前缀拟合合同。
+- 第 6–7 页按 2018 年前后切分信用卡数据并遮蔽标签；表 1/3 在第 7–8 页。
+- 官方源码：`https://github.com/zdy93/FATA-Trans`。
+
+### Fieldy：跨行跨列细粒度注意力
+
+- KDD 2024 MiLeTS Workshop，arXiv `2406.15327`。物理第 3–4 页同时做行向、列向注意力，再用第二级 Transformer 关联全部字段。
+- 贷款违约任务按客户历史分组并以 AP 评价；表 3 中等参数 Fieldy AP `0.48±0.06`，FT 与行式 TabBERT 均约 `0.44`，差值标准差较大（物理第 5 页）。
+- 它直接占用跨历史字段注意力大类，但使用全窗口双向结构，不是单向因果记忆读取。
+
+### STEP：因果自回归表格事件
+
+- arXiv `2410.10648v3`，首页标注 `Preprint (Under Review)`。物理第 4 页公式（1）–（2）按用户分组、时间排序；第 5 页使用 decoder-only 因果遮罩。
+- 信用卡任务按用户 98/2 切分，长度 10、无重叠窗口、不过采样，历史标签遮蔽（物理第 6–7 页）；表 1 在第 8 页。
+- 它已经占用“因果实体历史 Transformer”大类。精确空白只剩 FT 当前字段路径、只读记忆方向和低误报联合训练。
+- 官方源码：`https://github.com/alexstein0/event_prediction_step`。
+
+### pAUC-DRO：深度低误报排序
+
+- Zhu 等，ICML 2022。物理第 3 页公式（1）–（3）定义 one-way/two-way pAUC；第 4 页公式（7）–（10）以 CVaR/KL-DRO 聚焦顶部负样本。
+- 第 5–6 页算法 SOPA/SOPA-s/SOTA-s；第 8 页采用“CE 预训练→重置分类头→pAUC 微调”，而不是 CE 与 pAUC 权重 1 并加。
+- 第 9 页表 1–4 为图像与分子数据结果。官方实现进入 `https://github.com/Optimization-AI/LibAUC`。
+
+### 多示例双向部分 AUC
+
+- Hu、Zhu、Yang，NeurIPS 2023。物理第 8 页公式（8）–（9）直接定义 TPAUC，并把 `X_i` 扩展成多实例袋；均值池化之外还讨论平滑最大和注意力池化。
+- 第 9 页表 2 比较 MIDAM、SOTAs 与 SONT；SONT(att)直接优化多示例 TPAUC。
+- 因此“实体袋+低 FPR pAUC”本身也已占用。本文没有时间前缀、跨年度隔离或 FT 结构。
+
 ## 跨文献综合
 
 ### M-A：实体历史字段 token
@@ -103,16 +184,37 @@
 - 仍可能存在的任务化空白是：只用 LSPR23 严格过去实体状态驱动 tokenizer 的参数或路由，使同一当前数值在不同实体历史状态下得到不同表示；或者以源年可观测漂移病灶约束数值分区，但不得读取 LSPR24。
 - 任何任务化版本必须对比：原生线性、已发表原组件、加入我方状态/约束后的改造。只有第三者相对第二者产生源年增益，才能证明“朱式改造”而不是原组件收益。
 
-## 当前候选草案
+## 最终候选分层
 
-- D1 暂定：严格过去实体状态条件化字段 tokenizer。不是新增普通历史列，而是用 `t^-` 状态生成独立状态 token 或调制当前字段 token。
-- D2 暂定：部署实体目标与低误报预算一致的可微袋级排序机制。实体 AP 选轮仅作对照协议，真正机制须进入训练目标或联合决策。
-- D3 暂定：共享因果实体状态的联合算法。同一份 `t^-` 状态同时服务 D1 的输入调制和 D2 的实体袋级聚合，形成显式算法而非两个开关并列。
-- 备选一：源年漂移病灶约束的状态条件化 PLR；备选二：FT `[CLS]` 与实体状态 token 的门控双读出。两者均待扩展全文检索裁决新颖性。
+### 主候选 D1：因果实体记忆交叉注意力
 
-## 未关闭疑点
+- 当前 FT 的 84 个 token 内部自注意力保持不变；当前 `[CLS]` 产生 query，严格过去的实体记忆只产生 key/value。
+- 记忆必须在本次预测完成后才更新；原始 IP 只作实体分组键，不进入模型。
+- 历史统计 token、PLR 或数值编码只负责构造记忆内容，是 D1 的实现组件，不单列创新。
+- 直接近邻覆盖了序列、自回归、跨行/列和历史字段，但未覆盖这一单向接口，故新颖性高于其他候选；仍需 LSPR23 差量消融。
 
-- 三篇缺少既有全文笔记的相关核心论文是否由本任务新建笔记，需先解决 `wiki/papers/methodology/INDEX.md` 已被其他代理修改的所有权冲突。
-- TabTransformer 的官方代码补充材料稳定地址待在线核验。
-- MKAFT 无公开源码，公式（9）的 `ℓ`、网格和权重实现细节是否与作者实际代码一致无法复核。
-- Electronics 的目标无标签对齐样本与 held-out target test 的具体拆分构造、数据关联隔离和哈希未随论文公开，不能视为已复现协议。
+### 主候选 D2：因果前缀一致的实体均匀低误报排序
+
+- 普通实体 AP 选轮只是协议。D2 必须进入训练目标，并使用与部署相同的严格过去前缀分数。
+- 对每个实体先在冻结源年观察截止点形成一个分数，外层每实体等权；低误报部分只聚焦源年高分良性实体，预算在实验前冻结。
+- SOAP、pAUC-DRO、MIDAM 和多示例 TPAUC 已覆盖基础数学。D2 的差量只在因果前缀、实体均匀测度、源年封印和 FT 联合算法，故新颖性风险高于 D1。
+- 优先采用 pAUC 作为阶段二主目标，而不是以权重 1 叠加到已饱和的逐流交叉熵；C00 必须有等训练步数的交叉熵继续训练对照。
+
+### 联合算法 D3：共享严格过去实体记忆
+
+- D1 产生的同一实体记忆既为当前流跨注意力提供 K/V，也确定 D2 的因果前缀实体分数。
+- 执行顺序为“读 `t^-` 记忆→当前流预测→形成前缀实体分数→计算低误报排序目标→更新模型→写入当前流到实体记忆”。
+- 该顺序是显式算法差量，不是两个开关并列。
+
+### 两个备选
+
+1. **门控双读出**：用当前 `[CLS]` 与严格过去实体状态分别读出，再门控融合。成本低，但属于 D1 简化版，不足以单独支撑主创新。
+2. **源年状态条件化 PLR**：用严格过去实体状态选择已发表 PLR 专家。只能作为 FT 骨干适配或 D1 组件，不能单列主创新。
+
+## 遗留限制
+
+- 本轮没有运行 LSPR23 机制实验；D1、D2、D3 均为“设计可行／实验待证”。
+- STEP 仍是未正式发表预印本；其结果只用于近邻边界，不与正式论文同级支撑效果主张。
+- MKAFT 的测试集早停污染其效果证据；只保留“组件已发表”事实。
+- Zotero Desktop 未运行，六篇新增全文未导入 Zotero；仓库原件与全文笔记已完成。
+- Electronics 的目标无标签对齐样本拆分和 MKAFT 的公开实现均无法由现有原件复核。
