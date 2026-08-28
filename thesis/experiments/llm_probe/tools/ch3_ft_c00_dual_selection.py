@@ -1927,7 +1927,8 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         start_epoch = int(checkpoint["epoch"]) + 1
         step_count = int(checkpoint["optimizer_step"])
         restore_mechanism_state(
-            checkpoint, train_scheduler,
+            checkpoint,
+            entity_memory_context["train_scheduler"] if entity_memory_context is not None else None,
             memory_state if entity_memory_enabled else None,
             xi_state if entity_ranking_enabled else None,
             entity_ranking_rng,
@@ -2055,7 +2056,9 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             config, science_receipt, runtime_receipt, model, optimizer, epoch, step_count,
             history, best_flow, best_entity, generator, torch_module, device, profile,
             view.transform.state_hash,
-            train_scheduler=train_scheduler,
+            train_scheduler=(
+                entity_memory_context["train_scheduler"] if entity_memory_context is not None else None
+            ),
             memory_state=memory_state if entity_memory_enabled else None,
             xi_state=xi_state if entity_ranking_enabled else None,
             numpy_rng=entity_ranking_rng,
