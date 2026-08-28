@@ -64,27 +64,27 @@
 
 | 文献 | 等级与原件 | 承重位置 | 可支持 | 不能支持 |
 | --- | --- | --- | --- | --- |
-| Gorishniy 等 2021，FT-Transformer | `E3`；`raw/papers/2106.11959v5.pdf`，SHA256 `f2faa3...63478d` | 物理第 4 页，FT 数值／类别 token 与 `[CLS]` | FT 对当前样本字段做 token 化和字段内自注意力 | 实体历史、跨片段状态、实体 AP、低 FPR |
+| Gorishniy 等 2021，FT-Transformer | `E3`；`raw/papers/2106.11959v5.pdf`，SHA256 `f2faa32ffd8c15ed8534677f978dc02730fdbe1f94e9c9557ada6aa19163478d` | 物理第 4 页，FT 数值／类别 token 与 `[CLS]` | FT 对当前样本字段做 token 化和字段内自注意力 | 实体历史、跨片段状态、实体 AP、低 FPR |
 | Huang 等 2020，TabTransformer | `E3`；`raw/papers/2012.06678v1.pdf` | 物理第 2-3 页公式（1）（2） | 当前行类别列的上下文化嵌入 | 数值全字段 FT、实体历史或因果前缀 |
-| Gorishniy 等 2022，数值特征嵌入 | `E3`；`raw/papers/methodology/2022-Gorishniy-On-Embeddings-Numerical-Features-Tabular.pdf`，SHA256 `22b976...a0d8` | 第 3-5 页公式（1）（2） | PLE／周期嵌入及逐特征独立编码 | 把 tokenizer 原样替换称为章级创新；实体时序机制 |
+| Gorishniy 等 2022，数值特征嵌入 | `E3`；`raw/papers/methodology/2022-Gorishniy-On-Embeddings-Numerical-Features-Tabular.pdf`，SHA256 `22b97677fec340fc9f95275c9501a8ad5e2fb01a82c0ed829aeb44d33163a0d8` | 第 3-5 页公式（1）（2） | PLE／周期嵌入及逐特征独立编码 | 把 tokenizer 原样替换称为章级创新；实体时序机制 |
 | Rubachev 等 2025，TabReD | `E3`；`raw/papers/methodology/2025-Rubachev-TabReD-Tabular-Benchmark-Pitfalls.pdf` | 第 16-17 页 | 历史聚合量作为普通表格列已是工业常态 | “首次使用实体历史特征” |
 | Padhi 等 2021，TabFormer | `E2`；[arXiv:2011.01843](https://arxiv.org/abs/2011.01843) 与作者代码 | 物理第 2 页公式（1）、图 2，第 3 页表 1 | 同一用户连续行的字段层与序列层 Transformer | 全窗口双向 TabBERT 等于当前 query 读取严格过去只读记忆 |
-| Zhang 等 2023，FATA-Trans | `E2`；[ACM DOI](https://doi.org/10.1145/3583780.3614879) 与作者 PDF | 第 3-5 页公式（1）-（10），第 6-8 页 | 同 ID 顺序窗口、静态／动态字段与时间感知表示 | 历史静态量逐时刻严格前缀已获证明；独立 K/V 记忆 |
+| Zhang 等 2023，FATA-Trans | `E2`；[ACM DOI](https://doi.org/10.1145/3583780.3614879) 与作者 PDF | 第 3-5 页公式（1）-（10），第 6-8 页 | 同 ID 顺序窗口、静态／动态字段与时间感知表示 | 不能证明历史静态量在每个时刻都按严格前缀构造；没有独立 K/V 记忆 |
 | Azorin 等 2024，Fieldy | `E2`；[arXiv:2406.15327](https://arxiv.org/abs/2406.15327) | 第 3-6 页图 2、表 3-4 | 行向、列向细粒度时序表格注意力 | 单向因果实体记忆；当前流 FT 保持 84 Token 的结构 |
 | Stein 等 2024，自回归表格 Transformer | `E2`；[arXiv:2410.10648v3](https://arxiv.org/abs/2410.10648) | 第 4-8 页公式（1）（2）、表 1 | 按实体分组、时间排序和因果语言模型 | “首次因果实体历史 Transformer”；FT 字段 query 对独立记忆的差量 |
 | Dai 等 2019，Transformer-XL | `E2`；[ACL Anthology](https://aclanthology.org/P19-1285/) 与官方 PDF | 物理第 3-4 页，式中 `SG(memory)` | 跨片段缓存过去隐藏状态、当前段查询、跨段截断梯度 | 按实体隔离的 FT 字段交叉注意力；低误报目标 |
-| Ilse 等 2018，注意力 MIL | `E3`；`raw/papers/methodology/multiple-instance/2018-Ilse-Attention-Deep-Multiple-Instance-Learning.pdf`，SHA256 `9da16d...5b199` | 第 2-4 页公式（7）-（9） | 袋级置换不变聚合和门控注意力 | 有序因果实体链、跨片段恢复、低 FPR |
-| Zhu 等 2023，MIDAM | `E3`；`raw/papers/methodology/multiple-instance/2023-Zhu-MIDAM-Stochastic-Pooling-ICML.pdf`，SHA256 `3b0b6d...e87` | 第 3-6 页公式（1）-（8）、算法 1 | 大袋随机子包代入非线性池化会有偏；需状态跟踪或偏差边界 | 部分 AUC、实际整数 FP 预算、严格因果实体链 |
-| Narasimhan 与 Agarwal 2013，pAUC | `E3`；`raw/papers/methodology/2013-Narasimhan-Partial-AUC.pdf`，SHA256 `3181ad...51b` | 第 1-5 页，经验 pAUC 与 `[0,β]` 最高分负例 | 左端 ROC／top-negative 排序目标与全 AUC 不等价 | 深度实体袋、RankNet softplus、跨片段状态 |
-| Zhu 等 2022，When AUC Meets DRO | `E2`；[PMLR 官方页](https://proceedings.mlr.press/v162/zhu22g.html) 与 PDF | 第 3-4 页公式（5）-（10），第 8 页训练协议 | CVaR 精确 top-negative pAUC、KL 平滑近似、随机负例的无偏子梯度；CE 预训后 pAUC 微调 | “深度 pAUC”或 top-negative 本身是本课题创新；逐流 BCE 等权联合有原文先例 |
+| Ilse 等 2018，注意力 MIL | `E3`；`raw/papers/methodology/multiple-instance/2018-Ilse-Attention-Deep-Multiple-Instance-Learning.pdf`，SHA256 `9da16d3f18f46d29d3f947201b3aae195543e6b2354f878fbc06cf6c3765b199` | 第 2-4 页公式（7）-（9） | 袋级置换不变聚合和门控注意力 | 有序因果实体链、跨片段恢复、低 FPR |
+| Zhu 等 2023，MIDAM | `E3`；`raw/papers/methodology/multiple-instance/2023-Zhu-MIDAM-Stochastic-Pooling-ICML.pdf`，SHA256 `3b0b6d177057430dda190132bb5209b373e27c1ec625d94c674964360a657e87` | 第 3-6 页公式（1）-（8）、算法 1 | 大袋随机子包代入非线性池化会有偏；需状态跟踪或偏差边界 | 部分 AUC、实际整数 FP 预算、严格因果实体链 |
+| Narasimhan 与 Agarwal 2013，pAUC | `E3`；`raw/papers/methodology/2013-Narasimhan-Partial-AUC.pdf`，SHA256 `3181ad0bd445deb002f3f3d6c4a415e5fa008f61219a79de6078856db84df51b` | 第 1-5 页，经验 pAUC 与 `[0,β]` 最高分负例 | 左端 ROC／top-negative 排序目标与全 AUC 不等价 | 深度实体袋、RankNet softplus、跨片段状态 |
+| Zhu 等 2022，When AUC Meets DRO | `E2`；[PMLR 官方页](https://proceedings.mlr.press/v162/zhu22g.html) 与 PDF | 第 3-4 页公式（5）-（10），第 8 页训练协议 | CVaR 精确 top-negative pAUC、KL 平滑近似、随机负例的无偏子梯度；CE 预训后 pAUC 微调 | “深度 pAUC”或 top-negative 本身是本课题创新；原文没有逐流 BCE 等权联合先例 |
 | Hu 等 2023，NSWC FCCO | `E2`；[NeurIPS 官方页](https://proceedings.neurips.cc/paper_files/paper/2023/hash/1160792eab11de2bbaf9e71fce191e8c-Abstract-Conference.html) 与 PDF | 第 8-9 页公式（8）（9）、表 2 | 多示例袋、均值池化与两向 pAUC 已直接组合 | “实体袋+pAUC”本身具有新颖性；严格过去 FT 部署分数 |
 | Burges 等 2005，RankNet | `E2`；[ICML 官方 PDF](https://icml.cc/Conferences/2005/proceedings/papers/012_LearningToRank_BurgesEtAl.pdf) | 第 2 页公式（1）-（3） | 成对逻辑斯蒂排序损失 `log(1+exp(score_diff))` | pAUC top-negative 选择、实体袋或实际 FP 保证 |
-| Tong 等 2018，NP 分类 | `E3`；`raw/papers/methodology/2018-Tong-Neyman-Pearson-Classification.pdf`，SHA256 `ff679e...66e3` | 第 2-4 页命题 1、算法 1 | 独立保留负例的次序统计阈值与源分布类型一错误控制 | 目标年同保证、可微训练目标、排序改善 |
+| Tong 等 2018，NP 分类 | `E3`；`raw/papers/methodology/2018-Tong-Neyman-Pearson-Classification.pdf`，SHA256 `ff679e5db0379cfa9449c9dccd2ac0246ac75feef7f6c4850cdfdb8d8e4866e3` | 第 2-4 页命题 1、算法 1 | 独立保留负例的次序统计阈值与源分布类型一错误控制 | 目标年同保证、可微训练目标、排序改善 |
 | Yu 等 2020，PCGrad | `E2`；[NeurIPS 官方页](https://proceedings.neurips.cc/paper/2020/hash/3fe78a8acf5fda99de95303940a2420c-Abstract.html) 与 PDF | 第 2-3 页 | 冲突梯度法向投影；梯度量级差与高曲率共同导致干扰 | 主任务天然优先、验证泛化不退化 |
 | Chen 等 2018，GradNorm | `E2`；[PMLR 官方页](https://proceedings.mlr.press/v80/chen18a.html) 与 PDF | 第 2-3 页公式（1） | 直接控制任务梯度量级 | 无超参数的主任务保护；低 FPR 或实体袋 |
-| Jiang 等 2023，ForkMerge | `E3`；`raw/papers/methodology/auxiliary-learning/2023-Jiang-ForkMerge辅助任务负迁移.pdf`，SHA256 `597e00...9de` | 第 3-6 页公式（5）-（8）、算法 1 | 梯度夹角不足以判断负迁移；主验证性能可过滤辅助更新 | 本项目一阶投影必然防止泛化退化；低成本 |
+| Jiang 等 2023，ForkMerge | `E3`；`raw/papers/methodology/auxiliary-learning/2023-Jiang-ForkMerge辅助任务负迁移.pdf`，SHA256 `597e00c0b973a5ba96b031efc4e60b9be277846d484252252c009f7a72a2f9de` | 第 3-6 页公式（5）-（8）、算法 1 | 梯度夹角不足以判断负迁移；主验证性能可过滤辅助更新 | 本项目一阶投影必然防止泛化退化；低成本 |
 | Shamsian 等 2023，AuxiNash | `E3`；`raw/papers/game/2023_Shamsian_Auxiliary_Learning_as_an_Asymmetric_Bargaining_Game.pdf` | 第 4-6 页主张 4.1、命题 4.2 | 主任务与辅助任务应非对称分配训练权力 | 本项目提出的投影与范数上限公式已由原文给出 |
-| Tan 等 2026，MalMoE | `E3`；`raw/papers/attack-detection/encrypted/2026-Tan-MalMoE-Graph-Drift-MoE.pdf`，SHA256 `01c932...df00` | 第 3-6 页公式（1）-（10） | 加密流量中上下文聚合、图级门控和硬专家选择是可行构件 | 当前 30 秒图上下文等于严格过去实体记忆；FT 结构或低 FPR 排序 |
+| Tan 等 2026，MalMoE | `E3`；`raw/papers/attack-detection/encrypted/2026-Tan-MalMoE-Graph-Drift-MoE.pdf`，SHA256 `01c932b849269518843873cd84992c1bb180f59c86ff49e116ed8673f677df00` | 第 3-6 页公式（1）-（10） | 加密流量中上下文聚合、图级门控和硬专家选择是可行构件 | 当前 30 秒图上下文等于严格过去实体记忆；FT 结构或低 FPR 排序 |
 
 ## 五、检索综合与边界
 
