@@ -642,7 +642,54 @@ def _adapt_full_mlp_complete_entity_lp_v1(
     return result
 
 
+def _adapt_ft_dual_selection_v1(doc: dict[str, Any], cell: str) -> dict[str, Any] | None:
+    """适配 FT-Transformer 四格（CEM-BER）的 ``receipts/selection.json``。
+
+    与既有适配器的差别在于本运行**每格一个独立运行目录**（C00/C10/C01/C11 各自一份
+    ``selection.json``），而不是一份文档内含四个单元；因此 ``cell`` 只用于核对
+    ``run_id`` 是否为该格，不用于在文档内索引。
+
+    选轮口径按 2026-08-28 冻结裁决取**源年实体 AP**（``best_by_entity``），
+    逐流 AP 侧的 ``best_by_flow`` 一并带出作协议敏感性对照，不作主口径。
+
+    目标年字段留空：LSPR24 描述性评价是四格封印后另跑的一步，其读数由目标年评价
+    制品提供，本适配器不臆造。
+    """
+    receipt_run_id = doc.get("run_id", "")
+    if cell and cell not in receipt_run_id:
+        return None
+    best_entity = doc.get("best_by_entity") or {}
+    best_flow = doc.get("best_by_flow") or {}
+    history = doc.get("history") or []
+    if not best_entity or not history:
+        return None
+    resource = doc.get("resource") or {}
+    result = _blank_result()
+    result.update(
+        {
+            "selection_pool": "LSPR23实体不相交验证集",
+            "selection_metric": "源年实体AP",
+            "selection_score": best_entity.get("metric"),
+            "selected_epoch": best_entity.get("epoch"),
+            "source_performance_pool": "LSPR23实体不相交验证集",
+            "source_entity_ap": best_entity.get("metric"),
+            "selection_protocol": (
+                "四格统一按源年实体AP择优；逐流AP择优结果并列保留作协议敏感性对照，不作主口径"
+            ),
+            "flow_selection_epoch": best_flow.get("epoch"),
+            "flow_selection_score": best_flow.get("metric"),
+            "epochs_completed": len(history),
+            "train_positive_rate": doc.get("train_positive_rate"),
+            "training_seconds": doc.get("wall_seconds"),
+            "peak_process_rss_bytes": resource.get("process_peak_rss_bytes"),
+            "run_id": receipt_run_id,
+        }
+    )
+    return result
+
+
 ADAPTERS: dict[str, Callable[[dict[str, Any], str], dict[str, Any] | None]] = {
+    "ft_dual_selection_v1": _adapt_ft_dual_selection_v1,
     "baselines_full": _adapt_baselines_full,
     "fairsel_2x2": _adapt_fairsel_2x2,
     "protocol_a_v1": _adapt_protocol_a_v1,
