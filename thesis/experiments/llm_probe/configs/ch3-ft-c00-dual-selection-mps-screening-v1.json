@@ -1,0 +1,85 @@
+{
+  "schema_version": "ch3-ft-c00-dual-selection-config-v1",
+  "identity": {
+    "run_id": "ch3-ft-c00-dual-selection-mps-screening-v1",
+    "run_tier": "screening_only",
+    "candidate_key": "bare-ft-c00-dual-selection",
+    "science_contract_version": "ch3-ft-c00-dual-selection-science-v1"
+  },
+  "base": {
+    "config_path": "configs/ch3-ft-transformer-field-token-protocol-a-seed42-v1.json",
+    "config_sha256": "a9e11e90792a3106c2e8a3bc9cd3843b3cd4fe405a15656501bf715f05c3929a",
+    "tool_path": "tools/ch3_ft_transformer_field_token_protocol_a.py",
+    "tool_sha256": "1c8c0cd1ac162149363d13bbda6ca8ec9588424ec494a4c7861d7ce6c347e91b"
+  },
+  "runtime": {
+    "device_type": "mps",
+    "precision_profile_id": "mps-fp32-v1",
+    "allow_device_fallback": false,
+    "allow_cpu_op_fallback": false
+  },
+  "paths": {
+    "cache_root": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "cardinality_receipt": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-lspr23-field-cardinality-receipt-v1/field-cardinality-receipt.json",
+    "output_root": "/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819/thesis/experiments/llm_probe/runs/diagnostics/ch3-ft-c00-dual-selection-mps-screening-v1",
+    "precision_contract": "configs/neural-precision-profiles-v1.json"
+  },
+  "data": {
+    "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+    "target_reads": 0,
+    "input_candidate": "ft-transformer-input-protocol-vocabulary-token"
+  },
+  "model": {
+    "role": "bare_ft_transformer",
+    "expected_parameter_count": 924283,
+    "old_cpa_enabled": false,
+    "old_elp_enabled": false,
+    "old_mechanism_scaffold_present": false
+  },
+  "optimizer": {
+    "candidate_key": "ft-transformer-official-default"
+  },
+  "training": {
+    "seed": 42,
+    "effective_batch_size": 64,
+    "micro_batch_sequences": 4,
+    "gradient_accumulation_steps": 16,
+    "validation_batch_sequences": 1,
+    "sequence_length": 128,
+    "normalization_unit": "valid_flow",
+    "selection_metrics": ["validation_flow_ap", "validation_entity_ap"],
+    "tie_rule": "strict_argmax_earliest"
+  },
+  "budget": {
+    "state": "frozen",
+    "epochs": 2,
+    "steps_per_epoch": 60,
+    "validation_every_epochs": 1,
+    "probe_optimizer_steps": 1,
+    "basis": "MPS实测：微批4单步14.3856秒；验证批1完整验证1344.5834秒；2轮×60步预计约74.8分钟，依据进度快照4011424与本运行budget-receipt"
+  },
+  "checkpoint": {
+    "schema_version": "ch3-ft-candidate-unified-checkpoint-v1",
+    "formal_resume_eligible": false,
+    "cross_profile_resume_allowed": false,
+    "atomic_boundary": "complete_optimizer_step_and_epoch"
+  },
+  "evaluation": {
+    "entity_aggregation": "maximum_over_validation_flows",
+    "flow_metric": "average_precision",
+    "entity_metric": "average_precision",
+    "target_reads": 0
+  },
+  "resource": {
+    "sample_interval_seconds": 1,
+    "memory_provider": "mps_and_process_rss",
+    "pin_memory": false,
+    "non_blocking_transfer": false,
+    "resource_contention": false
+  },
+  "tracking": {
+    "mode": "offline",
+    "aggregate_only": true,
+    "group": "ch3-ft-c00-dual-selection-mps-screening-v1"
+  }
+}

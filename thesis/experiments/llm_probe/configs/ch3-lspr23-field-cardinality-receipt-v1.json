@@ -1,0 +1,41 @@
+{
+  "schema_version": "ch3-lspr23-field-cardinality-receipt-config-v1",
+  "run_id": "ch3-lspr23-field-cardinality-receipt-v1",
+  "display_name": "LSPR23 Protocol A训练区字段基数只读收据",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-lspr23-field-cardinality-receipt-v1"
+  },
+  "source_arrays": ["X23", "I23", "M23", "E23", "T23"],
+  "target_year_arrays_read": 0,
+  "source_year_only": true,
+  "training": {
+    "seed": 42,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "source_split_implementation": "verbatim_ch3_resmlp2_tabm_protocol_a_2x2_source_split"
+  },
+  "fields": [
+    "SrcPort",
+    "DstPort",
+    "Protocol",
+    "L3/L4 Protocol",
+    "Int/Ext Dst IP",
+    "External_src",
+    "External_dst"
+  ],
+  "statistics": {
+    "chunk_rows": 131072,
+    "top_k_values": 20,
+    "coverage_k": [1, 10, 100, 1000],
+    "counting_method": "per_field_chunk_unique_then_exact_aggregate",
+    "one_hot_policy": "report_facts_only_no_automatic_encoding_decision"
+  },
+  "resource_contract": {
+    "execution_device": "cpu",
+    "cuda_visible_devices": "0",
+    "maximum_parallel_jobs": 1,
+    "resource_sample_interval_seconds": 5,
+    "minimum_free_disk_gib": 10
+  }
+}
