@@ -42,6 +42,10 @@ from typing import Any
 import torch
 from torch import nn
 
+# 实体记忆状态的检查点模式版本。改变稀疏表示或字段含义时必须提升，
+# 使旧 inflight.pt 被明确拒绝，而不是按缺省值静默恢复出错误的因果状态。
+ENTITY_MEMORY_STATE_SCHEMA = "ch3-ft-entity-memory-state-v1"
+
 TOOL_DIR = Path(__file__).resolve().parent
 if str(TOOL_DIR) not in sys.path:
     sys.path.insert(0, str(TOOL_DIR))
@@ -110,6 +114,54 @@ class EntityMemoryState:
         self.role_of_entity = (
             role_of_entity.to(device=target_device) if role_of_entity is not None else None
         )
+
+    def state_dict(self) -> dict[str, Any]:
+        """稀疏导出已激活实体的状态，供 ``inflight.pt`` 原子断点恢复。
+
+        全量为 ``entity_count × R × d × 4`` 字节（`150,680 × 8 × 192 × 4 ≈ 0.93 GB`），
+        直接存盘会让每次检查点写入成为瓶颈。已激活实体（``count > 0``）在训练早期
+        只占少数，故只导出这些行与其全局行号；未激活行恢复时保持零初始值，
+        与从未写入过的语义完全一致。
+
+        张量一律搬到 CPU 并 clone，避免与训练张量共享存储导致检查点被后续步覆写。
+        """
+        active = torch.nonzero(self.count > 0, as_tuple=False).flatten()
+        return {
+            "schema": ENTITY_MEMORY_STATE_SCHEMA,
+            "entity_count": int(self.mean.shape[0]),
+            "width": int(self.mean.shape[1]),
+            "slots": int(self.queue.shape[1]) + 1,
+            "active_rows": active.detach().cpu().clone(),
+            "mean": self.mean[active].detach().cpu().clone(),
+            "queue": self.queue[active].detach().cpu().clone(),
+            "count": self.count[active].detach().cpu().clone(),
+            "filled": self.filled[active].detach().cpu().clone(),
+        }
+
+    def load_state_dict(self, payload: dict[str, Any]) -> None:
+        """按全局行号还原稀疏状态；形状不符即报错，不静默按缺省值恢复。"""
+        if payload.get("schema") != ENTITY_MEMORY_STATE_SCHEMA:
+            raise ValueError(f"实体记忆状态模式不符：{payload.get('schema')}")
+        entity_count, width = int(self.mean.shape[0]), int(self.mean.shape[1])
+        slots = int(self.queue.shape[1]) + 1
+        if (payload["entity_count"], payload["width"], payload["slots"]) != (entity_count, width, slots):
+            raise ValueError(
+                "实体记忆状态形状不符："
+                f"检查点 {(payload['entity_count'], payload['width'], payload['slots'])} "
+                f"对当前 {(entity_count, width, slots)}"
+            )
+        self.mean.zero_()
+        self.queue.zero_()
+        self.count.zero_()
+        self.filled.zero_()
+        rows = payload["active_rows"].to(self.mean.device)
+        if rows.numel() == 0:
+            return
+        self.mean[rows] = payload["mean"].to(self.mean.device, dtype=self.mean.dtype)
+        self.queue[rows] = payload["queue"].to(self.queue.device, dtype=self.queue.dtype)
+        self.count[rows] = payload["count"].to(self.count.device, dtype=self.count.dtype)
+        self.filled[rows] = payload["filled"].to(self.filled.device, dtype=self.filled.dtype)
+        # role_of_entity 由构造函数按冻结的切分收据设定，不随检查点变化，故不在此还原。
 
     def read(self, rows: torch.Tensor) -> torch.Tensor:
         """按实体行取严格过去记忆，返回 ``(B, R, d)``：槽 0 均值＋槽 1..R-1 队列。"""
