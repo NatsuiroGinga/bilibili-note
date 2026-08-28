@@ -2,6 +2,25 @@
 
 该工具只索引 `wiki/papers/**/*.md`。它不会读取 PDF，不会修改笔记、原件或 Zotero。
 
+## 索引默认行为（2026-08-28 落地，见下方评测报告）
+
+以下两项是 `documents.py:load_notes` 的默认行为，非可选项：
+
+1. **排除 MOC 导航页**：文件名字面量为 `INDEX.md` 的笔记不进入索引（当前 15 篇）。
+   依据：25 条真实查询评测中，这批页面占语料 2.9%，却占据 40% 的查询第 1 名命中，
+   超额表征约 14 倍——正文是论文标题清单，几乎匹配所有主题查询的字符三元组。
+2. **索引 frontmatter 的人工标注**：`tags`、`key_finding`、`venue`、`authors`、`year`、`aliases`
+   六个字段被渲染成一个「## 条目元数据」小节并入正文（不改变 `parse_frontmatter` 对其余调用方的
+   返回契约），走既有分块通路参与词法与向量检索。此前这些字段随整段 frontmatter 被剥离丢弃，
+   全库 0 命中，覆盖率却达 tags 100%、key_finding 96.6%。
+
+两项合计（对照报告中的 V3）把词法通道从 `Recall@5 0.8575 / MRR 0.7933 / nDCG@10 0.7958`
+提到 `Recall@5 0.9332 / MRR 1.0000 / nDCG@10 0.9657`（25 条真实查询集，见
+`scripts/literature_search/evaluation_queries_real.json`）。完整评测方法、失败模式分析与
+被否决的备选方案（分块聚合改 Top-N 求和、排除重定向页）见
+`.Codex/docs/RWKV/2026-08-28-文献检索精度评测与改进方案.md` 与
+`.Codex/docs/RWKV/2026-08-28-检索V3改进落地报告.md`。
+
 ## 环境
 
 词法索引只需要仓库现有 Python 与 NumPy。完整向量索引建议建立隔离环境：
@@ -67,4 +86,5 @@ PYTHONPYCACHEPREFIX=/tmp/literature-search-pycache
 - 清理模型：使用 `hf cache list` 确认条目，再用 `hf cache rm model/intfloat/multilingual-e5-small --dry-run` 预检。
 - 索引和模型缓存都不应提交 Git。
 
-`status` 会重新计算 507 篇笔记的来源清单哈希；`stale=true` 表示必须重建。
+`status` 会重新计算笔记来源清单哈希（当前 510 篇，已排除 15 篇 `INDEX.md` 导航页）；
+`stale=true` 表示必须重建。

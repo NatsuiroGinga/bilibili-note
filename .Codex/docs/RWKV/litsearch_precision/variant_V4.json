@@ -1,0 +1,830 @@
+{
+  "query_count": 25,
+  "top_k": 10,
+  "index_path": ".cache/literature-search/index_V4.sqlite3",
+  "summary": {
+    "lexical": {
+      "recall_at_5": 0.9148571428571429,
+      "recall_at_10": 0.9272380952380952,
+      "mrr": 1.0,
+      "ndcg_at_10": 0.9449516636368506
+    }
+  },
+  "by_intent": {
+    "known_item": {
+      "lexical": {
+        "recall_at_5": 0.9583333333333333,
+        "recall_at_10": 0.9583333333333333,
+        "mrr": 1.0,
+        "ndcg_at_10": 0.9629897611292668,
+        "query_count": 8
+      }
+    },
+    "topic_survey": {
+      "lexical": {
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "query_count": 3
+      }
+    },
+    "method_neighbor": {
+      "lexical": {
+        "recall_at_5": 0.8204761904761906,
+        "recall_at_10": 0.8514285714285714,
+        "mrr": 1.0,
+        "ndcg_at_10": 0.8919873501887128,
+        "query_count": 10
+      }
+    },
+    "citation_check": {
+      "lexical": {
+        "recall_at_5": 1.0,
+        "recall_at_10": 1.0,
+        "mrr": 1.0,
+        "ndcg_at_10": 1.0,
+        "query_count": 4
+      }
+    }
+  },
+  "queries": [
+    {
+      "id": "K01",
+      "intent": "known_item",
+      "query": "TESSERACT 时空实验偏置 AUT 时间感知指标",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/attack-detection/2019-Pendlebury-TESSERACT时空实验偏置与AUT.md",
+            "wiki/papers/attack-detection/2021-Andresini-INSOMNIA网络入侵检测漂移鲁棒.md",
+            "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md",
+            "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md",
+            "wiki/papers/datasets/2024-Hynek-CESNET-TLS-Year22跨年度TLS流量数据集.md",
+            "wiki/papers/attack-detection/encrypted/2016-BAYWATCH-企业网络稳健信标检测.md",
+            "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md",
+            "wiki/papers/pinn/multiscale-observability-closure/2021-Krishnapriyan-PINN-Failure-Modes.md",
+            "wiki/papers/game/2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_in_a_Noisy_Security_Game.md",
+            "wiki/papers/attack-detection/encrypted/Fu2024-HyperVision未知加密恶意流量检测.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "K02",
+      "intent": "known_item",
+      "query": "CADE 对比自编码器 漂移样本检测与解释",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/attack-detection/2021-Yang-CADE漂移样本检测与解释.md",
+            "wiki/papers/attack-detection/2017-Jordaney-TRANSCEND漂移检测与共形评价.md",
+            "wiki/papers/traffic-classification-evolution/2020-Lotfollahi-DeepPacket原始字节端到端分类.md",
+            "wiki/papers/attack-detection/encrypted/Xavier2022-Metasploit加密C2规避.md",
+            "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md",
+            "wiki/papers/attack-detection/2026-Huang-RTTAD风险感知测试时适应.md",
+            "wiki/papers/pinn/protocol-adaptive/RPLPO部分观测下重启PDE损失.md",
+            "wiki/papers/traffic-foundation-models/2026-Huang-FlowSem-MAE协议原生表格预训练.md",
+            "wiki/papers/datasets/GeNIS-模块化网络入侵检测数据集.md",
+            "wiki/papers/pinn/YaTC-多层流量表征.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "K03",
+      "intent": "known_item",
+      "query": "安全机器学习十大陷阱 数据泄漏 缺少简单基线",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/datasets/data-protocol/2022-Arp-安全机器学习十大陷阱.md",
+            "wiki/papers/traffic-foundation-models/2024-Qian-NetBench流量基准.md",
+            "wiki/papers/datasets/quic/2025-Luxemburk-QUIC域名识别预训练的通用嵌入函数.md",
+            "wiki/papers/pinn/Deep-AMTFL深度非对称特征学习.md",
+            "wiki/papers/traffic-foundation-models/2026-Zhou-Traffic-MoE稀疏流量基础模型.md",
+            "wiki/papers/datasets/HIKARI-2021机器学习分类评估.md",
+            "wiki/papers/datasets/data-protocol/Sweet-Danger-加密流量评测泄漏与公平协议.md",
+            "wiki/papers/datasets/data-protocol/Bad-Design-Smells-NIDS数据集设计气味.md",
+            "wiki/papers/game/AuxiNash-辅助学习非对称议价训练.md",
+            "wiki/papers/datasets/data-protocol/NIDS跨数据集泛化研究.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "K04",
+      "intent": "known_item",
+      "query": "NetMamba 单向 Mamba 预训练 高效流量分类",
+      "relevant_count": 3,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 0.6666666666666666,
+          "recall_at_10": 0.6666666666666666,
+          "mrr": 1.0,
+          "ndcg_at_10": 0.7039180890341347,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/pinn/NetMamba-高效流量序列表征.md",
+            "wiki/papers/traffic-foundation-models/2026-Wang-NetMamba-Plus-多模态与长尾微调.md",
+            "wiki/papers/traffic-foundation-models/2024-Wang-NetMamba-高效流量分类状态空间.md",
+            "wiki/papers/traffic-foundation-models/2026-Beltiukov-netFound-协议感知流量基础模型.md",
+            "wiki/papers/rwkv/2026-Kulatilleke-MambaNetBurst-字节级流量分类.md",
+            "wiki/papers/traffic-foundation-models/2022-Lin-ET-BERT-加密流量预训练.md",
+            "wiki/papers/traffic-foundation-models/2025-Beltiukov-网络基础模型内在评测批评.md",
+            "wiki/papers/methodology/2025-Li-DyG-Mamba连续状态空间动态图.md",
+            "wiki/papers/traffic-foundation-models/2025-Zhou-TrafficFormer-流量预训练与数据增强.md",
+            "wiki/papers/rwkv/2024-He-PointRWKV点云序列化.md"
+          ],
+          "hit_ranks": [
+            1,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "K05",
+      "intent": "known_item",
+      "query": "RWKV-7 Goose 广义 Delta 规则 动态状态演化",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/rwkv/2025-Peng-RWKV7-Goose.md",
+            "wiki/papers/rwkv/2025-Yang-门控DeltaNet.md",
+            "wiki/papers/methodology/2025-Li-DyG-Mamba连续状态空间动态图.md",
+            "wiki/papers/rwkv/2024-Yang-并行DeltaNet.md",
+            "wiki/papers/rwkv/2025-Yang-FRWKV-频域线性注意力长期预测.md",
+            "wiki/papers/attack-detection/2024-Chen-JSSM去趋势状态空间异常检测.md",
+            "wiki/papers/rwkv/2025-Li-BlackGoose-Rimer-RWKV7时序建模.md",
+            "wiki/papers/rwkv/2024-Goldstein-GoldFinch-RWKV混合与KV缓存压缩.md",
+            "wiki/papers/rwkv/2021-Schlag-快速权重DeltaNet.md",
+            "wiki/papers/rwkv/2025-Goldstein-RADLADS-注意力蒸馏到线性注意力.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "K06",
+      "intent": "known_item",
+      "query": "为什么树模型在表格数据上仍然优于深度学习",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/methodology/2022-Grinsztajn-树模型为何优于表格深度学习.md",
+            "wiki/papers/methodology/2022-ShwartzZiv-表格数据深度学习并非必需.md",
+            "wiki/papers/methodology/2021-Gorishniy-表格数据深度学习模型再审视.md",
+            "wiki/papers/methodology/2016-He-深度残差学习.md",
+            "wiki/papers/traffic-classification-evolution/2019-Rezaei-Liu-加密流量深度学习综述.md",
+            "wiki/papers/traffic-foundation-models/2024-Qian-NetBench流量基准.md",
+            "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md",
+            "wiki/papers/attack-detection/encrypted/Lichy2023-RF与深度模型加密恶意流量比较.md",
+            "wiki/papers/deepseek/mHC-流形约束超连接.md",
+            "wiki/papers/methodology/2021-Touvron-ResMLP图像前馈网络.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "K07",
+      "intent": "known_item",
+      "query": "StelLA Stiefel 流形子空间学习 低秩适配",
+      "relevant_count": 2,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/manifold/StelLA-Stiefel子空间低秩适配.md",
+            "wiki/papers/manifold/StelLA- Subspace Learning in Low-rank Adaptation using Stiefel Manifold.md",
+            "wiki/papers/attack-detection/Stiefel流形LoRA黎曼优化.md",
+            "wiki/papers/attack-detection/开题术语体系.md",
+            "wiki/papers/attack-detection/Riemannian Optimization for LoRA on the Stiefel Manifold.md",
+            "wiki/papers/attack-detection/FoRA-Fisher正交秩适配.md",
+            "wiki/papers/deepseek/mHC-流形约束超连接.md",
+            "wiki/papers/pinn/LoRA-Switch动态适配器切换.md",
+            "wiki/papers/pinn/MoDULA通用与领域专用低秩适配.md",
+            "wiki/papers/pinn/MTLoRA共享与任务专用低秩适配.md"
+          ],
+          "hit_ranks": [
+            1,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "id": "K08",
+      "intent": "known_item",
+      "query": "流量基础模型冻结嵌入 各向异性 内在表征评测",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/traffic-foundation-models/2025-Beltiukov-网络基础模型内在评测批评.md",
+            "wiki/papers/traffic-foundation-models/2024-Li-Lens知识引导流量T5基础模型.md",
+            "wiki/papers/traffic-foundation-models/2024-Qian-NetBench流量基准.md",
+            "wiki/papers/traffic-foundation-models/2025-Zhou-TrafficFormer-流量预训练与数据增强.md",
+            "wiki/papers/traffic-foundation-models/2024-Wang-NetMamba-高效流量分类状态空间.md",
+            "wiki/papers/traffic-foundation-models/2026-Zhou-Traffic-MoE稀疏流量基础模型.md",
+            "wiki/papers/traffic-foundation-models/2026-Beltiukov-netFound-协议感知流量基础模型.md",
+            "wiki/papers/traffic-foundation-models/2026-Wang-NetMamba-Plus-多模态与长尾微调.md",
+            "wiki/papers/traffic-foundation-models/2022-Lin-ET-BERT-加密流量预训练.md",
+            "wiki/papers/traffic-foundation-models/2026-Lin-Nethira层次化流量预训练.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "S01",
+      "intent": "topic_survey",
+      "query": "加密流量检测分类与识别研究综述",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md",
+            "wiki/papers/datasets/VisQUIC加密QUIC流量数据集.md",
+            "wiki/papers/pinn/protocol-adaptive/QUIC加密流量被动分类与数据漂移.md",
+            "wiki/papers/rwkv/2025-Zhang-STWGRL时空加权图推理异常检测.md",
+            "wiki/papers/rwkv/2024-Peng-RWKV5-RWKV6-Eagle与Finch.md",
+            "wiki/papers/rwkv/2026-Pang-RWKV-TS+跨批次长程提示.md",
+            "wiki/papers/attack-detection/entity-granularity/2012-Dainotti-流量分类的流对象粒度与开放问题.md",
+            "wiki/papers/datasets/quic/2023-Luxemburk-QUIC细粒度服务分类与周级数据漂移.md",
+            "wiki/papers/pinn/ET-BERT-加密流量报文与突发表征.md",
+            "wiki/papers/datasets/data-protocol/Sweet-Danger-加密流量评测泄漏与公平协议.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "S02",
+      "intent": "topic_survey",
+      "query": "NetFlow 上下文感知深度学习入侵检测综述",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/datasets/2026-ElMahdaouy-上下文感知NetFlow入侵检测综述.md",
+            "wiki/papers/methodology/2021-Lo-EGraphSAGE边特征图神经网络入侵检测.md",
+            "wiki/papers/datasets/data-protocol/XeNIDS-跨网络交叉评估.md",
+            "wiki/papers/methodology/2012-Bilge-DISCLOSURE大规模NetFlow僵尸网络控制服务器检测.md",
+            "wiki/papers/datasets/UGR16-长时网络入侵检测数据集.md",
+            "wiki/papers/datasets/2025-Luay-NetFlow数据集时序分析NF3.md",
+            "wiki/papers/attack-detection/encrypted/Anderson2016-上下文流数据识别加密恶意流量.md",
+            "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md",
+            "wiki/papers/attack-detection/encrypted/2016-BAYWATCH-企业网络稳健信标检测.md",
+            "wiki/papers/datasets/GeNIS-模块化网络入侵检测数据集.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "S03",
+      "intent": "topic_survey",
+      "query": "QUIC 协议安全与隐私攻击面综述",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/datasets/quic/2024-Sengupta-QUIC安全与隐私攻击韧性综述.md",
+            "wiki/papers/pinn/protocol-adaptive/RFC9287-QUIC固定位随机化.md",
+            "wiki/papers/pinn/protocol-adaptive/RFC8999-QUIC版本无关线图像.md",
+            "wiki/papers/pinn/protocol-adaptive/RFC9000-QUIC传输与旋转位边界.md",
+            "wiki/papers/datasets/quic/2022-Chaudhary-QUIC回退TCP与YouTube-QoE因果分析.md",
+            "wiki/papers/pinn/protocol-adaptive/GatedPINN自适应域分解.md",
+            "wiki/papers/datasets/quic/qlog与解密PCAP的观测边界.md",
+            "wiki/papers/datasets/VisQUIC加密QUIC流量数据集.md",
+            "wiki/papers/datasets/quic/QUIC隐蔽信道流量数据集.md",
+            "wiki/papers/pinn/protocol-adaptive/神经混合自动机离散模式恢复.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "M01",
+      "intent": "method_neighbor",
+      "query": "保形预测 风险控制 有限样本覆盖保证",
+      "relevant_count": 7,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 0.5714285714285714,
+          "recall_at_10": 0.7142857142857143,
+          "mrr": 1.0,
+          "ndcg_at_10": 0.7899917627398735,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/methodology/2024-Angelopoulos-保形风险控制.md",
+            "wiki/papers/pinn/network-calculus-boundary/Yu-局部共形物理信息网络.md",
+            "wiki/papers/methodology/2024-Farinhas-非交换保形风险控制.md",
+            "wiki/papers/methodology/2025-Almeida-协变量移位高概率风险控制.md",
+            "wiki/papers/methodology/2019-Tibshirani-协变量移位加权保形.md",
+            "wiki/papers/pinn/network-calculus-boundary/Podina-共形物理信息网络.md",
+            "wiki/papers/methodology/2024-Liu-FOIL时间序列OOD不变学习.md",
+            "wiki/papers/pinn/PINN引文链与恶意流量检测理论映射.md",
+            "wiki/papers/pinn/multiscale-observability-closure/1995-Paxson-Poisson-Failure.md",
+            "wiki/papers/pinn/multiscale-observability-closure/2022-Taghizadeh-Explicit-Closure.md"
+          ],
+          "hit_ranks": [
+            1,
+            2,
+            3,
+            5,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "id": "M02",
+      "intent": "method_neighbor",
+      "query": "测试时适应 无监督异常检测 污染鲁棒 伪正常",
+      "relevant_count": 6,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 0.8333333333333334,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/attack-detection/2023-Gong-SoTTA噪声流鲁棒适应.md",
+            "wiki/papers/attack-detection/2026-Kim-CANDI精选测试时适应.md",
+            "wiki/papers/attack-detection/2026-Huang-RTTAD风险感知测试时适应.md",
+            "wiki/papers/attack-detection/2025-Su-RTTDP现实测试时数据投毒.md",
+            "wiki/papers/attack-detection/2024-Kim-TTA-AD新正常测试时适应.md",
+            "wiki/papers/attack-detection/2026-Park-COMET代码本在线适应异常检测.md",
+            "wiki/papers/attack-detection/2023-Han-OWAD正常性漂移适应.md",
+            "wiki/papers/attack-detection/encrypted/Fu2024-HyperVision未知加密恶意流量检测.md",
+            "wiki/papers/rwkv/2026-Sharma-PLM-NIDS-RWKV协议语言入侵检测.md",
+            "wiki/papers/rwkv/2024-Yang-并行DeltaNet.md"
+          ],
+          "hit_ranks": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "id": "M03",
+      "intent": "method_neighbor",
+      "query": "Delta 规则 线性循环模型 状态更新与并行化",
+      "relevant_count": 5,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 0.8,
+          "recall_at_10": 0.8,
+          "mrr": 1.0,
+          "ndcg_at_10": 0.8687949224876582,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/rwkv/2024-Yang-并行DeltaNet.md",
+            "wiki/papers/rwkv/2025-Peng-RWKV7-Goose.md",
+            "wiki/papers/rwkv/2025-Yang-门控DeltaNet.md",
+            "wiki/papers/rwkv/2021-Schlag-快速权重DeltaNet.md",
+            "wiki/papers/methodology/2025-Li-DyG-Mamba连续状态空间动态图.md",
+            "wiki/papers/rwkv/2025-Li-BlackGoose-Rimer-RWKV7时序建模.md",
+            "wiki/papers/rwkv/2026-Kulatilleke-MambaNetBurst-字节级流量分类.md",
+            "wiki/papers/rwkv/2025-Yang-FRWKV-频域线性注意力长期预测.md",
+            "wiki/papers/attack-detection/2024-Chen-JSSM去趋势状态空间异常检测.md",
+            "wiki/papers/game/Nash-MTL-多任务对称议价训练.md"
+          ],
+          "hit_ranks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": "M04",
+      "intent": "method_neighbor",
+      "query": "词元级低秩专家混合 动态适配器融合",
+      "relevant_count": 8,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 0.5,
+          "recall_at_10": 0.5,
+          "mrr": 1.0,
+          "ndcg_at_10": 0.647939623894138,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/pinn/MixLoRA词元级低秩专家混合.md",
+            "wiki/papers/pinn/MoLE分层低秩专家组合.md",
+            "wiki/papers/pinn/LoRA-Flow词元级动态低秩融合.md",
+            "wiki/papers/pinn/LoRA-Switch动态适配器切换.md",
+            "wiki/papers/pinn/DeepSeekMoE细粒度共享专家架构.md",
+            "wiki/papers/pinn/AdapterFusion非破坏式任务适配器组合.md",
+            "wiki/papers/pinn/MoDULA通用与领域专用低秩适配.md",
+            "wiki/papers/pinn/HyperFormer共享超网络适配器.md",
+            "wiki/papers/pinn/APINN门控软域分解.md",
+            "wiki/papers/attack-detection/2026-Garcia-Slips主机时间窗证据聚合.md"
+          ],
+          "hit_ranks": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "id": "M05",
+      "intent": "method_neighbor",
+      "query": "网络演算 随机服务曲线 带宽估计",
+      "relevant_count": 5,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/pinn/network-calculus-boundary/Luebben-随机服务带宽估计基础.md",
+            "wiki/papers/pinn/network-calculus-boundary/Luebben-随机服务统计带宽估计.md",
+            "wiki/papers/pinn/network-calculus-boundary/Burchard-统计有效服务曲线.md",
+            "wiki/papers/pinn/multiscale-observability-closure/2008-Liebeherr-Bandwidth-Estimation.md",
+            "wiki/papers/pinn/network-calculus-boundary/Liebeherr-系统论带宽估计.md",
+            "wiki/papers/pinn/LeBoudec-Thiran-网络演算队列边界.md",
+            "wiki/papers/pinn/network-calculus-boundary/Jiang-分组化对网络演算影响.md",
+            "wiki/papers/pinn/Zhang-网络演算增强时延预测.md",
+            "wiki/papers/pinn/network-calculus-boundary/Jacobs-网络演算异常检测特征.md",
+            "wiki/papers/pinn/Helm-网络演算辅助时延预测.md"
+          ],
+          "hit_ranks": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      }
+    },
+    {
+      "id": "M06",
+      "intent": "method_neighbor",
+      "query": "恶意软件分类 概念漂移 共形评价器 拒识",
+      "relevant_count": 2,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md",
+            "wiki/papers/attack-detection/2017-Jordaney-TRANSCEND漂移检测与共形评价.md",
+            "wiki/papers/attack-detection/2019-Pendlebury-TESSERACT时空实验偏置与AUT.md",
+            "wiki/papers/attack-detection/2021-Yang-CADE漂移样本检测与解释.md",
+            "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md",
+            "wiki/papers/datasets/2024-Hynek-CESNET-TLS-Year22跨年度TLS流量数据集.md",
+            "wiki/papers/attack-detection/2023-Malekghaini-加密流量分类数据漂移实证.md",
+            "wiki/papers/datasets/GeNIS-JavaScript恶意软件论文仅引用核验.md",
+            "wiki/papers/rwkv/2021-Schlag-快速权重DeltaNet.md",
+            "wiki/papers/attack-detection/2021-Andresini-INSOMNIA网络入侵检测漂移鲁棒.md"
+          ],
+          "hit_ranks": [
+            1,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "id": "M07",
+      "intent": "method_neighbor",
+      "query": "QUIC 网站指纹识别攻击与防御评估",
+      "relevant_count": 3,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/datasets/quic/2021-Smith-QUIC时代的网站指纹识别.md",
+            "wiki/papers/datasets/quic/2021-Zhan-早期QUIC流量的网站指纹识别.md",
+            "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md",
+            "wiki/papers/datasets/quic/2024-Sengupta-QUIC安全与隐私攻击韧性综述.md",
+            "wiki/papers/datasets/quic/2022-Wang-CoMPS连接迁移流量拆分隐私防御.md",
+            "wiki/papers/datasets/quic/2025-Kadi-QUIC时代入侵检测机器学习适配.md",
+            "wiki/papers/rwkv/2024-Debenedetti-AgentDojo-智能体提示注入评估.md",
+            "wiki/papers/datasets/quic/2022-Chatzoglou-QUIC攻击再审视与服务器实测.md",
+            "wiki/papers/attack-detection/朱焱雷-加密流量博弈对抗与高效训练.md",
+            "wiki/papers/datasets/quic/2025-Luxemburk-QUIC域名识别预训练的通用嵌入函数.md"
+          ],
+          "hit_ranks": [
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "M08",
+      "intent": "method_neighbor",
+      "query": "表格数据深度学习与梯度提升树的统一基准比较",
+      "relevant_count": 3,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/methodology/2021-Gorishniy-表格数据深度学习模型再审视.md",
+            "wiki/papers/methodology/2022-ShwartzZiv-表格数据深度学习并非必需.md",
+            "wiki/papers/methodology/2022-Grinsztajn-树模型为何优于表格深度学习.md",
+            "wiki/papers/methodology/2021-Touvron-ResMLP图像前馈网络.md",
+            "wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md",
+            "wiki/papers/attack-detection/朱焱雷-加密流量博弈对抗与高效训练.md",
+            "wiki/papers/traffic-classification-evolution/2019-Rezaei-Liu-加密流量深度学习综述.md",
+            "wiki/papers/pinn/Evo-PINN-物理信息神经网络的进化优化.md",
+            "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md",
+            "wiki/papers/methodology/2016-He-深度残差学习.md"
+          ],
+          "hit_ranks": [
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "id": "M09",
+      "intent": "method_neighbor",
+      "query": "课程学习 自步学习 训练样本难度调度",
+      "relevant_count": 2,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/methodology/2009-Bengio-课程学习.md",
+            "wiki/papers/methodology/2020-Klink-自步深度强化学习.md",
+            "wiki/papers/attack-detection/朱焱雷-加密流量博弈对抗与高效训练.md",
+            "wiki/papers/grpo/GRPO变体群-方法选型.md",
+            "wiki/papers/attack-detection/开题术语体系.md",
+            "wiki/papers/attack-detection/课程式VSR-PINN-双曲PDE.md",
+            "wiki/papers/rwkv/2024-Dong-Decision-RWKV离线序列决策.md",
+            "wiki/papers/pinn/PINN引文链与恶意流量检测理论映射.md",
+            "wiki/papers/llm/GRPO-RCS-意图检测泛化.md",
+            "wiki/papers/attack-detection/课程式PINN-空间相关.md"
+          ],
+          "hit_ranks": [
+            1,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "id": "M10",
+      "intent": "method_neighbor",
+      "query": "选择性预测 拒识选项 风险覆盖率权衡",
+      "relevant_count": 2,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 0.5,
+          "recall_at_10": 0.5,
+          "mrr": 1.0,
+          "ndcg_at_10": 0.6131471927654584,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/methodology/Geifman2019-SelectiveNet选择性预测.md",
+            "wiki/papers/datasets/published-baseline/GeNIS-多头注意力残差密集网络动态采样.md",
+            "wiki/papers/attack-detection/2017-Jordaney-TRANSCEND漂移检测与共形评价.md",
+            "wiki/papers/methodology/2025-Ebihara-FIRMBOUND有限时域最优停止.md",
+            "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md",
+            "wiki/papers/methodology/2024-Angelopoulos-保形风险控制.md",
+            "wiki/papers/pinn/network-calculus-boundary/Stankeviciute-共形时间序列预测.md",
+            "wiki/papers/attack-detection/2024-Chen-JSSM去趋势状态空间异常检测.md",
+            "wiki/papers/methodology/2021-Zhai-DORO异常值鲁棒分布优化.md",
+            "wiki/papers/methodology/2021-Krueger-REx风险外推.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "C01",
+      "intent": "citation_check",
+      "query": "把时间一致划分搬到网络入侵检测后 不更新的深度模型 F1 几乎为零",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/attack-detection/2021-Andresini-INSOMNIA网络入侵检测漂移鲁棒.md",
+            "wiki/papers/datasets/data-protocol/2022-Arp-安全机器学习十大陷阱.md",
+            "wiki/papers/datasets/GeNIS-模块化网络入侵检测数据集.md",
+            "wiki/papers/attack-detection/2025-Gupta-NetGuard漂移与不均衡NIDS主动适应.md",
+            "wiki/papers/datasets/published-baseline/GeNIS-跨网络迁移评估.md",
+            "wiki/papers/datasets/data-protocol/XeNIDS-跨网络交叉评估.md",
+            "wiki/papers/datasets/WEB-IDS23网络入侵检测数据集.md",
+            "wiki/papers/rwkv/2026-Sharma-PLM-NIDS-RWKV协议语言入侵检测.md",
+            "wiki/papers/datasets/UGR16-长时网络入侵检测数据集.md",
+            "wiki/papers/datasets/HIKARI-2021机器学习分类评估.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "C02",
+      "intent": "citation_check",
+      "query": "十秒窗口包频率箱线图基线胜过 Kitsune 自编码器集成",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/datasets/data-protocol/2022-Arp-安全机器学习十大陷阱.md",
+            "wiki/papers/attack-detection/2021-Andresini-INSOMNIA网络入侵检测漂移鲁棒.md",
+            "wiki/papers/traffic-foundation-models/2026-Wang-NetMamba-Plus-多模态与长尾微调.md",
+            "wiki/papers/attack-detection/encrypted/Zhou2025-ETGuard增量加密恶意流量检测.md",
+            "wiki/papers/datasets/published-baseline/2025-Burgetova-加密流量网络应用识别对比.md",
+            "wiki/papers/attack-detection/FoRA- Fisher-orthogonal Rank Adaptation for Parameter-Efficient Fine-Tuning.md",
+            "wiki/papers/attack-detection/FoRA-Fisher正交秩适配.md",
+            "wiki/papers/attack-detection/encrypted/2019-Kanzig-LockedShields-C2信道机器学习检测.md",
+            "wiki/papers/pinn/YaTC-多层流量表征.md",
+            "wiki/papers/grpo/Group-Relative REINFORCE Is Secretly an Off-Policy Algorithm- Demystifying Some Myths About GRPO and Its Friends.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "C03",
+      "intent": "citation_check",
+      "query": "骨干网全年 TLS 数据集 每周训练测试后八周 准确率从 96.3% 降到 90.5%",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/datasets/2024-Hynek-CESNET-TLS-Year22跨年度TLS流量数据集.md",
+            "wiki/papers/methodology/2018-Shen-SWEM简单词嵌入池化基线.md",
+            "wiki/papers/datasets/2026-ElMahdaouy-上下文感知NetFlow入侵检测综述.md",
+            "wiki/papers/datasets/VisQUIC加密QUIC流量数据集.md",
+            "wiki/papers/attack-detection/2023-Malekghaini-加密流量分类数据漂移实证.md",
+            "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md",
+            "wiki/papers/attack-detection/encrypted/2025-Gupta-C2信标检测时序分析.md",
+            "wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md",
+            "wiki/papers/rwkv/2024-He-PointRWKV点云序列化.md",
+            "wiki/papers/attack-detection/2026-El-Hajj-多尺度主机行为与LOEO嵌套选择.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "id": "C04",
+      "intent": "citation_check",
+      "query": "在第一周标定的 5% 误报率阈值搬到第二周实际变成 6.5%",
+      "relevant_count": 1,
+      "modes": {
+        "lexical": {
+          "recall_at_5": 1.0,
+          "recall_at_10": 1.0,
+          "mrr": 1.0,
+          "ndcg_at_10": 1.0,
+          "first_hit_rank": 1,
+          "top_paths": [
+            "wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md",
+            "wiki/papers/datasets/2025-Kern-StealthCup规避导向IDS基准CTF.md",
+            "wiki/papers/attack-detection/encrypted/2016-BAYWATCH-企业网络稳健信标检测.md",
+            "wiki/papers/datasets/quic/2025-Kadi-QUIC时代入侵检测机器学习适配.md",
+            "wiki/papers/datasets/quic/2025-Luxemburk-QUIC域名识别预训练的通用嵌入函数.md",
+            "wiki/papers/methodology/soc-alert-operations/2021-Ho-Hopper横向移动路径检测与告警预算.md",
+            "wiki/papers/methodology/2017-Achiam-约束策略优化.md",
+            "wiki/papers/datasets/2026-ElMahdaouy-上下文感知NetFlow入侵检测综述.md",
+            "wiki/papers/attack-detection/encrypted/2023-Zhang-大规模校园网聚合信标检测.md",
+            "wiki/papers/rwkv/2025-Rizki-MP-RWKV并行多路径长期负荷预测.md"
+          ],
+          "hit_ranks": [
+            1
+          ]
+        }
+      }
+    }
+  ]
+}

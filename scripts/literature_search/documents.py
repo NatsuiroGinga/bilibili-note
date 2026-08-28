@@ -22,6 +22,20 @@ ARXIV_RE = re.compile(
     re.IGNORECASE,
 )
 
+# MOC 导航页判定：文件名字面量为 INDEX.md。
+# 依据：2026-08-28 检索精度评测（.Codex/docs/RWKV/2026-08-28-文献检索精度评测与改进方案.md）
+# 实测这批页面在语料中占 15/525=2.9%，却占据 40% 的查询第 1 名命中，超额表征约 14 倍——
+# 因为其正文是论文标题清单，几乎匹配所有主题查询的字符三元组，并借标题字段的 BM25 权重占位。
+# 用 Path.name（而非从相对路径字符串裁剪）判定，避免与其他代理踩过的“裸文件名做字典键”
+# 陷阱同类的路径拼装错误；此处只是逐文件布尔判定，不涉及按文件名建字典，因此该陷阱不适用，
+# 但仍统一用 Path.name 以保持判定方式单一、可读。
+NAVIGATION_PAGE_FILENAME = "INDEX.md"
+
+# frontmatter 中并入可检索正文的字段，按对检索有用的顺序排列。
+# 依据：同一份评测报告实测 tags 覆盖率 100.0%、key_finding 覆盖率 96.6%，
+# 且 parse_frontmatter 当前把整段 frontmatter（含这些字段）剥离后丢弃，全库 0 命中。
+METADATA_FIELDS = ("tags", "key_finding", "venue", "authors", "year", "aliases")
+
 
 def _strip_scalar(value: str) -> str:
     value = value.strip().strip('"\'')
@@ -39,6 +53,73 @@ def parse_frontmatter(text: str) -> Tuple[Dict[str, str], str]:
         if item and item.group(2).strip():
             fields[item.group(1)] = _strip_scalar(item.group(2))
     return fields, text[match.end() :]
+
+
+def is_navigation_page(path: Path) -> bool:
+    """判定笔记文件是否为 MOC 导航页（文件名字面量为 INDEX.md）。
+
+    用 `Path.name` 取文件名，不依赖相对路径字符串裁剪，见模块顶部常量注释。
+    """
+    return path.name == NAVIGATION_PAGE_FILENAME
+
+
+def parse_metadata_fields(text: str) -> Dict[str, object]:
+    """解析 frontmatter 中的元数据字段，支持单行标量、缩进列表与内联数组三种写法。
+
+    与 parse_frontmatter 相互独立：parse_frontmatter 的返回契约（Dict[str, str] 简单标量、
+    以及剥离 frontmatter 后的正文）保持不变，供其余调用方（如 doi/arxiv 识别、标题回退）
+    继续使用；本函数只服务于“把 tags/key_finding 等字段并入可检索正文”这一新用途，
+    返回值可以是 list，因此不能复用同一份解析结果。
+    """
+    match = FRONTMATTER_RE.match(text)
+    if not match:
+        return {}
+    fields: Dict[str, object] = {}
+    current_key: Optional[str] = None
+    for line in match.group(1).splitlines():
+        list_item = re.match(r"^\s+-\s+(.*)$", line)
+        if list_item and current_key is not None:
+            value = list_item.group(1).strip().strip("\"'")
+            bucket = fields.setdefault(current_key, [])
+            if isinstance(bucket, list):
+                bucket.append(value)
+            continue
+        scalar = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
+        if scalar:
+            key, raw_value = scalar.group(1), scalar.group(2).strip()
+            if not raw_value:
+                fields[key] = []
+                current_key = key
+                continue
+            if raw_value.startswith("[") and raw_value.endswith("]"):
+                fields[key] = [
+                    piece.strip().strip("\"'")
+                    for piece in raw_value[1:-1].split(",")
+                    if piece.strip()
+                ]
+            else:
+                fields[key] = raw_value.strip("\"'")
+            current_key = None
+    return fields
+
+
+def render_metadata_section(fields: Dict[str, object]) -> str:
+    """把 METADATA_FIELDS 涉及的 frontmatter 字段渲染成一个可检索的正文小节。"""
+    lines: List[str] = []
+    for key in METADATA_FIELDS:
+        value = fields.get(key)
+        if not value:
+            continue
+        if isinstance(value, list):
+            rendered = "、".join(str(item) for item in value if str(item).strip())
+        else:
+            rendered = str(value)
+        if not rendered.strip():
+            continue
+        lines.append(f"{key}：{rendered}")
+    if not lines:
+        return ""
+    return "## 条目元数据\n\n" + "\n".join(lines) + "\n\n"
 
 
 def extract_source_pdf(fields: Dict[str, str]) -> Optional[str]:
@@ -75,6 +156,9 @@ def load_notes(repo_root: Path, pattern: str) -> List[NoteDocument]:
     for path in sorted(repo_root.glob(pattern)):
         if not path.is_file():
             continue
+        if is_navigation_page(path):
+            # 排除 MOC 导航页，见 NAVIGATION_PAGE_FILENAME 处的实测依据。
+            continue
         raw = path.read_bytes()
         text = raw.decode("utf-8", errors="replace")
         fields, body = parse_frontmatter(text)
@@ -83,6 +167,10 @@ def load_notes(repo_root: Path, pattern: str) -> List[NoteDocument]:
             heading = HEADING_RE.search(body)
             title = heading.group(2).strip() if heading else path.stem
         doi, arxiv_id = _extract_identifier(fields, body)
+        # 把 tags / key_finding 等人工标注渲染成正文小节，走既有分块通路使其可检索；
+        # parse_frontmatter 的返回契约保持不变，见 parse_metadata_fields 的说明。
+        metadata_section = render_metadata_section(parse_metadata_fields(text))
+        body = (metadata_section + body.strip()).strip()
         notes.append(
             NoteDocument(
                 path=path,
@@ -91,7 +179,7 @@ def load_notes(repo_root: Path, pattern: str) -> List[NoteDocument]:
                 source_pdf=extract_source_pdf(fields),
                 doi=doi,
                 arxiv_id=arxiv_id,
-                body=body.strip(),
+                body=body,
                 source_hash=hashlib.sha256(raw).hexdigest(),
             )
         )
