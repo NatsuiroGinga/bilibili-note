@@ -33,6 +33,26 @@
 - 远程动作前从所属路线总控读取当前服务器与凭据键的规范来源，不在长期规则中写死服务器或变量；切换、重启或回收后先只读核验身份、根目录、磁盘、依赖和持久化制品。
 - 不得沿用旧进程、运行目录、模型、数据或工具链假设，也不得把预期关机或服务器回收计作科学失败。
 
+## 实验环境索引（强制，2026-08-28 实测）
+
+**新会话按用途选环境，不要试探，也不要新建第四个环境。** 三个环境各有唯一职责：
+
+| 用途 | 入口 | 实测配置 |
+| --- | --- | --- |
+| **本机需要 PyTorch 的一切**（训练、评价、张量诊断、MPS 实验） | `/opt/miniconda3/envs/rwkv/bin/python` | Python `3.14.5`、torch `2.12.0`、numpy `2.4.6`、`mps.is_available()=True` |
+| **本机文献混合检索** | 从仓库根 `uv run --project scripts/literature_search --locked python -m scripts.literature_search ...` | uv 项目，含 `pyproject.toml` 与 `uv.lock`；向量模型 `intfloat/multilingual-e5-small` |
+| **服务器实验** | `source tools/env/activate.sh` 后 `uv run --no-sync python ...`（工作目录 `llm_probe`） | 服务器 `.venv`：torch `2.13.0+cu130`，CUDA `13.0`，RTX 5090 算力 `(12,0)` |
+
+- **本机项目 `.venv`（`thesis/experiments/llm_probe/.venv`）缺 PyTorch**（Python `3.10.20`、
+  numpy `2.2.6`、无 torch），**不得用于本机训练、评价或任何张量计算**；它只服务服务器侧
+  `uv run --no-sync`。本机需要 torch 时一律走 miniconda `rwkv`。
+- 依赖管理统一用 uv 项目方式（`uv sync`／`uv add`／`uv lock`），**不用 `uv pip install -r requirements.txt`**
+  ——后者无锁文件、不可复现，仅保留作兼容入口。
+- 两端必须执行同一份 Python 工具、模型公式、数据接口、指标与检查点模式；只允许运行配置、
+  设备精度、批量、计算预算与运行身份不同。MPS 权重不得续训或冒充正式 CUDA 权重。
+- 新增环境前先证明上述三者都不适用，并同步更新本表；发现表中配置与实测不符时，
+  以实测为准并当轮修正本表。
+
 ## 研究证据纪律（强制）
 
 - 不得盲从用户提出的比例、模型、指标门槛、技术路线或实现方式。先把建议视为待验证假设，核对数据特性、全文文献、既有实验和资源约束，再明确给出采纳、修正或否决理由；禁止为了即时迎合而在没有新证据时反复改变方案。用户在获知证据、风险和替代方案后作出的最终决定仍应执行，但不得据此突破学术诚信、数据泄漏和结果真实性边界。
