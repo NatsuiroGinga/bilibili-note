@@ -758,8 +758,15 @@ def maybe_compile(model: Any, config: dict[str, Any], torch_module: Any) -> Any:
         f"当前 PyTorch {torch_module.__version__} 无 torch.compile",
         EXIT_RUNTIME,
     )
-    log(f"启用 torch.compile：mode={mode}（数值路径与非编译运行不同，四格须一致）")
-    return torch_module.compile(model, mode=mode)
+    compiled = torch_module.compile(model, mode=mode)
+    # torch.compile 返回的 OptimizedModule 会给 state_dict 的每个键加 "_orig_mod." 前缀，
+    # 使检查点键与非编译运行、以及零门核验用的裸模型不匹配。把 state_dict/load_state_dict
+    # 委派回原模块，保证「编译只改执行路径，不改状态字典布局」——检查点因此在编译与
+    # 非编译运行之间保持同一套键，续训与零门核验都不受影响。
+    compiled.state_dict = model.state_dict
+    compiled.load_state_dict = model.load_state_dict
+    LOGGER.info("启用 torch.compile：mode=%s（数值路径与非编译运行不同，四格须一致）", mode)
+    return compiled
 
 
 def forward_bare(model: Any, numeric: Any, categorical: Any, valid: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any) -> Any:
@@ -1781,9 +1788,10 @@ def restore_mechanism_state(
         xi_state.load_state_dict(mechanism["cvar_threshold"])
         require(mechanism.get("numpy_rng_state") is not None, "z2 检查点缺采样 RNG 状态", EXIT_INPUT)
         numpy_rng.bit_generator.state = mechanism["numpy_rng_state"]
-    log(
-        f"机制状态已恢复：z1={entity_memory_enabled} z2={entity_ranking_enabled}"
-        f" 调度器游标={'已还原' if mechanism.get('train_scheduler') is not None else '无'}"
+    LOGGER.info(
+        "机制状态已恢复：z1=%s z2=%s 调度器游标=%s",
+        entity_memory_enabled, entity_ranking_enabled,
+        "已还原" if mechanism.get("train_scheduler") is not None else "无",
     )
 
 
