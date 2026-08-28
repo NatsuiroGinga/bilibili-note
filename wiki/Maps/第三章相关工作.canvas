@@ -1,0 +1,345 @@
+{
+ "nodes": [
+  {
+   "id": "group-ft",
+   "type": "group",
+   "x": 0,
+   "y": 0,
+   "width": 2240,
+   "height": 230,
+   "label": "FT-Transformer 与表格深度学习论战（3 篇）"
+  },
+  {
+   "id": "file-ft-0",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Gorishniy-表格数据深度学习模型再审视.md",
+   "x": 40,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-ft-1",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-Grinsztajn-树模型为何优于表格深度学习.md",
+   "x": 404,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-ft-2",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-ShwartzZiv-表格数据深度学习并非必需.md",
+   "x": 768,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-entity",
+   "type": "group",
+   "x": 2440,
+   "y": 0,
+   "width": 2240,
+   "height": 340,
+   "label": "判定粒度与实体历史序列编码（7 篇）"
+  },
+  {
+   "id": "file-entity-0",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2012-Dainotti-流量分类的流对象粒度与开放问题.md",
+   "x": 2480,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-entity-1",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2022-Clausen-流量微结构与网络异常检测博士论文.md",
+   "x": 2844,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-entity-2",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2022-Lin-ET-BERT-加密流量预训练.md",
+   "x": 3208,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-entity-3",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2023-Garcia-网络安全数据集标注流程与流到IP的判定转换.md",
+   "x": 3572,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-entity-4",
+   "type": "file",
+   "file": "wiki/papers/rwkv/RWKV-面向Transformer时代的循环语言模型.md",
+   "x": 3936,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-entity-5",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2024-Li-端到端对比学习入侵检测的IP对粒度.md",
+   "x": 4300,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-entity-6",
+   "type": "file",
+   "file": "wiki/papers/pinn/NetMamba-高效流量序列表征.md",
+   "x": 2480,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-mil_rank",
+   "type": "group",
+   "x": 4880,
+   "y": 0,
+   "width": 2240,
+   "height": 340,
+   "label": "多示例学习与部分AUC／排序优化（8 篇）"
+  },
+  {
+   "id": "file-mil_rank-0",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Pevny-树结构多示例判别模型.md",
+   "x": 4920,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-mil_rank-1",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Pevny-神经网络形式化求解多示例问题.md",
+   "x": 5284,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-mil_rank-2",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2017-Prasse-加密流量LSTM恶意软件检测-ECML.md",
+   "x": 5648,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-mil_rank-3",
+   "type": "file",
+   "file": "wiki/papers/methodology/2018-Ilse-基于注意力的深度多示例学习.md",
+   "x": 6012,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-mil_rank-4",
+   "type": "file",
+   "file": "wiki/papers/methodology/ranking/2021-Qi-SOAP直接优化AUPRC.md",
+   "x": 6376,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-mil_rank-5",
+   "type": "file",
+   "file": "wiki/papers/methodology/ranking/2022-Wang-FCCO与SOX.md",
+   "x": 6740,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-mil_rank-6",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2023-Zhu-MIDAM随机池化.md",
+   "x": 4920,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-mil_rank-7",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2024-Li-大小不变多对象损失.md",
+   "x": 5284,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-lspr",
+   "type": "group",
+   "x": 7320,
+   "y": 0,
+   "width": 2240,
+   "height": 230,
+   "label": "LSPR 数据集族已发表方法（5 篇）"
+  },
+  {
+   "id": "file-lspr-0",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/Dijk-2024-LSPR23数据集与随机森林复现.md",
+   "x": 7360,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-lspr-1",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24-Locked-Shields实兵演习数据集.md",
+   "x": 7724,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-lspr-2",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/Leoste-2025-LSPR23到LSPR24跨年泛化.md",
+   "x": 8088,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-lspr-3",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/DiGennaro-2026-LSPR23仅引用-KRONOS-SDN实验.md",
+   "x": 8452,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-lspr-4",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/Dijk-2026-LSPR23到LSPR25序列构造跨年评估.md",
+   "x": 8816,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  }
+ ],
+ "edges": [
+  {
+   "id": "edge-0",
+   "fromNode": "file-ft-1",
+   "toNode": "file-ft-2",
+   "label": "related"
+  },
+  {
+   "id": "edge-1",
+   "fromNode": "file-entity-0",
+   "toNode": "file-entity-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-2",
+   "fromNode": "file-entity-1",
+   "toNode": "file-entity-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-3",
+   "fromNode": "file-entity-3",
+   "toNode": "file-entity-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-4",
+   "fromNode": "file-entity-3",
+   "toNode": "file-entity-0",
+   "label": "related"
+  },
+  {
+   "id": "edge-5",
+   "fromNode": "file-mil_rank-0",
+   "toNode": "file-mil_rank-1",
+   "label": "related"
+  },
+  {
+   "id": "edge-6",
+   "fromNode": "file-mil_rank-0",
+   "toNode": "file-mil_rank-3",
+   "label": "related"
+  },
+  {
+   "id": "edge-7",
+   "fromNode": "file-mil_rank-1",
+   "toNode": "file-mil_rank-3",
+   "label": "related"
+  },
+  {
+   "id": "edge-8",
+   "fromNode": "file-lspr-0",
+   "toNode": "file-lspr-2",
+   "label": "related"
+  },
+  {
+   "id": "edge-9",
+   "fromNode": "file-lspr-0",
+   "toNode": "file-lspr-4",
+   "label": "related"
+  },
+  {
+   "id": "edge-10",
+   "fromNode": "file-lspr-2",
+   "toNode": "file-lspr-1",
+   "label": "related"
+  },
+  {
+   "id": "edge-11",
+   "fromNode": "file-lspr-3",
+   "toNode": "file-lspr-0",
+   "label": "related"
+  },
+  {
+   "id": "edge-12",
+   "fromNode": "file-lspr-4",
+   "toNode": "file-lspr-2",
+   "label": "related"
+  },
+  {
+   "id": "edge-13",
+   "fromNode": "file-lspr-4",
+   "toNode": "file-lspr-1",
+   "label": "related"
+  },
+  {
+   "id": "edge-extra-14",
+   "fromNode": "file-mil_rank-4",
+   "toNode": "file-mil_rank-5",
+   "label": "同作者框架推广：FCCO 第2页明确把 AP 列为其应用实例"
+  },
+  {
+   "id": "edge-extra-15",
+   "fromNode": "file-mil_rank-5",
+   "toNode": "file-mil_rank-6",
+   "label": "同作者框架实例化：MIDAM 是 FCCO 框架在多示例池化上的实例"
+  }
+ ]
+}

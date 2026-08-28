@@ -1,0 +1,5181 @@
+{
+ "nodes": [
+  {
+   "id": "group-cluster1",
+   "type": "group",
+   "x": 0,
+   "y": 0,
+   "width": 2240,
+   "height": 1330,
+   "label": "加密恶意流量检测与判定粒度（65 篇）"
+  },
+  {
+   "id": "file-cluster1-0",
+   "type": "file",
+   "file": "wiki/papers/traffic-classification-evolution/2005-Karagiannis-BLINC黑箱多层流量分类.md",
+   "x": 40,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-1",
+   "type": "file",
+   "file": "wiki/papers/traffic-classification-evolution/2005-Moore-Zuev-朴素贝叶斯流量分类.md",
+   "x": 404,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-2",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/TCP-AQM流体模型分岔混沌控制.md",
+   "x": 768,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-3",
+   "type": "file",
+   "file": "wiki/papers/traffic-classification-evolution/2010-Sommer-Paxson-机器学习入侵检测的四重困难.md",
+   "x": 1132,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-4",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2012-Dainotti-流量分类的流对象粒度与开放问题.md",
+   "x": 1496,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-5",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/2016-BAYWATCH-企业网络稳健信标检测.md",
+   "x": 1860,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-6",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Anderson2016-上下文流数据识别加密恶意流量.md",
+   "x": 40,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-7",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2017-Jordaney-TRANSCEND漂移检测与共形评价.md",
+   "x": 404,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-8",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2019-Pendlebury-TESSERACT时空实验偏置与AUT.md",
+   "x": 768,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-9",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/2019-Kanzig-LockedShields-C2信道机器学习检测.md",
+   "x": 1132,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-10",
+   "type": "file",
+   "file": "wiki/papers/traffic-classification-evolution/2019-Rezaei-Liu-加密流量深度学习综述.md",
+   "x": 1496,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-11",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Novo2020-加密恶意C2流量检测与代理规避.md",
+   "x": 1860,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-12",
+   "type": "file",
+   "file": "wiki/papers/traffic-classification-evolution/2020-Lotfollahi-DeepPacket原始字节端到端分类.md",
+   "x": 40,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-13",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2021-Andresini-INSOMNIA网络入侵检测漂移鲁棒.md",
+   "x": 404,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-14",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2021-Clausen-CBAM主机上下文异常与实体阈值.md",
+   "x": 768,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-15",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2021-Yang-CADE漂移样本检测与解释.md",
+   "x": 1132,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-16",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md",
+   "x": 1496,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-17",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md",
+   "x": 1860,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-18",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/TCP-AQM二维流体模型.md",
+   "x": 40,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-19",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Xavier2022-Metasploit加密C2规避.md",
+   "x": 404,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-20",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2022-Clausen-流量微结构与网络异常检测博士论文.md",
+   "x": 768,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-21",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2023-Gong-SoTTA噪声流鲁棒适应.md",
+   "x": 1132,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-22",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2023-Han-OWAD正常性漂移适应.md",
+   "x": 1496,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-23",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2023-Lai-ContexTDA上下文异常域适应.md",
+   "x": 1860,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-24",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2023-Layeghy-DI-NIDS跨域入侵检测.md",
+   "x": 40,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-25",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2023-Malekghaini-加密流量分类数据漂移实证.md",
+   "x": 404,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-26",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md",
+   "x": 768,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-27",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/2023-Zhang-大规模校园网聚合信标检测.md",
+   "x": 1132,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-28",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Cui2023-CBSeq未知加密恶意流量检测.md",
+   "x": 1496,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-29",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Lichy2023-RF与深度模型加密恶意流量比较.md",
+   "x": 1860,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-30",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Wang2023-加密恶意流量特征挖掘.md",
+   "x": 40,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-31",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2023-Garcia-网络安全数据集标注流程与流到IP的判定转换.md",
+   "x": 404,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-32",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2024-Chen-JSSM去趋势状态空间异常检测.md",
+   "x": 768,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-33",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2024-Daum-ECHO非均匀分箱与早期分类.md",
+   "x": 1132,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-34",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2024-Kim-TTA-AD新正常测试时适应.md",
+   "x": 1496,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-35",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/INVARLLM-物理不变量提取.md",
+   "x": 1860,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-36",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/PI-RF-电力网入侵检测.md",
+   "x": 40,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-37",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Fu2024-HyperVision未知加密恶意流量检测.md",
+   "x": 404,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-38",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/entity-granularity/2024-Li-端到端对比学习入侵检测的IP对粒度.md",
+   "x": 768,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-39",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/课程式对抗训练-在线视角.md",
+   "x": 1132,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-40",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2025-Gupta-NetGuard漂移与不均衡NIDS主动适应.md",
+   "x": 1496,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-41",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2025-Su-RTTDP现实测试时数据投毒.md",
+   "x": 1860,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-42",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2025-Wang-LMIM长短周期用户异常检测.md",
+   "x": 40,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-43",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/GRPO-漏洞检测推理.md",
+   "x": 404,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-44",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/PIGCRN-化工过程攻击检测.md",
+   "x": 768,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-45",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/PPINN-FDIA-工业IoT.md",
+   "x": 1132,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-46",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/SecLoop-SA-GRPO零触网络安全.md",
+   "x": 1496,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-47",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Stiefel流形LoRA黎曼优化.md",
+   "x": 1860,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-48",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/2025-Gupta-C2信标检测时序分析.md",
+   "x": 40,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-49",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/encrypted/Zhou2025-ETGuard增量加密恶意流量检测.md",
+   "x": 404,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-50",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2026-El-Hajj-多尺度主机行为与LOEO嵌套选择.md",
+   "x": 768,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-51",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2026-Garcia-Slips主机时间窗证据聚合.md",
+   "x": 1132,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-52",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2026-Haiba-SIM实体分组窗与目标缓冲区阈值.md",
+   "x": 1496,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-53",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2026-Huang-RTTAD风险感知测试时适应.md",
+   "x": 1860,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-54",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2026-Inan-邻近异常检测校准与泄漏安全.md",
+   "x": 40,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-55",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2026-Kim-CANDI精选测试时适应.md",
+   "x": 404,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-56",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2026-Park-COMET代码本在线适应异常检测.md",
+   "x": 768,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-57",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/FoRA-Fisher正交秩适配.md",
+   "x": 1132,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-58",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/LLM-智能电网继电器攻击检测.md",
+   "x": 1496,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-59",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Minerva-CTI可验证奖励.md",
+   "x": 1860,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-60",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/数字孪生约束LLM-CPS异常检测.md",
+   "x": 40,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-61",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/朱焱雷-加密流量博弈对抗与高效训练.md",
+   "x": 404,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-62",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/课程式PINN-空间相关.md",
+   "x": 768,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-63",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/课程式PINN-高斯混合.md",
+   "x": 1132,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster1-64",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/课程式VSR-PINN-双曲PDE.md",
+   "x": 1496,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-cluster2",
+   "type": "group",
+   "x": 2440,
+   "y": 0,
+   "width": 2240,
+   "height": 1220,
+   "label": "协议流量数据集与评测协议（59 篇）"
+  },
+  {
+   "id": "file-cluster2-0",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/开放集入侵识别-未知攻击协议.md",
+   "x": 2480,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-1",
+   "type": "file",
+   "file": "wiki/papers/datasets/UGR16-长时网络入侵检测数据集.md",
+   "x": 2844,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-2",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/EPIQ-QUIC实现多样性qlog数据集.md",
+   "x": 3208,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-3",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/QUIC互操作运行器与公开qlog归档.md",
+   "x": 3572,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-4",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/qlog与解密PCAP的观测边界.md",
+   "x": 3936,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-5",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/FlowPic-会话先切分的流量图表征.md",
+   "x": 4300,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-6",
+   "type": "file",
+   "file": "wiki/papers/datasets/locked-shields-related/2021-SchroederdeWitt-AI-NIDS博弈不动点与规避攻击.md",
+   "x": 2480,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-7",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2021-Smith-QUIC时代的网站指纹识别.md",
+   "x": 2844,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-8",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2021-Zhan-早期QUIC流量的网站指纹识别.md",
+   "x": 3208,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-9",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/QUIC-MedNetCom蜂窝网络qlog数据集.md",
+   "x": 3572,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-10",
+   "type": "file",
+   "file": "wiki/papers/datasets/HIKARI-2021机器学习分类评估.md",
+   "x": 3936,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-11",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/2022-Arp-安全机器学习十大陷阱.md",
+   "x": 4300,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-12",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/2022-Jacobs-AIML网络安全评价陷阱.md",
+   "x": 2480,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-13",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/XeNIDS-跨网络交叉评估.md",
+   "x": 2844,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-14",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2022-AlBakhat-QUIC流量入侵检测机器学习方法.md",
+   "x": 3208,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-15",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2022-Chatzoglou-QUIC攻击再审视与服务器实测.md",
+   "x": 3572,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-16",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2022-Chaudhary-QUIC回退TCP与YouTube-QoE因果分析.md",
+   "x": 3936,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-17",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2022-Wang-CoMPS连接迁移流量拆分隐私防御.md",
+   "x": 4300,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-18",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/H23Q-HTTP3与QUIC攻击数据集.md",
+   "x": 2480,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-19",
+   "type": "file",
+   "file": "wiki/papers/datasets/locked-shields-related/2023-Gehri-LockedShields跨环境C2检测泛化.md",
+   "x": 2844,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-20",
+   "type": "file",
+   "file": "wiki/papers/datasets/published-baseline/TCBench-同输入mini-FlowPic复现基线.md",
+   "x": 3208,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-21",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2023-Caiazza-HTTP版本能耗对比测量.md",
+   "x": 3572,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-22",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2023-Luxemburk-QUIC细粒度服务分类与周级数据漂移.md",
+   "x": 3936,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-23",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2023-Peng-云控制系统QUIC与TCP性能评估.md",
+   "x": 4300,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-24",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md",
+   "x": 2480,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-25",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/MonroeQL聚合性能数据及公开性边界.md",
+   "x": 2844,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-26",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/QUIC旋转位公开测量数据集.md",
+   "x": 3208,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-27",
+   "type": "file",
+   "file": "wiki/papers/datasets/2024-Hynek-CESNET-TLS-Year22跨年度TLS流量数据集.md",
+   "x": 3572,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-28",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/Dijk-2024-LSPR23数据集与随机森林复现.md",
+   "x": 3936,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-29",
+   "type": "file",
+   "file": "wiki/papers/datasets/ROSPaCe-ROS2时序入侵检测数据集.md",
+   "x": 4300,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-30",
+   "type": "file",
+   "file": "wiki/papers/datasets/VisQUIC加密QUIC流量数据集.md",
+   "x": 2480,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-31",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/Bad-Design-Smells-NIDS数据集设计气味.md",
+   "x": 2844,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-32",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/NIDS跨数据集泛化研究.md",
+   "x": 3208,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-33",
+   "type": "file",
+   "file": "wiki/papers/datasets/published-baseline/2024-Matousek-JA4指纹加密恶意流量检测经验报告.md",
+   "x": 3572,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-34",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2024-Muecke-QUIC即时ACK握手性能测量.md",
+   "x": 3936,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-35",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2024-Sengupta-QUIC安全与隐私攻击韧性综述.md",
+   "x": 4300,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-36",
+   "type": "file",
+   "file": "wiki/papers/datasets/2025-Kern-StealthCup规避导向IDS基准CTF.md",
+   "x": 2480,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-37",
+   "type": "file",
+   "file": "wiki/papers/datasets/2025-Luay-NetFlow数据集时序分析NF3.md",
+   "x": 2844,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-38",
+   "type": "file",
+   "file": "wiki/papers/datasets/GeNIS-JavaScript恶意软件论文仅引用核验.md",
+   "x": 3208,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-39",
+   "type": "file",
+   "file": "wiki/papers/datasets/GeNIS-模块化网络入侵检测数据集.md",
+   "x": 3572,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-40",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24-Locked-Shields实兵演习数据集.md",
+   "x": 3936,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-41",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/Leoste-2025-LSPR23到LSPR24跨年泛化.md",
+   "x": 4300,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-42",
+   "type": "file",
+   "file": "wiki/papers/datasets/UGR16-特征版本与标签质量.md",
+   "x": 2480,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-43",
+   "type": "file",
+   "file": "wiki/papers/datasets/WEB-IDS23网络入侵检测数据集.md",
+   "x": 2844,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-44",
+   "type": "file",
+   "file": "wiki/papers/datasets/data-protocol/Sweet-Danger-加密流量评测泄漏与公平协议.md",
+   "x": 3208,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-45",
+   "type": "file",
+   "file": "wiki/papers/datasets/published-baseline/2025-Burgetova-加密流量网络应用识别对比.md",
+   "x": 3572,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-46",
+   "type": "file",
+   "file": "wiki/papers/datasets/published-baseline/GeNIS-多头注意力残差密集网络动态采样.md",
+   "x": 3936,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-47",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2025-Kadi-QUIC时代入侵检测机器学习适配.md",
+   "x": 4300,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-48",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2025-Luxemburk-QUIC域名识别预训练的通用嵌入函数.md",
+   "x": 2480,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-49",
+   "type": "file",
+   "file": "wiki/papers/datasets/2026-ElMahdaouy-上下文感知NetFlow入侵检测综述.md",
+   "x": 2844,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-50",
+   "type": "file",
+   "file": "wiki/papers/datasets/GeNIS-网络靶场综述引用核验.md",
+   "x": 3208,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-51",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/DiGennaro-2026-LSPR23仅引用-KRONOS-SDN实验.md",
+   "x": 3572,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-52",
+   "type": "file",
+   "file": "wiki/papers/datasets/LSPR24/Dijk-2026-LSPR23到LSPR25序列构造跨年评估.md",
+   "x": 3936,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-53",
+   "type": "file",
+   "file": "wiki/papers/datasets/published-baseline/GeNIS-XGBoost机器遗忘.md",
+   "x": 4300,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-54",
+   "type": "file",
+   "file": "wiki/papers/datasets/published-baseline/GeNIS-二分类与多分类发布基线.md",
+   "x": 2480,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-55",
+   "type": "file",
+   "file": "wiki/papers/datasets/published-baseline/GeNIS-跨网络迁移评估.md",
+   "x": 2844,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-56",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2026-Alshaali-QUIC二进制与系统集成安全分析.md",
+   "x": 3208,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-57",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/2026-Lee-QUICstep连接迁移审查规避评估.md",
+   "x": 3572,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster2-58",
+   "type": "file",
+   "file": "wiki/papers/datasets/quic/QUIC隐蔽信道流量数据集.md",
+   "x": 3936,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-cluster3",
+   "type": "group",
+   "x": 4880,
+   "y": 0,
+   "width": 2240,
+   "height": 1000,
+   "label": "序列建模架构：RWKV／Mamba 与流量基础模型（45 篇）"
+  },
+  {
+   "id": "file-cluster3-0",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2021-Schlag-快速权重DeltaNet.md",
+   "x": 4920,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-1",
+   "type": "file",
+   "file": "wiki/papers/pinn/ET-BERT-加密流量报文与突发表征.md",
+   "x": 5284,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-2",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2022-Lin-ET-BERT-加密流量预训练.md",
+   "x": 5648,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-3",
+   "type": "file",
+   "file": "wiki/papers/pinn/YaTC-多层流量表征.md",
+   "x": 6012,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-4",
+   "type": "file",
+   "file": "wiki/papers/rwkv/RWKV-面向Transformer时代的循环语言模型.md",
+   "x": 6376,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-5",
+   "type": "file",
+   "file": "wiki/papers/pinn/NetMamba-高效流量序列表征.md",
+   "x": 6740,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-6",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Debenedetti-AgentDojo-智能体提示注入评估.md",
+   "x": 4920,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-7",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Dong-Decision-RWKV离线序列决策.md",
+   "x": 5284,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-8",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Duan-Vision-RWKV视觉双向扫描.md",
+   "x": 5648,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-9",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Goldstein-GoldFinch-RWKV混合与KV缓存压缩.md",
+   "x": 6012,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-10",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Hao-多尺度RWKV与2D-TCN光伏预测.md",
+   "x": 6376,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-11",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-He-PointRWKV点云序列化.md",
+   "x": 6740,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-12",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Hou-RWKV-TS-时间序列.md",
+   "x": 4920,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-13",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Peng-RWKV5-RWKV6-Eagle与Finch.md",
+   "x": 5284,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-14",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2024-Yang-并行DeltaNet.md",
+   "x": 5648,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-15",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2024-Li-Lens知识引导流量T5基础模型.md",
+   "x": 6012,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-16",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2024-Qian-NetBench流量基准.md",
+   "x": 6376,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-17",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2024-Wang-NetMamba-高效流量分类状态空间.md",
+   "x": 6740,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-18",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Chen-QuantumRWKV量子通道混合.md",
+   "x": 4920,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-19",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Goldstein-RADLADS-注意力蒸馏到线性注意力.md",
+   "x": 5284,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-20",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Li-BlackGoose-Rimer-RWKV7时序建模.md",
+   "x": 5648,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-21",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Peng-RWKV7-Goose.md",
+   "x": 6012,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-22",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Rizki-MP-RWKV并行多路径长期负荷预测.md",
+   "x": 6376,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-23",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Yang-FRWKV-频域线性注意力长期预测.md",
+   "x": 6740,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-24",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Yang-门控DeltaNet.md",
+   "x": 4920,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-25",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Zhang-STWGRL时空加权图推理异常检测.md",
+   "x": 5284,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-26",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2025-Zhou-WKV共享随机打乱RWKV全色锐化.md",
+   "x": 5648,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-27",
+   "type": "file",
+   "file": "wiki/papers/rwkv/RWKV-X-线性复杂度混合语言模型.md",
+   "x": 6012,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-28",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2025-Beltiukov-网络基础模型内在评测批评.md",
+   "x": 6376,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-29",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2025-Zhou-TrafficFormer-流量预训练与数据增强.md",
+   "x": 6740,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-30",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Hao-预训练多尺度RWKV-GCN多变量预测.md",
+   "x": 4920,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-31",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Ilic-自回归语言模型记忆签名.md",
+   "x": 5284,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-32",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Kulatilleke-MambaNetBurst-字节级流量分类.md",
+   "x": 5648,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-33",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Li-Multigrain语义原型扫描全色锐化.md",
+   "x": 6012,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-34",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Lu-4G5G月度业务短序列预测.md",
+   "x": 6376,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-35",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Merrill-线性RNN为何更易并行.md",
+   "x": 6740,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-36",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Pang-RWKV-TS+跨批次长程提示.md",
+   "x": 4920,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-37",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Rizki-RWKV-CVM门控跨变量混合.md",
+   "x": 5284,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-38",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Sharma-PLM-NIDS-RWKV协议语言入侵检测.md",
+   "x": 5648,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-39",
+   "type": "file",
+   "file": "wiki/papers/rwkv/2026-Yang-FRWKV-Plus-信任门控周期校正.md",
+   "x": 6012,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-40",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2026-Beltiukov-netFound-协议感知流量基础模型.md",
+   "x": 6376,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-41",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2026-Huang-FlowSem-MAE协议原生表格预训练.md",
+   "x": 6740,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-42",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2026-Lin-Nethira层次化流量预训练.md",
+   "x": 4920,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-43",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2026-Wang-NetMamba-Plus-多模态与长尾微调.md",
+   "x": 5284,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster3-44",
+   "type": "file",
+   "file": "wiki/papers/traffic-foundation-models/2026-Zhou-Traffic-MoE稀疏流量基础模型.md",
+   "x": 5648,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-cluster4",
+   "type": "group",
+   "x": 7320,
+   "y": 0,
+   "width": 2240,
+   "height": 1660,
+   "label": "方法论工具箱：分布偏移适应／多示例学习／排序优化（83 篇）"
+  },
+  {
+   "id": "file-cluster4-0",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2000-Lee-Stolfo-入侵检测特征构造框架.md",
+   "x": 7360,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-1",
+   "type": "file",
+   "file": "wiki/papers/methodology/ranking/2008-Carterette-statAP抽样评价.md",
+   "x": 7724,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-2",
+   "type": "file",
+   "file": "wiki/papers/methodology/2009-Bengio-课程学习.md",
+   "x": 8088,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-3",
+   "type": "file",
+   "file": "wiki/papers/methodology/2010-Ben-David-域适应不可能性定理.md",
+   "x": 8452,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-4",
+   "type": "file",
+   "file": "wiki/papers/methodology/2012-Bilge-DISCLOSURE大规模NetFlow僵尸网络控制服务器检测.md",
+   "x": 8816,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-5",
+   "type": "file",
+   "file": "wiki/papers/methodology/2013-Yen-Beehive企业日志大规模行为检测.md",
+   "x": 9180,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-6",
+   "type": "file",
+   "file": "wiki/papers/methodology/2014-Gulcehre-可学习范数池化Lp单元.md",
+   "x": 7360,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-7",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Bartos-优化不变表示检测未见恶意软件变种.md",
+   "x": 7724,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-8",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Courty-最优传输域适配.md",
+   "x": 8088,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-9",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Ganin-DANN域对抗训练.md",
+   "x": 8452,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-10",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Ganin-域对抗神经网络.md",
+   "x": 8816,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-11",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-He-深度残差学习.md",
+   "x": 9180,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-12",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Pevny-树结构多示例判别模型.md",
+   "x": 7360,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-13",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Pevny-神经网络形式化求解多示例问题.md",
+   "x": 7724,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-14",
+   "type": "file",
+   "file": "wiki/papers/methodology/2016-Wieting-通用复述句嵌入.md",
+   "x": 8088,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-15",
+   "type": "file",
+   "file": "wiki/papers/methodology/2017-Achiam-约束策略优化.md",
+   "x": 8452,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-16",
+   "type": "file",
+   "file": "wiki/papers/methodology/2017-Siffer-SPOT极值流阈值.md",
+   "x": 8816,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-17",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2017-Prasse-加密流量LSTM恶意软件检测-ECML.md",
+   "x": 9180,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-18",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2017-Prasse-网络流量LSTM恶意软件检测-SPW.md",
+   "x": 7360,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-19",
+   "type": "file",
+   "file": "wiki/papers/methodology/2018-Boracchi-QuantTree变化检测.md",
+   "x": 7724,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-20",
+   "type": "file",
+   "file": "wiki/papers/methodology/2018-Ilse-基于注意力的深度多示例学习.md",
+   "x": 8088,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-21",
+   "type": "file",
+   "file": "wiki/papers/methodology/2018-Lipton-BBSE标签移位.md",
+   "x": 8452,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-22",
+   "type": "file",
+   "file": "wiki/papers/methodology/2018-Shen-SWEM简单词嵌入池化基线.md",
+   "x": 8816,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-23",
+   "type": "file",
+   "file": "wiki/papers/methodology/2018-Tong-纽曼皮尔逊分类.md",
+   "x": 9180,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-24",
+   "type": "file",
+   "file": "wiki/papers/methodology/2019-Azizzadenesheli-RLLS标签移位正则化学习.md",
+   "x": 7360,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-25",
+   "type": "file",
+   "file": "wiki/papers/methodology/2019-Dacrema-神经推荐进步幻觉.md",
+   "x": 7724,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-26",
+   "type": "file",
+   "file": "wiki/papers/methodology/2019-Redko-JCPOT目标移位.md",
+   "x": 8088,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-27",
+   "type": "file",
+   "file": "wiki/papers/methodology/2019-Tibshirani-协变量移位加权保形.md",
+   "x": 8452,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-28",
+   "type": "file",
+   "file": "wiki/papers/methodology/Geifman2019-SelectiveNet选择性预测.md",
+   "x": 8816,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-29",
+   "type": "file",
+   "file": "wiki/papers/methodology/ranking/2019-Revaud-APGeM图像检索.md",
+   "x": 9180,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-30",
+   "type": "file",
+   "file": "wiki/papers/methodology/2020-Alexandari-MLLS偏差校正校准.md",
+   "x": 7360,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-31",
+   "type": "file",
+   "file": "wiki/papers/methodology/2020-Klink-自步深度强化学习.md",
+   "x": 7724,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-32",
+   "type": "file",
+   "file": "wiki/papers/methodology/2020-Sagawa-GroupDRO群体移位.md",
+   "x": 8088,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-33",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Ahuja-不变性与信息瓶颈.md",
+   "x": 8452,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-34",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Duchi-分布鲁棒均匀性能.md",
+   "x": 8816,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-35",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Gorishniy-表格数据深度学习模型再审视.md",
+   "x": 9180,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-36",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Krueger-REx风险外推.md",
+   "x": 7360,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-37",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Lo-EGraphSAGE边特征图神经网络入侵检测.md",
+   "x": 7724,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-38",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Touvron-ResMLP图像前馈网络.md",
+   "x": 8088,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-39",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Wu-Keogh-时序异常检测基准缺陷.md",
+   "x": 8452,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-40",
+   "type": "file",
+   "file": "wiki/papers/methodology/2021-Zhai-DORO异常值鲁棒分布优化.md",
+   "x": 8816,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-41",
+   "type": "file",
+   "file": "wiki/papers/methodology/ranking/2021-Qi-SOAP直接优化AUPRC.md",
+   "x": 9180,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-42",
+   "type": "file",
+   "file": "wiki/papers/methodology/soc-alert-operations/2021-Ho-Hopper横向移动路径检测与告警预算.md",
+   "x": 7360,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-43",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-Audibert-深度网络是否有助于多变量时序异常检测.md",
+   "x": 7724,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-44",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-Grinsztajn-树模型为何优于表格深度学习.md",
+   "x": 8088,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-45",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-Kim-RevIN可逆实例归一化.md",
+   "x": 8452,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-46",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-Kim-时序异常检测的严谨评价.md",
+   "x": 8816,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-47",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-Polosky-约束离线策略优化.md",
+   "x": 9180,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-48",
+   "type": "file",
+   "file": "wiki/papers/methodology/2022-ShwartzZiv-表格数据深度学习并非必需.md",
+   "x": 7360,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-49",
+   "type": "file",
+   "file": "wiki/papers/methodology/2023-Zeng-Transformer对时序预测是否有效.md",
+   "x": 7724,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-50",
+   "type": "file",
+   "file": "wiki/papers/methodology/ranking/2022-Wang-FCCO与SOX.md",
+   "x": 8088,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-51",
+   "type": "file",
+   "file": "wiki/papers/methodology/soc-alert-operations/2022-Alahmadi-99percent误报SOC分析员访谈.md",
+   "x": 8452,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-52",
+   "type": "file",
+   "file": "wiki/papers/methodology/2023-Dussap-DFM稳健标签漂移量化.md",
+   "x": 8816,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-53",
+   "type": "file",
+   "file": "wiki/papers/methodology/2023-Ericsson-域适应更佳实践.md",
+   "x": 9180,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-54",
+   "type": "file",
+   "file": "wiki/papers/methodology/2023-He-RAINCOAT特征标签移位时序适应.md",
+   "x": 7360,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-55",
+   "type": "file",
+   "file": "wiki/papers/methodology/2023-Stucchi-Kernel-QuantTree变化检测.md",
+   "x": 7724,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-56",
+   "type": "file",
+   "file": "wiki/papers/methodology/2023-Yang-原型部分最优传输.md",
+   "x": 8088,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-57",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2023-Zhu-MIDAM随机池化.md",
+   "x": 8452,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-58",
+   "type": "file",
+   "file": "wiki/papers/methodology/ranking/2023-Yao-GeM与SmoothAP图像检索.md",
+   "x": 8816,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-59",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Angelopoulos-保形风险控制.md",
+   "x": 9180,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-60",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Farinhas-非交换保形风险控制.md",
+   "x": 7360,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-61",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Hu-EnsV无标签域适应选模.md",
+   "x": 7724,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-62",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Hu-PseudoCal无监督目标域伪校准.md",
+   "x": 8088,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-63",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Imani-标签对齐正则.md",
+   "x": 8452,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-64",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Joo-IW-GAE重要性加权组准确率.md",
+   "x": 8816,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-65",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Liu-ACON时频互学习域适应.md",
+   "x": 9180,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-66",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Liu-FOIL时间序列OOD不变学习.md",
+   "x": 7360,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-67",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Lu-DIVERSIFY时序OOD潜在域.md",
+   "x": 7724,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-68",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Pham-非平稳域泛化AIRL.md",
+   "x": 8088,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-69",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Sun-置信序列在线异常阈值.md",
+   "x": 8452,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-70",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Yang-无标签迁移分数.md",
+   "x": 8816,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-71",
+   "type": "file",
+   "file": "wiki/papers/methodology/2024-Zhang-UP2ME逐变量预训练与多变量图微调.md",
+   "x": 9180,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-72",
+   "type": "file",
+   "file": "wiki/papers/methodology/multiple-instance/2024-Li-大小不变多对象损失.md",
+   "x": 7360,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-73",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Almeida-协变量移位高概率风险控制.md",
+   "x": 7724,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-74",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Cai-潜在不变因果时序适应.md",
+   "x": 8088,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-75",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Chen-BUOT双层非平衡传输.md",
+   "x": 8452,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-76",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Ebihara-FIRMBOUND有限时域最优停止.md",
+   "x": 8816,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-77",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Hu-SAM-Decoding后缀自动机推测解码.md",
+   "x": 9180,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-78",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Li-DyG-Mamba连续状态空间动态图.md",
+   "x": 7360,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-79",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Naram-WARMPOT部分域适应.md",
+   "x": 7724,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-80",
+   "type": "file",
+   "file": "wiki/papers/methodology/2025-Xue-PROTOCOL不平衡部分传输.md",
+   "x": 8088,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-81",
+   "type": "file",
+   "file": "wiki/papers/methodology/2026-Choi-标签移位校正的任意时点有效确认.md",
+   "x": 8452,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster4-82",
+   "type": "file",
+   "file": "wiki/papers/methodology/2026-Choi-预指定预测校正的双边序贯证据.md",
+   "x": 8816,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-cluster5",
+   "type": "group",
+   "x": 9760,
+   "y": 0,
+   "width": 2240,
+   "height": 2650,
+   "label": "物理信息神经网络机制候选池（历史路线遗产）（136 篇）"
+  },
+  {
+   "id": "file-cluster5-0",
+   "type": "file",
+   "file": "wiki/papers/pinn/Paxson-广域流量非泊松性.md",
+   "x": 9800,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-1",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/1995-Paxson-Poisson-Failure.md",
+   "x": 10164,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-2",
+   "type": "file",
+   "file": "wiki/papers/pinn/Misra-TCP-AQM流体模型.md",
+   "x": 10528,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-3",
+   "type": "file",
+   "file": "wiki/papers/pinn/LeBoudec-Thiran-网络演算队列边界.md",
+   "x": 10892,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-4",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Burchard-统计有效服务曲线.md",
+   "x": 11256,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-5",
+   "type": "file",
+   "file": "wiki/papers/pinn/Hohn-分组到达聚类过程.md",
+   "x": 11620,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-6",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2003-Hohn-Cluster-Processes.md",
+   "x": 9800,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-7",
+   "type": "file",
+   "file": "wiki/papers/pinn/Appenzeller-路由器缓存定容.md",
+   "x": 10164,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-8",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2008-Liebeherr-Bandwidth-Estimation.md",
+   "x": 10528,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-9",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Liebeherr-系统论带宽估计.md",
+   "x": 10892,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-10",
+   "type": "file",
+   "file": "wiki/papers/pinn/Habib-输出链路轨迹队列反演.md",
+   "x": 11256,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-11",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2010-Habib-Queue-Inferencing.md",
+   "x": 11620,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-12",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Luebben-随机服务带宽估计基础.md",
+   "x": 9800,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-13",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2012-Bouillard-Hidden-Anomaly.md",
+   "x": 10164,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-14",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Bouillard-网络演算隐藏异常检测.md",
+   "x": 10528,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-15",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Luebben-随机服务统计带宽估计.md",
+   "x": 10892,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-16",
+   "type": "file",
+   "file": "wiki/papers/pinn/Vapnik-Izmailov-2015-特权信息学习与知识迁移.md",
+   "x": 11256,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-17",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC7567-主动队列管理与突发边界.md",
+   "x": 11620,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-18",
+   "type": "file",
+   "file": "wiki/papers/manifold/Domain Separation Networks共享私有域分解.md",
+   "x": 9800,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-19",
+   "type": "file",
+   "file": "wiki/papers/pinn/AMTL非对称多任务学习.md",
+   "x": 10164,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-20",
+   "type": "file",
+   "file": "wiki/papers/pinn/Lopez-Paz-2016-广义蒸馏与特权信息.md",
+   "x": 10528,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-21",
+   "type": "file",
+   "file": "wiki/papers/manifold/UP-OSI在线系统辨识通用策略.md",
+   "x": 10892,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-22",
+   "type": "file",
+   "file": "wiki/papers/manifold/对抗式多任务文本分类共享私有表征.md",
+   "x": 11256,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-23",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN-数据驱动非线性PDE发现.md",
+   "x": 11620,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-24",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN-数据驱动非线性PDE求解.md",
+   "x": 9800,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-25",
+   "type": "file",
+   "file": "wiki/papers/pinn/Raissi-PINN开山框架.md",
+   "x": 10164,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-26",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Cuturi-可微软最小动态规划.md",
+   "x": 10528,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-27",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/Guo-神经网络置信度校准.md",
+   "x": 10892,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-28",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC8238-微突发与缓存测量.md",
+   "x": 11256,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-29",
+   "type": "file",
+   "file": "wiki/papers/manifold/动力学随机化仿真到真实迁移.md",
+   "x": 11620,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-30",
+   "type": "file",
+   "file": "wiki/papers/pinn/DeVaere-QUIC与TCP被动时延可观测性.md",
+   "x": 9800,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-31",
+   "type": "file",
+   "file": "wiki/papers/pinn/Deep-AMTFL深度非对称特征学习.md",
+   "x": 10164,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-32",
+   "type": "file",
+   "file": "wiki/papers/pinn/Vardoyan-TCP-CUBIC时滞流体模型.md",
+   "x": 10528,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-33",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Mensch-可微动态规划.md",
+   "x": 10892,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-34",
+   "type": "file",
+   "file": "wiki/papers/manifold/BayesSim自适应域随机化.md",
+   "x": 11256,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-35",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Geyer-DeepTMA分布外稳健性.md",
+   "x": 11620,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-36",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Geyer-DeepTMA网络演算模型选择.md",
+   "x": 9800,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-37",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/Ovadia-分布漂移下不确定性失效.md",
+   "x": 10164,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-38",
+   "type": "file",
+   "file": "wiki/papers/manifold/PhyDNet物理动态解耦视频预测.md",
+   "x": 10528,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-39",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2020-Raissi-HFM.md",
+   "x": 10892,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-40",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2020-Stiller-GatedPINN.md",
+   "x": 11256,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-41",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/GatedPINN自适应域分解.md",
+   "x": 11620,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-42",
+   "type": "file",
+   "file": "wiki/papers/manifold/NewtonianVAE物理潜空间.md",
+   "x": 9800,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-43",
+   "type": "file",
+   "file": "wiki/papers/pinn/AdapterFusion非破坏式任务适配器组合.md",
+   "x": 10164,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-44",
+   "type": "file",
+   "file": "wiki/papers/pinn/BASE-Layers平衡专家分配.md",
+   "x": 10528,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-45",
+   "type": "file",
+   "file": "wiki/papers/pinn/HyperFormer共享超网络适配器.md",
+   "x": 10892,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-46",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN梯度流病态与自适应平衡.md",
+   "x": 11256,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-47",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN流体力学综述.md",
+   "x": 11620,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-48",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN软正则失败模式与课程训练.md",
+   "x": 9800,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-49",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2021-Krishnapriyan-PINN-Failure-Modes.md",
+   "x": 10164,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-50",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2021-Wang-Gradient-Pathologies.md",
+   "x": 10528,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-51",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2021-Yang-BPINN.md",
+   "x": 10892,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-52",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Gibbs-分布漂移下自适应共形推断.md",
+   "x": 11256,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-53",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Jacobs-网络演算异常检测特征.md",
+   "x": 11620,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-54",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Stankeviciute-共形时间序列预测.md",
+   "x": 9800,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-55",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/LHM专家ODE与潜变量混合.md",
+   "x": 10164,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-56",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/NMOE竞争模式与合作物理专家.md",
+   "x": 10528,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-57",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC8999-QUIC版本无关线图像.md",
+   "x": 10892,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-58",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC9000-QUIC传输与旋转位边界.md",
+   "x": 11256,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-59",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC9001-QUIC加密与隐藏状态.md",
+   "x": 11620,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-60",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC9002-QUIC丢失检测与拥塞控制.md",
+   "x": 9800,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-61",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/神经混合自动机离散模式恢复.md",
+   "x": 10164,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-62",
+   "type": "file",
+   "file": "wiki/papers/game/Nash-MTL-多任务对称议价训练.md",
+   "x": 10528,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-63",
+   "type": "file",
+   "file": "wiki/papers/pinn/Alaoui-二维TCP-AQM流体模型.md",
+   "x": 10892,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-64",
+   "type": "file",
+   "file": "wiki/papers/pinn/Flamingo零初始化门控交叉注意力.md",
+   "x": 11256,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-65",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN神经切线核与收敛速率失衡.md",
+   "x": 11620,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-66",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN科学机器学习综述.md",
+   "x": 9800,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-67",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN道路交通网络稀疏状态估计.md",
+   "x": 10164,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-68",
+   "type": "file",
+   "file": "wiki/papers/pinn/RouteNet-Erlang复杂网络性能建模.md",
+   "x": 10528,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-69",
+   "type": "file",
+   "file": "wiki/papers/pinn/StableMoE稳定路由策略.md",
+   "x": 10892,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-70",
+   "type": "file",
+   "file": "wiki/papers/pinn/Switch-Transformer稀疏路由与负载平衡.md",
+   "x": 11256,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-71",
+   "type": "file",
+   "file": "wiki/papers/pinn/Yang-2022-理解特权特征蒸馏.md",
+   "x": 11620,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-72",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2022-Patel-cvPINN.md",
+   "x": 9800,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-73",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2022-Taghizadeh-Explicit-Closure.md",
+   "x": 10164,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-74",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2022-Usama-Traffic-Network-PINN.md",
+   "x": 10528,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-75",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/MoE-PINN稀疏专家选择.md",
+   "x": 10892,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-76",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC9287-QUIC固定位随机化.md",
+   "x": 11256,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-77",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RFC9312-QUIC被动管理边界.md",
+   "x": 11620,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-78",
+   "type": "file",
+   "file": "wiki/papers/pinn/基于物理信息的神经网络-最新进展与展望.md",
+   "x": 9800,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-79",
+   "type": "file",
+   "file": "wiki/papers/game/AuxiNash-辅助学习非对称议价训练.md",
+   "x": 10164,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-80",
+   "type": "file",
+   "file": "wiki/papers/manifold/Recon从结构根源减少梯度冲突.md",
+   "x": 10528,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-81",
+   "type": "file",
+   "file": "wiki/papers/pinn/APINN门控软域分解.md",
+   "x": 10892,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-82",
+   "type": "file",
+   "file": "wiki/papers/pinn/ControlNet零卷积条件旁路.md",
+   "x": 11256,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-83",
+   "type": "file",
+   "file": "wiki/papers/pinn/Helm-网络演算辅助时延预测.md",
+   "x": 11620,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-84",
+   "type": "file",
+   "file": "wiki/papers/pinn/Zhang-网络演算增强时延预测.md",
+   "x": 9800,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-85",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2023-Hu-APINN.md",
+   "x": 10164,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-86",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2023-McClenny-SA-PINN.md",
+   "x": 10528,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-87",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2023-Perez-Adaptive-BPINN.md",
+   "x": 10892,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-88",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2023-Rohrhofer-Apparent-Pareto-Front.md",
+   "x": 11256,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-89",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Luebben-TAILING时延分位数预测.md",
+   "x": 11620,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-90",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/PINN物理约束失败与高斯过程平滑.md",
+   "x": 9800,
+   "y": 1750,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-91",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/QUIC加密流量被动分类与数据漂移.md",
+   "x": 10164,
+   "y": 1750,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-92",
+   "type": "file",
+   "file": "wiki/papers/pinn/原型HyperAdapter样本高效条件适配.md",
+   "x": 10528,
+   "y": 1750,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-93",
+   "type": "file",
+   "file": "wiki/papers/pinn/辅助任务PINN共享私有与专家结构.md",
+   "x": 10892,
+   "y": 1750,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-94",
+   "type": "file",
+   "file": "wiki/papers/grpo/GRPO变体群-方法选型.md",
+   "x": 11256,
+   "y": 1750,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-95",
+   "type": "file",
+   "file": "wiki/papers/manifold/PITT物理令牌Transformer.md",
+   "x": 11620,
+   "y": 1750,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-96",
+   "type": "file",
+   "file": "wiki/papers/pinn/DeepSeekMoE细粒度共享专家架构.md",
+   "x": 9800,
+   "y": 1860,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-97",
+   "type": "file",
+   "file": "wiki/papers/pinn/HyperLoRA受约束低秩参数生成.md",
+   "x": 10164,
+   "y": 1860,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-98",
+   "type": "file",
+   "file": "wiki/papers/pinn/LLaMA-Adapter零初始化注意力.md",
+   "x": 10528,
+   "y": 1860,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-99",
+   "type": "file",
+   "file": "wiki/papers/pinn/LoRA-Flow词元级动态低秩融合.md",
+   "x": 10892,
+   "y": 1860,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-100",
+   "type": "file",
+   "file": "wiki/papers/pinn/LoRA-Switch动态适配器切换.md",
+   "x": 11256,
+   "y": 1860,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-101",
+   "type": "file",
+   "file": "wiki/papers/pinn/MTLoRA共享与任务专用低秩适配.md",
+   "x": 11620,
+   "y": 1860,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-102",
+   "type": "file",
+   "file": "wiki/papers/pinn/MixLoRA词元级低秩专家混合.md",
+   "x": 9800,
+   "y": 1970,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-103",
+   "type": "file",
+   "file": "wiki/papers/pinn/MoDULA通用与领域专用低秩适配.md",
+   "x": 10164,
+   "y": 1970,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-104",
+   "type": "file",
+   "file": "wiki/papers/pinn/MoLE分层低秩专家组合.md",
+   "x": 10528,
+   "y": 1970,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-105",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN技术应用趋势与挑战.md",
+   "x": 10892,
+   "y": 1970,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-106",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN数据与物理表观帕累托前沿.md",
+   "x": 11256,
+   "y": 1970,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-107",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN柯西问题残差不足性.md",
+   "x": 11620,
+   "y": 1970,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-108",
+   "type": "file",
+   "file": "wiki/papers/pinn/Provodin-2024-重新思考特权信息知识迁移.md",
+   "x": 9800,
+   "y": 2080,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-109",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2024-Cen-DFVM.md",
+   "x": 10164,
+   "y": 2080,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-110",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2024-Dolean-Multilevel-FBPINN.md",
+   "x": 10528,
+   "y": 2080,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-111",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2024-Wang-Cauchy-PINN-Difficulty.md",
+   "x": 10892,
+   "y": 2080,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-112",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Jiang-网络演算分组化重审.md",
+   "x": 11256,
+   "y": 2080,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-113",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Podina-共形物理信息网络.md",
+   "x": 11620,
+   "y": 2080,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-114",
+   "type": "file",
+   "file": "wiki/papers/pinn/从PINN到PIKAN-物理信息机器学习进展.md",
+   "x": 9800,
+   "y": 2190,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-115",
+   "type": "file",
+   "file": "wiki/papers/pinn/物理硬约束混合专家.md",
+   "x": 10164,
+   "y": 2190,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-116",
+   "type": "file",
+   "file": "wiki/papers/pinn/稠密反向传播改进稀疏专家路由.md",
+   "x": 10528,
+   "y": 2190,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-117",
+   "type": "file",
+   "file": "wiki/papers/manifold/StelLA-Stiefel子空间低秩适配.md",
+   "x": 10892,
+   "y": 2190,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-118",
+   "type": "file",
+   "file": "wiki/papers/pinn/ConFIG-PINN多目标无冲突训练.md",
+   "x": 11256,
+   "y": 2190,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-119",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN方法演进与跨学科前沿综述.md",
+   "x": 11620,
+   "y": 2190,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-120",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN求解PDE问题综合综述.md",
+   "x": 9800,
+   "y": 2300,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-121",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN综述群.md",
+   "x": 10164,
+   "y": 2300,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-122",
+   "type": "file",
+   "file": "wiki/papers/pinn/PRED-数据中心队列显式建模.md",
+   "x": 10528,
+   "y": 2300,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-123",
+   "type": "file",
+   "file": "wiki/papers/pinn/QuASI-粗粒度计数下的队列可辨识性.md",
+   "x": 10892,
+   "y": 2300,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-124",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2025-Du-PRED.md",
+   "x": 11256,
+   "y": 2300,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-125",
+   "type": "file",
+   "file": "wiki/papers/pinn/multiscale-observability-closure/2025-Raghunathan-QuASI.md",
+   "x": 11620,
+   "y": 2300,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-126",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Jiang-分组化对网络演算影响.md",
+   "x": 9800,
+   "y": 2410,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-127",
+   "type": "file",
+   "file": "wiki/papers/pinn/network-calculus-boundary/Yu-局部共形物理信息网络.md",
+   "x": 10164,
+   "y": 2410,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-128",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/RPLPO部分观测下重启PDE损失.md",
+   "x": 10528,
+   "y": 2410,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-129",
+   "type": "file",
+   "file": "wiki/papers/pinn/protocol-adaptive/部分测量下物理信息神经ODE.md",
+   "x": 10892,
+   "y": 2410,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-130",
+   "type": "file",
+   "file": "wiki/papers/game/SCORER-表征与强化学习斯塔克尔伯格耦合.md",
+   "x": 11256,
+   "y": 2410,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-131",
+   "type": "file",
+   "file": "wiki/papers/manifold/REPA-P中间物理表征对齐.md",
+   "x": 11620,
+   "y": 2410,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-132",
+   "type": "file",
+   "file": "wiki/papers/manifold/mHC参数高效微调.md",
+   "x": 9800,
+   "y": 2520,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-133",
+   "type": "file",
+   "file": "wiki/papers/manifold/超连接流坍缩诊断.md",
+   "x": 10164,
+   "y": 2520,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-134",
+   "type": "file",
+   "file": "wiki/papers/pinn/Evo-PINN-物理信息神经网络的进化优化.md",
+   "x": 10528,
+   "y": 2520,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-cluster5-135",
+   "type": "file",
+   "file": "wiki/papers/pinn/PINN引文链与恶意流量检测理论映射.md",
+   "x": 10892,
+   "y": 2520,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-misc",
+   "type": "group",
+   "x": 12200,
+   "y": 0,
+   "width": 2240,
+   "height": 340,
+   "label": "其他工程与通用架构参考及非论文元笔记（非本课题主线）（7 篇）"
+  },
+  {
+   "id": "file-misc-0",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/开题术语体系.md",
+   "x": 12240,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-misc-1",
+   "type": "file",
+   "file": "wiki/papers/datasets/恶意流量数据集引用核验.md",
+   "x": 12604,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-misc-2",
+   "type": "file",
+   "file": "wiki/papers/llm/GRPO-RCS-意图检测泛化.md",
+   "x": 12968,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-misc-3",
+   "type": "file",
+   "file": "wiki/papers/deepseek/Engram-条件记忆模块.md",
+   "x": 13332,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-misc-4",
+   "type": "file",
+   "file": "wiki/papers/deepseek/mHC-流形约束超连接.md",
+   "x": 13696,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-misc-5",
+   "type": "file",
+   "file": "wiki/papers/llm/Multi-Stream-LLMs-并行多流架构.md",
+   "x": 14060,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-misc-6",
+   "type": "file",
+   "file": "wiki/papers/llm/Varnish-缓存感知CDN负载均衡.md",
+   "x": 12240,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "group-placeholder",
+   "type": "group",
+   "x": 14640,
+   "y": 0,
+   "width": 2240,
+   "height": 1770,
+   "label": "未处理占位笔记（自动提取，正文全部待补充）（87 篇）"
+  },
+  {
+   "id": "file-placeholder-0",
+   "type": "file",
+   "file": "wiki/papers/deepseek/mHC- Manifold-Constrained Hyper-Connections.md",
+   "x": 14680,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-1",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Advancing LLM-Based Security Automation with Customized Group Relative Policy Optimization for Zero-Touch Networks.md",
+   "x": 15044,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-2",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Curriculum Learning of Physics-Informed Neural Networks based on Spatial Correlation.md",
+   "x": 15408,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-3",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/FoRA- Fisher-orthogonal Rank Adaptation for Parameter-Efficient Fine-Tuning.md",
+   "x": 15772,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-4",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/INVARLLM- LLM-assisted Physical Invariant Extraction for Cyber-Physical Systems Anomaly Detection.md",
+   "x": 16136,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-5",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Improving LLM Reasoning for Vulnerability Detection via Group Relative Policy Optimization.md",
+   "x": 16500,
+   "y": 100,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-6",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Large Language Models for Detecting Cyberattacks on Smart Grid Protective Relays.md",
+   "x": 14680,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-7",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Minerva- Reinforcement Learning with Verifiable Rewards for Cyber Threat Intelligence LLMs.md",
+   "x": 15044,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-8",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Riemannian Optimization for LoRA on the Stiefel Manifold.md",
+   "x": 15408,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-9",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Robust Industrial IoT Security Leveraging Parallel Physics-Informed Neural Networks to Combat False Data Injection.md",
+   "x": 15772,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-10",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Systematic Integration of Digital Twins and Constrained LLMs for Interpretable Cyber-Physical Anomaly Detection.md",
+   "x": 16136,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-11",
+   "type": "file",
+   "file": "wiki/papers/game/Game-Theoretic Modeling of Stealthy Intrusion Defense against MDP-Based Attackers.md",
+   "x": 16500,
+   "y": 210,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-12",
+   "type": "file",
+   "file": "wiki/papers/game/Stackelberg Coupling of Online Representation Learning and Reinforcement Learning.md",
+   "x": 14680,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-13",
+   "type": "file",
+   "file": "wiki/papers/game/Zero-determinant Strategy for Moving Target Defense- Existence, Performance, and Computation.md",
+   "x": 15044,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-14",
+   "type": "file",
+   "file": "wiki/papers/grpo/2511.03527.md",
+   "x": 15408,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-15",
+   "type": "file",
+   "file": "wiki/papers/grpo/2512.15347.md",
+   "x": 15772,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-16",
+   "type": "file",
+   "file": "wiki/papers/grpo/2601.22478.md",
+   "x": 16136,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-17",
+   "type": "file",
+   "file": "wiki/papers/grpo/Adaptive-Boundary-Clipping GRPO- Ensuring Bounded Ratios for Stable and Generalizable Training.md",
+   "x": 16500,
+   "y": 320,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-18",
+   "type": "file",
+   "file": "wiki/papers/grpo/Constrained Group Relative Policy Optimization.md",
+   "x": 14680,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-19",
+   "type": "file",
+   "file": "wiki/papers/grpo/Group-Relative REINFORCE Is Secretly an Off-Policy Algorithm- Demystifying Some Myths About GRPO and Its Friends.md",
+   "x": 15044,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-20",
+   "type": "file",
+   "file": "wiki/papers/grpo/Improving Generalization in Intent Detection- GRPO with Reward-Based Curriculum Sampling.md",
+   "x": 15408,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-21",
+   "type": "file",
+   "file": "wiki/papers/grpo/MMR-GRPO- Accelerating GRPO-Style Training through Diversity-Aware Reward Reweighting.md",
+   "x": 15772,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-22",
+   "type": "file",
+   "file": "wiki/papers/grpo/S-GRPO- Early Exit via Reinforcement Learning in Reasoning Models.md",
+   "x": 16136,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-23",
+   "type": "file",
+   "file": "wiki/papers/grpo/Scaf-GRPO- Scaffolded Group Relative Policy Optimization for Enhancing LLM Reasoning.md",
+   "x": 16500,
+   "y": 430,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-24",
+   "type": "file",
+   "file": "wiki/papers/grpo/Stepwise Guided Policy Optimization- Coloring your Incorrect Reasoning in GRPO.md",
+   "x": 14680,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-25",
+   "type": "file",
+   "file": "wiki/papers/grpo/TIC-GRPO- Provable and Efficient Optimization for Reinforcement Learning from Human Feedback.md",
+   "x": 15044,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-26",
+   "type": "file",
+   "file": "wiki/papers/grpo/Taming Extreme Tokens- Covariance-Aware GRPO with Gaussian-Kernel Advantage Reweighting.md",
+   "x": 15408,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-27",
+   "type": "file",
+   "file": "wiki/papers/grpo/Understanding R1-Zero-Like Training- A Critical Perspective.md",
+   "x": 15772,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-28",
+   "type": "file",
+   "file": "wiki/papers/grpo/Why GRPO Needs Normalization- A Local-Curvature Perspective on Adaptive Gradients.md",
+   "x": 16136,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-29",
+   "type": "file",
+   "file": "wiki/papers/manifold/Analyzing Stream Collapse in Hyper-Connections- From Diagnosis to Mitigation.md",
+   "x": 16500,
+   "y": 540,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-30",
+   "type": "file",
+   "file": "wiki/papers/manifold/Disentangling Physical Dynamics From Unknown Factors for Unsupervised Video Prediction.md",
+   "x": 14680,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-31",
+   "type": "file",
+   "file": "wiki/papers/manifold/Learning to Think in Physics- Breaking Shortcut Learning in Scientific Diffusion via Representation Alignment.md",
+   "x": 15044,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-32",
+   "type": "file",
+   "file": "wiki/papers/manifold/Manifold-Constrained Hyper-Connections for Parameter-Efficient Finetuning.md",
+   "x": 15408,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-33",
+   "type": "file",
+   "file": "wiki/papers/manifold/NewtonianVAE- Proportional Control and Goal Identification From Pixels via Physical Latent Spaces.md",
+   "x": 15772,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-34",
+   "type": "file",
+   "file": "wiki/papers/manifold/StelLA- Subspace Learning in Low-rank Adaptation using Stiefel Manifold.md",
+   "x": 16136,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-35",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Improving Generalization in Intent Detection- GRPO with Reward-Based Curriculum Sampling.md",
+   "x": 16500,
+   "y": 650,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-36",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Curriculum-Learned Vanishing Stacked Residual PINNs for Hyperbolic PDE State Reconstruction.md",
+   "x": 14680,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-37",
+   "type": "file",
+   "file": "wiki/papers/grpo/NGRPO- Negative-enhanced Group Relative Policy Optimization.md",
+   "x": 15044,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-38",
+   "type": "file",
+   "file": "wiki/papers/game/commitEC06.md",
+   "x": 15408,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-39",
+   "type": "file",
+   "file": "wiki/papers/game/dobss-2008_pita-etal_Bayesian_Stackelberg_Game.md",
+   "x": 15772,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-40",
+   "type": "file",
+   "file": "wiki/papers/game/massive-security-games_2009_kiekintveld_mixed_resource.md",
+   "x": 16136,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-41",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Stability analysis and impulsive control of bifurcation and chaos in fluid flow model for TCP-AQM networks.md",
+   "x": 16500,
+   "y": 760,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-42",
+   "type": "file",
+   "file": "wiki/papers/game/Complexity of Computing Optimal Stackelberg Strategies in Security Resource Allocation Games.md",
+   "x": 14680,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-43",
+   "type": "file",
+   "file": "wiki/papers/manifold/UPOSI-RSS2017.md",
+   "x": 15044,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-44",
+   "type": "file",
+   "file": "wiki/papers/game/stackelberg-vs-nash_2011_kiekintveld.md",
+   "x": 15408,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-45",
+   "type": "file",
+   "file": "wiki/papers/game/Investigating the Application of Moving Target Defenses to Network Security.md",
+   "x": 15772,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-46",
+   "type": "file",
+   "file": "wiki/papers/game/klp_game_theoretic_foundations_2014.md",
+   "x": 16136,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-47",
+   "type": "file",
+   "file": "wiki/papers/game/mtd-gamefor-web-2016_Bayesian-Stackelberg.md",
+   "x": 16500,
+   "y": 870,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-48",
+   "type": "file",
+   "file": "wiki/papers/cdn-ops/Proactive Video Push for Optimizing Bandwidth Consumption in Hybrid CDN-P2P VoD Systems.md",
+   "x": 14680,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-49",
+   "type": "file",
+   "file": "wiki/papers/game/game-theoretic_MTD_2017_security_games.md",
+   "x": 15044,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-50",
+   "type": "file",
+   "file": "wiki/papers/game/main.pdf.md",
+   "x": 15408,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-51",
+   "type": "file",
+   "file": "wiki/papers/manifold/Domain Separation Networks.md",
+   "x": 15772,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-52",
+   "type": "file",
+   "file": "wiki/papers/manifold/Proceedings of the 55th Annual Meeting of the Association for Computational Linguistics.md",
+   "x": 16136,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-53",
+   "type": "file",
+   "file": "wiki/papers/manifold/DynamicsRandomization-ICRA2018.md",
+   "x": 16500,
+   "y": 980,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-54",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Enhancing Intrusion Detection in Electric Networks Using Physics-Informed Random Forest.md",
+   "x": 14680,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-55",
+   "type": "file",
+   "file": "wiki/papers/game/mtd-timing_2019_model.md",
+   "x": 15044,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-56",
+   "type": "file",
+   "file": "wiki/papers/manifold/Latent Ordinary Differential Equations for Irregularly-Sampled Time Series.md",
+   "x": 15408,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-57",
+   "type": "file",
+   "file": "wiki/papers/game/2109.12286v1 1.md",
+   "x": 15772,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-58",
+   "type": "file",
+   "file": "wiki/papers/game/2109.12286v1.md",
+   "x": 16136,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-59",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/2211.10833.md",
+   "x": 16500,
+   "y": 1090,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-60",
+   "type": "file",
+   "file": "wiki/papers/cdn-ops/nsdi22-paper-zhou.md",
+   "x": 14680,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-61",
+   "type": "file",
+   "file": "wiki/papers/game/2022_Navon_Multi-Task_Learning_as_a_Bargaining_Game.md",
+   "x": 15044,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-62",
+   "type": "file",
+   "file": "wiki/papers/game/2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_in_a_Noisy_Security_Game.md",
+   "x": 15408,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-63",
+   "type": "file",
+   "file": "wiki/papers/game/Partially-Observable Security Games for Automating Attack-Defense Analysis.md",
+   "x": 15772,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-64",
+   "type": "file",
+   "file": "wiki/papers/unclassified/Network Intrusion Detection Packet Classification with the HIKARI-2021 Dataset- a study on ML Algorithms.md",
+   "x": 16136,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-65",
+   "type": "file",
+   "file": "wiki/papers/game/2023_Shamsian_Auxiliary_Learning_as_an_Asymmetric_Bargaining_Game.md",
+   "x": 16500,
+   "y": 1200,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-66",
+   "type": "file",
+   "file": "wiki/papers/manifold/Recon-ICLR2023.md",
+   "x": 14680,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-67",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/A Closer Look at Curriculum Adversarial Training- From an Online Perspective.md",
+   "x": 15044,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-68",
+   "type": "file",
+   "file": "wiki/papers/cdn-ops/2401.15839v1.md",
+   "x": 15408,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-69",
+   "type": "file",
+   "file": "wiki/papers/cdn-ops/atc24-zhang-rui-xiao.md",
+   "x": 15772,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-70",
+   "type": "file",
+   "file": "wiki/papers/game/PPSO and Bayesian game for intrusion detection in WSN from a macro perspective.md",
+   "x": 16136,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-71",
+   "type": "file",
+   "file": "wiki/papers/grpo/2402.03300.md",
+   "x": 16500,
+   "y": 1310,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-72",
+   "type": "file",
+   "file": "wiki/papers/manifold/PITT-2305.08757.md",
+   "x": 14680,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-73",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/Physics-Informed Graph Convolutional Recurrent Network for Cyber-Attack Detection in Chemical Process Networks.md",
+   "x": 15044,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-74",
+   "type": "file",
+   "file": "wiki/papers/game/A robust and scalable intrusion detection framework for SDN with GAN-CL-STO.md",
+   "x": 15408,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-75",
+   "type": "file",
+   "file": "wiki/papers/game/Detecting malicious nodes using game theory and reinforcement learning in software-defined networks.md",
+   "x": 15772,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-76",
+   "type": "file",
+   "file": "wiki/papers/game/Enhancing network security through integration of game theory in software-defined networking framework.md",
+   "x": 16136,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-77",
+   "type": "file",
+   "file": "wiki/papers/manifold/PDEformer-2402.12652.md",
+   "x": 16500,
+   "y": 1420,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-78",
+   "type": "file",
+   "file": "wiki/papers/unclassified/GeNIS- A modular dataset for network intrusion detection and classification.md",
+   "x": 14680,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-79",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/朱焱雷.md",
+   "x": 15044,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-80",
+   "type": "file",
+   "file": "wiki/papers/cdn-ops/北斗资源上下线&踢点逻辑.md",
+   "x": 15408,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-81",
+   "type": "file",
+   "file": "wiki/papers/cdn-ops/视频CDN技术.md",
+   "x": 15772,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-82",
+   "type": "file",
+   "file": "wiki/papers/deepseek/2601.07372_Engram-DeepSeek.md",
+   "x": 16136,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-83",
+   "type": "file",
+   "file": "wiki/papers/methodology/Obsidian + Claude Code：用AI重建你的第二大脑.md",
+   "x": 16500,
+   "y": 1530,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-84",
+   "type": "file",
+   "file": "wiki/papers/llm/Multi-Stream LLMs- Unblocking Language Models with Parallel Streams of Thoughts, Inputs and Outputs.md",
+   "x": 14680,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-85",
+   "type": "file",
+   "file": "wiki/papers/attack-detection/From Simple to Complex- Curriculum-Guided Physics-Informed Neural Networks via Gaussian Mixture Models.md",
+   "x": 15044,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  },
+  {
+   "id": "file-placeholder-86",
+   "type": "file",
+   "file": "wiki/papers/manifold/BayesSim-RSS2019.md",
+   "x": 15408,
+   "y": 1640,
+   "width": 340,
+   "height": 90
+  }
+ ],
+ "edges": [
+  {
+   "id": "edge-0",
+   "fromNode": "file-cluster1-1",
+   "toNode": "file-cluster1-0",
+   "label": "related"
+  },
+  {
+   "id": "edge-1",
+   "fromNode": "file-cluster1-4",
+   "toNode": "file-cluster1-38",
+   "label": "related"
+  },
+  {
+   "id": "edge-2",
+   "fromNode": "file-cluster1-5",
+   "toNode": "file-cluster1-9",
+   "label": "related"
+  },
+  {
+   "id": "edge-3",
+   "fromNode": "file-cluster1-5",
+   "toNode": "file-cluster1-27",
+   "label": "related"
+  },
+  {
+   "id": "edge-4",
+   "fromNode": "file-cluster1-7",
+   "toNode": "file-cluster1-15",
+   "label": "related"
+  },
+  {
+   "id": "edge-5",
+   "fromNode": "file-cluster1-8",
+   "toNode": "file-cluster1-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-6",
+   "fromNode": "file-cluster1-9",
+   "toNode": "file-cluster1-11",
+   "label": "related"
+  },
+  {
+   "id": "edge-7",
+   "fromNode": "file-cluster1-10",
+   "toNode": "file-cluster1-12",
+   "label": "related"
+  },
+  {
+   "id": "edge-8",
+   "fromNode": "file-cluster1-13",
+   "toNode": "file-cluster1-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-9",
+   "fromNode": "file-cluster1-13",
+   "toNode": "file-cluster1-15",
+   "label": "related"
+  },
+  {
+   "id": "edge-10",
+   "fromNode": "file-cluster1-15",
+   "toNode": "file-cluster1-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-11",
+   "fromNode": "file-cluster1-16",
+   "toNode": "file-cluster1-7",
+   "label": "related"
+  },
+  {
+   "id": "edge-12",
+   "fromNode": "file-cluster1-16",
+   "toNode": "file-cluster1-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-13",
+   "fromNode": "file-cluster1-17",
+   "toNode": "file-cluster1-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-14",
+   "fromNode": "file-cluster1-20",
+   "toNode": "file-cluster1-38",
+   "label": "related"
+  },
+  {
+   "id": "edge-15",
+   "fromNode": "file-cluster1-26",
+   "toNode": "file-cluster1-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-16",
+   "fromNode": "file-cluster1-31",
+   "toNode": "file-cluster1-38",
+   "label": "related"
+  },
+  {
+   "id": "edge-17",
+   "fromNode": "file-cluster1-31",
+   "toNode": "file-cluster1-4",
+   "label": "related"
+  },
+  {
+   "id": "edge-18",
+   "fromNode": "file-cluster1-34",
+   "toNode": "file-cluster1-53",
+   "label": "related"
+  },
+  {
+   "id": "edge-19",
+   "fromNode": "file-cluster1-55",
+   "toNode": "file-cluster1-34",
+   "label": "related"
+  },
+  {
+   "id": "edge-20",
+   "fromNode": "file-cluster2-7",
+   "toNode": "file-cluster2-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-21",
+   "fromNode": "file-cluster2-7",
+   "toNode": "file-cluster2-17",
+   "label": "related"
+  },
+  {
+   "id": "edge-22",
+   "fromNode": "file-cluster2-8",
+   "toNode": "file-cluster2-15",
+   "label": "related"
+  },
+  {
+   "id": "edge-23",
+   "fromNode": "file-cluster2-10",
+   "toNode": "file-cluster2-39",
+   "label": "related"
+  },
+  {
+   "id": "edge-24",
+   "fromNode": "file-cluster2-15",
+   "toNode": "file-cluster2-17",
+   "label": "related"
+  },
+  {
+   "id": "edge-25",
+   "fromNode": "file-cluster2-15",
+   "toNode": "file-cluster2-18",
+   "label": "related"
+  },
+  {
+   "id": "edge-26",
+   "fromNode": "file-cluster2-16",
+   "toNode": "file-cluster2-22",
+   "label": "related"
+  },
+  {
+   "id": "edge-27",
+   "fromNode": "file-cluster2-16",
+   "toNode": "file-cluster2-4",
+   "label": "related"
+  },
+  {
+   "id": "edge-28",
+   "fromNode": "file-cluster2-17",
+   "toNode": "file-cluster2-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-29",
+   "fromNode": "file-cluster2-21",
+   "toNode": "file-cluster2-23",
+   "label": "related"
+  },
+  {
+   "id": "edge-30",
+   "fromNode": "file-cluster2-21",
+   "toNode": "file-cluster2-16",
+   "label": "related"
+  },
+  {
+   "id": "edge-31",
+   "fromNode": "file-cluster2-22",
+   "toNode": "file-cluster5-91",
+   "label": "related"
+  },
+  {
+   "id": "edge-32",
+   "fromNode": "file-cluster2-22",
+   "toNode": "file-cluster1-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-33",
+   "fromNode": "file-cluster2-22",
+   "toNode": "file-cluster1-17",
+   "label": "related"
+  },
+  {
+   "id": "edge-34",
+   "fromNode": "file-cluster2-22",
+   "toNode": "file-cluster2-27",
+   "label": "related"
+  },
+  {
+   "id": "edge-35",
+   "fromNode": "file-cluster2-23",
+   "toNode": "file-cluster2-16",
+   "label": "related"
+  },
+  {
+   "id": "edge-36",
+   "fromNode": "file-cluster2-24",
+   "toNode": "file-cluster2-7",
+   "label": "related"
+  },
+  {
+   "id": "edge-37",
+   "fromNode": "file-cluster2-24",
+   "toNode": "file-cluster2-35",
+   "label": "related"
+  },
+  {
+   "id": "edge-38",
+   "fromNode": "file-cluster2-24",
+   "toNode": "file-cluster2-48",
+   "label": "related"
+  },
+  {
+   "id": "edge-39",
+   "fromNode": "file-cluster2-27",
+   "toNode": "file-cluster2-37",
+   "label": "related"
+  },
+  {
+   "id": "edge-40",
+   "fromNode": "file-cluster2-27",
+   "toNode": "file-cluster2-49",
+   "label": "related"
+  },
+  {
+   "id": "edge-41",
+   "fromNode": "file-cluster2-27",
+   "toNode": "file-cluster2-1",
+   "label": "related"
+  },
+  {
+   "id": "edge-42",
+   "fromNode": "file-cluster2-28",
+   "toNode": "file-cluster2-41",
+   "label": "related"
+  },
+  {
+   "id": "edge-43",
+   "fromNode": "file-cluster2-28",
+   "toNode": "file-cluster2-52",
+   "label": "related"
+  },
+  {
+   "id": "edge-44",
+   "fromNode": "file-cluster2-30",
+   "toNode": "file-cluster2-43",
+   "label": "related"
+  },
+  {
+   "id": "edge-45",
+   "fromNode": "file-cluster2-30",
+   "toNode": "file-cluster2-39",
+   "label": "related"
+  },
+  {
+   "id": "edge-46",
+   "fromNode": "file-cluster2-34",
+   "toNode": "file-cluster2-3",
+   "label": "related"
+  },
+  {
+   "id": "edge-47",
+   "fromNode": "file-cluster2-34",
+   "toNode": "file-cluster2-4",
+   "label": "related"
+  },
+  {
+   "id": "edge-48",
+   "fromNode": "file-cluster2-34",
+   "toNode": "file-cluster2-2",
+   "label": "related"
+  },
+  {
+   "id": "edge-49",
+   "fromNode": "file-cluster2-35",
+   "toNode": "file-cluster2-7",
+   "label": "related"
+  },
+  {
+   "id": "edge-50",
+   "fromNode": "file-cluster2-35",
+   "toNode": "file-cluster2-47",
+   "label": "related"
+  },
+  {
+   "id": "edge-51",
+   "fromNode": "file-cluster2-35",
+   "toNode": "file-cluster2-56",
+   "label": "related"
+  },
+  {
+   "id": "edge-52",
+   "fromNode": "file-cluster2-36",
+   "toNode": "file-cluster2-49",
+   "label": "related"
+  },
+  {
+   "id": "edge-53",
+   "fromNode": "file-cluster2-36",
+   "toNode": "file-cluster2-40",
+   "label": "related"
+  },
+  {
+   "id": "edge-54",
+   "fromNode": "file-cluster2-36",
+   "toNode": "file-cluster2-31",
+   "label": "related"
+  },
+  {
+   "id": "edge-55",
+   "fromNode": "file-cluster2-37",
+   "toNode": "file-cluster2-49",
+   "label": "related"
+  },
+  {
+   "id": "edge-56",
+   "fromNode": "file-cluster2-37",
+   "toNode": "file-cluster2-32",
+   "label": "related"
+  },
+  {
+   "id": "edge-57",
+   "fromNode": "file-cluster2-39",
+   "toNode": "file-misc-1",
+   "label": "related"
+  },
+  {
+   "id": "edge-58",
+   "fromNode": "file-cluster2-41",
+   "toNode": "file-cluster2-40",
+   "label": "related"
+  },
+  {
+   "id": "edge-59",
+   "fromNode": "file-cluster2-43",
+   "toNode": "file-cluster2-39",
+   "label": "related"
+  },
+  {
+   "id": "edge-60",
+   "fromNode": "file-cluster2-43",
+   "toNode": "file-cluster2-10",
+   "label": "related"
+  },
+  {
+   "id": "edge-61",
+   "fromNode": "file-cluster2-47",
+   "toNode": "file-cluster2-14",
+   "label": "related"
+  },
+  {
+   "id": "edge-62",
+   "fromNode": "file-cluster2-47",
+   "toNode": "file-cluster2-18",
+   "label": "related"
+  },
+  {
+   "id": "edge-63",
+   "fromNode": "file-cluster2-47",
+   "toNode": "file-cluster2-30",
+   "label": "related"
+  },
+  {
+   "id": "edge-64",
+   "fromNode": "file-cluster2-48",
+   "toNode": "file-cluster2-47",
+   "label": "related"
+  },
+  {
+   "id": "edge-65",
+   "fromNode": "file-cluster2-48",
+   "toNode": "file-cluster2-7",
+   "label": "related"
+  },
+  {
+   "id": "edge-66",
+   "fromNode": "file-cluster2-49",
+   "toNode": "file-cluster2-32",
+   "label": "related"
+  },
+  {
+   "id": "edge-67",
+   "fromNode": "file-cluster2-49",
+   "toNode": "file-cluster2-44",
+   "label": "related"
+  },
+  {
+   "id": "edge-68",
+   "fromNode": "file-cluster2-51",
+   "toNode": "file-cluster2-28",
+   "label": "related"
+  },
+  {
+   "id": "edge-69",
+   "fromNode": "file-cluster2-52",
+   "toNode": "file-cluster2-41",
+   "label": "related"
+  },
+  {
+   "id": "edge-70",
+   "fromNode": "file-cluster2-52",
+   "toNode": "file-cluster2-40",
+   "label": "related"
+  },
+  {
+   "id": "edge-71",
+   "fromNode": "file-cluster2-56",
+   "toNode": "file-cluster2-47",
+   "label": "related"
+  },
+  {
+   "id": "edge-72",
+   "fromNode": "file-cluster2-56",
+   "toNode": "file-cluster2-18",
+   "label": "related"
+  },
+  {
+   "id": "edge-73",
+   "fromNode": "file-cluster2-57",
+   "toNode": "file-cluster2-24",
+   "label": "related"
+  },
+  {
+   "id": "edge-74",
+   "fromNode": "file-cluster2-57",
+   "toNode": "file-cluster2-35",
+   "label": "related"
+  },
+  {
+   "id": "edge-75",
+   "fromNode": "file-cluster2-57",
+   "toNode": "file-cluster2-48",
+   "label": "related"
+  },
+  {
+   "id": "edge-76",
+   "fromNode": "file-cluster2-57",
+   "toNode": "file-cluster2-56",
+   "label": "related"
+  },
+  {
+   "id": "edge-77",
+   "fromNode": "file-cluster3-5",
+   "toNode": "file-cluster3-3",
+   "label": "related"
+  },
+  {
+   "id": "edge-78",
+   "fromNode": "file-cluster3-5",
+   "toNode": "file-cluster3-1",
+   "label": "related"
+  },
+  {
+   "id": "edge-79",
+   "fromNode": "file-cluster3-8",
+   "toNode": "file-cluster3-4",
+   "label": "related"
+  },
+  {
+   "id": "edge-80",
+   "fromNode": "file-cluster3-11",
+   "toNode": "file-cluster3-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-81",
+   "fromNode": "file-cluster3-33",
+   "toNode": "file-cluster3-8",
+   "label": "related"
+  },
+  {
+   "id": "edge-82",
+   "fromNode": "file-cluster3-33",
+   "toNode": "file-cluster3-11",
+   "label": "related"
+  },
+  {
+   "id": "edge-83",
+   "fromNode": "file-cluster3-35",
+   "toNode": "file-cluster3-21",
+   "label": "related"
+  },
+  {
+   "id": "edge-84",
+   "fromNode": "file-cluster3-35",
+   "toNode": "file-cluster3-14",
+   "label": "related"
+  },
+  {
+   "id": "edge-85",
+   "fromNode": "file-cluster3-38",
+   "toNode": "file-cluster3-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-86",
+   "fromNode": "file-cluster4-3",
+   "toNode": "file-cluster4-9",
+   "label": "related"
+  },
+  {
+   "id": "edge-87",
+   "fromNode": "file-cluster4-4",
+   "toNode": "file-cluster4-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-88",
+   "fromNode": "file-cluster4-4",
+   "toNode": "file-cluster4-7",
+   "label": "related"
+  },
+  {
+   "id": "edge-89",
+   "fromNode": "file-cluster4-5",
+   "toNode": "file-cluster4-7",
+   "label": "related"
+  },
+  {
+   "id": "edge-90",
+   "fromNode": "file-cluster4-6",
+   "toNode": "file-cluster4-7",
+   "label": "related"
+  },
+  {
+   "id": "edge-91",
+   "fromNode": "file-cluster4-11",
+   "toNode": "file-cluster4-35",
+   "label": "related"
+  },
+  {
+   "id": "edge-92",
+   "fromNode": "file-cluster4-12",
+   "toNode": "file-cluster4-13",
+   "label": "related"
+  },
+  {
+   "id": "edge-93",
+   "fromNode": "file-cluster4-12",
+   "toNode": "file-cluster4-20",
+   "label": "related"
+  },
+  {
+   "id": "edge-94",
+   "fromNode": "file-cluster4-12",
+   "toNode": "file-cluster4-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-95",
+   "fromNode": "file-cluster4-12",
+   "toNode": "file-cluster4-4",
+   "label": "related"
+  },
+  {
+   "id": "edge-96",
+   "fromNode": "file-cluster4-13",
+   "toNode": "file-cluster4-20",
+   "label": "related"
+  },
+  {
+   "id": "edge-97",
+   "fromNode": "file-cluster4-13",
+   "toNode": "file-cluster4-6",
+   "label": "related"
+  },
+  {
+   "id": "edge-98",
+   "fromNode": "file-cluster4-14",
+   "toNode": "file-cluster4-22",
+   "label": "related"
+  },
+  {
+   "id": "edge-99",
+   "fromNode": "file-cluster4-14",
+   "toNode": "file-cluster4-49",
+   "label": "related"
+  },
+  {
+   "id": "edge-100",
+   "fromNode": "file-cluster4-14",
+   "toNode": "file-cluster4-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-101",
+   "fromNode": "file-cluster4-20",
+   "toNode": "file-cluster4-6",
+   "label": "related"
+  },
+  {
+   "id": "edge-102",
+   "fromNode": "file-cluster4-22",
+   "toNode": "file-cluster4-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-103",
+   "fromNode": "file-cluster4-22",
+   "toNode": "file-cluster4-49",
+   "label": "related"
+  },
+  {
+   "id": "edge-104",
+   "fromNode": "file-cluster4-24",
+   "toNode": "file-cluster4-21",
+   "label": "related"
+  },
+  {
+   "id": "edge-105",
+   "fromNode": "file-cluster4-25",
+   "toNode": "file-cluster4-39",
+   "label": "related"
+  },
+  {
+   "id": "edge-106",
+   "fromNode": "file-cluster4-25",
+   "toNode": "file-cluster4-43",
+   "label": "related"
+  },
+  {
+   "id": "edge-107",
+   "fromNode": "file-cluster4-30",
+   "toNode": "file-cluster4-21",
+   "label": "related"
+  },
+  {
+   "id": "edge-108",
+   "fromNode": "file-cluster4-35",
+   "toNode": "file-cluster4-38",
+   "label": "related"
+  },
+  {
+   "id": "edge-109",
+   "fromNode": "file-cluster4-37",
+   "toNode": "file-cluster2-49",
+   "label": "related"
+  },
+  {
+   "id": "edge-110",
+   "fromNode": "file-cluster4-37",
+   "toNode": "file-cluster4-12",
+   "label": "related"
+  },
+  {
+   "id": "edge-111",
+   "fromNode": "file-cluster4-37",
+   "toNode": "file-cluster1-24",
+   "label": "related"
+  },
+  {
+   "id": "edge-112",
+   "fromNode": "file-cluster4-38",
+   "toNode": "file-cluster4-11",
+   "label": "related"
+  },
+  {
+   "id": "edge-113",
+   "fromNode": "file-cluster4-39",
+   "toNode": "file-cluster4-43",
+   "label": "related"
+  },
+  {
+   "id": "edge-114",
+   "fromNode": "file-cluster4-42",
+   "toNode": "file-cluster4-51",
+   "label": "related"
+  },
+  {
+   "id": "edge-115",
+   "fromNode": "file-cluster4-42",
+   "toNode": "file-cluster4-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-116",
+   "fromNode": "file-cluster4-43",
+   "toNode": "file-cluster4-46",
+   "label": "related"
+  },
+  {
+   "id": "edge-117",
+   "fromNode": "file-cluster4-44",
+   "toNode": "file-cluster4-48",
+   "label": "related"
+  },
+  {
+   "id": "edge-118",
+   "fromNode": "file-cluster4-44",
+   "toNode": "file-cluster4-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-119",
+   "fromNode": "file-cluster4-46",
+   "toNode": "file-cluster4-39",
+   "label": "related"
+  },
+  {
+   "id": "edge-120",
+   "fromNode": "file-cluster4-48",
+   "toNode": "file-cluster4-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-121",
+   "fromNode": "file-cluster4-49",
+   "toNode": "file-cluster4-25",
+   "label": "related"
+  },
+  {
+   "id": "edge-122",
+   "fromNode": "file-cluster4-49",
+   "toNode": "file-cluster4-43",
+   "label": "related"
+  },
+  {
+   "id": "edge-123",
+   "fromNode": "file-cluster4-51",
+   "toNode": "file-cluster4-5",
+   "label": "related"
+  },
+  {
+   "id": "edge-124",
+   "fromNode": "file-cluster4-51",
+   "toNode": "file-cluster4-4",
+   "label": "related"
+  },
+  {
+   "id": "edge-125",
+   "fromNode": "file-cluster5-3",
+   "toNode": "file-cluster5-84",
+   "label": "related"
+  },
+  {
+   "id": "edge-126",
+   "fromNode": "file-cluster5-62",
+   "toNode": "file-cluster5-79",
+   "label": "related"
+  },
+  {
+   "id": "edge-127",
+   "fromNode": "file-cluster5-62",
+   "toNode": "file-cluster5-130",
+   "label": "related"
+  },
+  {
+   "id": "edge-128",
+   "fromNode": "file-cluster5-79",
+   "toNode": "file-cluster5-130",
+   "label": "related"
+  }
+ ]
+}
