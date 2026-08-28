@@ -111,8 +111,8 @@
 
 | 修复层 | 状态 | 验收 |
 | --- | --- | --- |
-| 正式启动器 | 进行中 | 激活后冻结/解析 CUDA 根，导出 `CUDA_HOME/PATH/LD_LIBRARY_PATH`，`command -v nvcc` 必须精确为 `/usr/local/cuda/bin/nvcc` |
-| 冻结配置 | 待处理 | 登记逻辑根、允许物理根、nvcc 和 `lib64` 路径，静态验证精确值 |
-| 官方 CUDA 后端 | 待处理 | 在编译前比对环境、物理根、PATH 首命中、`LD_LIBRARY_PATH` 和 nvcc 逻辑/物理路径，并纳入 CUDA 执行身份 |
+| 正式启动器 | 已完成 | 激活后冻结/解析 CUDA 根，导出 `CUDA_HOME/PATH/LD_LIBRARY_PATH`，`command -v nvcc` 必须精确为 `/usr/local/cuda/bin/nvcc` |
+| 冻结配置 | 已完成 | 登记逻辑根、允许物理根、nvcc 和 `lib64` 路径，静态验证精确值 |
+| 官方 CUDA 后端 | 已完成 | 在编译前比对环境、物理根、PATH 首命中、`LD_LIBRARY_PATH` 和 nvcc 逻辑/物理路径，并纳入 CUDA 执行身份 |
 
 本修复不改模型、数据、容量、预算、运行身份或资源门槛。

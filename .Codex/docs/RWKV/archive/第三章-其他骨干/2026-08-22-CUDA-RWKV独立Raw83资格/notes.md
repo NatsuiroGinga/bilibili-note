@@ -13,6 +13,8 @@
 - 症状只出现在正式启动器激活项目环境之后：`NVCC_AVAILABLE=0`。
 - 物理编译器 `/usr/local/cuda/bin/nvcc` 和同 GPU/PyTorch/CUDA 组合已被真实自身门验证，故“未安装 nvcc”假设被否决。
 - 启动器现状是激活后只重申 `OMP_NUM_THREADS=1`，没有重申 `CUDA_HOME`、CUDA `bin` 或 `lib64`；后端现状是仅用 `shutil.which("nvcc")`。这两个边界共同解释了已安装编译器在正式进程中不可见的现象。
+- 修复将 `CUDA_HOME=/usr/local/cuda`、允许物理根 `/usr/local/cuda|/usr/local/cuda-13.0`、nvcc `/usr/local/cuda/bin/nvcc` 和 `lib64` `/usr/local/cuda/lib64` 同时冻结到配置、启动器和后端。启动器在任何 Python 前完成物理落点、目录/可执行性和 PATH 首命中检查；后端在扩展导入前再次核验并写入 CUDA 执行身份。
+- 环境修复后的真实 B76 证据显示 small 扩展已成功编译（`679,965 B`）。随后自身门失败定位到第二输入 `w` 的测试位置：旧实现只扰动 `t=0/channel=0`，初始状态为零时首时刻衰减不可观测。修复只把六输入探针统一移到 `t=64/channel=0`的已有状态位置，不改 CUDA 核、模型或“有限且非零变化”判据。
 
 ## 一、检索收据
 
