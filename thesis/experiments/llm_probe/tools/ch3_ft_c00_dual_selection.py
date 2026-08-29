@@ -1369,14 +1369,49 @@ def _entity_ranking_bare_forward(
     config: dict[str, Any], model: Any, view: Any, indices: Any, valid: Any, device: Any,
     profile: dict[str, Any], precision: Any, torch_module: Any,
 ) -> tuple[Any, Any]:
-    """z1=0：实体排序批各片段互不依赖（裸 FT 无跨片段状态），可分微批并行前向。"""
+    """z1=0：实体排序批各片段互不依赖（裸 FT 无跨片段状态），可分微批并行前向。
+
+    2026-08-29 修复 CUDA 显存溢出：原实现虽已按 micro 分批前向，但把每个微批的
+    输出连同其完整反向图一起累积到 ``logits_parts``，激活内存随微批数线性增长。
+    实体排序批规模由 ``n_pos + n_neg = 66`` 个实体乘每实体至多
+    ``ceil(truncate_length / sequence_length) = 64`` 段决定，实测达 6403 个序列、
+    即 100 个微批；三层注意力的中间激活合计需 30.97 GiB，在 31.36 GiB 可用的
+    RTX 5090 上首步即溢出（C01 实测 ``torch.OutOfMemoryError``，申请 394 MiB 时
+    仅余 389 MiB）。
+
+    CVaR-pAUC 排序损失要求全体实体分数同时在同一张图中，无法像主任务那样分微批
+    反传后累加梯度，因此改用梯度检查点：前向只保留各微批的输出张量，反向时按需
+    重算该微批的中间激活。这是纯工程修复——机制超参数、损失定义、采样口径和
+    数值语义全部不变，只是用重算换显存。
+
+    ``use_reentrant=False`` 为显式指定：目标机 PyTorch 2.13.0+cu130 的
+    ``torch.utils.checkpoint.checkpoint`` 签名中该参数默认 ``None`` 并会告警，
+    非重入实现对本处的多输出与 autocast 组合支持更完整（签名已在目标机实测核验）。
+    """
+    from torch.utils.checkpoint import checkpoint
+
     micro = config["training"]["micro_batch_sequences"]
     logits_parts = []
     valid_parts = []
     for start in range(0, indices.shape[0], micro):
         stop = start + micro
         numeric, categorical = view.features(indices[start:stop])
-        logits, valid_t = forward_bare(model, numeric, categorical, valid[start:stop], device, profile, precision, torch_module)
+        micro_valid = valid[start:stop]
+        # 张量转换必须留在检查点外：checkpoint 只能追踪张量入参，
+        # 且 numpy → GPU 的搬运不需要被重算。
+        numeric_t = torch_module.from_numpy(numeric).to(device)
+        categorical_t = torch_module.from_numpy(categorical).to(device) if categorical is not None else None
+        valid_t = torch_module.from_numpy(micro_valid).to(device)
+        batch, length = micro_valid.shape
+        flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
+        flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
+
+        def _bare_segment_forward(num_input: Any, cat_input: Any) -> Any:
+            """被检查点包裹的纯计算段：无状态写入，重算安全。"""
+            with precision.autocast_context(profile, device.type, torch_module):
+                return model(num_input, cat_input).reshape(batch, length)
+
+        logits = checkpoint(_bare_segment_forward, flat_num, flat_cat, use_reentrant=False)
         logits_parts.append(logits)
         valid_parts.append(valid_t)
     return torch_module.cat(logits_parts, dim=0), torch_module.cat(valid_parts, dim=0)
