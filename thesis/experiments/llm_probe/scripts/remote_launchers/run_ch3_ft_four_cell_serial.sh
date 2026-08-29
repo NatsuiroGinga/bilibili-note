@@ -29,6 +29,18 @@ cell_finished() {
   grep -q '"state": *"finished"' "$status" && grep -q '"exit_code": *0' "$status"
 }
 
+# 每臂结束即把四格读数写进 runs/diagnostics/ch3-ft-four-cell-summary.json。
+# 2026-08-29 增补：此前关键读数靠人工转录，compile 路径 C00 的实体 AP 因此丢失记录。
+# 汇总只读、只披露，失败不影响训练流程。
+emit_summary() {
+  uv run --no-sync python tools/ch3_ft_emit_four_cell_summary.py \
+    --runs-root "$RUNS" 2>&1 | sed 's/^/[汇总] /' \
+    || echo "[$(stamp)] 四格汇总失败，不影响训练；开机后手工重跑该脚本"
+}
+
+# 启动前先汇总一次：即使本轮一臂都跑不完，已完成臂的读数也已落盘。
+emit_summary
+
 for entry in "${CELLS[@]}"; do
   run_id="${entry%%:*}"
   launcher="${entry##*:}"
@@ -53,6 +65,9 @@ for entry in "${CELLS[@]}"; do
   code=$?
   echo "[$(stamp)] $run_id 退出码=$code"
 
+  # 成败都汇总：失败臂的已完成轮次读数同样是证据。
+  emit_summary
+
   if [ "$code" -ne 0 ]; then
     echo "[$(stamp)] $run_id 非零退出，停止后续臂以免在错误状态上继续" >&2
     exit "$code"
@@ -60,3 +75,6 @@ for entry in "${CELLS[@]}"; do
 done
 
 echo "[$(stamp)] 四格全部完成"
+emit_summary
+echo "[$(stamp)] 读数已落盘至 $RUNS/ch3-ft-four-cell-summary.json"
+echo "[$(stamp)] 本机回传：bash scripts/remote_launchers/pull_ch3_ft_four_cell_artifacts.sh"
