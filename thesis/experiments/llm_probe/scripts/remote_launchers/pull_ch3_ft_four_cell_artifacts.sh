@@ -57,41 +57,63 @@ LIGHT_ITEMS=(
   receipts
 )
 
+# gpu-rsync-pull.exp 是 expect（Tcl）脚本，必须用 expect 解释器运行。
+# 2026-08-29 事故：这里原先写成 bash "$PULL_EXP"，bash 解析 Tcl 立刻语法错误，
+# 而错误又被 >/dev/null 吞掉、退出码被管道掩盖，脚本把每一次失败都报成
+# 「可能尚未产生」。三重掩盖使一个必然失败的回传看起来完全正常。
+# 修法：用 expect -f 调用；rsync 的真实 stderr 留到日志里；区分「远端不存在」与「传输失败」。
+pull_one() {
+  local remote="$1" local_dst="$2" label="$3"
+  local out rc
+  out="$(expect -f "$PULL_EXP" "$remote" "$local_dst" 2>&1)"
+  rc=$?
+  if [ "$rc" -eq 0 ]; then
+    return 0
+  fi
+  # rsync 退出码 23/24 表示部分文件不存在，属未启动臂的正常情形；其余是真故障。
+  if printf '%s' "$out" | grep -qE 'No such file or directory|change_dir.*failed'; then
+    echo "[$(stamp)] $label：远端尚无该项，跳过"
+    return 0
+  fi
+  echo "[$(stamp)] $label：回传失败（退出码 $rc）" >&2
+  printf '%s\n' "$out" | grep -viE 'password|passwd' | tail -5 >&2
+  return 1
+}
+
 for run_id in "${RUN_IDS[@]}"; do
   local_dir="$LOCAL_ROOT/runs/diagnostics/$run_id"
   remote_dir="$REMOTE_ROOT/runs/diagnostics/$run_id"
   mkdir -p "$local_dir"
 
   for item in "${LIGHT_ITEMS[@]}"; do
-    # 单项缺失是常态（未启动的臂没有收据），只记不停。
-    if ! bash "$PULL_EXP" "$remote_dir/$item" "$local_dir/" >/dev/null 2>&1; then
-      echo "[$(stamp)] $run_id：$item 未回传（可能尚未产生）"
-    fi
+    pull_one "$remote_dir/$item" "$local_dir/" "$run_id/$item" || failures=$((failures + 1))
   done
 
   if [ "$LIGHT" -eq 0 ]; then
     mkdir -p "$local_dir/checkpoints"
-    if bash "$PULL_EXP" "$remote_dir/checkpoints/" "$local_dir/checkpoints/"; then
+    if pull_one "$remote_dir/checkpoints/" "$local_dir/checkpoints/" "$run_id/checkpoints"; then
       echo "[$(stamp)] $run_id：检查点已回传"
     else
-      echo "[$(stamp)] $run_id：检查点未回传（可能尚未产生）"
+      failures=$((failures + 1))
     fi
   fi
 done
 
 # 四格汇总本身也回传；它是数值的规范落点。
-if ! bash "$PULL_EXP" "$REMOTE_ROOT/runs/diagnostics/ch3-ft-four-cell-summary.json" \
-     "$LOCAL_ROOT/runs/diagnostics/" >/dev/null 2>&1; then
-  echo "[$(stamp)] 四格汇总未回传（可能尚未生成，先在服务器运行 ch3_ft_emit_four_cell_summary.py）"
-  failures=$((failures + 1))
-fi
+pull_one "$REMOTE_ROOT/runs/diagnostics/ch3-ft-four-cell-summary.json" \
+  "$LOCAL_ROOT/runs/diagnostics/" "四格汇总" || failures=$((failures + 1))
 
 echo "[$(stamp)] 回传完成。本机四格读数："
-if [ -f "$LOCAL_ROOT/runs/diagnostics/ch3-ft-four-cell-summary.json" ]; then
-  "$LOCAL_ROOT/tools/env/activate.sh" >/dev/null 2>&1 || true
-  uv run --no-sync python "$LOCAL_ROOT/tools/ch3_ft_emit_four_cell_summary.py" \
-    --runs-root "$LOCAL_ROOT/runs/diagnostics" 2>&1 || \
-    echo "[$(stamp)] 本机汇总重算失败，直接查看回传的 ch3-ft-four-cell-summary.json"
-fi
+# 本机重算用 miniconda rwkv 环境：项目 .venv 无 NumPy/PyTorch（根 AGENTS.md 实验环境索引），
+# 而汇总脚本只用标准库，任一可用解释器均可。activate.sh 必须 source 而非执行，
+# 这里不需要它，直接选解释器更可靠。
+LOCAL_PY=/opt/miniconda3/envs/rwkv/bin/python
+[ -x "$LOCAL_PY" ] || LOCAL_PY=python3
+"$LOCAL_PY" "$LOCAL_ROOT/tools/ch3_ft_emit_four_cell_summary.py" \
+  --runs-root "$LOCAL_ROOT/runs/diagnostics" \
+  || echo "[$(stamp)] 本机汇总重算失败，直接查看 runs/diagnostics/ch3-ft-four-cell-summary.json"
 
+if [ "$failures" -gt 0 ]; then
+  echo "[$(stamp)] 有 $failures 项回传失败，见上方 stderr" >&2
+fi
 exit "$failures"
