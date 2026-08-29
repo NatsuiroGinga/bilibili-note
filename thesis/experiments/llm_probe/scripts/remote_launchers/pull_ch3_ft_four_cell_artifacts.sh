@@ -44,34 +44,50 @@ fi
 
 failures=0
 
-# 轻量制品：收据、状态、配置、日志。训练进行中也可反复拉，体积以 KiB 计。
-LIGHT_ITEMS=(
-  status.json
-  launch.log
-  run.log
-  config.json
-  science-identity.json
-  runtime-identity.json
-  environment-receipt.json
-  budget-receipt.json
-  receipts
-)
+# 轻量轮一次性拉整个运行目录并按体积跳过检查点，而不是逐项拉。
+# 2026-08-29 实测：逐项拉 4 臂 × 9 项 = 36 次 SSH 握手，单轮超过两分钟，
+# 用作周期守护时每轮都超时。整目录一次 rsync 把握手降到 4 次，轻量轮回到秒级。
+# 阈值 5m：收据与日志都在 KiB–百 KiB 量级，检查点最小的 3.7 MiB（选轮权重）
+# 也要排除，最大的 810 MiB（含每实体记忆队列）更要排除，取 5m 有足够余量。
+LIGHT_MAX_SIZE=5m
 
-# gpu-rsync-pull.exp 是 expect（Tcl）脚本，必须用 expect 解释器运行。
-# 2026-08-29 事故：这里原先写成 bash "$PULL_EXP"，bash 解析 Tcl 立刻语法错误，
-# 而错误又被 >/dev/null 吞掉、退出码被管道掩盖，脚本把每一次失败都报成
-# 「可能尚未产生」。三重掩盖使一个必然失败的回传看起来完全正常。
-# 修法：用 expect -f 调用；rsync 的真实 stderr 留到日志里；区分「远端不存在」与「传输失败」。
-pull_one() {
-  local remote="$1" local_dst="$2" label="$3"
+# 内联 expect 而非复用 gpu-rsync-pull.exp：后者接口固定为两个路径参数，
+# 无法传 --exclude，而轻量轮必须排除 checkpoints 才能保持秒级。
+# 不修改 gpu-rsync-pull.exp，因为其他工具依赖它的既有接口。
+#
+# 2026-08-29 事故留痕：本函数原先写成 bash "$PULL_EXP"，用 bash 去跑 Tcl 脚本，
+# 一读 shebang 之后的语法就报错；错误被 >/dev/null 吞掉、退出码被管道掩盖，
+# 于是每一次必然失败的回传都被报成「可能尚未产生」。三重掩盖使故障完全不可见。
+# 教训：语法检查通过不等于能跑，交付前必须真实执行一次。
+# 参数经环境变量传入：expect -c 不会把命令行尾随参数填进 argv
+# （2026-08-29 实测：写成 expect -c 'script' a b 会在 lrange $argv 报错）。
+# 轻量轮用 --max-size 而非 --exclude 路径：检查点是运行目录里唯一的大文件，
+# 按体积过滤比维护路径清单更不易漏。
+pull_rsync() {
+  local label="$3"
   local out rc
-  out="$(expect -f "$PULL_EXP" "$remote" "$local_dst" 2>&1)"
+  out="$(RSYNC_REMOTE="$1" RSYNC_DST="$2" RSYNC_MAXSIZE="${4:-}" expect -c '
+    set timeout 1800
+    set remote $env(RSYNC_REMOTE)
+    set dst $env(RSYNC_DST)
+    set maxsize $env(RSYNC_MAXSIZE)
+    set ssh_command [split $env(GPU_SSH) " "]
+    set remote_host [lindex $ssh_command end]
+    set remote_shell [join [lrange $ssh_command 0 end-1] " "]
+    set opts [list -rt --partial]
+    if {$maxsize ne ""} { lappend opts --max-size=$maxsize }
+    eval spawn rsync $opts -e {$remote_shell} {$remote_host:$remote} {$dst}
+    expect {
+      -re {(?i)are you sure you want to continue connecting} { send -- "yes\r"; exp_continue }
+      -re {(?i)password:} { send -- "$env(GPU_PWD)\r"; exp_continue }
+      eof
+    }
+    set result [wait]
+    exit [lindex $result 3]
+  ' 2>&1)"
   rc=$?
-  if [ "$rc" -eq 0 ]; then
-    return 0
-  fi
-  # rsync 退出码 23/24 表示部分文件不存在，属未启动臂的正常情形；其余是真故障。
-  if printf '%s' "$out" | grep -qE 'No such file or directory|change_dir.*failed'; then
+  [ "$rc" -eq 0 ] && return 0
+  if printf '%s' "$out" | grep -qE 'No such file or directory|change_dir.*failed|link_stat.*failed'; then
     echo "[$(stamp)] $label：远端尚无该项，跳过"
     return 0
   fi
@@ -85,22 +101,16 @@ for run_id in "${RUN_IDS[@]}"; do
   remote_dir="$REMOTE_ROOT/runs/diagnostics/$run_id"
   mkdir -p "$local_dir"
 
-  for item in "${LIGHT_ITEMS[@]}"; do
-    pull_one "$remote_dir/$item" "$local_dir/" "$run_id/$item" || failures=$((failures + 1))
-  done
-
-  if [ "$LIGHT" -eq 0 ]; then
-    mkdir -p "$local_dir/checkpoints"
-    if pull_one "$remote_dir/checkpoints/" "$local_dir/checkpoints/" "$run_id/checkpoints"; then
-      echo "[$(stamp)] $run_id：检查点已回传"
-    else
-      failures=$((failures + 1))
-    fi
+  if [ "$LIGHT" -eq 1 ]; then
+    pull_rsync "$remote_dir/" "$local_dir/" "$run_id（轻量）" "$LIGHT_MAX_SIZE" \
+      || failures=$((failures + 1))
+  else
+    pull_rsync "$remote_dir/" "$local_dir/" "$run_id（全量）" || failures=$((failures + 1))
   fi
 done
 
 # 四格汇总本身也回传；它是数值的规范落点。
-pull_one "$REMOTE_ROOT/runs/diagnostics/ch3-ft-four-cell-summary.json" \
+pull_rsync "$REMOTE_ROOT/runs/diagnostics/ch3-ft-four-cell-summary.json" \
   "$LOCAL_ROOT/runs/diagnostics/" "四格汇总" || failures=$((failures + 1))
 
 echo "[$(stamp)] 回传完成。本机四格读数："
