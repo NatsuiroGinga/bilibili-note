@@ -682,6 +682,14 @@ def _causal_entity_memory_model_class() -> Any:
         def inject(self, representation: Any, memory: Any, memory_valid: Any) -> Any:
             return self.memory(representation, memory, memory_valid)
 
+        def forward(
+            self, x_num: Any, x_cat: Any, memory: Any, memory_valid: Any
+        ) -> tuple[Any, Any]:
+            """统一执行骨干编码、记忆注入和预测，确保 ``torch.compile`` 覆盖 CEM 路径。"""
+            representation = self.backbone.encode(x_num, x_cat)
+            injected = self.memory(representation, memory, memory_valid)
+            return self.backbone.predict(injected), injected
+
     _ENTITY_MEMORY_MODEL_CACHE["CausalEntityMemoryFTModel"] = CausalEntityMemoryFTModel
     return CausalEntityMemoryFTModel
 
@@ -980,12 +988,11 @@ def entity_memory_training_step(
         flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
 
         with precision.autocast_context(profile, device.type, torch_module):
-            representation = model.encode(flat_num, flat_cat)
-            width = representation.shape[-1]
             broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
-            injected = model.inject(representation, broadcast_memory, broadcast_valid)
-            logits = model.predict(injected).reshape(batch, length)
+            logits_flat, injected = model(flat_num, flat_cat, broadcast_memory, broadcast_valid)
+            logits = logits_flat.reshape(batch, length)
 
+        width = injected.shape[-1]
         summary = _segment_summary_from_injected(injected, micro_valid, batch, length, width, torch_module, device)
         memory_state.write(micro_entity_ids, summary)
 
@@ -1062,14 +1069,13 @@ def entity_memory_validation_metrics(
                 flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
                 flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
 
-                representation = model.encode(flat_num, flat_cat)
-                width = representation.shape[-1]
                 broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
-                injected = model.inject(representation, broadcast_memory, broadcast_valid)
-                logits = model.predict(injected).reshape(batch, length)
+                logits_flat, injected = model(flat_num, flat_cat, broadcast_memory, broadcast_valid)
+                logits = logits_flat.reshape(batch, length)
                 gate_means.append(model.memory.gate_statistics()["gate_mean"])
                 valid_slot_means.append(float(segment_valid.sum(dim=1).to(torch_module.float32).mean().item()))
 
+                width = injected.shape[-1]
                 summary = _segment_summary_from_injected(injected, valid, batch, length, width, torch_module, device)
                 memory_state.write(micro_entity_ids, summary)
 
@@ -1341,11 +1347,10 @@ def _flow_phase_entity_memory(
         flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
         flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
         with precision.autocast_context(profile, device.type, torch_module):
-            representation = model.encode(flat_num, flat_cat)
-            width = representation.shape[-1]
             broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
-            injected = model.inject(representation, broadcast_memory, broadcast_valid)
-            logits = model.predict(injected).reshape(batch, length)
+            logits_flat, injected = model(flat_num, flat_cat, broadcast_memory, broadcast_valid)
+            logits = logits_flat.reshape(batch, length)
+        width = injected.shape[-1]
         summary = _segment_summary_from_injected(injected, micro_valid, batch, length, width, torch_module, device)
         memory_state.write(micro_entity_ids, summary)
         labels_t = torch_module.from_numpy(labels[start:stop]).to(device)
@@ -1441,38 +1446,93 @@ def _entity_ranking_memory_forward(
     本身均未涉及这一问题（各自独立正确，只是从未被设计成共享同一状态实例）。
     """
     import numpy as np
+    from torch.utils.checkpoint import checkpoint
 
     micro = config["training"]["micro_batch_sequences"]
     logits_parts = []
     valid_parts = []
-    for start in range(0, indices.shape[0], micro):
-        stop = start + micro
-        micro_rows = entity_rows[start:stop]
-        micro_entity_ids = torch_module.from_numpy(entity_of_row[micro_rows].astype(np.int64)).to(device)
-        micro_is_start = torch_module.from_numpy(is_start_np[start:stop]).to(device)
-        micro_valid = valid[start:stop]
-        if bool(micro_is_start.any()):
-            scratch_memory_state.reset_entities(micro_entity_ids[micro_is_start])
-        segment_memory = scratch_memory_state.read(micro_entity_ids)
-        segment_valid = scratch_memory_state.valid(micro_entity_ids)
-        numeric, categorical = view.features(indices[start:stop])
-        numeric_t = torch_module.from_numpy(numeric).to(device)
-        categorical_t = torch_module.from_numpy(categorical).to(device) if categorical is not None else None
-        valid_t = torch_module.from_numpy(micro_valid).to(device)
-        batch, length = micro_valid.shape
-        flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
-        flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
-        with precision.autocast_context(profile, device.type, torch_module):
-            representation = model.encode(flat_num, flat_cat)
-            width = representation.shape[-1]
-            broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
-            injected = model.inject(representation, broadcast_memory, broadcast_valid)
-            logits = model.predict(injected).reshape(batch, length)
-        summary = _segment_summary_from_injected(injected, micro_valid, batch, length, width, torch_module, device)
-        scratch_memory_state.write(micro_entity_ids, summary)
-        logits_parts.append(logits)
-        valid_parts.append(valid_t)
-    return torch_module.cat(logits_parts, dim=0), torch_module.cat(valid_parts, dim=0)
+
+    # 输入按 (entity, T23) 分组；若直接按连续行切微批，同一实体的多个片段会在一次
+    # read 之后并行前向，既看不到前一片段刚写入的状态，也会触发 EntityMemoryState
+    # 对重复实体写入的拒绝。改为按实体内片段深度交错：每一层每个实体最多出现一次，
+    # 层 k 完成写入后才进入层 k+1。最终再恢复到原分组顺序供袋级损失消费。
+    entity_ids_np = entity_of_row[entity_rows].astype(np.int64, copy=False)
+    boundaries = np.flatnonzero(np.r_[True, entity_ids_np[1:] != entity_ids_np[:-1]])
+    ends = np.r_[boundaries[1:], entity_ids_np.size]
+    max_depth = int((ends - boundaries).max()) if boundaries.size else 0
+    depth_orders = []
+    for depth in range(max_depth):
+        positions = boundaries + depth
+        depth_orders.append(positions[positions < ends])
+    execution_order = np.concatenate(depth_orders) if depth_orders else np.empty(0, dtype=np.int64)
+    require(
+        execution_order.size == entity_rows.size
+        and np.array_equal(np.sort(execution_order), np.arange(entity_rows.size)),
+        "实体排序记忆执行序未精确覆盖全部片段",
+        EXIT_RUNTIME,
+    )
+
+    for depth_positions in depth_orders:
+        # 不能跨深度层切微批；否则层边界处可能把同一实体的相邻片段放进同一批，
+        # 两段会读取同一旧状态并触发重复实体写入拒绝。
+        for start in range(0, depth_positions.shape[0], micro):
+            stop = start + micro
+            micro_positions = depth_positions[start:stop]
+            micro_rows = entity_rows[micro_positions]
+            micro_entity_ids = torch_module.from_numpy(entity_of_row[micro_rows].astype(np.int64)).to(device)
+            micro_is_start = torch_module.from_numpy(is_start_np[micro_positions]).to(device)
+            micro_valid = valid[micro_positions]
+            if bool(micro_is_start.any()):
+                scratch_memory_state.reset_entities(micro_entity_ids[micro_is_start])
+            segment_memory = scratch_memory_state.read(micro_entity_ids)
+            segment_valid = scratch_memory_state.valid(micro_entity_ids)
+            numeric, categorical = view.features(indices[micro_positions])
+            numeric_t = torch_module.from_numpy(numeric).to(device)
+            categorical_t = torch_module.from_numpy(categorical).to(device) if categorical is not None else None
+            valid_t = torch_module.from_numpy(micro_valid).to(device)
+            batch, length = micro_valid.shape
+            flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
+            flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
+
+            def _memory_segment_forward(
+                num_input: Any,
+                cat_input: Any,
+                seg_mem: Any,
+                seg_valid: Any,
+                batch_size: int = batch,
+                sequence_length: int = length,
+            ) -> Any:
+                """被检查点包裹的纯计算段，状态读写均留在检查点之外。"""
+                with precision.autocast_context(profile, device.type, torch_module):
+                    broadcast_memory, broadcast_valid = _broadcast_segment_memory(
+                        seg_mem, seg_valid, batch_size, sequence_length
+                    )
+                    logits_flat, injected_local = model(
+                        num_input, cat_input, broadcast_memory, broadcast_valid
+                    )
+                    return logits_flat.reshape(batch_size, sequence_length), injected_local
+
+            # 实体排序损失需要整批实体分数同时存在；检查点只重算纯模型段，状态推进一次。
+            logits, injected = checkpoint(
+                _memory_segment_forward, flat_num, flat_cat, segment_memory, segment_valid,
+                use_reentrant=False,
+            )
+            width = injected.shape[-1]
+            summary = _segment_summary_from_injected(
+                injected, micro_valid, batch, length, width, torch_module, device
+            )
+            scratch_memory_state.write(micro_entity_ids, summary)
+            logits_parts.append(logits)
+            valid_parts.append(valid_t)
+    execution_logits = torch_module.cat(logits_parts, dim=0)
+    execution_valid = torch_module.cat(valid_parts, dim=0)
+    restore_order = np.empty_like(execution_order)
+    restore_order[execution_order] = np.arange(execution_order.size)
+    restore_order_t = torch_module.from_numpy(restore_order).to(device)
+    return (
+        execution_logits.index_select(0, restore_order_t),
+        execution_valid.index_select(0, restore_order_t),
+    )
 
 
 def _ranking_phase(
