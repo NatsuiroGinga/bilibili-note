@@ -210,15 +210,38 @@ class CvarThresholdState:
     `EntityStratifiedSampler.sample()` 输出的 positive_entities，是 E23 原始下标，
     不是 prefix_scores 用的批内紧凑下标）存取、惰性初始化与序列化，不绑定优化器
     ——调用方对 get() 返回的叶张量完成一次反向传播后，需显式调用 commit() 写回。
+
+    2026-08-31 增加跨步水库分位数估计（见
+    `.Codex/docs/RWKV/2026-08-31-CVaR预算失配数学分析/分析报告.md`）：
+    Rockafellar-Uryasev 变分形式下 xi_{p,K} 的最优值恰是配对损失 L_pn 的
+    (1 - K_eff/N_n) 分位数，故不需要用子梯度 SGD 去追踪它——子梯度追踪产生的滞后
+    正是各预算档 CVaR 活动率偏离设计值 beta 的直接原因。本类因此为每个正实体维护
+    一个跨步环形水库，直接对水库取分位数。**跨步是关键**：单步只有 n_neg 个负实体
+    （冻结配置为 64），估不出最低档所需的 1/beta_min ≈ 1003 分位数，跨步累积可以，
+    所以不必增大 n_neg。
+
+    子梯度接口 get()/commit() 保留不删：旧检查点与旧诊断脚本仍在调用，且水库尚未
+    积累到某档所需样本量时需要回退到 init_value 起步。
     """
 
     def __init__(
-        self, budgets: Sequence[int], init_value: float = 0.0, dtype: torch.dtype = torch.float32
+        self,
+        budgets: Sequence[int],
+        init_value: float = 0.0,
+        reservoir_size: int = 4096,
+        dtype: torch.dtype = torch.float32,
     ) -> None:
         self._budgets = tuple(int(k) for k in budgets)
         self._init_value = float(init_value)
         self._dtype = dtype
         self._table: dict[int, torch.Tensor] = {}
+        self._reservoir_size = int(reservoir_size)
+        require(self._reservoir_size > 0, "reservoir_size 须为正整数")
+        # 每个正实体一个环形缓冲：样本是该实体与各负实体的配对损失 L_pn。
+        # 跨步累积是本修法的关键——单步只有 n_neg 个负实体，
+        # 估不出最低档所需的 1/beta_min 分位数，跨步可以。
+        self._reservoir: dict[int, torch.Tensor] = {}
+        self._reservoir_fill: dict[int, int] = {}
 
     @property
     def budgets(self) -> tuple[int, ...]:
@@ -246,18 +269,129 @@ class CvarThresholdState:
         for row, entity_id in zip(detached, ids):
             self._table[entity_id] = row.clone()
 
+    def observe(
+        self, positive_entity_ids: np.ndarray | torch.Tensor, pairwise: torch.Tensor
+    ) -> None:
+        """把本步观测到的配对损失写入各正实体的环形水库。
+
+        pairwise 形状 (Np, Nn)，第 p 行是该正实体对本步全部负实体的 L_pn。
+        只存数值不存图：阈值是统计量而非优化变量，不参与反向传播。
+
+        调用顺序有科学含义：必须**先** quantile() 取阈值、算完损失，**再** observe()
+        写入本步样本。顺序颠倒会让本步样本污染本步阈值，破坏「阈值由严格过去样本
+        估计」这一性质。
+        """
+        require(pairwise.dim() == 2, "pairwise 须为二维 (Np, Nn)")
+        ids = [int(e) for e in positive_entity_ids]
+        require(pairwise.shape[0] == len(ids), "pairwise 行数须与正实体数一致")
+        samples = pairwise.detach().to(self._dtype).cpu()
+        for row, entity_id in zip(samples, ids):
+            if entity_id not in self._reservoir:
+                self._reservoir[entity_id] = torch.zeros(self._reservoir_size, dtype=self._dtype)
+                self._reservoir_fill[entity_id] = 0
+            buffer = self._reservoir[entity_id]
+            fill = self._reservoir_fill[entity_id]
+            incoming = row.reshape(-1)
+            take = min(int(incoming.numel()), self._reservoir_size)
+            head = incoming[-take:]
+            start = fill % self._reservoir_size
+            end = start + take
+            if end <= self._reservoir_size:
+                buffer[start:end] = head
+            else:
+                split = self._reservoir_size - start
+                buffer[start:] = head[:split]
+                buffer[: end - self._reservoir_size] = head[split:]
+            self._reservoir_fill[entity_id] = fill + take
+
+    def quantile(
+        self,
+        positive_entity_ids: np.ndarray | torch.Tensor,
+        effective_budgets: Sequence[float],
+        sampled_negative_count: int,
+    ) -> torch.Tensor:
+        """按 Rockafellar-Uryasev 最优点直接取分位数，返回 detached 阈值 (Np, |K|)。
+
+        第 col 列取 1 - eff_K[col] / sampled_negative_count 分位数：CVaR 的内层
+        min 恰在该分位数取得，故不需要用子梯度追踪它。effective_budgets 与
+        sampled_negative_count 的口径与 effective_budget() 一致（前者是已按抽样
+        规模折算的等效 K，后者是该折算所用的分母 n_neg）。
+
+        水库未积累到该分位数所需样本量时，退回 init_value 并可由
+        reservoir_diagnostics() 看出，不静默给出不可靠的极端分位数。
+        """
+        require(sampled_negative_count > 0, "sampled_negative_count 须为正")
+        ids = [int(e) for e in positive_entity_ids]
+        levels: list[float] = []
+        for eff_k in effective_budgets:
+            level = 1.0 - float(eff_k) / float(sampled_negative_count)
+            require(0.0 < level < 1.0, f"分位数水平越界：{level}")
+            levels.append(level)
+        rows = []
+        for entity_id in ids:
+            fill = self._reservoir_fill.get(entity_id, 0)
+            usable = min(fill, self._reservoir_size)
+            if usable == 0:
+                rows.append(torch.full((len(levels),), self._init_value, dtype=self._dtype))
+                continue
+            window = self._reservoir[entity_id][:usable].to(torch.float32)
+            values = []
+            for level in levels:
+                # 该分位数需要至少 1/(1-level) 个样本才有意义，否则退回初值。
+                needed = 1.0 / max(1.0 - level, 1e-12)
+                if usable < needed:
+                    values.append(self._init_value)
+                else:
+                    values.append(float(torch.quantile(window, level)))
+            rows.append(torch.tensor(values, dtype=self._dtype))
+        return torch.stack(rows)
+
+    def reservoir_diagnostics(self) -> dict[str, Any]:
+        """水库占用与分位数可用性，供运行收据记录。"""
+        if not self._reservoir_fill:
+            return {"tracked_entities": 0, "reservoir_size": self._reservoir_size}
+        fills = np.array([min(v, self._reservoir_size) for v in self._reservoir_fill.values()])
+        return {
+            "tracked_entities": int(fills.size),
+            "reservoir_size": self._reservoir_size,
+            "fill_median": float(np.median(fills)),
+            "fill_min": int(fills.min()),
+            "fill_full_fraction": float((fills >= self._reservoir_size).mean()),
+        }
+
     def state_dict(self) -> dict[str, Any]:
+        # 水库以张量而非列表导出：本状态只进 torch.save 的检查点载荷
+        # （ch3_ft_c00_dual_selection.checkpoint_payload -> atomic_torch），
+        # 不进 JSON；张量导出比 tolist() 小得多也快得多。
+        # 冻结配置下上界为 165 个正实体 × 4096 × 4B ≈ 2.6 MiB。
         return {
             "budgets": list(self._budgets),
             "init_value": self._init_value,
             "entries": {str(k): v.tolist() for k, v in self._table.items()},
+            "reservoir_size": self._reservoir_size,
+            "reservoir": {str(k): v.clone() for k, v in self._reservoir.items()},
+            "reservoir_fill": {str(k): int(v) for k, v in self._reservoir_fill.items()},
         }
 
     def load_state_dict(self, payload: dict[str, Any]) -> None:
+        """加载阈值状态。水库三键缺失时降级为空水库而不是抛异常——
+
+        本方法在 2026-08-31 之前写出的检查点里没有这三个键，续训必须仍能加载；
+        空水库会让 quantile() 先按 init_value 起步，再由后续步重新积累样本。
+        """
         self._budgets = tuple(int(k) for k in payload["budgets"])
         self._init_value = float(payload["init_value"])
         self._table = {
             int(k): torch.tensor(v, dtype=self._dtype) for k, v in payload["entries"].items()
+        }
+        self._reservoir_size = int(payload.get("reservoir_size", self._reservoir_size))
+        require(self._reservoir_size > 0, "检查点中的 reservoir_size 非正")
+        self._reservoir = {
+            int(k): torch.as_tensor(v, dtype=self._dtype).clone()
+            for k, v in (payload.get("reservoir") or {}).items()
+        }
+        self._reservoir_fill = {
+            int(k): int(v) for k, v in (payload.get("reservoir_fill") or {}).items()
         }
 
 
