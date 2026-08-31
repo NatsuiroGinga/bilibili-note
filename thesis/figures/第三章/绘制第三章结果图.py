@@ -927,27 +927,6 @@ def measure(stem: str, outputs: dict[str, str], width_mm: float, height_mm: floa
     return {"png_pixels": [px_w, px_h], "png_ppi_measured": [round(ppi_w, 1), round(ppi_h, 1)]}
 
 
-# 图 3-1 至图 3-4 由机制图脚本产出，本脚本不重绘，只在清单中沿用并补全题注行。
-MECHANISM_CAPTIONS: dict[str, str] = {
-    "图3-1-整体方法框架": (
-        "图3-1　本章方法的整体框架：逐流特征经因果前缀跨流聚合进入表示层，"
-        "实体级幂平均池化在决策层把同一实体的逐流分数汇成实体分数；"
-        "表示层机制与决策层机制分别以斜线、反斜线填充标出"
-    ),
-    "图3-2-二IP无向对序列构造": (
-        "图3-2　二 IP 无向对序列构造：双向流经无向对键归并到同一实体，"
-        "键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记"
-    ),
-    "图3-3-因果前缀跨流聚合": (
-        "图3-3　因果前缀跨流聚合：下三角因果掩码与非因果整窗聚合的对照，"
-        "以及前缀聚合的常数代价增量更新"
-    ),
-    "图3-4-实体级可学Lp池化": (
-        "图3-4　实体级可学幂平均池化：广义幂平均关于池化指数的单调曲线，"
-        "标出几何平均、算术平均与上界三个特例"
-    ),
-}
-
 WITHDRAWN: tuple[dict[str, Any], ...] = (
     {
         "stem": "图3-10-攻击类别分面",
@@ -963,6 +942,26 @@ WITHDRAWN: tuple[dict[str, Any], ...] = (
         ),
         "files_moved_to": "作废/",
     },
+    {
+        "stem": "图3-3-因果前缀跨流聚合",
+        "withdrawn_at": "2026-08-31",
+        "reason": (
+            "第三章重锚到 CEM-BER，表示层机制由因果前缀跨流聚合改为"
+            "因果实体记忆的读写与交叉注意力，旧图描述的机制不再是本章内容。"
+        ),
+        "recovery": "若正文重新采用因果前缀聚合，须先恢复对应机制合同再重绘。",
+        "files_moved_to": "作废/",
+    },
+    {
+        "stem": "图3-4-实体级可学Lp池化",
+        "withdrawn_at": "2026-08-31",
+        "reason": (
+            "第三章重锚到 CEM-BER，决策层机制由实体级可学幂平均池化改为"
+            "预算感知实体排序的训练目标，旧图描述的机制不再是本章内容。"
+        ),
+        "recovery": "若正文重新采用可学幂平均池化，须先恢复对应机制合同再重绘。",
+        "files_moved_to": "作废/",
+    },
 )
 
 
@@ -974,30 +973,23 @@ def build_manifest(entries: list[dict[str, Any]], sources: list[dict[str, Any]])
     previous: dict[str, Any] = {}
     if MANIFEST_PATH.exists():
         previous = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    prior = {item.get("stem"): item for item in previous.get("figures", [])}
 
+    # 图 3-1 至图 3-4 由机制图脚本产出并自登记题注，本脚本不重绘、不另存一份题注，
+    # 只按 generator 字段原样沿用其条目并重新实测尺寸。机制重锚会改变这几张图的
+    # 图名与题注，两处各存一份必然漂移，故这里不再硬编码 stem 列表。
     mechanism_entries: list[dict[str, Any]] = []
-    for stem, caption in MECHANISM_CAPTIONS.items():
-        old = prior.get(stem)
-        if old is None:
-            raise KeyError(f"图件清单缺少机制图条目：{stem}")
+    for old in previous.get("figures", []):
+        if old.get("generator") != MECHANISM_GENERATOR:
+            continue
+        stem = str(old["stem"])
         outputs = old["outputs"]
         if not all((ROOT / name).exists() for name in outputs.values()):
             raise FileNotFoundError(f"机制图输出缺失：{stem}")
-        entry = {
-            "stem": stem,
-            "generator": MECHANISM_GENERATOR,
-            "caption": caption,
-            "width_mm": old["width_mm"],
-            "height_mm": old["height_mm"],
-            "png_dpi": old["png_dpi"],
-            "evidence_mode": "method_schematic_without_experimental_results",
-            "data_source": "不承载实验数据",
-            "data_keys": [],
-            "outputs": outputs,
-        }
+        entry = dict(old)
         entry.update(measure(stem, outputs, float(old["width_mm"]), float(old["height_mm"])))
         mechanism_entries.append(entry)
+    if not mechanism_entries:
+        raise KeyError("图件清单中没有机制图条目，请先运行 绘制第三章机制图.py")
 
     typography = {
         "cjk_font_requested": fs.CJK_FONT.requested,
@@ -1027,12 +1019,12 @@ def build_manifest(entries: list[dict[str, Any]], sources: list[dict[str, Any]])
             {
                 "script": MECHANISM_GENERATOR,
                 "evidence_mode": "method_schematic_without_experimental_results",
-                "figures": sorted(MECHANISM_CAPTIONS),
+                "figures": sorted(str(entry["stem"]) for entry in mechanism_entries),
                 "typography": typography,
                 "environment": environment,
                 "note": (
                     "两个生成脚本共用 figstyle.py 的字体解析，故字体登记相同；"
-                    "本条的尺寸与分辨率由本轮 PIL 实测复核，题注行在本轮补全。"
+                    "图名、题注与证据模式由机制图脚本登记，本条只重新实测尺寸与分辨率。"
                 ),
             },
             {
