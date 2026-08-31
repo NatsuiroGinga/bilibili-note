@@ -48,6 +48,11 @@
   `uv run --no-sync`。本机需要 torch 时一律走 miniconda `rwkv`。
 - 依赖管理统一用 uv 项目方式（`uv sync`／`uv add`／`uv lock`），**不用 `uv pip install -r requirements.txt`**
   ——后者无锁文件、不可复现，仅保留作兼容入口。
+- **一次性诊断与分析脚本按依赖选环境，不新建环境**：只用标准库或 NumPy 的走 miniconda `rwkv`；
+  需要导入 `scripts/literature_search` 模块或 `sentence-transformers` 的走该 uv 项目环境；
+  需要 torch 的一律 miniconda `rwkv`。脚本产物放会话临时目录并随任务清理，
+  确有复用价值再固化进 `tools/`。**禁止裸用系统 `python3`**——本机系统解释器缺 NumPy
+  与向量后端，2026-08-31 曾因此连续三次选错环境。
 - 两端必须执行同一份 Python 工具、模型公式、数据接口、指标与检查点模式；只允许运行配置、
   设备精度、批量、计算预算与运行身份不同。MPS 权重不得续训或冒充正式 CUDA 权重。
 - 新增环境前先证明上述三者都不适用，并同步更新本表；发现表中配置与实测不符时，
