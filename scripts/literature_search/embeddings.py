@@ -18,7 +18,12 @@ class EmbeddingBackend:
             from sentence_transformers import SentenceTransformer
         except ImportError as error:
             raise RuntimeError(
-                "向量后端未安装。请按 README 使用 uv 创建隔离环境并安装 requirements.txt。"
+                "向量后端不可用：当前解释器没有 sentence-transformers。\n"
+                "唯一受支持的入口是仓库根目录下的 uv 项目环境：\n"
+                "  uv run --project scripts/literature_search --locked "
+                "python -m scripts.literature_search <子命令>\n"
+                "不要使用 .cache/literature-search/venv（历史遗留，依赖不完整）、"
+                "系统 python3 或 conda 环境——它们都缺向量后端。"
             ) from error
         self.model = SentenceTransformer(
             model_name,

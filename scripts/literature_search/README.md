@@ -23,32 +23,48 @@
 
 ## 环境
 
-词法索引只需要仓库现有 Python 与 NumPy。完整向量索引建议建立隔离环境：
+**唯一受支持的入口是 uv 项目环境，从仓库根目录执行：**
 
 ```bash
-uv venv .cache/literature-search/venv --python 3.11
-uv pip install --python .cache/literature-search/venv/bin/python \
-  -r scripts/literature_search/requirements.txt
+uv run --project scripts/literature_search --locked python -m scripts.literature_search <子命令>
 ```
 
-模型使用 `intfloat/multilingual-e5-small` 固定修订，首次完整构建会下载约 488 MB 到 Hugging Face 标准缓存。可用 `--model-cache` 指定缓存目录，或在缓存准备好后加 `--offline` 禁止网络。
+该环境由 `scripts/literature_search/pyproject.toml` 与 `uv.lock` 锁定，
+词法与向量通道所需依赖全部在内（实测 `numpy 2.0.2`、`sentence-transformers 5.1.1`）。
+首次执行会安装依赖（含约 106 MiB 的 torch），之后命中缓存。
+
+**不要使用下列入口，它们都会失败或给出误导性结果**（2026-08-31 实测）：
+
+| 入口 | 实际状态 |
+| --- | --- |
+| `.cache/literature-search/venv/bin/python` | 历史遗留，依赖不完整，连 `numpy` 都没有，导入即失败 |
+| 系统 `python3` | 是否有 `numpy` 取决于机器，且一定没有向量后端 |
+| conda 环境（如 `/opt/miniconda3/envs/rwkv`） | 有 `numpy` 与 `torch`，但没有 `sentence-transformers`，`--mode hybrid` 直接报错 |
+
+模型使用 `intfloat/multilingual-e5-small` 固定修订，首次完整构建会下载约 488 MB 到
+Hugging Face 标准缓存。可用 `--model-cache` 指定缓存目录，或在缓存准备好后加 `--offline` 禁止网络。
 
 ## 命令
 
-```bash
-# 完整构建
-.cache/literature-search/venv/bin/python -m scripts.literature_search build
+以下命令一律从仓库根目录执行。为省略重复，先设一个别名：
 
-# 不安装向量依赖时先构建中文词法索引
-python3 -m scripts.literature_search build --lexical-only
+```bash
+alias litsearch='uv run --project scripts/literature_search --locked python -m scripts.literature_search'
+```
+
+```bash
+# 完整构建（含向量通道）
+litsearch build
+
+# 只构建中文词法索引（跳过向量编码，构建快但 --mode hybrid 不可用）
+litsearch build --lexical-only
 
 # 查询与状态
-.cache/literature-search/venv/bin/python -m scripts.literature_search query \
-  "正常性漂移异常检测" --mode hybrid --top-k 10
-python3 -m scripts.literature_search status --json
+litsearch query "正常性漂移异常检测" --mode hybrid --top-k 10
+litsearch status --json
 
 # 冻结对照集
-.cache/literature-search/venv/bin/python -m scripts.literature_search evaluate
+litsearch evaluate
 ```
 
 ## 在线候选
@@ -60,8 +76,7 @@ python3 -m scripts.literature_search status --json
 - `--scope all`：分区返回本地证据与外部候选，二者不混排分数。
 
 ```bash
-python3 -m scripts.literature_search query \
-  "normality shift anomaly detection" --scope all --mode lexical --json
+litsearch query "normality shift anomaly detection" --scope all --mode lexical --json
 ```
 
 可选环境变量只从进程环境读取，不写入索引或输出：

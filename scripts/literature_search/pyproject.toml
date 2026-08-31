@@ -1,0 +1,14 @@
+[project]
+name = "literature-search"
+version = "0.1.0"
+description = "本仓库 wiki/papers 全文笔记的关键词与向量混合检索"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "numpy==2.0.2",
+    "sentence-transformers==5.1.1",
+]
+
+[tool.uv]
+# 该工具只索引 wiki/papers/**/*.md，不读 PDF、不改笔记与 Zotero；
+# 依赖版本与 requirements.txt 保持一致，后者保留作兼容入口。
+package = false
