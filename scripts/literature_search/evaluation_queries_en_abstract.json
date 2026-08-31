@@ -1,0 +1,1617 @@
+{
+  "version": "en-abstract-v1",
+  "frozen_before_first_run": false,
+  "built_at": "2026-08-31",
+  "top_k": 10,
+  "construction": "由论文 PDF 首页摘要构造（pdftotext 默认模式，非 -layout），删去标题中长度≥4 的英文词。查询为英文、笔记正文为中文，字面重叠极低，是目前唯一有分辨率的评测集。",
+  "known_limitations": [
+    "frozen_before_first_run 为 false：该集合的雏形在本轮调参前已被运行过，用于选择 rrf_constant 时属于同一批数据，不能同时充当独立确认集。",
+    "只覆盖有本地 PDF 原件的笔记，纯中文来源与无原件笔记不在内。",
+    "英文查询检索中文笔记，衡量的是跨语言语义能力，与中文概念提问场景不同。"
+  ],
+  "query_ascii_ratio_mean": 0.988,
+  "scanned_pdfs": 228,
+  "extraction_failures": 28,
+  "queries": [
+    {
+      "id": "E001",
+      "query": ": in Roberto Jordaney, Royal Holloway, University of London; Kumar Sharad, NEC Laboratories Europe; Santanu K. Dash, University College London; Zhi Wang, Nankai University; Davide Papini, Elettronica S.p.A.; Ilia Nouretdinov and Lorenzo Cavallaro, Royal Holloway, University of London https://www.usenix.org/conference/usenixsecurity17/technical-sessions/presentation/jordaney This paper is included in the Proceedings of the 26th USENIX Security Symposium August 16–18, • Vancouver, BC, Canada ISBN 978-1- -40-9 Open access to the Proce",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2017-Jordaney-TRANSCEND漂移检测与共形评价.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/drift/2017-Jordaney-TRANSCEND-Concept-Drift-USENIXSec.pdf"
+    },
+    {
+      "id": "E002",
+      "query": "When the setup allows a classifier to train on what is effectively future knowledge, the reported results become ed [2, 36]. This issue is widespread in the security community and affects multiple security domains. In this paper, we focus on Android and claim that there is an endemic issue in that Android classifiers [4, 13, 18, 22, 33, 49, 56, 57] (including our own work) are not evaluated in settings representative of real-world deployments. We choose Android because of the availability of (a) a public, large-scale, and stamped dataset (AndroZoo [3]) and",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2019-Pendlebury-TESSERACT时空实验偏置与AUT.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/drift/2019-Pendlebury-TESSERACT-Space-Time-Bias-Malware.pdf"
+    },
+    {
+      "id": "E003",
+      "query": "-based intrusion methods aim to combat the increasing rate of zeroday attacks, however, their success is currently restricted to the of high-volume attacks using aggregated traffic features. Recent evaluations show that the current -based intrusion methods fail to reliably detect remote access attacks. These are smaller in volume and often only stand out when compared to their surroundings. Currently, methods try to detect access attack events mainly as point anomalies and neglect the context they appear in. We present and examine a c",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2021-Clausen-CBAM主机上下文异常与实体阈值.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2021-Clausen-CBAM-Contextual-Network-Anomaly.pdf"
+    },
+    {
+      "id": "E004",
+      "query": ": and for Limin Yang, University of Illinois at Urbana-Champaign; Wenbo Guo, The Pennsylvania State University; Qingying Hao, University of Illinois at Urbana-Champaign; Arridhana Ciptadi and Ali Ahmadzadeh, Blue Hexagon; Xinyu Xing, The Pennsylvania State University; Gang Wang, University of Illinois at Urbana-Champaign https://www.usenix.org/conference/usenix 21/presentation/yang-limin This paper is included in the Proceedings of the 30th USENIX Symposium. August 11–13, 978-1- -24-3 Open access to the Procee",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2021-Yang-CADE漂移样本检测与解释.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/drift/2021-Yang-CADE-Concept-Drift-USENIXSec.pdf"
+    },
+    {
+      "id": "E005",
+      "query": "Machine learning for shows encouraging results, but real deployments suffer from performance degradation as authors adapt their techniques to evade detection. This phenomenon, known as , occurs as new examples evolve and become less and less like the original training examples. One promising method to cope with is with rejection in which examples that are likely to be misclassified are instead quarantined until they can be expertly analyzed. We propose T RANSCENDENT, a rejection framework built on , a rec",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/drift/2022-Barbero-TRANSCENDENT-Conformal-Evaluation-IEEESP.pdf"
+    },
+    {
+      "id": "E006",
+      "query": "The recent success and proliferation of machine learning and deep learning have provided powerful tools, which are also utilized for encrypted traffic analysis, , and threat detection in computer networks. These methods, neural networks in particular, are often complex and require a huge corpus of training data. Therefore, this paper focuses on collecting a large up-to-date dataset almost 200 - service labels and 140 million network flows extended packet-level metadata. The number of flows is three orders of magnitude higher than in other existing public labe",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2022-Luxemburk-TLS细粒度服务分类与拒识.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/open-set/2022-Luxemburk-Fine-grained-TLS-Services-Reject-Option-arXiv2202.11984.pdf"
+    },
+    {
+      "id": "E007",
+      "query": "Test-time adaptation (TTA) aims to address distributional shifts between training and testing data using only unlabeled test data streams for continual model adaptation. However, most TTA methods assume benign test streams, while test samples could be unexpectedly diverse in the wild. For instance, an unseen object or noise could appear in autonomous driving. This leads to a new threat to existing TTA algorithms; we found that prior TTA algorithms suffer from those noisy test samples as they blindly adapt to incoming samples. To address this problem, we present Screening-out Test-Time Adaptati",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2023-Gong-SoTTA噪声流鲁棒适应.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2023-Gong-SoTTA-Noisy-Streams.pdf"
+    },
+    {
+      "id": "E008",
+      "query": "Concept drift is one of the most frustrating challenges for learning-based security applications built on the closeworld assumption of identical distribution between training and deployment. Anomaly detection, one of the most important tasks in security domains, is instead immune to the drift of abnormal behavior due to the training without any abnormal data (known as zero-positive), which however comes at the cost of more severe impacts when normality shifts. However, existing studies mainly focus on concept drift of abnormal behaviour and/or supervised learning, leaving the normality shift f",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2023-Han-OWAD正常性漂移适应.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2023-Han-OWAD-Normality-Shift.pdf"
+    },
+    {
+      "id": "E009",
+      "query": "is a challenging task with a wide range of real-world applications. Due to label sparsity, training a deep detector often relies on unsupervised approaches. Recent efforts have been devoted to to leverage knowledge from similar s. However, existing solutions may suffer from negative knowledge transfer on anomalies due to their diversity and sparsity. Motivated by the empirical study of alignment between two s, we aim to transfer knowledge between two s via adaptively sampling information for t",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2023-Lai-ContexTDA上下文异常域适应.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2023-Lai-Context-Aware-Domain-Adaptation-Time-Series-Anomaly.pdf"
+    },
+    {
+      "id": "E010",
+      "query": "The performance of machine learning based s ( s) severely degrades when deployed on a with significantly different feature distributions from the ones of the training dataset. In various applications, such as computer vision, adaptation techniques have been successful in mitigating the gap between the distributions of the training and test data. In the case of however, the state-of-the-art adaptation approaches have had limited success. According to recent studies, as well as our own results, the performance",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2023-Layeghy-DI-NIDS跨域入侵检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2022-Layeghy-DI-NIDS-Domain-Invariant.pdf"
+    },
+    {
+      "id": "E011",
+      "query": "models have shown to achieve high performance in . However, when it comes to production use, multiple factors challenge the performance of these models. The emergence of new protocols, especially at the application layer, as well as updates to previous protocols affect the patterns in input , making the model’s previously learned patterns obsolete. Furthermore, proposed model architectures for are usually tested on sets collected in controlled settings, which makes the reported performances unreliable for pr",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2023-Malekghaini-加密流量分类数据漂移实证.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/drift/2023-Malekghaini-DL-Encrypted-Traffic-Classification-Data-Drift.pdf"
+    },
+    {
+      "id": "E012",
+      "query": "计 算 机 学 报 ＣＨＩＮＥＳＥＪＯＵＲＮＡＬ ＯＦＣＯＭＰＵＴＥＲＳ 第 ４６ 卷 第 ５ 期 年 ５ 月 Ｖｏ ｌ．４６ Ｎｏ．５ Ｍａｙ２０２３ 互联网加密流量检测 、分类与识别研究综述 １）， ２）， ３）， ４） 陈子涵 程 １）， ２）， ３）， ４） 光 １）， ２） １）， ２） 徐子恒 徐珂雅 １）（ 东南大学网络空间安全学院 ３）（ 江苏省泛在网络安全工程研究中心（东南大学） ４）（ 网络空间国际治理研究基地（东南大学） 要 １）， ２）， ３）， ４） １）， ２） 星 钮丹丹 南京 ） ２）（ 教育部计算机网络和信息集成重点实验室（东南大学） 摘 仇 南京 ） 南京 ） 南京 ） 互联网流量分析是网络管理与安全的核心途径，传统基于明文的分析方法 在 加 密 流 量 大 势 所 趋 的 环 境 下 已基本失效 ．虽有部分针对加密流量的分析方法，但其忽略了不同加密流量分析 目 标 需 求 内 在 的 逻 辑 性 与 层 次 性， 并缺乏对加密流量本质特征的研究，难以系统化地解 决 加 密 流 量 分 析 的 难 题 ．本 文 首 先 面 向 网 络 管 理 与 安 全 监 管 的实际需求，将互联网加密流量分析按照目标需求 划 分 为 检 测、分 类、识 别 三 个 阶 段，并 描 述 其 目 标 与 方 法 上 的 差 《 异；接着基于现有研究成果，分别对现有",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/chinese-surveys/2023-陈子涵-互联网加密流量检测分类与识别研究综述-计算机学报.pdf"
+    },
+    {
+      "id": "E013",
+      "query": "Deep learning-based sequence models are extensively employed in Time Series Anomaly Detection (TSAD) tasks due to their effective sequential modeling capabilities. However, the ability of TSAD is limited by two key challenges: (i) the ability to model long-range dependency and (ii) the generalization issue in the presence of non-stationary data. To tackle these challenges, an anomaly detector that leverages the selective state space model known for its proficiency in capturing long-term dependencies across various domains is proposed. Additionally, a multi-stage detrending mechanism is introdu",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2024-Chen-JSSM去趋势状态空间异常检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2024-Chen-Joint-SSM-Detrending-Anomaly-Detection.pdf"
+    },
+    {
+      "id": "E014",
+      "query": "- deals with the problem of detecting anomalous steps by learning normality from the sequence of observations. However, the concept of normality evolves over , leading to a \"new normal problem\", where the distribution of normality can be changed due to the distribution shifts between training and data. This paper highlights the prevalence of the new normal problem in - studies. To tackle this issue, we propose a simple yet effective - strategy based on trend estimation and a self-supervised app",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2024-Kim-TTA-AD新正常测试时适应.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2024-Kim-TTA-AD-New-Normals.pdf"
+    },
+    {
+      "id": "E015",
+      "query": "Machine learning has shown promise in network intrusion detection systems, yet its performance often degrades due to concept drift and imbalanced data. These challenges are compounded by the labor-intensive process of labeling network traffic, especially when dealing with evolving and rare attack types, which makes preparing the right data for adaptation difficult. To address these issues, we propose a generative active adaptation framework that minimizes labeling effort while enhancing model robustness. Our approach employs density-aware dataset prior selection to identify the most informativ",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2025-Gupta-NetGuard漂移与不均衡NIDS主动适应.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2025-Gupta-NetGuard-Generative-Active-Adaptation-NIDS.pdf"
+    },
+    {
+      "id": "E016",
+      "query": "Published as a conference paper at ICLR O N THE A DVERSARIAL R ISK OF T EST T IME A DAPTA TION : A N I NVESTIGATION INTO R EALISTIC T EST-T IME DATA P OISONING Yongyi Su1,4∗ , Yushu Li1,4∗ , Nanqing Liu2,4 , Kui Jia3 , Xulei Yang4 , Chuan-Sheng Foo4 , Xun Xu4† 1 South China University of Technology 2 Southwest Jiaotong University 3 The Chinese University of Hong Kong, Shenzhen 4 Institute for Infocomm Research (I2 R), A*STAR {eesuyongyi, eeyushuli}@mail.scut.edu.cn lansing163@163.com, kuijia@cuhk.edu.cn {yang_xulei, foo_chuan_sheng, xu_xun}@i2r.a-star.edu.sg A BSTRACT Test-time adaptation (TTA",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2025-Su-RTTDP现实测试时数据投毒.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2025-Su-RTTDP-Realistic-Test-Time-Poisoning.pdf"
+    },
+    {
+      "id": "E017",
+      "query": "TYPE Original Research PUBLISHED 11 May DOI 10. /frai. . OPEN ACCESS EDITED BY Emad Maher Natsheh, An-Najah National University, Palestine REVIEWED BY Krishnashree Achuthan, Amrita Vishwa Vidyapeetham, Amritapuri, India Mohammed H. S. Helal, Birzeit University College of Engineering and Technology, Palestine *CORRESPONDENCE Mohammed El-Hajj mhajj@aou.edu.lb RECEIVED 15 February REVISED 04 April ACCEPTED 10 April PUBLISHED 11 May CITATION El-Hajj M and Zeineddine MAJ ( ) : a and - .",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2026-El-Hajj-多尺度主机行为与LOEO嵌套选择.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2026-El-Hajj-Malware-MultiScale-LOEO-MLOps.pdf"
+    },
+    {
+      "id": "E018",
+      "query": "The rise of SIM cloning, identity spoofing, and covert manipulation in mobile and IoT s has created an urgent need for continuous post-registration verification. This work introduces an framework for detecting behavioral anomalies in SIM- flows by modeling the intrinsic structure of benign behavioral descriptors (TTL, timing drift, payload statistics). A Temporal Autoencoder (TDAE) combining Conv1D layers and an LSTM encoder is trained exclusively on normal and used to identify deviations through reconstruction error, enabling one-cl",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2026-Haiba-SIM实体分组窗与目标缓冲区阈值.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2026-Haiba-SIM-Tagged-TTL-Anomaly.pdf"
+    },
+    {
+      "id": "E019",
+      "query": "methods typically learn feature patterns from normal samples during training and subsequently identify samples that deviate from these patterns as anomalies during ing. However, in practical scenarios, the limited scale and diversity of training data often lead to an incomplete characterization of normal patterns. While - offers a remedy, its isolated focus on optimization ignores the critical synergy with training-phase learning. Furthermore, indiscriminate to unlabeled data inevitably triggers cont",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2026-Huang-RTTAD风险感知测试时适应.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2026-Huang-RTTAD-Risk-Aware-Test-Time-Adaptation.pdf"
+    },
+    {
+      "id": "E020",
+      "query": "Internet of Things 37 ( ) Contents lists available at ScienceDirect Internet of Things journal homepage: www.elsevier.com/locate/iot - for - , Ebubekir İnan Kayseri University, Faculty of Engineering, Architecture and Design, Department of Engineering Basic Sciences, Kayseri, , Türkiye a r t i c l e i n f o MSC: 62M10 62H30 68T05 Keywords: - modeling Adaptive epsilon (rolling MAD) AI (SHAP) Semi-supervised learning Deployment-oriented evaluation a b",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2026-Inan-邻近异常检测校准与泄漏安全.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2026-Inan-Proximity-Anomaly-Calibration-Leakage-Safety.pdf"
+    },
+    {
+      "id": "E021",
+      "query": "diverse industrial domains (Wang et al., ; Zito et al., ; Darban et al., 2025a). Since anomalies occur infrequently within large volumes of normal data and labeling incurs substantial costs, unsupervised learning approaches have been widely adopted. In such approaches, training data are assumed to be normal, and models learn normal patterns to detect anomalies based on deviations from these learned representations (Mejri et al., ).",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2026-Park-COMET代码本在线适应异常检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2026-COMET-Codebook-Memory-Time-Series-Anomaly-Detection.pdf"
+    },
+    {
+      "id": "E022",
+      "query": "This work proposes a new mathematical model for the TCP/AQM system that aims to improve the accuracy of existing fluid models, especially with respect to the sequential events that occur in the network. The analysis is based on the consideration of two time bases, one at the queue’s router level and the other at the congestion window level, which leads to the derivation of a new nonlinear two-dimensional fluid model for Internet congestion control. To avoid the difficult task of assessing stability of a 2D nonlinear dynamic model, we perform a local stability analysis of a 2D linear TCP AQM mo",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/2211.10833.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2211.10833.pdf"
+    },
+    {
+      "id": "E023",
+      "query": "Song ; Wang et al. ; Zhang et al. ; Kinfu and Vidal ), called , have demonstrated that gradually increasing the hardness of examples can help to improve the performance of the trained model. These methods have a similar min-max optimization framework with conventional , and control the hardness of the generated examples in different ways. Empirically, the advantages of to improve the robustness and to alleviate the trade-off between clean accuracy and accuracy have been verifi",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/A Closer Look at Curriculum Adversarial Training- From an Online Perspective.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/课程式学习.pdf"
+    },
+    {
+      "id": "E024",
+      "query": "- (ZTNs) represent a transformative paradigm toward fully automated and intelligent network management, providing the scalability and adaptability required for the complexity of sixth-generation (6G) . However, the distributed architecture, high openness, and deep heterogeneity of 6G expand the attack surface and pose unprecedented challenges. To address this, aims to enable intelligent management across dynamic and complex environments, serving as a key capability for securing 6G ZTNs. Despite its promise, implementing s",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Advancing LLM-Based Security Automation with Customized Group Relative Policy Optimization for Zero-Touch Networks.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2512.09485.pdf"
+    },
+    {
+      "id": "E025",
+      "query": "- (PINNs) combine deep with physical constraints for solving partial differential equations (PDEs), and are widely applied in fluid mechanics, heat transfer, and solid mechanics. However, PINN training still suffers from high-dimensional non-convex loss landscapes, imbalanced multiobjective constraints, and ineffective information propagation. Existing and causality-guided strategies improve training stability, but mainly focus on temporal or parametric progression, lacking explicit treatment of information propagation and int",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Curriculum Learning of Physics-Informed Neural Networks based on Spatial Correlation.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2605.15254.pdf"
+    },
+    {
+      "id": "E026",
+      "query": "Modeling distributed dynamical systems governed by partial differential equations (PDEs) remains challenging due to discontinuities and shocks that hinder the convergence of traditional physics-informed neural networks ( ). The recently proposed PINN (VSR-PINN) embeds a -viscosity mechanism within refinements to enable a smooth transition from the parabolic to regime. This paper integrates three -learning methods as primal-dual (PD) optimization, causality progression, and adaptive sampling into the VSR-PI",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Curriculum-Learned Vanishing Stacked Residual PINNs for Hyperbolic PDE State Reconstruction.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2602.06996.pdf"
+    },
+    {
+      "id": "E027",
+      "query": "The increasing complexity of power has heightened their vulnerability to cyber-attacks, challenging traditional Systems (IDS) that rely on manually crafted rules. This paper introduces a novel approach that integrates - features and feature selection into a (RF) model to enhance IDS performance. By deriving features such as complex power and impedance from fundamental al principles and applying SelectKBest for optimal feature selection, our method not only improves accuracy but also enhances efficiency by usin",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Enhancing Intrusion Detection in Electric Networks Using Physics-Informed Random Forest.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/Enhancing_Intrusion_Detection_in_Electric_Networks_Using_Physics-Informed_Random_Forest.pdf"
+    },
+    {
+      "id": "E028",
+      "query": "or training dynamics under a fixed budget. Recent studies report that the effective of trained LoRA adapters often falls well below the nominal (Biderman et al., ; Hayou et al., ), suggesting that gains along this accuracyoriented axis are narrowing. The original goal of LoRA, efficiency itself, has received comparatively little attention. Reducing s in the LoRA family typically means lowering the r. This directly shrinks the subspace each adapter can represent, losing expressiveness at the very layers where is most needed. Layer-level met",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/FoRA- Fisher-orthogonal Rank Adaptation for Parameter-Efficient Fine-Tuning.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2605.29317.pdf"
+    },
+    {
+      "id": "E029",
+      "query": "or training dynamics under a fixed budget. Recent studies report that the effective of trained LoRA adapters often falls well below the nominal (Biderman et al., ; Hayou et al., ), suggesting that gains along this accuracyoriented axis are narrowing. The original goal of LoRA, efficiency itself, has received comparatively little attention. Reducing s in the LoRA family typically means lowering the r. This directly shrinks the subspace each adapter can represent, losing expressiveness at the very layers where is most needed. Layer-level met",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/FoRA-Fisher正交秩适配.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2605.29317.pdf"
+    },
+    {
+      "id": "E030",
+      "query": "- (CPS) support critical infrastructures such as water treatment and power distribution, but their interaction with the world makes them vulnerable to - attacks. -based , which identifies consistent or logical relationships ( s) among system variables, has proven effective in detecting violations of these laws in CPS data. However, existing methods are limited: data-driven approaches lack semantic context, while physics-based models require extensive manual engineering. Our key insight is that large",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/INVARLLM- LLM-assisted Physical Invariant Extraction for Cyber-Physical Systems Anomaly Detection.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2411.10918.pdf"
+    },
+    {
+      "id": "E031",
+      "query": ", a critical component in task-oriented dialogue (TOD) systems, faces significant challenges in adapting to the rapid influx of integrable tools complex interrelationships. Existing approaches, such as zero-shot reformulations and LLM- dynamic recognition, struggle performance degradation when encountering unseen s, leading to erroneous task routing. To enhance the model’s performance on unseen tasks, we employ Reinforcement Learning (RL) combined a - (RCS) during Group Relative Policy Optimization ( ) t",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Improving Generalization in Intent Detection- GRPO with Reward-Based Curriculum Sampling.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2504.13592v2.pdf"
+    },
+    {
+      "id": "E032",
+      "query": "and understanding the training dynamics and of Large Language Models (LLMs) has become essential for their deployment in AI-based security tools, such as software . In this work, we present an extensive study aimed at advancing recent RL-based finetuning techniques for LLMs in the context of . We start by highlighting key limitations of commonly adopted LLMs, such as their tendency to over-predict certain types of vulnerabilities while failing to detect others. To address this challenge, we explore the use of Poli",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Improving LLM Reasoning for Vulnerability Detection via Group Relative Policy Optimization.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2507.03051.pdf"
+    },
+    {
+      "id": "E033",
+      "query": "This paper presents a model (LLM)–based framework that adapts and fine-tunes compact LLMs for on transformer current differential (TCDRs), which can otherwise cause false tripping of critical power transformers. The core idea is to textualize multivariate time-series current measurements from TCDRs, across phases and input/output sides, into structured natural prompts that are then processed by compact, locally deployable LLMs. Using this representation, we fine-tune DistilBERT, GPT-2, and DistilBERT+LoRA to distinguish from gen",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Large Language Models for Detecting Cyberattacks on Smart Grid Protective Relays.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2601.04443.pdf"
+    },
+    {
+      "id": "E034",
+      "query": "(CTI) analysts routinely convert noisy, unstructured security artifacts into standardized, automation-ready representations. Although large language models ( ) show promise for this task, existing approaches remain brittle when producing structured CTI outputs and have largely relied on supervised fine-tuning (SFT). In contrast, CTI standards and community-maintained resources define canonical identifiers and schemas that enable deterministic verification of model outputs. We leverage this structure to study (RLVR) for",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Minerva- Reinforcement Learning with Verifiable Rewards for Cyber Threat Intelligence LLMs.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2602.00513.pdf"
+    },
+    {
+      "id": "E035",
+      "query": "- s pose a significant threat to the safety and operational efficiency of industrial es. Traditional data-driven methods often require sufficient training data to achieve the desired accuracy. However, for complex , such data sets are often unavailable or insufficient, limiting the effectiveness of these approaches. To address this challenge, this work presents a - (PIGCRN) that incorporates both spatial and temporal information on and a priori k",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Physics-Informed Graph Convolutional Recurrent Network for Cyber-Attack Detection in Chemical Process Networks.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/physics-informed-graph-convolutional-recurrent-network-for-cyber-attack-detection-in-chemical-process-networks.pdf"
+    },
+    {
+      "id": "E036",
+      "query": "While powerful, large language models (LLMs) present significant fine-tuning challenges due to their size. Parameter-efficient fine-tuning (PEFT) methods like provide solutions, yet suffer from critical optimizer inefficiencies; notably basis redundancy in ’s B matrix when using AdamW, which fundamentally limits performance. We address this by optimizing the B matrix on the , imposing explicit orthogonality constraints that achieve near-perfect orthogonality and full effective rank. This geometric approach dramatically enhances parameter efficiency and representational",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Riemannian Optimization for LoRA on the Stiefel Manifold.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2508.17901.pdf"
+    },
+    {
+      "id": "E037",
+      "query": "Int. J. Info. Tech. Dec. Mak. Downloaded from www.worldscientific.com by SOUTHEAST UNIVERSITY on 07/14/26. Re-use and distribution is strictly not permitted, except for Open Access articles. 2nd Reading December 1, 9:2 WSPC/S0219- 173-IJITDM International Journal of Information Technology & Decision Making ( ) c World Scientiﬁc Publishing Company \u0002 DOI: 10. /S0219622025501081 IoT - to Basi Reddy A.∗,‡ , R. Yogesh†,§ and M. Sriram∗ ∗Department of Computer Science and Engineering Bharath Ins",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Robust Industrial IoT Security Leveraging Parallel Physics-Informed Neural Networks to Combat False Data Injection.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/robust-industrial-iot-security-leveraging-parallel-physics-informed-neural-networks-to-combat-false-data-injection.pdf"
+    },
+    {
+      "id": "E038",
+      "query": "In this paper the and behavior of a of Internet congestion system including TCP and AQM is investigated. These and chaotic behavior may cause heavy oscillation of average queue length and induce network in . An method was proposed for ling s and in the Internet congestion system. Simulation results show that the nonlinear behavior of the system can be led by this method.",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Stability analysis and impulsive control of bifurcation and chaos in fluid flow model for TCP-AQM networks.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/Stability_analysis_and_impulsive_control_of_bifurcation_and_chaos_in_fluid_flow_model_for_TCP_AQM_networks.pdf"
+    },
+    {
+      "id": "E039",
+      "query": "While powerful, large language models (LLMs) present significant fine-tuning challenges due to their size. Parameter-efficient fine-tuning (PEFT) methods like provide solutions, yet suffer from critical optimizer inefficiencies; notably basis redundancy in ’s B matrix when using AdamW, which fundamentally limits performance. We address this by optimizing the B matrix on the , imposing explicit orthogonality constraints that achieve near-perfect orthogonality and full effective rank. This geometric approach dramatically enhances parameter efficiency and representational",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Stiefel流形LoRA黎曼优化.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2508.17901.pdf"
+    },
+    {
+      "id": "E040",
+      "query": "attacks targeting Industrial Control Systems (ICS) have become increasingly sophisticated and hard to identify. Detecting such attacks requires integrating low-level behavioral cues with high-level semantic interpretation, a capability that traditional detectors lack. This paper presents a Twin (DT)-driven hybrid approach that combines deterministic heuristics with , Large Language Model (LLM) reasoning to achieve real-time incident . The DT maintains a synchronized, feature-enriched representation of the Secure Water Treatment (SW",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/Systematic Integration of Digital Twins and Constrained LLMs for Interpretable Cyber-Physical Anomaly Detection.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/2604.03790.pdf"
+    },
+    {
+      "id": "E041",
+      "query": "Sophisticated cyber security threats, such as advanced persistent threats, rely on infecting end points within a targeted security domain and embedding malware. Typically, such malware periodically reaches out to the command and control infrastructures controlled by adversaries. Such callback behavior, called , is challenging to detect as (a) requires long-term temporal analysis of communication patterns at several levels of granularity, (b) malware authors employ various strategies to hide behavior, and (c) it is also employed by legitimate applications (such as u",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/2016-BAYWATCH-企业网络稳健信标检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2016-Hu-BAYWATCH-Beaconing-Detection-DSN.pdf"
+    },
+    {
+      "id": "E042",
+      "query": "The diversity of applications and devices in enterprise networks combined large traffic volumes make it inherently challenging to quickly identify malicious traffic. When incidents occur, emergency response teams often lose precious time in reverse-engineering the network topology and configuration before they can on malicious activities and digital forensics.",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/2019-Kanzig-LockedShields-C2信道机器学习检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2019-Kanzig-ML-Detection-CC-Channels-CyCon.pdf"
+    },
+    {
+      "id": "E043",
+      "query": "Command and Control (C2) , which provides early warning of potential cyber threats, plays a signiﬁcant role in cybersecurity. However, detecting these hidden communications remains a major challenge for traditional security solutions. To address this issue, we conduct a comprehensive study of C2 using artiﬁcial intelligence (AI)- solutions. We experiment with an existing traditional - approach, propose a long short-term memory (LSTM) model to eﬀectively identify periodic and anomalous communication patterns, and also experiment with transformer",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/2025-Gupta-C2信标检测时序分析.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2025-Gupta-C2-Beaconing-Time-Series-ARES.pdf"
+    },
+    {
+      "id": "E044",
+      "query": "computationally intensive. Furthermore, these solutions’ reliance on the configuration of a cooperating endpoint makes it challenging to deploy, and limits its applicability. In this paper, we do not propose decrypting the network . We instead focus on communication in through passive monitoring, the extraction of relevant features, and supervised machine learning based on a large set of sandbox samples and collected at a large enterprise network. We make the following novel contributions:",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Anderson2016-上下文流数据识别加密恶意流量.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2016-Anderson-Identifying-Encrypted-Malware-Contextual-Flow.pdf"
+    },
+    {
+      "id": "E045",
+      "query": "Machine learning and neural networks have become increasingly popular solutions for . They mine and learn complex patterns, enabling by fitting boundaries between and benign . Compared with signature-based methods, they have higher scalability and flexibility. However, affected by the frequent variants and updates of , current methods suffer from a high false positive rate and do not work well for unknown . It remains a critical task to achieve effective . In thi",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Cui2023-CBSeq未知加密恶意流量检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2023-Cui-CBSeq-Encrypted-Malware.pdf"
+    },
+    {
+      "id": "E046",
+      "query": "Nowadays on the Internet has been widely to protect its confidentiality and privacy. However, encryption is always abused by attackers to conceal their behaviors. Since the has similar features to benign s, it can easily evade traditional methods. Particularly, the existing methods are supervised and they rely on the prior knowledge of known attacks (e.g., labeled datasets). Detecting in real time, which does not require prior domain knowledge,",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Fu2024-HyperVision未知加密恶意流量检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2023-Fu-HyperVision-Unknown-Encrypted-Malicious-Traffic.pdf"
+    },
+    {
+      "id": "E047",
+      "query": "Internet is widely used to facilitate network management. It plays a crucial role in Quality of Services (QoS), Quality of Experience (QoE), network visibility, intrusion detection, and -trend analyses. While there is no theoretical guarantee that (DL)-based solutions perform better than classic (ML)-based ones, DL-based models have become the common default. This paper compares wellknown DL-based and ML-based models and shows that in the case of malicious , state-of-theart DL-based solutions do not necessarily",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Lichy2023-RF与深度模型加密恶意流量比较.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2022-Lichy-RF-Beats-CNN-GRU-Encrypted-Malware.pdf"
+    },
+    {
+      "id": "E048",
+      "query": "between victim and C2 server to make harder. But development is costly. Even with a large set of open source frameworks to choose from, modifying the behavior of complex code in order to achieve specific adversarial can be a task with daunting impact on the profit of most operations. Applying proxies or addons to the source code that do not modify the behavior of the but can modify features can be a more attractive, lower cost solution. Deploying modified on the C2 server and even on victims seems to be a comparably easier probl",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Novo2020-加密恶意C2流量检测与代理规避.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2020-Novo-Flow-Based-Detection-Proxy-Evasion-Encrypted-C2.pdf"
+    },
+    {
+      "id": "E049",
+      "query": "The popularity of encryption mechanisms poses a great challenge to . The reason is traditional techniques cannot work out the decryption of . Currently, research on out decryption has focused on extraction and the choice of or . In this paper, we first provide an in-depth analysis of s and compare different state-of-theart creation approaches, while proposing a novel concept for which is spe",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Wang2023-加密恶意流量特征挖掘.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2023-Wang-Feature-Mining-Encrypted-Malicious-Traffic.pdf"
+    },
+    {
+      "id": "E050",
+      "query": "Command and Control (C2) communication is a key component of any structured cyber-attack. As such, security operations actively try to detect this type of communication in their networks. This poses a problem for legitimate pentesters that try to remain undetected, since commonly used pentesting tools, such as , generate constant patterns that are easily distinguishable from regular web . In this paper we start with these identifiable patterns in ’s C2 and show that a machine learning-based detector is able to detect the presence of such with",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Xavier2022-Metasploit加密C2规避.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2022-Xavier-Tweaking-Metasploit-Encrypted-C2.pdf"
+    },
+    {
+      "id": "E051",
+      "query": "The escalating prevalence of encryption protocols has led to a concomitant surge in the number of attacks that hide in . , as fundamental infrastructure, are becoming prime targets for such attacks. Conventional methods for detecting packets typically use a static pre-trained model. We observe that these methods are not well-suited for . More critically, they fall short in dynamic environments where new types of attacks continuously emerge. Motivated by this, in this paper we try to tac",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/encrypted/Zhou2025-ETGuard增量加密恶意流量检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/encrypted/2024-Zhou-ETGuard.pdf"
+    },
+    {
+      "id": "E052",
+      "query": "technology has increased in relevance this decade, as it is now used in the definition and implementation of mechanisms for service differentiation, network design and engineering, security, accounting, advertising, and research. Over the past 10 years the research community and the networking industry have investigated, proposed and developed several approaches. While techniques are improving in accuracy and efficiency, the continued proliferation of different Internet application behaviors, in addition to growing incentives to disg",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/entity-granularity/2012-Dainotti-流量分类的流对象粒度与开放问题.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/entity-granularity/2012-Dainotti-Issues-Future-Directions-Traffic-Classification-IEEE-Network.pdf"
+    },
+    {
+      "id": "E053",
+      "query": "This thesis has been submitted in fulfilment of the requirements for a postgraduate degree (e.g. PhD, MPhil, DClinPsychol) at the University of Edinburgh. Please note the following terms and conditions of use: This work is protected by copyright and other intellectual property rights, which are retained by the thesis author, unless otherwise stated. A copy can be downloaded for personal non-commercial research or study, without prior permission or charge. This thesis cannot be reproduced or quoted extensively from without first obtaining permission in writing from the author. The content must",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/entity-granularity/2022-Clausen-流量微结构与网络异常检测博士论文.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/entity-granularity/2022-Clausen-Traffic-Microstructures-Network-Anomaly-Detection-PhD-Edinburgh.pdf"
+    },
+    {
+      "id": "E054",
+      "query": "Most do not have comprehensive label assignment criteria, hindering the evaluation of the , the training of models, the results obtained, the comparison with other methods, and the evaluation in real-life scenarios. There is no ontology nor tools to help assign the labels, resulting in most analyzed assigning labels in files or directory names. This paper addresses the problem of having a by (i) reviewing the needs of stakeholders of the , from creators to model users, (ii) presenting a new ontology of label as",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/entity-granularity/2023-Garcia-网络安全数据集标注流程与流到IP的判定转换.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/entity-granularity/2023-Garcia-Towards-Better-Labeling-Process-Network-Security-Datasets-arXiv2305.01337.pdf"
+    },
+    {
+      "id": "E055",
+      "query": "The system (NIDS) plays a crucial role as a security measure in addressing the increasing number of threats. The majority of current research relies on feature-ready datasets that heavily depend on feature engineering. Conversely, the increasing complexity of traffic and the ongoing evolution of attack techniques lead to a diminishing distinction between benign and malicious behaviors. In this paper, we propose a novel end-to-end framework on a approach. We design a hierarchical Convolutional Neu",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/entity-granularity/2024-Li-端到端对比学习入侵检测的IP对粒度.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/entity-granularity/2024-Li-End-to-End-NIDS-Contrastive-Learning-IPpair-Granularity-Sensors.pdf"
+    },
+    {
+      "id": "E056",
+      "query": "学校代码： 分 类 号： TP393 密 级： 公开 C： 004.9 号： ***** U 学 D 硕士学位论文 面向加密流量分类的博弈对抗防御与高 效训练方法研究 （学位论文形式：应用研究） 研 究 生 姓 名： *** 导 师 姓 名： ******* ******* 申请学位类别 电子信息硕士 学位授予单位 东南大学 领域名称 网络与信息安全 论文答辩日期 年 月 日 研究方向 加密流量分析 学位授予日期 年 月 日 答辩委员会主席 评 阅 年 5 月 人",
+      "relevant_paths": [
+        "wiki/papers/attack-detection/朱焱雷.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/attack-detection/朱焱雷.pdf"
+    },
+    {
+      "id": "E057",
+      "query": "Even though our user traffic exhibits high temporal variance, we have to over provision our data centers for peak traffic. These compounding factors have led to an unsustainable increase in the average device and bandwidth expenses of our CDN infrastructure. A decentralized peer-to-peer (P2P) network [18, 26] offers a promising solution to reduce the cost of content distribution. In contrast to centralized deployments, a P2P network harnesses underutilized resources scattered across global devices, including set-top boxes, smart home gadgets, dormant servers, and more. These devices incur sign",
+      "relevant_paths": [
+        "wiki/papers/cdn-ops/2401.15839v1.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/cdn-ops/2401.15839v1.pdf"
+    },
+    {
+      "id": "E058",
+      "query": "Decentralizing content delivery to edge devices has become a popular solution for saving the of CDN when the CDN is expensive. One successful realization is the CDN-P2P VoD system, where a client is allowed to request content from a number of seeds (seed clients) in the P2P network. However, the seed scarcity problem may arise for a resource when there are an insufficient number of seeds to satisfy requests to the . To alleviate this problem, many commercial VoD have employed a mechanism that directly sends the recent s",
+      "relevant_paths": [
+        "wiki/papers/cdn-ops/Proactive Video Push for Optimizing Bandwidth Consumption in Hybrid CDN-P2P VoD Systems.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/cdn-ops/Proactive_Video_Push_CDN-P2P_VoD.pdf"
+    },
+    {
+      "id": "E059",
+      "query": "Enhancing Resource Management of the World’s Largest PCDN System for On-Demand Video Streaming Rui- , UIUC; Haiping Wang, Shu Shi, fei Pang, Yajie Peng, and Zhichen Xue, ByteDance; Jiangchuan Liu, Simon Fraser University https://www.usenix.org/conference/ /presentation/ -rui- This paper is included in the Proceedings of the USENIX Annual Technical Conference. July 10–12, • Santa Clara, CA, USA 978-1- -41-0 Open access to the Proceedings of the USENIX Annual Technical Conference is sponsored by",
+      "relevant_paths": [
+        "wiki/papers/cdn-ops/atc24-zhang-rui-xiao.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/cdn-ops/atc24-zhang-rui-xiao.pdf"
+    },
+    {
+      "id": "E060",
+      "query": "Evolvable Network Telemetry at Facebook Yang , Harvard University; Ying Zhang, Facebook; Minlan Yu, Harvard University; Guangyu Wang, Dexter Cao, Eric Sung, and Starsky Wong, Facebook https://www.usenix.org/conference/ /presentation/ This is included in the Proceedings of the 19th USENIX Symposium on Networked Systems Design and Implementation. April 4–6, • Renton, WA, USA 978-1- -27-4 Open access to the Proceedings of the 19th USENIX Symposium on Networked Systems Design and Implementation is sponsored by",
+      "relevant_paths": [
+        "wiki/papers/cdn-ops/nsdi22-paper-zhou.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/cdn-ops/nsdi22-paper-zhou.pdf"
+    },
+    {
+      "id": "E061",
+      "query": "视频 CDN 技术 点播 CDN 业务特征 我司稿件长尾分布严重 流量模型 基于稿件热度的点播流量漏斗模型；稿件热度的模型，PCDN和自建是各自独立的，各自建模 流量分配逻辑 基于稿件热度的流量分配逻辑 用户接入逻辑 ● PCDN 基于播放器用户日志分析资源冷热；热资源用凌晨闲时预热到超级节点；热资源的播放 基本闭环在 PCDN；",
+      "relevant_paths": [
+        "wiki/papers/cdn-ops/视频CDN技术.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/cdn-ops/视频CDN技术.pdf"
+    },
+    {
+      "id": "E062",
+      "query": "www.nature.com/scientificdata -TLS- : A Data Descriptor TLS OPEN Karel Hynek1, Jan Luxemburk 1,2 ✉ , Jaroslav Pešek1,2, Tomáš Čejka1 & Pavel Šiška1 The modern approach for classification (TC), which is an important part of operating and securing s, is to use machine learning (ML) models that are able to learn intricate relationships between characteristics and communicating applications. A crucial prerequisite is having representative s. However, s collected real production net",
+      "relevant_paths": [
+        "wiki/papers/datasets/2024-Hynek-CESNET-TLS-Year22跨年度TLS流量数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/2024-Hynek-CESNET-TLS-Year22.pdf"
+    },
+    {
+      "id": "E063",
+      "query": "Intrusion Detection Systems (IDS) are critical to defending enterprise and industrial control environments, yet evaluating their effectiveness under conditions remains an open challenge. Existing benchmarks rely on synthetic datasets (e.g., NSL-KDD, CICIDS2017) or scripted replay frameworks, which fail to capture adaptive adversary behavior. Even MITRE ATT&CK Evaluations, while influential, are host-centric and assume malware-driven compromise, thereby under-representing stealthy, - intrusions across IT and OT domains. We present , a novel evaluation methodology t",
+      "relevant_paths": [
+        "wiki/papers/datasets/2025-Kern-StealthCup规避导向IDS基准CTF.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/analog-benchmarks/2025-StealthCup-Evasion-CTF-IDS-Benchmark-arXiv2511.17761.pdf"
+    },
+    {
+      "id": "E064",
+      "query": "This paper investigates the of for machine learning (ML)-based (NIDS). Although many previous studies have highlighted the critical role of features, such as inter-packet arrival time and flow length/duration, in NIDS, the currently available for NIDS lack these features. This study addresses this gap by creating and making publicly available a set of that incorporate these features [1]. With these features, we provide a comprehensive of",
+      "relevant_paths": [
+        "wiki/papers/datasets/2025-Luay-NetFlow数据集时序分析NF3.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/analog-benchmarks/2025-Temporal-Analysis-NetFlow-Datasets-NIDS-arXiv2503.04404.pdf"
+    },
+    {
+      "id": "E065",
+      "query": "D EEP L EARNING FOR C ONTEXTUALIZED N ET F LOW- N ETWORK I NTRUSION D ETECTION : M ETHODS , , E VALUATION AND D EPLOYMENT Abdelkader El Mahdaouy College of Computing Mohammed VI Polytechnic University Ben Guerir, Morocco firstname.lastname@um6p.ma Issam Ait Yahia College of Computing Mohammed VI Polytechnic University Ben Guerir, Morocco firstname.lastname@um6p.ma Soufiane Oualil Hassan II University Casablanca, Morocco soufiane.oualil-etu@etu.univh2c.ma Ismail Berrada College of Computing Mohammed VI Polytechnic University Ben Guerir, Morocco firstname.lastname@um6p.ma March 4, A BS",
+      "relevant_paths": [
+        "wiki/papers/datasets/2026-ElMahdaouy-上下文感知NetFlow入侵检测综述.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/analog-benchmarks/2026-Contextualized-NetFlow-NIDS-Survey-arXiv2602.05594.pdf"
+    },
+    {
+      "id": "E066",
+      "query": "The development of efficient AI-based methods for malware detection is significantly limited by the lack of highquality datasets, as real-world scripts are often imbalanced and may include sensitive information. This scarcity of curated data poses major challenges for cybersecurity researchers, particularly regarding reproducibility and ethical compliance. In this paper, we introduce a novel synthetic dataset of snippets that are programmatically labeled and balanced. Fine-tuning a CodeBERT-based classifier on the generated samples shows promising performance when evaluated on real-",
+      "relevant_paths": [
+        "wiki/papers/datasets/GeNIS-JavaScript恶意软件论文仅引用核验.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/citation-only/2025-Ikni-JavaScript-malware-synthetic-dataset.pdf"
+    },
+    {
+      "id": "E067",
+      "query": "Data in Brief 60 ( ) Contents lists available at ScienceDirect Data in Brief journal homepage: www.elsevier.com/locate/dib Data Article : A modular dataset for network intrusion detection and classiﬁcation Miguel Silva∗, Daniela Pinto, João Vitorino, José Gonçalves, Eva Maia, Isabel Praça Research Group on Intelligent Engineering and Computing for Advanced Innovation and Development (GECAD), School of Engineering, Polytechnic of Porto (ISEP/IPP), -015 Porto, Portugal a r t i c l e i n f o Article history: Received 24 February Revised 6 March Accepted 14 March Available online 21 March Dat",
+      "relevant_paths": [
+        "wiki/papers/datasets/GeNIS-模块化网络入侵检测数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/1-s2.0-S2352340925002197-main.pdf"
+    },
+    {
+      "id": "E068",
+      "query": "This survey examines how cyber ranges (CRs) and testbeds (TBs) are implemented in practice by focusing on the technologies used to realise CR/TB use cases and features. Building on a systematic literature review spanning –Aug. , the study includes 199 publications and consolidates extracted application areas, purposes, use cases, infrastructure types, and reported technologies into a structured data repository for analysis. The repository identifies 650 distinct technologies and maps them into a hierarchical structure of 10 technology domains and 81 technology subdomains to support consistent",
+      "relevant_paths": [
+        "wiki/papers/datasets/GeNIS-网络靶场综述引用核验.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/2026-Mayer-Engineering-cyber-ranges-survey.pdf"
+    },
+    {
+      "id": "E069",
+      "query": "The Intrusion Detection System is a critical part of a network infrastructure to detect and prevent cyberattacks. The use of Artificial Intelligence has the potential to improve the performance of IDS in achieving cybersecurity. However, one of the challenges nowadays is the lack of good datasets that can improve the results of AI algorithms. In this paper we study the recently published - dataset, built from real data in a lab to develop network traffic and classification models. A feature selection method was used to evaluate the relevant features, and different Machine Learning method",
+      "relevant_paths": [
+        "wiki/papers/datasets/HIKARI-2021机器学习分类评估.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/Network_Intrusion_Detection_Packet_Classification_with_the_HIKARI-2021_Dataset_a_study_on_ML_Algorithms.pdf"
+    },
+    {
+      "id": "E070",
+      "query": "Software-Defined Networking (SDN) introduces new security challenges that require detecting both known and previously unseen attacks. This paper presents a novel hierarchical hybrid deep learning framework for SDN intrusion detection, combining a supervised 1D convolutional neural network with an unsupervised MLP autoencoder in a two-stage pipeline. The approach is evaluated on -SDN, a realistic SDN-specific intrusion detection dataset generated in a controlled cyber-range. Evaluation is done using a leave-one-out attack strategy to simulate zero-day attacks. Obtained results show improv",
+      "relevant_paths": [
+        "wiki/papers/datasets/LSPR24/DiGennaro-2026-LSPR23仅引用-KRONOS-SDN实验.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/LSPR24/2026_DiGennaro_Hierarchical_Hybrid_SDN_IDS.pdf"
+    },
+    {
+      "id": "E071",
+      "query": "Cybersecurity threats are constantly evolving and becoming increasingly sophisticated, automated, adaptive, and intelligent. This makes it difficult for organizations to defend their digital assets. Industry professionals are looking for solutions to improve the efficiency and effectiveness of cybersecurity operations, adopting different strategies. In cybersecurity, the importance of developing new intrusion detection systems (IDSs) to address these threats has emerged. Most of these systems today are based on machine learning. But these systems need high-quality data to ‘‘learn’’ the charact",
+      "relevant_paths": [
+        "wiki/papers/datasets/LSPR24/Dijk-2024-LSPR23数据集与随机森林复现.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/1-s2.0-S2214212624001492-main.pdf"
+    },
+    {
+      "id": "E072",
+      "query": "TALLINN UNIVERSITY OF TECHNOLOGY School of Information Technologies Johan Valdemar Leoste 232665IVCM Comparative Analysis of Deep Learning and Machine Learning for Network Intrusion Detection Using Data from the Largest LiveFire Cyber Defence Exercise Master's thesis Supervisor: Risto Vaarandi, PhD Co-Supervisor: Allard Dijk, MSc Tallinn",
+      "relevant_paths": [
+        "wiki/papers/datasets/LSPR24/Leoste-2025-LSPR23到LSPR24跨年泛化.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/LSPR24/2025_Leoste_Comparative_Analysis_ML_DL_LSPR23_LSPR24.pdf"
+    },
+    {
+      "id": "E073",
+      "query": "In , driven by the ongoing advancements in artificial intelligence (AI) and , previous works [1], [2] introduced architectures for fully automated s in defense exercises such as Locked Shields (LS). Since then, technological and scientific progress has further accelerated. In particular, the rapid evolution of generative AI through large language models (LLMs) has significantly enhanced the capabilities of security . This paper reviews how can benefit from these recent advances, with a focus on how generative AI and LLMs are re",
+      "relevant_paths": [
+        "wiki/papers/datasets/LSPR24-Locked-Shields实兵演习数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/2025_Meier_LSPR24_Blue-Team-Automation.pdf"
+    },
+    {
+      "id": "E074",
+      "query": "Most of the intrusion detection datasets to research machine learning-based intrusion detection systems (IDSs) are devoted to cyber-only systems, and they typically collect data from one architectural layer. Additionally, often the attacks are generated in dedicated attack sessions, without reproducing the realistic alternation and overlap of normal and attack actions. We present a dataset for intrusion detection by performing penetration testing on an embedded cyber-physical system built over Robot Operating System 2 ( ). Features are monitored from three architectural layers: the Linux op",
+      "relevant_paths": [
+        "wiki/papers/datasets/ROSPaCe-ROS2时序入侵检测数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/2024_Puccetti_ROSPaCe.pdf"
+    },
+    {
+      "id": "E075",
+      "query": "Network traffic datasets are essential for the construction of traffic models, often using machine learning (ML) techniques. Among other applications, these models can be employed to solve complex optimization problems or to identify anomalous behaviors, i.e., behaviors that deviate from the established model. However, the performance of the ML model depends, among other factors, on the quality of the data used to train it. Benchmark datasets, with a profound impact on research findings, are often assumed to be of good quality by default. In this paper, we derive four variants of a benchmark d",
+      "relevant_paths": [
+        "wiki/papers/datasets/UGR16-特征版本与标签质量.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/2025_Camacho_UGR16_Data_Quality_Tools.pdf"
+    },
+    {
+      "id": "E076",
+      "query": "The evaluation of algorithms and techniques to implement intrusion detection systems heavily rely on the existence of well designed datasets. In the last years, a lot of efforts have been done towards building these datasets. Yet, there is still room to improve. In this paper, a comprehensive review of existing datasets is first done, making emphasis on their main shortcomings. Then, we present a new dataset that is built with real traffic and up-to-date attacks. The main advantage of this dataset over previous ones is its usefulness for evaluating IDSs that consider long-term evolution and tr",
+      "relevant_paths": [
+        "wiki/papers/datasets/UGR16-长时网络入侵检测数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/2018_Macia-Fernandez_UGR16_Dataset_AuthorVersion.pdf"
+    },
+    {
+      "id": "E077",
+      "query": "The increasing adoption of the transport protocol has transformed encrypted web traffic, necessitating new methodologies for network analysis. However, existing datasets lack the scope, metadata, and decryption capabilities required for robust benchmarking in encrypted traffic research. We introduce , a large-scale dataset of 100,000 labeled traces from over 44,000 websites, collected over four months. Unlike prior datasets, provides SSL keys for controlled decryption, supports multiple implementations, and introduces a novel image-based representation that enable",
+      "relevant_paths": [
+        "wiki/papers/datasets/VisQUIC加密QUIC流量数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/VisQUIC-Exploring-QUIC-Dynamics-arXiv2410.03728v6.pdf"
+    },
+    {
+      "id": "E078",
+      "query": "Anomaly-based Network Intrusion Detection Systems (NIDS) require correctly labelled, representative and diverse datasets for an accurate evaluation and development. However, several widely used datasets do not include labels which are finegrained enough and, together with small sample sizes, can lead to overfitting issues that also remain undetected when using test data. Additionally, the cybersecurity sector is evolving fast, and new attack mechanisms require the continuous creation of upto-date datasets. To address these limitations, we developed a modular traffic generator that can simulate",
+      "relevant_paths": [
+        "wiki/papers/datasets/WEB-IDS23网络入侵检测数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/WEB-IDS23-Technical-Report-arXiv2502.03909v1.pdf"
+    },
+    {
+      "id": "E079",
+      "query": "With the growing processing power of computing systems and the increasing availability of massive datasets, algorithms have led to major breakthroughs in many different areas. This development has influenced , spawning a series of work on -based systems, such as for malware detection, vulnerability discovery, and binary code analysis. Despite great potential, in is prone to subtle pitfalls that undermine its performance and render -based systems potentially unsuitable for tasks and practical deploymen",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/2022-Arp-安全机器学习十大陷阱.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2022-Arp-Dos-and-Donts-ML-Computer-Security.pdf"
+    },
+    {
+      "id": "E080",
+      "query": "ACM Reference Format: Arthur S. Jacobs, Roman Beltiukov, Walter Willinger, Ronaldo A. Ferreira, Arpit Gupta, and Lisandro Z. Granville. . AI/ML for : The has no . In Proceedings of the ACM SIGSAC Conference on Computer and Communications (CCS ’22), November 7ś11, , Los Angeles, CA, USA. ACM, New York, NY, USA, 15 pages. https://doi.org/10. / .",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/2022-Jacobs-AIML网络安全评价陷阱.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2022-Jacobs-AI-ML-Network-Security-Emperor-No-Clothes-CCS.pdf"
+    },
+    {
+      "id": "E081",
+      "query": "Synthetically generated benchmark datasets are vitally important for machine learning and network intrusion research. When producing intrusion datasets for research, providers make complex, subtle and sometimes unwary decisions that can affect data utility. Unfortunately, examining network data is difficult, so these decisions are rarely audited. We perform an in-depth manual analysis of seven highly-cited benchmark datasets, discovering six suspect patterns, which we term ‘data ’. We formulate six heuristics to measure the prevalence of these issues. These choices,",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/Bad-Design-Smells-NIDS数据集设计气味.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2024-Flood-Bad-Design-Smells-NIDS-Datasets.pdf"
+    },
+    {
+      "id": "E082",
+      "query": "Identifying the type of a network flow or a specific application has many advantages, such as, traffic engineering, or to detect and prevent application or application types that violate the organization’s security policy. The use of encryption, such as VPN, makes such identification challenging. Current solutions rely mostly on handcrafted features and then apply supervised learning techniques for the classification. We introduce a novel approach for encrypted Internet traffic classification and application identification by transforming basic flow data into an intuitive picture, a , a",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/FlowPic-会话先切分的流量图表征.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2021-Shapira-FlowPic.pdf"
+    },
+    {
+      "id": "E083",
+      "query": "Network Intrusion Detection Systems ( ) are a fundamental tool in cybersecurity. Their ability to generalize across diverse networks is a critical factor in their effectiveness and a prerequisite for real-world applications. In this study, we conduct a comprehensive analysis on the generalization of machine-learning-based through an extensive experimentation in a cross-dataset framework. We employ four machine learning classifiers and utilize four datasets acquired from different networks: CIC-IDS- , CSE-CIC-IDS2018, LycoS-IDS2017, and LycoS-UnicasIDS2018. Notably, the last dataset is",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/NIDS跨数据集泛化研究.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2024-Cantone-Cross-Dataset-Generalization-NIDS.pdf"
+    },
+    {
+      "id": "E084",
+      "query": "Recently we have witnessed the explosion of proposals that, inspired by Language Models like BERT, exploit Representation Learning models to create traffic representations. All of them promise astonishing performance in encrypted traffic classification (up to 98% accuracy). In this paper, with a networking expert mindset, we critically reassess their performance. Through extensive analysis, we demonstrate that the reported successes are heavily influenced by data preparation problems, which allow these models to find easy shortcuts – spurious correlation between features and labels – during fi",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/Sweet-Danger-加密流量评测泄漏与公平协议.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2025-Zhao-Sweet-Danger-Encrypted-Traffic-Evaluation.pdf"
+    },
+    {
+      "id": "E085",
+      "query": "Enhancing Network Intrusion Detection Systems (NIDS) with supervised Machine Learning (ML) is tough. MLNIDS must be trained and evaluated, operations requiring data where benign and malicious samples are clearly labelled. Such labels demand costly expert knowledge, resulting in a lack of real deployments, as well as on papers always relying on the same outdated data. The situation improved recently, as some efforts disclosed their labelled datasets. However, most past works used such datasets just as a ‘yet another’ testbed, overlooking the added potential provided by such availability. In con",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/XeNIDS-跨网络交叉评估.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2022-Apruzzese-XeNIDS-Cross-Evaluation.pdf"
+    },
+    {
+      "id": "E086",
+      "query": "Confidently distinguishing a malicious intrusion over a network is an important challenge. Most intrusion detection system evaluations have been performed in a closed set protocol in which only classes seen during training are considered during classification. Thus far, there has been no realistic application in which novel types of behaviors unseen at training – unknown classes as it were – must be recognized for manual categorization. This paper comparatively evaluates malware classification using both closed set and open set protocols for intrusion recognition on the KDDCUP’99 dataset. In c",
+      "relevant_paths": [
+        "wiki/papers/datasets/data-protocol/开放集入侵识别-未知攻击协议.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/data-protocol/2017-Cruz-Open-Set-Intrusion-Recognition.pdf"
+    },
+    {
+      "id": "E087",
+      "query": "F IXED P OINTS IN C YBER S PACE : R ETHINKING O PTIMAL E VASION IN THE AGE OF AI- Christian Schroeder de Witt∗ Department of Engineering Science University of Oxford cs@robots.ox.ac.uk Yongchao Huang Department of Computer Science University of Oxford yongchao.huang@cs.ox.ac.uk Phil H.S. Torr Department of Engineering Science University of Oxford philip.torr@eng.ox.ac.uk Martin Strohmeier armasuisse Science and Technology Thun, Switzerland martin.strohmeier@ar.admin.ch A BSTRACT are increasing in volume, frequency, and complexity. In response, the security community i",
+      "relevant_paths": [
+        "wiki/papers/datasets/locked-shields-related/2021-SchroederdeWitt-AI-NIDS博弈不动点与规避攻击.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/locked-shields-related/2021-SchroederdeWitt-Fixed-Points-Cyber-Space-AI-NIDS-arXiv2111.12197.pdf"
+    },
+    {
+      "id": "E088",
+      "query": "Identifying compromised hosts from network traces has become challenging because benign and malicious is encrypted, and both use the same protocols and ports. -based anomaly ion have been proposed to address this challenge by classifying malicious based on network flow features learned from historical patterns. Previous work has shown that such successfully identify compromised hosts in the same network environment in which they were trained. However, cyber incidence response teams often have to look for intrusions in foreign networks",
+      "relevant_paths": [
+        "wiki/papers/datasets/locked-shields-related/2023-Gehri-LockedShields跨环境C2检测泛化.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/locked-shields-related/2023-Gehri-Towards-Generalizing-ML-C2-Detection-CyCon.pdf"
+    },
+    {
+      "id": "E089",
+      "query": "of communications is limited due to encryption. control, updates, and distribution are encapsulated in TLS tunnels, making it difficult to distinguish between malicious and benign transmissions. One way, how to detect communication, is to analyze the TLS handshake and obtain so-called JA4+ . This analyses the effectiveness of JA4+ for , foc specifically on the JA4, JA4S, and JA4X and their accuracy. It examines the process of creating and explores the uniqueness of these fi",
+      "relevant_paths": [
+        "wiki/papers/datasets/published-baseline/2024-Matousek-JA4指纹加密恶意流量检测经验报告.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/published-baseline/2024-Matousek-Experience-Report-JA4-Fingerprints-Malware-Detection.pdf"
+    },
+    {
+      "id": "E090",
+      "query": "monitoring for security threat detection and performance management is challenging due to the encryption of most communications. This article addresses the problem of identifying associated with Transport Layer Security (TLS) connections. The evaluation of three primary approaches to classifying TLS- was carried out: fingerprinting methods, Server Name Indication (SNI)–based , and machine learning–based classifiers. Each method has its own strengths and limitations: fingerprinting relies on a regularly updated database",
+      "relevant_paths": [
+        "wiki/papers/datasets/published-baseline/2025-Burgetova-加密流量网络应用识别对比.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/published-baseline/2025-Burgetova-Towards-Identification-Network-Applications-Encrypted-Traffic.pdf"
+    },
+    {
+      "id": "E091",
+      "query": "Machine Unlearning (MU) has emerged as an important technique for removing specific data points from trained models without requiring full retraining. However, most existing MU research focuses on deep learning and image data, leaving a gap in the domain of network intrusion detection, which relies heavily on tabular data. This work introduces -Forget, an unlearning approach for the model, to address this gap. The approach is evaluated on two tabular Network Intrusion (NI) datasets, IoT-23 and , using multiple metrics to assess model performance, unlearning efficiency, and",
+      "relevant_paths": [
+        "wiki/papers/datasets/published-baseline/GeNIS-XGBoost机器遗忘.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/published-baseline/2606.19220v1-XGBoost-machine-unlearning-GeNIS.pdf"
+    },
+    {
+      "id": "E092",
+      "query": "The integration of Artificial Intelligence (AI) in Network Intrusion Detection Systems (NIDS) is a promising approach to tackle the increasing sophistication of cyberattacks. However, since Machine Learning (ML) and Deep Learning (DL) models rely heavily on the quality of their training data, the lack of diverse and up-to-date datasets hinders their generalization capability to detect malicious activity in previously unseen network traffic. This study presents an experimental validation of the reliability of the dataset for AI-based NIDS, to serve as a baseline for future benchmarks. Fiv",
+      "relevant_paths": [
+        "wiki/papers/datasets/published-baseline/GeNIS-二分类与多分类发布基线.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/published-baseline/2511.08660v1-GeNIS-binary-multiclass-classification.pdf"
+    },
+    {
+      "id": "E093",
+      "query": "Network Intrusion Detection Systems are essential for monitoring and analyzing network traffic to detect and prevent unauthorized access, malicious activities, and security breaches in real time. Network intrusion detection systems face persistent challenges in accurately identifying finegrained attack subcategories due to class imbalance, limited feature interactions in tabular data, and variability across different time windows. Models often struggle to capture the hidden patterns required for multi-class classification in imbalanced flow-based datasets. To overcome these limitations, this w",
+      "relevant_paths": [
+        "wiki/papers/datasets/published-baseline/GeNIS-多头注意力残差密集网络动态采样.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/published-baseline/2025-Shukla-GeNIS-MHSA-RDB-dynamic-sampling.pdf"
+    },
+    {
+      "id": "E094",
+      "query": "As cyber threats continue to evolve, attackers improve their techniques to optimize the effectiveness of their malicious activities. In response, there has been a significant increase in the implementation of Machine Learning (ML) and Deep Learning (DL) in Network Intrusion Detection Systems (NIDS). Choosing high-quality, representative datasets is a critical step in improving detection accuracy; however, many datasets have been available for a long time, some for over two decades, raising questions about the ability of ML and DL models to generalize across different and possibly outdated netw",
+      "relevant_paths": [
+        "wiki/papers/datasets/published-baseline/GeNIS-跨网络迁移评估.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/published-baseline/2026-Silva-Generalizing-across-Networks-GeNIS.pdf"
+    },
+    {
+      "id": "E095",
+      "query": "Over the last years we witnessed a renewed interest toward Traffic Classification (TC) captivated by the rise of Deep Learning (DL). Yet, the vast majority of TC literature lacks code artifacts, performance assessments across datasets and reference comparisons against Machine Learning (ML) methods. Among those works, a recent study from IMC’22 [16] is worth of attention since it adopts recent DL methodologies (namely, few-shot learning, self-supervision via contrastive learning and data augmentation) appealing for networking as they enable to learn from a few samples and transfer across datase",
+      "relevant_paths": [
+        "wiki/papers/datasets/published-baseline/TCBench-同输入mini-FlowPic复现基线.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/published-baseline/2023-Finamore-TCBench-FlowPic复现.pdf"
+    },
+    {
+      "id": "E096",
+      "query": "With the meteoric rise of the protocol, the supremacy of TCP as the de facto transport protocol underlying web traffic will soon cease. HTTP/3, the next version of the HTTP protocol, will not support TCP. Current - literature has ignored the introduction of this new protocol to all modern browsers. In this work, we investigate whether classifiers trained in the TCP setting generalise to traces, whether is inherently more difficult to fingerprint than TCP, how feature importance changes between these protocols, and how to jointly classify and TCP traces.",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2021-Smith-QUIC时代的网站指纹识别.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2021-Smith-Website-Fingerprinting-in-the-Age-of-QUIC-PoPETs.pdf"
+    },
+    {
+      "id": "E097",
+      "query": "Cryptographic protocols have been widely used to protect the user’s privacy and avoid exposing private information. ( k UDP Internet Connections), including the version originally designed by Google (G ) and the version standardized by IETF (I ), as alternatives to the traditional HTTP, demonstrate their unique transmission characteristics: based on UDP for encrypted resource transmitting, accelerating web page rendering. However, existing encrypted transmission schemes based on TCP are vulnerable to (WFP) attacks, allowing adversaries to infer the users’ v",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2021-Zhan-早期QUIC流量的网站指纹识别.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2021-Zhan-Website-Fingerprinting-on-Early-QUIC-Traffic.pdf"
+    },
+    {
+      "id": "E098",
+      "query": "Since the introduction of protocol, a major change has affected the Internet transport layer, which improves user experience with some security threats. Developed by Google in , provides a low latency, connection-oriented and encrypted transport. In addition to the encryption capability of , it overcomes many issues found in the current transport protocols, such as the high-latency connection establishment in TCP. On the other hand, studies on the security analysis of ’s key establishment showed several drawbacks. Moreover, the encryption mechanism of the protocol allows adve",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2022-AlBakhat-QUIC流量入侵检测机器学习方法.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/2022-AlBakhat-Intrusion-Detection-QUIC-Traffic-CDMA.pdf"
+    },
+    {
+      "id": "E099",
+      "query": "Built on top of UDP, the recently standardized protocol primarily aims to gradually replace the TCP plus TLS plus HTTP/2 model. For instance, HTTP/3 is designed to exploit ’s features, including reduced connection establishment time, multiplexing without head of line blocking, always-encrypted end-to-end , and others. This work serves two key objectives. Initially, it offers the first to our knowledge full-fledged on as seen through the lens of the relevant literature so far. Second and more importantly, through extensive fuzz testing, we conduct a -o",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2022-Chatzoglou-QUIC攻击再审视与服务器实测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2022-Chatzoglou-Revisiting-QUIC-Attacks-IJIS.pdf"
+    },
+    {
+      "id": "E100",
+      "query": "Network-level adversaries have developed increasingly sophisticated techniques to surveil and control users’ network . In this paper, we exploit our observation that many encrypted protocol s are no longer tied to device IP address (e.g., the feature in QUIC, or IP roaming in WireGuard and Mosh), due to the need for performance in a mobile-first world. We design and implement a novel framework, (CoMPS), that utilizes these performance features for enhancing user . With CoMPS, we can split mid-session ac",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2022-Wang-CoMPS连接迁移流量拆分隐私防御.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2022-Wang-CoMPS-Connection-Migration-Traffic-Splitting-Privacy-PoPETs.pdf"
+    },
+    {
+      "id": "E101",
+      "query": "The protocol is a new reliable and secure transport protocol that is an alternative to TLS over TCP. However, compared to TLS, obfuscates the connection handshake and the server name indication domain, making a simple inspection more challenging. The of has also received less attention than that of TLS. In this work, we present a comprehensive study aiming to explore the challenges of . We selected three models: 1) multimodal CNN, 2) LighGBM, and 3) IP-based classifier, and evaluated their properties using a large one-month CESNE",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2023-Luxemburk-QUIC细粒度服务分类与周级数据漂移.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/2023-Luxemburk-Encrypted-Traffic-Classification-QUIC-Case-TMA.pdf"
+    },
+    {
+      "id": "E102",
+      "query": "of vs TCP for Peng, Haorui; Tärneberg, William; Fitzgerald, Emma; Kihl, Maria Published in: The 31st International Conference on Software, Telecommunications and Computer Networks - SoftCOM DOI: 10. /SoftCOM58365. . Document Version: Early version, also known as pre-print Link to publication Citation for published version (APA): Peng, H., Tärneberg, W., Fitzgerald, E., & Kihl, M. ( ). of vs TCP for . In The 31st International Conference on Software, Telecommunications and Computer Networks - Soft",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2023-Peng-云控制系统QUIC与TCP性能评估.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/citing/2023-Peng-QUIC-vs-TCP-Cloud-Control-Systems-SoftCOM.pdf"
+    },
+    {
+      "id": "E103",
+      "query": "framework that can implement existing such as Tamaraw [22] and FRONT [33] using the PADDING frame. While they showed that it is possible to deploy solely from the client, their approach is restricted to users in a VPN scenario where IP addresses cannot be used as a signal to reduce the anonymity set of s [39]. While a nonnegligible amount of users browse the web through VPNs, this is not the case for the majority [14] who unfortunately can not benefit from Smith et al.’s tools. In this work, we investigate whether",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2023-Siby-QUIC网站指纹防御的实用性评估.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2023-Siby-Evaluating-Practical-QUIC-WF-Defenses-PoPETs.pdf"
+    },
+    {
+      "id": "E104",
+      "query": "has rapidly evolved into a cornerstone transport protocol for secure, low-latency communications, yet its deployment continues to expose critical and vulnerabilities, particularly during connection establishment phases and via traffic analysis. This paper systematically revisits a comprehensive set of on and emerging threats. Building upon these observations, we critically analyze recent IETF mitigation efforts, including TLS Encrypted Client Hello (ECH), Oblivious HTTP (OHTTP) and MASQUE. We analyze how these mechanisms enhance while introduc",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2024-Sengupta-QUIC安全与隐私攻击韧性综述.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2024-How-Resilient-is-QUIC-to-Security-and-Privacy-Attacks.pdf"
+    },
+    {
+      "id": "E105",
+      "query": "The advent of the may herald a significant shift in the composition of online traffic in the years to come. The transport layer encryption of the is one of its main s, especially for metadata that was previously transmitted over TCP traffic without encryption. This new has the potential to require significant alterations in future Internet traffic analysis methods and impact network . On the other side, has been used in several research projects to identify network s, with positive outcomes. However, we",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2025-Kadi-QUIC时代入侵检测机器学习适配.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/2025-Kadi-Adapting-to-Evolution-IDS-QUIC-Era-TNSM.pdf"
+    },
+    {
+      "id": "E106",
+      "query": "Encrypted (TC) methods must adapt to new protocols and extensions as well as to advancements in other machine fields. In this paper, we adopt a setup best known from computer vision. We first pretrain an model on a complex task with a large number of classes and then it to seven established TC datasets. The task is of SNI s in encrypted , which in itself is a challenge for network monitoring due to the growing adoption of TLS Encrypted Client Hello. Our training pipeline—featuring a d",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2025-Luxemburk-QUIC域名识别预训练的通用嵌入函数.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2025-Luxemburk-Universal-Embedding-QUIC-Domain-Recognition-Pretraining.pdf"
+    },
+    {
+      "id": "E107",
+      "query": "The k UDP Internet Connections ( ) is increasingly used to provide secure transport for Internet of Things (IoT) firmware and applications. Existing security analyses of focus on the captured network traffic, while -level analyses of implementations remain unexplored, leaving open the question of whether a defence specified by the standard is both present in the compiled and active when the server is under attack. This paper evaluates the and Security (BSISA) , in which a -level of the compiled",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2026-Alshaali-QUIC二进制与系统集成安全分析.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2026-Binary-and-System-Integrated-Analysis-Securing-QUIC.pdf"
+    },
+    {
+      "id": "E108",
+      "query": "governments and ISPs [55]. Well-established regimes, such as China’s Great Firewall (GFW) and Russia’s TSPU, continue to deepen their methods for blocking network s and identifying technologies [28, 29, 74]. From previous studies of systems in the wild, the vast majority of s, including fully encrypted s, are filtered on information in the handshake packets. For example, SNI- detection is so critical to [15] that censors began prematurely blocking s using the encrypted SNI extension as early as [1",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/2026-Lee-QUICstep连接迁移审查规避评估.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/task-landscape/2026-Lee-QUICstep-Connection-Migration-Censorship-Circumvention-PoPETs.pdf"
+    },
+    {
+      "id": "E109",
+      "query": "Computers & Security 125 ( ) Contents lists available at ScienceDirect Computers & Security journal homepage: www.elsevier.com/locate/cose A hands-on gaze on /3 security through the lens of /2 and a public dataset Efstratios Chatzoglou a, Vasileios Kouliaridis a, Georgios Kambourakis a, Georgios Karopoulos b,∗, Stefanos Gritzalis c a Department of Information and Communication Systems Engineering, University of the Aegean, Karlovasi , Samos, Greece European Commission, Joint Research Centre, Ispra , Italy c Department of Digital Systems, University of Piraeus, Piraeus , Greece b a r t",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/H23Q-HTTP3与QUIC攻击数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/H23Q-HTTP3-Security-Public-Dataset-arXiv2208.06722.pdf"
+    },
+    {
+      "id": "E110",
+      "query": "Mobile communication providers continuously collect many parameters, statistics, and key performance indicators (KPIs) with the goal of identifying operation scenarios that can affect the quality of Internet-based services. In this regard, anomaly detection and classification in mobile networks have become challenging tasks due to both the huge number of involved variables and the unknown distributions exhibited by input features. This paper introduces an unsupervised methodology based on both a data-cleaning strategy and explainable machine learning models to detect and classify performance a",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/MonroeQL聚合性能数据及公开性边界.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/Explainable-Machine-Learning-MonroeQL-2023.pdf"
+    },
+    {
+      "id": "E111",
+      "query": "With the growth of the internet, current transport protocols are being re-evaluated to deal with traffic growth. is an evolving transport-layer protocol that has been developed to reduce Web latency, integrate security features, and enable a high-quality experience for mobile users. However, few systematic experimental studies have been carried out to evaluate users’ service in a realistic mobile environment. In this work, we describe the design of experiments with and HTTP/3, which is based on , also considering benchmarks and variants in ’s implementations. We report our me",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/QUIC-MedNetCom蜂窝网络qlog数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/Experimental-Assessment-QUIC-Congestion-Control-Cellular-2021.pdf"
+    },
+    {
+      "id": "E112",
+      "query": "Encrypted traffic complicates network management as traditional transport layer semantics can no longer be used for RTT or packet loss measurements. Addressing this challenge, includes an optional, carefully designed mechanism: the spin bit. While its capabilities have already been studied in test settings, its real-world usefulness and adoption are unknown. In this paper, we thus investigate the spin bit’s deployment and utility on the web. Analyzing our long-term measurements of more than 200 M domains, we find that the spin bit is enabled on ∼10% of those with support and for",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/QUIC旋转位公开测量数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/Does-It-Spin-QUIC-Spin-Bit-IMC-2023.pdf"
+    },
+    {
+      "id": "E113",
+      "query": "Network steganography has existed for several decades and it uses network traffic and network protocols as carriers for embedding secret messages in a stealthy manner. k UDP Internet Connections ( ) is a novel secure and reliable transport layer network protocol that is encapsulated in the User Datagram Protocol (UDP) and utilizes the Transport Layer Security Version 1.3 (TLSv1.3) standard. In addition, Hypertext Transfer Protocol Version 3 (HTTP/3) employs . In this paper, we present a systematic analysis of the covert channels that can be found in . Twenty novel covert channel",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/QUIC隐蔽信道流量数据集.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/Steganography-in-the-QUIC-Communication-Protocol-2026.pdf"
+    },
+    {
+      "id": "E114",
+      "query": "Visualizing and HTTP/3 with and qvis Robin Marx Wim Lamotte Peter Quax Hasselt University – tUL – EDM Diepenbeek, Belgium robin.marx@uhasselt.be Hasselt University – tUL – EDM Diepenbeek, Belgium wim.lamotte@uhasselt.be Hasselt University – tUL – Flanders Make - EDM Diepenbeek, Belgium peter.quax@uhasselt.be Figure 1: A +HTTP/3 and TCP+TLS+HTTP/2 trace visualized in the Packetization Diagram. The x-axis is in bytes received. Alternating colors on each row indicate the switch to a new TCP/ packet, TLS record, /HTTP frame or HTTP stream. Elements that align vertically are p",
+      "relevant_paths": [
+        "wiki/papers/datasets/quic/qlog与解密PCAP的观测边界.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/datasets/quic/Visualizing-QUIC-and-HTTP3-with-qlog-and-qvis-2020.pdf"
+    },
+    {
+      "id": "E115",
+      "query": "While Mixture-of-Experts (MoE) scales capacity via conditional computation, Transformers lack a native primitive for knowledge lookup, forcing them to inefficiently simulate retrieval through computation. To address this, we introduce conditional memory as a complementary sparsity axis, instantiated via , a module that modernizes classic 𝑁 -gram embedding for O (1) lookup. By formulating the Sparsity Allocation problem, we uncover a U-shaped scaling law that optimizes the trade-off between neural computation (MoE) and static memory ( ). Guided by this law, we scale to 27B par",
+      "relevant_paths": [
+        "wiki/papers/deepseek/2601.07372_Engram-DeepSeek.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/deepseek/2601.07372_Engram-DeepSeek.pdf"
+    },
+    {
+      "id": "E116",
+      "query": "Recently, studies exemplified by - (HC) have extended the ubiquitous residual connection paradigm established over the past decade by expanding the residual stream width and diversifying connectivity patterns. While yielding substantial performance gains, this diversification fundamentally compromises the identity mapping property intrinsic to the residual connection, which causes severe training instability and restricted scalability, and additionally incurs notable memory access overhead. To address these challenges, we propose - - (mHC), a",
+      "relevant_paths": [
+        "wiki/papers/deepseek/mHC- Manifold-Constrained Hyper-Connections.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/deepseek/2512.24880v2.pdf"
+    },
+    {
+      "id": "E117",
+      "query": "Recently, studies exemplified by - (HC) have extended the ubiquitous residual connection paradigm established over the past decade by expanding the residual stream width and diversifying connectivity patterns. While yielding substantial performance gains, this diversification fundamentally compromises the identity mapping property intrinsic to the residual connection, which causes severe training instability and restricted scalability, and additionally incurs notable memory access overhead. To address these challenges, we propose - - (mHC), a",
+      "relevant_paths": [
+        "wiki/papers/deepseek/mHC-流形约束超连接.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/deepseek/2512.24880v2.pdf"
+    },
+    {
+      "id": "E118",
+      "query": "In - (MTL), a joint model is trained to simultaneously make predictions for several s. Joint training reduces computation costs and improves data efficiency; however, since the gradients of these different s may conflict, training a joint model for MTL often yields lower performance than its corresponding single- counterparts. A common method for alleviating this issue is to combine per- gradients into a joint update direction using a particular heuristic. In this paper, we propose viewing the gradients combination step as a , where s negoti",
+      "relevant_paths": [
+        "wiki/papers/game/2022_Navon_Multi-Task_Learning_as_a_Bargaining_Game.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2022_Navon_Multi-Task_Learning_as_a_Bargaining_Game.pdf"
+    },
+    {
+      "id": "E119",
+      "query": "The hierarchical interaction between the actor and critic in actor-critic based reinforcement learning algorithms naturally lends itself to a game-theoretic interpretation. We adopt this viewpoint and model the actor and critic interaction as a two-player general-sum game with a leader-follower structure known as a Stackelberg game. Given this abstraction, we propose a meta-framework for Stackelberg actor-critic algorithms where the leader player follows the total derivative of its objective instead of the usual individual gradient. From a theoretical standpoint, we develop a policy gradient t",
+      "relevant_paths": [
+        "wiki/papers/game/2109.12286v1 1.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2109.12286v1 1.pdf"
+    },
+    {
+      "id": "E120",
+      "query": "The hierarchical interaction between the actor and critic in actor-critic based reinforcement learning algorithms naturally lends itself to a game-theoretic interpretation. We adopt this viewpoint and model the actor and critic interaction as a two-player general-sum game with a leader-follower structure known as a Stackelberg game. Given this abstraction, we propose a meta-framework for Stackelberg actor-critic algorithms where the leader player follows the total derivative of its objective instead of the usual individual gradient. From a theoretical standpoint, we develop a policy gradient t",
+      "relevant_paths": [
+        "wiki/papers/game/2109.12286v1.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2109.12286v1.pdf"
+    },
+    {
+      "id": "E121",
+      "query": "In the cyber setting, s are often at the mercy of their detection technologies and subject to the information and experiences that individual analysts have. In order to give s an advantage, it is important to understand an ’s motivation and their likely next best action. As a first step in modeling this behavior, we introduce a framework that simulates interplay between s and s in a environment, focusing on the factors that drive decision making for s and s in the variants of the with full knowledge and ob",
+      "relevant_paths": [
+        "wiki/papers/game/2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_in_a_Noisy_Security_Game.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2212.04281_2022_Simulation_of_Attacker_Defender_Interaction_in_a_Noisy_Security_Game.pdf"
+    },
+    {
+      "id": "E122",
+      "query": "The study presents GAN-CL-STO, a novel that integrates Generative Adversarial Networks (GANs), a 1D Convolutional-Long Short-Term Memory (CL) network, and hyperparameter tuning via the Siberian Tiger Optimization (STO). The model was implemented in Keras and trained over 50 epochs a batch size of 16, and evaluated on three benchmark datasets (UNSW-NB15, CIC-IDS2017, and NSL-KDD). GAN-CL-STO achieved consistently higher accuracy compared to existing methods such as Transformer, Graph Neural Networks (GNNs), Fuzzy System, Reinforcement Learning, CNN-LSTM, PSO-1",
+      "relevant_paths": [
+        "wiki/papers/game/A robust and scalable intrusion detection framework for SDN with GAN-CL-STO.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/s11227-025-07821-7_2025_A_Robust_and_Scalable_Intrusion_Detection_Framework_for_SDN_with_GAN-based_Approach.pdf"
+    },
+    {
+      "id": "E123",
+      "query": "Recently, algorithms for game-theoretic solutions have been deployed in real-world applications, such as the placement of checkpoints and canine units at Los Angeles International Airport. These algorithms assume that the defender ( personnel) can commit to a mixed strategy, a so-called model. As pointed out by Kiekintveld et al. ( ), in these applications, generally, multiple s need to be assigned to multiple targets, resulting in an exponential number of pure for the defender. In this paper, we study how to compute",
+      "relevant_paths": [
+        "wiki/papers/game/Complexity of Computing Optimal Stackelberg Strategies in Security Resource Allocation Games.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/korzhyk-2010_complexity-Optimal-Stackelberg-Strategies.pdf"
+    },
+    {
+      "id": "E124",
+      "query": "Mafia, or Werewolf, is a strategic where two teams compete to eliminate each other’s players through deception and hidden roles. The dynamics and role interactions share notable similarities with adversarial behaviors in network security, making it a valuable framework for modeling cyber threats, particularly botnet detection. In this paper, we introduce a novel -theoretic approach to botnet detection, leveraging the strategic deception dynamics of the Mafia to model adversarial behavior in cybersecurity. We present a mathematical model for Mafia s, formulating winning s",
+      "relevant_paths": [
+        "wiki/papers/game/Detecting malicious nodes using game theory and reinforcement learning in software-defined networks.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/s10207-025-01026-y_2025_Detecting_Malicious_Nodes_using_Game_Theory_and_Reinforcement_Learning_in_SDNs.pdf"
+    },
+    {
+      "id": "E125",
+      "query": "This paper presents a comprehensive study on the implementation of a -Enhanced - (SEC-SDN) integrated with modeling and Snort, an open-source intrusion detection system, to strengthen cloud environments against Distributed Denial-of-Service (DDoS) attacks. As cloud computing continues to dominate the technological landscape, ensuring robust for these highly scalable yet vulnerable systems is critical. The proposed SEC-SDN incorporates to model dynamic interactions between attackers and defenders, enabling pr",
+      "relevant_paths": [
+        "wiki/papers/game/Enhancing network security through integration of game theory in software-defined networking framework.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/s10207-025-01012-4_2025_Enhancing_Network_Security_Through_Integration_of_Game_Theory_in_SDN.pdf"
+    },
+    {
+      "id": "E126",
+      "query": "The rapid expansion of Internet use has increased system exposure to cyber threats, with advanced persistent threats (APTs) being especially challenging due to their stealth, prolonged duration, and multi-stage attacks targeting high-value assets. In this study, we model APT evolution as a strategic interaction between an attacker and a defender on an attack graph. With limited information about the attacker’s position and progress, the defender acts at random intervals by deploying detection sensors across the network. Once a compromise is detected, affected components are immediate",
+      "relevant_paths": [
+        "wiki/papers/game/Game-Theoretic Modeling of Stealthy Intrusion Defense against MDP-Based Attackers.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2603.09587_2026_Game-Theoretic_Modeling_of_Stealthy_Intrusion_Defense_Against_MDP-Based_Attackers.pdf"
+    },
+    {
+      "id": "E127",
+      "query": "This paper presents a preliminary design for a - defense (MTD) for computer s to combat an attacker’s asymmetric advantage. The MTD system reasons over a set of abstract models that capture the ’s conﬁguration and its operational and goals to select adaptations that maintain the operational integrity of the . The paper examines both a simple (purely random) MTD system as well as an intelligent MTD system that uses attack indicators to augment adaptation selection. A set of simulation-based experiments show that such an MTD system may in fact be able to",
+      "relevant_paths": [
+        "wiki/papers/game/Investigating the Application of Moving Target Defenses to Network Security.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/moving-target-defense-NIST-2013_investigating-application.pdf"
+    },
+    {
+      "id": "E128",
+      "query": "In - (MTL), a joint model is trained to simultaneously make predictions for several s. Joint training reduces computation costs and improves data efficiency; however, since the gradients of these different s may conflict, training a joint model for MTL often yields lower performance than its corresponding single- counterparts. A common method for alleviating this issue is to combine per- gradients into a joint update direction using a particular heuristic. In this paper, we propose viewing the gradients combination step as a , where s negoti",
+      "relevant_paths": [
+        "wiki/papers/game/Nash-MTL-多任务对称议价训练.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2022_Navon_Multi-Task_Learning_as_a_Bargaining_Game.pdf"
+    },
+    {
+      "id": "E129",
+      "query": "The security of wireless sensor networks is a hot topic in current research. theory can provide the optimal selection strategy for attackers and defenders in the attack-defense confrontation. Aiming at the problem of poor generality of previous models, we propose a generalized model to analyze the of nodes in wireless sensor networks. Because it is difficult to solve the Nash equilibrium of the by the traditional method, a parallel particle swarm optimization is proposed to solve the Nash equilibrium of the and analyze the",
+      "relevant_paths": [
+        "wiki/papers/game/PPSO and Bayesian game for intrusion detection in WSN from a macro perspective.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/s40747-024-01553-6_2024_PPSO_and_Bayesian_Game_for_Intrusion_Detection_in_WSN.pdf"
+    },
+    {
+      "id": "E130",
+      "query": "- for - NARGES KHAKPOUR, School of Computing, Newcastle University, UK and Department of Computer Science and Media Technology, Linnaeus University, Sweden DAVID PARKER, Department of Computer Science, Oxford University, UK Network systems often contain vulnerabilities that remain unfixed in a network for various reasons, such as the lack of a patch or knowledge to fix them. With the presence of such residual vulnerabilities, the network administrator should properly react to the malicious activities or proactively prevent them",
+      "relevant_paths": [
+        "wiki/papers/game/Partially-Observable Security Games for Automating Attack-Defense Analysis.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2211.01508_2022_Partially-Observable_Security_Games_for_Automating_Attack-Defense_Analysis.pdf"
+    },
+    {
+      "id": "E131",
+      "query": "Published as a conference paper at ICLR S TACKELBERG C OUPLING OF O NLINE R EPRESENTA TION L EARNING AND R EINFORCEMENT L EARNING Fernando Martinez Fordham University New York, NY, USA fmartinezlopez@fordham.edu Tao Li City University of Hong Kong Hong Kong li.tao@cityu.edu.hk Yingdong Lu IBM Research Yorktown Heights, NY, USA yingdong@us.ibm.com Juntao Chen Fordham University New York, NY, USA jchen504@fordham.edu A BSTRACT Deep Q- jointly learns s and values within monolithic networks, promising beneficial co-adaptation between features and value estimates. Although thi",
+      "relevant_paths": [
+        "wiki/papers/game/SCORER-表征与强化学习斯塔克尔伯格耦合.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2026_Martinez_Stackelberg_Coupling_of_Online_Representation_Learning_and_RL.pdf"
+    },
+    {
+      "id": "E132",
+      "query": "Published as a conference paper at ICLR S TACKELBERG C OUPLING OF O NLINE R EPRESENTA TION L EARNING AND R EINFORCEMENT L EARNING Fernando Martinez Fordham University New York, NY, USA fmartinezlopez@fordham.edu Tao Li City University of Hong Kong Hong Kong li.tao@cityu.edu.hk Yingdong Lu IBM Research Yorktown Heights, NY, USA yingdong@us.ibm.com Juntao Chen Fordham University New York, NY, USA jchen504@fordham.edu A BSTRACT Deep Q- jointly learns s and values within monolithic networks, promising beneficial co-adaptation between features and value estimates. Although thi",
+      "relevant_paths": [
+        "wiki/papers/game/Stackelberg Coupling of Online Representation Learning and Reinforcement Learning.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2026_Martinez_Stackelberg_Coupling_of_Online_Representation_Learning_and_RL.pdf"
+    },
+    {
+      "id": "E133",
+      "query": "(MTD) is commonly formulated as a repeated security game to mitigate persistent threats. Although the strong Stackelberg equilibrium (SSE) characterizes the defender’s optimal in the leader-follower framework, computing the SSE often incurs high al complexity, which significantly limits its practical deployment in MTD problems with multiple s. This paper proposes adopting a - (ZD) for constructing an MTD that achieves both high defensive and substantially low al complexity. We first derive a",
+      "relevant_paths": [
+        "wiki/papers/game/Zero-determinant Strategy for Moving Target Defense- Existence, Performance, and Computation.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/2605.07854_2026_Adversarial_Decision-Making_for_Moving_Target_Defense.pdf"
+    },
+    {
+      "id": "E134",
+      "query": "In a class of s known as s, one agent (the leader) must commit to a strategy that can be observed by the other agent (the follower or adversary) before the adversary chooses its own strategy. We consider s, in which the leader is uncertain about the types of adversary it may face. Such s are important in security domains, where, for example, a security agent (leader) must commit to a strategy of patrolling certain areas, and a robber (follower) has a chance to observe this strategy over time before choosing its own strategy of where to attack. T",
+      "relevant_paths": [
+        "wiki/papers/game/dobss-2008_pita-etal_Bayesian_Stackelberg_Game.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/dobss-2008_pita-etal_Bayesian_Stackelberg_Game.pdf"
+    },
+    {
+      "id": "E135",
+      "query": "We propose a Stackelberg model for Moving Target Defense (MTD) where the defender periodically switches the state of a sensitive resource to make it difficult for the attacker to identify the real configurations of the resource. Our model can incorporate various information structures. In this work, we focus on the worst-case scenario from the defender’s perspective where the attacker can observe the previous configurations used by the defender. This is a reasonable assumption especially when the attacker is sophisticated and persistent. By formulating the defender’s problem as a",
+      "relevant_paths": [
+        "wiki/papers/game/game-theoretic_MTD_2017_security_games.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/game-theoretic_MTD_2017_security_games.pdf"
+    },
+    {
+      "id": "E136",
+      "query": "An important element in the mathematical and scientific for security is modeling the strategic use of deception and information manipulation. We argue that theory provides an important al framework for reasoning about information manipulation in adversarial settings, including deception and randomization strategies. In addition, theory has practical uses in determining optimal strategies for randomized patrolling and resource allocation. We discuss three - models that capture aspects of how honeypots can be used in network security. Honeypots are fak",
+      "relevant_paths": [
+        "wiki/papers/game/klp_game_theoretic_foundations_2014.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/klp_game_theoretic_foundations_2014.pdf"
+    },
+    {
+      "id": "E137",
+      "query": "Incentive-driven advanced attacks have become a major concern to cyber-security. Traditional defense techniques that adopt a passive and static approach by assuming a fixed attack type are insufficient in the face of highly adaptive and stealthy attacks. In particular, a passive defense approach often creates information asymmetry where the attacker knows more about the defender. To this end, moving target defense (MTD) has emerged as a promising way to reverse this information asymmetry. The idea of MTD is to (continuously) change certain aspects of the system under control to increase t",
+      "relevant_paths": [
+        "wiki/papers/game/main.pdf.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/mtd-signal-model_2015_Bayesian_Persuasion.pdf"
+    },
+    {
+      "id": "E138",
+      "query": "Predictable allocations of s such as police officers, canine units, or checkpoints are vulnerable to exploitation by attackers. Recent work has applied game-theoretic methods to find optimal randomized policies, including a fielded application at the Los Angeles International Airport (LAX). This approach has promising applications in many similar domains, including police patrolling for subway and bus systems, randomized baggage screening, and scheduling for the Federal Air Marshal Service (FAMS) on commercial flights. However, the existing methods scale poorly when t",
+      "relevant_paths": [
+        "wiki/papers/game/massive-security-games_2009_kiekintveld_mixed_resource.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/massive-security-games_2009_kiekintveld_mixed_resource.pdf"
+    },
+    {
+      "id": "E139",
+      "query": "The present complexity in designing web applications makes software security a difficult goal to achieve. An attacker can explore a deployed service on the web and attack at his/her own leisure. Moving Target Defense (MTD) in web applications is an effective mechanism to nullify this advantage of their reconnaissance but the framework demands a good switching strategy when switching between multiple configurations for its web-stack. To address this issue, we propose modeling of a real-world MTD web application as a repeated game. We then formulate an optimization problem that generate",
+      "relevant_paths": [
+        "wiki/papers/game/mtd-gamefor-web-2016_Bayesian-Stackelberg.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/mtd-gamefor-web-2016_Bayesian-Stackelberg.pdf"
+    },
+    {
+      "id": "E140",
+      "query": "As an effective approach to thwarting advanced attacks, moving target defense (MTD) has been applied to various domains. Previous works on MTD, however, mainly focus on deciding the sequence of system configurations to be used and have largely ignored the equally important problem. Given that both the migration cost and attack time vary over system configurations, it is crucial to jointly optimize the spatial and temporal decisions in MTD to better protect the system from persistent threats. In this work, we propose a Stackelberg game for MTD where the defender commits to a joint",
+      "relevant_paths": [
+        "wiki/papers/game/mtd-timing_2019_model.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/mtd-timing_2019_model.pdf"
+    },
+    {
+      "id": "E141",
+      "query": "There has been significant recent interest in game-theoretic approaches to security, with much of the recent research focused on utilizing the leader-follower game model. Among the major applications are the ARMOR program deployed at LAX Airport and the IRIS program in use by the US Federal Air Marshals (FAMS). The foundational assumption for using games is that security forces (leaders), acting first, commit to a randomized strategy; while their adversaries (followers) choose their best response after surveillance of this randomized strategy. Yet, in many situations, a",
+      "relevant_paths": [
+        "wiki/papers/game/stackelberg-vs-nash_2011_kiekintveld.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/game/stackelberg-vs-nash_2011_kiekintveld.pdf"
+    },
+    {
+      "id": "E142",
+      "query": "Mathematical reasoning poses a significant challenge for language models due to its complex and structured nature. In this paper, we introduce DeepSeekMath 7B, which continues pretraining DeepSeek-Coder-Base-v1.5 7B with 120B math-related tokens sourced from Common Crawl, together with natural language and code data. DeepSeekMath 7B has achieved an impressive score of 51.7% on the competition-level MATH benchmark without relying on external toolkits and voting techniques, approaching the performance level of Gemini-Ultra and GPT-4. Self-consistency over 64 samples from DeepSeekMath 7B achieves",
+      "relevant_paths": [
+        "wiki/papers/grpo/2402.03300.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2402.03300.pdf"
+    },
+    {
+      "id": "E143",
+      "query": "Group Relative Policy Optimization ( ) has emerged as a popular algorithm for reinforcement learning with large language models (LLMs). However, upon analyzing its mechanism, we argue that it is suboptimal in certain scenarios. With appropriate modifications, can be significantly enhanced to improve both flexibility and generalization. To this end, we propose - - (ABC- ), an asymmetric and refinement of the original framework. We demonstrate that ABC- achieves superior performance over standard on mathematical reasoning tas",
+      "relevant_paths": [
+        "wiki/papers/grpo/Adaptive-Boundary-Clipping GRPO- Ensuring Bounded Ratios for Stable and Generalizable Training.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2601.03895.pdf"
+    },
+    {
+      "id": "E144",
+      "query": "ied decision making (Zhang et al., 2025b), among other domains where success can be evaluated with programmatic or learned rewards. (GRPO) (Shao et al., ) removes the reliance on a critic for advantage estimation by a within- normalization of the rewards obtained over multiple sampled outputs for the same query. The critic-free structure of GRPO is appealing when training or deploying a value function is difficult.",
+      "relevant_paths": [
+        "wiki/papers/grpo/Constrained Group Relative Policy Optimization.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2602.05863.pdf"
+    },
+    {
+      "id": "E145",
+      "query": "Published as a conference paper at ICLR G ROUP -R ELATIVE IS S ECRETLY AN O FF -P OLICY A LGORITHM : D EMYSTIFYING S OME M YTHS A BOUT AND ITS F RIENDS Chaorui Yao ∗ University of California, Los Angeles chaorui@ucla.edu Yanxi Chen ∗ Alibaba chenyanxi.cyx@alibaba-inc.com Yuchang Sun, Yushuo Chen, Wenhao Zhang Alibaba {sunyuchang.syc,chenyushuo.cys,zwh434786}@alibaba-inc.com Xuchen Pan, Yaliang Li, Bolin Ding Alibaba {panxuchen.pxc,yaliang.li,bolin.ding}@alibaba-inc.com A BSTRACT Off- ment learning (RL) for large language models (LLMs) is attracti",
+      "relevant_paths": [
+        "wiki/papers/grpo/Group-Relative REINFORCE Is Secretly an Off-Policy Algorithm- Demystifying Some Myths About GRPO and Its Friends.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2509.24203.pdf"
+    },
+    {
+      "id": "E146",
+      "query": ", a critical component in task-oriented dialogue (TOD) systems, faces significant challenges in adapting to the rapid influx of integrable tools complex interrelationships. Existing approaches, such as zero-shot reformulations and LLM- dynamic recognition, struggle performance degradation when encountering unseen s, leading to erroneous task routing. To enhance the model’s performance on unseen tasks, we employ Reinforcement Learning (RL) combined a - (RCS) during Group Relative Policy Optimization ( ) t",
+      "relevant_paths": [
+        "wiki/papers/grpo/Improving Generalization in Intent Detection- GRPO with Reward-Based Curriculum Sampling.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2504.13592v2 (1).pdf"
+    },
+    {
+      "id": "E147",
+      "query": ": N EGATIVE - G ROUP R ELATIVE P OLICY O PTIMIZATION Gongrui Nan, Siye Chen, Jing Huang, Mengyu Lu Dexun Wang, Chunmei Xie, Weiqi Xiong, Xianzhou Zeng Qixuan Zhou, Yadong Li, Xingzhong Xu Ant Shanghai, China {nangongrui.ngr}@ant .com A BSTRACT RLVR has the reasoning capabilities of Large Language Models (LLMs) across various tasks. However, GRPO, a representative RLVR algorithm, suffers from a critical limitation: when all responses within a are either entirely correct or entirely incorrect, the model fails to learn from these homogeneous responses. This",
+      "relevant_paths": [
+        "wiki/papers/grpo/NGRPO- Negative-enhanced Group Relative Policy Optimization.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2509.18851.pdf"
+    },
+    {
+      "id": "E148",
+      "query": "As Test-Time Scaling emerges as an active research focus in the large language model community, advanced post-training methods increasingly emphasize extending chain-of-thought (CoT) generation length, thereby enhancing capabilities to approach Deepseek R1-like . However, recent studies reveal that (even Qwen3) consistently exhibit excessive thought redundancy in CoT generation. This overthinking issue arises from the inherent limitations of conventional outcome-reward , which systematically overlooks the regulation of intermedia",
+      "relevant_paths": [
+        "wiki/papers/grpo/S-GRPO- Early Exit via Reinforcement Learning in Reasoning Models.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2505.07686.pdf"
+    },
+    {
+      "id": "E149",
+      "query": "concepts to concrete steps, enabling the model to construct a valid solution by itself. Extensive experiments on challenging mathematics benchmarks demonstrate - ’s effectiveness, boosting the pass@1 score of the Qwen2.5-Math-7B model on the AIME24 benchmark by a 44.3% over a vanilla baseline. This result demonstrates our framework provides a robust and effective methodology for unlocking a model’s ability to solve problems previously beyond its reach, a critical step towards extending the frontier of autonomous in LLM. 80.0",
+      "relevant_paths": [
+        "wiki/papers/grpo/Scaf-GRPO- Scaffolded Group Relative Policy Optimization for Enhancing LLM Reasoning.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2510.19807.pdf"
+    },
+    {
+      "id": "E150",
+      "query": "Reinforcement learning (RL) has proven effective in strengthening the capabilities of large language models (LLMs). A widely adopted method, Group Relative ( ) [Shao et al., ], has shown strong empirical results in training recent models [Guo et al., 2025a], but it fails to update the when all responses within a group are (i.e., all-negative-sample groups). This limitation highlights a gap between artificial and human intelligence: unlike humans, who can learn from mistakes, discards these failure signals. We introduce a simple f",
+      "relevant_paths": [
+        "wiki/papers/grpo/Stepwise Guided Policy Optimization- Coloring your Incorrect Reasoning in GRPO.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2505.11595.pdf"
+    },
+    {
+      "id": "E151",
+      "query": "et al., ; 2026a;b; Zhou et al., ) has become a standard technique for aligning large language models (LLMs) with desired behaviors. Among RLHF approaches, Proximal Policy (PPO) (Schulman et al., ) is widely adopted but requires training an additional value network (critic), making it resource-intensive and difficult to scale. To address this, recent work proposed Group Relative Policy ( ) (Shao et al., ), a critic-free alternative that estimates advantages through group-wise reward normalization while retaining PPO-style importance sampling with respect to an old p",
+      "relevant_paths": [
+        "wiki/papers/grpo/TIC-GRPO- Provable and Efficient Optimization for Reinforcement Learning from Human Feedback.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2508.02833.pdf"
+    },
+    {
+      "id": "E152",
+      "query": "DeepSeek-R1- has shown that reinforcement learning (RL) at scale can directly enhance the reasoning capabilities of LLMs without supervised fine-tuning. In this work, we ly examine R1- - by analyzing its two core components: base models and RL. We investigate a wide range of base models, including DeepSeek-V3-Base, to understand how pre characteristics influence RL performance. Our analysis reveals that DeepSeek-V3-Base already exhibit “Aha moment”, while Qwen2.5 base models demonstrate strong reasoning capabilities even without prompt templates, suggesting",
+      "relevant_paths": [
+        "wiki/papers/grpo/Understanding R1-Zero-Like Training- A Critical Perspective.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2503.20783.pdf"
+    },
+    {
+      "id": "E153",
+      "query": "lightweight reinforcement-learning (RL) stage is applied on top of a strong and pretrained base model. Among the many post-training recipes, Group Relative Policy Optimization ( ) has emerged as a practical, critic-free alternative that has powered some of the most visible reasoning systems (Shao et al., ), where it consistently improves solution accuracy under tight compute budgets.",
+      "relevant_paths": [
+        "wiki/papers/grpo/Why GRPO Needs Normalization- A Local-Curvature Perspective on Adaptive Gradients.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2601.23135.pdf"
+    },
+    {
+      "id": "E154",
+      "query": ", a critical component in task-oriented dialogue (TOD) systems, faces significant challenges in adapting to the rapid influx of integrable tools complex interrelationships. Existing approaches, such as zero-shot reformulations and LLM- dynamic recognition, struggle performance degradation when encountering unseen s, leading to erroneous task routing. To enhance the model’s performance on unseen tasks, we employ Reinforcement Learning (RL) combined a - (RCS) during Group Relative Policy Optimization ( ) t",
+      "relevant_paths": [
+        "wiki/papers/llm/GRPO-RCS-意图检测泛化.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/grpo/2504.13592v2 (1).pdf"
+    },
+    {
+      "id": "E155",
+      "query": "The continued improvements in model capability have unlocked their widespread use as drivers of autonomous agents, for example in coding or computer use applications. However, the core of these systems has not changed much since early instruction-tuned like ChatGPT. Even advanced AI agents function on message exchange formats, successively exchanging messages users, systems, itself (i.e. chain-of-thought) and tools in a single of computation. This bottleneck to a single in chat leads to a number of limitations: the agent cannot act (generate outpu",
+      "relevant_paths": [
+        "wiki/papers/llm/Multi-Stream LLMs- Unblocking Language Models with Parallel Streams of Thoughts, Inputs and Outputs.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/llm/2605.12460v1.pdf"
+    },
+    {
+      "id": "E156",
+      "query": "We introduce 1 , a framework for robotics simulations allowing a full Bayesian treatment for the parameters of the simulator. As simulators become more sophisticated and able to represent the dynamics more accurately, fundamental problems in robotics such as motion planning and perception can be solved in simulation and solutions transferred to the physical robot. However, even the most complex simulator might still not be able to represent reality in all its details either due to inaccurate parametrization or simplistic assumptions in the dynamic models. provides a principle",
+      "relevant_paths": [
+        "wiki/papers/manifold/BayesSim-RSS2019.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/BayesSim-RSS2019.pdf"
+    },
+    {
+      "id": "E157",
+      "query": "We introduce 1 , a framework for simulations allowing a full Bayesian treatment for the parameters of the simulator. As become more sophisticated and able to represent the dynamics more accurately, fundamental problems in such as motion planning and perception can be solved in simulation and solutions transferred to the physical robot. However, even the most complex simulator might still not be able to represent reality in all its details either due to inaccurate parametrization or simplistic assumptions in the dynamic models. provides a principle",
+      "relevant_paths": [
+        "wiki/papers/manifold/BayesSim自适应域随机化.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/BayesSim-RSS2019.pdf"
+    },
+    {
+      "id": "E158",
+      "query": "Leveraging knowledge described by partial differential equations (PDEs) is an appealing way to improve methods. Since physics is too restrictive for describing the full visual content of generic s, we introduce PhyDNet, a two-branch deep architecture, which explicitly disentangles PDE complementary information. A second contribution is to propose a new recurrent cell (PhyCell), inspired data assimilation techniques, for performing PDE-constrained in latent space. Extensive experiments conducted on four v",
+      "relevant_paths": [
+        "wiki/papers/manifold/Disentangling Physical Dynamics From Unknown Factors for Unsupervised Video Prediction.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/PhyDNet-CVPR2020.pdf"
+    },
+    {
+      "id": "E159",
+      "query": "The cost of large scale data collection and annotation often makes the application of machine learning algorithms to new tasks or datasets prohibitively expensive. One approach circumventing this cost is training models on synthetic data where annotations are provided automatically. Despite their appeal, such models often fail to generalize from synthetic to real images, necessitating adaptation algorithms to manipulate these models before they can be successfully applied. Existing approaches focus either on mapping representations from one to the other, or on learning to extract",
+      "relevant_paths": [
+        "wiki/papers/manifold/Domain Separation Networks.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/DomainSeparationNetworks-NeurIPS2016.pdf"
+    },
+    {
+      "id": "E160",
+      "query": "The cost of large scale data collection and annotation often makes the application of machine learning algorithms to new tasks or datasets prohibitively expensive. One approach circumventing this cost is training models on synthetic data where annotations are provided automatically. Despite their appeal, such models often fail to generalize from synthetic to real images, necessitating adaptation algorithms to manipulate these models before they can be successfully applied. Existing approaches focus either on mapping representations from one to the other, or on learning to extract",
+      "relevant_paths": [
+        "wiki/papers/manifold/Domain Separation Networks共享私有域分解.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/DomainSeparationNetworks-NeurIPS2016.pdf"
+    },
+    {
+      "id": "E161",
+      "query": "Simulations are attractive environments for training agents as they provide an abundant source of data and alleviate certain safety concerns during the training process. But the behaviours developed by agents in simulation are often specific to the characteristics of the simulator. Due to modeling error, strategies that are successful in simulation may not transfer to their real world counterparts. In this paper, we demonstrate a simple method to bridge this “reality gap”. By randomizing the dynamics of the simulator during training, we are able to develop policies that are capable of adapting",
+      "relevant_paths": [
+        "wiki/papers/manifold/DynamicsRandomization-ICRA2018.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/DynamicsRandomization-ICRA2018.pdf"
+    },
+    {
+      "id": "E162",
+      "query": "with non-uniform intervals occur in many applications, and are difficult to model using standard recurrent neural networks (RNNs). We generalize RNNs to have continuous- hidden dynamics defined by (ODEs), a model we call ODE-RNNs. Furthermore, we use ODE-RNNs to replace the recognition network of the recently-proposed ODE model. Both ODE-RNNs and ODEs can naturally handle arbitrary gaps between observations, and can explicitly model the probability of observation s using Poisson processes. We show experimentally that these",
+      "relevant_paths": [
+        "wiki/papers/manifold/Latent Ordinary Differential Equations for Irregularly-Sampled Time Series.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/LatentODE-NeurIPS2019.pdf"
+    },
+    {
+      "id": "E163",
+      "query": "2025b; Esser et al., ) and video synthesis (Gupta et al., ). Achieving high-quality generation often relies on scalable and effective architectures, such as U-Net and DiT (Ronneberger et al., ; Peebles & Xie, ). Despite these advances, extending these successes to AI for Science remains fundamentally challenging. Unlike natural images, data is governed by strict, immutable physical laws (Cuomo et al., ).",
+      "relevant_paths": [
+        "wiki/papers/manifold/Learning to Think in Physics- Breaking Shortcut Learning in Scientific Diffusion via Representation Alignment.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/REPA-P-2605.20780.pdf"
+    },
+    {
+      "id": "E164",
+      "query": "(Awais et al., ). is a form of transfer learning, but updating all s of a large model can be in and risks catastrophic forgetting (Kirkpatrick et al., ). - (PEFT) addresses this by freezing the backbone and training only a small number of additional s (Han et al., ). Adapter methods introduce small trainable modules (Houlsby et al., ). LoRA, for example, updates selected weight matrices via low-rank decomposition (Hu et al., ). These methods can be effective, but they mostly adapt weights or add modules while leaving the model’",
+      "relevant_paths": [
+        "wiki/papers/manifold/Manifold-Constrained Hyper-Connections for Parameter-Efficient Finetuning.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/2607.18130v1.pdf"
+    },
+    {
+      "id": "E165",
+      "query": "Learning low-dimensional state space dynamics models has proven powerful for enabling vision-based planning and learning for . We introduce a dynamics learning framework that is uniquely designed to induce ability in the space, thus enabling the use of simple and well-known PID lers. We show that our learned dynamics model enables , dramatically simplifies and accelerates behavioural cloning of visionbased lers, and provides interpretable discovery when applied to imitation learning of switching",
+      "relevant_paths": [
+        "wiki/papers/manifold/NewtonianVAE- Proportional Control and Goal Identification From Pixels via Physical Latent Spaces.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/NewtonianVAE-CVPR2021.pdf"
+    },
+    {
+      "id": "E166",
+      "query": "Learning low-dimensional state space dynamics models has proven powerful for enabling vision-based planning and learning for . We introduce a dynamics learning framework that is uniquely designed to induce ability in the space, thus enabling the use of simple and well-known PID lers. We show that our learned dynamics model enables , dramatically simplifies and accelerates behavioural cloning of visionbased lers, and provides interpretable discovery when applied to imitation learning of switching",
+      "relevant_paths": [
+        "wiki/papers/manifold/NewtonianVAE物理潜空间.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/NewtonianVAE-CVPR2021.pdf"
+    },
+    {
+      "id": "E167",
+      "query": "Accepted at the ICLR Workshop on AI4Differential Equations In Science PDE FORMER : T OWARDS A F OUNDATION M ODEL FOR O NE -D IMENSIONAL PARTIAL D IFFERENTIAL E QUA - TIONS Zhanhong Ye1 , Xiang Huang2 , Leheng Chen1 , Hongsheng Liu2 , Zidong Wang2 , Bin Dong3,4∗ 1 Beijing International Center for Mathematical Research, Peking University, Beijing, China 2 Central Software Institute, Huawei Technologies Co. Ltd, Hangzhou, China 3 Beijing International Center for Mathematical Research and the New Cornerstone Science Laboratory, Peking University, Beijing, China 4 Center for Machine Learning Resear",
+      "relevant_paths": [
+        "wiki/papers/manifold/PDEformer-2402.12652.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/PDEformer-2402.12652.pdf"
+    },
+    {
+      "id": "E168",
+      "query": "Solving Partial Differential Equations (PDEs) is the core of many fields of science and engineering. While classical approaches are often prohibitively slow, machine learning models often fail to incorporate complete system information. Over the past few years, transformers have had a significant impact on the field of Artificial Intelligence and have seen increased usage in PDE applications. However, despite their success, transformers currently lack integration with physics and reasoning. This study aims to address this issue by introducing : Physics Informed Token Transformer. The purpo",
+      "relevant_paths": [
+        "wiki/papers/manifold/PITT-2305.08757.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/PITT-2305.08757.pdf"
+    },
+    {
+      "id": "E169",
+      "query": "(PDEs) is the core of many fields of science and engineering. While classical approaches are often prohibitively slow, machine learning models often fail to incorporate complete system information. Over the past few years, s have had a significant impact on the field of Artificial Intelligence and have seen increased usage in PDE applications. However, despite their success, s currently lack integration with and reasoning. This study aims to address this issue by introducing : . The purpo",
+      "relevant_paths": [
+        "wiki/papers/manifold/PITT物理令牌Transformer.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/PITT-2305.08757.pdf"
+    },
+    {
+      "id": "E170",
+      "query": "Leveraging knowledge described by partial differential equations (PDEs) is an appealing way to improve methods. Since physics is too restrictive for describing the full visual content of generic s, we introduce PhyDNet, a two-branch deep architecture, which explicitly disentangles PDE complementary information. A second contribution is to propose a new recurrent cell (PhyCell), inspired data assimilation techniques, for performing PDE-constrained in latent space. Extensive experiments conducted on four v",
+      "relevant_paths": [
+        "wiki/papers/manifold/PhyDNet物理动态解耦视频预测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/PhyDNet-CVPR2020.pdf"
+    },
+    {
+      "id": "E171",
+      "query": "2025b; Esser et al., ) and video synthesis (Gupta et al., ). Achieving high-quality generation often relies on scalable and effective architectures, such as U-Net and DiT (Ronneberger et al., ; Peebles & Xie, ). Despite these advances, extending these successes to AI for Science remains fundamentally challenging. Unlike natural images, data is governed by strict, immutable physical laws (Cuomo et al., ).",
+      "relevant_paths": [
+        "wiki/papers/manifold/REPA-P中间物理表征对齐.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/REPA-P-2605.20780.pdf"
+    },
+    {
+      "id": "E172",
+      "query": "Published as a conference paper at ICLR R ECON : R EDUCING C ONFLICTING G RADIENTS FROM THE ROOT FOR M ULTI -TASK L EARNING Guangyuan Shi, Qimai Li, Wenlong Zhang, Jiaxin Chen, Xiao-Ming Wu Department of Computing, The Hong Kong Polytechnic University, Hong Kong S.A.R., China {guang-yuan.shi, qee-mai.li, wenlong.zhang}@connect.polyu.hk, jiax.chen@connect.polyu.hk, xiao-ming.wu@polyu.edu.hk A BSTRACT A fundamental challenge for multi-task learning is that different tasks may conflict with each other when they are solved jointly, and a cause of this phenomenon is conflicting gradients during opt",
+      "relevant_paths": [
+        "wiki/papers/manifold/Recon-ICLR2023.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/Recon-ICLR2023.pdf"
+    },
+    {
+      "id": "E173",
+      "query": "Published as a conference paper at ICLR R ECON : R EDUCING C ONFLICTING G RADIENTS THE FOR M ULTI - L EARNING Guangyuan Shi, Qimai Li, Wenlong Zhang, Jiaxin Chen, Xiao-Ming Wu Department of Computing, The Hong Kong Polytechnic University, Hong Kong S.A.R., China {guang-yuan.shi, qee-mai.li, wenlong.zhang}@connect.polyu.hk, jiax.chen@connect.polyu.hk, xiao-ming.wu@polyu.edu.hk A BSTRACT A fundamental challenge for - is that different s may conflict with each other when they are solved jointly, and a cause of this phenomenon is during opt",
+      "relevant_paths": [
+        "wiki/papers/manifold/Recon从结构根源减少梯度冲突.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/Recon-ICLR2023.pdf"
+    },
+    {
+      "id": "E174",
+      "query": "Low- (LoRA) has been widely adopted as a parameter-efficient technique for fine-tuning large-scale pre-trained models. However, it still lags behind full fine-tuning in performance, partly due to its insufficient exploitation of the geometric structure underlying low- s. In this paper, we propose a geometry-aware extension of LoRA that uses a three-factor decomposition USV ⊤. Analogous to the structure of singular value decomposition (SVD), it separates the adapter’s input and output s, V and U , from the scaling factor S. Our method constrains U and V to lie",
+      "relevant_paths": [
+        "wiki/papers/manifold/StelLA- Subspace Learning in Low-rank Adaptation using Stiefel Manifold.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/2510.01938v2.pdf"
+    },
+    {
+      "id": "E175",
+      "query": "Low- (LoRA) has been widely adopted as a parameter-efficient technique for fine-tuning large-scale pre-trained models. However, it still lags behind full fine-tuning in performance, partly due to its insufficient exploitation of the geometric structure underlying low- s. In this paper, we propose a geometry-aware extension of LoRA that uses a three-factor decomposition USV ⊤. Analogous to the structure of singular value decomposition (SVD), it separates the adapter’s input and output s, V and U , from the scaling factor S. Our method constrains U and V to lie",
+      "relevant_paths": [
+        "wiki/papers/manifold/StelLA-Stiefel子空间低秩适配.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/2510.01938v2.pdf"
+    },
+    {
+      "id": "E176",
+      "query": "We present a new method of control policies that successfully operate under dynamic models. We create such policies by leveraging a large number of training examples that are generated using a physical simulator. Our is made of two components: a (UP) and a function for (OSI). We describe our control as because it is trained over a wide array of dynamic models. These variations in the dynamic model may include differences in mass and inertia of the robots components, variable friction coefficients, or",
+      "relevant_paths": [
+        "wiki/papers/manifold/UP-OSI在线系统辨识通用策略.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/UPOSI-RSS2017.pdf"
+    },
+    {
+      "id": "E177",
+      "query": "We present a new method of learning control policies that successfully operate under unknown dynamic models. We create such policies by leveraging a large number of training examples that are generated using a physical simulator. Our system is made of two components: a Universal Policy (UP) and a function for Online System Identification (OSI). We describe our control policy as universal because it is trained over a wide array of dynamic models. These variations in the dynamic model may include differences in mass and inertia of the robots components, variable friction coefficients, or unknown",
+      "relevant_paths": [
+        "wiki/papers/manifold/UPOSI-RSS2017.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/UPOSI-RSS2017.pdf"
+    },
+    {
+      "id": "E178",
+      "query": "(Awais et al., ). is a form of transfer learning, but updating all s of a large model can be in and risks catastrophic forgetting (Kirkpatrick et al., ). - (PEFT) addresses this by freezing the backbone and training only a small number of additional s (Han et al., ). Adapter methods introduce small trainable modules (Houlsby et al., ). LoRA, for example, updates selected weight matrices via low-rank decomposition (Hu et al., ). These methods can be effective, but they mostly adapt weights or add modules while leaving the model’",
+      "relevant_paths": [
+        "wiki/papers/manifold/mHC参数高效微调.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/2607.18130v1.pdf"
+    },
+    {
+      "id": "E179",
+      "query": "Simulations are attractive environments for training agents as they provide an abundant source of data and alleviate certain safety concerns during the training process. But the behaviours developed by agents in simulation are often specific to the characteristics of the simulator. Due to modeling error, strategies that are successful in simulation may not to their world counterparts. In this paper, we demonstrate a simple method to bridge this “ ity gap”. By randomizing the of the simulator during training, we are able to develop policies that are capable of adapting",
+      "relevant_paths": [
+        "wiki/papers/manifold/动力学随机化仿真到真实迁移.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/manifold/DynamicsRandomization-ICRA2018.pdf"
+    },
+    {
+      "id": "E180",
+      "query": "Humans and animals learn much better when the examples are not randomly presented but organized in a meaningful order which illustrates gradually more concepts, and gradually more complex ones. Here, we formalize such training strategies in the context of machine learning, and call them “curriculum learning”. In the context of recent research studying the difficulty of training in the presence of non-convex training criteria (for deep deterministic and stochastic neural networks), we explore curriculum learning in various set-ups. The experiments show that significant improvements in generaliz",
+      "relevant_paths": [
+        "wiki/papers/methodology/2009-Bengio-课程学习.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2009_Bengio_Curriculum_Learning.pdf"
+    },
+    {
+      "id": "E181",
+      "query": "The problem in machine learning occurs when the test data generating distribution differs from the one that generates the training data. It is clear that the success of learning under such circumstances depends on similarities between the two data distributions. We study assumptions about the relationship between the two distributions that one needed for learning to succeed. We analyze the assumptions in an agnostic PAC-style learning model for a the setting in which the learner can access a labeled training data sample and an unlabeled sample generated by t",
+      "relevant_paths": [
+        "wiki/papers/methodology/2010-Ben-David-域适应不可能性定理.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2010-Ben-David-Impossibility-Theorems-Domain-Adaptation.pdf"
+    },
+    {
+      "id": "E182",
+      "query": "s continue to be a significant problem on the Internet. Accordingly, a great deal of research has focused on methods for and mitigating the effects of s. Two of the primary factors preventing the development of effective - , wide-area detection systems are seemingly contradictory. On the one hand, technical and administrative restrictions result in a general unavailability of raw network data that would facilitate detection on a . On the other hand, were this data available, real-time processing at that would be a formidable challen",
+      "relevant_paths": [
+        "wiki/papers/methodology/2012-Bilge-DISCLOSURE大规模NetFlow僵尸网络控制服务器检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/multiple-instance/2012-Bilge-DISCLOSURE-Botnet-C2-NetFlow-ACSAC.pdf"
+    },
+    {
+      "id": "E183",
+      "query": "In this paper we propose and investigate a novel nonlinear unit, called Lp unit, for . The proposed Lp unit receives signals from several projections of a subset of units in the layer below and computes a alized Lp . We notice two interesting interpretations of the Lp unit. First, the proposed unit can be understood as a generalization of a number of conventional operators such as average, root-mean-square and max widely used in, for instance, convolutional (CNN), HMAX models and neocognitrons. Furthermore, the Lp unit is, to a certai",
+      "relevant_paths": [
+        "wiki/papers/methodology/2014-Gulcehre-可学习范数池化Lp单元.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/multiple-instance/2014-Gulcehre-Learned-Norm-Pooling-ECMLPKDD.pdf"
+    },
+    {
+      "id": "E184",
+      "query": "of for Karel Bartos and Michal Sofka, Cisco Systems, Inc.; Vojtech Franc, Czech Technical University in Prague https://www.usenix.org/conference/usenixsecurity16/technical-sessions/presentation/bartos This paper is included in the Proceedings of the 25th USENIX Security Symposium August 10–12, • Austin, TX ISBN 978-1- -32-4 Open access to the Proceedings of the 25th USENIX Security Symposium is sponsored by USENIX",
+      "relevant_paths": [
+        "wiki/papers/methodology/2016-Bartos-优化不变表示检测未见恶意软件变种.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/multiple-instance/2016-Bartos-Optimized-Invariant-Representation-USENIX.pdf"
+    },
+    {
+      "id": "E185",
+      "query": "Domain adaptation is one of the most challenging tasks of modern data analytics. If the adaptation is done correctly, models built on a specific data representation become more robust when confronted to data depicting the same classes, but described by another observation system. Among the many strategies proposed, finding domain-invariant representations has shown excellent properties, in particular since it allows to train a unique classifier effective in all domains. In this paper, we propose a regularized unsupervised optimal transportation model to perform the alignment of the representat",
+      "relevant_paths": [
+        "wiki/papers/methodology/2016-Courty-最优传输域适配.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2016-Courty-Optimal-Transport-Domain-Adaptation.pdf"
+    },
+    {
+      "id": "E186",
+      "query": "We introduce a new representation learning approach for adaptation, in which data at and test time come from similar but different distributions. Our approach is directly inspired by the theory on adaptation suggesting that, for effective transfer to be achieved, predictions must be made based on features that cannot discriminate between the (source) and test (target) s. The approach implements this idea in the context of network architectures that are trained on labeled data from the source and unlabeled data from the target (n",
+      "relevant_paths": [
+        "wiki/papers/methodology/2016-Ganin-DANN域对抗训练.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2016-Ganin-Domain-Adversarial-Training.pdf"
+    },
+    {
+      "id": "E187",
+      "query": "We introduce a new representation learning approach for domain adaptation, in which data at training and test time come from similar but different distributions. Our approach is directly inspired by the theory on domain adaptation suggesting that, for effective domain transfer to be achieved, predictions must be made based on features that cannot discriminate between the training (source) and test (target) domains. The approach implements this idea in the context of neural network architectures that are trained on labeled data from the source domain and unlabeled data from the target domain (n",
+      "relevant_paths": [
+        "wiki/papers/methodology/2016-Ganin-域对抗神经网络.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2016-Ganin-Domain-Adversarial-Training.pdf"
+    },
+    {
+      "id": "E188",
+      "query": "Modeling network traffic is gaining importance in order to counter modern threats of ever increasing sophistication. It is though surprisingly difficult and costly to construct reliable classifiers on top of telemetry data due to the variety and complexity of signals that no human can manage to interpret in full. Obtaining training data sufficiently large and variable body of labels can thus be seen as prohibitive problem. The goal of this work is to detect infected computers by observing their HTTP(S) traffic collected from network sensors, which are typically proxy servers or network fi",
+      "relevant_paths": [
+        "wiki/papers/methodology/2016-Pevny-树结构多示例判别模型.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/multiple-instance/2016-Pevny-Discriminative-Models-Tree-Structure-MIL-AISec.pdf"
+    },
+    {
+      "id": "E189",
+      "query": "Many objects in the real world are difficult to describe by means of a single numerical vector of a fixed length, whereas describing them by means of a set of vectors is more natural. Therefore, learning (MIL) techniques have been constantly gaining in importance throughout the last years. MIL assumes that each object (sample) is represented by a set (bag) of feature vectors ( s) of fixed length, where knowledge about objects (e.g., class label) is available on bag level but not necessarily on level. Many standard tools including supervised classifie",
+      "relevant_paths": [
+        "wiki/papers/methodology/2016-Pevny-神经网络形式化求解多示例问题.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/multiple-instance/2016-Pevny-Neural-Network-Formalism-Multiple-Instance.pdf"
+    },
+    {
+      "id": "E190",
+      "query": "Published as a conference paper at ICLR T OWARDS U NIVERSAL S ENTENCE E MBEDDINGS John Wieting Mohit Bansal Kevin Gimpel Karen Livescu Toyota Technological Institute at Chicago, Chicago, IL, , USA {jwieting,mbansal,kgimpel,klivescu}@ttic.edu A BSTRACT We consider the problem of learning general-purpose, based on supervision from the Paraphrase Database (Ganitkevitch et al., ). We compare six compositional architectures, evaluating them on annotated textual similarity datasets drawn both from the same distribution as the training data and from a wid",
+      "relevant_paths": [
+        "wiki/papers/methodology/2016-Wieting-通用复述句嵌入.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/multiple-instance/2016-Wieting-Universal-Paraphrastic-Sentence-Embeddings-ICLR.pdf"
+    },
+    {
+      "id": "E191",
+      "query": "For many applications of reinforcement learning it can be more convenient to specify both a reward function and constraints, rather than trying to design behavior through the reward function. For example, systems that physically interact with or around humans should satisfy safety constraints. Recent advances in policy search algorithms (Mnih et al., ; Schulman et al., ; Lillicrap et al., ; Levine et al., ) have enabled new capabilities in high-dimensional control, but do not consider the constrained setting. We propose Constrained Policy Optimization (CPO), the ﬁrst generalpurpose policy sear",
+      "relevant_paths": [
+        "wiki/papers/methodology/2017-Achiam-约束策略优化.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2017_Achiam_Constrained_Policy_Optimization.pdf"
+    },
+    {
+      "id": "E192",
+      "query": "Anomaly detection is an important research area in data mining. Many types of anomalies, or outliers, are described in the literature [23]. One of the most fundamental type of anomalies are the extreme values (maximum and minimum). Many work have been proposed for solving this problem. However, they require some knowledge about the data: either they make assumptions on the underlying distribution or they need manually set thresholds.",
+      "relevant_paths": [
+        "wiki/papers/methodology/2017-Siffer-SPOT极值流阈值.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2017-Siffer-SPOT-EVT-Anomaly-Streams.pdf"
+    },
+    {
+      "id": "E193",
+      "query": "We address the problem of detecting distribution changes in multivariate data streams by means of histograms. Histograms are very general and flexible models, which have been relatively ignored in the change-detection literature as they often require a number of bins that grows unfeasibly with the data dimension. We present , a recursive binary splitting scheme that adaptively defines the histogram bins to ease the detection of any distribution change. Our design scheme implies that i) we can easily control the overall number of bins and ii) the bin probabilities do not depend on the",
+      "relevant_paths": [
+        "wiki/papers/methodology/2018-Boracchi-QuantTree变化检测.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2018-Boracchi-QuantTree-Change-Detection.pdf"
+    },
+    {
+      "id": "E194",
+      "query": "(MIL) is a variation of supervised where a single class label is assigned to a bag of s. In this paper, we state the MIL problem as the Bernoulli distribution of the bag label where the bag label probability is fully parameterized by neural networks. Furthermore, we propose a neural network- permutation-invariant aggregation operator that corresponds to the mechanism. Notably, an application of the proposed - operator provides insight into the contribution of each to the bag label. We show empirically th",
+      "relevant_paths": [
+        "wiki/papers/methodology/2018-Ilse-基于注意力的深度多示例学习.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/multiple-instance/2018-Ilse-Attention-Deep-Multiple-Instance-Learning.pdf"
+    },
+    {
+      "id": "E195",
+      "query": "Faced with distribution shift between training and test set, we wish to detect and quantify the shift, and to correct our classifiers without test set labels. Motivated by medical diagnosis, where diseases (targets), cause symptoms (observations), we focus on label shift, where the label marginal p(y) changes but the conditional p(x|y) does not. We propose Black Box Shift Estimation (BBSE) to estimate the test distribution p(y). BBSE exploits arbitrary black box predictors to reduce dimensionality prior to shift correction. While better predictors give tighter estimates, BBSE works even when p",
+      "relevant_paths": [
+        "wiki/papers/methodology/2018-Lipton-BBSE标签移位.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2018-Lipton-BBSE-Label-Shift.pdf"
+    },
+    {
+      "id": "E196",
+      "query": "SCIENCE ADVANCES | RESEARCH ARTICLE RESEARCH METHODS Neyman-Pearson classification algorithms and NP receiver operating characteristics Xin Tong,1*† Yang Feng,2† Jingyi Jessica Li3* In many binary classification applications, such as disease diagnosis and spam detection, practitioners commonly face the need to limit type I error (that is, the conditional probability of misclassifying a class 0 observation as class 1) so that it remains below a desired threshold. To address this need, the Neyman-Pearson (NP) classification paradigm is a natural choice; it minimizes type II error (that is, the c",
+      "relevant_paths": [
+        "wiki/papers/methodology/2018-Tong-纽曼皮尔逊分类.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2018-Tong-Neyman-Pearson-Classification.pdf"
+    },
+    {
+      "id": "E197",
+      "query": "Published as a conference paper at ICLR R EGULARIZED L EARNING FOR D OMAIN A DAPTATION L ABEL S HIFTS Kamyar Azizzadenesheli University of California, Irvine kazizzad@uci.edu Anqi Liu California Institute of Technology anqiliu@caltech.edu Fanny Yang Institute of Theoretical Studies, ETH Zürich fan.yang@stat.math.ethz.ch Animashree Anandkumar California Institute of Technology anima@caltech.edu A BSTRACT We propose (RLLS), a principled and a practical - algorithm to correct for in the distribution between a source and a",
+      "relevant_paths": [
+        "wiki/papers/methodology/2019-Azizzadenesheli-RLLS标签移位正则化学习.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2019-Azizzadenesheli-RLLS-arXiv1903.09734.pdf"
+    },
+    {
+      "id": "E198",
+      "query": "Deep learning techniques have become the method of choice for researchers working on algorithmic aspects of recommender systems. With the strongly increased interest in machine learning in general, it has, as a result, become diﬃcult to keep track of what represents the state-of-the-art at the moment, e.g., for top-n tasks. At the same time, several publications point out problems in today’s research practice in applied machine learning, e.g., in terms of the reproducibility of the results or the choice of the baselines when proposing new models. In this work, we report t",
+      "relevant_paths": [
+        "wiki/papers/methodology/2019-Dacrema-神经推荐进步幻觉.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2019-Dacrema-Are-We-Really-Making-Much-Progress.pdf"
+    },
+    {
+      "id": "E199",
+      "query": "In this paper, we tackle the problem of reducing discrepancies between multiple domains, i.e. multi-source domain adaptation, and consider it under the target shift assumption: in all domains we aim to solve a classification problem with the same output classes, but with different labels proportions. This problem, generally ignored in the vast majority of domain adaptation papers, is nevertheless critical in real-world applications, and we theoretically show its impact on the success of the adaptation. Our proposed method is based on optimal transport, a theory that has been successfully used",
+      "relevant_paths": [
+        "wiki/papers/methodology/2019-Redko-JCPOT目标移位.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2019-Redko-JCPOT-Target-Shift.pdf"
+    },
+    {
+      "id": "E200",
+      "query": "We extend conformal prediction methodology beyond the case of exchangeable data. In particular, we show that a weighted version of conformal prediction can be used to compute distribution-free prediction intervals for problems in which the test and training covariate distributions differ, but the likelihood ratio between the two distributions is known—or, in practice, can be estimated accurately from a set of unlabeled data (test covariate points). Our weighted extension of conformal prediction also applies more broadly, to settings in which the data satisfies a certain weighted notion of exch",
+      "relevant_paths": [
+        "wiki/papers/methodology/2019-Tibshirani-协变量移位加权保形.md"
+      ],
+      "basis": "该论文 PDF 首页摘要，已删去标题词；原件 raw/papers/methodology/2019-Tibshirani-Conformal-Covariate-Shift.pdf"
+    }
+  ]
+}
