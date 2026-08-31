@@ -25,10 +25,16 @@ class SearchConfig:
     default_top_k: int
     online_limit: int
     online_timeout_seconds: float
+    # 是否把「笔记标题＋小节标题」作为前缀拼进每个分块。默认 True 保持既有行为。
+    # 该前缀在同一篇笔记的每个分块中重复出现，对词法通道构成超额表征，
+    # 对向量通道则稀释每块的独特内容；置 False 可用于量化这一影响。
+    chunk_title_prefix: bool = True
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "SearchConfig":
-        return cls(**{field: data[field] for field in cls.__dataclass_fields__})
+        # 只取存在的键：索引 metadata 里存的是写入时的字段集，
+        # 新增带默认值的字段后，旧索引仍须能被 _index_config 正确读出。
+        return cls(**{field: data[field] for field in cls.__dataclass_fields__ if field in data})
 
     def to_dict(self) -> Dict[str, Any]:
         return {

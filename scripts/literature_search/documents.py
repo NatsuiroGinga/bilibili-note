@@ -229,7 +229,15 @@ def chunk_note(
     note_position: int,
     max_chars: int,
     overlap_chars: int,
+    title_prefix: bool = True,
 ) -> List[TextChunk]:
+    """把一篇笔记切成分块。
+
+    ``title_prefix`` 控制是否把「笔记标题＋小节标题」拼在每块开头。默认 True，
+    与既有索引一致。置 False 时只保留小节标题，用于量化标题重复的影响——
+    一篇 20 块的笔记会让标题词在索引中出现 20 次，这对词法通道是超额表征，
+    也是 2026-08-31 发现「查询取自笔记字段时评测饱和」的成因之一。
+    """
     if max_chars < 64 or overlap_chars < 0 or overlap_chars >= max_chars:
         raise ValueError("分块参数无效：最大字符数须至少为 64，重叠须非负且小于最大值")
     chunks: List[TextChunk] = []
@@ -237,7 +245,10 @@ def chunk_note(
         compact = re.sub(r"\n{3,}", "\n\n", section).strip()
         if not compact:
             continue
-        prefix = f"{note.title}\n{heading}\n" if heading else f"{note.title}\n"
+        if title_prefix:
+            prefix = f"{note.title}\n{heading}\n" if heading else f"{note.title}\n"
+        else:
+            prefix = f"{heading}\n" if heading else ""
         budget = max_chars - min(len(prefix), max_chars // 3)
         for piece in _window_text(compact, budget, overlap_chars):
             text = (prefix + piece).strip()

@@ -39,6 +39,7 @@ def build_index(
             note_position,
             config.chunk_max_chars,
             config.chunk_overlap_chars,
+            title_prefix=config.chunk_title_prefix,
         )
     ]
     index_path.parent.mkdir(parents=True, exist_ok=True)
