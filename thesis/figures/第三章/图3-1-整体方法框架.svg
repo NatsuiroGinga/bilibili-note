@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="425.19685pt" height="269.291339pt" viewBox="0 0 425.19685 269.291339" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="425.19685pt" height="325.984252pt" viewBox="0 0 425.19685 325.984252" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>图3-1-整体方法框架</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>图3-1-整体方法框架</dc:title>
-    <dc:date>2026-08-27T10:48:25.710155</dc:date>
+    <dc:date>2026-08-31T12:49:49.382308</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -23,8 +23,8 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 269.291339 
-L 425.19685 269.291339 
+   <path d="M 0 325.984252 
+L 425.19685 325.984252 
 L 425.19685 0 
 L 0 0 
 z
@@ -32,376 +32,380 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 10.204724 61.667717 
-L 29.76378 61.667717 
-Q 34.015748 61.667717 34.015748 58.974803 
-L 34.015748 12.387402 
-Q 34.015748 9.694488 29.76378 9.694488 
-L 10.204724 9.694488 
-Q 5.952756 9.694488 5.952756 12.387402 
-L 5.952756 58.974803 
-Q 5.952756 61.667717 10.204724 61.667717 
+    <path d="M 10.204724 68.130709 
+L 27.212598 68.130709 
+Q 31.464567 68.130709 31.464567 64.870866 
+L 31.464567 11.735433 
+Q 31.464567 8.475591 27.212598 8.475591 
+L 10.204724 8.475591 
+Q 5.952756 8.475591 5.952756 11.735433 
+L 5.952756 64.870866 
+Q 5.952756 68.130709 10.204724 68.130709 
 z
-" clip-path="url(#ped4f825129)" style="fill: #f1f1f1; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #f1f1f1; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
-    <path d="M 10.204724 142.455118 
-L 29.76378 142.455118 
-Q 34.015748 142.455118 34.015748 139.762205 
-L 34.015748 93.174803 
-Q 34.015748 90.48189 29.76378 90.48189 
-L 10.204724 90.48189 
-Q 5.952756 90.48189 5.952756 93.174803 
-L 5.952756 139.762205 
-Q 5.952756 142.455118 10.204724 142.455118 
+    <path d="M 10.204724 198.524409 
+L 27.212598 198.524409 
+Q 31.464567 198.524409 31.464567 195.264567 
+L 31.464567 83.451969 
+Q 31.464567 80.192126 27.212598 80.192126 
+L 10.204724 80.192126 
+Q 5.952756 80.192126 5.952756 83.451969 
+L 5.952756 195.264567 
+Q 5.952756 198.524409 10.204724 198.524409 
 z
-" clip-path="url(#ped4f825129)" style="fill: #f1f1f1; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #f1f1f1; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
-    <path d="M 10.204724 223.24252 
-L 29.76378 223.24252 
-Q 34.015748 223.24252 34.015748 220.549606 
-L 34.015748 173.962205 
-Q 34.015748 171.269291 29.76378 171.269291 
-L 10.204724 171.269291 
-Q 5.952756 171.269291 5.952756 173.962205 
-L 5.952756 220.549606 
-Q 5.952756 223.24252 10.204724 223.24252 
+    <path d="M 10.204724 278.390551 
+L 27.212598 278.390551 
+Q 31.464567 278.390551 31.464567 275.130709 
+L 31.464567 217.105512 
+Q 31.464567 213.845669 27.212598 213.845669 
+L 10.204724 213.845669 
+Q 5.952756 213.845669 5.952756 217.105512 
+L 5.952756 275.130709 
+Q 5.952756 278.390551 10.204724 278.390551 
 z
-" clip-path="url(#ped4f825129)" style="fill: #f1f1f1; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #f1f1f1; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_5">
-    <path d="M 158.385827 142.455118 
-L 232.15748 142.455118 
-Q 236.409449 142.455118 236.409449 139.762205 
-L 236.409449 93.174803 
-Q 236.409449 90.48189 232.15748 90.48189 
-L 158.385827 90.48189 
-Q 154.133858 90.48189 154.133858 93.174803 
-L 154.133858 139.762205 
-Q 154.133858 142.455118 158.385827 142.455118 
+    <path d="M 82.488189 118.658268 
+L 375.023622 118.658268 
+Q 379.275591 118.658268 379.275591 115.398425 
+L 379.275591 86.711811 
+Q 379.275591 83.451969 375.023622 83.451969 
+L 82.488189 83.451969 
+Q 78.23622 83.451969 78.23622 86.711811 
+L 78.23622 115.398425 
+Q 78.23622 118.658268 82.488189 118.658268 
 z
-" clip-path="url(#ped4f825129)" style="fill: url(#h4409100157)"/>
+" clip-path="url(#pba66760459)" style="fill: url(#ha1f2b83790)"/>
    </g>
    <g id="patch_6">
-    <path d="M 191.76378 223.24252 
-L 292.96063 223.24252 
-Q 297.212598 223.24252 297.212598 220.549606 
-L 297.212598 173.962205 
-Q 297.212598 171.269291 292.96063 171.269291 
-L 191.76378 171.269291 
-Q 187.511811 171.269291 187.511811 173.962205 
-L 187.511811 220.549606 
-Q 187.511811 223.24252 191.76378 223.24252 
+    <path d="M 173.76378 192.004724 
+L 285.448819 192.004724 
+Q 289.700787 192.004724 289.700787 188.744882 
+L 289.700787 145.388976 
+Q 289.700787 142.129134 285.448819 142.129134 
+L 173.76378 142.129134 
+Q 169.511811 142.129134 169.511811 145.388976 
+L 169.511811 188.744882 
+Q 169.511811 192.004724 173.76378 192.004724 
 z
-" clip-path="url(#ped4f825129)" style="fill: url(#h81d56710cf)"/>
+" clip-path="url(#pba66760459)" style="fill: url(#ha1f2b83790)"/>
    </g>
    <g id="patch_7">
-    <path d="M 64.204724 61.667717 
-L 137.976378 61.667717 
-Q 142.228346 61.667717 142.228346 58.974803 
-L 142.228346 12.387402 
-Q 142.228346 9.694488 137.976378 9.694488 
-L 64.204724 9.694488 
-Q 59.952756 9.694488 59.952756 12.387402 
-L 59.952756 58.974803 
-Q 59.952756 61.667717 64.204724 61.667717 
+    <path d="M 174.472441 278.390551 
+L 284.740157 278.390551 
+Q 288.992126 278.390551 288.992126 275.130709 
+L 288.992126 217.105512 
+Q 288.992126 213.845669 284.740157 213.845669 
+L 174.472441 213.845669 
+Q 170.220472 213.845669 170.220472 217.105512 
+L 170.220472 275.130709 
+Q 170.220472 278.390551 174.472441 278.390551 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: url(#h3382412547)"/>
    </g>
    <g id="patch_8">
-    <path d="M 158.385827 61.667717 
-L 232.15748 61.667717 
-Q 236.409449 61.667717 236.409449 58.974803 
-L 236.409449 12.387402 
-Q 236.409449 9.694488 232.15748 9.694488 
-L 158.385827 9.694488 
-Q 154.133858 9.694488 154.133858 12.387402 
-L 154.133858 58.974803 
-Q 154.133858 61.667717 158.385827 61.667717 
+    <path d="M 39.968504 68.130709 
+L 120.755906 68.130709 
+Q 125.007874 68.130709 125.007874 64.870866 
+L 125.007874 11.735433 
+Q 125.007874 8.475591 120.755906 8.475591 
+L 39.968504 8.475591 
+Q 35.716535 8.475591 35.716535 11.735433 
+L 35.716535 64.870866 
+Q 35.716535 68.130709 39.968504 68.130709 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_9">
-    <path d="M 252.566929 61.667717 
-L 326.338583 61.667717 
-Q 330.590551 61.667717 330.590551 58.974803 
-L 330.590551 12.387402 
-Q 330.590551 9.694488 326.338583 9.694488 
-L 252.566929 9.694488 
-Q 248.314961 9.694488 248.314961 12.387402 
-L 248.314961 58.974803 
-Q 248.314961 61.667717 252.566929 61.667717 
+    <path d="M 139.464567 68.130709 
+L 220.251969 68.130709 
+Q 224.503937 68.130709 224.503937 64.870866 
+L 224.503937 11.735433 
+Q 224.503937 8.475591 220.251969 8.475591 
+L 139.464567 8.475591 
+Q 135.212598 8.475591 135.212598 11.735433 
+L 135.212598 64.870866 
+Q 135.212598 68.130709 139.464567 68.130709 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_10">
-    <path d="M 346.748031 61.667717 
-L 420.519685 61.667717 
-Q 424.771654 61.667717 424.771654 58.974803 
-L 424.771654 12.387402 
-Q 424.771654 9.694488 420.519685 9.694488 
-L 346.748031 9.694488 
-Q 342.496063 9.694488 342.496063 12.387402 
-L 342.496063 58.974803 
-Q 342.496063 61.667717 346.748031 61.667717 
+    <path d="M 238.96063 68.130709 
+L 319.748031 68.130709 
+Q 324 68.130709 324 64.870866 
+L 324 11.735433 
+Q 324 8.475591 319.748031 8.475591 
+L 238.96063 8.475591 
+Q 234.708661 8.475591 234.708661 11.735433 
+L 234.708661 64.870866 
+Q 234.708661 68.130709 238.96063 68.130709 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_11">
-    <path d="M 64.204724 142.455118 
-L 137.976378 142.455118 
-Q 142.228346 142.455118 142.228346 139.762205 
-L 142.228346 93.174803 
-Q 142.228346 90.48189 137.976378 90.48189 
-L 64.204724 90.48189 
-Q 59.952756 90.48189 59.952756 93.174803 
-L 59.952756 139.762205 
-Q 59.952756 142.455118 64.204724 142.455118 
+    <path d="M 338.456693 68.130709 
+L 419.244094 68.130709 
+Q 423.496063 68.130709 423.496063 64.870866 
+L 423.496063 11.735433 
+Q 423.496063 8.475591 419.244094 8.475591 
+L 338.456693 8.475591 
+Q 334.204724 8.475591 334.204724 11.735433 
+L 334.204724 64.870866 
+Q 334.204724 68.130709 338.456693 68.130709 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_12">
-    <path d="M 158.385827 142.455118 
-L 232.15748 142.455118 
-Q 236.409449 142.455118 236.409449 139.762205 
-L 236.409449 93.174803 
-Q 236.409449 90.48189 232.15748 90.48189 
-L 158.385827 90.48189 
-Q 154.133858 90.48189 154.133858 93.174803 
-L 154.133858 139.762205 
-Q 154.133858 142.455118 158.385827 142.455118 
-L 158.385827 142.455118 
+    <path d="M 82.488189 118.658268 
+L 375.023622 118.658268 
+Q 379.275591 118.658268 379.275591 115.398425 
+L 379.275591 86.711811 
+Q 379.275591 83.451969 375.023622 83.451969 
+L 82.488189 83.451969 
+Q 78.23622 83.451969 78.23622 86.711811 
+L 78.23622 115.398425 
+Q 78.23622 118.658268 82.488189 118.658268 
+L 82.488189 118.658268 
 z
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.4; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.4; stroke-linejoin: miter"/>
    </g>
    <g id="patch_13">
-    <path d="M 252.566929 142.455118 
-L 326.338583 142.455118 
-Q 330.590551 142.455118 330.590551 139.762205 
-L 330.590551 93.174803 
-Q 330.590551 90.48189 326.338583 90.48189 
-L 252.566929 90.48189 
-Q 248.314961 90.48189 248.314961 93.174803 
-L 248.314961 139.762205 
-Q 248.314961 142.455118 252.566929 142.455118 
+    <path d="M 39.968504 192.004724 
+L 151.653543 192.004724 
+Q 155.905512 192.004724 155.905512 188.744882 
+L 155.905512 145.388976 
+Q 155.905512 142.129134 151.653543 142.129134 
+L 39.968504 142.129134 
+Q 35.716535 142.129134 35.716535 145.388976 
+L 35.716535 188.744882 
+Q 35.716535 192.004724 39.968504 192.004724 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_14">
-    <path d="M 346.748031 142.455118 
-L 420.519685 142.455118 
-Q 424.771654 142.455118 424.771654 139.762205 
-L 424.771654 93.174803 
-Q 424.771654 90.48189 420.519685 90.48189 
-L 346.748031 90.48189 
-Q 342.496063 90.48189 342.496063 93.174803 
-L 342.496063 139.762205 
-Q 342.496063 142.455118 346.748031 142.455118 
+    <path d="M 173.76378 192.004724 
+L 285.448819 192.004724 
+Q 289.700787 192.004724 289.700787 188.744882 
+L 289.700787 145.388976 
+Q 289.700787 142.129134 285.448819 142.129134 
+L 173.76378 142.129134 
+Q 169.511811 142.129134 169.511811 145.388976 
+L 169.511811 188.744882 
+Q 169.511811 192.004724 173.76378 192.004724 
+L 173.76378 192.004724 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.4; stroke-linejoin: miter"/>
    </g>
    <g id="patch_15">
-    <path d="M 64.204724 223.24252 
-L 165.401575 223.24252 
-Q 169.653543 223.24252 169.653543 220.549606 
-L 169.653543 173.962205 
-Q 169.653543 171.269291 165.401575 171.269291 
-L 64.204724 171.269291 
-Q 59.952756 171.269291 59.952756 173.962205 
-L 59.952756 220.549606 
-Q 59.952756 223.24252 64.204724 223.24252 
+    <path d="M 307.559055 192.004724 
+L 419.244094 192.004724 
+Q 423.496063 192.004724 423.496063 188.744882 
+L 423.496063 145.388976 
+Q 423.496063 142.129134 419.244094 142.129134 
+L 307.559055 142.129134 
+Q 303.307087 142.129134 303.307087 145.388976 
+L 303.307087 188.744882 
+Q 303.307087 192.004724 307.559055 192.004724 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_16">
-    <path d="M 191.76378 223.24252 
-L 292.96063 223.24252 
-Q 297.212598 223.24252 297.212598 220.549606 
-L 297.212598 173.962205 
-Q 297.212598 171.269291 292.96063 171.269291 
-L 191.76378 171.269291 
-Q 187.511811 171.269291 187.511811 173.962205 
-L 187.511811 220.549606 
-Q 187.511811 223.24252 191.76378 223.24252 
-L 191.76378 223.24252 
+    <path d="M 39.968504 278.390551 
+L 150.23622 278.390551 
+Q 154.488189 278.390551 154.488189 275.130709 
+L 154.488189 217.105512 
+Q 154.488189 213.845669 150.23622 213.845669 
+L 39.968504 213.845669 
+Q 35.716535 213.845669 35.716535 217.105512 
+L 35.716535 275.130709 
+Q 35.716535 278.390551 39.968504 278.390551 
 z
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #b3512e; stroke-width: 1.4; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_17">
-    <path d="M 319.322835 223.24252 
-L 420.519685 223.24252 
-Q 424.771654 223.24252 424.771654 220.549606 
-L 424.771654 173.962205 
-Q 424.771654 171.269291 420.519685 171.269291 
-L 319.322835 171.269291 
-Q 315.070866 171.269291 315.070866 173.962205 
-L 315.070866 220.549606 
-Q 315.070866 223.24252 319.322835 223.24252 
+    <path d="M 174.472441 278.390551 
+L 284.740157 278.390551 
+Q 288.992126 278.390551 288.992126 275.130709 
+L 288.992126 217.105512 
+Q 288.992126 213.845669 284.740157 213.845669 
+L 174.472441 213.845669 
+Q 170.220472 213.845669 170.220472 217.105512 
+L 170.220472 275.130709 
+Q 170.220472 278.390551 174.472441 278.390551 
+L 174.472441 278.390551 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
-   </g>
-   <g id="line2d_1">
-    <path d="M 383.633858 60.590551 
-L 383.633858 76.074803 
-L 48.047244 76.074803 
-L 48.047244 116.468504 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
-   </g>
-   <g id="line2d_2">
-    <path d="M 383.633858 141.377953 
-L 383.633858 156.862205 
-L 48.047244 156.862205 
-L 48.047244 197.255906 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #b3512e; stroke-width: 1.4; stroke-linejoin: miter"/>
    </g>
    <g id="patch_18">
-    <path d="M 142.228346 35.681102 
-Q 148.181102 35.681102 153.015824 35.681102 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 150.215824 34.281102 
-L 153.015824 35.681102 
-L 150.215824 37.081102 
+    <path d="M 308.976378 278.390551 
+L 419.244094 278.390551 
+Q 423.496063 278.390551 423.496063 275.130709 
+L 423.496063 217.105512 
+Q 423.496063 213.845669 419.244094 213.845669 
+L 308.976378 213.845669 
+Q 304.724409 213.845669 304.724409 217.105512 
+L 304.724409 275.130709 
+Q 304.724409 278.390551 308.976378 278.390551 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 378.850394 66.826772 
+L 378.850394 74.161417 
+L 33.590551 74.161417 
+L 33.590551 167.066929 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 363.401575 190.700787 
+L 363.401575 202.925197 
+L 33.590551 202.925197 
+L 33.590551 246.11811 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
    </g>
    <g id="patch_19">
-    <path d="M 236.409449 35.681102 
-Q 242.362205 35.681102 247.196927 35.681102 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 244.396927 34.281102 
-L 247.196927 35.681102 
-L 244.396927 37.081102 
+    <path d="M 125.007874 38.30315 
+Q 130.110236 38.30315 134.094564 38.30315 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 131.294564 36.90315 
+L 134.094564 38.30315 
+L 131.294564 39.70315 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_20">
-    <path d="M 330.590551 35.681102 
-Q 336.543307 35.681102 341.378029 35.681102 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 338.578029 34.281102 
-L 341.378029 35.681102 
-L 338.578029 37.081102 
+    <path d="M 224.503937 38.30315 
+Q 229.606299 38.30315 233.590627 38.30315 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 230.790627 36.90315 
+L 233.590627 38.30315 
+L 230.790627 39.70315 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_21">
-    <path d="M 142.228346 116.468504 
-Q 148.181102 116.468504 153.015824 116.468504 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 150.215824 115.068504 
-L 153.015824 116.468504 
-L 150.215824 117.868504 
+    <path d="M 324 38.30315 
+Q 329.102362 38.30315 333.08669 38.30315 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 330.28669 36.90315 
+L 333.08669 38.30315 
+L 330.28669 39.70315 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_22">
-    <path d="M 236.409449 116.468504 
-Q 242.362205 116.468504 247.196927 116.468504 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 244.396927 115.068504 
-L 247.196927 116.468504 
-L 244.396927 117.868504 
+    <path d="M 155.905512 167.066929 
+Q 162.708661 167.066929 168.393777 167.066929 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 165.593777 165.666929 
+L 168.393777 167.066929 
+L 165.593777 168.466929 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_23">
-    <path d="M 330.590551 116.468504 
-Q 336.543307 116.468504 341.378029 116.468504 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 338.578029 115.068504 
-L 341.378029 116.468504 
-L 338.578029 117.868504 
+    <path d="M 289.700787 167.066929 
+Q 296.503937 167.066929 302.189053 167.066929 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 299.389053 165.666929 
+L 302.189053 167.066929 
+L 299.389053 168.466929 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_24">
-    <path d="M 169.653543 197.255906 
-Q 178.582677 197.255906 186.393777 197.255906 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 183.593777 195.855906 
-L 186.393777 197.255906 
-L 183.593777 198.655906 
+    <path d="M 199.84252 118.658268 
+Q 199.84252 130.393701 199.84252 141.0111 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #2f6b9a; stroke-linecap: round"/>
+    <path d="M 201.24252 138.2111 
+L 199.84252 141.0111 
+L 198.44252 138.2111 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-linecap: round"/>
    </g>
    <g id="patch_25">
-    <path d="M 297.212598 197.255906 
-Q 306.141732 197.255906 313.952832 197.255906 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 311.152832 195.855906 
-L 313.952832 197.255906 
-L 311.152832 198.655906 
+    <path d="M 346.535433 142.129134 
+Q 346.535433 130.393701 346.535433 119.776302 
+" clip-path="url(#pba66760459)" style="fill: none; stroke-dasharray: 4,2; stroke-dashoffset: 0; stroke: #2f6b9a; stroke-linecap: round"/>
+    <path d="M 345.135433 122.576302 
+L 346.535433 119.776302 
+L 347.935433 122.576302 
 z
-" clip-path="url(#ped4f825129)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #2f6b9a; stroke-dasharray: 4,2; stroke-dashoffset: 0; stroke: #2f6b9a; stroke-linecap: round"/>
    </g>
    <g id="patch_26">
-    <path d="M 48.047244 116.468504 
-Q 54 116.468504 58.834722 116.468504 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
-    <path d="M 56.034722 115.068504 
-L 58.834722 116.468504 
-L 56.034722 117.868504 
+    <path d="M 154.488189 246.11811 
+Q 162.354331 246.11811 169.102438 246.11811 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 166.302438 244.71811 
+L 169.102438 246.11811 
+L 166.302438 247.51811 
 z
-" clip-path="url(#ped4f825129)" style="fill: #8c8c8c; stroke: #8c8c8c; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_27">
-    <path d="M 48.047244 197.255906 
-Q 54 197.255906 58.834722 197.255906 
-" clip-path="url(#ped4f825129)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
-    <path d="M 56.034722 195.855906 
-L 58.834722 197.255906 
-L 56.034722 198.655906 
+    <path d="M 288.992126 246.11811 
+Q 296.858268 246.11811 303.606375 246.11811 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 300.806375 244.71811 
+L 303.606375 246.11811 
+L 300.806375 247.51811 
 z
-" clip-path="url(#ped4f825129)" style="fill: #8c8c8c; stroke: #8c8c8c; stroke-linecap: round"/>
+" clip-path="url(#pba66760459)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_28">
-    <path d="M 183.791339 99.637795 
-L 206.751969 99.637795 
-Q 217.807087 99.637795 217.807087 92.63622 
-L 217.807087 90.48189 
-Q 217.807087 83.480315 206.751969 83.480315 
-L 183.791339 83.480315 
-Q 172.73622 83.480315 172.73622 90.48189 
-L 172.73622 92.63622 
-Q 172.73622 99.637795 183.791339 99.637795 
+    <path d="M 33.590551 167.066929 
+Q 34.653543 167.066929 34.598501 167.066929 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
+    <path d="M 31.798501 165.666929 
+L 34.598501 167.066929 
+L 31.798501 168.466929 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #2f6b9a; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #8c8c8c; stroke: #8c8c8c; stroke-linecap: round"/>
    </g>
    <g id="patch_29">
-    <path d="M 230.88189 180.425197 
-L 253.84252 180.425197 
-Q 264.897638 180.425197 264.897638 173.423622 
-L 264.897638 171.269291 
-Q 264.897638 164.267717 253.84252 164.267717 
-L 230.88189 164.267717 
-Q 219.826772 164.267717 219.826772 171.269291 
-L 219.826772 173.423622 
-Q 219.826772 180.425197 230.88189 180.425197 
+    <path d="M 33.590551 246.11811 
+Q 34.653543 246.11811 34.598501 246.11811 
+" clip-path="url(#pba66760459)" style="fill: none; stroke: #8c8c8c; stroke-linecap: round"/>
+    <path d="M 31.798501 244.71811 
+L 34.598501 246.11811 
+L 31.798501 247.51811 
 z
-" clip-path="url(#ped4f825129)" style="fill: #ffffff; stroke: #b3512e; stroke-width: 0.8; stroke-linejoin: miter"/>
+" clip-path="url(#pba66760459)" style="fill: #8c8c8c; stroke: #8c8c8c; stroke-linecap: round"/>
    </g>
    <g id="text_1">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; fill: #555555" transform="translate(23.236205 67.181102) rotate(-90)">输入与序列构造</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #555555" transform="translate(17.41706 50.30315) rotate(-90)">输入与</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #555555" transform="translate(25.765888 54.30315) rotate(-90)">序列构造</text>
    </g>
    <g id="text_2">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; fill: #2f6b9a" transform="translate(23.218627 147.216863) rotate(-90)">表示层 · 计算侧</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #2f6b9a" transform="translate(17.338935 151.358268) rotate(-90)">表示层</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #2f6b9a" transform="translate(25.781513 151.358268) rotate(-90)">计算侧</text>
    </g>
    <g id="text_3">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; fill: #b3512e" transform="translate(23.218627 228.004265) rotate(-90)">决策层 · 汇聚侧</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #b3512e" transform="translate(17.401435 258.11811) rotate(-90)">决策层</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #b3512e" transform="translate(25.765888 258.11811) rotate(-90)">汇聚侧</text>
    </g>
    <g id="text_4">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="101.090551" y="32.680321" transform="rotate(-0 101.090551 32.680321)">原始流记录</text>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="80.362205" y="29.102368" transform="rotate(-0 80.362205 29.102368)">原始流记录</text>
    </g>
    <g id="text_5">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="101.090551" y="45.515477" transform="rotate(-0 101.090551 45.515477)">83 维 CICFlowMeter 特征</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="80.362205" y="41.95315" transform="rotate(-0 80.362205 41.95315)">83 个合法字段</text>
    </g>
    <g id="text_6">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="195.271654" y="31.333055" transform="rotate(-0 195.271654 31.333055)">按 2-IP 无向对分组</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="80.362205" y="54.368775" transform="rotate(-0 80.362205 54.368775)">各成一个 Token</text>
    </g>
    <g id="text_7">
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="179.858268" y="35.355103" transform="rotate(-0 179.858268 35.355103)">按 2-IP 无向对分组</text>
+   </g>
+   <g id="text_8">
     <!-- $e=\chi(a,b)$ -->
-    <g style="fill: #555555" transform="translate(178.071654 44.576102)">
+    <g style="fill: #555555" transform="translate(162.658268 47.19815)">
      <text>
       <tspan x="0" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">e</tspan>
       <tspan x="5.233594" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">=</tspan>
@@ -414,12 +418,12 @@ z
      </text>
     </g>
    </g>
-   <g id="text_8">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="289.452756" y="31.368212" transform="rotate(-0 289.452756 31.368212)">组内按时间升序</text>
-   </g>
    <g id="text_9">
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="279.354331" y="35.390259" transform="rotate(-0 279.354331 35.390259)">组内按时间升序</text>
+   </g>
+   <g id="text_10">
     <!-- $t_1&lt;t_2&lt;\cdots&lt;t_n$ -->
-    <g style="fill: #555555" transform="translate(264.012756 44.416102)">
+    <g style="fill: #555555" transform="translate(253.914331 47.03815)">
      <text>
       <tspan x="0" y="-0.28125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
       <tspan x="7.325781" y="-0.28125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">&lt;</tspan>
@@ -434,15 +438,15 @@ z
      </text>
     </g>
    </g>
-   <g id="text_10">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="383.633858" y="25.115477" transform="rotate(-0 383.633858 25.115477)">切分非重叠序列</text>
-   </g>
    <g id="text_11">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="383.633858" y="37.899852" transform="rotate(-0 383.633858 37.899852)">尾块补零并掩码</text>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="378.850394" y="29.119946" transform="rotate(-0 378.850394 29.119946)">切分非重叠片段</text>
    </g>
    <g id="text_12">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="378.850394" y="41.937525" transform="rotate(-0 378.850394 41.937525)">尾部补零并掩码</text>
+   </g>
+   <g id="text_13">
     <!-- $L=128$ -->
-    <g style="fill: #555555" transform="translate(370.513858 51.536102)">
+    <g style="fill: #555555" transform="translate(365.730394 54.15815)">
      <text>
       <tspan x="0" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">L</tspan>
       <tspan x="5.624219" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">=</tspan>
@@ -452,138 +456,157 @@ z
      </text>
     </g>
    </g>
-   <g id="text_13">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="101.090551" y="112.067723" transform="rotate(-0 101.090551 112.067723)">逐流编码器</text>
-   </g>
    <g id="text_14">
-    <!-- $f:\ x_t\mapsto h_t$ -->
-    <g style="fill: #555555" transform="translate(85.330551 125.683504)">
-     <text>
-      <tspan x="0" y="-0.390625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">f</tspan>
-      <tspan x="3.753125" y="-0.390625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">:</tspan>
-      <tspan x="9.412478" y="-0.390625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">x</tspan>
-      <tspan x="16.692556" y="-0.390625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">↦</tspan>
-      <tspan x="25.000368" y="-0.390625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">h</tspan>
-      <tspan x="13.279665" y="0.729687" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
-      <tspan x="29.414431" y="0.729687" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
-     </text>
-    </g>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #2f6b9a" x="228.755906" y="98.071915" transform="rotate(-0 228.755906 98.071915)">因果实体记忆（机制一）</text>
    </g>
    <g id="text_15">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #2f6b9a" x="195.271654" y="112.102879" transform="rotate(-0 195.271654 112.102879)">因果前缀跨流聚合</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="228.755906" y="110.733243" transform="rotate(-0 228.755906 110.733243)">每实体 8 个记忆槽，只保存该实体在片段 t 之前的写入</text>
    </g>
    <g id="text_16">
-    <!-- $\mathrm{ctx}_t$ -->
-    <g style="fill: #2f6b9a" transform="translate(189.111654 125.203504)">
-     <text>
-      <tspan x="0" y="-0.296875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #2f6b9a">c</tspan>
-      <tspan x="3.527344" y="-0.296875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #2f6b9a">t</tspan>
-      <tspan x="6.234375" y="-0.296875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #2f6b9a">x</tspan>
-      <tspan x="10.166914" y="0.823437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #2f6b9a">t</tspan>
-     </text>
-    </g>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="95.811024" y="157.93646" transform="rotate(-0 95.811024 157.93646)">② 骨干前向</text>
    </g>
    <g id="text_17">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #2f6b9a" x="195.271654" y="94.402805" transform="rotate(-0 195.271654 94.402805)">机制一</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="95.811024" y="170.560679" transform="rotate(-0 95.811024 170.560679)">FT-Transformer</text>
    </g>
    <g id="text_18">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="289.452756" y="112.102879" transform="rotate(-0 289.452756 112.102879)">表示拼接</text>
+    <!-- $84$ Token, $d=192$ -->
+    <g style="fill: #555555" transform="translate(65.331024 182.361929)">
+     <text>
+      <tspan x="0" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">8</tspan>
+      <tspan x="4.429688" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">4</tspan>
+      <tspan x="35.296875" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">d</tspan>
+      <tspan x="41.065625" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">=</tspan>
+      <tspan x="48.373438" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">1</tspan>
+      <tspan x="52.803125" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">9</tspan>
+      <tspan x="57.232813" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">2</tspan>
+      <tspan x="8.859375" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555"> </tspan>
+      <tspan x="10.859375" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555">T</tspan>
+      <tspan x="15.746094" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555">o</tspan>
+      <tspan x="19.746094" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555">k</tspan>
+      <tspan x="23.746094" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555">e</tspan>
+      <tspan x="27.296875" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555">n</tspan>
+      <tspan x="31.296875" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555">,</tspan>
+      <tspan x="33.296875" y="-0.40625" style="font-size: 8px; font-family: 'Times New Roman'; fill: #555555"> </tspan>
+     </text>
+    </g>
    </g>
    <g id="text_19">
-    <!-- $[\,h_t,\ \mathrm{ctx}_t\,]$ -->
-    <g style="fill: #555555" transform="translate(273.572756 125.363504)">
-     <text>
-      <tspan x="0" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">[</tspan>
-      <tspan x="3.910178" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">h</tspan>
-      <tspan x="10.405882" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">,</tspan>
-      <tspan x="15.596484" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">c</tspan>
-      <tspan x="19.123828" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
-      <tspan x="21.830859" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">x</tspan>
-      <tspan x="28.954436" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">]</tspan>
-      <tspan x="8.324241" y="0.776562" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
-      <tspan x="25.763398" y="0.776562" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
-     </text>
-    </g>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #2f6b9a" x="229.606299" y="157.93646" transform="rotate(-0 229.606299 157.93646)">③ 交叉注意力门控注入</text>
    </g>
    <g id="text_20">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="383.633858" y="105.902879" transform="rotate(-0 383.633858 105.902879)">输出头</text>
-   </g>
-   <g id="text_21">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="383.633858" y="118.687254" transform="rotate(-0 383.633858 118.687254)">逐流分数</text>
-   </g>
-   <g id="text_22">
-    <!-- $s_f$ -->
-    <g style="fill: #555555" transform="translate(380.953858 130.963504)">
+    <!-- $h'=h+g\cdot c$ -->
+    <g style="fill: #1f1f1f" transform="translate(209.246299 170.441929)">
      <text>
-      <tspan x="0" y="-0.203125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">s</tspan>
-      <tspan x="3.4375" y="0.917187" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">f</tspan>
+      <tspan x="0" y="-0.098438" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">h</tspan>
+      <tspan x="7.943802" y="-0.098438" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">=</tspan>
+      <tspan x="15.251615" y="-0.098438" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">h</tspan>
+      <tspan x="20.996927" y="-0.098438" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">+</tspan>
+      <tspan x="28.30474" y="-0.098438" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">g</tspan>
+      <tspan x="33.589115" y="-0.098438" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⋅</tspan>
+      <tspan x="37.178177" y="-0.098438" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">c</tspan>
+      <tspan x="4.979349" y="-2.7125" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">′</tspan>
      </text>
     </g>
    </g>
+   <g id="text_21">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="229.606299" y="183.085679" transform="rotate(-0 229.606299 183.085679)">无历史时上下文置零</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="363.401575" y="157.93646" transform="rotate(-0 363.401575 157.93646)">④ 出分</text>
+   </g>
    <g id="text_23">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="114.80315" y="192.872702" transform="rotate(-0 114.80315 192.872702)">实体内分数集合</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="363.401575" y="170.260054" transform="rotate(-0 363.401575 170.260054)">逐流 logit</text>
    </g>
    <g id="text_24">
-    <!-- $\{s_f\}_{f\in e}$ -->
-    <g style="fill: #555555" transform="translate(104.04315 206.150906)">
+    <!-- $l_{e,t}$ -->
+    <g style="fill: #555555" transform="translate(358.841575 182.081929)">
      <text>
-      <tspan x="0" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">{</tspan>
-      <tspan x="3.097656" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">s</tspan>
-      <tspan x="8.417188" y="-0.34375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">}</tspan>
-      <tspan x="6.535156" y="0.776562" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">f</tspan>
-      <tspan x="11.514844" y="0.776562" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">f</tspan>
-      <tspan x="14.142031" y="0.776562" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">∈</tspan>
-      <tspan x="18.562969" y="0.776562" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">e</tspan>
+      <tspan x="0" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">l</tspan>
+      <tspan x="2.171875" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">e</tspan>
+      <tspan x="4.903516" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">,</tspan>
+      <tspan x="6.983828" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
      </text>
     </g>
    </g>
    <g id="text_25">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #b3512e" x="242.362205" y="192.41989" transform="rotate(-0 242.362205 192.41989)">实体级可学 Lp 池化</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #2f6b9a" transform="translate(205.795276 128.026709)">① 读</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #2f6b9a" transform="translate(205.795276 138.573193)">仅含 t 之前的片段</text>
    </g>
    <g id="text_26">
-    <!-- $S_e=\left(\frac{1}{n}\sum_f s_f^{\,p}\right)^{1/p}$ -->
-    <g style="fill: #b3512e" transform="translate(216.562205 205.990906)">
-     <text>
-      <tspan x="0" y="-0.433594" style="font-size: 8px; font-family: 'Cambria Math'; fill: #b3512e">S</tspan>
-      <tspan x="8.218359" y="-0.433594" style="font-size: 8px; font-family: 'Cambria Math'; fill: #b3512e">=</tspan>
-      <tspan x="24.559537" y="-0.433594" style="font-size: 8px; font-family: 'Cambria Math'; fill: #b3512e">∑</tspan>
-      <tspan x="29.622037" y="-0.433594" style="font-size: 8px; font-family: 'Cambria Math'; fill: #b3512e">s</tspan>
-      <tspan x="3.96875" y="0.686719" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">e</tspan>
-      <tspan x="20.934146" y="-4.354688" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">1</tspan>
-      <tspan x="20.934146" y="2.441875" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">n</tspan>
-      <tspan x="26.559537" y="6.680469" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">f</tspan>
-      <tspan x="33.059537" y="2.505469" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">f</tspan>
-      <tspan x="34.149839" y="-4.602344" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">p</tspan>
-      <tspan x="42.424336" y="-7.084375" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">1</tspan>
-      <tspan x="45.525118" y="-7.084375" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">/</tspan>
-      <tspan x="48.27043" y="-7.084375" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #b3512e">p</tspan>
-      <tspan x="15.526172" y="-7.772656" style="font-size: 8.223427px; font-family: 'cmex10'; fill: #b3512e">³</tspan>
-      <tspan x="37.451011" y="-7.772656" style="font-size: 8.223427px; font-family: 'cmex10'; fill: #b3512e">´</tspan>
-     </text>
-     <rect x="20.934146" y="-3.472656" width="3.125391" height="0.5"/>
-    </g>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #2f6b9a" transform="translate(322.582677 128.026709)">⑧ 写</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; fill: #2f6b9a" transform="translate(308.582677 138.541943)">出分之后</text>
    </g>
    <g id="text_27">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #b3512e" x="242.362205" y="175.190207" transform="rotate(-0 242.362205 175.190207)">机制二</text>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="95.102362" y="242.187641" transform="rotate(-0 95.102362 242.187641)">⑤ 实体路径分数</text>
    </g>
    <g id="text_28">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="369.92126" y="194.290281" transform="rotate(-0 369.92126 194.290281)">实体级告警</text>
+    <!-- $S_e=\max_t\,l_{e,t}$ -->
+    <g style="fill: #555555" transform="translate(74.462362 253.41311)">
+     <text>
+      <tspan x="0" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">S</tspan>
+      <tspan x="8.218359" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">=</tspan>
+      <tspan x="15.526172" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">m</tspan>
+      <tspan x="22.182422" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">a</tspan>
+      <tspan x="26.088672" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">x</tspan>
+      <tspan x="32.174654" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">l</tspan>
+      <tspan x="3.96875" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">e</tspan>
+      <tspan x="21.526172" y="4.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
+      <tspan x="34.346529" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">e</tspan>
+      <tspan x="37.078169" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">,</tspan>
+      <tspan x="39.158482" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">t</tspan>
+     </text>
+    </g>
    </g>
    <g id="text_29">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="369.92126" y="207.121531" transform="rotate(-0 369.92126 207.121531)">按实体分数排序输出</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #b3512e" x="229.606299" y="236.02436" transform="rotate(-0 229.606299 236.02436)">⑥ 预算感知实体排序（机制二）</text>
    </g>
    <g id="text_30">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="212.598425" y="251.781988" transform="rotate(-0 212.598425 251.781988)">本图为方法机制示意，不含任何实验结果数值。</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="229.606299" y="247.974985" transform="rotate(-0 229.606299 247.974985)">多预算 CVaR-pAUC 训练目标</text>
+   </g>
+   <g id="text_31">
+    <!-- $L_{\mathrm{rank}}=\mathrm{mean}_K R_K$ -->
+    <g style="fill: #555555" transform="translate(201.766299 260.59811)">
+     <text>
+      <tspan x="0" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">L</tspan>
+      <tspan x="16.923437" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">=</tspan>
+      <tspan x="24.23125" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">m</tspan>
+      <tspan x="30.8875" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">e</tspan>
+      <tspan x="34.789844" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">a</tspan>
+      <tspan x="38.696094" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">n</tspan>
+      <tspan x="46.937617" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #555555">R</tspan>
+      <tspan x="4.292969" y="0.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">r</tspan>
+      <tspan x="6.608984" y="0.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">a</tspan>
+      <tspan x="9.343359" y="0.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">n</tspan>
+      <tspan x="12.46875" y="0.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">k</tspan>
+      <tspan x="43.226289" y="0.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">K</tspan>
+      <tspan x="51.906367" y="0.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #555555">K</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="364.110236" y="242.82436" transform="rotate(-0 364.110236 242.82436)">⑦ 参数更新与实体级告警</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="364.110236" y="255.208735" transform="rotate(-0 364.110236 255.208735)">按实体路径分数在预算内排序输出</text>
+   </g>
+   <g id="text_34">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="212.598425" y="293.668578" transform="rotate(-0 212.598425 293.668578)">在线单步顺序：① 读记忆 → ② 骨干前向 → ③ 注入 → ④ 出分</text>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="212.598425" y="303.46373" transform="rotate(-0 212.598425 303.46373)">→ ⑤ 实体路径分数 → ⑥ 排序目标 → ⑦ 更新参数 → ⑧ 写记忆（故片段 t 只可见 t 之前）</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="212.598425" y="316.28435" transform="rotate(-0 212.598425 316.28435)">本图为方法机制示意，不含任何实验结果数值。</text>
    </g>
   </g>
  </g>
  <defs>
-  <clipPath id="ped4f825129">
-   <rect x="0" y="0" width="425.19685" height="269.291339"/>
+  <clipPath id="pba66760459">
+   <rect x="0" y="0" width="425.19685" height="325.984252"/>
   </clipPath>
  </defs>
  <defs>
-  <pattern id="h4409100157" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+  <pattern id="ha1f2b83790" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
    <rect x="0" y="0" width="73" height="73" fill="#edf3f8"/>
    <path d="M -36 36 
 L 36 -36 
@@ -623,9 +646,9 @@ M 32 104
 L 104 32 
 M 36 108 
 L 108 36 
-" style="fill: #2f6b9a; stroke: #2f6b9a; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
+" style="fill: #bfbfbf; stroke: #bfbfbf; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
   </pattern>
-  <pattern id="h81d56710cf" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+  <pattern id="h3382412547" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
    <rect x="0" y="0" width="73" height="73" fill="#faefea"/>
    <path d="M -36 36 
 L 36 108 
@@ -665,7 +688,7 @@ M 32 -32
 L 104 40 
 M 36 -36 
 L 108 36 
-" style="fill: #b3512e; stroke: #b3512e; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
+" style="fill: #bfbfbf; stroke: #bfbfbf; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
   </pattern>
  </defs>
 </svg>

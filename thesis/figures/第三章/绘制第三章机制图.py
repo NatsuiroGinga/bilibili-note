@@ -1,7 +1,12 @@
 """生成第三章四张方法机制示意图（图3-1 ~ 图3-4）。
 
-本脚本不读取任何实验结果、日志或运行制品，图中一切数值均为方法规格或示意取值，
+本脚本不读取任何实验结果、日志或运行制品，图中一切数值均为方法规格常量或示意取值，
 对应图件清单中的 `evidence_mode = method_schematic_without_experimental_results`。
+
+机制内容的唯一权威来源是
+`.Codex/docs/RWKV/2026-08-31-CEM-BER机制形式化与复杂度规约.md`；
+图中不出现四格读数、增量、有效性判断或任何机制优劣表述——四格未齐（C11 缺），
+机制有效性一律未裁决。
 
 生成命令：
     uv run --project thesis/figures/第三章 python thesis/figures/第三章/绘制第三章机制图.py
@@ -9,46 +14,62 @@
 
 from __future__ import annotations
 
+import json
+import sys
 from pathlib import Path
-
-import numpy as np
+from typing import Any
 
 import figstyle as fs
 from figstyle import Canvas, FigureSpec, Line
 
 ROOT = Path(__file__).resolve().parent
+MANIFEST_PATH = ROOT / "图件清单.json"
+GENERATOR = "绘制第三章机制图.py"
+RESULT_GENERATOR = "绘制第三章结果图.py"
+UPDATED_AT = "2026-08-31"
 
 EVIDENCE_MODE = "method_schematic_without_experimental_results"
 NO_DATA_NOTE = "本图为方法机制示意，不含任何实验结果数值。"
+
+# 记忆槽数、宽度、Token 数与预算网格都是已冻结的方法规格常量，不是实验读数。
+SLOTS = 8
+WIDTH = 192
+TOKEN_COUNT = 84
+SEQUENCE_LENGTH = 128
+BUDGET_RATIOS = ("0.1%", "0.5%", "1%", "2%", "4%", "8%")
+BUDGET_VALUES = ("121", "606", "1213", "2426", "4853", "9706")
+
+# 均值槽用点阵图案、队列槽用斜线图案，二者与决策层的反斜线图案在灰度下互不混淆。
+MEAN_HATCH = "..."
 
 
 # ================================================================ 图3-1
 
 
 def draw_overall_framework() -> Canvas:
-    """整体方法框架：从原始流到实体级告警的两机制流水线。"""
+    """整体方法框架：CEM-BER 两机制流水线与八步在线算法顺序。"""
 
-    cv = fs.canvas(150.0, 95.0)
+    cv = fs.canvas(150.0, 115.0)
 
-    left = 0.145
-    right = 0.995
+    left = 0.088
+    right = 0.992
     span = right - left
-    channel_x = 0.113
-    band_h = 0.185
+    channel_x = 0.079
 
-    band_y = {"input": 0.775, "repr": 0.475, "decide": 0.175}
-    band_label = (
-        ("input", "输入与序列构造", fs.MUTED),
-        ("repr", "表示层 · 计算侧", fs.M1_EDGE),
-        ("decide", "决策层 · 汇聚侧", fs.M2_EDGE),
-    )
-    for key, label, color in band_label:
+    # 带标签竖排。单行 7 字在最矮的一带里放不下（实测溢出带框），故拆成两行；
+    # 旋转 90° 后两行沿横向并列，行距压到 1.15 才不超出 0.052 的带框宽度。
+    band = {
+        "input": (0.795, 0.175, "输入与\n序列构造", fs.MUTED),
+        "repr": (0.395, 0.355, "表示层\n计算侧", fs.M1_EDGE),
+        "decide": (0.150, 0.190, "决策层\n汇聚侧", fs.M2_EDGE),
+    }
+    for y0, height, label, color in band.values():
         fs.box(
             cv,
             0.018,
-            band_y[key],
-            0.058,
-            band_h,
+            y0,
+            0.052,
+            height,
             face=fs.SHADE,
             edge=fs.HAIRLINE,
             linewidth=0.7,
@@ -57,11 +78,13 @@ def draw_overall_framework() -> Canvas:
         )
         fs.text(
             cv,
-            0.047,
-            band_y[key] + band_h / 2.0,
+            0.044,
+            y0 + height / 2.0,
             label,
-            size=fs.MAIN_FONT_PT,
-            color=color,            rotation=90.0,
+            size=fs.MIN_FONT_PT,
+            color=color,
+            rotation=90.0,
+            linespacing=1.15,
         )
 
     def row(count: int, gap: float) -> tuple[float, list[float]]:
@@ -69,175 +92,229 @@ def draw_overall_framework() -> Canvas:
         centers = [left + width / 2.0 + i * (width + gap) for i in range(count)]
         return width, centers
 
-    w4, c4 = row(4, 0.036)
-    w3, c3 = row(3, 0.050)
-
     # --- 第一带：输入与序列构造
+    w_in, c_in = row(4, 0.032)
+    y_in = band["input"][0]
+    h_in = band["input"][1]
     input_boxes = (
         (
             Line("原始流记录", fs.MAIN_FONT_PT, "cjk", fs.INK),
-            Line("83 维 CICFlowMeter 特征", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+            Line("83 个合法字段", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+            Line("各成一个 Token", fs.MIN_FONT_PT, "cjk", fs.MUTED),
         ),
         (
             Line("按 2-IP 无向对分组", fs.MAIN_FONT_PT, "cjk", fs.INK),
-            Line(r"$e=\chi(a,b)$", fs.MIN_FONT_PT, "math", fs.MUTED),
+            Line(r"$e=\chi(a,b)$", fs.MIN_FONT_PT, "math", fs.MUTED, span=1.55),
         ),
         (
             Line("组内按时间升序", fs.MAIN_FONT_PT, "cjk", fs.INK),
-            Line(r"$t_1<t_2<\cdots<t_n$", fs.MIN_FONT_PT, "math", fs.MUTED),
+            Line(r"$t_1<t_2<\cdots<t_n$", fs.MIN_FONT_PT, "math", fs.MUTED, span=1.55),
         ),
         (
-            Line("切分非重叠序列", fs.MAIN_FONT_PT, "cjk", fs.INK),
-            Line("尾块补零并掩码", fs.MIN_FONT_PT, "cjk", fs.MUTED),
-            Line(r"$L=128$", fs.MIN_FONT_PT, "math", fs.MUTED),
+            Line("切分非重叠片段", fs.MAIN_FONT_PT, "cjk", fs.INK),
+            Line("尾部补零并掩码", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+            Line(rf"$L={SEQUENCE_LENGTH}$", fs.MIN_FONT_PT, "math", fs.MUTED, span=1.55),
         ),
     )
-    for cx, lines in zip(c4, input_boxes, strict=True):
-        fs.box(cv, cx - w4 / 2.0, band_y["input"], w4, band_h, lines)
+    for cx, lines in zip(c_in, input_boxes, strict=True):
+        fs.box(cv, cx - w_in / 2.0, y_in, w_in, h_in, lines)
+    cy_in = y_in + h_in / 2.0
+    for a, b in zip(c_in, c_in[1:], strict=False):
+        fs.arrow(cv, (a + w_in / 2.0 + 0.004, cy_in), (b - w_in / 2.0 - 0.004, cy_in))
 
-    # --- 第二带：表示层
+    # --- 第二带：表示层（记忆库在上，逐流通路在下）
+    bank_x, bank_w = 0.188, 0.700
+    bank_y, bank_h = 0.640, 0.100
+    fs.box(
+        cv,
+        bank_x,
+        bank_y,
+        bank_w,
+        bank_h,
+        (
+            Line("因果实体记忆（机制一）", fs.MAIN_FONT_PT, "cjk", fs.M1_EDGE),
+            Line(
+                f"每实体 {SLOTS} 个记忆槽，只保存该实体在片段 t 之前的写入",
+                fs.MIN_FONT_PT,
+                "cjk",
+                fs.MUTED,
+            ),
+        ),
+        face=fs.M1_FACE,
+        edge=fs.M1_EDGE,
+        linewidth=1.4,
+        hatch=fs.M1_HATCH,
+        hatch_color=fs.HAIRLINE,
+    )
+
+    w_rp, c_rp = row(3, 0.040)
+    y_rp, h_rp = 0.415, 0.145
     repr_boxes = (
         (
             (
-                Line("逐流编码器", fs.MAIN_FONT_PT, "cjk", fs.INK),
-                Line(r"$f:\ x_t\mapsto h_t$", fs.MIN_FONT_PT, "math", fs.MUTED),
+                Line("② 骨干前向", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line("FT-Transformer", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+                Line(
+                    rf"${TOKEN_COUNT}$ Token, $d={WIDTH}$",
+                    fs.MIN_FONT_PT,
+                    "math",
+                    fs.MUTED,
+                    span=1.55,
+                ),
             ),
-            None,
+            False,
         ),
         (
             (
-                Line("因果前缀跨流聚合", fs.MAIN_FONT_PT, "cjk", fs.M1_EDGE),
-                Line(r"$\mathrm{ctx}_t$", fs.MIN_FONT_PT, "math", fs.M1_EDGE),
+                Line("③ 交叉注意力门控注入", fs.MAIN_FONT_PT, "cjk", fs.M1_EDGE),
+                Line(r"$h'=h+g\cdot c$", fs.MIN_FONT_PT, "math", fs.INK, span=1.55),
+                Line("无历史时上下文置零", fs.MIN_FONT_PT, "cjk", fs.MUTED),
             ),
-            "机制一",
+            True,
         ),
         (
             (
-                Line("表示拼接", fs.MAIN_FONT_PT, "cjk", fs.INK),
-                Line(r"$[\,h_t,\ \mathrm{ctx}_t\,]$", fs.MIN_FONT_PT, "math", fs.MUTED),
+                Line("④ 出分", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line("逐流 logit", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+                Line(r"$l_{e,t}$", fs.MIN_FONT_PT, "math", fs.MUTED, span=1.55),
             ),
-            None,
-        ),
-        (
-            (
-                Line("输出头", fs.MAIN_FONT_PT, "cjk", fs.INK),
-                Line("逐流分数", fs.MIN_FONT_PT, "cjk", fs.MUTED),
-                Line(r"$s_f$", fs.MIN_FONT_PT, "math", fs.MUTED),
-            ),
-            None,
+            False,
         ),
     )
-    for cx, (lines, tag) in zip(c4, repr_boxes, strict=True):
-        highlight = tag is not None
+    for cx, (lines, highlight) in zip(c_rp, repr_boxes, strict=True):
         fs.box(
             cv,
-            cx - w4 / 2.0,
-            band_y["repr"],
-            w4,
-            band_h,
+            cx - w_rp / 2.0,
+            y_rp,
+            w_rp,
+            h_rp,
             lines,
             face=fs.M1_FACE if highlight else fs.WHITE,
             edge=fs.M1_EDGE if highlight else fs.MUTED,
             linewidth=1.4 if highlight else fs.MAIN_LINE_PT,
             hatch=fs.M1_HATCH if highlight else None,
+            hatch_color=fs.HAIRLINE,
         )
-        if tag:
-            fs.pill(
-                cv,
-                cx,
-                band_y["repr"] + band_h,
-                0.098,
-                0.052,
-                tag,
-                face=fs.WHITE,
-                edge=fs.M1_EDGE,
-                color=fs.M1_EDGE,
-            )
+    cy_rp = y_rp + h_rp / 2.0
+    for a, b in zip(c_rp, c_rp[1:], strict=False):
+        fs.arrow(cv, (a + w_rp / 2.0 + 0.004, cy_rp), (b - w_rp / 2.0 - 0.004, cy_rp))
+
+    # 读在前：记忆库向注入盒的实线箭头；写在后：出分盒向记忆库的虚线箭头。
+    read_x = 0.470
+    write_x = 0.815
+    fs.arrow(cv, (read_x, bank_y - 0.004), (read_x, y_rp + h_rp + 0.004), color=fs.M1_EDGE)
+    fs.text(
+        cv,
+        read_x + 0.014,
+        0.600,
+        "① 读\n仅含 t 之前的片段",
+        size=fs.MIN_FONT_PT,
+        color=fs.M1_EDGE,
+        ha="left",
+    )
+    fs.arrow(
+        cv,
+        (write_x, y_rp + h_rp + 0.004),
+        (write_x, bank_y - 0.004),
+        color=fs.M1_EDGE,
+        linestyle=(0, (4, 2)),
+    )
+    fs.text(
+        cv,
+        write_x - 0.014,
+        0.600,
+        "⑧ 写\n出分之后",
+        size=fs.MIN_FONT_PT,
+        color=fs.M1_EDGE,
+        ha="right",
+    )
 
     # --- 第三带：决策层
+    w_de, c_de = row(3, 0.045)
+    y_de, h_de = band["decide"][0], band["decide"][1]
     decide_boxes = (
         (
             (
-                Line("实体内分数集合", fs.MAIN_FONT_PT, "cjk", fs.INK),
-                Line(r"$\{s_f\}_{f\in e}$", fs.MIN_FONT_PT, "math", fs.MUTED),
+                Line("⑤ 实体路径分数", fs.MAIN_FONT_PT, "cjk", fs.INK),
+                Line(r"$S_e=\max_t\,l_{e,t}$", fs.MIN_FONT_PT, "math", fs.MUTED, span=1.8),
             ),
-            None,
+            False,
         ),
         (
             (
-                Line("实体级可学 Lp 池化", fs.MAIN_FONT_PT, "cjk", fs.M2_EDGE),
-                Line(
-                    r"$S_e=\left(\frac{1}{n}\sum_f s_f^{\,p}\right)^{1/p}$",
-                    fs.MIN_FONT_PT,
-                    "math",
-                    fs.M2_EDGE,
-                ),
+                Line("⑥ 预算感知实体排序（机制二）", fs.MIN_FONT_PT, "cjk", fs.M2_EDGE),
+                Line("多预算 CVaR-pAUC 训练目标", fs.MIN_FONT_PT, "cjk", fs.INK),
+                Line(r"$L_{\mathrm{rank}}=\mathrm{mean}_K R_K$", fs.MIN_FONT_PT, "math", fs.MUTED, span=1.7),
             ),
-            "机制二",
+            True,
         ),
         (
             (
-                Line("实体级告警", fs.MAIN_FONT_PT, "cjk", fs.INK),
-                Line("按实体分数排序输出", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+                Line("⑦ 参数更新与实体级告警", fs.MIN_FONT_PT, "cjk", fs.INK),
+                Line("按实体路径分数在预算内排序输出", fs.MIN_FONT_PT, "cjk", fs.MUTED),
             ),
-            None,
+            False,
         ),
     )
-    for cx, (lines, tag) in zip(c3, decide_boxes, strict=True):
-        highlight = tag is not None
+    for cx, (lines, highlight) in zip(c_de, decide_boxes, strict=True):
         fs.box(
             cv,
-            cx - w3 / 2.0,
-            band_y["decide"],
-            w3,
-            band_h,
+            cx - w_de / 2.0,
+            y_de,
+            w_de,
+            h_de,
             lines,
             face=fs.M2_FACE if highlight else fs.WHITE,
             edge=fs.M2_EDGE if highlight else fs.MUTED,
             linewidth=1.4 if highlight else fs.MAIN_LINE_PT,
             hatch=fs.M2_HATCH if highlight else None,
+            hatch_color=fs.HAIRLINE,
         )
-        if tag:
-            fs.pill(
-                cv,
-                cx,
-                band_y["decide"] + band_h,
-                0.098,
-                0.052,
-                tag,
-                face=fs.WHITE,
-                edge=fs.M2_EDGE,
-                color=fs.M2_EDGE,
-            )
-
-    # --- 带内箭头
-    for key, centers, width in (
-        ("input", c4, w4),
-        ("repr", c4, w4),
-        ("decide", c3, w3),
-    ):
-        cy = band_y[key] + band_h / 2.0
-        for a, b in zip(centers, centers[1:], strict=False):
-            fs.arrow(cv, (a + width / 2.0 + 0.004, cy), (b - width / 2.0 - 0.004, cy))
+    cy_de = y_de + h_de / 2.0
+    for a, b in zip(c_de, c_de[1:], strict=False):
+        fs.arrow(cv, (a + w_de / 2.0 + 0.004, cy_de), (b - w_de / 2.0 - 0.004, cy_de))
 
     # --- 跨带换行走线
-    for upper, lower in (("input", "repr"), ("repr", "decide")):
-        y_top = band_y[upper]
-        y_mid = (band_y[upper] + band_y[lower] + band_h) / 2.0
-        y_bot = band_y[lower] + band_h / 2.0
-        fs.routed_arrow(
-            cv,
-            [
-                (c4[-1], y_top),
-                (c4[-1], y_mid),
-                (channel_x, y_mid),
-                (channel_x, y_bot),
-                (left - 0.004, y_bot),
-            ],
-            color=fs.RULE,
-        )
+    fs.routed_arrow(
+        cv,
+        [
+            (c_in[-1], y_in),
+            (c_in[-1], 0.7725),
+            (channel_x, 0.7725),
+            (channel_x, cy_rp),
+            (c_rp[0] - w_rp / 2.0 - 0.004, cy_rp),
+        ],
+        color=fs.RULE,
+    )
+    fs.routed_arrow(
+        cv,
+        [
+            (c_rp[-1], y_rp),
+            (c_rp[-1], 0.3775),
+            (channel_x, 0.3775),
+            (channel_x, cy_de),
+            (c_de[0] - w_de / 2.0 - 0.004, cy_de),
+        ],
+        color=fs.RULE,
+    )
 
-    fs.footnote(cv, NO_DATA_NOTE, y=0.075)
+    fs.text(
+        cv,
+        0.5,
+        0.108,
+        "在线单步顺序：① 读记忆 → ② 骨干前向 → ③ 注入 → ④ 出分",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+    )
+    fs.text(
+        cv,
+        0.5,
+        0.078,
+        "→ ⑤ 实体路径分数 → ⑥ 排序目标 → ⑦ 更新参数 → ⑧ 写记忆（故片段 t 只可见 t 之前）",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+    )
+    fs.footnote(cv, NO_DATA_NOTE, y=0.038)
     return cv
 
 
@@ -350,7 +427,7 @@ def draw_entity_key_sequence() -> Canvas:
             connectionstyle="arc3,rad=0.08",
         )
 
-    # --- (c) 同键内按时间升序，再切成非重叠块
+    # --- (c) 同键内按时间升序，再切成非重叠片段
     fs.text(
         cv,
         0.660,
@@ -379,7 +456,7 @@ def draw_entity_key_sequence() -> Canvas:
         cv,
         0.660,
         0.487,
-        "切成长度 L 的非重叠块",
+        "切成长度 L 的非重叠片段",
         size=fs.MIN_FONT_PT,
         color=fs.INK,
         ha="left",
@@ -388,7 +465,8 @@ def draw_entity_key_sequence() -> Canvas:
     grid_w = 0.316
     cw = grid_w / 8.0
     ch = cv.square_dy(cw)
-    grid_y = 0.335
+    # 片段块下移，给「切成长度 L 的非重叠片段」与两个片段标注留出不重叠的净空。
+    grid_y = 0.308
     for index in range(8):
         padded = index >= 6
         fs.cell(
@@ -420,7 +498,7 @@ def draw_entity_key_sequence() -> Canvas:
         cv,
         grid_x + 2 * cw,
         grid_y + ch + 0.052,
-        "块 1",
+        "片段 1",
         size=fs.MIN_FONT_PT,
         color=fs.INK,
     )
@@ -428,24 +506,25 @@ def draw_entity_key_sequence() -> Canvas:
         cv,
         grid_x + 6 * cw,
         grid_y + ch + 0.052,
-        "块 2（尾块补零）",
+        "片段 2（尾部补零）",
         size=fs.MIN_FONT_PT,
         color=fs.MUTED,
     )
+    # 掩码行改由下方文字说明。原来放在格阵左侧的「掩码」二字会越出 (c) 面板左边界、
+    # 压到 (b) 面板上，是旧稿遗留的版面缺陷。
     fs.text(
         cv,
-        grid_x - 0.008,
-        grid_y - 0.062,
-        "掩码",
+        0.818,
+        0.200,
+        "格下的 0 / 1 为有效掩码",
         size=fs.MIN_FONT_PT,
         color=fs.MUTED,
-        ha="right",
     )
     fs.text(
         cv,
         0.818,
-        0.175,
-        "正文取 L = 128，图中缩略为 4",
+        0.163,
+        f"正文取 L = {SEQUENCE_LENGTH}，图中缩略为 4",
         size=fs.MIN_FONT_PT,
         color=fs.MUTED,
     )
@@ -457,477 +536,685 @@ def draw_entity_key_sequence() -> Canvas:
 # ================================================================ 图3-3
 
 
-def draw_causal_prefix_aggregation() -> Canvas:
-    """因果前缀跨流聚合：下三角掩码、非因果整窗对照与增量更新。"""
+def draw_causal_entity_memory() -> Canvas:
+    """因果实体记忆：读写时序、槽位语义、单向查询与门控注入。"""
 
-    cv = fs.canvas(140.0, 95.0)
+    cv = fs.canvas(150.0, 132.0)
 
-    steps = 8
-    grid_w = 0.245
-    cw = grid_w / steps
-    ch = cv.square_dy(cw)
-    grid_x = 0.105
+    fs.panel(cv, 0.010, 0.630, 0.980, 0.350, "(a) 严格过去记忆的读写时序")
+    fs.panel(cv, 0.010, 0.300, 0.470, 0.305, "(b) 记忆槽语义与有效掩码")
+    fs.panel(cv, 0.520, 0.300, 0.470, 0.305, "(c) 单向查询与门控残差注入")
+    fs.panel(cv, 0.010, 0.085, 0.980, 0.190, "(d) 零门退化与状态隔离")
 
-    def draw_matrix(bottom: float, causal: bool) -> None:
-        for r in range(steps):  # r 自上而下，对应查询位置 t
-            t = r + 1
-            y = bottom + (steps - 1 - r) * ch
-            for c in range(steps):
-                i = c + 1
-                active = (i <= t) if causal else True
-                fs.cell(
-                    cv,
-                    grid_x + c * cw,
-                    y,
-                    cw,
-                    ch,
-                    face=(fs.M1_FACE if causal else fs.SHADE) if active else fs.WHITE,
-                    edge=fs.RULE,
-                    linewidth=0.5,
-                    hatch=(fs.M1_HATCH if causal else fs.M2_HATCH) if active else None,
-                )
-            fs.text(
-                cv,
-                grid_x - 0.012,
-                y + ch / 2.0,
-                str(t),
-                size=fs.MIN_FONT_PT,
-                color=fs.MUTED,
-                ha="right",
-            )
-        for c in range(steps):
-            fs.text(
-                cv,
-                grid_x + (c + 0.5) * cw,
-                bottom + steps * ch + 0.022,
-                str(c + 1),
-                size=fs.MIN_FONT_PT,
-                color=fs.MUTED,
-            )
-        fs.text(
+    # ---------------- (a) 读写时序
+    seg_y, seg_h, seg_w = 0.845, 0.075, 0.155
+    segments = (
+        (0.14, r"$t-2$", False),
+        (0.34, r"$t-1$", False),
+        (0.58, r"$t$", True),
+        (0.82, r"$t+1$", False),
+    )
+    for cx, tag, current in segments:
+        future = tag == r"$t+1$"
+        fs.box(
             cv,
-            grid_x - 0.050,
-            bottom + steps * ch / 2.0,
-            "查询位置 t",
-            size=fs.MIN_FONT_PT,
-            color=fs.INK,
-            rotation=90.0,
+            cx - seg_w / 2.0,
+            seg_y,
+            seg_w,
+            seg_h,
+            (
+                Line("片段", fs.MIN_FONT_PT, "cjk", fs.MUTED if future else fs.INK),
+                Line(tag, fs.MAIN_FONT_PT, "math", fs.MUTED if future else fs.INK, span=1.55),
+            ),
+            face=fs.M1_FACE if current else fs.WHITE,
+            edge=fs.M1_EDGE if current else (fs.HAIRLINE if future else fs.MUTED),
+            linewidth=1.4 if current else fs.MAIN_LINE_PT,
+            linestyle=(0, (3, 2)) if future else "-",
         )
-        fs.text(
-            cv,
-            grid_x + grid_w / 2.0,
-            bottom + steps * ch + 0.058,
-            "被聚合位置 i",
-            size=fs.MIN_FONT_PT,
-            color=fs.INK,
-        )
+    fs.text(cv, 0.82, 0.822, "尚未发生", size=fs.MIN_FONT_PT, color=fs.MUTED)
+    fs.text(cv, 0.58, 0.822, "当前片段", size=fs.MIN_FONT_PT, color=fs.M1_EDGE)
 
-    upper_bottom = 0.545
-    lower_bottom = 0.110
-    draw_matrix(upper_bottom, causal=True)
-    draw_matrix(lower_bottom, causal=False)
-
-    fs.text(
-        cv,
-        0.050,
-        upper_bottom + steps * ch + 0.104,
-        "(a) 因果前缀掩码：仅 i ≤ t 参与",
-        size=fs.MAIN_FONT_PT,
-        color=fs.INK,        ha="left",
-    )
-    fs.text(
-        cv,
-        0.050,
-        lower_bottom + steps * ch + 0.104,
-        "(b) 非因果整窗聚合（对照）",
-        size=fs.MAIN_FONT_PT,
-        color=fs.INK,        ha="left",
-    )
-    fs.pill(
-        cv,
-        grid_x + grid_w - 0.052,
-        upper_bottom - 0.042,
-        0.108,
-        0.050,
-        "本章采用",
-        face=fs.WHITE,
-        edge=fs.M1_EDGE,
-        color=fs.M1_EDGE,
-    )
-    fs.pill(
-        cv,
-        grid_x + grid_w - 0.044,
-        lower_bottom - 0.042,
-        0.124,
-        0.050,
-        "本章不采用",
-        face=fs.WHITE,
-        edge=fs.M2_EDGE,
-        color=fs.M2_EDGE,
-    )
-
-    # --- 右栏：定义式、增量更新、与双向聚合的分界
-    col_x = 0.435
-    col_w = 0.552
+    bank_x, bank_w, bank_y, bank_h = 0.075, 0.370, 0.712, 0.082
     fs.box(
         cv,
-        col_x,
-        0.640,
-        col_w,
-        0.290,
+        bank_x,
+        bank_y,
+        bank_w,
+        bank_h,
         (
-            Line("前缀聚合的定义", fs.MAIN_FONT_PT, "cjk", fs.M1_EDGE),
+            Line("因果实体记忆", fs.MAIN_FONT_PT, "cjk", fs.M1_EDGE),
+            Line(rf"$M_e\in R^{{{SLOTS}\times{WIDTH}}}$", fs.MIN_FONT_PT, "math", fs.INK, span=1.55),
+        ),
+        face=fs.M1_FACE,
+        edge=fs.M1_EDGE,
+        linewidth=1.4,
+        hatch=fs.M1_HATCH,
+        hatch_color=fs.HAIRLINE,
+    )
+
+    for cx in (0.14, 0.34):
+        fs.arrow(
+            cv,
+            (cx, seg_y - 0.004),
+            (cx, bank_y + bank_h + 0.004),
+            color=fs.M1_EDGE,
+            linestyle=(0, (4, 2)),
+            head=6.0,
+        )
+    fs.text(cv, 0.24, 0.826, "前序片段的写入", size=fs.MIN_FONT_PT, color=fs.MUTED)
+
+    fs.routed_arrow(
+        cv,
+        [
+            (bank_x + bank_w + 0.004, bank_y + bank_h / 2.0),
+            (0.520, bank_y + bank_h / 2.0),
+            (0.520, seg_y - 0.004),
+        ],
+        color=fs.M1_EDGE,
+    )
+    fs.text(cv, 0.462, 0.775, "① 读", size=fs.MIN_FONT_PT, color=fs.M1_EDGE, ha="left")
+
+    fs.routed_arrow(
+        cv,
+        [
+            (0.640, seg_y - 0.004),
+            (0.640, 0.678),
+            (0.300, 0.678),
+            (0.300, bank_y - 0.004),
+        ],
+        color=fs.M1_EDGE,
+        linestyle=(0, (4, 2)),
+    )
+    fs.text(
+        cv,
+        0.656,
+        0.690,
+        "⑧ 写：出分之后",
+        size=fs.MIN_FONT_PT,
+        color=fs.M1_EDGE,
+        ha="left",
+    )
+    fs.text(
+        cv,
+        0.656,
+        0.660,
+        "故本次读取不含片段 t 自身",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
+    )
+
+    # ---------------- (b) 记忆槽语义
+    fs.text(
+        cv,
+        0.022,
+        0.545,
+        "槽 0：跨片段 Welford 在线均值",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+        ha="left",
+    )
+    fs.text(
+        cv,
+        0.022,
+        0.518,
+        f"槽 1 至 {SLOTS - 1}：最近表示的有界队列，右侧最新",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+        ha="left",
+    )
+    slot_x, slot_w = 0.060, 0.046
+    slot_h = cv.square_dy(slot_w)
+    slot_y = 0.428
+    filled = 3
+    for index in range(SLOTS):
+        is_mean = index == 0
+        valid = is_mean or index >= SLOTS - filled
+        fs.cell(
+            cv,
+            slot_x + index * slot_w,
+            slot_y,
+            slot_w,
+            slot_h,
+            face=fs.SHADE if is_mean else (fs.M1_FACE if valid else fs.WHITE),
+            edge=fs.MUTED if is_mean else (fs.M1_EDGE if valid else fs.HAIRLINE),
+            linewidth=0.7,
+            hatch=MEAN_HATCH if is_mean else (fs.M1_HATCH if valid else None),
+        )
+        fs.text(
+            cv,
+            slot_x + (index + 0.5) * slot_w,
+            slot_y - 0.026,
+            str(index),
+            size=fs.MIN_FONT_PT,
+            color=fs.MUTED,
+        )
+        fs.text(
+            cv,
+            slot_x + (index + 0.5) * slot_w,
+            slot_y - 0.058,
+            "1" if valid else "0",
+            size=fs.MIN_FONT_PT,
+            color=fs.INK if valid else fs.MUTED,
+        )
+    fs.text(cv, slot_x - 0.006, slot_y - 0.026, "槽", size=fs.MIN_FONT_PT, color=fs.MUTED, ha="right")
+    fs.text(cv, slot_x - 0.006, slot_y - 0.056, "掩码", size=fs.MIN_FONT_PT, color=fs.MUTED, ha="right")
+    fs.text(
+        cv,
+        0.022,
+        0.330,
+        f"图中示意队列已写入 {filled} 条，未写满的位置置无效",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
+    )
+
+    # ---------------- (c) 单向查询与门控
+    # 本图四个面板全属机制一，没有需要靠填充图案区分的第二类对象，故此处不加图案，
+    # 把可读性留给公式；灰度下的机制归属由面板标题与深色描边给出。
+    fs.box(
+        cv,
+        0.532,
+        0.312,
+        0.446,
+        0.240,
+        (
+            Line("当前表示只查询记忆，记忆不反查当前", fs.MIN_FONT_PT, "cjk", fs.M1_EDGE),
+            Line(r"$q=W_Q\,\mathrm{LN}(h)$", fs.MIN_FONT_PT, "math", fs.INK, span=1.55),
             Line(
-                r"$\mathrm{ctx}_t=\dfrac{\sum_{i\leq t} h_i}{\sum_{i\leq t} m_i}$",
-                fs.MAIN_FONT_PT,
+                r"$K,V=W_K,W_V\,(\mathrm{LN}(M_e)+P_R)$",
+                fs.MIN_FONT_PT,
                 "math",
                 fs.INK,
+                span=1.55,
             ),
-            Line("按前缀内有效流数归一化", fs.MIN_FONT_PT, "cjk", fs.MUTED),
-            Line("掩码标记补零位置，不参与计数", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+            Line(r"$c=W_o\,\mathrm{Attn}(q,K,V)$", fs.MIN_FONT_PT, "math", fs.INK, span=1.55),
+            Line(r"$g=\sigma(W_g[h;c]+b)$", fs.MIN_FONT_PT, "math", fs.INK, span=1.55),
+            Line(r"$h'=h+g\cdot c$", fs.MAIN_FONT_PT, "math", fs.M1_EDGE, span=1.7),
+            Line("8 头，每头 24 维；角色嵌入区分两类槽", fs.MIN_FONT_PT, "cjk", fs.MUTED),
         ),
         face=fs.M1_FACE,
         edge=fs.M1_EDGE,
         linewidth=1.4,
     )
 
-    fs.box(cv, col_x, 0.330, col_w, 0.272, face=fs.WHITE, edge=fs.MUTED)
-    fs.text(
-        cv,
-        col_x + 0.018,
-        0.560,
-        "增量更新：单步只需常数次向量运算",
-        size=fs.MIN_FONT_PT,
-        color=fs.INK,        ha="left",
-    )
-    node_w = 0.128
-    node_h = 0.082
-    node_y = 0.442
+    # ---------------- (d) 零门退化与状态隔离
     fs.box(
         cv,
-        col_x + 0.022,
-        node_y,
-        node_w,
-        node_h,
-        (Line(r"$\mathrm{ctx}_{t-1}$", fs.MIN_FONT_PT, "math", fs.INK),),
-        edge=fs.RULE,
-    )
-    fs.box(
-        cv,
-        col_x + 0.212,
-        node_y,
-        node_w,
-        node_h,
-        (Line(r"$+\,h_t,\ +\,m_t$", fs.MIN_FONT_PT, "math", fs.INK),),
-        edge=fs.M1_EDGE,
-    )
-    fs.box(
-        cv,
-        col_x + 0.402,
-        node_y,
-        node_w,
-        node_h,
-        (Line(r"$\mathrm{ctx}_t$", fs.MIN_FONT_PT, "math", fs.INK),),
-        edge=fs.RULE,
-    )
-    fs.arrow(
-        cv,
-        (col_x + 0.022 + node_w + 0.006, node_y + node_h / 2.0),
-        (col_x + 0.212 - 0.006, node_y + node_h / 2.0),
-        head=6.0,
-    )
-    fs.arrow(
-        cv,
-        (col_x + 0.212 + node_w + 0.006, node_y + node_h / 2.0),
-        (col_x + 0.402 - 0.006, node_y + node_h / 2.0),
-        head=6.0,
-    )
-    fs.text(
-        cv,
-        col_x + 0.022,
-        0.386,
-        "无需重扫历史，单步计算量为",
-        size=fs.MIN_FONT_PT,
-        color=fs.MUTED,
-        ha="left",
-    )
-    fs.text(
-        cv,
-        col_x + 0.418,
-        0.386,
-        r"$O(D)$",
-        size=fs.MIN_FONT_PT,
-        color=fs.MUTED,
-        ha="left",
-    )
-
-    fs.box(
-        cv,
-        col_x,
-        0.108,
-        col_w,
-        0.186,
+        0.022,
+        0.098,
+        0.470,
+        0.115,
         (
-            Line("与双向整窗聚合的分界", fs.MAIN_FONT_PT, "cjk", fs.M2_EDGE),
-            Line(
-                "Vision-RWKV（ICLR 2025）式 (5) 对整窗双向归一化；",
-                fs.MIN_FONT_PT,
-                "cjk",
-                fs.MUTED,
-            ),
-            Line(
-                "本章限制为严格因果，位置 t 不可见任何 i > t。",
-                fs.MIN_FONT_PT,
-                "cjk",
-                fs.MUTED,
-            ),
+            Line("零门退化", fs.MIN_FONT_PT, "cjk", fs.M1_EDGE),
+            Line(r"$c=0,\quad h'=h$", fs.MAIN_FONT_PT, "math", fs.INK, span=1.55),
+            Line("无严格过去可读时上下文直接置零，不做全掩码归一", fs.MIN_FONT_PT, "cjk", fs.MUTED),
         ),
-        face=fs.M2_FACE,
-        edge=fs.M2_EDGE,
-        linewidth=fs.MAIN_LINE_PT,
-        linestyle=(0, (4, 2)),
+        edge=fs.MUTED,
+    )
+    fs.box(
+        cv,
+        0.512,
+        0.098,
+        0.470,
+        0.115,
+        (
+            Line("状态隔离", fs.MIN_FONT_PT, "cjk", fs.M1_EDGE),
+            Line("每轮评价前按数据角色重置，链首片段先清零", fs.MIN_FONT_PT, "cjk", fs.INK),
+            Line("目标年评价的记忆从零开始重新累积", fs.MIN_FONT_PT, "cjk", fs.MUTED),
+        ),
+        edge=fs.MUTED,
     )
 
-    fs.footnote(cv, NO_DATA_NOTE, y=0.040)
+    fs.footnote(cv, NO_DATA_NOTE, y=0.032)
     return cv
 
 
 # ================================================================ 图3-4
 
 
-def _power_mean(scores: np.ndarray, p: np.ndarray) -> np.ndarray:
-    """广义幂平均 M_p，在对数域计算以避免大指数下的数值溢出。"""
+def draw_budget_aware_ranking() -> Canvas:
+    """预算感知实体排序：路径分数、CVaR 尾部、多预算折算与推理边界。"""
 
-    log_s = np.log(scores)[None, :]
-    weighted = np.exp(p[:, None] * log_s).mean(axis=1)
-    return np.exp(np.log(weighted) / p)
+    cv = fs.canvas(150.0, 128.0)
 
+    fs.panel(cv, 0.010, 0.600, 0.470, 0.375, "(a) 实体路径分数")
+    fs.panel(cv, 0.520, 0.600, 0.470, 0.375, "(b) 成对损失与 CVaR 尾部")
+    fs.panel(cv, 0.010, 0.300, 0.470, 0.275, "(c) 冻结预算网格与有效预算折算")
+    fs.panel(cv, 0.520, 0.300, 0.470, 0.275, "(d) 训练私有阈值与推理边界")
 
-def draw_learnable_lp_pooling() -> Canvas:
-    """实体级可学 Lp 池化：幂平均关于 p 的单调性与三个特例。"""
-
-    cv = fs.canvas(140.0, 95.0)
-
-    # 示意分数，仅用于画出单调曲线形状，与任何实验结果无关。
-    scores = np.array([0.10, 0.25, 0.40, 0.85])
-    geo = float(np.exp(np.log(scores).mean()))
-    ari = float(scores.mean())
-    top = float(scores.max())
-
-    chip_w = 0.086
-    chip_h = 0.078
-    chip_y = 0.885
-    for index, cx in enumerate((0.075, 0.175, 0.275, 0.375)):
-        fs.box(
+    # ---------------- (a) 逐流 logit 取最大
+    cell_x, cell_w = 0.085, 0.036
+    cell_h = cv.square_dy(cell_w)
+    rows = ((0.855, 5), (0.800, 2), (0.745, 6))
+    for row_index, (row_y, peak) in enumerate(rows):
+        fs.text(
             cv,
-            cx,
-            chip_y,
-            chip_w,
-            chip_h,
-            (Line(rf"$s_{index + 1}$", fs.MIN_FONT_PT, "math", fs.INK),),
-            edge=fs.RULE,
+            cell_x - 0.008,
+            row_y + cell_h / 2.0,
+            rf"$t={row_index + 1}$",
+            size=fs.MIN_FONT_PT,
+            color=fs.MUTED,
+            ha="right",
         )
+        for index in range(8):
+            hit = index == peak
+            fs.cell(
+                cv,
+                cell_x + index * cell_w,
+                row_y,
+                cell_w,
+                cell_h,
+                face=fs.M2_FACE if hit else fs.WHITE,
+                edge=fs.M2_EDGE if hit else fs.RULE,
+                linewidth=1.0 if hit else 0.5,
+                hatch=fs.M2_HATCH if hit else None,
+            )
+    grid_right = cell_x + 8 * cell_w
+    brace_x = grid_right + 0.012
+    top_y = rows[0][0] + cell_h
+    bottom_y = rows[-1][0]
+    mid_y = (top_y + bottom_y) / 2.0
+    fs.polyline(
+        cv,
+        [
+            (brace_x - 0.008, top_y),
+            (brace_x, top_y),
+            (brace_x, bottom_y),
+            (brace_x - 0.008, bottom_y),
+        ],
+        color=fs.MUTED,
+        linewidth=0.8,
+    )
+    fs.arrow(cv, (brace_x, mid_y), (brace_x + 0.024, mid_y), head=6.0)
+    fs.box(
+        cv,
+        brace_x + 0.028,
+        mid_y - 0.030,
+        0.062,
+        0.060,
+        (Line(r"$S_e$", fs.MAIN_FONT_PT, "math", fs.M2_EDGE),),
+        face=fs.M2_FACE,
+        edge=fs.M2_EDGE,
+        linewidth=1.4,
+    )
     fs.text(
         cv,
-        0.075,
-        0.838,
-        "实体内逐流分数（示意取值）",
+        0.022,
+        0.700,
+        "每格为一条流的 logit，深色格为该片段最大值",
         size=fs.MIN_FONT_PT,
         color=fs.MUTED,
         ha="left",
     )
-    fs.arrow(
-        cv, (0.470, chip_y + chip_h / 2.0), (0.524, chip_y + chip_h / 2.0), head=6.0
+    fs.text(cv, 0.245, 0.662, r"$S_e=\max_t\,l_{e,t}$", size=fs.MAIN_FONT_PT, color=fs.INK)
+    fs.text(
+        cv,
+        0.022,
+        0.624,
+        "梯度只回到取得最大 logit 的那一条流",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
+    )
+
+    # ---------------- (b) 排序后的成对损失与 CVaR 尾部
+    bar_values = (1.00, 0.88, 0.76, 0.66, 0.55, 0.46, 0.37, 0.28, 0.19, 0.10)
+    base_y, bar_span = 0.715, 0.170
+    bar_x, bar_w, pitch = 0.585, 0.030, 0.038
+    threshold = 0.50
+    xi_y = base_y + threshold * bar_span
+    for index, value in enumerate(bar_values):
+        x = bar_x + index * pitch
+        low = min(value, threshold) * bar_span
+        fs.cell(cv, x, base_y, bar_w, low, face=fs.SHADE, edge=fs.RULE, linewidth=0.5)
+        if value > threshold:
+            fs.cell(
+                cv,
+                x,
+                xi_y,
+                bar_w,
+                (value - threshold) * bar_span,
+                face=fs.M2_FACE,
+                edge=fs.M2_EDGE,
+                linewidth=0.8,
+                hatch=fs.M2_HATCH,
+            )
+    fs.polyline(
+        cv,
+        [(0.570, xi_y), (0.975, xi_y)],
+        color=fs.INK,
+        linewidth=0.8,
+        linestyle=(0, (4, 2)),
+    )
+    fs.text(cv, 0.566, xi_y, r"$\xi$", size=fs.MAIN_FONT_PT, color=fs.INK, ha="right")
+    fs.polyline(cv, [(0.578, base_y), (0.975, base_y)], color=fs.RULE, linewidth=0.7)
+    fs.text(
+        cv,
+        0.775,
+        0.688,
+        "负实体（按成对损失降序）",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+    )
+    fs.text(
+        cv,
+        0.755,
+        0.652,
+        r"$L_{pn}=\mathrm{softplus}(S_n-S_p)$",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+    )
+    fs.text(
+        cv,
+        0.532,
+        0.620,
+        "只有越过阈值的困难负实体进入排序梯度",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
+    )
+
+    # ---------------- (c) 冻结预算网格
+    grid_x, grid_cw = 0.024, 0.074
+    for index, (ratio, value) in enumerate(zip(BUDGET_RATIOS, BUDGET_VALUES, strict=True)):
+        x = grid_x + index * grid_cw
+        fs.cell(cv, x, 0.462, grid_cw, 0.042, face=fs.SHADE, edge=fs.RULE, linewidth=0.5)
+        fs.text(cv, x + grid_cw / 2.0, 0.483, ratio, size=fs.MIN_FONT_PT, color=fs.INK)
+        fs.cell(cv, x, 0.418, grid_cw, 0.042, face=fs.M2_FACE, edge=fs.M2_EDGE, linewidth=0.8)
+        fs.text(cv, x + grid_cw / 2.0, 0.439, value, size=fs.MIN_FONT_PT, color=fs.INK)
+    fs.text(
+        cv,
+        0.024,
+        0.386,
+        "上行为名义误报预算比例，下行为冻结预算",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+        ha="left",
+    )
+    fs.text(
+        cv,
+        0.024,
+        0.356,
+        "由训练角色负实体池按名义比例投影得到",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+        ha="left",
+    )
+    fs.text(
+        cv,
+        0.245,
+        0.322,
+        r"$K_{\mathrm{eff}}=K\,n_{\mathrm{sampled}}/N_{-}$",
+        size=fs.MAIN_FONT_PT,
+        color=fs.INK,
+    )
+
+    # ---------------- (d) 训练私有阈值
+    fs.box(
+        cv,
+        0.545,
+        0.415,
+        0.190,
+        0.090,
+        (
+            Line("训练计算图", fs.MIN_FONT_PT, "cjk", fs.M2_EDGE),
+            Line(r"$\theta,\ \xi_{p,K}$", fs.MAIN_FONT_PT, "math", fs.INK, span=1.55),
+        ),
+        face=fs.M2_FACE,
+        edge=fs.M2_EDGE,
+        linewidth=1.4,
+        hatch=fs.M2_HATCH,
+        hatch_color=fs.HAIRLINE,
     )
     fs.box(
         cv,
-        0.530,
-        chip_y - 0.014,
-        0.245,
-        chip_h + 0.028,
+        0.775,
+        0.415,
+        0.190,
+        0.090,
         (
+            Line("推理计算图", fs.MIN_FONT_PT, "cjk", fs.INK),
+            Line(r"$\theta$", fs.MAIN_FONT_PT, "math", fs.INK, span=1.55),
+        ),
+        edge=fs.MUTED,
+    )
+    fs.arrow(cv, (0.739, 0.460), (0.771, 0.460), head=6.0)
+    fs.text(
+        cv,
+        0.755,
+        0.386,
+        "每个正实体在每档预算上各有一个阈值",
+        size=fs.MIN_FONT_PT,
+        color=fs.INK,
+    )
+    fs.text(
+        cv,
+        0.755,
+        0.356,
+        "阈值只在损失侧参与反向传播",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+    )
+    fs.text(
+        cv,
+        0.755,
+        0.322,
+        "不进入推理图，推理期结构与裸主干相同",
+        size=fs.MIN_FONT_PT,
+        color=fs.MUTED,
+    )
+
+    # ---------------- 目标式
+    # 本框只承载公式，去掉填充图案以免斜线压住上下标；机制归属由描边与浅底给出，
+    # 灰度下与图内其余中性框仍可区分。
+    fs.box(
+        cv,
+        0.010,
+        0.090,
+        0.980,
+        0.180,
+        (
+            Line("多预算 CVaR-pAUC 训练目标", fs.MAIN_FONT_PT, "cjk", fs.M2_EDGE),
             Line(
-                r"$M_p(s)=\left(\frac{1}{n}\sum_f s_f^{\,p}\right)^{1/p}$",
-                fs.MIN_FONT_PT,
+                r"$R_K(\theta,\xi)=\mathrm{mean}_p\,[\,\xi_{p,K}"
+                r"+\frac{1}{K}\sum_n\,(L_{pn}-\xi_{p,K})_+\,]$,"
+                r"$\quad L_{\mathrm{rank}}=\mathrm{mean}_K\,R_K(\theta,\xi)$",
+                fs.MAIN_FONT_PT,
                 "math",
-                fs.M2_EDGE,
+                fs.INK,
+                span=2.4,
+            ),
+            Line(
+                "p 遍历正实体，n 遍历负实体，K 遍历六档预算",
+                fs.MIN_FONT_PT,
+                "cjk",
+                fs.MUTED,
             ),
         ),
         face=fs.M2_FACE,
         edge=fs.M2_EDGE,
         linewidth=1.4,
     )
-    fs.arrow(
-        cv, (0.781, chip_y + chip_h / 2.0), (0.835, chip_y + chip_h / 2.0), head=6.0
-    )
-    fs.box(
-        cv,
-        0.841,
-        chip_y,
-        0.118,
-        chip_h,
-        (Line(r"$S_e$", fs.MIN_FONT_PT, "math", fs.INK),),
-        edge=fs.M2_EDGE,
-    )
-
-    ax = cv.fig.add_axes((0.115, 0.175, 0.845, 0.570))
-    p = np.geomspace(0.04, 120.0, 900)
-    ax.plot(p, _power_mean(scores, p), color=fs.M2_EDGE, linewidth=1.6, zorder=6)
-    ax.axhline(geo, color=fs.INK, linewidth=0.8, linestyle=(0, (1, 2)), zorder=4)
-    ax.axhline(top, color=fs.INK, linewidth=0.8, linestyle=(0, (5, 3)), zorder=4)
-    ax.axvline(1.0, color=fs.RULE, linewidth=0.8, linestyle=(0, (4, 2, 1, 2)), zorder=3)
-    ax.plot(
-        [1.0],
-        [ari],
-        marker="o",
-        markersize=4.5,
-        markerfacecolor=fs.WHITE,
-        markeredgecolor=fs.INK,
-        markeredgewidth=1.0,
-        zorder=7,
-    )
-
-    ax.set_xscale("log")
-    ax.set_xlim(0.04, 120.0)
-    ax.set_ylim(geo - 0.10, top + 0.10)
-    ax.set_xticks([0.1, 1.0, 10.0, 100.0])
-    ax.set_xticklabels(["0.1", "1", "10", "100"])
-    ax.set_yticks([])
-    ax.set_xlabel(
-        fs.checked("池化指数 p（对数刻度）", fs.MAIN_FONT_PT),
-        fontsize=fs.MAIN_FONT_PT,
-        color=fs.INK,
-    )
-    ax.set_ylabel(
-        fs.checked("实体级聚合分数（示意）", fs.MAIN_FONT_PT),
-        fontsize=fs.MAIN_FONT_PT,
-        color=fs.INK,
-    )
-    ax.tick_params(axis="x", labelsize=fs.MIN_FONT_PT, colors=fs.MUTED)
-    for side in ("top", "right"):
-        ax.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        ax.spines[side].set_color(fs.RULE)
-
-    marks = (
-        ("几何平均", r"$p\to 0$", 0.050, geo, "left", 0.022, -0.058),
-        ("算术平均", r"$p=1$", 1.30, ari, "left", -0.052, -0.112),
-        ("上界 max", r"$p\to\infty$", 108.0, top, "right", 0.030, -0.062),
-    )
-    for cn_label, math_label, x, y, ha, dy_cn, dy_math in marks:
-        ax.annotate(
-            fs.checked(cn_label),
-            xy=(x, y + dy_cn),
-            fontsize=fs.MIN_FONT_PT,
-            color=fs.INK,
-            ha=ha,
-            va="center",
-        )
-        ax.annotate(
-            fs.checked(math_label),
-            xy=(x, y + dy_math),
-            fontsize=fs.MIN_FONT_PT,
-            color=fs.MUTED,
-            ha=ha,
-            va="center",
-        )
-    ax.annotate(
-        fs.checked("单调不减"),
-        xy=(6.0, 0.5 * (ari + top)),
-        xytext=(2.6, geo - 0.045),
-        fontsize=fs.MIN_FONT_PT,
-        color=fs.M2_EDGE,
-        ha="left",
-        arrowprops={
-            "arrowstyle": "-|>",
-            "color": fs.M2_EDGE,
-            "linewidth": 0.8,
-            "shrinkA": 2.0,
-            "shrinkB": 2.0,
-        },
-    )
-
-    fs.box(
-        cv,
-        0.556,
-        0.212,
-        0.396,
-        0.152,
-        (
-            Line("指数的参数化与学习", fs.MIN_FONT_PT, "cjk", fs.M2_EDGE),
-            Line(
-                r"$p=\exp(p_{\log}),\quad p\in(0,\infty)$",
-                fs.MIN_FONT_PT,
-                "math",
-                fs.INK,
-            ),
-            Line("由序列级辅助损失驱动学习", fs.MIN_FONT_PT, "cjk", fs.MUTED),
-        ),
-        face=fs.WHITE,
-        edge=fs.M2_EDGE,
-        linewidth=fs.MAIN_LINE_PT,
-    )
 
     fs.footnote(
         cv,
-        "曲线由示意分数 0.10 / 0.25 / 0.40 / 0.85 生成，纵轴无实验数值。",
-        y=0.038,
+        "本图为方法机制示意；(a) 的格值与 (b) 的柱高为示意取值，不含任何实验结果数值。",
+        y=0.036,
     )
     return cv
+
+
+# ================================================================ 图件清单
+
+
+CAPTIONS: dict[str, str] = {
+    "图3-1-整体方法框架": (
+        "图3-1　CEM-BER 的整体方法框架：逐流片段经因果实体记忆读入严格过去表示、"
+        "门控注入后出分，实体路径分数在决策层进入多预算排序目标；"
+        "表示层机制与决策层机制分别以斜线、反斜线填充标出，"
+        "圈码为在线单步的八步顺序，写记忆在出分之后"
+    ),
+    "图3-2-二IP无向对序列构造": (
+        "图3-2　二 IP 无向对序列构造：双向流经无向对键归并到同一实体，"
+        "键内按时间升序后切成长度 L 的非重叠片段，尾部补零并以掩码标记"
+    ),
+    "图3-3-因果实体记忆的读写与交叉注意力": (
+        "图3-3　因果实体记忆的读写与交叉注意力：记忆只保存当前片段之前的写入，"
+        "槽 0 为跨片段在线均值、槽 1 至 7 为最近表示的有界队列，"
+        "当前表示单向查询记忆并以标量门控残差注入，无严格过去可读时上下文置零"
+    ),
+    "图3-4-预算感知实体排序的目标构造": (
+        "图3-4　预算感知实体排序的目标构造：实体路径分数取该实体全部片段逐流 logit 的最大值，"
+        "成对损失中只有越过阈值的困难负实体进入 CVaR 尾部，"
+        "六档冻结预算按抽样规模折算为有效预算；阈值是训练私有状态，不进入推理图"
+    ),
+}
+
+WITHDRAWN: tuple[dict[str, Any], ...] = (
+    {
+        "stem": "图3-3-因果前缀跨流聚合",
+        "withdrawn_at": UPDATED_AT,
+        "reason": (
+            "旧图描述的因果前缀跨流聚合（CPA）已不是第三章的当前机制；"
+            "第三章重锚到 CEM-BER 后，表示层机制改为因果实体记忆的读写与交叉注意力。"
+        ),
+        "recovery": "若正文重新采用因果前缀聚合，须先恢复对应机制合同再重绘。",
+        "files_moved_to": "作废/",
+    },
+    {
+        "stem": "图3-4-实体级可学Lp池化",
+        "withdrawn_at": UPDATED_AT,
+        "reason": (
+            "旧图描述的实体级可学幂平均池化（ELP）已不是第三章的当前机制；"
+            "第三章重锚到 CEM-BER 后，决策层机制改为预算感知实体排序的训练目标。"
+        ),
+        "recovery": "若正文重新采用可学幂平均池化，须先恢复对应机制合同再重绘。",
+        "files_moved_to": "作废/",
+    },
+)
+
+
+def build_manifest(entries: list[dict[str, Any]]) -> None:
+    """重写图件清单：替换机制图分段与条目，原样保留结果图分段与条目。
+
+    结果图条目含数据来源键路径，只有 `绘制第三章结果图.py` 能重新测量与登记，
+    故本脚本不重建它们，只在机制图重锚时同步 `withdrawn` 段与本脚本的分段登记。
+    """
+
+    import matplotlib
+    import PIL
+
+    previous: dict[str, Any] = {}
+    if MANIFEST_PATH.exists():
+        previous = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+
+    kept: list[dict[str, Any]] = []
+    for item in previous.get("figures", []):
+        if item.get("generator") == GENERATOR:
+            continue
+        outputs = item.get("outputs", {})
+        if outputs and all((ROOT / name).exists() for name in outputs.values()):
+            kept.append(item)
+
+    typography = {
+        "cjk_font_requested": fs.CJK_FONT.requested,
+        "cjk_font_used": fs.CJK_FONT.family,
+        "cjk_font_path": fs.CJK_FONT.path,
+        "cjk_face_index": fs.CJK_FONT.face_index,
+        "latin_font_used": fs.LATIN_FONT.family,
+        "latin_font_path": fs.LATIN_FONT.path,
+        "math_font_used": None if fs.MATH_FONT is None else fs.MATH_FONT.family,
+        "min_font_pt": fs.MIN_FONT_PT,
+        "main_font_pt": fs.MAIN_FONT_PT,
+        "main_line_pt": fs.MAIN_LINE_PT,
+        "aux_line_pt": fs.AUX_LINE_PT,
+    }
+    environment = {
+        "python": ".".join(str(v) for v in sys.version_info[:3]),
+        "matplotlib": matplotlib.__version__,
+        "pillow": PIL.__version__,
+    }
+
+    mechanism_block = {
+        "script": GENERATOR,
+        "evidence_mode": EVIDENCE_MODE,
+        "figures": sorted(entry["stem"] for entry in entries),
+        "typography": typography,
+        "environment": environment,
+        "source_of_truth": (
+            ".Codex/docs/RWKV/2026-08-31-CEM-BER机制形式化与复杂度规约.md"
+        ),
+        "note": (
+            "四张机制图只画方法结构，不含四格读数、增量或有效性表述；"
+            "图内出现的数值全部是已冻结的方法规格常量或标注为示意的取值。"
+        ),
+    }
+    generators = [mechanism_block]
+    for block in previous.get("generators", []):
+        if block.get("script") != GENERATOR:
+            generators.append(block)
+
+    withdrawn: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in list(previous.get("withdrawn", [])) + list(WITHDRAWN):
+        stem = str(item.get("stem"))
+        if stem in seen:
+            continue
+        seen.add(stem)
+        withdrawn.append(item)
+
+    manifest = {
+        "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）；thesis/figures/AGENTS.md",
+        "updated_at": UPDATED_AT,
+        "grayscale_readable": True,
+        "generators": generators,
+        "withdrawn": sorted(withdrawn, key=lambda item: str(item["stem"])),
+        "figures": sorted(
+            kept + entries,
+            key=lambda item: int(str(item["stem"]).split("-")[1]),
+        ),
+    }
+    MANIFEST_PATH.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
 
 
 # ================================================================ 入口
 
 
 SPECS = (
-    FigureSpec(
-        "图3-1-整体方法框架",
-        150.0,
-        95.0,
-        draw_overall_framework,
-        "逐流特征到实体级告警的整体流程；表示层机制一与决策层机制二分别以斜线、反斜线填充标出。",
-    ),
-    FigureSpec(
-        "图3-2-二IP无向对序列构造",
-        150.0,
-        80.0,
-        draw_entity_key_sequence,
-        "双向流经无向对键归并到同一实体，键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记。",
-    ),
-    FigureSpec(
-        "图3-3-因果前缀跨流聚合",
-        140.0,
-        95.0,
-        draw_causal_prefix_aggregation,
-        "下三角因果掩码与非因果整窗聚合的对照，以及前缀聚合的常数代价增量更新。",
-    ),
-    FigureSpec(
-        "图3-4-实体级可学Lp池化",
-        140.0,
-        95.0,
-        draw_learnable_lp_pooling,
-        "广义幂平均关于池化指数的单调曲线，标出几何平均、算术平均与上界三个特例。",
-    ),
+    FigureSpec("图3-1-整体方法框架", 150.0, 115.0, draw_overall_framework),
+    FigureSpec("图3-2-二IP无向对序列构造", 150.0, 80.0, draw_entity_key_sequence),
+    FigureSpec("图3-3-因果实体记忆的读写与交叉注意力", 150.0, 132.0, draw_causal_entity_memory),
+    FigureSpec("图3-4-预算感知实体排序的目标构造", 150.0, 128.0, draw_budget_aware_ranking),
 )
 
 
 def main() -> None:
-    entries = [fs.save_figure(ROOT, spec, spec.draw()) for spec in SPECS]
+    entries: list[dict[str, Any]] = []
+    for spec in SPECS:
+        entry = fs.save_figure(ROOT, spec, spec.draw())
+        entry["generator"] = GENERATOR
+        entry["caption"] = CAPTIONS[spec.stem]
+        entry["evidence_mode"] = EVIDENCE_MODE
+        entry["data_source"] = "不承载实验数据"
+        entry["data_keys"] = []
+        entries.append(entry)
     report = fs.verify_outputs(ROOT, entries)
-    manifest = fs.write_manifest(
-        ROOT,
-        Path(__file__).name,
-        entries,
-        evidence_mode=EVIDENCE_MODE,
-    )
+    build_manifest(entries)
     print(
         f"中文字体：{fs.CJK_FONT.family}"
         f"（{fs.CJK_FONT.path}，face {fs.CJK_FONT.face_index}）"
     )
     print(f"西文字体：{fs.LATIN_FONT.family}（{fs.LATIN_FONT.path}）")
+    print(
+        "数学字体："
+        + ("未解析，回退 stix" if fs.MATH_FONT is None else fs.MATH_FONT.family)
+    )
     for line in report:
         print(line)
-    print(f"图件清单：{manifest}")
+    print(f"图件清单：{MANIFEST_PATH}")
 
 
 if __name__ == "__main__":
