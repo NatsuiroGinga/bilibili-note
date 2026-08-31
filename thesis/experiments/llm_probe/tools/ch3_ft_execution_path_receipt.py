@@ -217,6 +217,31 @@ def classify_break_sites(snapshot: dict[str, Any], project_root: str) -> dict[st
     }
 
 
+def runtime_environment_snapshot() -> dict[str, Any]:
+    """记录门禁「同一 GPU、同一 PyTorch／CUDA」两款要用到的运行环境事实。
+
+    既有的 ``environment-receipt.json`` 只记 ``torch.__version__``、``platform`` 与显存字节数，
+    **没有 GPU 型号与计算能力**；而 inductor 为不同计算能力生成不同的核
+    （目标机 `sm_89` 对旧三格的 `sm_120`），因此这两项必须进收据才能机械判定。
+    ``torch.get_float32_matmul_precision()`` 一并记录：恢复卡把它列为未冻结候选，
+    收据须留下每臂的实际值。
+    """
+    import torch
+
+    snapshot: dict[str, Any] = {
+        "torch": torch.__version__,
+        "cuda": torch.version.cuda,
+        "float32_matmul_precision": torch.get_float32_matmul_precision(),
+        "device_name": None,
+        "device_capability": None,
+    }
+    if torch.cuda.is_available():
+        index = torch.cuda.current_device()
+        snapshot["device_name"] = torch.cuda.get_device_name(index)
+        snapshot["device_capability"] = list(torch.cuda.get_device_capability(index))
+    return snapshot
+
+
 def build_execution_path_receipt(
     config: dict[str, Any],
     *,
@@ -239,6 +264,7 @@ def build_execution_path_receipt(
             "enabled": bool(compile_settings.get("enabled", False)),
             "mode": compile_settings.get("mode"),
         },
+        "execution_environment": runtime_environment_snapshot(),
         "call_sites": call_sites,
         "call_site_paths": {entry["site"]: entry["execution_path"] for entry in call_sites},
         "dynamo": snapshot,
@@ -313,6 +339,19 @@ def compare_receipts(paths: list[Path]) -> dict[str, Any]:
             "consistent": len(distinct) <= 1,
         }
 
+    # 「同一 GPU、同一 PyTorch／CUDA」两款门禁：v1 收据没有 execution_environment 字段，
+    # 此时判定值为 None（无法判定），不冒充通过。
+    execution_environments = {
+        run_id: payload.get("execution_environment") for run_id, payload in loaded
+    }
+    if all(value is not None for value in execution_environments.values()):
+        distinct_environments = {
+            json.dumps(value, ensure_ascii=False, sort_keys=True) for value in execution_environments.values()
+        }
+        environment_identical: bool | None = len(distinct_environments) <= 1
+    else:
+        environment_identical = None
+
     environment = {
         run_id: {
             "torch_compile_declared": payload.get("torch_compile_declared"),
@@ -352,10 +391,14 @@ def compare_receipts(paths: list[Path]) -> dict[str, Any]:
         "per_site_paths": per_site,
         "gate_clauses": clause_results,
         "environment": environment,
+        "execution_environments": execution_environments,
+        "execution_environment_identical": environment_identical,
         "break_signature_groups": break_signature_groups,
         "break_signatures_identical_within_groups": all(
             item["identical_within_group"] for item in break_signature_groups.values()
         ),
+        # consistent 只汇总「路径类」判定。执行环境是否一致单独报告：
+        # v1 收据无该字段时为 None，不能因缺字段就把整体判成不通过，也不能冒充通过。
         "consistent": all(item["consistent"] for item in clause_results.values())
         and all(item["identical_within_group"] for item in break_signature_groups.values()),
     }
