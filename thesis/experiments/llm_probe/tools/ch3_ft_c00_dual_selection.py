@@ -52,6 +52,14 @@ BARE_FT_PARAMETER_COUNT = 924283
 # 机制一、机制二均关闭，行为与这两份配置历史上的语义完全一致，因此不需要改动它们。
 # entity_ranking 与 entity_memory 对称新增，机制二实现报告见
 # .Codex/docs/RWKV/2026-08-28-机制二实现报告.md。
+#
+# **本字典不得再增键**（2026-08-31 实测确认）：``science_projection`` 对缺 mechanism 键的
+# 配置回落到本字典，故给它加任何键都会改变这类配置的 science_identity_sha256。实测：
+# 两份 C00 配置的科学身份现为 08dd9f1899972d1d…，加一个 entity_gated_ple 键后变成
+# eb1d2370111dae47…，而 C10/C01/C11 因自带 mechanism 键不受影响。身份漂移会让既有
+# C00 在途检查点在 ``run_training`` 的 ``require(checkpoint["science_identity"] == …)``
+# 处被拒绝续训。因此 M-E（z1 = entity_gated_ple）改用
+# ``mechanism.get("entity_gated_ple", {})`` 就地缺省，不进本字典。
 DEFAULT_MECHANISM: dict[str, Any] = {
     "entity_memory": {"enabled": False, "slots": None},
     "entity_ranking": {
@@ -75,6 +83,50 @@ ENTITY_RANKING_BAG_POLICIES = ("full", "causal_prefix_truncation", "stratified_w
 # 0＝训练实体，1＝验证实体；本任务只读 LSPR23，不存在第三档目标年角色。
 ENTITY_MEMORY_ROLE_TRAIN = 0
 ENTITY_MEMORY_ROLE_VALIDATION = 1
+
+# ---------------------------------------------------------------------------
+# M-E（实体门控的分段线性数值分词）的纯字符串与纯算术常量。
+# 与 ch3_ft_entity_gated_ple.py 逐字一致的部分在此独立重复一份，理由与
+# entity_memory_parameter_count 相同：--validate-config 路径必须能在缺 numpy/torch 的
+# 项目 .venv 上跑通，而 ch3_ft_entity_gated_ple 模块顶层无条件 import torch。
+# ---------------------------------------------------------------------------
+
+# 门模式枚举，与 ch3_ft_entity_gated_ple.GATE_MODES 逐字一致。
+ENTITY_GATED_PLE_GATE_MODES = ("entity_state", "constant", "binary_indicator")
+
+# 三个门模式各自的候选身份键。三臂共用同一份机制实现、同一份预算，只有门不同，
+# 因此身份键必须逐臂区分，否则完整 M-E 与两个消融臂会落在同一个科学身份上。
+ENTITY_GATED_PLE_CANDIDATE_KEYS: dict[str, str] = {
+    "entity_state": "entity-gated-ple-c10",
+    "constant": "constant-gate-ple-e1",
+    "binary_indicator": "binary-gate-ple-e2",
+}
+
+# 科学合同版本：M-E 三臂用自己的版本号，既有四格（C00/C01/C10/C11）不受影响。
+SCIENCE_CONTRACT_DUAL_SELECTION = "ch3-ft-c00-dual-selection-science-v1"
+SCIENCE_CONTRACT_ENTITY_GATED_PLE = "ch3-ft-entity-gated-ple-science-v1"
+
+# 箱边界拟合的分块行数：与 base._gather_training_column 的分块读法同量级，
+# 每块显式分配上界为 chunk × 83 × 4B（原值）加 chunk × F × 4B（变换后），
+# 取 131,072 时约 43 MB + 42 MB，与冻结基数收据的 chunk_rows 同一量级。
+ENTITY_GATED_PLE_FIT_CHUNK_ROWS = 131_072
+
+
+def entity_gated_ple_parameter_count(
+    numeric_field_count: int, bin_count: int, d_token: int, gate_hidden: int, gate_mode: str
+) -> int:
+    """M-E 专属参数量闭式，与 ``ch3_ft_entity_gated_ple.entity_gated_ple_parameter_count``
+    逐字一致的纯算术副本。
+
+    位移嵌入 ``F·T·d``；``entity_state`` 门是 ``Linear(2,h)`` 加 ``Linear(h,1)``，
+    参数 ``4h + 1``；``constant`` 与 ``binary_indicator`` 门是单个可学标量，参数 ``1``。
+    ``build_model_optimizer`` 在真正构造模型时交叉核验两处实现一致，防止静默漂移。
+    """
+    if gate_mode not in ENTITY_GATED_PLE_GATE_MODES:
+        raise ValueError(f"未知门模式：{gate_mode}")
+    displacement = numeric_field_count * bin_count * d_token
+    gate = (4 * gate_hidden + 1) if gate_mode == "entity_state" else 1
+    return displacement + gate
 
 
 def entity_memory_parameter_count(width: int, slots: int) -> int:
@@ -154,14 +206,52 @@ def validate_config(config: dict[str, Any]) -> None:
     entity_ranking = mechanism.get("entity_ranking", {})
     entity_ranking_enabled = entity_ranking.get("enabled", False)
     require(isinstance(entity_ranking_enabled, bool), "mechanism.entity_ranking.enabled 必须是布尔值")
-    expected_candidate_key = {
-        (False, False): "bare-ft-c00-dual-selection",
-        (True, False): "causal-entity-memory-c10-dual-selection",
-        (False, True): "budget-aware-entity-ranking-c01-dual-selection",
-        (True, True): "cem-ber-c11-dual-selection",
-    }[(entity_memory_enabled, entity_ranking_enabled)]
+    # M-E 就地缺省读取，不进 DEFAULT_MECHANISM（理由见该字典上方注释）。
+    entity_gated_ple = mechanism.get("entity_gated_ple", {})
+    entity_gated_ple_enabled = entity_gated_ple.get("enabled", False)
+    require(isinstance(entity_gated_ple_enabled, bool), "mechanism.entity_gated_ple.enabled 必须是布尔值")
+    if entity_gated_ple_enabled:
+        # M-E 改的是分词器本身，与机制一的交叉注意力、机制二的第二数据流互不兼容；
+        # 三者同开会得到一个从未设计过的模型，其读数无法解释。
+        require(
+            not entity_memory_enabled and not entity_ranking_enabled,
+            "M-E 臂必须 z1(entity_memory)=false 且 z2(entity_ranking)=false",
+        )
+        gate_mode = entity_gated_ple.get("gate_mode")
+        require(gate_mode in ENTITY_GATED_PLE_GATE_MODES, "mechanism.entity_gated_ple.gate_mode 取值不合法")
+        bin_count = entity_gated_ple.get("bin_count")
+        require(
+            isinstance(bin_count, int) and not isinstance(bin_count, bool) and bin_count >= 1,
+            "mechanism.entity_gated_ple.bin_count(T) 必须是 ≥1 的整数",
+        )
+        gate_hidden = entity_gated_ple.get("gate_hidden")
+        require(
+            isinstance(gate_hidden, int) and not isinstance(gate_hidden, bool) and gate_hidden >= 1,
+            "mechanism.entity_gated_ple.gate_hidden(h) 必须是 ≥1 的整数",
+        )
+        for key in ("c_scale_quantile", "gap_scale_quantile"):
+            value = entity_gated_ple.get(key)
+            require(
+                isinstance(value, float) and 0.0 < value < 1.0,
+                f"mechanism.entity_gated_ple.{key} 必须是 (0,1) 内的小数",
+            )
+        sample_cap = entity_gated_ple.get("bin_fit_sample_cap")
+        require(
+            isinstance(sample_cap, int) and not isinstance(sample_cap, bool) and sample_cap > 0,
+            "mechanism.entity_gated_ple.bin_fit_sample_cap 必须是正整数",
+        )
+        expected_candidate_key = ENTITY_GATED_PLE_CANDIDATE_KEYS[gate_mode]
+        expected_science_contract = SCIENCE_CONTRACT_ENTITY_GATED_PLE
+    else:
+        expected_candidate_key = {
+            (False, False): "bare-ft-c00-dual-selection",
+            (True, False): "causal-entity-memory-c10-dual-selection",
+            (False, True): "budget-aware-entity-ranking-c01-dual-selection",
+            (True, True): "cem-ber-c11-dual-selection",
+        }[(entity_memory_enabled, entity_ranking_enabled)]
+        expected_science_contract = SCIENCE_CONTRACT_DUAL_SELECTION
     require(identity.get("candidate_key") == expected_candidate_key, "候选身份不符")
-    require(identity.get("science_contract_version") == "ch3-ft-c00-dual-selection-science-v1", "科学合同版本不符")
+    require(identity.get("science_contract_version") == expected_science_contract, "科学合同版本不符")
     require(identity.get("run_tier") in {"screening_only", "formal"}, "运行级别不符")
     run_id = identity.get("run_id")
     require(isinstance(run_id, str) and run_id, "运行身份缺失")
@@ -209,6 +299,26 @@ def validate_config(config: dict[str, Any]) -> None:
             "old_elp_enabled": False,
             "old_mechanism_scaffold_present": False,
         }, "机制一 FT 模型合同不符")
+    elif entity_gated_ple_enabled:
+        # 数值字段数取骨干冻结常量：M-E 的位移嵌入按 F×T×d 计，F 与骨干分词器同源。
+        # build_model_optimizer 会用 view.transform.numeric_field_count 交叉核验实测值。
+        own = entity_gated_ple_parameter_count(
+            base.NUMERIC_TOKEN_FIELD_COUNT,
+            entity_gated_ple["bin_count"],
+            base.D_TOKEN,
+            entity_gated_ple["gate_hidden"],
+            entity_gated_ple["gate_mode"],
+        )
+        require(config.get("model") == {
+            "role": "entity_gated_ple_ft_transformer",
+            "expected_parameter_count": BARE_FT_PARAMETER_COUNT + own,
+            "entity_gated_ple_bin_count": entity_gated_ple["bin_count"],
+            "entity_gated_ple_gate_hidden": entity_gated_ple["gate_hidden"],
+            "entity_gated_ple_gate_mode": entity_gated_ple["gate_mode"],
+            "old_cpa_enabled": False,
+            "old_elp_enabled": False,
+            "old_mechanism_scaffold_present": False,
+        }, "M-E FT 模型合同不符")
     else:
         slots = entity_memory.get("slots")
         require(slots is None or isinstance(slots, int), "z1=0 时 slots 只能是 null 或整数（不参与模型构造）")
@@ -497,6 +607,12 @@ def entity_memory_enabled_from_config(config: dict[str, Any]) -> bool:
     return bool(mechanism.get("entity_memory", {}).get("enabled", False))
 
 
+def entity_gated_ple_enabled_from_config(config: dict[str, Any]) -> bool:
+    """统一的 M-E 读取入口。缺省就地给出，不经 DEFAULT_MECHANISM（见该字典上方注释）。"""
+    mechanism = config.get("mechanism", DEFAULT_MECHANISM)
+    return bool(mechanism.get("entity_gated_ple", {}).get("enabled", False))
+
+
 def build_role_of_entity(interface: dict[str, Any], entity: Any, entity_count: int) -> Any:
     """从任务 1 接口的 ``is_entity_start`` 行取每个实体的角色，得到 ``(entity_count,)`` 数组。
 
@@ -669,6 +785,151 @@ def prepare_entity_memory_context(config: dict[str, Any], arrays: dict[str, Any]
     }
 
 
+# M-E 的状态归一化尺度取训练区 p99，该 0.99 由 ch3_ft_entity_segment_state.
+# fit_state_normalizers 写死实现；配置里的 c_scale_quantile/gap_scale_quantile 只是把它
+# 显式登记出来，prepare_entity_gated_ple_context 会核对两者一致，防止配置写了别的分位数
+# 却被实现静默忽略（那样运行收据会误述本次运行的口径）。
+ENTITY_GATED_PLE_STATE_SCALE_QUANTILE = 0.99
+
+# 门激活片段数的冻结值，来源 tools/ch3_ft_me_gate_scope_probe.py 的 FROZEN
+# ["overall_gate_active_segments"]。正式入口在拟合状态后重放这一个数字，
+# 确保训练时用的严格过去状态与门作用域文档量化的是同一口径。
+ENTITY_GATED_PLE_FROZEN_GATE_ACTIVE_SEGMENTS = 121_135
+
+
+def _gather_transformed_numeric(
+    config: dict[str, Any], arrays: dict[str, Any], train_rows: Any, view: Any
+) -> tuple[Any, dict[str, Any]]:
+    """取训练区有效流经冻结输入变换后的数值矩阵，供 PLE 箱边界拟合。
+
+    **只用训练区行**：训练区有效流掩码由 ``build_training_flow_mask`` 在同一段
+    ``train_rows`` 上产出，与 ``prepare_data`` 拟合输入变换时用的是同一个函数、同一段
+    行集合；验证区与目标年 LSPR24 零参与。
+
+    箱边界必须在**分位数变换之后**的张量上拟合——骨干分词器吃的就是这份张量，
+    位移通道与它同口径才有意义，因此这里过 ``view.transform.apply`` 而不是读原值。
+
+    规模与内存（2026-08-31 本机实测）：训练区有效流 ``11,991,315`` 条，全量展开成
+    ``(n, 81)`` float32 需 ``3.88 GB``，``np.quantile`` 的分区副本再需同量，峰值约
+    ``8 GB``。故按冻结的 ``bin_fit_sample_cap`` 做一次确定性无放回抽样（种子取
+    ``training.seed``），抽样下标升序排列以保持 mmap 读取的顺序局部性；分块读取，
+    每块显式分配上界为 ``chunk × 83 × 4B`` 加 ``chunk × 81 × 4B``。
+
+    ``transform.apply`` 会把本次读取的行数计入 ``source`` 分区的诊断计数器。这些行
+    确实是源年训练区行，分区归属正确；计数被抬高的部分由收据的 ``bin_fit_rows``
+    说明，冻结状态与 ``state_hash`` 完全不受影响（``apply`` 只读不写冻结状态）。
+    """
+    import numpy as np
+
+    mechanism = config["mechanism"]["entity_gated_ple"]
+    mask = build_training_flow_mask(arrays, train_rows, config["training"]["sequence_length"])
+    flow_indices = np.flatnonzero(mask)
+    total_rows = int(flow_indices.size)
+    require(total_rows > 0, "训练区没有任何有效流，无法拟合 PLE 箱边界", EXIT_INPUT)
+    sample_cap = int(mechanism["bin_fit_sample_cap"])
+    if total_rows > sample_cap:
+        generator = np.random.default_rng(config["training"]["seed"])
+        flow_indices = np.sort(generator.choice(flow_indices, size=sample_cap, replace=False))
+    sampled_rows = int(flow_indices.size)
+    field_count = view.transform.numeric_field_count
+    values = np.empty((sampled_rows, field_count), dtype=np.float32)
+    started = time.time()
+    for start in range(0, sampled_rows, ENTITY_GATED_PLE_FIT_CHUNK_ROWS):
+        stop = min(start + ENTITY_GATED_PLE_FIT_CHUNK_ROWS, sampled_rows)
+        raw = np.asarray(view.matrix[flow_indices[start:stop]], dtype=np.float32)
+        numeric, _categorical = view.transform.apply(raw)
+        values[start:stop] = numeric
+        elapsed = time.time() - started
+        LOGGER.info(
+            "PLE 箱边界取数进度=%d/%d，吞吐=%.0f流/秒，已用=%.1f秒",
+            stop, sampled_rows, stop / max(elapsed, 1e-9), elapsed,
+        )
+    return values, {
+        "training_effective_flows": total_rows,
+        "bin_fit_sample_cap": sample_cap,
+        "bin_fit_rows": sampled_rows,
+        "bin_fit_subsampled": sampled_rows < total_rows,
+        "bin_fit_seed": config["training"]["seed"],
+        "bin_fit_seconds": time.time() - started,
+        "fitted_on": "lspr23_protocol_a_training_region_effective_flows_only",
+    }
+
+
+def prepare_entity_gated_ple_context(
+    config: dict[str, Any], arrays: dict[str, Any], train_rows: Any, view: Any, output_root: Path
+) -> dict[str, Any]:
+    """拟合 PLE 箱边界与实体状态归一化常数，二者都只用训练区行。
+
+    只在 M-E 开启时被调用；关闭时完全不触碰本函数，天然满足"不构造、不读取状态"。
+    结果随运行收据落盘（含箱边界摘要），供复现与哈希核验。
+    """
+    import numpy as np
+
+    import ch3_ft_entity_gated_ple as gated_ple
+    import ch3_ft_entity_segment_state as segment_state
+
+    mechanism = config["mechanism"]["entity_gated_ple"]
+    require(
+        mechanism["c_scale_quantile"] == ENTITY_GATED_PLE_STATE_SCALE_QUANTILE
+        and mechanism["gap_scale_quantile"] == ENTITY_GATED_PLE_STATE_SCALE_QUANTILE,
+        "配置登记的状态尺度分位数与 ch3_ft_entity_segment_state.fit_state_normalizers "
+        f"实现的 {ENTITY_GATED_PLE_STATE_SCALE_QUANTILE} 不一致",
+    )
+    entity = np.asarray(arrays["E23"])
+    stamp = np.asarray(arrays["T23"])
+    prior_segments, gap = segment_state.compute_segment_state(entity, stamp)
+    normalizers = segment_state.fit_state_normalizers(prior_segments, gap, train_rows)
+    state_matrix = segment_state.normalize_state(prior_segments, gap, normalizers)
+    require(
+        state_matrix.shape == (base.LSPR23_SEQUENCE_COUNT, 2),
+        f"实体状态矩阵形状不符：{state_matrix.shape}",
+        EXIT_INPUT,
+    )
+    gate_active_segments = int((prior_segments >= 1).sum())
+    require(
+        gate_active_segments == ENTITY_GATED_PLE_FROZEN_GATE_ACTIVE_SEGMENTS,
+        f"门激活片段数 {gate_active_segments} 与冻结值 "
+        f"{ENTITY_GATED_PLE_FROZEN_GATE_ACTIVE_SEGMENTS} 不符，严格过去状态口径已漂移",
+        EXIT_INPUT,
+    )
+
+    training_values, gather_receipt = _gather_transformed_numeric(config, arrays, train_rows, view)
+    bin_edges = gated_ple.fit_quantile_bin_edges(training_values, mechanism["bin_count"])
+    require(
+        bin_edges.shape == (view.transform.numeric_field_count, mechanism["bin_count"] + 1),
+        f"箱边界形状不符：{bin_edges.shape}",
+        EXIT_RUNTIME,
+    )
+
+    receipt = {
+        "schema_version": "ch3-ft-entity-gated-ple-context-receipt-v1",
+        "target_reads": 0,
+        "gate_mode": mechanism["gate_mode"],
+        "bin_count": mechanism["bin_count"],
+        "gate_hidden": mechanism["gate_hidden"],
+        "numeric_field_count": int(view.transform.numeric_field_count),
+        "normalizers": normalizers,
+        "state_scale_quantile": ENTITY_GATED_PLE_STATE_SCALE_QUANTILE,
+        "bin_edges_sha256": canonical_sha256(bin_edges.tolist()),
+        # 状态矩阵有 271,815×2 个 float32，走 canonical_sha256 要先序列化成十几兆的 JSON；
+        # 这里直接对缓冲区取摘要，语义同样是"逐位身份"，但常数时间内完成。
+        "state_matrix_sha256": hashlib.sha256(
+            np.ascontiguousarray(state_matrix).tobytes()
+        ).hexdigest(),
+        "state_rows": int(state_matrix.shape[0]),
+        "gate_active_segments": gate_active_segments,
+        "gate_inactive_segments": int(state_matrix.shape[0]) - gate_active_segments,
+        **gather_receipt,
+    }
+    atomic_json(output_root / "receipts" / "entity-gated-ple-context.json", receipt)
+    LOGGER.info(
+        "M-E 上下文已就绪：门模式=%s，箱数=%d，箱边界拟合行=%d/%d，门激活片段=%d",
+        mechanism["gate_mode"], mechanism["bin_count"], receipt["bin_fit_rows"],
+        receipt["training_effective_flows"], gate_active_segments,
+    )
+    return {"bin_edges": bin_edges, "state_matrix": state_matrix, "receipt": receipt}
+
+
 _ENTITY_MEMORY_MODEL_CACHE: dict[str, Any] = {}
 
 
@@ -713,8 +974,59 @@ def _causal_entity_memory_model_class() -> Any:
     return CausalEntityMemoryFTModel
 
 
-def build_model_optimizer(config: dict[str, Any], base_config: dict[str, Any], view: Any, torch_module: Any, device: Any) -> tuple[Any, Any, dict[str, Any]]:
+_ENTITY_GATED_PLE_MODEL_CACHE: dict[str, Any] = {}
+
+
+def _entity_gated_ple_model_class() -> Any:
+    """延迟构造 M-E 整格包装类，与 ``_causal_entity_memory_model_class`` 同一惰性缓存写法。
+
+    M-E 替换的是**分词器**这一步，因此包装体绕过 ``backbone.tokenizer``，改用 M-E 分词器
+    产出 Token 后直接进 ``backbone.blocks``；``predict`` 仍完全委派给骨干。
+    ``ch3_ft_transformer_field_token_protocol_a.py`` 因此不需要任何改动。
+
+    参数名带 ``backbone.``／``me_tokenizer.`` 前缀。``base.resolve_weight_decay_groups``
+    按 ``"tokenizer." in name`` 判定特征标记器例外，``me_tokenizer.`` 命中该子串，
+    故 M-E 的位移嵌入与门参数与骨干分词器一样不施加权重衰减——这正是论文表 12
+    "特征标记器一律取 0.0" 的口径，不需要为本类特化。
+
+    ``me_tokenizer.base`` 与 ``backbone.tokenizer`` 是同一个对象；PyTorch 的
+    ``named_parameters()`` 默认去重，骨干分词器参数只会以 ``backbone.tokenizer.*``
+    出现一次，不会被重复计入总量或重复交给优化器。
+    """
+    if _ENTITY_GATED_PLE_MODEL_CACHE:
+        return _ENTITY_GATED_PLE_MODEL_CACHE["EntityGatedPLEFTModel"]
+
+    from torch import nn
+
+    class EntityGatedPLEFTModel(nn.Module):
+        """裸 FT 主干 + 实体门控分段线性数值分词的整格包装，仅供 M-E 三臂使用。"""
+
+        def __init__(self, backbone: Any, tokenizer: Any) -> None:
+            super().__init__()
+            self.backbone = backbone
+            self.me_tokenizer = tokenizer
+
+        def encode(self, x_num: Any, x_cat: Any, entity_state: Any) -> Any:
+            return self.backbone.blocks(self.me_tokenizer(x_num, x_cat, entity_state))
+
+        def predict(self, representation: Any) -> Any:
+            return self.backbone.predict(representation)
+
+        def forward(self, x_num: Any, x_cat: Any, entity_state: Any) -> Any:
+            return self.backbone.predict(self.encode(x_num, x_cat, entity_state))
+
+    _ENTITY_GATED_PLE_MODEL_CACHE["EntityGatedPLEFTModel"] = EntityGatedPLEFTModel
+    return EntityGatedPLEFTModel
+
+
+def build_model_optimizer(
+    config: dict[str, Any], base_config: dict[str, Any], view: Any, torch_module: Any, device: Any,
+    mechanism_context: dict[str, Any] | None = None,
+) -> tuple[Any, Any, dict[str, Any]]:
+    # mechanism_context 默认 None，使 z1=0、CEM 与 BER 三条既有路径的调用点一字不改；
+    # 只有 M-E 需要在建模前拿到训练区拟合的箱边界，故由调用方显式传入。
     entity_memory_enabled = entity_memory_enabled_from_config(config)
+    entity_gated_ple_enabled = entity_gated_ple_enabled_from_config(config)
 
     backbone = base.build_model(base_config, view.transform, input_key=config["data"]["input_candidate"])
     backbone_actual = sum(parameter.numel() for parameter in backbone.parameters() if parameter.requires_grad)
@@ -746,6 +1058,62 @@ def build_model_optimizer(config: dict[str, Any], base_config: dict[str, Any], v
         )
         model_class = _causal_entity_memory_model_class()
         model = model_class(backbone, attention)
+    elif entity_gated_ple_enabled:
+        # 延迟导入：ch3_ft_entity_gated_ple 在其模块顶层无条件 import torch，
+        # 只有真正启用 M-E 时才需要它，保持 --validate-config 路径不变。
+        import ch3_ft_entity_gated_ple as gated_ple
+
+        require(
+            mechanism_context is not None and "bin_edges" in mechanism_context,
+            "M-E 需要在建模前拿到训练区拟合的箱边界，但 mechanism_context 缺失",
+            EXIT_RUNTIME,
+        )
+        mechanism = config["mechanism"]["entity_gated_ple"]
+        width = base_config["architecture"]["d_token"]
+        field_count = view.transform.numeric_field_count
+        cross_checked = gated_ple.entity_gated_ple_parameter_count(
+            field_count, mechanism["bin_count"], width, mechanism["gate_hidden"],
+            gate_mode=mechanism["gate_mode"],
+        )
+        require(
+            cross_checked == entity_gated_ple_parameter_count(
+                field_count, mechanism["bin_count"], width, mechanism["gate_hidden"],
+                mechanism["gate_mode"],
+            ),
+            "M-E 参数量闭式两处实现不一致（ch3_ft_c00_dual_selection 与 ch3_ft_entity_gated_ple）",
+            EXIT_RUNTIME,
+        )
+        tokenizer = gated_ple.EntityGatedPLETokenizer(
+            base_tokenizer=backbone.tokenizer,
+            bin_edges=torch_module.from_numpy(mechanism_context["bin_edges"]),
+            d_token=width,
+            gate_hidden=mechanism["gate_hidden"],
+            gate_mode=mechanism["gate_mode"],
+        )
+        # base_tokenizer 以子模块持有，其参数会出现在 tokenizer.named_parameters() 里；
+        # 不排除 base. 前缀就会把骨干分词器参数重复计入 M-E 专属量。
+        own = sum(
+            parameter.numel()
+            for name, parameter in tokenizer.named_parameters()
+            if parameter.requires_grad and not name.startswith("base.")
+        )
+        require(own == cross_checked, f"M-E 参数量不符：{own} 对 {cross_checked}", EXIT_RUNTIME)
+        require(
+            config["model"]["expected_parameter_count"] == backbone_actual + own,
+            "冻结 expected_parameter_count 与实测不符",
+            EXIT_RUNTIME,
+        )
+        model_class = _entity_gated_ple_model_class()
+        model = model_class(backbone, tokenizer)
+        # 去重后骨干分词器只算一次，整格实测参数量必须恰为骨干加 M-E 专属量。
+        model_actual = sum(
+            parameter.numel() for parameter in model.parameters() if parameter.requires_grad
+        )
+        require(
+            model_actual == backbone_actual + own,
+            f"M-E 整格参数量 {model_actual} 与骨干 {backbone_actual} 加专属 {own} 不符",
+            EXIT_RUNTIME,
+        )
     else:
         require(config["model"]["expected_parameter_count"] == backbone_actual, "裸 FT 参数量不符", EXIT_RUNTIME)
         model = backbone
@@ -799,7 +1167,16 @@ def maybe_compile(model: Any, config: dict[str, Any], torch_module: Any) -> Any:
 def forward_bare(
     model: Any, numeric: Any, categorical: Any, valid: Any, device: Any, profile: dict[str, Any],
     precision: Any, torch_module: Any, *, site: str = "flow_forward_bare_train",
+    entity_state: Any = None,
 ) -> Any:
+    """统一的逐流前向入口。
+
+    ``entity_state is None`` 时逐字保持既有行为：``z1=0``、CEM 与 BER 三条既有路径的
+    数值路径一位不变。传入时走 M-E 分支——``entity_state`` 是**逐片段**的 ``(batch, 2)``，
+    而前向是**逐流展平**的 ``(batch × length, F)``，故沿时间轴广播：同一片段内所有流
+    共享该片段的实体状态，这与形式化第 3.2 节一致，``s_{e,t}`` 定义在片段上、不随
+    片段内的流位置变化。
+    """
     # site 只服务执行路径收据：同一个 forward_bare 被训练、验证、C01 逐流阶段与零门
     # 断言四处调用，收据必须能分辨它们各自实际进的是编译包装体还是原模块。
     execution_path.LEDGER.record(site, model, checkpointed=False)
@@ -810,7 +1187,12 @@ def forward_bare(
     flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
     flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
     with precision.autocast_context(profile, device.type, torch_module):
-        logits = model(flat_num, flat_cat).reshape(batch, length)
+        if entity_state is None:
+            logits = model(flat_num, flat_cat).reshape(batch, length)
+        else:
+            state_t = torch_module.from_numpy(entity_state).to(device)
+            flat_state = state_t.unsqueeze(1).expand(batch, length, 2).reshape(batch * length, 2)
+            logits = model(flat_num, flat_cat, flat_state).reshape(batch, length)
     return logits, valid_t
 
 
@@ -818,13 +1200,21 @@ def training_step(
     config: dict[str, Any], base_config: dict[str, Any], model: Any, optimizer: Any,
     view: Any, train_rows: Any, generator: Any, device: Any, profile: dict[str, Any],
     precision: Any, torch_module: Any, positive_weight: Any,
+    mechanism_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """裸 FT 逐流训练步。
+
+    ``mechanism_context`` 默认 ``None``，此时行为与既有 ``z1=0`` 路径逐字一致。
+    M-E 开启时传入含 ``state_matrix`` 的上下文，按本批片段行索引取实体状态；
+    该矩阵在 ``prepare_entity_gated_ple_context`` 阶段算一次，不在每步重算。
+    """
     import numpy as np
 
     effective = config["training"]["effective_batch_size"]
     micro = config["training"]["micro_batch_sequences"]
     positions = base.sample_distinct_positions(len(train_rows), effective, generator)
     rows = train_rows[positions.numpy()]
+    state_matrix = mechanism_context["state_matrix"] if mechanism_context is not None else None
     indices, valid, labels = view.gather_sequences(rows, config["training"]["sequence_length"])
     total_valid = int(valid.sum())
     loss_fn = torch_module.nn.BCEWithLogitsLoss(reduction="none", pos_weight=positive_weight)
@@ -841,7 +1231,8 @@ def training_step(
         stop = start + micro
         numeric, categorical = view.features(indices[start:stop])
         logits, valid_t = forward_bare(
-            model, numeric, categorical, valid[start:stop], device, profile, precision, torch_module
+            model, numeric, categorical, valid[start:stop], device, profile, precision, torch_module,
+            entity_state=None if state_matrix is None else state_matrix[rows[start:stop]],
         )
         labels_t = torch_module.from_numpy(labels[start:stop]).to(device)
         mask32 = valid_t.to(torch_module.float32)
@@ -861,10 +1252,17 @@ def training_step(
 def validation_metrics(
     config: dict[str, Any], model: Any, view: Any, arrays: dict[str, Any], validation_rows: Any,
     device: Any, profile: dict[str, Any], precision: Any, torch_module: Any,
+    mechanism_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """完整源验证扫描。``mechanism_context`` 默认 ``None``，此时行为与既有路径逐字一致。
+
+    M-E 开启时按验证片段行索引取同一份预计算实体状态矩阵——验证区实体的 `c`、`Δ`
+    同样只由该实体的严格过去片段决定，与训练区共用一份计算，不需要第二套口径。
+    """
     import numpy as np
     from sklearn.metrics import average_precision_score
 
+    state_matrix = mechanism_context["state_matrix"] if mechanism_context is not None else None
     batch_sequences = config["training"]["validation_batch_sequences"]
     predictions: list[Any] = []
     targets: list[Any] = []
@@ -885,6 +1283,7 @@ def validation_metrics(
             logits, _ = forward_bare(
                 model, numeric, categorical, valid, device, profile, precision, torch_module,
                 site="flow_forward_bare_validation",
+                entity_state=None if state_matrix is None else state_matrix[rows],
             )
             scores = torch_module.sigmoid(logits.to(torch_module.float32)).cpu().numpy()
             selected_indices = indices[valid]
@@ -1167,6 +1566,14 @@ def assert_zero_gate_degeneracy(
     entity_memory_enabled = entity_memory_enabled_from_config(config)
     require(entity_memory_enabled or memory_state is None, "z1=0 时不得构造记忆状态", EXIT_RUNTIME)
     if entity_memory_enabled:
+        return
+    if entity_gated_ple_enabled_from_config(config):
+        # M-E 的 model 是 EntityGatedPLEFTModel 包装体，state_dict 的键带 backbone./
+        # me_tokenizer. 前缀，把它加载进一个裸 FT 会直接报键不匹配；而且 M-E 本来就
+        # **不是**逐位等价于裸 FT 的路径，这条断言的前提不成立。M-E 的零门退化是
+        # "同一组权重内、位移置零后逐位退化"，与本函数比较的"跨模型逐位相等"不是一回事，
+        # 见 .Codex/docs/RWKV/2026-08-31-M-E门作用域源年量化.md 第 4.4 节的更正。
+        LOGGER.info("M-E 臂跳过跨模型零门断言：其退化性是同权重内的位移置零，不是跨模型逐位相等")
         return
 
     reference = base.build_model(base_config, view.transform, input_key=config["data"]["input_candidate"])
@@ -1807,8 +2214,16 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
     torch_module, device, profile, precision = resolve_runtime(config)
     base_config = effective_base_config(config)
     arrays, train_rows, validation_rows, view = prepare_data(config, base_config, output_root)
+    # M-E 的箱边界与状态归一化尺度只能由训练区拟合，且必须在建模前就绪，
+    # 因此上下文准备排在 build_model_optimizer 之前；未启用时恒为 None。
+    entity_gated_ple_enabled = entity_gated_ple_enabled_from_config(config)
+    entity_gated_ple_context = (
+        prepare_entity_gated_ple_context(config, arrays, train_rows, view, output_root)
+        if entity_gated_ple_enabled
+        else None
+    )
     model, optimizer, optimizer_receipt = build_model_optimizer(
-        config, base_config, view, torch_module, device
+        config, base_config, view, torch_module, device, entity_gated_ple_context
     )
     entity_memory_enabled = entity_memory_enabled_from_config(config)
     entity_memory_context = None
@@ -1878,6 +2293,7 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
         step = training_step(
             config, base_config, model, optimizer, view, train_rows, generator, device,
             profile, precision, torch_module, positive_weight,
+            mechanism_context=entity_gated_ple_context,
         )
     synchronize_device(torch_module, device)
     step_seconds = time.time() - step_started
@@ -1889,7 +2305,8 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
         )
     else:
         validation = validation_metrics(
-            config, model, view, arrays, validation_rows, device, profile, precision, torch_module
+            config, model, view, arrays, validation_rows, device, profile, precision, torch_module,
+            mechanism_context=entity_gated_ple_context,
         )
     full_budget = {
         "epochs": 20,
@@ -2037,7 +2454,18 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
     torch_module, device, profile, precision = resolve_runtime(config)
     base_config = effective_base_config(config)
     arrays, train_rows, validation_rows, view = prepare_data(config, base_config, output_root)
-    model, optimizer, optimizer_receipt = build_model_optimizer(config, base_config, view, torch_module, device)
+    # 与 probe_runtime 同序：M-E 上下文（训练区拟合的箱边界与状态尺度）先于建模就绪。
+    # 该上下文由冻结数据、冻结切分与冻结种子确定性地重建，因此断点续训时重算即可，
+    # 不需要入检查点；模型侧的 bin_edges 缓冲区随 model_state_dict 一起恢复。
+    entity_gated_ple_enabled = entity_gated_ple_enabled_from_config(config)
+    entity_gated_ple_context = (
+        prepare_entity_gated_ple_context(config, arrays, train_rows, view, output_root)
+        if entity_gated_ple_enabled
+        else None
+    )
+    model, optimizer, optimizer_receipt = build_model_optimizer(
+        config, base_config, view, torch_module, device, entity_gated_ple_context
+    )
     entity_memory_enabled = entity_memory_enabled_from_config(config)
     entity_memory_context = None
     memory_state = None
@@ -2159,6 +2587,7 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
                 result = training_step(
                     config, base_config, model, optimizer, view, train_rows, generator, device,
                     profile, precision, torch_module, positive_weight,
+                    mechanism_context=entity_gated_ple_context,
                 )
             losses.append(result["loss"])
             step_count += 1
@@ -2190,7 +2619,8 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             })
         else:
             metrics = validation_metrics(
-                config, model, view, arrays, validation_rows, device, profile, precision, torch_module
+                config, model, view, arrays, validation_rows, device, profile, precision, torch_module,
+                mechanism_context=entity_gated_ple_context,
             )
         if entity_ranking_enabled:
             # 对应实施计划任务 1 步骤 4：批构成、CVaR 活动率、梯度范数/夹角/投影触发率/
