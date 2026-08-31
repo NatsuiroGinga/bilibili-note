@@ -5,6 +5,7 @@
   "top_k": 10,
   "construction": "由 key_finding 改写为中文提问，保留技术术语、不逐字复述；构造时未运行任何检索",
   "sampling": "从 wiki/papers/**/*.md 中 key_finding 长度不小于 20 的 425 篇里剔除 28 篇重定向或已合并的桩页，对剩余 397 篇按二级子目录做最大余数分层抽样（每个子目录至少 1 条），随机种子 20260831",
+  "source_note_note": "source_note 是改写所依据的那篇笔记；relevant_paths 是同一论文在库中的全部笔记，其中部分是 key_finding 待补的英文占位页，正文近乎为空，实际很难被检索到",
   "relevance_rule": "同一篇论文在库中的所有笔记都计为相关，含中英文重复笔记、重定向页与 key_finding 待补的占位页；多笔记归并依据标题字段与人工核对",
   "bigram_overlap_note": "bigram_overlap_with_source 是查询与原 key_finding 的字符二元组重合比例，只用于事后审计改写是否过于贴近原文，评测本身不使用该字段",
   "queries": [
@@ -14,6 +15,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md"
       ],
+      "source_note": "wiki/papers/attack-detection/2022-Barbero-TRANSCENDENT共形评价与拒识框架.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "把 TRANSCEND 的共形评价理论形式化并给出两个开销更低的共形评价器；但论文 §V-C「Rejection Cost」（PDF p.8）明写被拒识的样本「可能由专家人工检查并标注」，拒识本身有代价，必须与性能收益权衡。拒识路线降低的是错误判定，不是恢复检出。",
       "source_subdir": "attack-detection",
@@ -25,6 +27,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md"
       ],
+      "source_note": "wiki/papers/attack-detection/2023-陈子涵-互联网加密流量检测分类与识别研究综述.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "该综述把概念漂移列为加密流量分析的核心未来方向，并归纳出四个具体问题（印刷 p.1076-1077）：样本分布不均衡、新型加密或应用协议带来全新样本形式、基于非应用层特征的方法带来系统性漂移与误差、单点算力难以覆盖大规模流量。**四个问题中没有一个涉及判定单元或跨流上下文**，这一空白正是本课题第三章两个机制的落点。",
       "source_subdir": "attack-detection",
@@ -36,6 +39,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/2025-Wang-LMIM长短周期用户异常检测.md"
       ],
+      "source_note": "wiki/papers/attack-detection/2025-Wang-LMIM长短周期用户异常检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "论文已在能源大数据平台用户异常检测中分别用按周孤立森林和 5/10/15 分钟 GRU 建模长、短周期行为，并按各模型准确率做后期加权融合；这直接占用‘用户实体的长短时间尺度建模与融合’宽泛空间，但没有全历史因果前缀、源实体分组折外选窗、目标前缀标定或冻结后段合同。",
       "source_subdir": "attack-detection",
@@ -47,6 +51,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/2026-Inan-邻近异常检测校准与泄漏安全.md"
       ],
+      "source_note": "wiki/papers/attack-detection/2026-Inan-邻近异常检测校准与泄漏安全.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "论文采用逐序列 70/15/15 时间切分，在 calib_fit 上做有标签等距回归或无标签 ECDF/ChECDF 标定，并报告固定 1% 告警预算下的 calib_eval 指标；它强占用‘先导段标定—后段评价’与固定预算子机制，但算法实际把 k_fit 带入评价段后重新按整段分数取精确 top-k，而非冻结阈值在线应用，也不含实体级类别先验、BBSE 失配回退或源实体分组 OOF 选窗。",
       "source_subdir": "attack-detection",
@@ -59,6 +64,7 @@
         "wiki/papers/attack-detection/FoRA- Fisher-orthogonal Rank Adaptation for Parameter-Efficient Fine-Tuning.md",
         "wiki/papers/attack-detection/FoRA-Fisher正交秩适配.md"
       ],
+      "source_note": "wiki/papers/attack-detection/FoRA-Fisher正交秩适配.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "FoRA 用对角 Fisher 分数选择少量任务相关层，再对选中层的 LoRA B 因子施加 Stiefel 约束；它常能用约半参数预算优于 LoRA，但跨模型表格存在 FoRA 不及普通 LoRA或纯 Stiefel 的反例，且 Cayley 更新增加约 10%--15% 单步时间。",
       "source_subdir": "attack-detection",
@@ -71,6 +77,7 @@
         "wiki/papers/attack-detection/INVARLLM- LLM-assisted Physical Invariant Extraction for Cyber-Physical Systems Anomaly Detection.md",
         "wiki/papers/attack-detection/INVARLLM-物理不变量提取.md"
       ],
+      "source_note": "wiki/papers/attack-detection/INVARLLM-物理不变量提取.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "用 LLM 从 CPS 部署文档（P&ID 图、传感器规格）中提取假设性物理不变量，再用 PCMCI+ 启发的 K-means 因果验证剔除幻觉不变量，在 SWaT/WADI 上实现 100% 精度的异常检测、零误报。",
       "source_subdir": "attack-detection",
@@ -83,6 +90,7 @@
         "wiki/papers/attack-detection/LLM-智能电网继电器攻击检测.md",
         "wiki/papers/attack-detection/Large Language Models for Detecting Cyberattacks on Smart Grid Protective Relays.md"
       ],
+      "source_note": "wiki/papers/attack-detection/LLM-智能电网继电器攻击检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "把变压器差动继电器(TCDR)的多相电流时序测量\"文本化\"成结构化自然语言提示，微调紧凑 LLM(DistilBERT/GPT-2/DistilBERT+LoRA)区分网络攻击与真实故障，DistilBERT 检测 97.62% 攻击且故障检测完美。",
       "source_subdir": "attack-detection",
@@ -95,6 +103,7 @@
         "wiki/papers/attack-detection/PIGCRN-化工过程攻击检测.md",
         "wiki/papers/attack-detection/Physics-Informed Graph Convolutional Recurrent Network for Cyber-Attack Detection in Chemical Process Networks.md"
       ],
+      "source_note": "wiki/papers/attack-detection/PIGCRN-化工过程攻击检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "提出 PIGCRN——把化工过程拓扑建成有向图（GCN 捕获空间依赖）+ LSTM 捕获时间依赖，将 first-principles 非线性动力学与攻击模式先验嵌入物理信息损失，在自构造 Aspen Plus 仿真上小样本下优于纯数据驱动方法。",
       "source_subdir": "attack-detection",
@@ -107,6 +116,7 @@
         "wiki/papers/attack-detection/Riemannian Optimization for LoRA on the Stiefel Manifold.md",
         "wiki/papers/attack-detection/Stiefel流形LoRA黎曼优化.md"
       ],
+      "source_note": "wiki/papers/attack-detection/Stiefel流形LoRA黎曼优化.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "把 LoRA 的 B 因子约束为列正交并用切空间投影与 QR 回缩更新，可保持满有效秩并在多项 LLaMA 微调任务上优于 AdamW；但固定随机 A 时明显失效，且论文没有物理状态、恶意流量或投影耦合实验。",
       "source_subdir": "attack-detection",
@@ -118,6 +128,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/encrypted/Cui2023-CBSeq未知加密恶意流量检测.md"
       ],
+      "source_note": "wiki/papers/attack-detection/encrypted/Cui2023-CBSeq未知加密恶意流量检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "以通信信道为单位组合包数、到达间隔和端口行为序列，比单流统计特征更能保持未知恶意流量检测性能；未知集 AUC 为 0.889。",
       "source_subdir": "attack-detection/encrypted",
@@ -129,6 +140,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/encrypted/Xavier2022-Metasploit加密C2规避.md"
       ],
+      "source_note": "wiki/papers/attack-detection/encrypted/Xavier2022-Metasploit加密C2规避.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "标准 Metasploit 的 TLS 记录模式极易被检测，但不改变恶意功能的协议实现改动可使原检测器近乎失效；针对改动重训后，框架侧对抗填充仍可达到约 91% 规避率。",
       "source_subdir": "attack-detection/encrypted",
@@ -140,6 +152,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/encrypted/Zhou2025-ETGuard增量加密恶意流量检测.md"
       ],
+      "source_note": "wiki/papers/attack-detection/encrypted/Zhou2025-ETGuard增量加密恶意流量检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "ETGuard 把动态新增攻击作为核心问题，通过记忆回放和增量损失缓解遗忘；静态检测在三套数据上达到 0.86-0.94 F1。",
       "source_subdir": "attack-detection/encrypted",
@@ -151,6 +164,7 @@
       "relevant_paths": [
         "wiki/papers/attack-detection/entity-granularity/2022-Clausen-流量微结构与网络异常检测博士论文.md"
       ],
+      "source_note": "wiki/papers/attack-detection/entity-granularity/2022-Clausen-流量微结构与网络异常检测博士论文.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "把访问类攻击刻画为「上下文异常」而非「点异常」：单条流本身可能完全正常，只有相对其周边流序列才显出反常，因此基于聚合特征的传统异常检测对这类小流量攻击失效。",
       "source_subdir": "attack-detection/entity-granularity",
@@ -163,6 +177,7 @@
         "wiki/papers/attack-detection/Systematic Integration of Digital Twins and Constrained LLMs for Interpretable Cyber-Physical Anomaly Detection.md",
         "wiki/papers/attack-detection/数字孪生约束LLM-CPS异常检测.md"
       ],
+      "source_note": "wiki/papers/attack-detection/数字孪生约束LLM-CPS异常检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "用数字孪生维护 SWaT 过程的同步富特征表示，确定性启发式先判、仅在启发式弃权时调用受约束 LLM（JSON schema + 物理合理性过滤），四个攻击场景零误报、低检测时延，本地 LLaMA 与云端 GPT 表现一致。",
       "source_subdir": "attack-detection",
@@ -175,6 +190,7 @@
         "wiki/papers/attack-detection/A Closer Look at Curriculum Adversarial Training- From an Online Perspective.md",
         "wiki/papers/attack-detection/课程式对抗训练-在线视角.md"
       ],
+      "source_note": "wiki/papers/attack-detection/课程式对抗训练-在线视角.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "从在线学习视角分析课程式对抗训练——把各轮迭代的对抗样本视为来自不同对抗分布的样本，引入时间序列预测框架导出新的泛化误差界，从理论上解释了\"早期用温和对抗样本、逐步加难\"为何能提升对抗泛化性。",
       "source_subdir": "attack-detection",
@@ -186,6 +202,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/GeNIS-JavaScript恶意软件论文仅引用核验.md"
       ],
+      "source_note": "wiki/papers/datasets/GeNIS-JavaScript恶意软件论文仅引用核验.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "该文只在相关工作中把 GeNIS 作为通过仿真真实攻击场景采集网络流量的传统数据构建实例，实验全部使用合成 JavaScript 与 Sschumat 脚本，因此属于 B 类仅引用。",
       "source_subdir": "datasets",
@@ -197,6 +214,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/GeNIS-网络靶场综述引用核验.md"
       ],
+      "source_note": "wiki/papers/datasets/GeNIS-网络靶场综述引用核验.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "该系统综述只把 GeNIS 作为 Airbus CyberRange 生成网络入侵数据的技术实例，没有使用 GeNIS 样本训练或评价模型，因此属于 B 类引用而非实际实验使用。",
       "source_subdir": "datasets",
@@ -208,6 +226,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/LSPR24/Dijk-2024-LSPR23数据集与随机森林复现.md"
       ],
+      "source_note": "wiki/papers/datasets/LSPR24/Dijk-2024-LSPR23数据集与随机森林复现.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "LSPR23 共含 16,353,511 条流，其中 1,644,599 条按红队端点身份规则标为恶意；作者以随机森林和 4:1 训练—测试比例复现早期私有 Locked Shields 研究，报告精确率 0.999、召回率 0.994、F1 0.997，但没有公开精确输入字段、超参数、随机种子或分组隔离协议。",
       "source_subdir": "datasets/LSPR24",
@@ -219,6 +238,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/VisQUIC加密QUIC流量数据集.md"
       ],
+      "source_note": "wiki/papers/datasets/VisQUIC加密QUIC流量数据集.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "VisQUIC 提供 100,664 条 QUIC PCAP 与配套密钥，适合研究 HTTP/3 可观测表征；但没有恶意/良性标签，全量数据缺少版本化清单与数据许可，当前代码还存在图像级随机切分的泄漏风险。",
       "source_subdir": "datasets",
@@ -230,6 +250,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/data-protocol/NIDS跨数据集泛化研究.md"
       ],
+      "source_note": "wiki/papers/datasets/data-protocol/NIDS跨数据集泛化研究.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "同数据集随机划分可产生近乎完美的成绩，但整数据集跨网络评价接近随机水平；域内成绩必须与完全冻结的跨域测试分开报告，并给出泛化落差而非合并总分。",
       "source_subdir": "datasets/data-protocol",
@@ -241,6 +262,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/data-protocol/Sweet-Danger-加密流量评测泄漏与公平协议.md"
       ],
+      "source_note": "wiki/papers/datasets/data-protocol/Sweet-Danger-加密流量评测泄漏与公平协议.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "逐包随机切分会让同一流的显式或隐式标识同时出现在训练和测试中，造成严重捷径；可靠协议应按流或更高层父组切分、保持测试自然分布，并让浅层与深层模型共享同一语义输入和样本边界。",
       "source_subdir": "datasets/data-protocol",
@@ -252,6 +274,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/locked-shields-related/2023-Gehri-LockedShields跨环境C2检测泛化.md"
       ],
+      "source_note": "wiki/papers/datasets/locked-shields-related/2023-Gehri-LockedShields跨环境C2检测泛化.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "在 Locked Shields 五份数据上，逐流随机森林跨年度/跨国家迁移大幅退化（LS17 训练测 LS21B 的 F1 仅 0.215），但把同一个逐流模型的预测按主机计数聚合后，在完全未训练过的 Country B 网络仍能检出 39 台受感染主机中的约 33 台、误报 119/3185，说明表示层失败可以由决策层聚合挽回。",
       "source_subdir": "datasets/locked-shields-related",
@@ -263,6 +286,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/published-baseline/2024-Matousek-JA4指纹加密恶意流量检测经验报告.md"
       ],
+      "source_note": "wiki/papers/datasets/published-baseline/2024-Matousek-JA4指纹加密恶意流量检测经验报告.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "全文不训练任何分类器，只统计指纹的唯一性/覆盖率/效率：JA4 单独只有 43.9% 唯一、覆盖 27.4% 恶意族（表 III，PDF 第 4 页）；加上 JA4S 与 SNI 这两个廉价上下文后升到 87.0% 唯一、79.0% 覆盖；而专为恶意软件设计的证书指纹 JA4X 在 32.20% 的场合与良性应用共享，且只出现在 27% 的 TLS 连接中（表 V 与正文，PDF 第 5 页）。",
       "source_subdir": "datasets/published-baseline",
@@ -274,6 +298,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/published-baseline/2025-Burgetova-加密流量网络应用识别对比.md"
       ],
+      "source_note": "wiki/papers/datasets/published-baseline/2025-Burgetova-加密流量网络应用识别对比.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "在完全相同的 TLS 握手输入上，字典式精确匹配的 JA4+JA4S 集合分类达到 97.1% OK，而每应用一个的 ML 二分类器只有 91.9%（表 5，第 1022 页）；作者归因于 ML 无法处理未见样本与重叠样本（第 1028 页）。同时 JA3+JA3S 虽有 99.5% 唯一性却在测试集上产生 52.2% Unknown（表 4/表 5，第 1020、1022 页），是一次表示过度唯一导致部署失效的受控测量。",
       "source_subdir": "datasets/published-baseline",
@@ -285,6 +310,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/quic/2021-Smith-QUIC时代的网站指纹识别.md"
       ],
+      "source_note": "wiki/papers/datasets/quic/2021-Smith-QUIC时代的网站指纹识别.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "在 TCP 上训练的四个最先进网站指纹分类器迁移到 QUIC 轨迹时，Var-CNN 把 5,000 条被监控 QUIC 样本中的 4,801 条（96.02%）误判为未监控（表 2，p.56）；但同样的协议改变出现在未监控侧时几乎无害（精度最大仅降 3.5%，图 2，p.55）。更关键的是，在训练样本预算固定时，直接混合两协议训练（Mixed）优于「先判协议再交给专用分类器」的集成（Split），即使协议判别器准确率高达 99.5%（p.59–60）。",
       "source_subdir": "datasets/quic",
@@ -296,6 +322,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/quic/2022-Chatzoglou-QUIC攻击再审视与服务器实测.md"
       ],
+      "source_note": "wiki/papers/datasets/quic/2022-Chatzoglou-QUIC攻击再审视与服务器实测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "对六个主流生产级 QUIC 服务器（OpenLiteSpeed、Caddy、NGINX、H2O、IIS 10、Cloudflare/quiche）各做 24 小时模糊测试（两个 fuzzer 各 12 小时，累计约 43,200 与 4,320,000 个种子），共发现 5 类可复现问题；其中 QUIC-loris 低速攻击只需每秒 2–3 个包（1 分钟约 150–200 个包）即把 Caddy 的 CPU 打到 99.3%–99.9%，已分配 CVE-2022-30591（表 3，p.360；§5.2.5，p.361）。QUIC 攻击被归纳为密码学、握手、模糊测试、传输层、隐私五类（图 2，p.351）。",
       "source_subdir": "datasets/quic",
@@ -307,6 +334,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/quic/2023-Caiazza-HTTP版本能耗对比测量.md"
       ],
+      "source_note": "wiki/papers/datasets/quic/2023-Caiazza-HTTP版本能耗对比测量.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "在四个场景（智能手机/单板机 × Cloudflare Workers/Google Cloud Storage）中用硬件功率分析仪实测，机器对机器通信模式下 HTTP/3 普遍比 HTTP/1.1 和 HTTP/2 更耗电：智能手机-Cloudflare 场景多 9–12%（印刷 p.10、表 2），单板机-Cloudflare 场景多约 30%（印刷 p.10、表 4）；但同一批作者在智能手机-GCS 场景得不到一致趋势（印刷 p.10），并称在浏览器式连续请求模式下 HTTP/3 反而更省电（印刷 p.2）。可迁移的是其实验设计纪律：从「三者能耗相同」的零假设出发，用 ANCOVA 把负载大小当协变量做逐对显著性检验，而不是直接比均值。",
       "source_subdir": "datasets/quic",
@@ -319,6 +347,7 @@
         "wiki/papers/datasets/quic/2023-Luxemburk-QUIC细粒度服务分类与周级数据漂移.md",
         "wiki/papers/pinn/protocol-adaptive/QUIC加密流量被动分类与数据漂移.md"
       ],
+      "source_note": "wiki/papers/datasets/quic/2023-Luxemburk-QUIC细粒度服务分类与周级数据漂移.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "在 CESNET-QUIC22 的一个月骨干网流量上，逐流深度模型（多模态 CNN）与树模型（LightGBM）在第 2→3 周之间分别掉了 13.48 与 9.45 个准确率点（p.6 表 II、p.7 §V-A），而不学序列、只查目的 IP 的确定性基线在整段测试期保持稳定并拿到最高的 provider 级准确率（99.82%，p.6 表 II 第 2 周）；把模型最依赖的握手前 8 个包置零后，mm-CNN 的周间跌幅从 −13.48% 缩到 −3.15%（p.7），说明退化来自表示层对易漂移字段的过度依赖，而不是任务本身不可学。",
       "source_subdir": "datasets/quic",
@@ -330,6 +359,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/quic/MonroeQL聚合性能数据及公开性边界.md"
       ],
+      "source_note": "wiki/papers/datasets/quic/MonroeQL聚合性能数据及公开性边界.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "论文称 MonroeQL 由原始 qlog 聚合出 3951 个实验和 188 个 RTT、拥塞窗口、时长与吞吐特征，但官方仓未公开原始 qlog 或 MonroeQL 表，不能作为 R2 可复现数据源。",
       "source_subdir": "datasets/quic",
@@ -341,6 +371,7 @@
       "relevant_paths": [
         "wiki/papers/datasets/quic/QUIC-MedNetCom蜂窝网络qlog数据集.md"
       ],
+      "source_note": "wiki/papers/datasets/quic/QUIC-MedNetCom蜂窝网络qlog数据集.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "公开仓库含 89 个 qlog；通过字段门禁的迹线同时提供包号、ACK、端点丢包、RTT、在途字节和拥塞窗口，是目前最适合 R2 的公开动力学教师，但数据较旧且没有攻击标签。",
       "source_subdir": "datasets/quic",
@@ -353,6 +384,7 @@
         "wiki/papers/deepseek/mHC- Manifold-Constrained Hyper-Connections.md",
         "wiki/papers/deepseek/mHC-流形约束超连接.md"
       ],
+      "source_note": "wiki/papers/deepseek/mHC-流形约束超连接.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "mHC 用有限步 Sinkhorn 投影把 Hyper-Connections 的残差混合矩阵近似约束为双随机矩阵，从而限制跨层放大；27B 预训练多数任务优于 HC，但 MATH 略低于 HC，有限 20 步投影的组合增益仍约 1.6，且论文没有 PEFT、物理状态或恶意流量实验。",
       "source_subdir": "deepseek",
@@ -365,6 +397,7 @@
         "wiki/papers/game/2023_Shamsian_Auxiliary_Learning_as_an_Asymmetric_Bargaining_Game.md",
         "wiki/papers/game/AuxiNash-辅助学习非对称议价训练.md"
       ],
+      "source_note": "wiki/papers/game/AuxiNash-辅助学习非对称议价训练.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "AuxiNash 用可学习的非对称议价权区分主任务与辅助任务，并依据主任务验证损失动态更新偏好，是当前生成主任务与物理辅助任务关系最接近的现有方法。",
       "source_subdir": "game",
@@ -376,6 +409,7 @@
       "relevant_paths": [
         "wiki/papers/grpo/GRPO变体群-方法选型.md"
       ],
+      "source_note": "wiki/papers/grpo/GRPO变体群-方法选型.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "GRPO 自 DeepSeek-Math(2024) 提出后，沿\"训练稳定/采样课程/多目标约束/过程监督/推理效率/理论\"六条线演化；其中采样-课程线（Feng-RCS、Pro-GRPO、MMR-GRPO、NGRPO）与开题创新点2\"物理感知双维度课程式 GRPO\"最直接对标，多目标约束线（Constrained GRPO）适配多奖励设计。",
       "source_subdir": "grpo",
@@ -388,6 +422,7 @@
         "wiki/papers/llm/Multi-Stream LLMs- Unblocking Language Models with Parallel Streams of Thoughts, Inputs and Outputs.md",
         "wiki/papers/llm/Multi-Stream-LLMs-并行多流架构.md"
       ],
+      "source_note": "wiki/papers/llm/Multi-Stream-LLMs-并行多流架构.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "重新设计 LLM 的消息处理管线——不再把 user/system/thinking/tool 消息串行拼接后送入模型，而是让多个并发流（输入流、思考流、输出流、工具流）在同一次前向传播中被同时处理。结果是时间到首 token 降低 40%+、指令层级安全性提升、且首次实现在不暴露思考内容的前提下让外部监控流能看到模型的内部意图",
       "source_subdir": "llm",
@@ -400,6 +435,7 @@
         "wiki/papers/manifold/Domain Separation Networks.md",
         "wiki/papers/manifold/Domain Separation Networks共享私有域分解.md"
       ],
+      "source_note": "wiki/papers/manifold/Domain Separation Networks共享私有域分解.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "DSN 用共享编码器承担分类，用共享与私有编码共同承担重构，并以软正交损失分离两者；私有表示不进入分类头，因此该结构不能单独保证物理私有分支影响检测或生成输出。",
       "source_subdir": "manifold",
@@ -412,6 +448,7 @@
         "wiki/papers/manifold/Disentangling Physical Dynamics From Unknown Factors for Unsupervised Video Prediction.md",
         "wiki/papers/manifold/PhyDNet物理动态解耦视频预测.md"
       ],
+      "source_note": "wiki/papers/manifold/PhyDNet物理动态解耦视频预测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "PhyDNet 将物理动力学分支与未知残差分支相加后再解码，既保证主输出显式依赖物理隐状态，又用残差分支避免刚性物理约束造成欠拟合。",
       "source_subdir": "manifold",
@@ -423,6 +460,7 @@
       "relevant_paths": [
         "wiki/papers/manifold/对抗式多任务文本分类共享私有表征.md"
       ],
+      "source_note": "wiki/papers/manifold/对抗式多任务文本分类共享私有表征.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "该方法把共享 LSTM 与任务私有 LSTM 的表示拼接后送入分类器，同时用任务判别对抗损失和正交损失净化共享空间；它满足私有表示到输出的前向依赖，但没有物理语义或状态可辨识保证。",
       "source_subdir": "manifold",
@@ -434,6 +472,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2018-Boracchi-QuantTree变化检测.md"
       ],
+      "source_note": "wiki/papers/methodology/2018-Boracchi-QuantTree变化检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "用递归二分构造基线等概率直方图区间，使检验统计量在稳定期不依赖未知多变量分布并可校准假阳性率。",
       "source_subdir": "methodology",
@@ -445,6 +484,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2019-Azizzadenesheli-RLLS标签移位正则化学习.md"
       ],
+      "source_note": "wiki/papers/methodology/2019-Azizzadenesheli-RLLS标签移位正则化学习.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "先用有标签源数据与无标签目标数据估计重要性权重 q(y)/p(y)，再在加权源样本上训练分类器；论文自述这是标签移位问题上第一个「目标域标签不可得」条件下的泛化界（PDF p.1 摘要），并针对小样本区提出正则化权重估计器。",
       "source_subdir": "methodology",
@@ -456,6 +496,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2020-Sagawa-GroupDRO群体移位.md"
       ],
+      "source_note": "wiki/papers/methodology/2020-Sagawa-GroupDRO群体移位.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "群体分布鲁棒优化直接最小化预定义群体的最大风险；过参数神经网络上需要更强正则化或早停，否则朴素GroupDRO可能失效。",
       "source_subdir": "methodology",
@@ -467,6 +508,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2021-Duchi-分布鲁棒均匀性能.md"
       ],
+      "source_note": "wiki/papers/methodology/2021-Duchi-分布鲁棒均匀性能.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "以分布不确定集中的最坏风险训练模型，可强调高损失子群并与风险度量联系；这是一类总体理论，不自动给出正确时间环境。",
       "source_subdir": "methodology",
@@ -478,6 +520,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2022-Kim-时序异常检测的严谨评价.md"
       ],
+      "source_note": "wiki/papers/methodology/2022-Kim-时序异常检测的严谨评价.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "均匀随机异常分数在 point adjustment 下取得 SWaT 0.969、WADI 0.965、SMAP 0.961 的 F1PA，超过全部被比较的深度方法（表 2，第 6 页）。",
       "source_subdir": "methodology",
@@ -489,6 +532,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2022-Polosky-约束离线策略优化.md"
       ],
+      "source_note": "wiki/papers/methodology/2022-Polosky-约束离线策略优化.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "COPO 从含状态、动作、奖励、下一状态的离线行为数据学习成本受限策略，并给出非渐近成本置信界；缺少动作日志、行为覆盖和转移后果的流量数据不能识别该问题。",
       "source_subdir": "methodology",
@@ -500,6 +544,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2023-Dussap-DFM稳健标签漂移量化.md"
       ],
+      "source_note": "wiki/papers/methodology/2023-Dussap-DFM稳健标签漂移量化.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "论文把 BBSE 证明为分布特征匹配的一个特例，并在标签漂移失配与未知新类污染下说明 BBSE 的低维输出特征没有一般稳健性；高斯核软分布特征匹配只在污染表征近似正交等条件下更稳健。它强支撑 PBC 必须诊断 BBSE 假设并预设回退，但没有给出可直接部署的失配触发器、时间先导段、实体预算或冻结后段。",
       "source_subdir": "methodology",
@@ -511,6 +556,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2023-He-RAINCOAT特征标签移位时序适应.md"
       ],
+      "source_note": "wiki/papers/methodology/2023-He-RAINCOAT特征标签移位时序适应.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "RAINCOAT 已覆盖时间—频率表示、Sinkhorn 对齐与目标私有类纠正的两阶段组合；普通时频适应不能作为本课题原创。",
       "source_subdir": "methodology",
@@ -522,6 +568,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2024-Angelopoulos-保形风险控制.md"
       ],
+      "source_note": "wiki/papers/methodology/2024-Angelopoulos-保形风险控制.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "将保形校准从集合覆盖推广到关于阈值单调的有界损失期望控制；基本保证依赖交换性。",
       "source_subdir": "methodology",
@@ -533,6 +580,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2024-Farinhas-非交换保形风险控制.md"
       ],
+      "source_note": "wiki/papers/methodology/2024-Farinhas-非交换保形风险控制.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "用预先确定的相关性权重扩展保形风险控制；风险界增加由交换样本替换引起的总变差距离项。",
       "source_subdir": "methodology",
@@ -544,6 +592,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2024-Hu-EnsV无标签域适应选模.md"
       ],
+      "source_note": "wiki/papers/methodology/2024-Hu-EnsV无标签域适应选模.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "EnsV 以无标签目标预测集成选择候选，并只保证负对数似然集成优于最差成员；多数类共识可能掩盖稀有恶意排序退化。",
       "source_subdir": "methodology",
@@ -555,6 +604,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2024-Liu-FOIL时间序列OOD不变学习.md"
       ],
+      "source_note": "wiki/papers/methodology/2024-Liu-FOIL时间序列OOD不变学习.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "FOIL 在训练数据内交替推断保持时间邻接的环境，并最小化跨环境损失方差来学习不变表示；它直接覆盖‘时间环境推断＋不变学习’这一通用构件，但不包含稳定／私有 RWKV 状态分解、网络入侵告警或最坏源环境分位阈值。",
       "source_subdir": "methodology",
@@ -566,6 +616,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2024-Pham-非平稳域泛化AIRL.md"
       ],
+      "source_note": "wiki/papers/methodology/2024-Pham-非平稳域泛化AIRL.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "利用有序源域之间的非平稳演化学习相邻域自适应不变表示，并在目标域不可访问时推导误差上界。",
       "source_subdir": "methodology",
@@ -577,6 +628,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2025-Cai-潜在不变因果时序适应.md"
       ],
+      "source_note": "wiki/papers/methodology/2025-Cai-潜在不变因果时序适应.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "LCA 只对齐潜在稳定因果结构，但可辨识性要求可逆混合、充分历史变化、稀疏结构和无混杂；这些条件未在 LSPR 工程字段上成立。",
       "source_subdir": "methodology",
@@ -588,6 +640,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2025-Chen-BUOT双层非平衡传输.md"
       ],
+      "source_note": "wiki/papers/methodology/2025-Chen-BUOT双层非平衡传输.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "BUOT 以样本与类别双层传输缓解单层权重缺陷，但仍可能用低成本质量丢弃稀有恶意样本，并依赖目标伪标签。",
       "source_subdir": "methodology",
@@ -599,6 +652,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2025-Hu-SAM-Decoding后缀自动机推测解码.md"
       ],
+      "source_note": "wiki/papers/methodology/2025-Hu-SAM-Decoding后缀自动机推测解码.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "SAM Decoding 同时维护离线静态和在线动态后缀自动机，以精确最长后缀和匹配长度选择候选，并在验证后增量更新；它强覆盖候选 D 的通用后缀记忆与匹配门控思路，但不含去身份流量行为码、固定容量 ROSA、异常检测或正常预测残差。",
       "source_subdir": "methodology",
@@ -610,6 +664,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/2026-Choi-标签移位校正的任意时点有效确认.md"
       ],
+      "source_note": "wiki/papers/methodology/2026-Choi-标签移位校正的任意时点有效确认.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "论文明确要求把BBSE、MLLS或领域知识得到的标签移位权重固定在独立先导批次，且先导批次必须与后续目标测试流不相交；后续带标签目标结果只用于累积任意时点有效证据。这直接占用PBC与联合流程的先导—冻结—后续评价时序，但它只确认预指定校正相对源预测是否占优，不提供实体预算阈值、无标签后段决策或失败时自动回退。",
       "source_subdir": "methodology",
@@ -621,6 +676,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/multiple-instance/2017-Prasse-网络流量LSTM恶意软件检测-SPW.md"
       ],
+      "source_note": "wiki/papers/methodology/multiple-instance/2017-Prasse-网络流量LSTM恶意软件检测-SPW.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "同一课题组 LSTM+域名神经嵌入方法的工作坊先行版本（数据规模约为 ECML 扩展版的六分之一），核心序列构造、聚合粒度与评价指标与 ECML 版一致，额外报告了'训练后首次出现的哈希'（真正未知恶意软件）子集的检测结果：R@70%P=26%、R@80%P=17%（第 209–210 页）。",
       "source_subdir": "methodology/multiple-instance",
@@ -632,6 +688,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/ranking/2008-Carterette-statAP抽样评价.md"
       ],
+      "source_note": "wiki/papers/methodology/ranking/2008-Carterette-statAP抽样评价.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "statAP 用两阶段分层不等概率抽样与包含概率估计不完整判断下的 AP；Horvitz–Thompson 直接保证的是相关总体总量组成部分，而最终 statAP 是广义比率估计，不能仅凭组成部分无偏就宣称比率本身严格无偏。",
       "source_subdir": "methodology/ranking",
@@ -643,6 +700,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/retrieval-rag/2025-Abdallah-从检索到生成的方法比较.md"
       ],
+      "source_note": "wiki/papers/methodology/retrieval-rag/2025-Abdallah-从检索到生成的方法比较.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "全文没有稀疏、稠密与稀疏—稠密融合的干净三分对照；其所谓 hybrid 指的是检索加生成文档再加 LLM 重排，因此不能用本文论证混合检索本身有效。",
       "source_subdir": "methodology/retrieval-rag",
@@ -654,6 +712,7 @@
       "relevant_paths": [
         "wiki/papers/methodology/soc-alert-operations/2022-Alahmadi-99percent误报SOC分析员访谈.md"
       ],
+      "source_note": "wiki/papers/methodology/soc-alert-operations/2022-Alahmadi-99percent误报SOC分析员访谈.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "对 20 名问卷 + 21 名访谈的 SOC 从业者的定性研究表明，分析员感知到的误报率极高（受访者 B3 原话把它量化为 99%），但这些「误报」大多是「良性触发」——签名确实匹配、组织出于业务理由选择忽略；验证告警靠的是资产与网络上下文，而不是单条告警本身。",
       "source_subdir": "methodology/soc-alert-operations",
@@ -666,6 +725,7 @@
         "wiki/papers/pinn/2022-Hu-APINN.md",
         "wiki/papers/pinn/APINN门控软域分解.md"
       ],
+      "source_note": "wiki/papers/pinn/APINN门控软域分解.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "APINN 用可训练门控对物理域做软分解，并让子网部分共享参数；性能强烈依赖门控初始化，说明学习型物理路由必须有物理先验而不能任意初始化。",
       "source_subdir": "pinn",
@@ -678,6 +738,7 @@
         "wiki/papers/pinn/BASE Layers- Simplifying Training of Large, Sparse Models.md",
         "wiki/papers/pinn/BASE-Layers平衡专家分配.md"
       ],
+      "source_note": "wiki/papers/pinn/BASE-Layers平衡专家分配.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "BASE 在训练批次内把词元到专家分配写成线性指派并保证等负载，但测试时仍改用贪心路由，且专家往往按表面词法信号分工。",
       "source_subdir": "pinn",
@@ -689,6 +750,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/ControlNet零卷积条件旁路.md"
       ],
+      "source_note": "wiki/papers/pinn/ControlNet零卷积条件旁路.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "ControlNet 冻结原生成网络，并以零初始化连接层接入条件分支；其公式直接证明第一步前向与原网络相等，但完整复制编码器的成本不适合直接迁移到 Qwen。",
       "source_subdir": "pinn",
@@ -701,6 +763,7 @@
         "wiki/papers/pinn/Deep Asymmetric Multi-task Feature Learning.md",
         "wiki/papers/pinn/Deep-AMTFL深度非对称特征学习.md"
       ],
+      "source_note": "wiki/papers/pinn/Deep-AMTFL深度非对称特征学习.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "Deep-AMTFL 让可靠任务更多地重构共享特征、困难任务较少反向污染共享表征，提供深度非对称迁移先例，但仍是软作用而非分支不变性。",
       "source_subdir": "pinn",
@@ -713,6 +776,7 @@
         "wiki/papers/pinn/ET-BERT-加密流量报文与突发表征.md",
         "wiki/papers/traffic-foundation-models/2022-Lin-ET-BERT-加密流量预训练.md"
       ],
+      "source_note": "wiki/papers/pinn/ET-BERT-加密流量报文与突发表征.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "同方向连续包组成的突发和报文字节上下文能支持加密流量预训练，但掩码与同源突发损失属于表征学习而非物理残差。",
       "source_subdir": "pinn",
@@ -724,6 +788,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/Habib-输出链路轨迹队列反演.md"
       ],
+      "source_note": "wiki/papers/pinn/Habib-输出链路轨迹队列反演.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "输出端口包长和离开时间只能在已知容量、FIFO 工作守恒队列与忙期泊松到达假设下计算条件期望等待时延；它不恢复唯一实际队列轨迹。",
       "source_subdir": "pinn",
@@ -735,6 +800,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/LeBoudec-Thiran-网络演算队列边界.md"
       ],
+      "source_note": "wiki/papers/pinn/LeBoudec-Thiran-网络演算队列边界.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "确定性积压上界来自到达曲线与服务曲线的最大垂直差，而不是由带宽时延积、单个大包和历史丢包量任意相加。",
       "source_subdir": "pinn",
@@ -747,6 +813,7 @@
         "wiki/papers/pinn/2024-Wang-LoRA-Flow.md",
         "wiki/papers/pinn/LoRA-Flow词元级动态低秩融合.md"
       ],
+      "source_note": "wiki/papers/pinn/LoRA-Flow词元级动态低秩融合.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "LoRA-Flow 根据生成前缀逐词元调整多个既有 LoRA 的融合权重，支持生成过程中的动态技能组合，但这会削弱物理路由的序列一致性和可解释性。",
       "source_subdir": "pinn",
@@ -758,6 +825,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/Misra-TCP-AQM流体模型.md"
       ],
+      "source_note": "wiki/papers/pinn/Misra-TCP-AQM流体模型.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "TCP 窗口、反馈时延、丢包概率、链路容量和队列长度可由耦合常微分方程描述，但所需状态远多于普通 PCAP 流表。",
       "source_subdir": "pinn",
@@ -769,6 +837,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/PINN引文链与恶意流量检测理论映射.md"
       ],
+      "source_note": "wiki/papers/pinn/PINN引文链与恶意流量检测理论映射.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "标准 PINN 的约束必须作用于模型预测的可微物理状态；当前只生成二分类标签的流量大模型无法从输入侧常数残差获得训练信号。公开流级特征最多支撑一致性正则的类比实验，只有加入时序、拓扑、队列与丢包观测并让模型预测动态状态，才接近严谨的 PINN 路线。",
       "source_subdir": "pinn",
@@ -780,6 +849,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/PINN综述群.md"
       ],
+      "source_note": "wiki/papers/pinn/PINN综述群.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "四篇 PINN 综述从不同角度覆盖领域全貌——Ren2025 方法演进全景、李野中文入门、Evo-PINN 训练优化专论、PINNs-to-PIKANs 2024 前沿（含 PIKANs）；共同指向 PINN 的核心难题是训练优化（损失冲突、梯度病态、采样），正对应开题课程式学习的改进切入点。",
       "source_subdir": "pinn",
@@ -791,6 +861,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/PINN道路交通网络稀疏状态估计.md"
       ],
+      "source_note": "wiki/papers/pinn/PINN道路交通网络稀疏状态估计.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "道路交通网络 PINN 用路段动力学、汇合分流守恒和稀疏传感状态联合恢复完整交通状态，但数据与理想守恒不一致处仍出现明显误差。",
       "source_subdir": "pinn",
@@ -802,6 +873,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/Vapnik-Izmailov-2015-特权信息学习与知识迁移.md"
       ],
+      "source_note": "wiki/papers/pinn/Vapnik-Izmailov-2015-特权信息学习与知识迁移.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "特权信息只在训练阶段出现，可通过相似性修正或教师到学生的知识迁移改善只使用常规输入的学生。",
       "source_subdir": "pinn",
@@ -813,6 +885,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/YaTC-多层流量表征.md"
       ],
+      "source_note": "wiki/papers/pinn/YaTC-多层流量表征.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "包级和流级矩阵能同时保留原始流量层次结构；地址随机化、端口置零和方向保留是防止数据集捷径的重要预处理。",
       "source_subdir": "pinn",
@@ -824,6 +897,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/Zhang-网络演算增强时延预测.md"
       ],
+      "source_note": "wiki/papers/pinn/Zhang-网络演算增强时延预测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "漏桶到达曲线、速率－时延服务曲线和多节点卷积可给出端到端时延上界，但 NetCTRT 仍将该上界作为图神经网络输入。",
       "source_subdir": "pinn",
@@ -835,6 +909,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/multiscale-observability-closure/2003-Hohn-Cluster-Processes.md"
       ],
+      "source_note": "wiki/papers/pinn/multiscale-observability-closure/2003-Hohn-Cluster-Processes.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "包到达的小尺度结构主要来自流内包模式，大尺度长程相关主要来自每流包数重尾；泊松-伽马更新簇模型可解释二阶谱，但有限尺度伪斜率、速率引起的谱平移和高负载依赖会让波谱膝点失去唯一物理尺度语义。",
       "source_subdir": "pinn/multiscale-observability-closure",
@@ -846,6 +921,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/multiscale-observability-closure/2023-McClenny-SA-PINN.md"
       ],
+      "source_note": "wiki/papers/pinn/multiscale-observability-closure/2023-McClenny-SA-PINN.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "SA-PINN 通过对每个配点的损失权重做梯度上升突出高残差区域；该权重既不是尺度选择也不是置信度，且对噪声传感数据的安全加权仍未解决。",
       "source_subdir": "pinn/multiscale-observability-closure",
@@ -857,6 +933,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/multiscale-observability-closure/2024-Cen-DFVM.md"
       ],
+      "source_note": "wiki/papers/pinn/multiscale-observability-closure/2024-Cen-DFVM.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "DFVM 用固定半径局部控制体和一阶自动微分构造弱形式损失；控制体尺度存在浮点误差折中，而其自适应机制只重采样位置、不选择尺度。",
       "source_subdir": "pinn/multiscale-observability-closure",
@@ -868,6 +945,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/multiscale-observability-closure/2024-Dolean-Multilevel-FBPINN.md"
       ],
+      "source_note": "wiki/papers/pinn/multiscale-observability-closure/2024-Dolean-Multilevel-FBPINN.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "多层 FBPINN 用预定义粗细域分解和分区统一组合局部网络，能改善高频问题的全局通信，但层级、重叠和窗口均非数据驱动尺度选择。",
       "source_subdir": "pinn/multiscale-observability-closure",
@@ -880,6 +958,7 @@
         "wiki/papers/pinn/QuASI-粗粒度计数下的队列可辨识性.md",
         "wiki/papers/pinn/multiscale-observability-closure/2025-Raghunathan-QuASI.md"
       ],
+      "source_note": "wiki/papers/pinn/multiscale-observability-closure/2025-Raghunathan-QuASI.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "QuASI 用输入、输出和丢弃端口计数以及交换机语义判定是否存在满足查询的相容包轨迹；精确层给出的是相容集合上的可能性或极值，不是唯一真实队列轨迹，缺少端口计数与设备语义时不能迁移。",
       "source_subdir": "pinn/multiscale-observability-closure",
@@ -891,6 +970,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/network-calculus-boundary/Cuturi-可微软最小动态规划.md"
       ],
+      "source_note": "wiki/papers/pinn/network-calculus-boundary/Cuturi-可微软最小动态规划.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "用温度化软最小替换动态规划中的硬最小可获得端到端梯度，但会引入温度偏差和二次时间空间开销。",
       "source_subdir": "pinn/network-calculus-boundary",
@@ -902,6 +982,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/network-calculus-boundary/Gibbs-分布漂移下自适应共形推断.md"
       ],
+      "source_note": "wiki/papers/pinn/network-calculus-boundary/Gibbs-分布漂移下自适应共形推断.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "自适应共形推断在任意序列上控制长时间平均错覆盖频率，但不自动给每个时间点、每个协议条件或每个攻击子类的条件覆盖。",
       "source_subdir": "pinn/network-calculus-boundary",
@@ -913,6 +994,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/network-calculus-boundary/Liebeherr-系统论带宽估计.md"
       ],
+      "source_note": "wiki/papers/pinn/network-calculus-boundary/Liebeherr-系统论带宽估计.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "服务曲线可由主动包列或满足条件的被动到达/离开样本估计，但真实 FIFO 网络并非普遍最小加线性，最有信息的观测位于线性到非线性转换处。",
       "source_subdir": "pinn/network-calculus-boundary",
@@ -924,6 +1006,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/network-calculus-boundary/Mensch-可微动态规划.md"
       ],
+      "source_note": "wiki/papers/pinn/network-calculus-boundary/Mensch-可微动态规划.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "强凸正则化的平滑最大算子能把一类动态规划变成可微层，并给出原最大值与平滑值之间的显式上下界。",
       "source_subdir": "pinn/network-calculus-boundary",
@@ -935,6 +1018,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/protocol-adaptive/LHM专家ODE与潜变量混合.md"
       ],
+      "source_note": "wiki/papers/pinn/protocol-adaptive/LHM专家ODE与潜变量混合.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "LHM 把一个假定正确且自洽的专家 ODE 与未知潜在神经 ODE 结构化耦合，在小样本预测中优于纯专家和纯数据模型；它没有多专家路由，也把错误或非自洽专家方程留作未来问题。",
       "source_subdir": "pinn/protocol-adaptive",
@@ -946,6 +1030,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/protocol-adaptive/MoE-PINN稀疏专家选择.md"
       ],
+      "source_note": "wiki/papers/pinn/protocol-adaptive/MoE-PINN稀疏专家选择.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "MoE-PINN 用坐标条件化软门控组合多个 PINN，并尝试以稀疏正则选择专家；其单一泊松方程实验不支持协议路由，且论文印刷的稀疏公式按软最大归一化会退化为常数。",
       "source_subdir": "pinn/protocol-adaptive",
@@ -957,6 +1042,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/protocol-adaptive/PINN物理约束失败与高斯过程平滑.md"
       ],
+      "source_note": "wiki/papers/pinn/protocol-adaptive/PINN物理约束失败与高斯过程平滑.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "带噪边界会被 PINN 过拟合并传播到全域；接口连续性或守恒约束可改善物理指标却仍得到错误状态，说明低残差不能替代独立真值验证。",
       "source_subdir": "pinn/protocol-adaptive",
@@ -968,6 +1054,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/protocol-adaptive/RFC8999-QUIC版本无关线图像.md"
       ],
+      "source_note": "wiki/papers/pinn/protocol-adaptive/RFC8999-QUIC版本无关线图像.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "跨 QUIC 版本只保证极小的线图像；长首部暴露版本和连接标识长度/值，短首部除首部形式与目标连接标识外的语义均可随版本变化。",
       "source_subdir": "pinn/protocol-adaptive",
@@ -979,6 +1066,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/protocol-adaptive/RFC9287-QUIC固定位随机化.md"
       ],
+      "source_note": "wiki/papers/pinn/protocol-adaptive/RFC9287-QUIC固定位随机化.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "端点协商 grease_quic_bit 后应把 QUIC 固定位设为不可预测值，因此固定值只能是识别证据之一，不能成为硬判据。",
       "source_subdir": "pinn/protocol-adaptive",
@@ -990,6 +1078,7 @@
       "relevant_paths": [
         "wiki/papers/pinn/原型HyperAdapter样本高效条件适配.md"
       ],
+      "source_note": "wiki/papers/pinn/原型HyperAdapter样本高效条件适配.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "原型 HyperAdapter 用实例检索器形成任务原型，再由共享超网络生成适配器；消融证明原型与检索器均有贡献，但生成单位仍是任务模块，不是逐样本物理控制。",
       "source_subdir": "pinn",
@@ -1001,6 +1090,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/2021-Schlag-快速权重DeltaNet.md"
       ],
+      "source_note": "wiki/papers/rwkv/2021-Schlag-快速权重DeltaNet.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "这是线性序列模型中 DeltaNet 更新的原始论文：公式（20）—（24）先读取当前键的旧值，再以动态写入强度插值并执行显式移除／写入；C12 的方向性状态校正并非新机制。",
       "source_subdir": "rwkv",
@@ -1012,6 +1102,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/2025-Zhang-STWGRL时空加权图推理异常检测.md"
       ],
+      "source_note": "wiki/papers/rwkv/2025-Zhang-STWGRL时空加权图推理异常检测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "把 RWKV 改造成去噪 D-RWKV 模块用于多变量时序异常检测，全模型参数 <10K，窗口大小 M=10；模块消融显示去噪层与 D-RWKV 均必要，但图稀疏损失 L_REG 在 MSDS 上反而有害（w/o L_REG 的 F1 95.92% 高于完整框架 94.68%）。",
       "source_subdir": "rwkv",
@@ -1023,6 +1114,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/2026-Hao-预训练多尺度RWKV-GCN多变量预测.md"
       ],
+      "source_note": "wiki/papers/rwkv/2026-Hao-预训练多尺度RWKV-GCN多变量预测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "两阶段设计：先用通道无关（CI）掩码重建自监督预训练学纯净时序表示，再在微调阶段用多尺度 GCN 引入跨序列依赖；回看窗口预训练 512、正式实验固定 96，无回看长度消融；'w/o Pretraining' 与 'w/o 多尺度 GCN' 消融列存在但具体数值未能从版面提取。",
       "source_subdir": "rwkv",
@@ -1034,6 +1126,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/2026-Ilic-自回归语言模型记忆签名.md"
       ],
+      "source_note": "wiki/papers/rwkv/2026-Ilic-自回归语言模型记忆签名.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "训练于 Transformer 输出统计的成员推理分类器可零样本迁移至 RWKV-4，但研究对象是语言模型训练数据记忆，不是网络流量或智能体输入输出安全。",
       "source_subdir": "rwkv",
@@ -1045,6 +1138,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/2026-Li-Multigrain语义原型扫描全色锐化.md"
       ],
+      "source_note": "wiki/papers/rwkv/2026-Li-Multigrain语义原型扫描全色锐化.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "作者把 Vision RWKV 的固定双向光栅扫描判为「语义无关且带位置偏置」，改用 LSH 聚类得到的语义原型引导扫描顺序；但第 8 页表 2 显示全部四个组件累加只把 WV2 的 PSNR 从 42.0364 提到 42.3750（+0.34 dB），且第 7 页正文自称的增益（0.52/0.83/0.64 dB）与表 1 数字对不上。",
       "source_subdir": "rwkv",
@@ -1056,6 +1150,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/2026-Lu-4G5G月度业务短序列预测.md"
       ],
+      "source_note": "wiki/papers/rwkv/2026-Lu-4G5G月度业务短序列预测.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "输入序列长度只有 T=8 个月，且明确测出 MAPE 在前三到四个月改善显著、第四个月之后收益基本消失——这是与本课题 LSPR24「20 秒（4 窗）饱和」同构的独立饱和证据；同时报告 Transformer 在短序列上劣于 LSTM（参数过多、数据不足导致过拟合）。",
       "source_subdir": "rwkv",
@@ -1067,6 +1162,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/2026-Pang-RWKV-TS+跨批次长程提示.md"
       ],
+      "source_note": "wiki/papers/rwkv/2026-Pang-RWKV-TS+跨批次长程提示.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "把「有效历史」等同于批次内 N×P，用跨批次提示向量把感受野扩到 B×N×P；但其自身敏感性分析承认最优批大小是 64 而非最大值，长期预测在 ETTh1/Weather 上反而劣于 RWKV-TS，属于典型的长程收益不单调案例。",
       "source_subdir": "rwkv",
@@ -1078,6 +1174,7 @@
       "relevant_paths": [
         "wiki/papers/rwkv/RWKV-X-线性复杂度混合语言模型.md"
       ],
+      "source_note": "wiki/papers/rwkv/RWKV-X-线性复杂度混合语言模型.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "RWKV-X 周期性插入具有固定缓存的块级稀疏注意力，用线性训练与不随历史长度增长的单步解码弥补纯 RWKV 的长程检索短板，但稀疏块选择为启发式且实际解码慢于纯 RWKV。",
       "source_subdir": "rwkv",
@@ -1089,6 +1186,7 @@
       "relevant_paths": [
         "wiki/papers/traffic-classification-evolution/2005-Moore-Zuev-朴素贝叶斯流量分类.md"
       ],
+      "source_note": "wiki/papers/traffic-classification-evolution/2005-Moore-Zuev-朴素贝叶斯流量分类.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "把人工标注的流数据喂给朴素贝叶斯，最简形式的按流分类精度约 65%，加核估计与特征约简后超过 95%；论文自陈这远高于当时端口法的 50%-70%。",
       "source_subdir": "traffic-classification-evolution",
@@ -1101,6 +1199,7 @@
         "wiki/papers/pinn/ET-BERT-加密流量报文与突发表征.md",
         "wiki/papers/traffic-foundation-models/2022-Lin-ET-BERT-加密流量预训练.md"
       ],
+      "source_note": "wiki/papers/traffic-foundation-models/2022-Lin-ET-BERT-加密流量预训练.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "ET-BERT 把 BURST（同向连续包）的十六进制串按 bigram + BPE 编成词表 65,536、序列长 512 的 BERT-base 输入，只用载荷（显式删掉以太网头、IP 头和 TCP 端口），用 MBM + SBP 两个自监督任务预训练 30GB 流量；其对'加密载荷仍含信息'的论证只是 15 项 NIST 随机性检验的 p 值不为 1，属弱论证。",
       "source_subdir": "traffic-foundation-models",
@@ -1112,6 +1211,7 @@
       "relevant_paths": [
         "wiki/papers/traffic-foundation-models/2024-Li-Lens知识引导流量T5基础模型.md"
       ],
+      "source_note": "wiki/papers/traffic-foundation-models/2024-Li-Lens知识引导流量T5基础模型.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "以 T5-v1.1-base（约 0.25B 参数）为骨干，用知识引导掩码跨度预测（KG-MSP）避免拆分端口号等不可分字段，并把分类改写为闭式生成任务以支持新类扩展；12 个分类任务平均准确率 96.33%，但只在 8/12 个任务上明确超过基线。代码「录用后开源」，截至 v5 仍未公开。",
       "source_subdir": "traffic-foundation-models",
@@ -1123,6 +1223,7 @@
       "relevant_paths": [
         "wiki/papers/traffic-foundation-models/2026-Lin-Nethira层次化流量预训练.md"
       ],
+      "source_note": "wiki/papers/traffic-foundation-models/2026-Lin-Nethira层次化流量预训练.md",
       "basis": "改写自该笔记 key_finding，保留可定位论文的技术术语，未逐字复述原句",
       "source_key_finding": "在仍然使用扁平字节序列输入的前提下，用「字节 / 协议 / 包」三层重构目标 + 微调期层次化增强的一致性正则；四数据集平均 F1 90.40，比最强预训练基线 TrafficFormer（86.95）高 3.45 个点，错误相对下降 26.4%。摘要的 9.11% 是相对七个预训练模型均值的比值，不是百分点。",
       "source_subdir": "traffic-foundation-models",
