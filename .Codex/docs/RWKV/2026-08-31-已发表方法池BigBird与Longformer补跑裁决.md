@@ -96,10 +96,45 @@ Transformer——本课题的机制主张正是关于注意力骨干上的实体
 1. **服务器 `transformers` 可用性**：`lspr_baseline_matrix_models.py` 第 147–149 行是
    可选导入，失败时抛 `BaselineModelError("BigBird/Longformer 需要正式环境中的 transformers")`。
    已跑通的 CNN/GRU/全注意力不经过该导入，因此「那三个跑通」不能推出 `transformers` 已装。
-   补跑前须在服务器 `.venv` 实测该导入，未装则按 uv 项目方式补依赖并记录版本。
+
+   **本机可查到的部分（2026-08-31 实测）**：`pyproject.toml` 第 15–24 行把 `transformers`
+   放在 `gpu` extra 组，与 `torch`、`swanlab` **同组**；`uv.lock` 第 2276–2278 行锁定
+   `transformers 4.57.6`。服务器既已运行 `torch 2.13.0+cu130` 且正式实验在用 SwanLab，
+   该 extra 组**极可能已整组安装**。
+
+   **但这是推论，不是实测。** 补跑前仍须在服务器执行一条导入确认：
+   `uv run --no-sync python -c "import transformers; print(transformers.__version__)"`，
+   期望 `4.57.6`。未装则 `uv sync --extra gpu`，装后记录实际版本。
 2. **单模型耗时**：本轮未取到全注意力那次运行的实测耗时，`.Codex/docs/` 中检索到的
    「分钟级」是协议 B 的**评价续跑**（训练已完成），不是训练耗时，不可作为估算依据。
    恢复 SSH 后从已跑模型的运行目录时间跨度取实测值，再排队。**在拿到实测值前不写估算数字。**
+
+3. **BigBird 的块稀疏注意力可能根本不生效**（2026-08-31 新发现，**补跑前必须实测**）。
+   配置为 `block_size = 16`、`num_random_blocks = 2`、`attention_type = "block_sparse"`
+   （`lspr_baseline_matrix_models.py` 第 33–34、162–164 行），而协议序列长度为 `128`。
+
+   HuggingFace 官方文档（Context7 取自 `docs/source/en/model_doc/big_bird.md`）写明：
+   「original full attention is recommended for sequences under 1024 tokens where sparse
+   attention provides little benefit」，并要求「sequence length to be divisible by the
+   block size」。后一条满足（`128 / 16 = 8`）；但前一条指出在 `128` 这个长度上，
+   块稀疏相对全注意力**几乎没有收益**。
+
+   HF 实现中还有一条自动回退：当序列长度不超过
+   `(2 global + 3 sliding + num_random + buffer) × block_size` 时，会打印警告并把
+   `attention_type` 切回 `original_full`。按本配置该阈值为 `9 × 16 = 144 > 128`，
+   **预期会触发回退**。
+
+   **此为推论，非实测**——本机 miniconda `rwkv` 环境无 `transformers`（实测
+   `ModuleNotFoundError`），无法当下验证。补跑前须在服务器构造该配置跑一次前向，
+   捕获 warning 并读取 `encoder.config.attention_type` 的实际值。
+
+   **若确认回退**：BigBird 这一行实际跑的是全注意力，与 `dijk2026_full_attention_transformer`
+   在机制上重合，正文**不得**把它写成「块稀疏注意力」基线，必须如实说明在本数据集的序列
+   长度下该稀疏模式未激活。这不是取消补跑的理由——该行仍是 Dijk 2026 方法池的成员，
+   且「在本任务的序列长度下稀疏注意力不适用」本身是可写入正文的有效观察。
+
+   **Longformer 不受此影响**：`attention_window = 32`，`128 / 32 = 4`，滑窗注意力在该长度上
+   正常工作。但同样须在补跑时记录实际生效的注意力模式。
 
 ### 执行清单（GPU 可达后）
 
