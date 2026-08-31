@@ -135,9 +135,14 @@ def cvar_pauc_loss(
     L_pn = softplus(S_n - S_p)，L_rank = mean_K R_K。
 
     pos: (Np,) 正实体路径最大分数 S_p；neg: (Nn,) 负实体路径最大分数 S_n；
-    budgets: 预算序列，K 须满足 1<=K<=Nn；xi: (Np, len(budgets)) 训练期阈值状态，
-    须 requires_grad=True 才能与共享参数联合反传（xi 自身的梯度由调用方另行更新，
-    见 CvarThresholdState，不受机制二任务 3 的梯度控制器投影）。
+    budgets: 预算序列，K 须满足 0<K<=Nn；xi: (Np, len(budgets)) 训练期阈值状态。
+
+    xi 的梯度契约（2026-08-31 修正）：xi 是**统计量而非优化变量**。按
+    Rockafellar-Uryasev 变分形式，内层 min 恰在 L_pn 的 (1-K/Nn) 分位数取得，
+    因此 xi 由 `CvarThresholdState.quantile()` 直接取分位数给出，不需要子梯度追踪。
+    xi 是否带梯度**不影响 theta 的梯度路径**：在 r_k = xi_k + hinge.sum(dim=1)/k 中，
+    第一项对 theta 是常数，第二项经 pairwise 仍有完整梯度。此前文档要求
+    "xi 须 requires_grad=True 才能与共享参数联合反传"，该表述不成立且会误导，已删除。
 
     接口约定（5.4 节留下的一处显式处置）：本函数按字面公式对「当前传入的 neg」
     求和，即把 neg 当作该步的全体负实体。若 neg 实际是从更大总体 N_- 中均匀抽样
@@ -161,8 +166,15 @@ def cvar_pauc_loss(
     budget_terms = []
     per_budget_active_rate: dict[str, float] = {}
     per_budget_mean_xi: dict[str, float] = {}
+    per_budget_subunit: dict[str, bool] = {}
     for col, k in enumerate(budgets):
-        require(0 < k <= n_neg, f"预算 K={k} 越出合法范围 (1..{n_neg})")
+        require(0 < k <= n_neg, f"预算 K={k} 越出合法范围 (0, {n_neg}]")
+        # 披露而非阻断：K_eff<1 表示该档的设计工作点无法被本步 n_neg 个负样本分辨
+        # （单步分位数分辨率下限是 1/n_neg），跨步水库分位数正是为此设计。
+        # 此前只查 K>0 而文档写 K>=1，使 K_eff<1 静默进入训练，是各档 CVaR 活动率
+        # 失配长期不可见的直接原因。按 llm_probe/AGENTS.md 的门禁密度规则，
+        # 新增阻断门须证明它防止的是会使结果无效的失败，此处只记收据。
+        per_budget_subunit[str(k)] = bool(float(k) < 1.0)
         xi_k = xi[:, col]
         hinge = torch.relu(pairwise - xi_k.unsqueeze(1))  # [.]_+，relu 在 0 点子梯度取 0
         r_k = xi_k + hinge.sum(dim=1) / float(k)
@@ -176,6 +188,8 @@ def cvar_pauc_loss(
         "budgets": [float(k) for k in budgets],
         "per_budget_active_rate": per_budget_active_rate,
         "per_budget_mean_xi": per_budget_mean_xi,
+        "per_budget_subunit": per_budget_subunit,
+        "sampled_negative_count": int(n_neg),
         "pairwise_loss_mean": float(pairwise.detach().mean()),
         "pairwise_loss_max": float(pairwise.detach().max()),
         "positive_entity_count": int(pos.numel()),
