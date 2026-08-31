@@ -41,6 +41,13 @@ SELECTION_ROLE = "entity"
 TARGET_POOL = "LSPR24已访问目标年描述性评价池"
 TARGET_ROLE = "previously_accessed_target_year_descriptive_evaluation"
 FPR_GRID = tuple(float(value) for value in host.base.DR_FPR_GRID)
+ENTRYPOINT_PATH = Path(__file__).resolve()
+CELL_CONTRACTS = {
+    "c00": ("ch3-ft-c00-dual-selection-cuda-formal-v1", False, False),
+    "c01": ("ch3-ft-c01-entity-ranking-cuda-formal-v1", False, True),
+    "c10": ("ch3-ft-c10-entity-memory-cuda-formal-v1", True, False),
+    "c11": ("ch3-ft-c11-cem-ber-cuda-formal-v1", True, True),
+}
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -73,12 +80,11 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("配置模式或运行身份不符")
     source_cells = config.get("source_cells")
     if not isinstance(source_cells, dict) or tuple(source_cells) != CELLS:
-        raise ValueError("只允许按 c01、c10 顺序评价两个已完成源运行")
-    expected_runs = {
-        "c01": "ch3-ft-c01-entity-ranking-cuda-formal-v1",
-        "c10": "ch3-ft-c10-entity-memory-cuda-formal-v1",
-    }
-    for cell, run_id in expected_runs.items():
+        raise ValueError(f"源运行格顺序必须严格等于当前入口 CELLS={CELLS}")
+    if not CELLS or any(cell not in CELL_CONTRACTS for cell in CELLS):
+        raise ValueError(f"当前入口包含未知 FT 四格键：{CELLS}")
+    for cell in CELLS:
+        run_id = CELL_CONTRACTS[cell][0]
         node = source_cells.get(cell, {})
         if node.get("run_id") != run_id or node.get("selection_role") != SELECTION_ROLE:
             raise ValueError(f"{cell} 源运行或选择角色不符")
@@ -191,10 +197,10 @@ def load_configs_and_agreement(
     for name, getter in shared_getters.items():
         values = {cell: getter(configs[cell]) for cell in CELLS}
         if len({canonical_sha256(value) for value in values.values()}) != 1:
-            raise SystemExit(f"C01/C10 在 {name} 上不一致，拒绝混池：{values}")
+            raise SystemExit(f"当前 FT 子集在 {name} 上不一致，拒绝混池：{values}")
         agreement[name] = values[CELLS[0]]
     if agreement["entity_aggregation"] != "maximum_over_validation_flows":
-        raise SystemExit("C01/C10 不是统一最大实体聚合口径")
+        raise SystemExit("当前 FT 子集不是统一最大实体聚合口径")
     agreement["source_torch_compile"] = {
         cell: configs[cell]["runtime"].get("torch_compile") for cell in CELLS
     }
@@ -231,13 +237,17 @@ def load_configs_and_agreement(
     agreement["entity_ranking_enabled"] = {
         cell: host.dual.entity_ranking_enabled_from_config(configs[cell]) for cell in CELLS
     }
-    if agreement["entity_memory_enabled"] != {"c01": False, "c10": True}:
-        raise SystemExit("C01/C10 的 CEM 开关身份不符")
-    if agreement["entity_ranking_enabled"] != {"c01": True, "c10": False}:
-        raise SystemExit("C01/C10 的 BER 开关身份不符")
+    expected_memory = {cell: CELL_CONTRACTS[cell][1] for cell in CELLS}
+    expected_ranking = {cell: CELL_CONTRACTS[cell][2] for cell in CELLS}
+    if agreement["entity_memory_enabled"] != expected_memory:
+        raise SystemExit("当前 FT 子集的 CEM 开关身份不符")
+    if agreement["entity_ranking_enabled"] != expected_ranking:
+        raise SystemExit("当前 FT 子集的 BER 开关身份不符")
     agreement["formal_cross_cell_fairness_claim_allowed"] = False
     agreement["formal_cross_cell_fairness_reason"] = (
-        "历史 C01 与 C10 的 torch.compile 实际训练路径不同；本次只作提前目标年描述"
+        "历史 C01 与 C10 的实际训练执行路径不同；本次只作提前目标年描述"
+        if set(CELLS) == {"c01", "c10"}
+        else f"当前入口只评价 FT 四格子集 {CELLS}，不构成正式四格"
     )
     return configs, agreement
 
@@ -248,7 +258,7 @@ def load_shared_transform(cell_runs: dict[str, Path]) -> tuple[Any, dict[str, An
         receipt = load_json(cell_runs[cell] / "receipts" / "input-transform.json")
         state_hashes[cell] = str(receipt["state_hash"])
     if len(set(state_hashes.values())) != 1:
-        raise SystemExit(f"C01/C10 封印输入变换不一致：{state_hashes}")
+        raise SystemExit(f"当前 FT 子集封印输入变换不一致：{state_hashes}")
     transform_path = cell_runs[CELLS[0]] / "artifacts" / "sealed-input-transform.pkl"
     transform = host.base.load_input_transform(transform_path)
     if transform.state_hash != state_hashes[CELLS[0]]:
@@ -617,7 +627,7 @@ def run(config: dict[str, Any], args: argparse.Namespace, config_path: Path) -> 
         "running",
         "source-preflight",
         None,
-        "C01/C10 完成态、源侧目标年零读取与实体选轮检查点通过",
+        f"{CELLS} 完成态、源侧目标年零读取与实体选轮检查点通过",
         source_target_reads,
         target_reads,
     )
@@ -660,7 +670,9 @@ def run(config: dict[str, Any], args: argparse.Namespace, config_path: Path) -> 
         "schema_version": f"{SCHEMA_VERSION}-unit-identity",
         "run_id": RUN_ID,
         "config_sha256": sha256_file(config_path),
-        "evaluation_code_sha256": sha256_file(Path(__file__).resolve()),
+        "evaluation_entrypoint_path": str(ENTRYPOINT_PATH),
+        "evaluation_entrypoint_sha256": sha256_file(ENTRYPOINT_PATH),
+        "evaluation_orchestrator_sha256": sha256_file(Path(__file__).resolve()),
         "host_tool_sha256": sha256_file(Path(host.__file__).resolve()),
         "baseline_table_sha256": baseline_receipt["table_sha256"],
         "sealed_transform_state_hash": transform_receipt["state_hash"],
@@ -806,7 +818,7 @@ def run(config: dict[str, Any], args: argparse.Namespace, config_path: Path) -> 
         "source_run_target_reads": source_target_reads,
         "cross_cell_agreement": agreement,
         "formal_four_cell_result": False,
-        "formal_four_cell_reason": "只评价 C01/C10，且历史训练执行路径不同；C00/C11 未纳入",
+        "formal_four_cell_reason": f"当前只评价 FT 四格子集 {CELLS}，不构成完整四格",
         "target_year_read": target["receipt"],
         "units": {name: completed[name] for name in sorted(completed)},
         "baseline_table": baseline_receipt,
@@ -874,7 +886,7 @@ def run(config: dict[str, Any], args: argparse.Namespace, config_path: Path) -> 
         "finished",
         "complete",
         0,
-        "C01/C10 selected-by-entity 目标年描述性评价与同池基线比较完成",
+        f"{CELLS} selected-by-entity 目标年描述性评价与同池基线比较完成",
         source_target_reads,
         target_reads,
     )

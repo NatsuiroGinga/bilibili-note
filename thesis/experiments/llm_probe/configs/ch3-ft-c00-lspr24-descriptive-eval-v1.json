@@ -1,0 +1,106 @@
+{
+  "schema_version": "ch3-ft-c00-lspr24-descriptive-eval-v1-config",
+  "run_id": "ch3-ft-c00-lspr24-descriptive-eval-v1",
+  "display_name": "FT C00 selected-by-entity独立目标年零训练描述性评价",
+  "paths": {
+    "target_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-protocol-a-raw83-target-v1.json",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-ft-c00-lspr24-descriptive-eval-v1",
+    "baseline_registry_config": "/root/autodl-tmp/thesis/experiments/llm_probe/configs/ch3-metrics-table-sources-v1.json",
+    "baseline_builder_tool": "/root/autodl-tmp/thesis/experiments/llm_probe/tools/ch3_build_metrics_table.py"
+  },
+  "source_cells": {
+    "c00": {
+      "run_id": "ch3-ft-c00-dual-selection-cuda-formal-v1",
+      "run_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-ft-c00-dual-selection-cuda-formal-v1",
+      "required_state": "finished",
+      "required_source_target_reads": 0,
+      "selection_role": "entity",
+      "checkpoint_filename": "selected-by-entity.pt",
+      "source_validation_batch_sequences": 128,
+      "target_validation_batch_sequences": 128,
+      "target_batch_override_applied": false
+    }
+  },
+  "evaluation": {
+    "dataset": "LSPR24",
+    "role": "previously_accessed_target_year_descriptive_evaluation",
+    "selection_role": "entity",
+    "entity_key": "unordered_source_destination_ip_pair_grouping_only",
+    "entity_score": "maximum_flow_probability",
+    "maximum_entity_score": "maximum_flow_probability",
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_budget_curve": true,
+    "target_used_for_selection": false,
+    "target_feedback_allowed": false
+  },
+  "baseline_comparison": {
+    "registry_role": "current_program_generated_metrics_table_source_registry",
+    "generator_table": "lspr24-evaluation",
+    "evaluation_pool": "LSPR24已访问目标年描述性评价池",
+    "expected_entity_count": 47115,
+    "roots": {
+      "main": "/root/autodl-tmp/thesis/experiments/llm_probe/runs",
+      "ch4_worktree": "/root/autodl-tmp/thesis/experiments/llm_probe/runs"
+    },
+    "required_rows": [
+      {
+        "display_name": "XGBoost＋CPA-ELP",
+        "run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-eval-continuation2",
+        "source_schema": "xgb_cpa_elp",
+        "cell": "C11",
+        "maximum_entity_ap_source_cell": "C10"
+      },
+      {
+        "display_name": "全容量多层感知机＋完整实体幂平均（BF16）",
+        "run_id": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1-bf16-v1",
+        "source_schema": "full_mlp_complete_entity_lp_v1",
+        "cell": "O11",
+        "maximum_entity_ap_source_cell": "O11"
+      }
+    ],
+    "compare_all_same_pool_rows_with_available_entity_ap": true,
+    "missing_metrics_policy": "report_missing_and_do_not_infer",
+    "primary_claim_metric": "entity_average_precision",
+    "strict_win_operator": ">"
+  },
+  "artifact_policy": {
+    "persist_aggregate_json": true,
+    "persist_complete_curve_npz": true,
+    "persist_program_generated_baseline_table": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_new_checkpoints": false
+  },
+  "isolation": {
+    "training_runs": 0,
+    "optimizer_steps": 0,
+    "parameter_updates": 0,
+    "new_checkpoints_written": 0,
+    "source_run_directories_modified": 0,
+    "target_data_products_materialized": 0,
+    "selection_performed": false,
+    "winner": null
+  },
+  "resource_contract": {
+    "minimum_free_gpu_memory_gib": 16,
+    "minimum_cgroup_available_memory_gib": 16,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_evaluations": 1,
+    "wall_clock_limit": null
+  },
+  "numeric_basis": {
+    "fpr_grid": "第三章统一评价合同预注册六档锚点",
+    "expected_entity_count_47115": "冻结LSPR24同池实体数",
+    "c00_batch_128": "沿用C00源年验证批量，不施加目标年覆盖",
+    "minimum_cgroup_available_memory_16_gib": "X24整载约6.7GiB，加序列数组、派生实体结构与30%以上安全余量",
+    "minimum_free_gpu_memory_16_gib": "高于C01修复后源年训练实测峰值15175MiB；目标评价无反向图",
+    "minimum_free_disk_10_gib": "根运行合同的新增大型制品停止边界"
+  },
+  "evidence": {
+    "formal_four_cell_result": false,
+    "formal_paper_evidence": false,
+    "target_previously_accessed": true,
+    "target_metrics_used_for_selection_or_tuning": false,
+    "single_cell_descriptive_only": true
+  }
+}
