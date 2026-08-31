@@ -1,6 +1,6 @@
 {
   "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）；thesis/figures/AGENTS.md",
-  "updated_at": "2026-08-26",
+  "updated_at": "2026-08-31",
   "grayscale_readable": true,
   "generators": [
     {
@@ -9,8 +9,8 @@
       "figures": [
         "图3-1-整体方法框架",
         "图3-2-二IP无向对序列构造",
-        "图3-3-因果前缀跨流聚合",
-        "图3-4-实体级可学Lp池化"
+        "图3-3-因果实体记忆的读写与交叉注意力",
+        "图3-4-预算感知实体排序的目标构造"
       ],
       "typography": {
         "cjk_font_requested": "SimHei",
@@ -28,10 +28,10 @@
       "environment": {
         "python": "3.12.13",
         "matplotlib": "3.11.1",
-        "numpy": "2.5.1",
         "pillow": "12.3.0"
       },
-      "note": "两个生成脚本共用 figstyle.py 的字体解析，故字体登记相同；本条的尺寸与分辨率由本轮 PIL 实测复核，题注行在本轮补全。"
+      "source_of_truth": ".Codex/docs/RWKV/2026-08-31-CEM-BER机制形式化与复杂度规约.md",
+      "note": "四张机制图只画方法结构，不含四格读数、增量或有效性表述；图内出现的数值全部是已冻结的方法规格常量或标注为示意的取值。"
     },
     {
       "script": "绘制第三章结果图.py",
@@ -124,27 +124,41 @@
       "reason": "旧图取自已作废的 runs/diagnostics/ch3-full 运行；当前权威制品（正式 CPA×ELP 四格 BF16 运行、统一指标总表、共同首次告警预算包络）均不含任何按攻击类别的分面字段，无法换底重绘。",
       "recovery": "若正文保留攻击类别分面，需要新增一次按 Category 字段分面的目标年评价运行；在此之前正文不应引用图 3-10。",
       "files_moved_to": "作废/"
+    },
+    {
+      "stem": "图3-3-因果前缀跨流聚合",
+      "withdrawn_at": "2026-08-31",
+      "reason": "旧图描述的因果前缀跨流聚合（CPA）已不是第三章的当前机制；第三章重锚到 CEM-BER 后，表示层机制改为因果实体记忆的读写与交叉注意力。",
+      "recovery": "若正文重新采用因果前缀聚合，须先恢复对应机制合同再重绘。",
+      "files_moved_to": "作废/"
+    },
+    {
+      "stem": "图3-4-实体级可学Lp池化",
+      "withdrawn_at": "2026-08-31",
+      "reason": "旧图描述的实体级可学幂平均池化（ELP）已不是第三章的当前机制；第三章重锚到 CEM-BER 后，决策层机制改为预算感知实体排序的训练目标。",
+      "recovery": "若正文重新采用可学幂平均池化，须先恢复对应机制合同再重绘。",
+      "files_moved_to": "作废/"
     }
   ],
   "figures": [
     {
       "stem": "图3-1-整体方法框架",
-      "generator": "绘制第三章机制图.py",
-      "caption": "图3-1　本章方法的整体框架：逐流特征经因果前缀跨流聚合进入表示层，实体级幂平均池化在决策层把同一实体的逐流分数汇成实体分数；表示层机制与决策层机制分别以斜线、反斜线填充标出",
+      "caption": "图3-1　CEM-BER 的整体方法框架：逐流片段经因果实体记忆读入严格过去表示、门控注入后出分，实体路径分数在决策层进入多预算排序目标；表示层机制与决策层机制分别以斜线、反斜线填充标出，圈码为在线单步的八步顺序，写记忆在出分之后",
       "width_mm": 150.0,
-      "height_mm": 95.0,
+      "height_mm": 115.0,
       "png_dpi": 400,
-      "evidence_mode": "method_schematic_without_experimental_results",
-      "data_source": "不承载实验数据",
-      "data_keys": [],
       "outputs": {
         "svg": "图3-1-整体方法框架.svg",
         "pdf": "图3-1-整体方法框架.pdf",
         "png": "图3-1-整体方法框架.png"
       },
+      "generator": "绘制第三章机制图.py",
+      "evidence_mode": "method_schematic_without_experimental_results",
+      "data_source": "不承载实验数据",
+      "data_keys": [],
       "png_pixels": [
         2362,
-        1496
+        1811
       ],
       "png_ppi_measured": [
         400.0,
@@ -153,19 +167,19 @@
     },
     {
       "stem": "图3-2-二IP无向对序列构造",
-      "generator": "绘制第三章机制图.py",
-      "caption": "图3-2　二 IP 无向对序列构造：双向流经无向对键归并到同一实体，键内按时间升序后切成长度 L 的非重叠块，尾块补零并以掩码标记",
+      "caption": "图3-2　二 IP 无向对序列构造：双向流经无向对键归并到同一实体，键内按时间升序后切成长度 L 的非重叠片段，尾部补零并以掩码标记",
       "width_mm": 150.0,
       "height_mm": 80.0,
       "png_dpi": 400,
-      "evidence_mode": "method_schematic_without_experimental_results",
-      "data_source": "不承载实验数据",
-      "data_keys": [],
       "outputs": {
         "svg": "图3-2-二IP无向对序列构造.svg",
         "pdf": "图3-2-二IP无向对序列构造.pdf",
         "png": "图3-2-二IP无向对序列构造.png"
       },
+      "generator": "绘制第三章机制图.py",
+      "evidence_mode": "method_schematic_without_experimental_results",
+      "data_source": "不承载实验数据",
+      "data_keys": [],
       "png_pixels": [
         2362,
         1259
@@ -176,51 +190,51 @@
       ]
     },
     {
-      "stem": "图3-3-因果前缀跨流聚合",
-      "generator": "绘制第三章机制图.py",
-      "caption": "图3-3　因果前缀跨流聚合：下三角因果掩码与非因果整窗聚合的对照，以及前缀聚合的常数代价增量更新",
-      "width_mm": 140.0,
-      "height_mm": 95.0,
+      "stem": "图3-3-因果实体记忆的读写与交叉注意力",
+      "caption": "图3-3　因果实体记忆的读写与交叉注意力：记忆只保存当前片段之前的写入，槽 0 为跨片段在线均值、槽 1 至 7 为最近表示的有界队列，当前表示单向查询记忆并以标量门控残差注入，无严格过去可读时上下文置零",
+      "width_mm": 150.0,
+      "height_mm": 132.0,
       "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-3-因果实体记忆的读写与交叉注意力.svg",
+        "pdf": "图3-3-因果实体记忆的读写与交叉注意力.pdf",
+        "png": "图3-3-因果实体记忆的读写与交叉注意力.png"
+      },
+      "generator": "绘制第三章机制图.py",
       "evidence_mode": "method_schematic_without_experimental_results",
       "data_source": "不承载实验数据",
       "data_keys": [],
-      "outputs": {
-        "svg": "图3-3-因果前缀跨流聚合.svg",
-        "pdf": "图3-3-因果前缀跨流聚合.pdf",
-        "png": "图3-3-因果前缀跨流聚合.png"
-      },
       "png_pixels": [
-        2204,
-        1496
+        2362,
+        2078
       ],
       "png_ppi_measured": [
-        399.9,
-        400.0
+        400.0,
+        399.9
       ]
     },
     {
-      "stem": "图3-4-实体级可学Lp池化",
-      "generator": "绘制第三章机制图.py",
-      "caption": "图3-4　实体级可学幂平均池化：广义幂平均关于池化指数的单调曲线，标出几何平均、算术平均与上界三个特例",
-      "width_mm": 140.0,
-      "height_mm": 95.0,
+      "stem": "图3-4-预算感知实体排序的目标构造",
+      "caption": "图3-4　预算感知实体排序的目标构造：实体路径分数取该实体全部片段逐流 logit 的最大值，成对损失中只有越过阈值的困难负实体进入 CVaR 尾部，六档冻结预算按抽样规模折算为有效预算；阈值是训练私有状态，不进入推理图",
+      "width_mm": 150.0,
+      "height_mm": 128.0,
       "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-4-预算感知实体排序的目标构造.svg",
+        "pdf": "图3-4-预算感知实体排序的目标构造.pdf",
+        "png": "图3-4-预算感知实体排序的目标构造.png"
+      },
+      "generator": "绘制第三章机制图.py",
       "evidence_mode": "method_schematic_without_experimental_results",
       "data_source": "不承载实验数据",
       "data_keys": [],
-      "outputs": {
-        "svg": "图3-4-实体级可学Lp池化.svg",
-        "pdf": "图3-4-实体级可学Lp池化.pdf",
-        "png": "图3-4-实体级可学Lp池化.png"
-      },
       "png_pixels": [
-        2204,
-        1496
+        2362,
+        2015
       ],
       "png_ppi_measured": [
-        399.9,
-        400.0
+        400.0,
+        399.9
       ]
     },
     {
