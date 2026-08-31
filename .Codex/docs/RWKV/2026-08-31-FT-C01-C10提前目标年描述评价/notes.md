@@ -26,3 +26,4 @@
 ## 错误记录
 
 - 一次 `python -m json.tool` 从工作树根错误使用了实验目录相对路径，返回文件不存在；此前入口 `--check-config` 已成功解析同一 JSON。处置为改在 `llm_probe` 目录复验，不修改配置内容。
+- 首次 `git add` 因沙箱不能创建主仓库 worktree 的 `index.lock` 返回权限错误；经受控升级授权后，只暂存六个独占文件，`git diff --cached --check` 通过并提交为 `29bdc23`。
