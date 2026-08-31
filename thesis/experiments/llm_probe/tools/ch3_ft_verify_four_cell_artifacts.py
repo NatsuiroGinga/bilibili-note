@@ -186,9 +186,79 @@ def verify_cell(runs_root: Path, spec: Dict[str, Any], torch_module: Any) -> Dic
     return record
 
 
+# 四格比较有效的前提：除机制开关外，一切科学设定必须逐字相同。
+# 任何一项漂移都会让「差值归因于机制」不成立，因此这里逐项断言而非抽查。
+CONTROLLED_FIELDS: List[tuple] = [
+    ("base", "config_sha256"), ("base", "tool_sha256"),
+    ("training", "seed"), ("training", "effective_batch_size"),
+    ("training", "micro_batch_sequences"), ("training", "gradient_accumulation_steps"),
+    ("training", "sequence_length"), ("training", "normalization_unit"),
+    ("training", "tie_rule"), ("training", "selection_metrics"),
+    ("budget", "epochs"), ("budget", "steps_per_epoch"), ("budget", "validation_every_epochs"),
+    ("runtime", "precision_profile_id"), ("runtime", "device_type"),
+    ("evaluation", "entity_aggregation"), ("evaluation", "flow_metric"),
+    ("evaluation", "entity_metric"),
+    ("data", "target_reads"), ("evaluation", "target_reads"),
+]
+
+# 期望的 2×2 正交开关。z1 为因果实体记忆，z2 为预算感知实体排序。
+EXPECTED_SWITCHES = {
+    "C00": (False, False), "C10": (True, False),
+    "C01": (False, True), "C11": (True, True),
+}
+
+
+def verify_config_parity(configs_root: Path) -> Dict[str, Any]:
+    """核验四格配置的科学一致性与开关正交性。
+
+    与制品核验分开：制品缺失只说明该臂没跑完，而配置漂移会让**已跑完的**臂
+    之间不可比——后者更隐蔽，且四格齐备后才发现就意味着全部重跑。
+    """
+    result: Dict[str, Any] = {"config_files_found": {}, "mismatched_fields": [],
+                              "switch_matrix": {}, "switch_matrix_correct": None,
+                              "parameter_counts": {}, "verdict": "未核验"}
+    loaded: Dict[str, Dict[str, Any]] = {}
+    for spec in CELLS:
+        cell = spec["cell"]
+        path = configs_root / f"{spec['run_id'].replace('ch3-ft-', 'ch3-ft-')}.json"
+        result["config_files_found"][cell] = path.is_file()
+        if path.is_file():
+            try:
+                loaded[cell] = json.loads(path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError) as error:
+                result["mismatched_fields"].append(f"{cell} 配置无法解析：{error}")
+    if len(loaded) < 2:
+        result["verdict"] = "配置不足，无法比较"
+        return result
+
+    for section, key in CONTROLLED_FIELDS:
+        values = {c: json.dumps(d.get(section, {}).get(key), ensure_ascii=False, sort_keys=True)
+                  for c, d in loaded.items()}
+        if len(set(values.values())) > 1:
+            result["mismatched_fields"].append({f"{section}.{key}": values})
+
+    switches_ok = True
+    for cell, doc in loaded.items():
+        mech = doc.get("mechanism", {})
+        z1 = bool(mech.get("entity_memory", {}).get("enabled", False))
+        z2 = bool(mech.get("entity_ranking", {}).get("enabled", False))
+        result["switch_matrix"][cell] = {"z1": z1, "z2": z2}
+        result["parameter_counts"][cell] = doc.get("model", {}).get("expected_parameter_count")
+        if cell in EXPECTED_SWITCHES and (z1, z2) != EXPECTED_SWITCHES[cell]:
+            switches_ok = False
+    result["switch_matrix_correct"] = switches_ok
+    result["controlled_field_count"] = len(CONTROLLED_FIELDS)
+    result["verdict"] = (
+        "一致" if not result["mismatched_fields"] and switches_ok else "存在漂移"
+    )
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="CEM-BER 四格制品完整性核验（只读）")
     parser.add_argument("--runs-root", required=True, help="诊断运行根目录")
+    parser.add_argument("--configs-root", default=None,
+                        help="四格配置目录；给出时额外核验配置一致性与开关正交性")
     parser.add_argument("--output", default=None, help="核验收据落盘路径")
     args = parser.parse_args()
 
@@ -210,6 +280,8 @@ def main() -> int:
         "torch_available": torch_module is not None,
         "cells": cells,
     }
+    if args.configs_root:
+        report["config_parity"] = verify_config_parity(Path(args.configs_root).expanduser().resolve())
 
     output = Path(args.output) if args.output else runs_root / "ch3-ft-four-cell-artifact-verification.json"
     staging = output.with_suffix(output.suffix + ".partial")
@@ -221,6 +293,15 @@ def main() -> int:
     for item in cells:
         missing = f"，缺 {len(item['missing_files'])} 项" if item["missing_files"] else ""
         print(f"{item['cell']} {item['display_name']}：{item['verdict']}{missing}", file=sys.stderr)
+    parity = report.get("config_parity")
+    if parity:
+        print(
+            f"配置一致性：{parity['verdict']}"
+            f"（受控字段 {parity.get('controlled_field_count', '?')} 项，"
+            f"漂移 {len(parity['mismatched_fields'])} 项，"
+            f"开关矩阵正交={parity['switch_matrix_correct']}）",
+            file=sys.stderr,
+        )
     print(f"核验收据已写入 {output}", file=sys.stderr)
     return 0
 
