@@ -37,18 +37,27 @@ def search_local(
     config: SearchConfig,
     cache_folder: Optional[Path] = None,
     local_files_only: bool = False,
+    backend: Optional[EmbeddingBackend] = None,
 ) -> List[Dict[str, object]]:
+    """单次检索。
+
+    ``backend`` 可由调用方传入以复用同一个已加载的向量后端。批量场景必须传，
+    否则每次调用都会重新加载模型：2026-08-31 实测 25 条查询的 evaluate 会触发
+    50 次加载（vector 与 hybrid 各一次），是该子命令耗时的主要来源。
+    不传时保持原有行为，按需自建，单次查询的调用方无须改动。
+    """
     if mode not in {"lexical", "vector", "hybrid"}:
         raise ValueError(f"未知检索模式：{mode}")
     lexical = aggregate_chunks(lexical_search(connection, query)) if mode != "vector" else []
     vector: List[RankedNote] = []
     if mode != "lexical":
-        backend = EmbeddingBackend(
-            config.model_name,
-            config.model_revision,
-            cache_folder=cache_folder,
-            local_files_only=local_files_only,
-        )
+        if backend is None:
+            backend = EmbeddingBackend(
+                config.model_name,
+                config.model_revision,
+                cache_folder=cache_folder,
+                local_files_only=local_files_only,
+            )
         vector = _vector_ranking(connection, backend.encode_query(query))
         if not vector:
             raise RuntimeError("索引没有向量；请执行完整 build，不能以纯词法索引运行向量检索")

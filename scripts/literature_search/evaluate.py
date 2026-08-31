@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from .config import SearchConfig
+from .embeddings import EmbeddingBackend
 from .search import search_local
 
 
@@ -21,6 +22,14 @@ def evaluate_queries(
     modes = ("lexical", "vector", "hybrid")
     details: List[Dict[str, object]] = []
     summary = {mode: {"hits": 0, "reciprocal_rank_sum": 0.0} for mode in modes}
+    # 向量后端只加载一次，供全部查询的 vector 与 hybrid 两种模式复用。
+    # 此前每条查询每种模式各新建一次，100 条查询会触发 200 次模型加载。
+    backend = EmbeddingBackend(
+        config.model_name,
+        config.model_revision,
+        cache_folder=cache_folder,
+        local_files_only=local_files_only,
+    )
     for case in specification["queries"]:
         case_result: Dict[str, object] = {
             "query": case["query"],
@@ -38,6 +47,7 @@ def evaluate_queries(
                 config,
                 cache_folder=cache_folder,
                 local_files_only=local_files_only,
+                backend=backend,
             )
             hit_rank = next(
                 (int(item["rank"]) for item in results if item["note_path"] in relevant),
