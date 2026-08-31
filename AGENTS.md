@@ -35,13 +35,14 @@
 
 ## 实验环境索引（强制，2026-08-28 实测）
 
-**新会话按用途选环境，不要试探，也不要新建第四个环境。** 三个环境各有唯一职责：
+**新会话按用途选环境，不要试探，也不要新建环境。** 下列环境各有唯一职责：
 
 | 用途 | 入口 | 实测配置 |
 | --- | --- | --- |
 | **本机需要 PyTorch 的一切**（训练、评价、张量诊断、MPS 实验） | `/opt/miniconda3/envs/rwkv/bin/python` | Python `3.14.5`、torch `2.12.0`、numpy `2.4.6`、`mps.is_available()=True` |
 | **本机文献混合检索** | 从仓库根 `uv run --project scripts/literature_search --locked python -m scripts.literature_search ...` | uv 项目，含 `pyproject.toml` 与 `uv.lock`；向量模型 `intfloat/multilingual-e5-small` |
 | **服务器实验** | `source tools/env/activate.sh` 后 `uv run --no-sync python ...`（工作目录 `llm_probe`） | 服务器 `.venv`：torch `2.13.0+cu130`，CUDA `13.0`，RTX 5090 算力 `(12,0)` |
+| **论文图件绘制** | 从仓库根 `uv run --project "thesis/figures/第N章" python ...` | 该目录自带 `pyproject.toml` 与 `uv.lock`，含 matplotlib；中文字体解析为 Office 随附 SimHei（`face_index=0`），miniconda 与 llm_probe 环境均无 matplotlib |
 
 - **本机项目 `.venv`（`thesis/experiments/llm_probe/.venv`）缺 PyTorch**（Python `3.10.20`、
   numpy `2.2.6`、无 torch），**不得用于本机训练、评价或任何张量计算**；它只服务服务器侧
