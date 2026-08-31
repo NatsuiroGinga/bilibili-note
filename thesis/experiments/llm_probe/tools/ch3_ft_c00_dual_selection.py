@@ -231,10 +231,18 @@ def validate_config(config: dict[str, Any]) -> None:
             isinstance(num_length_buckets, int) and not isinstance(num_length_buckets, bool) and num_length_buckets >= 1,
             "num_length_buckets 必须是 ≥1 的整数",
         )
+        # xi_learning_rate 自 2026-08-31 起**不再驱动训练**：xi 改由跨步水库直接取
+        # 分位数，不做子梯度更新。字段与本校验一并保留，否则冻结配置与既有检查点
+        # 加载会失败；配置侧用 xi_learning_rate_deprecated 标注其已弃用。
         xi_learning_rate = entity_ranking.get("xi_learning_rate")
         require(
             isinstance(xi_learning_rate, (int, float)) and not isinstance(xi_learning_rate, bool) and xi_learning_rate > 0,
             "xi_learning_rate 必须是正数",
+        )
+        reservoir_size = entity_ranking.get("reservoir_size", 4096)
+        require(
+            isinstance(reservoir_size, int) and not isinstance(reservoir_size, bool) and reservoir_size > 0,
+            "reservoir_size 必须是正整数",
         )
     require(config.get("optimizer", {}).get("candidate_key") == "ft-transformer-official-default", "优化器候选不符")
 
@@ -1590,8 +1598,11 @@ def _ranking_phase(
     eff_budgets = [
         ranking.effective_budget(int(k), sampler.negative_pool_size, ranking_cfg["n_neg"]) for k in xi_state.budgets
     ]
-    xi = xi_state.get(positive_entity_ids).to(device)
-    xi.retain_grad()
+    # 2026-08-31：xi 改由跨步水库直接取分位数（Rockafellar-Uryasev 最优点），不再用
+    # 子梯度 SGD 追踪。取值必须发生在 observe() 之前——阈值只能由**严格过去**的样本
+    # 估计，本步样本参与本步阈值等于信息泄漏。detach 不影响 theta 的梯度路径，
+    # 因为 r_k = xi_k + hinge.sum/k 的第一项对 theta 是常数、第二项经 pairwise 有梯度。
+    xi = xi_state.quantile(positive_entity_ids, eff_budgets, int(ranking_cfg["n_neg"])).to(device)
 
     with precision.fp32_island(entity_logits, device_type=device.type, torch_module=torch_module) as (entity_logits32,):
         bag_config = ranking.BagPolicyConfig(
@@ -1606,9 +1617,10 @@ def _ranking_phase(
         loss_rank = bag_result["loss"]
     loss_rank.backward()
 
-    require(xi.grad is not None, "xi 未接收到梯度，检查是否进入了 cvar_pauc_loss 的反传图", EXIT_RUNTIME)
-    xi_updated = (xi.detach() - float(ranking_cfg["xi_learning_rate"]) * xi.grad).cpu()
-    xi_state.commit(positive_entity_ids, xi_updated)
+    # 反传之后才把本步样本写入水库，供后续步估计阈值。顺序不可与上面的 quantile()
+    # 对调。喂的是 active_policy 那一份 L_pn：三种袋处置的有效流掩码不同、L_pn 分布
+    # 也不同，水库只能吃真正驱动反传的那一种。
+    xi_state.observe(positive_entity_ids, bag_result["active_pairwise"])
 
     shared_params = _shared_parameters(model)
     g_rank = _flat_grad_from_params(shared_params, torch_module)
@@ -1624,6 +1636,12 @@ def _ranking_phase(
         "per_budget_active_rate": {
             name: info.get("per_budget_active_rate") for name, info in bag_result["policies"].items()
         },
+        "per_budget_subunit": bag_result["policies"][bag_config.active_policy].get("per_budget_subunit"),
+        "effective_budgets": eff_budgets,
+        "sampled_negative_count": int(ranking_cfg["n_neg"]),
+        # 水库占用中位数、最小值与满载比例：回答「各档分位数当前是否可用」，
+        # 落进每轮的 entity-ranking-diagnostics-{N}.json。
+        "xi_reservoir": xi_state.reservoir_diagnostics(),
     }
     return g_rank, diagnostics
 
@@ -1759,7 +1777,10 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
         import ch3_ft_entity_ranking_loss as ranking  # 延迟导入，只在 z2=1 时需要 torch
 
         sampler = prepare_entity_ranking_sampler(config, arrays, train_rows)
-        xi_state = ranking.CvarThresholdState(budgets=config["mechanism"]["entity_ranking"]["budgets"])
+        xi_state = ranking.CvarThresholdState(
+            budgets=config["mechanism"]["entity_ranking"]["budgets"],
+            reservoir_size=int(config["mechanism"]["entity_ranking"].get("reservoir_size", 4096)),
+        )
         if entity_memory_enabled:
             scratch_memory_state = build_entity_memory_state(config, base_config, entity_memory_context, torch_module, device)
     require(
@@ -1980,7 +2001,10 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         import ch3_ft_entity_ranking_loss as ranking  # 延迟导入，只在 z2=1 时需要 torch
 
         sampler = prepare_entity_ranking_sampler(config, arrays, train_rows)
-        xi_state = ranking.CvarThresholdState(budgets=config["mechanism"]["entity_ranking"]["budgets"])
+        xi_state = ranking.CvarThresholdState(
+            budgets=config["mechanism"]["entity_ranking"]["budgets"],
+            reservoir_size=int(config["mechanism"]["entity_ranking"].get("reservoir_size", 4096)),
+        )
         if entity_memory_enabled:
             scratch_memory_state = build_entity_memory_state(config, base_config, entity_memory_context, torch_module, device)
     require(

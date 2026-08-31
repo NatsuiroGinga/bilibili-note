@@ -569,6 +569,11 @@ def bag_policy_diagnostics(
     entity_is_positive、entity_chain_length 下标须与 segment_owner 的紧凑下标
     对齐（长度 E，E = 批内实体数）。xi 的行须与 entity_is_positive 中的正实体
     顺序对齐（即 entity_scores[entity_is_positive] 的顺序）。
+
+    返回值除既有键外含 `active_pairwise`：**当前生效策略**的 (Np, Nn) 配对损失
+    L_pn（已 detach）。宿主用它喂 `CvarThresholdState.observe()`——三种袋处置的
+    有效流掩码不同、L_pn 分布也不同，水库必须只吃真正驱动反传的那一种，否则估出
+    的分位数不是该损失的最优 xi。
     """
     require(config.active_policy in _VALID_POLICIES, f"未知袋处置策略：{config.active_policy}")
     num_entities = int(segment_owner.max().item()) + 1
@@ -579,7 +584,7 @@ def bag_policy_diagnostics(
 
     def _score_and_loss(
         valid_mask: torch.Tensor, stratified: bool
-    ) -> tuple[torch.Tensor, dict[str, Any]]:
+    ) -> tuple[torch.Tensor, dict[str, Any], torch.Tensor]:
         entity_scores, source_row = prefix_scores(logits, valid_mask, segment_owner)
         pos_scores = entity_scores[entity_is_positive]
         neg_scores = entity_scores[~entity_is_positive]
@@ -592,33 +597,38 @@ def bag_policy_diagnostics(
         else:
             loss, diag = cvar_pauc_loss(pos_scores, neg_scores, budgets, xi)
         diag["entity_score_source_row"] = source_row.detach().tolist()
-        return loss, diag
+        # 三种策略各自的 L_pn，供调用方按 active_policy 取用；detach 后不持图。
+        pairwise = torch.nn.functional.softplus(
+            neg_scores.detach().unsqueeze(0) - pos_scores.detach().unsqueeze(1)
+        )
+        return loss, diag, pairwise
 
     results: dict[str, Any] = {"active_policy": config.active_policy, "policies": {}}
 
-    full_loss, full_diag = _score_and_loss(valid, stratified=False)
+    full_loss, full_diag, full_pairwise = _score_and_loss(valid, stratified=False)
     results["policies"]["full"] = {"loss_value": float(full_loss.detach()), **full_diag}
 
     entity_groups = _entity_groups(segment_owner, num_entities)
     truncated_valid = _causal_truncate_valid(valid, entity_groups, config.truncate_length)
-    truncated_loss, truncated_diag = _score_and_loss(truncated_valid, stratified=False)
+    truncated_loss, truncated_diag, truncated_pairwise = _score_and_loss(truncated_valid, stratified=False)
     results["policies"]["causal_prefix_truncation"] = {
         "loss_value": float(truncated_loss.detach()),
         **truncated_diag,
     }
 
-    stratified_loss, stratified_diag = _score_and_loss(valid, stratified=True)
+    stratified_loss, stratified_diag, stratified_pairwise = _score_and_loss(valid, stratified=True)
     results["policies"]["stratified_weighting"] = {
         "loss_value": float(stratified_loss.detach()),
         **stratified_diag,
     }
 
-    active_loss = {
-        "full": full_loss,
-        "causal_prefix_truncation": truncated_loss,
-        "stratified_weighting": stratified_loss,
+    active_loss, active_pairwise = {
+        "full": (full_loss, full_pairwise),
+        "causal_prefix_truncation": (truncated_loss, truncated_pairwise),
+        "stratified_weighting": (stratified_loss, stratified_pairwise),
     }[config.active_policy]
     results["loss"] = active_loss
+    results["active_pairwise"] = active_pairwise
     return results
 
 
