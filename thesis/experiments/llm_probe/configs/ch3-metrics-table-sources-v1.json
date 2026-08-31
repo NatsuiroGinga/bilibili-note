@@ -201,6 +201,35 @@
      "source_schema": "tabm32_protocol_a_v1", "cell": "C11",
      "differentiable": true, "config_type": "论文配方", "evidence_level": "未运行",
      "run_id": "ch3-tabm32-paper-recipe-protocol-a-seed42-v1",
-     "pending_reason": "版本化接入已预留，但真实聚合制品尚未形成", "notes": "不得伪造空结果"}
+     "pending_reason": "版本化接入已预留，但真实聚合制品尚未形成", "notes": "不得伪造空结果"},
+
+    {"display_name": "裸FT-Transformer（CEM-BER四格C00）", "root": "ch4_worktree", "available": true,
+     "relative_path": "diagnostics/ch3-ft-c00-dual-selection-cuda-formal-v1/receipts/selection.json",
+     "source_schema": "ft_dual_selection_v1", "cell": "ch3-ft-c00",
+     "differentiable": true, "config_type": "四格基线", "evidence_level": "源年单次运行直接可比",
+     "run_id": "ch3-ft-c00-dual-selection-cuda-formal-v1",
+     "notes": "目标年读数由封印后 LSPR24 描述性评价另行提供，本条只含源年"},
+
+    {"display_name": "FT＋因果实体记忆（CEM-BER四格C10）", "root": "ch4_worktree", "available": true,
+     "relative_path": "diagnostics/ch3-ft-c10-entity-memory-cuda-formal-v1/receipts/selection.json",
+     "source_schema": "ft_dual_selection_v1", "cell": "ch3-ft-c10",
+     "differentiable": true, "config_type": "四格单机制", "evidence_level": "源年单次运行直接可比",
+     "run_id": "ch3-ft-c10-entity-memory-cuda-formal-v1",
+     "notes": "推理期参数 1075196，含 CEM 交叉注意力 150913；墙钟为续训段，非整臂"},
+
+    {"display_name": "FT＋预算感知实体排序（CEM-BER四格C01）", "root": "ch4_worktree", "available": true,
+     "relative_path": "diagnostics/ch3-ft-c01-entity-ranking-cuda-formal-v1/receipts/selection.json",
+     "source_schema": "ft_dual_selection_v1", "cell": "ch3-ft-c01",
+     "differentiable": true, "config_type": "四格单机制", "evidence_level": "源年单次运行直接可比",
+     "run_id": "ch3-ft-c01-entity-ranking-cuda-formal-v1",
+     "notes": "BER 只改训练目标，推理期参数与 C00 相同为 924283；检查点 state_dict 已逐位核验一致"},
+
+    {"display_name": "FT＋因果状态共享（CEM-BER四格C11）", "root": "ch4_worktree", "available": false,
+     "relative_path": "diagnostics/ch3-ft-c11-cem-ber-cuda-formal-v1/receipts/selection.json",
+     "source_schema": "ft_dual_selection_v1", "cell": "ch3-ft-c11",
+     "differentiable": true, "config_type": "四格双机制", "evidence_level": "未完成",
+     "run_id": "ch3-ft-c11-cem-ber-cuda-formal-v1",
+     "pending_reason": "服务器关机中断且无 inflight.pt，须整臂重跑；重跑前须先推送排序阶段梯度检查点修复",
+     "notes": "四格交互项与 C11 最佳判据在本格齐备前不可评估，不得伪造空结果"}
   ]
 }
