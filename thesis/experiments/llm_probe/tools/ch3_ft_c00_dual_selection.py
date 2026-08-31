@@ -1398,10 +1398,6 @@ def _entity_ranking_bare_forward(
     micro = config["training"]["micro_batch_sequences"]
     logits_parts = []
     valid_parts = []
-    # 服务器真实首步显示：变长 depth 微批在 checkpoint 反向重算时，torch.compile
-    # 可能从静态图切换到动态图，导致前向/重算的 FFN 宽度元数据 255/256 不一致。
-    # 常规 CEM 逐流阶段继续使用编译模型；这里只把需要重算的纯模型段固定到原模块。
-    checkpoint_model = getattr(model, "_orig_mod", model)
     for start in range(0, indices.shape[0], micro):
         stop = start + micro
         numeric, categorical = view.features(indices[start:stop])
@@ -1455,6 +1451,10 @@ def _entity_ranking_memory_forward(
     micro = config["training"]["micro_batch_sequences"]
     logits_parts = []
     valid_parts = []
+    # 服务器真实首步显示：变长 depth 微批在 checkpoint 反向重算时，torch.compile
+    # 可能从静态图切换到动态图，导致前向/重算的 FFN 宽度元数据 255/256 不一致。
+    # 常规 CEM 逐流阶段继续使用编译模型；这里只把需要重算的纯模型段固定到原模块。
+    checkpoint_model = getattr(model, "_orig_mod", model)
 
     # 输入按 (entity, T23) 分组；若直接按连续行切微批，同一实体的多个片段会在一次
     # read 之后并行前向，既看不到前一片段刚写入的状态，也会触发 EntityMemoryState
