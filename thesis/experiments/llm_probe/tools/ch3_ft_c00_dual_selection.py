@@ -27,6 +27,10 @@ if str(TOOL_DIR) not in sys.path:
 
 import ch3_ft_transformer_field_token_protocol_a as base
 
+# 执行路径观测层。该模块顶层只导入标准库（torch 与 torch._dynamo 全部延迟到函数内），
+# 因此可以无条件在此导入，不破坏 --validate-config 在缺 numpy/torch 的 .venv 上跑通的既有约束。
+import ch3_ft_execution_path_receipt as execution_path
+
 # ch3_ft_entity_memory_interface 在其模块顶层无条件 import numpy，本文件的
 # --validate-config 路径必须在缺 numpy/torch 的 .venv 上也能跑通（既有约束，
 # 2026-08-28 实测确认：项目 .venv 缺 numpy 与 torch），因此这里不在模块顶层
@@ -785,7 +789,13 @@ def maybe_compile(model: Any, config: dict[str, Any], torch_module: Any) -> Any:
     return compiled
 
 
-def forward_bare(model: Any, numeric: Any, categorical: Any, valid: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any) -> Any:
+def forward_bare(
+    model: Any, numeric: Any, categorical: Any, valid: Any, device: Any, profile: dict[str, Any],
+    precision: Any, torch_module: Any, *, site: str = "flow_forward_bare_train",
+) -> Any:
+    # site 只服务执行路径收据：同一个 forward_bare 被训练、验证、C01 逐流阶段与零门
+    # 断言四处调用，收据必须能分辨它们各自实际进的是编译包装体还是原模块。
+    execution_path.LEDGER.record(site, model, checkpointed=False)
     numeric_t = torch_module.from_numpy(numeric).to(device)
     categorical_t = torch_module.from_numpy(categorical).to(device) if categorical is not None else None
     valid_t = torch_module.from_numpy(valid).to(device)
@@ -865,7 +875,10 @@ def validation_metrics(
             rows = validation_rows[start : start + batch_sequences]
             indices, valid, labels = view.gather_sequences(rows, config["training"]["sequence_length"])
             numeric, categorical = view.features(indices)
-            logits, _ = forward_bare(model, numeric, categorical, valid, device, profile, precision, torch_module)
+            logits, _ = forward_bare(
+                model, numeric, categorical, valid, device, profile, precision, torch_module,
+                site="flow_forward_bare_validation",
+            )
             scores = torch_module.sigmoid(logits.to(torch_module.float32)).cpu().numpy()
             selected_indices = indices[valid]
             require(not bool(seen[selected_indices].any()), "验证流被重复计分", EXIT_INPUT)
@@ -995,6 +1008,7 @@ def entity_memory_training_step(
         flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
         flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
 
+        execution_path.LEDGER.record("flow_forward_entity_memory_train", model, checkpointed=False)
         with precision.autocast_context(profile, device.type, torch_module):
             broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
             logits_flat, injected = model(flat_num, flat_cat, broadcast_memory, broadcast_valid)
@@ -1077,6 +1091,7 @@ def entity_memory_validation_metrics(
                 flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
                 flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
 
+                execution_path.LEDGER.record("flow_forward_entity_memory_validation", model, checkpointed=False)
                 broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
                 logits_flat, injected = model(flat_num, flat_cat, broadcast_memory, broadcast_valid)
                 logits = logits_flat.reshape(batch, length)
@@ -1161,8 +1176,14 @@ def assert_zero_gate_degeneracy(
     was_training = model.training
     model.eval()
     with torch_module.no_grad():
-        logits_a, _ = forward_bare(model, numeric, categorical, valid, device, profile, precision, torch_module)
-        logits_b, _ = forward_bare(reference, numeric, categorical, valid, device, profile, precision, torch_module)
+        logits_a, _ = forward_bare(
+            model, numeric, categorical, valid, device, profile, precision, torch_module,
+            site="flow_forward_bare_zero_gate_model",
+        )
+        logits_b, _ = forward_bare(
+            reference, numeric, categorical, valid, device, profile, precision, torch_module,
+            site="flow_forward_bare_zero_gate_reference",
+        )
     if was_training:
         model.train()
     require(torch_module.equal(logits_a, logits_b), "z1=0 路径 logits 与新建裸模型不是逐位相等", EXIT_RUNTIME)
@@ -1292,7 +1313,10 @@ def _flow_phase_bare(
     for start in range(0, effective, micro):
         stop = start + micro
         numeric, categorical = view.features(indices[start:stop])
-        logits, valid_t = forward_bare(model, numeric, categorical, valid[start:stop], device, profile, precision, torch_module)
+        logits, valid_t = forward_bare(
+            model, numeric, categorical, valid[start:stop], device, profile, precision, torch_module,
+            site="flow_forward_bare_combined",
+        )
         labels_t = torch_module.from_numpy(labels[start:stop]).to(device)
         mask32 = valid_t.to(torch_module.float32)
         with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
@@ -1354,6 +1378,7 @@ def _flow_phase_entity_memory(
         batch, length = micro_valid.shape
         flat_num = numeric_t.reshape(batch * length, numeric_t.shape[-1])
         flat_cat = categorical_t.reshape(batch * length, categorical_t.shape[-1]) if categorical_t is not None else None
+        execution_path.LEDGER.record("flow_forward_entity_memory_combined", model, checkpointed=False)
         with precision.autocast_context(profile, device.type, torch_module):
             broadcast_memory, broadcast_valid = _broadcast_segment_memory(segment_memory, segment_valid, batch, length)
             logits_flat, injected = model(flat_num, flat_cat, broadcast_memory, broadcast_valid)
@@ -1400,12 +1425,24 @@ def _entity_ranking_bare_forward(
     ``use_reentrant=False`` 为显式指定：目标机 PyTorch 2.13.0+cu130 的
     ``torch.utils.checkpoint.checkpoint`` 签名中该参数默认 ``None`` 并会告警，
     非重入实现对本处的多输出与 autocast 组合支持更完整（签名已在目标机实测核验）。
+
+    2026-08-31 统一执行路径：检查点内的纯模型段固定走原模块（即时执行），与
+    ``_entity_ranking_memory_forward`` 完全一致。此前本函数传入的是编译包装体，
+    目标机实测（``.Codex/docs/RWKV/2026-08-31-四格编译路径统一/notes.md`` 第三节）
+    该组合会真实进入 Dynamo（``frames total=3 ok=3``、``unique_graphs=2``）并因
+    等长微批加尾部残批的两种形状生成**动态形状核**（``aten.addmm_s77_192_192``），
+    正是提交 ``0a47546`` 记录的「前向与重算 FFN 宽度元数据 255/256 不一致」的成因；
+    而传原模块时 ``counters`` 全空，即 Dynamo 完全不介入。因此本改动同时满足恢复卡
+    门禁第 2 条「C01 与 C11 的实体排序检查点统一即时执行」并消除该类硬失败。
+    逐流骨干阶段不受影响，仍走编译路径。
     """
     from torch.utils.checkpoint import checkpoint
 
     micro = config["training"]["micro_batch_sequences"]
     logits_parts = []
     valid_parts = []
+    checkpoint_model = getattr(model, "_orig_mod", model)
+    execution_path.LEDGER.record("ranking_forward_bare", checkpoint_model, checkpointed=True)
     for start in range(0, indices.shape[0], micro):
         stop = start + micro
         numeric, categorical = view.features(indices[start:stop])
@@ -1422,7 +1459,7 @@ def _entity_ranking_bare_forward(
         def _bare_segment_forward(num_input: Any, cat_input: Any) -> Any:
             """被检查点包裹的纯计算段：无状态写入，重算安全。"""
             with precision.autocast_context(profile, device.type, torch_module):
-                return model(num_input, cat_input).reshape(batch, length)
+                return checkpoint_model(num_input, cat_input).reshape(batch, length)
 
         logits = checkpoint(_bare_segment_forward, flat_num, flat_cat, use_reentrant=False)
         logits_parts.append(logits)
@@ -1462,7 +1499,9 @@ def _entity_ranking_memory_forward(
     # 服务器真实首步显示：变长 depth 微批在 checkpoint 反向重算时，torch.compile
     # 可能从静态图切换到动态图，导致前向/重算的 FFN 宽度元数据 255/256 不一致。
     # 常规 CEM 逐流阶段继续使用编译模型；这里只把需要重算的纯模型段固定到原模块。
+    # 2026-08-31：``_entity_ranking_bare_forward`` 已作同样处理，两条排序路径统一即时执行。
     checkpoint_model = getattr(model, "_orig_mod", model)
+    execution_path.LEDGER.record("ranking_forward_entity_memory", checkpoint_model, checkpointed=True)
 
     # 输入按 (entity, T23) 分组；若直接按连续行切微批，同一实体的多个片段会在一次
     # read 之后并行前向，既看不到前一片段刚写入的状态，也会触发 EntityMemoryState
@@ -1752,6 +1791,7 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
     import numpy as np
 
     output_root, science_receipt, runtime_receipt = initialize_run(config, config_path)
+    execution_path.LEDGER.reset()
     LOGGER.info("启动真实运行校准：run_id=%s", config["identity"]["run_id"])
     atomic_json(output_root / "status.json", {
         "run_id": config["identity"]["run_id"], "state": "running", "stage": "probe-runtime",
@@ -1870,6 +1910,11 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
     }
     atomic_json(output_root / "environment-receipt.json", environment_receipt(config, torch_module, device, profile))
     atomic_json(output_root / "budget-receipt.json", receipt)
+    execution_path.write_execution_path_receipt(
+        output_root, config, stage="probe-runtime", project_root=str(PROJECT_ROOT),
+        atomic_json=atomic_json, logger=LOGGER,
+        extra={"one_optimizer_step_seconds": step_seconds, "full_validation_seconds": validation["seconds"]},
+    )
     atomic_json(output_root / "status.json", {
         "run_id": config["identity"]["run_id"], "state": "finished", "stage": "probe-runtime",
         "exit_code": 0, "target_reads": 0,
@@ -1979,6 +2024,9 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
 
     require(config["budget"]["state"] == "frozen", "筛选预算尚未冻结，只允许 probe-runtime", EXIT_CONFIG)
     output_root, science_receipt, runtime_receipt = initialize_run(config, config_path)
+    # 执行路径台账按进程重置：断点续训会重新起进程，收据因此记录的是「本次进程段」的
+    # 调用路径，而不是跨中断累积值。这与 Dynamo counters 的进程内累积语义一致。
+    execution_path.LEDGER.reset()
     torch_module, device, profile, precision = resolve_runtime(config)
     base_config = effective_base_config(config)
     arrays, train_rows, validation_rows, view = prepare_data(config, base_config, output_root)
@@ -2187,6 +2235,12 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             numpy_rng=entity_ranking_rng,
         )
         atomic_torch(inflight_path, payload, torch_module)
+        # 每轮落一次：运行被中断时收据仍反映已发生的实际调用路径与图断裂，
+        # 不必等到全部轮次跑完。
+        execution_path.write_execution_path_receipt(
+            output_root, config, stage="train", project_root=str(PROJECT_ROOT),
+            atomic_json=atomic_json, logger=LOGGER, extra={"epoch": epoch},
+        )
         print(json.dumps({
             "epoch": epoch,
             "flow_ap": metrics["validation_flow_ap"],
@@ -2221,6 +2275,11 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         "target_reads": 0,
     }
     atomic_json(output_root / "receipts" / "selection.json", receipt)
+    execution_path.write_execution_path_receipt(
+        output_root, config, stage="train-finished", project_root=str(PROJECT_ROOT),
+        atomic_json=atomic_json, logger=LOGGER,
+        extra={"epochs_completed": config["budget"]["epochs"], "wall_seconds": receipt["wall_seconds"]},
+    )
     atomic_json(output_root / "status.json", {
         "run_id": config["identity"]["run_id"], "state": "finished", "stage": "train",
         "exit_code": 0, "target_reads": 0,
