@@ -1398,6 +1398,10 @@ def _entity_ranking_bare_forward(
     micro = config["training"]["micro_batch_sequences"]
     logits_parts = []
     valid_parts = []
+    # 服务器真实首步显示：变长 depth 微批在 checkpoint 反向重算时，torch.compile
+    # 可能从静态图切换到动态图，导致前向/重算的 FFN 宽度元数据 255/256 不一致。
+    # 常规 CEM 逐流阶段继续使用编译模型；这里只把需要重算的纯模型段固定到原模块。
+    checkpoint_model = getattr(model, "_orig_mod", model)
     for start in range(0, indices.shape[0], micro):
         stop = start + micro
         numeric, categorical = view.features(indices[start:stop])
@@ -1507,7 +1511,7 @@ def _entity_ranking_memory_forward(
                     broadcast_memory, broadcast_valid = _broadcast_segment_memory(
                         seg_mem, seg_valid, batch_size, sequence_length
                     )
-                    logits_flat, injected_local = model(
+                    logits_flat, injected_local = checkpoint_model(
                         num_input, cat_input, broadcast_memory, broadcast_valid
                     )
                     return logits_flat.reshape(batch_size, sequence_length), injected_local
