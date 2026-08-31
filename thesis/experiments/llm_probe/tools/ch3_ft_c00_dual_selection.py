@@ -178,8 +178,15 @@ def validate_config(config: dict[str, Any]) -> None:
     require(runtime.get("allow_device_fallback") is False, "禁止设备回退")
     require(runtime.get("allow_cpu_op_fallback") is False, "禁止算子回退 CPU")
     if identity["run_tier"] == "screening_only":
-        require(device_type == "mps", "本机筛选必须使用 MPS")
-        require(config["checkpoint"]["formal_resume_eligible"] is False, "MPS 检查点不得正式续训")
+        # 2026-08-31 放宽：原断言为 device_type == "mps"，把「筛选」等同于「本机 MPS」。
+        # 该等同是早期假设而非必然——根 AGENTS.md 规定 screening_only「可自选微批量、
+        # 精度、容量、训练与评估预算和资源」，未限定设备；而本机 MPS 跑不动
+        # 20 轮 × 1000 步的机制筛选臂，该门会拦下本可正常进行的实验。
+        # 筛选与正式的隔离由下面两条保证，不依赖设备类型：
+        # run_tier 字段本身，以及 formal_resume_eligible 必须为 False。
+        # 实际设备写入运行收据，跨设备结果不得互相比较。
+        require(device_type in {"mps", "cuda"}, "筛选运行的设备只能是 mps 或 cuda")
+        require(config["checkpoint"]["formal_resume_eligible"] is False, "筛选检查点不得正式续训")
     else:
         require(device_type == "cuda", "正式运行必须使用 CUDA")
         require(config["checkpoint"]["formal_resume_eligible"] is True, "CUDA 正式检查点须允许同身份恢复")

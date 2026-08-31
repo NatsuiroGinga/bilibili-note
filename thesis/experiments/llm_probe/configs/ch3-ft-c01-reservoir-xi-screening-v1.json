@@ -105,10 +105,11 @@
   },
   "checkpoint": {
     "schema_version": "ch3-ft-candidate-unified-checkpoint-v2",
-    "formal_resume_eligible": true,
+    "formal_resume_eligible": false,
     "cross_profile_resume_allowed": false,
     "atomic_boundary": "complete_optimizer_step_and_epoch",
-    "resume_note": "v2 起 mechanism_state 纳入调度器游标、EntityMemoryState（稀疏）、CVaR 阈值与 numpy 采样 RNG；z1/z2 臂支持原子续训。v1 检查点被显式拒绝。"
+    "resume_note": "v2 起 mechanism_state 纳入调度器游标、EntityMemoryState（稀疏）、CVaR 阈值与 numpy 采样 RNG；z1/z2 臂支持原子续训。v1 检查点被显式拒绝。",
+    "screening_note": "筛选臂检查点不得正式续训，也不得晋级为四格制品；晋级路径是同硬件按冻结合同重跑完整四格。"
   },
   "evaluation": {
     "entity_aggregation": "maximum_over_validation_flows",
