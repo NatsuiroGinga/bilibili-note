@@ -828,22 +828,34 @@ def _gather_transformed_numeric(
     require(total_rows > 0, "训练区没有任何有效流，无法拟合 PLE 箱边界", EXIT_INPUT)
     sample_cap = int(mechanism["bin_fit_sample_cap"])
     if total_rows > sample_cap:
-        generator = np.random.default_rng(config["training"]["seed"])
-        flow_indices = np.sort(generator.choice(flow_indices, size=sample_cap, replace=False))
+        # 用 legacy RandomState 而不是 default_rng：NEP 19 冻结了 RandomState 的流，
+        # Generator 的分布方法允许跨 numpy 版本改变取值序列。箱边界是随运行冻结的制品，
+        # 本机（numpy 2.4.6）与服务器必须抽到同一批行，故与 base.source_split 用同一种
+        # 生成器。抽到的下标升序排列，使 mmap 读取保持顺序局部性。
+        permutation = np.random.RandomState(config["training"]["seed"]).permutation(total_rows)
+        flow_indices = np.sort(flow_indices[permutation[:sample_cap]])
     sampled_rows = int(flow_indices.size)
     field_count = view.transform.numeric_field_count
     values = np.empty((sampled_rows, field_count), dtype=np.float32)
     started = time.time()
+    heartbeat = max(1, sampled_rows // 10)
+    LOGGER.info(
+        "开始取训练区数值用于 PLE 箱边界拟合：训练有效流=%d，本次取=%d，分块=%d",
+        total_rows, sampled_rows, ENTITY_GATED_PLE_FIT_CHUNK_ROWS,
+    )
     for start in range(0, sampled_rows, ENTITY_GATED_PLE_FIT_CHUNK_ROWS):
         stop = min(start + ENTITY_GATED_PLE_FIT_CHUNK_ROWS, sampled_rows)
         raw = np.asarray(view.matrix[flow_indices[start:stop]], dtype=np.float32)
         numeric, _categorical = view.transform.apply(raw)
         values[start:stop] = numeric
-        elapsed = time.time() - started
-        LOGGER.info(
-            "PLE 箱边界取数进度=%d/%d，吞吐=%.0f流/秒，已用=%.1f秒",
-            stop, sampled_rows, stop / max(elapsed, 1e-9), elapsed,
-        )
+        if stop == sampled_rows or stop // heartbeat != start // heartbeat:
+            elapsed = time.time() - started
+            throughput = stop / max(elapsed, 1e-9)
+            LOGGER.info(
+                "PLE 箱边界取数进度=%d/%d，吞吐=%.0f流/秒，已用=%.1f秒，预计剩余=%.1f秒",
+                stop, sampled_rows, throughput, elapsed,
+                (sampled_rows - stop) / max(throughput, 1e-9),
+            )
     return values, {
         "training_effective_flows": total_rows,
         "bin_fit_sample_cap": sample_cap,
