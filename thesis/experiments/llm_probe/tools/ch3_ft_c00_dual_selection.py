@@ -446,9 +446,11 @@ def validate_config(config: dict[str, Any]) -> None:
             isinstance(num_length_buckets, int) and not isinstance(num_length_buckets, bool) and num_length_buckets >= 1,
             "num_length_buckets 必须是 ≥1 的整数",
         )
-        # xi_learning_rate 自 2026-08-31 起**不再驱动训练**：xi 改由跨步水库直接取
-        # 分位数，不做子梯度更新。字段与本校验一并保留，否则冻结配置与既有检查点
-        # 加载会失败；配置侧用 xi_learning_rate_deprecated 标注其已弃用。
+        # xi_learning_rate 2026-08-31 曾短暂改为不驱动训练（xi 改由跨步水库直接取
+        # 分位数）；该修法已于 2026-09-01 被预注册判据否决并回退（见
+        # .Codex/docs/RWKV/2026-09-01-BER水库分位数修法裁决.md 的「回退实施」节）。
+        # xi_learning_rate 现重新驱动训练：_ranking_phase 用它对 get()/commit() 取出
+        # 的叶张量做子梯度 SGD 更新，与本字段引入时（2026-08-30 之前）的语义一致。
         xi_learning_rate = entity_ranking.get("xi_learning_rate")
         require(
             isinstance(xi_learning_rate, (int, float)) and not isinstance(xi_learning_rate, bool) and xi_learning_rate > 0,
@@ -2324,11 +2326,17 @@ def _ranking_phase(
     eff_budgets = [
         ranking.effective_budget(int(k), sampler.negative_pool_size, ranking_cfg["n_neg"]) for k in xi_state.budgets
     ]
-    # 2026-08-31：xi 改由跨步水库直接取分位数（Rockafellar-Uryasev 最优点），不再用
-    # 子梯度 SGD 追踪。取值必须发生在 observe() 之前——阈值只能由**严格过去**的样本
-    # 估计，本步样本参与本步阈值等于信息泄漏。detach 不影响 theta 的梯度路径，
-    # 因为 r_k = xi_k + hinge.sum/k 的第一项对 theta 是常数、第二项经 pairwise 有梯度。
-    xi = xi_state.quantile(positive_entity_ids, eff_budgets, int(ranking_cfg["n_neg"])).to(device)
+    # 2026-09-01 回退：跨步水库分位数修法已被预注册判据正式否决（见
+    # .Codex/docs/RWKV/2026-09-01-BER水库分位数修法裁决.md）——第 15-20 轮六档活动率
+    # 均值对目标 β 的比值为 0/0/0/0.391/0.488/0.391，全部低于 0.5 下界，且源年最佳
+    # 实体 AP 0.9295 低于子梯度 SGD 实现的 0.9537；根因是批内采样规模而非估计方法，
+    # 换估计器修不好。故 xi 改回子梯度 SGD 追踪：get() 取出持久表中的当前值（严格
+    # 来自过去步 commit() 的写入，本步样本尚未参与），作为 requires_grad=True 的叶
+    # 张量参与 cvar_pauc_loss 的反传图，backward 后 xi.grad 即子梯度，见下方 commit()。
+    # 水库实现（quantile()/observe()）保留在 CvarThresholdState 中不删——它是已执行
+    # 筛选实验的证据，且旧检查点的 state_dict 仍可能引用其字段——只是本函数不再调用。
+    xi = xi_state.get(positive_entity_ids).to(device)
+    xi.retain_grad()
 
     with precision.fp32_island(entity_logits, device_type=device.type, torch_module=torch_module) as (entity_logits32,):
         bag_config = ranking.BagPolicyConfig(
@@ -2357,10 +2365,9 @@ def _ranking_phase(
         )
     loss_rank.backward()
 
-    # 反传之后才把本步样本写入水库，供后续步估计阈值。顺序不可与上面的 quantile()
-    # 对调。喂的是 active_policy 那一份 L_pn：三种袋处置的有效流掩码不同、L_pn 分布
-    # 也不同，水库只能吃真正驱动反传的那一种。
-    xi_state.observe(positive_entity_ids, bag_result["active_pairwise"])
+    require(xi.grad is not None, "xi 未接收到梯度，检查是否进入了 cvar_pauc_loss 的反传图", EXIT_RUNTIME)
+    xi_updated = (xi.detach() - float(ranking_cfg["xi_learning_rate"]) * xi.grad).cpu()
+    xi_state.commit(positive_entity_ids, xi_updated)
 
     shared_params = _shared_parameters(model)
     g_rank = _flat_grad_from_params(shared_params, torch_module)
@@ -2379,9 +2386,10 @@ def _ranking_phase(
         "per_budget_subunit": bag_result["policies"][bag_config.active_policy].get("per_budget_subunit"),
         "effective_budgets": eff_budgets,
         "sampled_negative_count": int(ranking_cfg["n_neg"]),
-        # 水库占用中位数、最小值与满载比例：回答「各档分位数当前是否可用」，
-        # 落进每轮的 entity-ranking-diagnostics-{N}.json。
-        "xi_reservoir": xi_state.reservoir_diagnostics(),
+        # 2026-09-01 回退：xi_reservoir 诊断键已随水库估计器一并移除——本函数不再
+        # 调用 observe()，水库永远空载，继续上报会是误导性的常零收据。水库实现本身
+        # 仍保留在 CvarThresholdState 中（reservoir_diagnostics() 未删），只是不再
+        # 被本函数调用。
         # 调研报告 2.4 节四个可证伪观测量的**逐步**来源，全部是标量：
         # pairwise_loss_mean 供轮内算 pair_loss_batch_var（观测量三）；
         # nonargmax_grad_share 是观测量一；entity_tail_aggregation.inner_tail_frac
