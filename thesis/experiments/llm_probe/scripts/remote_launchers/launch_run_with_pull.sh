@@ -20,6 +20,8 @@ set -o pipefail
 
 CONFIG_PATH="$1"
 RUN_ID="$2"
+# 第三个参数透传给训练入口，用于 --resume 等模式。默认 --run。
+RUN_MODE="${3:---run}"
 PULL_INTERVAL_SECONDS="${PULL_INTERVAL_SECONDS:-300}"
 PULL_MAX_SIZE="${PULL_MAX_SIZE:-5m}"
 
@@ -45,14 +47,16 @@ mkdir -p "$LOCAL_RUN_DIR"
 
 echo "[1/2] 在服务器启动训练：$RUN_ID"
 expect tools/remote_exec/gpu_env_quiet.exp \
-  "cd $REMOTE_ROOT && mkdir -p logs runs/diagnostics/$RUN_ID && source tools/env/activate.sh >/dev/null 2>&1 && setsid nohup uv run --no-sync python tools/ch3_ft_c00_dual_selection.py --config $CONFIG_PATH --run < /dev/null > logs/$RUN_ID.log 2>&1 & echo __CODEX_RESULT_BEGIN__; echo launched; echo __CODEX_RESULT_END__" \
+  "cd $REMOTE_ROOT && mkdir -p logs runs/diagnostics/$RUN_ID && source tools/env/activate.sh >/dev/null 2>&1 && setsid nohup uv run --no-sync python tools/ch3_ft_c00_dual_selection.py --config $CONFIG_PATH $RUN_MODE < /dev/null >> logs/$RUN_ID.log 2>&1 & echo __CODEX_RESULT_BEGIN__; echo launched; echo __CODEX_RESULT_END__" \
   2>/dev/null | tail -2
 
 # 回传守护：与训练同时起，脱离当前会话，会话结束后继续存活。
 # 只拉轻量制品（默认 5 MiB 以下），避免每轮把大检查点拖回来；
 # 训练结束后再拉一次全量由人工或后续步骤触发。
 echo "[2/2] 起本机回传守护：每 ${PULL_INTERVAL_SECONDS} 秒一次，单文件上限 ${PULL_MAX_SIZE}"
-setsid nohup bash -c '
+# 用 nohup 而非 setsid：本机是 macOS，没有 setsid（Linux 命令）。
+# nohup 忽略 HUP 信号，配合 & 与后面的 disown 即可让守护脱离当前 shell 存活。
+nohup bash -c '
   while true; do
     GPU_SSH_ACTIVE="'"$GPU_SSH_ACTIVE"'" GPU_PWD_ACTIVE="'"$GPU_PWD_ACTIVE"'" \
       expect '"$LOCAL_ROOT"'/tools/remote_exec/gpu_rsync_pull.exp \
@@ -62,5 +66,16 @@ setsid nohup bash -c '
   done
 ' < /dev/null >> "$PULL_LOG" 2>&1 &
 
-echo "回传守护 PID=$!，日志：$PULL_LOG"
+PULL_PID=$!
+disown 2>/dev/null || true
+
+# 立刻核验守护真的活着——不核验就等于没起。历史教训：setsid 在 macOS 不存在，
+# 而 bash -n 只查语法不查命令是否可用，静默失败会让"回传已起"变成假象。
+sleep 2
+if kill -0 "$PULL_PID" 2>/dev/null; then
+  echo "回传守护 PID=$PULL_PID 已存活，日志：$PULL_LOG"
+else
+  echo "回传守护启动失败，请查看 $PULL_LOG" >&2
+  exit 5
+fi
 echo "本机运行目录：$LOCAL_RUN_DIR"
