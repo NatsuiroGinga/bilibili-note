@@ -1152,6 +1152,18 @@ def maybe_compile(model: Any, config: dict[str, Any], torch_module: Any) -> Any:
     与原模块共享同一批 ``Parameter`` 对象，先建优化器可避免参数身份分叉。
     """
     settings = config["runtime"].get("torch_compile")
+    # 2026-09-01 用户裁决：本仓库统一停用 torch.compile，不再逐配置开关。
+    # 此处无条件早退，使所有运行走即时执行；下方编译分支保留但不可达，
+    # 以便将来若要恢复只需删除这三行。已跑完运行的配置是冻结证据，不修改，
+    # 因此对仍写着 enabled=true 的旧配置只做披露，不阻断——执行路径收据记录实际路径。
+    if isinstance(settings, dict) and settings.get("enabled"):
+        LOGGER.warning(
+            "配置 runtime.torch_compile.enabled=true，但本仓库已统一停用 torch.compile；"
+            "本次按即时执行运行，以执行路径收据的实际记录为准",
+        )
+    return model
+
+    settings = config["runtime"].get("torch_compile")
     if not isinstance(settings, dict) or not settings.get("enabled"):
         return model
     mode = settings.get("mode", "default")
