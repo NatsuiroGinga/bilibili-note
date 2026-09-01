@@ -44,3 +44,34 @@ aliases:
 - 官方页：<https://proceedings.mlr.press/v162/wang22ak.html>
 - 证据强度：直接占用通用 FCCO／SOX 优化框架；不包含实体包内无放回矩抽样或网络流量任务。
 
+### 2026-09-01 引用核实：本篇与「Hu 2023」是两篇不同论文
+
+`.Codex/docs/RWKV/2026-09-01-第三章公式来源与改造实质盘点.md` 第 4.2 节曾登记一处
+「引用不一致待核」，怀疑可行性调研报告把本篇的作者年份写错成 Hu 2023。**核实结论：
+不是笔误，是两篇不同的真实论文，且都属 FCCO 家族。**
+
+- 本篇：Bokun Wang 与 Tianbao Yang，*Finite-Sum Coupled Compositional Stochastic
+  Optimization: Theory and Applications*，ICML 2022，PMLR v162，Zotero `XJVCGLYL`。
+  提出 FCCO 框架与 SOX 算法；式(1) 在物理页 1，式(2) 与算法 1 在物理页 3–4。
+  **本篇没有物理页 8 式(8)–(9)**。
+- 「Hu 2023」：Quanqi Hu、Dixian Zhu 与 Tianbao Yang，*Non-Smooth Weakly-Convex
+  Finite-sum Coupled Compositional Optimization*，NeurIPS 2023，arXiv:2310.03234，
+  56 物理页。是同一资深作者 Tianbao Yang 的**非光滑弱凸扩展**，题名字面即含
+  「Finite-sum Coupled Compositional Optimization」。笔记见
+  `wiki/papers/methodology/ft-mechanisms/2023-Hu-多示例双向部分AUC.md`，
+  原件 `raw/papers/methodology/ft-mechanisms/2023-Hu-Multi-Instance-TPAUC-NeurIPS.pdf`
+  （SHA-256 `3854226246c4a9364f4b88096a4e221d74c915086f494cff87c03d08c72bcb3c`，已实测比对一致）。
+- **页码与公式编号核验通过**（2026-09-01 用 `mineru-open-api extract --pages 8-8`
+  单页提取核对）：Hu 2023 物理页 8 确含式(8) 的 TPAUC 代理损失
+  `min_w (1/n_+)(1/n_−) Σ_{X_i∈S_+^↑[1,k_1]} Σ_{X_j∈S_-^↓[1,k_2]} ℓ(h_w(X_j) − h_w(X_i))`，
+  其中 `k_1 = ⌊n_+ α⌋`、`k_2 = ⌊n_− β⌋`；式(9) 为其 FCCO 改写
+  `min_{w,s',s} (1/n_+) Σ_{X_i∈S_+} f_i(ψ_i(w, s_i), s')`。同一物理页 8 还给出
+  多示例袋定义 `X_i = {x_i^1,…,x_i^{m_i}}`、均值池化
+  `h_w(X) = (1/|X|) Σ_{x∈X} e(w_e;x)^⊤ w_c`，以及可扩展到平滑最大池化与注意力池化的声明。
+- **本篇的「不可直接声称」三条不受影响**，仍然有效。需要额外注意的是：
+  「袋级池化 ∘ 部分 AUC」这一具体复合的正式来源是 **Hu 2023**，不是本篇；
+  正文引用时必须区分，不得把本篇写成该复合的出处。
+
+相关笔记：[[wiki/papers/methodology/ranking/2017-Fan-ATk平均顶k损失|ATk]]、
+[[wiki/papers/methodology/ranking/2022-Hu-SoRR排序区间和损失|SoRR / AoRR]]。
+
