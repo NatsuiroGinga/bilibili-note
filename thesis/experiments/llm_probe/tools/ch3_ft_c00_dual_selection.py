@@ -106,6 +106,53 @@ ENTITY_GATED_PLE_CANDIDATE_KEYS: dict[str, str] = {
 SCIENCE_CONTRACT_DUAL_SELECTION = "ch3-ft-c00-dual-selection-science-v1"
 SCIENCE_CONTRACT_ENTITY_GATED_PLE = "ch3-ft-entity-gated-ple-science-v1"
 
+# ---------------------------------------------------------------------------
+# 机制一第二候选：实体内尾部聚合（经验 CVaR_α 的 ATk 形式）的纯字符串与纯校验常量。
+# 算术实现只有一份，在 ch3_ft_entity_ranking_loss.tail_aggregate；这里同样只放
+# 不依赖 torch/numpy 的常量与校验，使 --validate-config 能在缺 numpy/torch 的
+# 项目 .venv 上跑通（既有约束，理由与 entity_gated_ple 那一组常量相同）。
+#
+# 参数裁决：`.Codex/docs/RWKV/2026-09-01-尾部聚合参数裁决/裁决报告.md`。
+# α = 0.5 由两条结构约束唯一确定，已随该报告冻结，**不得按任何实验读数回调**。
+# ---------------------------------------------------------------------------
+
+# 聚合算子枚举。当前只有一种；路径 C（LSE 软聚合）是预注册退路，未实现，
+# 因此不在这里预留键——真要启用时按裁决报告第四节补登记 τ0 的尺度诊断依据。
+ENTITY_TAIL_AGGREGATION_KINDS = ("atk_tail_mean",)
+
+# 冻结的尾部水平。写成常量而不是只放在配置里，是为了让「配置写了别的值」这件事
+# 可被机械发现：validate_config 断言配置值等于本常量。
+ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA = 0.5
+
+# 魔法数字登记表的必填字段，逐条对应根 AGENTS.md 的门禁项与裁决报告第三节。
+ENTITY_TAIL_AGGREGATION_PROVENANCE_KEYS = (
+    "purpose_and_value",
+    "literature",
+    "derivation",
+    "real_data_diagnostic",
+    "scope",
+    "touches_target_labels",
+    "verification_status",
+)
+
+# 配置块允许出现的键，白名单式校验。**不含任何截断长度键**：排序袋的 8192 上限
+# 只能来自 mechanism.entity_ranking.truncate_length，另立一个就会出现两个可以
+# 不一致的袋合同（裁决报告第五节第 4 条「沿用截断 8192」）。
+ENTITY_TAIL_AGGREGATION_ALLOWED_KEYS = ("enabled", "kind", "alpha", "numeric_provenance")
+
+# 评价侧实体聚合口径字符串。z1'=0 保持历史值不变，z1'=1 换成尾部聚合口径——
+# 该字段进 science_projection，因此两臂的科学身份天然不同，不会撞车。
+ENTITY_AGGREGATION_MAXIMUM = "maximum_over_validation_flows"
+ENTITY_AGGREGATION_TAIL_MEAN = "entity_tail_mean_over_validation_flows"
+
+# 候选身份键：尾部聚合 z1' 与 BER z2 组成新的一组四格，键必须与 CEM 那组区分，
+# 否则两代机制一的运行会落在同一个科学身份上。
+ENTITY_TAIL_AGGREGATION_CANDIDATE_KEYS: dict[bool, str] = {
+    False: "entity-tail-aggregation-c10-dual-selection",
+    True: "entity-tail-aggregation-ber-c11-dual-selection",
+}
+SCIENCE_CONTRACT_ENTITY_TAIL_AGGREGATION = "ch3-ft-entity-tail-aggregation-science-v1"
+
 # 箱边界拟合的分块行数：与 base._gather_training_column 的分块读法同量级，
 # 每块显式分配上界为 chunk × 83 × 4B（原值）加 chunk × F × 4B（变换后），
 # 取 131,072 时约 43 MB + 42 MB，与冻结基数收据的 chunk_rows 同一量级。
@@ -210,6 +257,50 @@ def validate_config(config: dict[str, Any]) -> None:
     entity_gated_ple = mechanism.get("entity_gated_ple", {})
     entity_gated_ple_enabled = entity_gated_ple.get("enabled", False)
     require(isinstance(entity_gated_ple_enabled, bool), "mechanism.entity_gated_ple.enabled 必须是布尔值")
+    # 实体内尾部聚合同样就地缺省读取，不进 DEFAULT_MECHANISM（理由见该字典上方注释：
+    # 给它加键会改变缺 mechanism 键的 C00 配置的科学身份，拒掉既有在途检查点）。
+    entity_tail_aggregation = mechanism.get("entity_aggregation", {})
+    entity_tail_aggregation_enabled = entity_tail_aggregation.get("enabled", False)
+    require(
+        isinstance(entity_tail_aggregation_enabled, bool),
+        "mechanism.entity_aggregation.enabled 必须是布尔值",
+    )
+    if entity_tail_aggregation_enabled:
+        unknown = set(entity_tail_aggregation) - set(ENTITY_TAIL_AGGREGATION_ALLOWED_KEYS)
+        require(
+            not unknown,
+            f"mechanism.entity_aggregation 含未登记键 {sorted(unknown)}；"
+            "特别是不得另立截断长度键，排序袋上限只能来自 entity_ranking.truncate_length",
+        )
+        require(
+            entity_tail_aggregation.get("kind") in ENTITY_TAIL_AGGREGATION_KINDS,
+            "mechanism.entity_aggregation.kind 取值不合法",
+        )
+        alpha = entity_tail_aggregation.get("alpha")
+        require(
+            isinstance(alpha, float) and alpha == ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA,
+            f"mechanism.entity_aggregation.alpha 必须是已冻结的 {ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA}"
+            "（2026-09-01 尾部聚合参数裁决报告，两条结构约束唯一确定，不得按实验读数回调）",
+        )
+        provenance = entity_tail_aggregation.get("numeric_provenance")
+        require(isinstance(provenance, dict), "mechanism.entity_aggregation.numeric_provenance 必须是对象")
+        for key in ENTITY_TAIL_AGGREGATION_PROVENANCE_KEYS:
+            value = provenance.get(key)
+            require(
+                (isinstance(value, str) and value.strip()) or isinstance(value, bool),
+                f"numeric_provenance.{key} 缺失或为空——魔法数字门禁要求逐项登记",
+            )
+        require(
+            provenance.get("touches_target_labels") is False,
+            "numeric_provenance.touches_target_labels 必须为 false（α 的推导零接触 LSPR24 与 y23）",
+        )
+        # 三个机制一候选改的是同一个位置（实体分数），同开会得到一个从未设计过的
+        # 模型，其读数无法解释。与 M-E 的互斥断言同型。
+        require(
+            not entity_memory_enabled and not entity_gated_ple_enabled,
+            "尾部聚合臂必须 entity_memory=false 且 entity_gated_ple=false"
+            "（三者都是机制一候选，改的是同一处实体分数）",
+        )
     if entity_gated_ple_enabled:
         # M-E 改的是分词器本身，与机制一的交叉注意力、机制二的第二数据流互不兼容；
         # 三者同开会得到一个从未设计过的模型，其读数无法解释。
@@ -242,6 +333,9 @@ def validate_config(config: dict[str, Any]) -> None:
         )
         expected_candidate_key = ENTITY_GATED_PLE_CANDIDATE_KEYS[gate_mode]
         expected_science_contract = SCIENCE_CONTRACT_ENTITY_GATED_PLE
+    elif entity_tail_aggregation_enabled:
+        expected_candidate_key = ENTITY_TAIL_AGGREGATION_CANDIDATE_KEYS[bool(entity_ranking_enabled)]
+        expected_science_contract = SCIENCE_CONTRACT_ENTITY_TAIL_AGGREGATION
     else:
         expected_candidate_key = {
             (False, False): "bare-ft-c00-dual-selection",
@@ -393,7 +487,15 @@ def validate_config(config: dict[str, Any]) -> None:
     checkpoint = config.get("checkpoint", {})
     require(checkpoint.get("schema_version") == CHECKPOINT_SCHEMA_VERSION, "检查点模式不符")
     require(checkpoint.get("cross_profile_resume_allowed") is False, "禁止跨 profile 恢复")
-    require(config.get("evaluation", {}).get("entity_aggregation") == "maximum_over_validation_flows", "实体聚合口径不符")
+    # 评价侧聚合口径必须与机制开关一致：z1'=0 保持历史值，z1'=1 换成尾部聚合口径。
+    # 两个方向都断言，防止「开了机制却仍按 max 评价」或「没开机制却写了尾部口径」。
+    expected_entity_aggregation = (
+        ENTITY_AGGREGATION_TAIL_MEAN if entity_tail_aggregation_enabled else ENTITY_AGGREGATION_MAXIMUM
+    )
+    require(
+        config.get("evaluation", {}).get("entity_aggregation") == expected_entity_aggregation,
+        f"实体聚合口径不符：机制开关要求 {expected_entity_aggregation}",
+    )
     require(config["evaluation"].get("target_reads") == 0, "评价目标读取必须为零")
 
     base_config_path = resolve_project_path(config["base"]["config_path"])
@@ -625,6 +727,25 @@ def entity_gated_ple_enabled_from_config(config: dict[str, Any]) -> bool:
     """统一的 M-E 读取入口。缺省就地给出，不经 DEFAULT_MECHANISM（见该字典上方注释）。"""
     mechanism = config.get("mechanism", DEFAULT_MECHANISM)
     return bool(mechanism.get("entity_gated_ple", {}).get("enabled", False))
+
+
+def entity_tail_aggregation_enabled_from_config(config: dict[str, Any]) -> bool:
+    """统一的尾部聚合开关读取入口，缺省就地给出，不经 DEFAULT_MECHANISM。"""
+    mechanism = config.get("mechanism", DEFAULT_MECHANISM)
+    return bool(mechanism.get("entity_aggregation", {}).get("enabled", False))
+
+
+def entity_tail_aggregation_alpha_from_config(config: dict[str, Any]) -> float | None:
+    """尾部水平 α，未启用时为 ``None``。
+
+    ``None`` 是训练侧与评价侧共同的「按 max 聚合」信号：``tail_aggregate`` 见到
+    ``None`` 就取 `k ≡ 1`，宿主评价侧见到 ``None`` 就走原来的 ``np.maximum.at``。
+    两处因此不需要各自记住「关掉时该怎么办」。
+    """
+    if not entity_tail_aggregation_enabled_from_config(config):
+        return None
+    mechanism = config.get("mechanism", DEFAULT_MECHANISM)
+    return float(mechanism["entity_aggregation"]["alpha"])
 
 
 def build_role_of_entity(interface: dict[str, Any], entity: Any, entity_count: int) -> Any:
@@ -1296,6 +1417,11 @@ def validation_metrics(
 
     M-E 开启时按验证片段行索引取同一份预计算实体状态矩阵——验证区实体的 `c`、`Δ`
     同样只由该实体的严格过去片段决定，与训练区共用一份计算，不需要第二套口径。
+
+    实体聚合有两条分支，由 ``mechanism.entity_aggregation.enabled`` 选择：关闭时走
+    历史的 ``np.maximum.at``（逐位不变）；开启时改调
+    ``ch3_ft_entity_ranking_loss.tail_aggregate``——与训练侧**同一份**算术实现，
+    评价期用完整袋（不受排序袋 8192 截断偏差影响）。
     """
     import numpy as np
     from sklearn.metrics import average_precision_score
@@ -1346,12 +1472,38 @@ def validation_metrics(
     entities = np.concatenate(entity_ids).astype(np.int64, copy=False)
     flow_ap = float(average_precision_score(labels, scores))
     entity_count = int(np.max(arrays["E23"])) + 1
-    entity_scores = np.full(entity_count, -np.inf, dtype=np.float64)
     entity_labels = np.zeros(entity_count, dtype=np.float32)
-    np.maximum.at(entity_scores, entities, scores)
+    # 实体标签恒取该实体全部流标签的最大值，与聚合口径无关，两条分支共用。
     np.maximum.at(entity_labels, entities, labels)
-    scored_entities = np.isfinite(entity_scores)
-    entity_ap = float(average_precision_score(entity_labels[scored_entities], entity_scores[scored_entities]))
+    alpha = entity_tail_aggregation_alpha_from_config(config)
+    tail_receipt: dict[str, Any] | None = None
+    if alpha is None:
+        entity_scores = np.full(entity_count, -np.inf, dtype=np.float64)
+        np.maximum.at(entity_scores, entities, scores)
+        scored_entities = np.isfinite(entity_scores)
+        selected_scores = entity_scores[scored_entities]
+    else:
+        # 评价侧挂载点：与训练侧调用**同一份** tail_aggregate，不另写一套重聚合。
+        # 延迟导入：该模块顶层无条件 import torch，而本文件的 --validate-config
+        # 路径必须能在缺 torch 的项目 .venv 上跑通。
+        import ch3_ft_entity_ranking_loss as ranking
+
+        # 在 CPU、float64 上聚合：与被替换的 np.maximum.at 同精度，且 k≡1 时逐位相同
+        # （本机已实测，见尾部聚合训练侧实现报告的验证 7）。
+        aggregated = ranking.tail_aggregate(
+            torch_module.from_numpy(scores),
+            torch_module.ones(scores.shape[0], dtype=torch_module.bool),
+            torch_module.from_numpy(entities),
+            entity_count,
+            alpha,
+        )
+        scored_entities = (aggregated["m_per_entity"] > 0).numpy()
+        entity_scores = aggregated["entity_scores"].numpy()
+        selected_scores = entity_scores[scored_entities]
+        tail_receipt = ranking.tail_aggregation_receipt(
+            aggregated["k_per_entity"], aggregated["m_per_entity"], alpha
+        )
+    entity_ap = float(average_precision_score(entity_labels[scored_entities], selected_scores))
     model.train()
     return {
         "validation_flow_ap": flow_ap,
@@ -1359,6 +1511,9 @@ def validation_metrics(
         "scored_flows": int(len(scores)),
         "scored_entities": int(scored_entities.sum()),
         "positive_entities": int((entity_labels[scored_entities] == 1).sum()),
+        # 评价侧的 inner_tail_frac 等聚合标量；z1'=0 时为 None，收据里因此能一眼
+        # 看出这一轮走的是哪条聚合分支。
+        "entity_tail_aggregation": tail_receipt,
         "seconds": time.time() - started,
     }
 
@@ -1640,6 +1795,77 @@ def assert_zero_gate_degeneracy(
         model.train()
     require(torch_module.equal(logits_a, logits_b), "z1=0 路径 logits 与新建裸模型不是逐位相等", EXIT_RUNTIME)
     LOGGER.info("零门退化断言通过：z1=0 路径与裸 FT 在 %d 个探测片段上 logits 逐位相等", len(probe_rows))
+
+
+def assert_tail_aggregation_degeneracy(
+    config: dict[str, Any], model: Any, view: Any, arrays: dict[str, Any], train_rows: Any,
+    device: Any, profile: dict[str, Any], precision: Any, torch_module: Any, output_root: Path,
+) -> None:
+    """尾部聚合的 `k ≡ 1` 逐位自检，在真实数据的一小批上跑一次。
+
+    与 ``assert_zero_gate_degeneracy`` 同一职责层：把「关掉机制就回到现状」从
+    「代码没改因而必然如此」变成一条可机械核验的运行时收据。这里核验的是聚合算子
+    本身——`α → 0` 极限（`k ≡ 1`）的 ``tail_scores`` 必须与 ``prefix_scores`` 的
+    max 在同一批真实 logits 上 ``torch.equal`` 为真。不成立说明分组、排序或掩码有
+    实现缺陷，四格 `z1=0` 臂的「等于现状」这句话随之失效，2×2 消融不可解释。
+
+    只在尾部聚合开启时跑：关闭时聚合走的就是 ``prefix_scores`` 本身，没有可比对象。
+    用真实片段而不是构造夹具，收据落 ``receipts/entity-tail-aggregation-self-check.json``。
+    """
+    if not entity_tail_aggregation_enabled_from_config(config):
+        return
+
+    import numpy as np
+
+    import ch3_ft_entity_ranking_loss as ranking  # 延迟导入，模块顶层 import torch
+
+    # 片段数取 8：与 assert_zero_gate_degeneracy 的 4 同量级。**不能取大**——本函数
+    # 走的是不分微批的单次前向，2026-09-01 本机实测 256 个片段（32,768 条流）时
+    # 逐字段注意力单次申请 6.89 GiB，直接 MPS OOM；训练路径之所以没事，是因为它按
+    # micro_batch_sequences 分批。8 个片段约 1,024 条流，两端都安全。
+    # 片段数小不影响自检强度：袋大小按**流**算，单个片段已可含 128 条流，
+    # 下面的 max_bag_size >= 2 断言保证这一批不是「全是单流实体」的平凡情形。
+    probe_rows = train_rows[: min(8, len(train_rows))]
+    indices, valid, _ = view.gather_sequences(probe_rows, config["training"]["sequence_length"])
+    numeric, categorical = view.features(indices)
+    _unique, segment_owner_np = np.unique(arrays["E23"][probe_rows], return_inverse=True)
+    segment_owner = torch_module.from_numpy(segment_owner_np.astype(np.int64)).to(device)
+    was_training = model.training
+    model.eval()
+    with torch_module.no_grad():
+        logits, valid_t = forward_bare(
+            model, numeric, categorical, valid, device, profile, precision, torch_module,
+            site="flow_forward_bare_tail_aggregation_self_check",
+        )
+    if was_training:
+        model.train()
+    with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
+        receipt = ranking.assert_tail_aggregation_degenerates_to_max(logits32, valid_t, segment_owner)
+    alpha = entity_tail_aggregation_alpha_from_config(config)
+    _scores, k_per_entity, tail_receipt = ranking.tail_scores(logits32, valid_t, segment_owner, alpha)
+    # 非平凡性：全是单流实体时 `k ≡ 1` 恒成立，自检退化成空断言，抓不到任何分组错位。
+    # 这条不是新增的科学门，而是保证上面那条自检确实检查了东西。
+    require(
+        tail_receipt["max_bag_size"] >= 2.0,
+        f"尾部聚合自检的探测批里最大袋只有 {tail_receipt['max_bag_size']} 条流，"
+        "k≡1 断言平凡成立、检查不到分组错位；须增大 probe_rows",
+        EXIT_RUNTIME,
+    )
+    receipt = {
+        "schema_version": "ch3-ft-entity-tail-aggregation-self-check-v1",
+        "alpha": alpha,
+        "k_equals_one_versus_max": receipt,
+        "frozen_alpha_receipt": tail_receipt,
+        "probe_segment_count": int(len(probe_rows)),
+        "target_reads": 0,
+    }
+    atomic_json(output_root / "receipts" / "entity-tail-aggregation-self-check.json", receipt)
+    LOGGER.info(
+        "尾部聚合自检通过：%d 个探测片段、%d 个实体上 k≡1 与 max 逐位相等；"
+        "α=%s 的 inner_tail_frac=%r、mean_k=%r、k>1 实体数=%d",
+        len(probe_rows), receipt["k_equals_one_versus_max"]["checked_entity_count"], alpha,
+        tail_receipt["inner_tail_frac"], tail_receipt["mean_k"], tail_receipt["entities_with_k_gt_1"],
+    )
 
 
 def build_entity_memory_state(config: dict[str, Any], base_config: dict[str, Any], context: dict[str, Any], torch_module: Any, device: Any) -> Any:
@@ -2100,12 +2326,26 @@ def _ranking_phase(
             active_policy=ranking_cfg["bag_policy"],
             truncate_length=int(ranking_cfg["truncate_length"]),
             num_length_buckets=int(ranking_cfg["num_length_buckets"]),
+            # 训练侧挂载点：α 非 None 时 S_e 改由 tail_scores 给出。袋上限仍只来自
+            # 上面的 truncate_length，尾部聚合不另立截断。
+            alpha=entity_tail_aggregation_alpha_from_config(config),
         )
         bag_result = ranking.bag_policy_diagnostics(
             entity_logits32, entity_valid_t, segment_owner, entity_is_positive,
             entity_chain_length, eff_budgets, xi, bag_config,
         )
         loss_rank = bag_result["loss"]
+    # 观测量 nonargmax_grad_share 必须在 loss_rank.backward() **之前**取：backward()
+    # 会释放计算图，之后再对 entity_scores 求梯度会报「图已释放」。这里只对实体分数
+    # （长度 E 的向量）反传一次，不穿实体前向，代价与 pairwise 同量级。
+    tail_observables: dict[str, Any] = {"nonargmax_grad_share": None}
+    if bag_config.alpha is not None:
+        grad_entity_scores = torch_module.autograd.grad(
+            loss_rank, bag_result["active_entity_scores"], retain_graph=True
+        )[0]
+        tail_observables["nonargmax_grad_share"] = ranking.nonargmax_grad_energy_share(
+            grad_entity_scores, bag_result["active_k_per_entity"]
+        )
     loss_rank.backward()
 
     # 反传之后才把本步样本写入水库，供后续步估计阈值。顺序不可与上面的 quantile()
@@ -2133,8 +2373,86 @@ def _ranking_phase(
         # 水库占用中位数、最小值与满载比例：回答「各档分位数当前是否可用」，
         # 落进每轮的 entity-ranking-diagnostics-{N}.json。
         "xi_reservoir": xi_state.reservoir_diagnostics(),
+        # 调研报告 2.4 节四个可证伪观测量的**逐步**来源，全部是标量：
+        # pairwise_loss_mean 供轮内算 pair_loss_batch_var（观测量三）；
+        # nonargmax_grad_share 是观测量一；entity_tail_aggregation.inner_tail_frac
+        # 是观测量四；观测量二 per_budget_active_rate 已在上面。
+        "pairwise_loss_mean": float(
+            bag_result["policies"][bag_config.active_policy]["pairwise_loss_mean"]
+        ),
+        "nonargmax_grad_share": tail_observables["nonargmax_grad_share"],
+        "entity_tail_aggregation": bag_result["policies"][bag_config.active_policy].get(
+            "entity_tail_aggregation"
+        ),
     }
     return g_rank, diagnostics
+
+
+def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) -> dict[str, Any]:
+    """把一轮内逐步的排序诊断压成调研报告 2.4 节的四个可证伪观测量（全部标量）。
+
+    | 观测量 | 本函数给出的口径 | 证伪判读 |
+    | --- | --- | --- |
+    | `nonargmax_grad_share` | 轮均值 | C11 中 ≈0 ⇒ 密度化通道（2.3-2）不成立 |
+    | `per_budget_active_rate` | 逐档轮均值（现有诊断的轮内累计版本） | C11 低三档相对 C01 无回升 ⇒ 耦合主预测失败 |
+    | `pair_loss_batch_var` | 轮内各步 `L_pn` 批均值的方差（总体方差，分母 n） | C11 不低于 C01 ⇒ 稳定性通道（2.3-3）不成立 |
+    | `inner_tail_frac` | 轮均值 | 口径核对，防实现错位；不与 α 直接比大小（小袋结构性抬高它） |
+
+    四项都不依赖尾部聚合是否开启：`z1'=0` 的臂里 `nonargmax_grad_share` 与
+    `inner_tail_frac` 为 ``None``，另两项照常给出，C01 与 C11 因此可以逐项对比。
+    输入是逐步诊断字典列表，输出只有标量与逐档标量字典，不含任何逐实体或逐流数组。
+    """
+    import numpy as np
+
+    if not step_diagnostics:
+        return {
+            "step_count": 0,
+            "nonargmax_grad_share_epoch_mean": None,
+            "per_budget_active_rate_epoch_mean": None,
+            "pair_loss_batch_var": None,
+            "inner_tail_frac_epoch_mean": None,
+        }
+
+    def _mean(values: list[float]) -> float | None:
+        return float(np.mean(values)) if values else None
+
+    shares = [
+        float(entry["nonargmax_grad_share"])
+        for entry in step_diagnostics
+        if entry.get("nonargmax_grad_share") is not None
+    ]
+    tail_fractions = [
+        float(entry["entity_tail_aggregation"]["inner_tail_frac"])
+        for entry in step_diagnostics
+        if entry.get("entity_tail_aggregation")
+        and entry["entity_tail_aggregation"].get("inner_tail_frac") is not None
+    ]
+    pair_means = [
+        float(entry["pairwise_loss_mean"])
+        for entry in step_diagnostics
+        if entry.get("pairwise_loss_mean") is not None
+    ]
+    # 逐档活动率：取生效袋处置那一份，键是预算档的字符串形式。
+    active_policy = step_diagnostics[-1].get("active_policy")
+    per_budget: dict[str, list[float]] = {}
+    for entry in step_diagnostics:
+        rates = (entry.get("per_budget_active_rate") or {}).get(active_policy) or {}
+        for budget_key, value in rates.items():
+            per_budget.setdefault(budget_key, []).append(float(value))
+    return {
+        "step_count": len(step_diagnostics),
+        "active_policy": active_policy,
+        "nonargmax_grad_share_epoch_mean": _mean(shares),
+        "nonargmax_grad_share_step_count": len(shares),
+        "per_budget_active_rate_epoch_mean": {
+            key: float(np.mean(values)) for key, values in sorted(per_budget.items())
+        },
+        # 总体方差（分母 n）：这是「这一轮里 L_pn 批均值抖得多厉害」的直接读数，
+        # 不是对某个总体方差的无偏估计，故不用 ddof=1。
+        "pair_loss_batch_var": float(np.var(pair_means)) if pair_means else None,
+        "pair_loss_batch_mean": _mean(pair_means),
+        "inner_tail_frac_epoch_mean": _mean(tail_fractions),
+    }
 
 
 def _combine_and_step(model: Any, optimizer: Any, g_flow: Any, g_rank: Any, torch_module: Any) -> dict[str, Any]:
@@ -2289,6 +2607,9 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
     )
     assert_zero_gate_degeneracy(
         config, base_config, model, memory_state, view, train_rows, device, profile, precision, torch_module
+    )
+    assert_tail_aggregation_degeneracy(
+        config, model, view, arrays, train_rows, device, profile, precision, torch_module, output_root
     )
     random.seed(config["training"]["seed"])
     np.random.seed(config["training"]["seed"])
@@ -2535,6 +2856,9 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
     assert_zero_gate_degeneracy(
         config, base_config, model, memory_state, view, train_rows, device, profile, precision, torch_module
     )
+    assert_tail_aggregation_degeneracy(
+        config, model, view, arrays, train_rows, device, profile, precision, torch_module, output_root
+    )
     random.seed(config["training"]["seed"])
     np.random.seed(config["training"]["seed"])
     torch_module.manual_seed(config["training"]["seed"])
@@ -2676,6 +3000,7 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
                 "epoch": epoch,
                 "target_reads": 0,
                 "step_count": len(epoch_ranking_diagnostics),
+                "falsifiable_observables": summarize_falsifiable_observables(epoch_ranking_diagnostics),
                 "gradient_control": {
                     "c_scaling_median": float(np.median(c_values)) if c_values else None,
                     "c_equal_one_step_count": int(sum(1 for c in c_values if c >= 1.0 - 1e-9)),

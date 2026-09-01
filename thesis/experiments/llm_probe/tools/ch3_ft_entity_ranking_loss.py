@@ -6,7 +6,10 @@
 12 批中 3 批严格为零；CVaR 形式相对普通形式的梯度范数比在收敛模型上为 16.61（随机
 初始化时仅 1.30）。故本模块只把 CVaR-pAUC 形式作为主损失，普通形式只作对照。
 
-三个公开接口：
+四个公开接口：
+- `tail_scores`：实体内尾部聚合 `S_e = mean(top-⌈α·m_e⌉ l_{e,·})`（机制一第二候选，
+  α = 0.5 已由 `2026-09-01-尾部聚合参数裁决/裁决报告.md` 冻结）。`α = None` 时
+  `k ≡ 1`，与 `prefix_scores` 逐位相同，四格 `z1=0` 臂因此严格等于现状。
 - `prefix_scores`：实体路径最大分数 `S_e = max_t l_{e,t}`（spec 5.1），部署同构，
   唯一最大值时梯度只回到取得最大 logit 的流，并列时用固定稳定顺序的合法子梯度
   （实现细节见 `prefix_scores` 文档字符串，对应的 PyTorch API 行为已用
@@ -116,6 +119,309 @@ def prefix_scores(
         "（因果前缀截断的 truncate_length 不得截到某实体 0 条有效流）",
     )
     return entity_scores, first_pos
+
+
+# --------------------------------------------------------------------------
+# 1b. 实体内尾部聚合（经验 CVaR_α 的 ATk 形式，机制一第二候选）
+# --------------------------------------------------------------------------
+#
+# 裁决来源：`.Codex/docs/RWKV/2026-09-01-尾部聚合参数裁决/裁决报告.md`（α = 0.5 已冻结，
+# 两条结构约束唯一确定，不得按任何实验读数回调）；机制来源与可证伪观测量见
+# `.Codex/docs/RWKV/2026-09-01-BER同框架机制一可行性/调研报告.md` 第 2.4、2.5 节。
+#
+# 与任务简报的一处口径差异（显式记录，不静默择一）：简报写「``prefix_scores`` 保持
+# 向后兼容：α 缺省或为 None 时行为与现在逐位相同」，而裁决报告第五节第 2 条写
+# 「不改动 ``prefix_scores`` 本体」。本实现按裁决报告执行——``prefix_scores`` 一字未动，
+# α 的分派放在 ``BagPolicyConfig.alpha`` 与 ``_score_and_loss``：α 为 None 时调用的
+# 就是原封不动的 ``prefix_scores``，因此「逐位相同」由「同一段代码」直接保证，
+# 比给 ``prefix_scores`` 加参数更强。
+#
+# 第三方 API 核验记录（本机 PyTorch 2.12.0，2026-09-01 经 npx ctx7@latest docs
+# /websites/pytorch_2_12 核对，并在该版本上实跑确认）：
+# - ``torch.argsort(input, dim=-1, descending=False, *, stable=False)``：``stable``
+#   是**仅关键字**参数，官方描述「If True, the sorting routine becomes stable,
+#   preserving the order of equivalent elements」。本模块的两次 stable argsort 构成
+#   lexsort（主键实体升序、次键分数降序），并列时的选中集合因此是确定的。
+# - ``Tensor.index_add_(dim, index, source)``：原地按下标累加，实跑确认整型可用。
+#   本模块只用它做「按实体归约」，不依赖其对并列的任何隐式行为。
+
+
+def tail_aggregate(
+    flow_scores: torch.Tensor,
+    flow_valid: torch.Tensor,
+    flow_entity: torch.Tensor,
+    num_entities: int,
+    alpha: float | None,
+) -> dict[str, torch.Tensor]:
+    """实体内尾部聚合的**唯一算术实现**：`S_e = mean(top-k_e 的逐流分数)`，
+    `k_e = max(1, ⌈α·m_e⌉)`（`m_e` = 该实体的有效流数）。
+
+    ``flow_scores``/``flow_valid``/``flow_entity`` 都是一维、长度相同的逐流视图；
+    ``flow_entity`` 取值须落在 ``[0, num_entities)``。``alpha is None`` 取 `k ≡ 1`，
+    此时聚合退化为实体内最大值（四格 `z1=0` 臂的正确性基石，见 ``tail_scores``
+    的自检）。训练侧 (B,T) 入口是 ``tail_scores``，评价侧宿主传扁平数组直接调用
+    本函数——两处共用这一份算术，不存在第二套口径。
+
+    **静态实现**（调研报告已实测 ``fullgraph=True`` 零图断裂的同构写法）：降序稳定
+    排序 + ``arange < k`` 权重比较，**不用** ``topk(k=张量)``、不用布尔索引、不做
+    任何 host 同步，因此本函数整体可编译。所有形状只由 ``num_entities`` 与逐流长度
+    决定，不随 α 变化。
+
+    无效流先填 ``finfo(dtype).min``（不是 ``-inf``）：它在排序里同样排到实体末尾，
+    但与 0 相乘不产生 NaN，而且下面用 ``where`` 取值时也不会污染求和。
+
+    返回四个长度 ``num_entities`` 的张量：
+    - ``entity_scores``：实体分数，梯度只回到被选中的 `k_e` 条流，每条权重 `1/k_e`；
+    - ``k_per_entity``：尾部支撑大小 `k_e`（浮点，便于直接作除数与作诊断）；
+    - ``m_per_entity``：有效流数 `m_e`；
+    - ``selected_per_entity``：实际被权重选中的流数，供调用方与 `k_e` 对拍
+      （这是独立于 `k` 计算路径的口径检查，能抓住分组边界或掩码错位）。
+
+    ``m_e = 0`` 的实体（评价侧未被计分的实体）得到 `k_e = 1`、分数 0，由调用方按
+    ``m_per_entity > 0`` 掩码剔除，语义与宿主原实现的 ``isfinite(entity_scores)`` 一致。
+    """
+    require(flow_scores.dim() == 1, "tail_aggregate 要求逐流分数是一维张量")
+    require(
+        flow_scores.shape == flow_valid.shape == flow_entity.shape,
+        "flow_scores / flow_valid / flow_entity 长度须一致",
+    )
+    require(num_entities > 0, "num_entities 必须为正")
+    require(alpha is None or 0.0 < alpha <= 1.0, f"alpha 须落在 (0, 1] 或为 None，实得 {alpha!r}")
+
+    device = flow_scores.device
+    dtype = flow_scores.dtype
+    total_flows = flow_scores.shape[0]
+    valid_bool = flow_valid if flow_valid.dtype == torch.bool else flow_valid > 0
+    entity_index = flow_entity.to(torch.long)
+
+    filled = torch.where(
+        valid_bool, flow_scores, torch.full_like(flow_scores, torch.finfo(dtype).min)
+    )
+
+    # lexsort：先按分数降序（stable），再按实体升序（stable）。第二次排序保留第一次
+    # 的相对顺序，于是同一实体内部仍是分数降序，无效流（filled = finfo.min）排在末尾。
+    order_by_score = torch.argsort(filled, descending=True, stable=True)
+    order = order_by_score[torch.argsort(entity_index[order_by_score], stable=True)]
+
+    sorted_scores = filled[order]          # gather：梯度按置换原路回传
+    sorted_entity = entity_index[order]
+    sorted_valid = valid_bool[order]
+
+    # 组起点＝每实体元素总数（含无效位）的独占前缀和。排序后同一实体的元素连续，
+    # 故组内秩 = 全局位置 − 组起点，无需再做一次 scatter 定位。
+    ones = torch.ones(total_flows, dtype=torch.long, device=device)
+    total_per_entity = torch.zeros(num_entities, dtype=torch.long, device=device).index_add_(
+        0, entity_index, ones
+    )
+    group_start = torch.cumsum(total_per_entity, 0) - total_per_entity
+    rank_in_group = torch.arange(total_flows, device=device) - group_start[sorted_entity]
+
+    m_per_entity = torch.zeros(num_entities, dtype=dtype, device=device).index_add_(
+        0, entity_index, valid_bool.to(dtype)
+    )
+    if alpha is None:
+        k_per_entity = torch.ones_like(m_per_entity)
+    else:
+        k_per_entity = torch.ceil(alpha * m_per_entity).clamp(min=1.0)
+    # k ≤ m 是尾部语义的一部分（α ≤ 1 时数学上已成立），这里显式夹一次，
+    # 使 m = 0 的空实体也落在 k = 1、不会索引出组外元素。
+    k_per_entity = torch.minimum(k_per_entity, m_per_entity.clamp(min=1.0))
+
+    take = (rank_in_group < k_per_entity[sorted_entity]) & sorted_valid
+    contribution = torch.where(take, sorted_scores, torch.zeros_like(sorted_scores))
+    totals = torch.zeros(num_entities, dtype=dtype, device=device).index_add_(
+        0, sorted_entity, contribution
+    )
+    selected_per_entity = torch.zeros(num_entities, dtype=dtype, device=device).index_add_(
+        0, sorted_entity, take.to(dtype)
+    )
+    return {
+        "entity_scores": totals / k_per_entity,
+        "k_per_entity": k_per_entity,
+        "m_per_entity": m_per_entity,
+        "selected_per_entity": selected_per_entity,
+    }
+
+
+def tail_aggregation_receipt(
+    k_per_entity: torch.Tensor, m_per_entity: torch.Tensor, alpha: float | None
+) -> dict[str, Any]:
+    """把尾部聚合的逐实体张量压成**聚合标量**收据。
+
+    仓库规则禁止持久化逐流数组或实体成员表，因此这里只输出标量。``inner_tail_frac``
+    即调研报告 2.4 节的第四个可证伪观测量 `mean_e k_e/m_e`。
+
+    **不要**把 ``inner_tail_frac`` 与 α 直接比大小来判实现是否正确：小袋结构性地把它
+    抬高（`m=1 ⇒ k/m = 1`、`m=3, α=0.5 ⇒ k/m = 2/3`），源年验证集的袋大小中位数是 2，
+    所以 α=0.5 下它本来就显著高于 0.5。真正精确的口径检查是 ``tail_scores`` 里
+    「实际选中流数 == k_e」那一条。
+    """
+    scored = m_per_entity > 0
+    scored_count = int(scored.sum().item())
+    if scored_count == 0:
+        return {
+            "alpha": alpha,
+            "scored_entity_count": 0,
+            "inner_tail_frac": None,
+            "mean_k": None,
+            "max_k": None,
+            "entities_with_k_gt_1": 0,
+            "mean_bag_size": None,
+            "max_bag_size": None,
+        }
+    # 先搬到 CPU 再转 float64：k 与 m 都是整数值，float32 归约会在 1e-8 量级上抖动，
+    # 而 inner_tail_frac 是要跨轮比较的观测量，噪声必须小于它本身的变化。
+    # MPS 不支持 float64，故顺序是「先 cpu 后 double」，不能反过来。
+    k_scored = k_per_entity.detach()[scored].cpu().to(torch.float64)
+    m_scored = m_per_entity.detach()[scored].cpu().to(torch.float64)
+    return {
+        "alpha": alpha,
+        "scored_entity_count": scored_count,
+        "inner_tail_frac": float((k_scored / m_scored).mean()),
+        "mean_k": float(k_scored.mean()),
+        "max_k": float(k_scored.max()),
+        "entities_with_k_gt_1": int((k_scored > 1).sum().item()),
+        "mean_bag_size": float(m_scored.mean()),
+        "max_bag_size": float(m_scored.max()),
+    }
+
+
+def tail_scores(
+    logits: torch.Tensor,
+    valid: torch.Tensor,
+    segment_owner: torch.Tensor,
+    alpha: float | None,
+) -> tuple[torch.Tensor, torch.Tensor, dict[str, Any]]:
+    """训练侧 (B, T) 入口：与 ``prefix_scores`` 同位置替换的实体尾部聚合。
+
+    形参与 ``prefix_scores`` 前三个逐字相同，末尾加尾部水平 ``alpha``；
+    ``alpha is None`` 时 `k ≡ 1`，聚合与 ``prefix_scores`` 的 max 在同一批上逐位相等
+    （自检见 ``assert_tail_aggregation_degenerates_to_max``）。
+
+    返回 ``(entity_scores[E], k_per_entity[E], 聚合标量收据)``。第二项供
+    ``nonargmax_grad_energy_share`` 用，第三项直接进运行收据。返回三元组而不是沿用
+    ``prefix_scores`` 的 ``(scores, source_row)``：尾部聚合没有「唯一来源片段」这个
+    概念，硬凑同一形状只会造出一个语义不明的字段。
+
+    **袋合同**：本函数不做任何自己的截断。排序袋的 8192 流上限由 BER 既有的
+    ``BagPolicyConfig.truncate_length`` 经 ``_causal_truncate_valid`` 施加在 ``valid``
+    上，`m_e` 因此已经是 `min(m_e, truncate_length)`。截断袋上非线性池化的偏差按
+    MIDAM 登记在实验合同里（现状 max 聚合同受此偏差，不是本机制新增）。
+    """
+    require(logits.shape == valid.shape, "logits 与 valid 形状不一致")
+    require(segment_owner.shape[0] == logits.shape[0], "segment_owner 长度须等于片段数 B")
+    valid_bool = valid if valid.dtype == torch.bool else valid > 0
+    batch, length = logits.shape
+    num_entities = int(segment_owner.max().item()) + 1
+    flow_entity = segment_owner.to(torch.long).unsqueeze(1).expand(batch, length).reshape(-1)
+
+    aggregated = tail_aggregate(
+        logits.reshape(-1), valid_bool.reshape(-1), flow_entity, num_entities, alpha
+    )
+    k_per_entity = aggregated["k_per_entity"]
+    m_per_entity = aggregated["m_per_entity"]
+    # 数据契约：训练侧每个实体至少一条有效流（与 prefix_scores 同一条断言，
+    # 截断到 0 长度是调用方的配置错误）。
+    require(
+        bool((m_per_entity >= 1).all()),
+        "存在完全无有效流的实体，违反数据契约"
+        "（因果前缀截断的 truncate_length 不得截到某实体 0 条有效流）",
+    )
+    # 口径自检：实际被权重选中的流数必须恰等于 k_e。这条独立于 k 的计算路径，
+    # 能抓住分组边界错位、掩码错位与排序不稳定三类实现缺陷。
+    require(
+        bool(torch.equal(aggregated["selected_per_entity"], k_per_entity)),
+        "尾部聚合选中流数与 k_e 不符，实体分组或掩码实现有误",
+    )
+    require(
+        bool(torch.isfinite(aggregated["entity_scores"]).all()),
+        "尾部聚合产生非有限实体分数",
+    )
+    return (
+        aggregated["entity_scores"],
+        k_per_entity,
+        tail_aggregation_receipt(k_per_entity, m_per_entity, alpha),
+    )
+
+
+def nonargmax_grad_energy_share(
+    grad_entity_scores: torch.Tensor, k_per_entity: torch.Tensor
+) -> float:
+    """调研报告 2.4 节第一个可证伪观测量：排序损失回传到逐流 logit 的梯度能量中，
+    **非 argmax 流**所占份额。
+
+    闭式来源（精确，不是近似）：`S_e = (1/k_e) Σ_{i ∈ top-k_e} l_{e,i}`，故
+    `∂S_e/∂l_{e,i} = 1/k_e`（被选中）或 `0`（未选中）。记 `g_e = ∂L/∂S_e`，则
+    `∂L/∂l_{e,i} = g_e / k_e`。于是
+
+        全部流的梯度平方和 = Σ_e k_e · (g_e/k_e)² = Σ_e g_e² / k_e
+        排名第一那条流    = Σ_e (g_e/k_e)²        = Σ_e g_e² / k_e²
+        share            = 1 − (Σ_e g_e²/k_e²) / (Σ_e g_e²/k_e)
+
+    `k ≡ 1` 时恒为 0——这正是判读规则要的：若 C11 中该值 ≈ 0，说明梯度仍然只落在
+    单条流上，密度化通道（调研报告 2.3-2）不成立。
+
+    用能量（平方范数）份额而不是范数份额，是因为范数不可加：`‖g‖` 无法拆成
+    argmax 与非 argmax 两段之和，而平方和可以，份额因此才有「守恒的两部分」语义。
+    """
+    require(
+        grad_entity_scores.shape == k_per_entity.shape,
+        "grad_entity_scores 与 k_per_entity 形状须一致",
+    )
+    # 与 tail_aggregation_receipt 同理：先 cpu 后 double（MPS 无 float64），
+    # 份额是跨轮比较的观测量，不能带 float32 归约噪声。
+    squared = grad_entity_scores.detach().cpu().to(torch.float64) ** 2
+    k = k_per_entity.detach().cpu().to(torch.float64)
+    total_energy = float((squared / k).sum())
+    if total_energy <= 0.0:
+        # 排序损失对全部实体分数梯度为零（例如该步 hinge 全部不活动）：份额无定义。
+        return 0.0
+    top1_energy = float((squared / (k * k)).sum())
+    return 1.0 - top1_energy / total_energy
+
+
+def assert_tail_aggregation_degenerates_to_max(
+    logits: torch.Tensor, valid: torch.Tensor, segment_owner: torch.Tensor
+) -> dict[str, Any]:
+    """`k ≡ 1` 逐位自检：`tail_scores(..., alpha=None)` 必须与 ``prefix_scores`` 的
+    max 聚合在同一批真实张量上 ``torch.equal`` 为真。
+
+    这是四格 `z1=0` 臂的正确性基石——若它不成立，「关掉机制即回到现状」这句话就不
+    成立，整个 2×2 消融的可解释性随之失效。断言不通过即抛 ``RuntimeError``，
+    由宿主转成非零退出码，不静默继续。
+
+    返回一份聚合标量收据（不含任何逐实体数组），供运行收据登记该自检确实跑过。
+
+    **在 CPU 上比较，与调用方所在设备无关**（2026-09-01 本机实测的必要修正）：
+    ``prefix_scores`` 用 ``scatter_reduce(reduce="amin")`` 定位来源片段，而 MPS 后端
+    对 ``torch.int64`` 的该算子直接 ``RuntimeError: not supported for torch.int64``
+    ——这是 ``prefix_scores`` 早就存在的设备限制（它历来只在 CUDA 上跑），不是尾部
+    聚合引入的。若在原设备上比较，本自检会把一个在 MPS 上**本来能跑通**的
+    `z1'=1, z2=0` 筛选臂拦下，属于根 AGENTS.md 明令禁止的冗余阻断门。
+
+    搬到 CPU 不削弱自检：`k ≡ 1` 的退化性是分组、排序与掩码逻辑的性质，与设备无关；
+    而设备侧的分组正确性由 ``tail_scores`` 内那条「选中流数 == k_e」的断言在**原设备
+    上逐步**核验，两者互补。
+    """
+    logits = logits.detach().cpu()
+    valid = valid.cpu()
+    segment_owner = segment_owner.cpu()
+    reference, _source_row = prefix_scores(logits, valid, segment_owner)
+    degenerate, k_per_entity, _receipt = tail_scores(logits, valid, segment_owner, None)
+    bitwise_equal = bool(torch.equal(reference, degenerate))
+    all_k_one = bool(torch.equal(k_per_entity, torch.ones_like(k_per_entity)))
+    require(
+        bitwise_equal and all_k_one,
+        "k≡1 的尾部聚合与 prefix_scores 的 max 不逐位相等，聚合实现有误",
+    )
+    return {
+        "checked_entity_count": int(reference.numel()),
+        "checked_segment_count": int(logits.shape[0]),
+        "checked_valid_flows": int(valid.sum().item()),
+        "k_equals_one_bitwise_equal_to_max": bitwise_equal,
+        "all_k_equal_one": all_k_one,
+        "max_absolute_difference": float((reference - degenerate).detach().abs().max()),
+    }
 
 
 # --------------------------------------------------------------------------
@@ -422,6 +728,10 @@ class BagPolicyConfig:
     active_policy: str  # "full" | "causal_prefix_truncation" | "stratified_weighting"
     truncate_length: int  # 因果前缀截断的 L；分层加权与完整袋分支不使用，但仍需提供
     num_length_buckets: int  # 分层加权的 log2 链长分桶数
+    # 实体内尾部聚合的尾部水平。None＝沿用 prefix_scores 的 max 聚合（四格 z1=0），
+    # 数值＝改用 tail_scores（z1=1，冻结值 0.5）。默认 None 使既有调用点一字不改，
+    # 且走的是原封不动的 prefix_scores 代码路径，逐位兼容由此直接成立。
+    alpha: float | None = None
 
 
 def _length_buckets(chain_length: torch.Tensor, num_buckets: int) -> torch.Tensor:
@@ -574,6 +884,11 @@ def bag_policy_diagnostics(
     L_pn（已 detach）。宿主用它喂 `CvarThresholdState.observe()`——三种袋处置的
     有效流掩码不同、L_pn 分布也不同，水库必须只吃真正驱动反传的那一种，否则估出
     的分位数不是该损失的最优 xi。
+
+    `config.alpha` 非 None 时，三种袋处置的实体分数都改用 `tail_scores`；此时另返回
+    `active_entity_scores`（**持图**，供 `torch.autograd.grad` 取 ∂L/∂S_e）与
+    `active_k_per_entity`，两者一起喂 `nonargmax_grad_energy_share`。
+    `config.alpha is None` 时后者为 None，前者仍是 `prefix_scores` 的输出。
     """
     require(config.active_policy in _VALID_POLICIES, f"未知袋处置策略：{config.active_policy}")
     num_entities = int(segment_owner.max().item()) + 1
@@ -584,8 +899,18 @@ def bag_policy_diagnostics(
 
     def _score_and_loss(
         valid_mask: torch.Tensor, stratified: bool
-    ) -> tuple[torch.Tensor, dict[str, Any], torch.Tensor]:
-        entity_scores, source_row = prefix_scores(logits, valid_mask, segment_owner)
+    ) -> tuple[torch.Tensor, dict[str, Any], torch.Tensor, torch.Tensor, torch.Tensor | None]:
+        # α 分派：None 走原封不动的 prefix_scores（四格 z1=0，与历史逐位相同），
+        # 数值走 tail_scores（z1=1）。两条路径的下游损失、诊断与反传口径完全一致。
+        if config.alpha is None:
+            entity_scores, source_row = prefix_scores(logits, valid_mask, segment_owner)
+            k_per_entity = None
+            tail_receipt: dict[str, Any] | None = None
+        else:
+            entity_scores, k_per_entity, tail_receipt = tail_scores(
+                logits, valid_mask, segment_owner, config.alpha
+            )
+            source_row = None
         pos_scores = entity_scores[entity_is_positive]
         neg_scores = entity_scores[~entity_is_positive]
         if stratified:
@@ -596,39 +921,51 @@ def bag_policy_diagnostics(
             )
         else:
             loss, diag = cvar_pauc_loss(pos_scores, neg_scores, budgets, xi)
-        diag["entity_score_source_row"] = source_row.detach().tolist()
+        if source_row is not None:
+            diag["entity_score_source_row"] = source_row.detach().tolist()
+        # 尾部聚合收据只含聚合标量（袋大小、k 的分布、inner_tail_frac），
+        # 不含逐流数组或实体成员表。
+        diag["entity_tail_aggregation"] = tail_receipt
         # 三种策略各自的 L_pn，供调用方按 active_policy 取用；detach 后不持图。
         pairwise = torch.nn.functional.softplus(
             neg_scores.detach().unsqueeze(0) - pos_scores.detach().unsqueeze(1)
         )
-        return loss, diag, pairwise
+        return loss, diag, pairwise, entity_scores, k_per_entity
 
     results: dict[str, Any] = {"active_policy": config.active_policy, "policies": {}}
 
-    full_loss, full_diag, full_pairwise = _score_and_loss(valid, stratified=False)
+    full_loss, full_diag, full_pairwise, full_scores, full_k = _score_and_loss(valid, stratified=False)
     results["policies"]["full"] = {"loss_value": float(full_loss.detach()), **full_diag}
 
     entity_groups = _entity_groups(segment_owner, num_entities)
     truncated_valid = _causal_truncate_valid(valid, entity_groups, config.truncate_length)
-    truncated_loss, truncated_diag, truncated_pairwise = _score_and_loss(truncated_valid, stratified=False)
+    truncated_loss, truncated_diag, truncated_pairwise, truncated_scores, truncated_k = _score_and_loss(
+        truncated_valid, stratified=False
+    )
     results["policies"]["causal_prefix_truncation"] = {
         "loss_value": float(truncated_loss.detach()),
         **truncated_diag,
     }
 
-    stratified_loss, stratified_diag, stratified_pairwise = _score_and_loss(valid, stratified=True)
+    stratified_loss, stratified_diag, stratified_pairwise, stratified_scores, stratified_k = _score_and_loss(
+        valid, stratified=True
+    )
     results["policies"]["stratified_weighting"] = {
         "loss_value": float(stratified_loss.detach()),
         **stratified_diag,
     }
 
-    active_loss, active_pairwise = {
-        "full": (full_loss, full_pairwise),
-        "causal_prefix_truncation": (truncated_loss, truncated_pairwise),
-        "stratified_weighting": (stratified_loss, stratified_pairwise),
+    active_loss, active_pairwise, active_scores, active_k = {
+        "full": (full_loss, full_pairwise, full_scores, full_k),
+        "causal_prefix_truncation": (truncated_loss, truncated_pairwise, truncated_scores, truncated_k),
+        "stratified_weighting": (stratified_loss, stratified_pairwise, stratified_scores, stratified_k),
     }[config.active_policy]
     results["loss"] = active_loss
     results["active_pairwise"] = active_pairwise
+    # 生效策略的实体分数与 k_e：调用方用它们算 nonargmax_grad_energy_share
+    # （对 entity_scores 求一次 ∂L/∂S_e 即可，不需要再穿一遍代价高昂的实体前向）。
+    results["active_entity_scores"] = active_scores
+    results["active_k_per_entity"] = active_k
     return results
 
 
