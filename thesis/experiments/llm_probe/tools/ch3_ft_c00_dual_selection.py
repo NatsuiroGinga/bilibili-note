@@ -1418,10 +1418,14 @@ def validation_metrics(
     M-E 开启时按验证片段行索引取同一份预计算实体状态矩阵——验证区实体的 `c`、`Δ`
     同样只由该实体的严格过去片段决定，与训练区共用一份计算，不需要第二套口径。
 
-    实体聚合有两条分支，由 ``mechanism.entity_aggregation.enabled`` 选择：关闭时走
-    历史的 ``np.maximum.at``（逐位不变）；开启时改调
-    ``ch3_ft_entity_ranking_loss.tail_aggregate``——与训练侧**同一份**算术实现，
-    评价期用完整袋（不受排序袋 8192 截断偏差影响）。
+    实体聚合口径**恒算两条**，与 ``mechanism.entity_aggregation`` 的开关无关
+    （2026-09-01 C10 路线裁决第〇节「不允许保守设定」的改正措施）：
+    ``validation_entity_ap`` 恒为历史的 ``np.maximum.at`` 口径（max，语义与改造前
+    逐位相同，不再由配置的 alpha 挑选分支）；``validation_entity_ap_tail`` 恒为冻结
+    α=0.5 的 ``ch3_ft_entity_ranking_loss.tail_aggregate`` top-k 口径（与训练侧
+    **同一份**算术实现，评价期用完整袋，不受排序袋 8192 截断偏差影响）。一次训练
+    因此同时产出两种选轮依据：C00 用前者选轮，C10 用后者独立选出自己的最佳轮，
+    两格共享同一份权重轨迹。
     """
     import numpy as np
     from sklearn.metrics import average_precision_score
@@ -1473,46 +1477,51 @@ def validation_metrics(
     flow_ap = float(average_precision_score(labels, scores))
     entity_count = int(np.max(arrays["E23"])) + 1
     entity_labels = np.zeros(entity_count, dtype=np.float32)
-    # 实体标签恒取该实体全部流标签的最大值，与聚合口径无关，两条分支共用。
+    # 实体标签恒取该实体全部流标签的最大值，与聚合口径无关，两条口径共用。
     np.maximum.at(entity_labels, entities, labels)
-    alpha = entity_tail_aggregation_alpha_from_config(config)
-    tail_receipt: dict[str, Any] | None = None
-    if alpha is None:
-        entity_scores = np.full(entity_count, -np.inf, dtype=np.float64)
-        np.maximum.at(entity_scores, entities, scores)
-        scored_entities = np.isfinite(entity_scores)
-        selected_scores = entity_scores[scored_entities]
-    else:
-        # 评价侧挂载点：与训练侧调用**同一份** tail_aggregate，不另写一套重聚合。
-        # 延迟导入：该模块顶层无条件 import torch，而本文件的 --validate-config
-        # 路径必须能在缺 torch 的项目 .venv 上跑通。
-        import ch3_ft_entity_ranking_loss as ranking
 
-        # 在 CPU、float64 上聚合：与被替换的 np.maximum.at 同精度，且 k≡1 时逐位相同
-        # （本机已实测，见尾部聚合训练侧实现报告的验证 7）。
-        aggregated = ranking.tail_aggregate(
-            torch_module.from_numpy(scores),
-            torch_module.ones(scores.shape[0], dtype=torch_module.bool),
-            torch_module.from_numpy(entities),
-            entity_count,
-            alpha,
-        )
-        scored_entities = (aggregated["m_per_entity"] > 0).numpy()
-        entity_scores = aggregated["entity_scores"].numpy()
-        selected_scores = entity_scores[scored_entities]
-        tail_receipt = ranking.tail_aggregation_receipt(
-            aggregated["k_per_entity"], aggregated["m_per_entity"], alpha
-        )
-    entity_ap = float(average_precision_score(entity_labels[scored_entities], selected_scores))
+    # 口径一：max（历史实现，逐位不变；现在与配置的 alpha 无关地恒算——C00 的
+    # 选轮口径不因某份配置自身是否启用尾部聚合而改变，backward-compat 由此保证）。
+    max_entity_scores = np.full(entity_count, -np.inf, dtype=np.float64)
+    np.maximum.at(max_entity_scores, entities, scores)
+    scored_entities_max = np.isfinite(max_entity_scores)
+    entity_ap_max = float(
+        average_precision_score(entity_labels[scored_entities_max], max_entity_scores[scored_entities_max])
+    )
+
+    # 口径二：α=0.5 top-k（冻结常量 ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA，与配置的
+    # alpha 无关地恒算）。评价侧挂载点：与训练侧调用**同一份** tail_aggregate，
+    # 不另写一套重聚合。延迟导入：该模块顶层无条件 import torch，而本文件的
+    # --validate-config 路径必须能在缺 torch 的项目 .venv 上跑通。
+    import ch3_ft_entity_ranking_loss as ranking
+
+    # 在 CPU、float64 上聚合：与被替换的 np.maximum.at 同精度，且 k≡1 时逐位相同
+    # （本机已实测，见尾部聚合训练侧实现报告的验证 7）。
+    aggregated = ranking.tail_aggregate(
+        torch_module.from_numpy(scores),
+        torch_module.ones(scores.shape[0], dtype=torch_module.bool),
+        torch_module.from_numpy(entities),
+        entity_count,
+        ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA,
+    )
+    scored_entities_tail = (aggregated["m_per_entity"] > 0).numpy()
+    tail_entity_scores = aggregated["entity_scores"].numpy()
+    entity_ap_tail = float(
+        average_precision_score(entity_labels[scored_entities_tail], tail_entity_scores[scored_entities_tail])
+    )
+    tail_receipt = ranking.tail_aggregation_receipt(
+        aggregated["k_per_entity"], aggregated["m_per_entity"], ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA
+    )
     model.train()
     return {
         "validation_flow_ap": flow_ap,
-        "validation_entity_ap": entity_ap,
+        "validation_entity_ap": entity_ap_max,
+        "validation_entity_ap_tail": entity_ap_tail,
         "scored_flows": int(len(scores)),
-        "scored_entities": int(scored_entities.sum()),
-        "positive_entities": int((entity_labels[scored_entities] == 1).sum()),
-        # 评价侧的 inner_tail_frac 等聚合标量；z1'=0 时为 None，收据里因此能一眼
-        # 看出这一轮走的是哪条聚合分支。
+        "scored_entities": int(scored_entities_max.sum()),
+        "positive_entities": int((entity_labels[scored_entities_max] == 1).sum()),
+        # 评价侧的 inner_tail_frac 等聚合标量；现在恒算，不再由某份配置的开关
+        # 决定是否计算——两种聚合口径逐轮同时评价（2026-09-01 C10 路线裁决）。
         "entity_tail_aggregation": tail_receipt,
         "seconds": time.time() - started,
     }
@@ -2753,7 +2762,7 @@ def checkpoint_payload(
     best_flow: dict[str, Any], best_entity: dict[str, Any], generator: Any,
     torch_module: Any, device: Any, profile: dict[str, Any], input_transform_state_hash: str,
     train_scheduler: Any = None, memory_state: Any = None, xi_state: Any = None,
-    numpy_rng: Any = None,
+    numpy_rng: Any = None, best_entity_tail: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """构造检查点载荷。
 
@@ -2763,6 +2772,11 @@ def checkpoint_payload(
 
     ``EntityMemoryState.state_dict`` 已是稀疏导出（只含 ``count > 0`` 的已激活实体），
     全量 150,680 实体 × R=8 × d=192 × 4B ≈ 0.93 GB，稀疏后随训练进度增长而远小于该上界。
+
+    ``best_entity_tail``（2026-09-01 双聚合选轮改造新增）：α=0.5 top-k 口径独立追踪
+    的最佳轮状态，与 ``best_flow``/``best_entity`` 同构地随每轮进度入盘，使 C10
+    （乃至任何 z1'=0 的训练轨迹）在断点续训后仍能正确恢复它自己的选轮进度。
+    CEM 分支（``entity_memory_enabled``）不追踪该口径，调用方传 ``None``。
     """
     mechanism_state: dict[str, Any] = {
         "entity_memory_enabled": memory_state is not None,
@@ -2790,6 +2804,7 @@ def checkpoint_payload(
         "history": history,
         "best_by_flow": best_flow,
         "best_by_entity": best_entity,
+        "best_by_entity_tail": best_entity_tail,
         "input_transform_state_hash": input_transform_state_hash,
         "effective_batch_size": config["training"]["effective_batch_size"],
         "micro_batch_sequences": config["training"]["micro_batch_sequences"],
@@ -2876,6 +2891,9 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
     history: list[dict[str, Any]] = []
     best_flow = {"metric": -1.0, "epoch": 0, "state": None}
     best_entity = {"metric": -1.0, "epoch": 0, "state": None}
+    # α=0.5 top-k 口径独立追踪的最佳轮（2026-09-01 双聚合选轮改造）；CEM 分支
+    # （entity_memory_enabled）不更新它，保持 -1.0/0/None 的哨兵值。
+    best_entity_tail = {"metric": -1.0, "epoch": 0, "state": None}
     start_epoch = 1
     step_count = 0
     if resume and inflight_path.is_file():
@@ -2890,6 +2908,11 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         history = checkpoint["history"]
         best_flow = checkpoint["best_by_flow"]
         best_entity = checkpoint["best_by_entity"]
+        # .get 而非下标：本改造之前落盘的在途检查点没有这个键，视为「尚无 tail 口径
+        # 最佳轮记录」而不是一种应拒绝续训的漂移。
+        best_entity_tail = checkpoint.get("best_by_entity_tail") or {
+            "metric": -1.0, "epoch": 0, "state": None,
+        }
         restore_rng(checkpoint["rng_state"], torch_module, device)
         generator.set_state(checkpoint["rng_state"]["sampler_state"])
         start_epoch = int(checkpoint["epoch"]) + 1
@@ -3010,11 +3033,16 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
                 },
                 "last_step_snapshot": epoch_ranking_diagnostics[-1] if epoch_ranking_diagnostics else None,
             })
+        # entity_memory_enabled 分支（CEM）走 entity_memory_validation_metrics，不产出
+        # validation_entity_ap_tail；用 .get 而不是下标，使该分支的收据形状保持完全
+        # 不变（不新增字段、不因缺键抛 KeyError）。
+        entity_ap_tail = metrics.get("validation_entity_ap_tail")
         entry = {
             "epoch": epoch,
             "mean_training_loss": float(np.mean(losses)),
             "validation_flow_ap": metrics["validation_flow_ap"],
             "validation_entity_ap": metrics["validation_entity_ap"],
+            "validation_entity_ap_tail": entity_ap_tail,
             "validation_seconds": metrics["seconds"],
         }
         history.append(entry)
@@ -3023,6 +3051,11 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             best_flow = {"metric": metrics["validation_flow_ap"], "epoch": epoch, "state": state}
         if metrics["validation_entity_ap"] > best_entity["metric"]:
             best_entity = {"metric": metrics["validation_entity_ap"], "epoch": epoch, "state": state}
+        # 双聚合选轮（2026-09-01 C10 路线裁决第〇节）：只在 validation_metrics 分支
+        # （非 CEM）追踪 tail 口径的最佳轮，同构的 `>` 比较即 tie_rule 要求的
+        # strict_argmax_earliest（打平不更新，保留先出现的轮次）。
+        if not entity_memory_enabled and entity_ap_tail > best_entity_tail["metric"]:
+            best_entity_tail = {"metric": entity_ap_tail, "epoch": epoch, "state": state}
         payload = checkpoint_payload(
             config, science_receipt, runtime_receipt, model, optimizer, epoch, step_count,
             history, best_flow, best_entity, generator, torch_module, device, profile,
@@ -3033,6 +3066,7 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             memory_state=memory_state if entity_memory_enabled else None,
             xi_state=xi_state if entity_ranking_enabled else None,
             numpy_rng=entity_ranking_rng,
+            best_entity_tail=best_entity_tail if not entity_memory_enabled else None,
         )
         atomic_torch(inflight_path, payload, torch_module)
         # 每轮落一次：运行被中断时收据仍反映已发生的实际调用路径与图断裂，
@@ -3045,11 +3079,22 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
             "epoch": epoch,
             "flow_ap": metrics["validation_flow_ap"],
             "entity_ap": metrics["validation_entity_ap"],
+            "entity_ap_tail": entity_ap_tail,
             "best_flow_epoch": best_flow["epoch"],
             "best_entity_epoch": best_entity["epoch"],
+            "best_entity_tail_epoch": best_entity_tail["epoch"] if not entity_memory_enabled else None,
         }, ensure_ascii=False), flush=True)
     require(best_flow["state"] is not None and best_entity["state"] is not None, "训练结束但双选轮状态为空", EXIT_RUNTIME)
-    for role, selected in (("flow", best_flow), ("entity", best_entity)):
+    # entity-tail 检查点只在 validation_metrics 分支（非 CEM）产出：CEM 走另一套
+    # 评价函数，从未计算 tail 口径，本就不该有第三份检查点。
+    require(
+        entity_memory_enabled or best_entity_tail["state"] is not None,
+        "训练结束但 tail 口径选轮状态为空", EXIT_RUNTIME,
+    )
+    selection_roles: list[tuple[str, dict[str, Any]]] = [("flow", best_flow), ("entity", best_entity)]
+    if not entity_memory_enabled:
+        selection_roles.append(("entity-tail", best_entity_tail))
+    for role, selected in selection_roles:
         payload = {
             "schema_version": CHECKPOINT_SCHEMA_VERSION,
             "science_identity": science_receipt,
@@ -3068,6 +3113,10 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         "history": history,
         "best_by_flow": {"epoch": best_flow["epoch"], "metric": best_flow["metric"]},
         "best_by_entity": {"epoch": best_entity["epoch"], "metric": best_entity["metric"]},
+        "best_by_entity_tail": (
+            {"epoch": best_entity_tail["epoch"], "metric": best_entity_tail["metric"]}
+            if not entity_memory_enabled else None
+        ),
         "optimizer": optimizer_receipt,
         "train_positive_rate": train_positive_rate,
         "wall_seconds": time.time() - started,
