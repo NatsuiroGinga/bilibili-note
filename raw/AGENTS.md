@@ -34,8 +34,10 @@
 
 ## PDF 解析与证据核验
 
-- 解析论文 PDF 时可使用 `pdf-converter`，技能文件为 `/Users/bilibili/.agents/skills/pdf-converter/SKILL.md`。
-- 快速扫描默认用 `mineru-open-api flash-extract`；论文超过 20 页或需要保留公式、表格和版面时优先用 `extract`。认证不可用时回退到本地 `pdftotext` 并逐页核验。
+- **解析论文 PDF 一律使用 `pdf-converter`**（技能文件 `/Users/bilibili/.agents/skills/pdf-converter/SKILL.md`），**禁止直接用 `pdftotext`**。该禁令适用于主代理与全部子代理；派发读论文任务时须在简报中写明本条。
+- 快速扫描用 `mineru-open-api flash-extract`；论文超过 20 页或需要保留公式、表格和版面时用 `extract`。**只有认证确实不可用时**才可回退 `pdftotext`，且必须逐页核验并在汇报中显式声明「本次使用 pdftotext，公式可能残缺」。
+- **含公式的判断禁止建立在 `pdftotext` 输出上**。2026-09-01 实测：`pdftotext -layout` 把朱焱雷学位论文的 `ρ_ϵ(θ) ≈ L + ϵ‖∇_x L‖_*` 还原为 `ò ( )  L( f ( x), y)  ò‖ x L( f ( x), y)‖*`，`δ`／`θ`／`ε` 等符号大量丢失，据此所作的推导实为猜测公式；改用 `extract` 后同段以完整 LaTeX 还原。凡涉及公式同构性、定理内容或数值的论断，其来源必须是 `extract` 的输出并附页码。
+- 长文档应一次转全并落盘到 `wiki/papers/<方向>/<名>-全文提取-mineru.md` 供后续直接检索，避免反复转换；该文件是派生的阅读辅助，不改变 `raw/` 原件层的不可变性。
 - 转换结果只作阅读辅助。关键公式、定理、实验数字、消融结论和引用措辞必须回到原始 PDF 的页码或章节复核；不得只依据自动提取文本生成论文结论。
 - PDF 转换中间文件统一写入 `/tmp/manifold-pdf-extract/` 等临时目录，不得写入 `raw/`、`wiki/`、`output/` 或默认恢复文档。
 - 分页提取的文件名必须包含 `_p起始页-结束页`，不同页段不得写入同一路径造成覆盖。
