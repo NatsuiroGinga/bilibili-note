@@ -465,6 +465,20 @@ def effective_base_config(config: dict[str, Any]) -> dict[str, Any]:
 def resolve_runtime(config: dict[str, Any]) -> tuple[Any, Any, dict[str, Any], Any]:
     import torch
 
+    # float32 矩阵乘精度：恢复卡第 38 行把它列为「未冻结候选」，要求第一格启动前裁决并冻结。
+    # 2026-09-01 裁决为**不启用**（取 "highest"，即不走 TF32 类快速路径）。理由：它会改变
+    # 舍入与训练轨迹，而启用需要额外的构造等价性检查与吞吐实测；在四格已统一即时执行的
+    # 前提下，保守取值与该方向一致。此处**显式设置**而非依赖 PyTorch 默认，因为默认值可能
+    # 随版本变化，显式调用才能保证四格跨时间、跨机器取到同一条数值路径。
+    # 实际生效值由执行路径收据的 float32_matmul_precision 字段记录。
+    matmul_precision = config["runtime"].get("float32_matmul_precision", "highest")
+    require(
+        matmul_precision in ("highest", "high", "medium"),
+        f"未知的 float32 矩阵乘精度：{matmul_precision}",
+        EXIT_INPUT,
+    )
+    torch.set_float32_matmul_precision(matmul_precision)
+
     precision = base._precision_module()
     contract = precision.load_and_validate_contract(resolve_project_path(config["paths"]["precision_contract"]))
     device_type = config["runtime"]["device_type"]
