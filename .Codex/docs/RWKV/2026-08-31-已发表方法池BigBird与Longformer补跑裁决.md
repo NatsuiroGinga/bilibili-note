@@ -63,7 +63,27 @@ Transformer——本课题的机制主张正是关于注意力骨干上的实体
   第 748 行 `run_parser.add_argument("--model", choices=MODELS, required=True)`。
 
 补跑的操作形态是同一入口换 `--model` 取值，与已跑通的 CNN、GRU、全注意力走同一条路径。
-成本是 GPU 时间，不是实现工时。
+
+**成本估计更正（2026-09-01 实测）**：上文「成本是 GPU 时间，不是实现工时」**漏了一步**。
+实际尝试启动 `dijk2026_bigbird` 时失败于
+`FileNotFoundError: .../dijk-repro/cache/cache-manifest.json`——
+矩阵训练器 `lspr_baseline_matrix_train.py` 读的是**另一套缓存格式**
+（含 `cache-manifest.json`、`train_sequence.npy`、`normalizer_*.npy` 等），
+而非四格所用的 `dijk-repro/cache` 目录。
+
+服务器上现存的两份 `cache-manifest.json` 都不适用：
+`runs/candidates/lspr24-rwkv-screen-seed42-v1/shared-cache/` 的
+`train_sequence.npy` 形状为 `[100000, 5, 408]`（5 时间步、408 维），
+与四格协议的 `(N, 128, 83)` 完全不同，属 RWKV 筛选的缓存；
+另一份在 `runs/data-prepared/` 下，同样未核实为矩阵基线所用。
+
+**结论：补跑需先物化矩阵基线专用缓存，该步骤的耗时与磁盘占用尚未评估。**
+既有的 5 个基线结果（`runs/diagnostics/ch3-baselines-full/` 下的
+`scores_{cnn_leoste2025,gru_dijk2026,random_forest_dijk2024,transformer_dijk2026}.npy`）
+是用当时存在的缓存跑的，该缓存现在是否还在、能否复用，**均未核实**。
+
+排期上因此调整：**补跑的优先级低于四格，且启动前须先做一次物化成本评估**，
+不得再按「换个 `--model` 参数即可」安排。
 
 ### 依据四：收窄的代价不可接受
 
