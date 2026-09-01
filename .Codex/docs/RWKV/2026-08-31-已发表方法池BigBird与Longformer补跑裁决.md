@@ -93,7 +93,29 @@ Transformer——本课题的机制主张正是关于注意力骨干上的实体
 张量布局、归一化或表示」——因此 `77 ⊂ 83` 时基线属**保守设定**（用更少信息），可接受但须说明；
 若 `77` 含 `83` 之外的字段，则违反字段预算，那批基线结果不能进正文。
 
-**该子集关系尚未核实。**
+**该子集关系已核实（2026-09-01 实测，结论：合规）。**
+
+对比命令在服务器执行，两份清单分别取自
+`configs/ch3-ft-transformer-field-token-protocol-a-seed42-v1.json` 的 `field_order`（83）
+与 `runs/data-prepared/lspr23-lspr24-bounded-quick-q0-v1/manifests/field-manifest.json`
+的 `common_model_fields`（77）：
+
+```
+83 字段数: 83   77 字段数: 77
+77 是否为 83 的子集: True
+77 中不在 83 的字段: []
+83 中不在 77 的字段: ['DstPort', 'External_dst', 'External_src',
+                     'Int/Ext Dst IP', 'L3/L4 Protocol', 'SrcPort']
+```
+
+**`77 ⊂ 83` 成立，无越界字段。** 既有 5 个基线用的是 83 字段预算的真子集，
+属保守设定，**不违反数据合同，结果可进正文**。
+
+**但正文必须披露的一条**：FT 四格用 83 字段、已发表基线用 77，**信息预算不同**。
+基线少的 6 个字段是端口（`SrcPort`／`DstPort`）、内外网方向与粗拓扑
+（`External_src`／`External_dst`／`Int/Ext Dst IP`）、以及 `L3/L4 Protocol`。
+因此 FT 相对基线的位置优势**不得全部归因于模型能力**，其中含这 6 个字段的信息增量。
+该披露是如实说明而非弱化结论——反向看，若 FT 用更多信息仍未领先，那才构成问题。
 
 **处置（取代上一版的排期调整）**：
 
