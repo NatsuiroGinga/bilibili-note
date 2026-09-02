@@ -146,7 +146,37 @@
 | --- | --- | --- |
 | 机制构思 | 新研究机制、模型结构、公式、数据合同，或实质改变冻结行为 | `research-ideation` → `brainstorming`（仅此情形，常规启动与重复运行不得借此重开冻结合同） |
 | 文献 | 多篇论文、预计超 30 分钟或可能上下文压缩的调研 | `planning-with-files` 先建 `task_plan.md` 与 `notes.md` → `literature-reviewer` 代理 → `citation-verification` |
-| 文献检索入口 | 文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文请求 | `literature-hybrid-search`：先查本地混合索引，再按证据缺口决定是否扩展在线候选 |
+| 文献检索入口 | 文献检索、相关工作、直接近邻、引用核验、研究空白、相似论文或主题论文请求 | `literature-hybrid-search`：先查本地混合索引，再按证据缺口决定是否扩展在线候选。**具体工具清单见下方「文献调研必须使用技能」** |
+
+### 文献调研必须使用技能（强制，2026-09-02 起）
+
+**文献检索一律通过技能与 MCP 工具执行，禁止凭记忆列举论文、凭印象断言某工作存在或不存在。**
+派发文献调研子代理时，**简报中必须给出下列工具清单**——只写「用检索工具」过于笼统，
+代理不会自行发现以 UUID 命名的 MCP 服务器（2026-09-02 实测：漏写清单导致须补发消息）。
+
+**技能**（用 `Skill` 工具调用，不得凭技能名猜内容）：
+
+- `google-scholar`（顶层，走 `scholar` CLI）与 `mcpmarket-me:google-scholar`（插件版）——
+  两个实现任选，一个查不动换另一个；支持按作者／期刊检索、取 BibTeX、下载 PDF
+- `citation-verification`——核验题录与引用准确性
+- `pdf-converter`——**读 PDF 一律用它（MinerU），禁止 `pdftotext`**（丢公式符号，本仓库出过事故）
+- `literature-reviewer` 代理——系统性综述与 Zotero 联动
+
+**MCP 工具**（用 `ToolSearch` 以 `select:` 一次加载多个，勿逐个加载）：
+
+- `mcp__zotero__zotero_semantic_search`——**本地 Zotero 库语义检索，优先用以避免重复入库**；
+  配套 `zotero_search_items`、`zotero_get_item_fulltext`、`zotero_add_items_by_doi`／`_by_arxiv`
+- `mcp__990aea2c-…__search_papers`（同服务器有 `create_systematic_review`）
+- `mcp__4cfe5157-…__discover_papers`（同服务器有 `get_paper_content` 取全文、`get_researcher_papers`）
+- `mcp__6874b72c-…__search_literature`（同服务器有 `search_patents`）
+- `mcp__50ccb3c5-…__semanticSearch`、`mcp__d0a01844-…__search`——通用语义检索
+
+**检索顺序（强制）**：本地混合索引 → Zotero 语义检索 → 在线技能与 MCP → 全文入库。
+前两步用于避免重复调研已入库材料；跳过它们直接联网属浪费。
+
+**证据等级不因工具而放宽**：在线返回一律只作候选，每条结论标注
+「本地全文／在线全文已下载／在线摘要／仅题录」；未取得全文者不得支撑正文论断或候选存废裁决。
+确认有用且未收录的论文按 `raw/AGENTS.md` 与 `wiki/AGENTS.md` 入库，并更新对应 `INDEX.md`。
 | 实现 | 非平凡实现或缺陷修复 | `writing-plans` → `subagent-driven-development` → `daily-coding` |
 | **第三方 API** | **首次使用某库、或对签名/属性/参数名有任何不确定** | **`npx ctx7@latest library <名称> "<查什么>"` → `npx ctx7@latest docs <libraryId> "<查什么>"`**（强制，先查后写）；等价入口 `find-docs` 技能或 `plugin:context7` MCP。记录库名、目标机实际安装版本、查询来源与核验到的签名 |
 | 调试 | 缺陷、异常行为、运行失败 | `systematic-debugging` 与 `bug-detective` 并用，一次只改一个变量 |
