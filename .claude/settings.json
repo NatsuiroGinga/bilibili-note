@@ -30,7 +30,7 @@
                     },
                     {
                         "type": "command",
-                        "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/sleep_guard.py\"",
+                        "command": "H=\"$(git rev-parse --show-toplevel)/.Codex/hooks/sleep_guard.py\"; [ -f \"$H\" ] || H=\"$(git rev-parse --path-format=absolute --git-common-dir)/../.Codex/hooks/sleep_guard.py\"; [ -f \"$H\" ] && python3 \"$H\" || true",
                         "timeout": 5000
                     }
                 ]
