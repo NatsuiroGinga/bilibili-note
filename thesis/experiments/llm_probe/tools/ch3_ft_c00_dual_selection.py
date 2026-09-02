@@ -48,6 +48,50 @@ LOGGER = logging.getLogger("ch3_ft_c00_dual_selection")
 # 裸 FT 骨干可训练参数量，两处校验（配置合同、模型实测）共用同一常量，避免字面量漂移。
 BARE_FT_PARAMETER_COUNT = 924283
 
+# ---------------------------------------------------------------------------
+# 模型宽度档位（缩容代理模型实验用，2026-09-02 新增）。
+#
+# **不改 tools/ch3_ft_transformer_field_token_protocol_a.py**：该文件被 21 份配置以
+# base.tool_sha256 逐字节哈希锁定（本机 2026-09-02 实测：除一份引用另一工具的配置外，
+# 全部 20 份现有 ch3-ft-*.json 的 base.tool_sha256 都等于该文件当前哈希
+# 1c8c0cd1ac162149363d13bbda6ca8ec9588424ec494a4c7861d7ce6c347e91b）；任何字节级改动都会
+# 让 validate_config 第 507 行的「基础 FT 工具摘要漂移」门在全部既有配置上失败，而不只是
+# 本任务关心的 C00/C01/C11 三份 v2。tools/ch3_ft_c00_dual_selection.py 本身不被任何配置
+# 哈希锁定，故宽度档位逻辑全部落在本文件，只通过 base.expected_parameter_count（已支持
+# 任意 d_token 关键字参数）与 base.build_model（已从 config["architecture"]["d_token"]
+# 读取，不依赖模块级常量）复用协议 A 现成闭式，不新写公式。
+# ---------------------------------------------------------------------------
+WIDTH_PROFILE_FULL = "full"
+WIDTH_PROFILE_HALF = "half"
+WIDTH_PROFILES: tuple[str, ...] = (WIDTH_PROFILE_FULL, WIDTH_PROFILE_HALF)
+# half 档 d_token：官方默认配方宽度对半，n_heads=8 仍整除（96/8=12），层数与头数不变。
+HALF_WIDTH_D_TOKEN = base.D_TOKEN // 2
+# 裸 FT 骨干词表总列数（Protocol + L3/L4 Protocol 两个词表字段，训练区基数各加一个越界
+# 桶后的列数之和）。本机 2026-09-02 反解验证：
+# base.expected_parameter_count(base.NUMERIC_TOKEN_FIELD_COUNT,
+# base.VOCABULARY_TOKEN_FIELD_COUNT, 14, d_token=192) == 924283 == BARE_FT_PARAMETER_COUNT，
+# 故取 14 为该列数，供 half 档复用同一闭式重算，不手填 half 档参数量。
+BARE_FT_VOCABULARY_TOTAL_COLUMNS = 14
+
+
+def bare_ft_expected_parameter_count(width_profile: str) -> int:
+    """裸 FT 骨干在给定宽度档位下的期望可训练参数量。
+
+    ``full`` 档直接返回既有冻结常量 ``BARE_FT_PARAMETER_COUNT``（不改变现状行为）；
+    ``half`` 档复用 ``base.expected_parameter_count`` 同一闭式，只把 ``d_token`` 换成
+    ``HALF_WIDTH_D_TOKEN``，不新写公式、不手填数字。
+    """
+    if width_profile == WIDTH_PROFILE_FULL:
+        return BARE_FT_PARAMETER_COUNT
+    if width_profile == WIDTH_PROFILE_HALF:
+        return base.expected_parameter_count(
+            base.NUMERIC_TOKEN_FIELD_COUNT,
+            base.VOCABULARY_TOKEN_FIELD_COUNT,
+            BARE_FT_VOCABULARY_TOTAL_COLUMNS,
+            d_token=HALF_WIDTH_D_TOKEN,
+        )
+    raise ValueError(f"未知 model.width_profile：{width_profile}")
+
 # mechanism 键在既有两份 C00 配置（cuda-formal / mps-screening）中不存在；缺省即
 # 机制一、机制二均关闭，行为与这两份配置历史上的语义完全一致，因此不需要改动它们。
 # entity_ranking 与 entity_memory 对称新增，机制二实现报告见
@@ -416,13 +460,22 @@ def validate_config(config: dict[str, Any]) -> None:
     else:
         slots = entity_memory.get("slots")
         require(slots is None or isinstance(slots, int), "z1=0 时 slots 只能是 null 或整数（不参与模型构造）")
-        require(config.get("model") == {
+        # width_profile 是可选字段，缺省即 full；缺省时期望字典完全不含该键，与改动前
+        # 逐位一致，保证既有配置（无该字段）的 science_identity_sha256 不变。
+        model_block = config.get("model")
+        has_width_profile = isinstance(model_block, dict) and "width_profile" in model_block
+        width_profile = model_block.get("width_profile", WIDTH_PROFILE_FULL) if isinstance(model_block, dict) else WIDTH_PROFILE_FULL
+        require(width_profile in WIDTH_PROFILES, f"model.width_profile 只能是 {WIDTH_PROFILES} 之一")
+        expected_model: dict[str, Any] = {
             "role": "bare_ft_transformer",
-            "expected_parameter_count": BARE_FT_PARAMETER_COUNT,
+            "expected_parameter_count": bare_ft_expected_parameter_count(width_profile),
             "old_cpa_enabled": False,
             "old_elp_enabled": False,
             "old_mechanism_scaffold_present": False,
-        }, "裸 FT 模型合同不符")
+        }
+        if has_width_profile:
+            expected_model["width_profile"] = width_profile
+        require(config.get("model") == expected_model, "裸 FT 模型合同不符")
 
     if entity_ranking_enabled:
         budgets = entity_ranking.get("budgets")
