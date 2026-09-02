@@ -616,6 +616,16 @@ def effective_base_config(config: dict[str, Any]) -> dict[str, Any]:
     result["training"]["gradient_accumulation_steps"] = config["training"]["gradient_accumulation_steps"]
     result["training"]["epochs"] = max(1, int(config["budget"]["epochs"] or 1))
     result["training"]["steps_per_epoch"] = max(1, int(config["budget"]["steps_per_epoch"] or 1))
+    # model.width_profile 覆写骨干宽度：缺省 full 时不触碰 architecture，
+    # 现有 21 份配置的行为与 base_config 逐位不变；half 档按同一表达式联动 d_ffn_hidden
+    # （int(d_token * 1.333333333333333)，与官方配方 int(192*1.333…)=255 同式）。
+    width_profile = config.get("model", {}).get("width_profile", WIDTH_PROFILE_FULL)
+    if width_profile == WIDTH_PROFILE_HALF:
+        result["architecture"]["d_token"] = HALF_WIDTH_D_TOKEN
+        result["architecture"]["d_ffn_hidden"] = int(HALF_WIDTH_D_TOKEN * 1.333333333333333)
+    elif width_profile != WIDTH_PROFILE_FULL:
+        raise ValueError(f"未知 model.width_profile：{width_profile}")
+
     return result
 
 
@@ -1232,7 +1242,15 @@ def build_model_optimizer(
 
     backbone = base.build_model(base_config, view.transform, input_key=config["data"]["input_candidate"])
     backbone_actual = sum(parameter.numel() for parameter in backbone.parameters() if parameter.requires_grad)
-    require(backbone_actual == BARE_FT_PARAMETER_COUNT, f"裸 FT 骨干参数量不符：{backbone_actual}", EXIT_RUNTIME)
+    # 参数量断言按 model.width_profile 取期望值：缺省 full 时返回既有冻结常量
+    # BARE_FT_PARAMETER_COUNT，与改动前逐位等价；half 档走同一闭式（d_token=96）。
+    _width_profile = config.get("model", {}).get("width_profile", WIDTH_PROFILE_FULL)
+    _expected_backbone = bare_ft_expected_parameter_count(_width_profile)
+    require(
+        backbone_actual == _expected_backbone,
+        f"裸 FT 骨干参数量不符：{backbone_actual}（width_profile={_width_profile} 期望 {_expected_backbone}）",
+        EXIT_RUNTIME,
+    )
     names = tuple(name for name, _ in backbone.named_parameters())
     require(not any("fusion" in name or "p_log" in name for name in names), "裸 FT 含旧机制脚手架", EXIT_RUNTIME)
 
