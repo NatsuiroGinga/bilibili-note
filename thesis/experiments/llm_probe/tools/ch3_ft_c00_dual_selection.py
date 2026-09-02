@@ -2482,6 +2482,14 @@ def _ranking_phase(
         loss_rank = bag_result["loss"]
     stage_timing["loss"] = _stage_timer_end(torch_module, use_cuda_timing, _stage_marker)
 
+    # 候选六 EAS（第四章候选-BER训练效率机制.md 第 9 节）的动机计数：判空条件复用
+    # cvar_pauc_loss / _cvar_pauc_loss_stratified 已经计算的 per_budget_active_rate
+    # （生效策略那一档），不新造判据。活动集全空 ⟺ 该步全部预算档的活动率精确为 0——
+    # 对布尔张量取 mean，计数为 0 时结果精确等于 0.0，不存在浮点漂移。空字典按“非空”
+    # 处理，避免 all([]) 的真空真值把异常状态误判为空活动集。
+    active_rates = bag_result["policies"][bag_config.active_policy].get("per_budget_active_rate") or {}
+    empty_active_set_step = bool(active_rates) and all(rate == 0.0 for rate in active_rates.values())
+
     _stage_marker = _stage_timer_begin(torch_module, use_cuda_timing)  # 段4：诊断反传
     # 观测量 nonargmax_grad_share 必须在 loss_rank.backward() **之前**取：backward()
     # 会释放计算图，之后再对 entity_scores 求梯度会报「图已释放」。这里只对实体分数
@@ -2540,6 +2548,9 @@ def _ranking_phase(
         # 逐步累积在 epoch_ranking_diagnostics 里，轮末由 summarize_falsifiable_observables
         # 统一 resolve 成聚合标量后写收据，本字典本身不进入最终 JSON。
         "stage_timing": stage_timing,
+        # 候选六 EAS（同文件第 9 节）的动机计数：本步活动集是否全空，逐步累积后
+        # 在轮末压成 empty_active_step_frac / ranking_shortcut_step_count。
+        "empty_active_set_step": empty_active_set_step,
     }
     return g_rank, diagnostics
 
@@ -2561,7 +2572,7 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
     T3（第四章候选-BER训练效率机制.md 第 8.5 节，2026-09-02 实现）：本函数还是
     ``stage_timing`` 里 CUDA 事件对唯一被 resolve 的地方——``elapsed_time()`` 只在
     这里、每轮调用一次、且严格晚于该轮全部训练步完成之后才执行，逐步训练循环内
-    不发生任何设备同步。
+    不发生任何设备同步。同轮同时给出候选六 EAS 的 `empty_active_step_frac`。
     """
     import numpy as np
 
@@ -2573,6 +2584,8 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
             "pair_loss_batch_var": None,
             "inner_tail_frac_epoch_mean": None,
             "stage_timing_seconds": None,
+            "empty_active_step_frac": None,
+            "ranking_shortcut_step_count": None,
         }
 
     def _mean(values: list[float]) -> float | None:
@@ -2642,6 +2655,13 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
                 "step_count": len(stage_values),
             }
 
+    # 候选六 EAS 的动机计数：轮内空活动集步数占比（逐步布尔计数器的轮末聚合）。
+    empty_flags = [
+        bool(entry["empty_active_set_step"]) for entry in step_diagnostics if "empty_active_set_step" in entry
+    ]
+    empty_active_step_frac = float(np.mean(empty_flags)) if empty_flags else None
+    ranking_shortcut_step_count = int(sum(empty_flags)) if empty_flags else None
+
     return {
         "step_count": len(step_diagnostics),
         "active_policy": active_policy,
@@ -2656,6 +2676,8 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
         "pair_loss_batch_mean": _mean(pair_means),
         "inner_tail_frac_epoch_mean": _mean(tail_fractions),
         "stage_timing_seconds": stage_timing_seconds,
+        "empty_active_step_frac": empty_active_step_frac,
+        "ranking_shortcut_step_count": ranking_shortcut_step_count,
     }
 
 
