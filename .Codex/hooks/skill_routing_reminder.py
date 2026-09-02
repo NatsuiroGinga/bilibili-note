@@ -82,7 +82,9 @@ ROUTES: list[tuple[tuple[str, ...], str, str]] = [
 
 BANNED = (
     "nature-writing / nature-polishing / nature-response / nature-data /"
-    " latex-conference-template-organizer / mine-writing-patterns 在本中文学位论文仓库停用"
+    " latex-conference-template-organizer 在本中文学位论文仓库停用；"
+    "mine-writing-patterns 只可提取结构与论证组织，产出落 wiki/papers/ 或 thesis/，"
+    "不得写入全局技能记忆，不提取英文措辞与 venue 信号"
 )
 
 # --- AGENTS.md 规则文件提醒 ---------------------------------------------

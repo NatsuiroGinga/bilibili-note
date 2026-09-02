@@ -141,7 +141,7 @@
 
 ### 三处与上游默认不同的裁决
 
-1. **英文投稿技能停用**：本仓库是中文学位论文，`nature-writing`、`nature-polishing`、`nature-response`、`nature-data`、`latex-conference-template-organizer` 与会议 LaTeX 模板一律不用；`/mine-writing-patterns` 入口禁用，`paper-miner` 只用于读结构。仅在明确的英文投稿或真实审稿场景下才可启用。
+1. **英文投稿技能停用**：本仓库是中文学位论文，`nature-writing`、`nature-polishing`、`nature-response`、`nature-data`、`latex-conference-template-organizer` 与会议 LaTeX 模板一律不用，仅在明确的英文投稿或真实审稿场景下才可启用。`/mine-writing-patterns` 可用于提取论文的结构与论证组织，但产出必须落本仓库（`wiki/papers/` 或 `thesis/`），不得写入全局技能记忆；英文措辞、投稿惯例与 venue 信号一律不提取。产出落 `wiki/papers/` 时遵守 `wiki/AGENTS.md` 的论文笔记强制要求（frontmatter 八字段、`source_pdf` 指向 `raw/papers/` 原件、更新对应方向 `INDEX.md`）；跨篇的组织模式归纳属方法准备，落 `thesis/`。
 2. **分析门禁只卡结论，不卡实验**：`results-analysis` 的 blocker-first 门禁（锁定分析单元、主指标、种子/折数、来源、比较族）**作用于"把结果写入正文或路线总控"这一步**，不得用于阻塞已满足数据与运行门禁的实验启动。格式化、重复静态检查、归档与非阻断性审查同样不得延迟实验。
 3. **图表按下述学位论文图件合同产出**：`publication-chart-skill` 负责图型选择、信息密度与配套表；渲染规格按本合同执行。历史图件的 `180 mm` 宽与 Hiragino Sans GB 字体已判定为缺陷（A4 版心不足 180 mm、该字体非中文学位论文常规），不再沿用。
 
