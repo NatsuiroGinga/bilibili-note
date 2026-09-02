@@ -27,6 +27,11 @@
                         "type": "command",
                         "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/prettier_guard.py\"",
                         "timeout": 5000
+                    },
+                    {
+                        "type": "command",
+                        "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/sleep_guard.py\"",
+                        "timeout": 5000
                     }
                 ]
             }
