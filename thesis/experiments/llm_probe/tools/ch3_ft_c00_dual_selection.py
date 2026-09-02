@@ -11,6 +11,7 @@ import logging
 import math
 import os
 import platform
+import shutil
 import random
 import resource
 import sys
@@ -763,6 +764,19 @@ def prepare_data(config: dict[str, Any], base_config: dict[str, Any], output_roo
     train_rows, validation_rows, split_stats = base.source_split(arrays, base_config)
     transform_path = output_root / "artifacts" / "sealed-input-transform.pkl"
     receipt = base.load_cardinality_receipt(config["paths"]["cardinality_receipt"], base_config)
+    # 跨运行复用输入变换（显式指定，缺省不启用，现有配置行为不变）。
+    # 依据：fit_input_transform 只依赖 candidate_key、cache_root、train_flow_mask、
+    # receipt 与 seed，函数体不使用 architecture/d_token；2026-09-02 实测证据是
+    # 全容量 C00 与 half 档 C00 各自独立拟合后 state_hash 逐位相同
+    # （72f3b712f16ca8c1462313eb20445d04），故与模型宽度无关。
+    # 复用后仍照常写出 input-transform.json 收据，state_hash 可事后核验。
+    reuse_from = config.get("data", {}).get("reuse_input_transform_from")
+    if reuse_from and not transform_path.is_file():
+        donor = output_root.parent / str(reuse_from) / "artifacts" / "sealed-input-transform.pkl"
+        require(donor.is_file(), f"指定复用的输入变换不存在：{donor}", EXIT_INPUT)
+        transform_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(donor, transform_path)
+
     if transform_path.is_file():
         transform = base.load_input_transform(transform_path)
     else:
