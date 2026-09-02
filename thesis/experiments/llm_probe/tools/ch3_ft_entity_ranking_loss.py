@@ -38,6 +38,7 @@ docs.pytorch.org/docs/2.11 与 2.12 兼容的官方文档，2.11 与 2.12 之间
 from __future__ import annotations
 
 import argparse
+import contextlib
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -934,22 +935,34 @@ def bag_policy_diagnostics(
 
     results: dict[str, Any] = {"active_policy": config.active_policy, "policies": {}}
 
-    full_loss, full_diag, full_pairwise, full_scores, full_k = _score_and_loss(valid, stratified=False)
+    def _grad_context(policy_name: str) -> contextlib.AbstractContextManager[None]:
+        """只有 config.active_policy 命中的那一支保留反传图；另两支只用于记录
+        loss_value，在 torch.no_grad() 下计算，不建立也不持有 autograd 图
+        （第四章候选三 HSE 训练效率机制，1.5 节：生效支的前向值与反向图完全不
+        受触及，数值语义不变是结构性的）。"""
+        if policy_name == config.active_policy:
+            return contextlib.nullcontext()
+        return torch.no_grad()
+
+    with _grad_context("full"):
+        full_loss, full_diag, full_pairwise, full_scores, full_k = _score_and_loss(valid, stratified=False)
     results["policies"]["full"] = {"loss_value": float(full_loss.detach()), **full_diag}
 
     entity_groups = _entity_groups(segment_owner, num_entities)
     truncated_valid = _causal_truncate_valid(valid, entity_groups, config.truncate_length)
-    truncated_loss, truncated_diag, truncated_pairwise, truncated_scores, truncated_k = _score_and_loss(
-        truncated_valid, stratified=False
-    )
+    with _grad_context("causal_prefix_truncation"):
+        truncated_loss, truncated_diag, truncated_pairwise, truncated_scores, truncated_k = _score_and_loss(
+            truncated_valid, stratified=False
+        )
     results["policies"]["causal_prefix_truncation"] = {
         "loss_value": float(truncated_loss.detach()),
         **truncated_diag,
     }
 
-    stratified_loss, stratified_diag, stratified_pairwise, stratified_scores, stratified_k = _score_and_loss(
-        valid, stratified=True
-    )
+    with _grad_context("stratified_weighting"):
+        stratified_loss, stratified_diag, stratified_pairwise, stratified_scores, stratified_k = _score_and_loss(
+            valid, stratified=True
+        )
     results["policies"]["stratified_weighting"] = {
         "loss_value": float(stratified_loss.detach()),
         **stratified_diag,
