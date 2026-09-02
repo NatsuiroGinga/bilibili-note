@@ -41,7 +41,8 @@
       "T23"
     ],
     "target_reads": 0,
-    "input_candidate": "ft-transformer-input-protocol-vocabulary-token"
+    "input_candidate": "ft-transformer-input-protocol-vocabulary-token",
+    "reuse_input_transform_from": "ch3-ft-c00-halfwidth-screening-v1"
   },
   "model": {
     "role": "bare_ft_transformer",
