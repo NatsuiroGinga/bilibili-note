@@ -67,6 +67,8 @@ aliases:
 
 - **共享参数上的复合梯度**：第 3 页定义 `L=L_r+sum_i lambda_i L_i`，所有任务通过同一参数 `theta` 更新。梯度统计直接来自残差与边界或初值目标，因此可观察目标间幅值失衡。
 - **只平衡幅值**：算法使用残差梯度的最大绝对值和其他任务梯度的平均绝对值，没有计算余弦、共同下降方向或 Pareto 可行方向。由算法形式可知，两个目标方向相反时，放大较小梯度并不保证冲突消失；这是对公式的直接推论，而非论文声称的方向冲突解法。
+- **原文核实（2026-09-02，MinerU 转 PDF 第 6–14 页与第 22–28 页）**：上条推论成立，且原文比「未报告」更明确——**作者知道多目标冲突的存在并主动声明其超出本文范围**。section 2.4 末尾原话链：先指出梯度下降「may get stuck in limit cycles or even diverge in the presence of multiple competing objectives」并引文献 [32,33]，随后写「these intriguing directions go beyond the scope of the present work and define an areas for future investigation」，并把本文目标定为「retain the simplicity of gradient descent while providing an non-intrusive and adaptive heuristic」。结论段（PDF 第 22–28 页范围）同样把方法定位为「aims to address the unbalanced gradients pathology」，并称可推广到多任务学习。
+  **故引用时的准确措辞是「该方法只处理幅值失衡，作者明确将多目标方向冲突排除在范围外」，而非「论文未考虑方向」。** 检索 `cosine`／`angle`／`conflict`／`Pareto`／`negative transfer` 在方法与结论部分零命中（命中项均为 directional anisotropy、descent direction 等他义）。
 - **Helmholtz 改善**：第 4、11 页在 40,000 次 Adam 更新后，标准 PINN 相对 `L2` 误差为 `1.81e-1`，退火方案降至 `1.27e-2`，说明幅值失衡确实可成为主导失败因素。
 - **Klein-Gordon 梯度消失**：第 16 至 17 页显示边界和初值梯度相对残差趋近消失；表 3 中标准 PINN 为 `1.79e-1`，梯度退火为 `1.06e-2`，结合变换网络为 `2.81e-3`。
 - **R1 必须拆分记录**：若迁移，只能分别记录检测、状态、守恒和缺测可靠性梯度的范数与方向；不能以单个加权总梯度宣称物理目标已帮助检测。

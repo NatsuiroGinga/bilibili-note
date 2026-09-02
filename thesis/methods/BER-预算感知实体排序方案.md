@@ -199,6 +199,48 @@ Zhu 2022 只给非凸收敛保证，不给泛化界；SoRR 作者原话（物理
 
 ---
 
+### 3.6 双损失的梯度失衡与方向冲突（当前实测，2026-09-02）
+
+排序损失与逐流 BCE 更新同一套骨干参数，两者的梯度量级与方向均需控制。
+实测来自 C01 正式运行收据 `entity-ranking-diagnostics-{1,2}.json` 的
+`last_step_snapshot.gradient_control`：
+
+| 量 | epoch 1 | epoch 2 |
+| --- | ---: | ---: |
+| `grad_norm_flow` | `4.270089` | `1.286630` |
+| `grad_norm_rank` | `94.581802` | `825.010925` |
+| `grad_norm_rank_projected` | `94.581802` | `808.834412` |
+| 两者余弦 | `+0.181525` | **`−0.197056`** |
+| `projection_triggered` | `False` | **`True`** |
+| `c_scaling` | `0.045147` | `0.001591` |
+| `controlled_rank_step_norm` | `4.270089` | `1.286630` |
+
+**两个现象**：其一，两目标的梯度范数比从 `22` 倍扩大到 `641` 倍；
+其二，**余弦在第 2 轮翻负**，两个目标开始互相拉扯。仅两轮数据，
+是训练早期暂态还是持续趋势尚不可判。
+
+**控制器的实际行为**（由收据反推）：`controlled_rank_step_norm` 两轮均**恰好等于**
+`grad_norm_flow`，且两条不变量 `inner ≥ ‖g_f‖²`、`controlled ≤ ‖g_f‖` 均成立
+（`invariants.both_hold = True`）。即控制器在方向冲突时对排序梯度做投影，
+并把其步长限制在逐流梯度范数以内——**同时约束幅值与方向**。
+
+**文献定位（跨领域，仅方法论可迁移）**：PINN 领域的 Wang 等 2021
+（SIAM J. Sci. Comput. 43(5): A3055–A3081，DOI `10.1137/20M1318043`，
+原件与全文笔记均已入库）把复合损失的训练失败追溯到梯度幅值失衡，
+提出按梯度统计退火损失权重（PDF 物理页 10 算法 1，`λ̂_i = max|∇L_r| / mean|∇L_i|`，
+EMA 更新）。**该方法只处理幅值**：原文 section 2.4 末尾承认梯度下降
+「may get stuck in limit cycles or even diverge in the presence of multiple competing objectives」
+并引文献 [32,33]，随即声明「these intriguing directions go beyond the scope of the present work」，
+把本文目标限定为「non-intrusive and adaptive heuristic」；结论段亦将方法定位为
+「aims to address the unbalanced gradients pathology」。**原文核实于 2026-09-02，
+非二手转述。**
+
+故本方法的梯度控制器落在该文献明确排除的范围之外——它同时做方向投影与步长限制。
+**但三条边界必须守住**：一，Wang 2021 是 PINN 领域，**只可迁移「分目标记录梯度范数与方向」
+的审计原则，其数值、Hessian 量级与退火超参数一概不迁移**；二，本方法的控制器**先于本轮实测存在**，
+不是依据该文献设计的，正文不得写成「受其启发提出」；三，**余弦翻负目前只有两轮观测**，
+不足以支撑任何关于控制器有效性的主张。
+
 ## 四、参数登记
 
 | 登记项 | 内容 |
