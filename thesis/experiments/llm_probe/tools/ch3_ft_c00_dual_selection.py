@@ -2360,6 +2360,37 @@ def _entity_ranking_memory_forward(
     )
 
 
+def _stage_timer_begin(torch_module: Any, use_cuda_timing: bool) -> Any:
+    """T3（第四章候选-BER训练效率机制.md 第 8.5 节）排序阶段五段计时：开始一个
+    阶段的计时标记，纯观测，不改变任何数值语义。
+
+    CUDA 路径记一个已入队但未 resolve 的 ``torch.cuda.Event``——``record()``
+    是异步调用，不阻塞当前流、不引入新的主机-设备同步点；主机路径记
+    ``time.perf_counter()``。两条路径在此处都不调用 ``elapsed_time()`` 或
+    ``synchronize()``，resolve 延后到轮末 ``summarize_falsifiable_observables``
+    统一执行（见该函数），避免在逐步训练循环内打断异步流水。
+    """
+    if use_cuda_timing:
+        event = torch_module.cuda.Event(enable_timing=True)
+        event.record()
+        return event
+    return time.perf_counter()
+
+
+def _stage_timer_end(torch_module: Any, use_cuda_timing: bool, start_marker: Any) -> Any:
+    """结束一个阶段的计时，与 ``_stage_timer_begin`` 配对。
+
+    CUDA 路径返回 ``(start_event, end_event)`` 待 resolve 的事件对，本函数本身
+    不读取耗时；主机路径当场取 ``perf_counter()`` 差值——两个主机时间戳相减
+    不触发任何设备同步，可以立即算出秒数，不必也延后到轮末。
+    """
+    if use_cuda_timing:
+        end_event = torch_module.cuda.Event(enable_timing=True)
+        end_event.record()
+        return (start_marker, end_event)
+    return time.perf_counter() - start_marker
+
+
 def _ranking_phase(
     config: dict[str, Any], model: Any, optimizer: Any, view: Any, arrays: dict[str, Any], train_rows: Any,
     np_rng: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any, sampler: Any,
@@ -2383,6 +2414,14 @@ def _ranking_phase(
     length = config["training"]["sequence_length"]
     max_segments = -(-int(ranking_cfg["truncate_length"]) // int(length))  # ceil(truncate_length/sequence_length)
 
+    # T3 排序阶段五段计时（第四章候选-BER训练效率机制.md 第 8.5 节，2026-09-02 实现）：
+    # 只落每轮聚合标量，不落逐步数组；CUDA 事件对的 elapsed_time() 只在轮末
+    # summarize_falsifiable_observables 里 resolve 一次，本函数内部不做任何
+    # 会打断异步流水的同步调用。
+    use_cuda_timing = device.type == "cuda" and bool(torch_module.cuda.is_available())
+    stage_timing: dict[str, Any] = {"backend": "cuda_event" if use_cuda_timing else "host_perf_counter"}
+
+    _stage_marker = _stage_timer_begin(torch_module, use_cuda_timing)  # 段1：抽样
     batch = sampler.sample(np_rng)
     rows_all = train_rows[batch["segment_rows"]]
     entity_raw_all = arrays["E23"][rows_all]
@@ -2393,7 +2432,9 @@ def _ranking_phase(
     segment_owner = torch_module.from_numpy(segment_owner_np.astype(np.int64)).to(device)
     entity_is_positive = torch_module.from_numpy(np.isin(unique_entities, batch["positive_entities"])).to(device)
     entity_chain_length = torch_module.from_numpy(sampler.flows_per_entity[unique_entities].astype(np.int64)).to(device)
+    stage_timing["sample"] = _stage_timer_end(torch_module, use_cuda_timing, _stage_marker)
 
+    _stage_marker = _stage_timer_begin(torch_module, use_cuda_timing)  # 段2：前向编码
     if entity_memory_enabled:
         is_start_np = interface["is_entity_start"][entity_rows]
         assert_recovery_adjacency(entity_rows, interface, entity_of_row)
@@ -2405,7 +2446,9 @@ def _ranking_phase(
         entity_logits, entity_valid_t = _entity_ranking_bare_forward(
             config, model, view, indices, valid, device, profile, precision, torch_module,
         )
+    stage_timing["forward"] = _stage_timer_end(torch_module, use_cuda_timing, _stage_marker)
 
+    _stage_marker = _stage_timer_begin(torch_module, use_cuda_timing)  # 段3：损失计算
     positive_entity_ids = unique_entities[entity_is_positive.detach().cpu().numpy()]
     require(positive_entity_ids.size > 0, "实体排序批不含任何正实体", EXIT_RUNTIME)
     eff_budgets = [
@@ -2437,6 +2480,9 @@ def _ranking_phase(
             entity_chain_length, eff_budgets, xi, bag_config,
         )
         loss_rank = bag_result["loss"]
+    stage_timing["loss"] = _stage_timer_end(torch_module, use_cuda_timing, _stage_marker)
+
+    _stage_marker = _stage_timer_begin(torch_module, use_cuda_timing)  # 段4：诊断反传
     # 观测量 nonargmax_grad_share 必须在 loss_rank.backward() **之前**取：backward()
     # 会释放计算图，之后再对 entity_scores 求梯度会报「图已释放」。这里只对实体分数
     # （长度 E 的向量）反传一次，不穿实体前向，代价与 pairwise 同量级。
@@ -2448,11 +2494,15 @@ def _ranking_phase(
         tail_observables["nonargmax_grad_share"] = ranking.nonargmax_grad_energy_share(
             grad_entity_scores, bag_result["active_k_per_entity"]
         )
+    stage_timing["diagnostic_backward"] = _stage_timer_end(torch_module, use_cuda_timing, _stage_marker)
+
+    _stage_marker = _stage_timer_begin(torch_module, use_cuda_timing)  # 段5：主反传
     loss_rank.backward()
 
     require(xi.grad is not None, "xi 未接收到梯度，检查是否进入了 cvar_pauc_loss 的反传图", EXIT_RUNTIME)
     xi_updated = (xi.detach() - float(ranking_cfg["xi_learning_rate"]) * xi.grad).cpu()
     xi_state.commit(positive_entity_ids, xi_updated)
+    stage_timing["main_backward"] = _stage_timer_end(torch_module, use_cuda_timing, _stage_marker)
 
     shared_params = _shared_parameters(model)
     g_rank = _flat_grad_from_params(shared_params, torch_module)
@@ -2486,6 +2536,10 @@ def _ranking_phase(
         "entity_tail_aggregation": bag_result["policies"][bag_config.active_policy].get(
             "entity_tail_aggregation"
         ),
+        # T3（第四章候选-BER训练效率机制.md 第 8.5 节）：五段计时标记，未 resolve，
+        # 逐步累积在 epoch_ranking_diagnostics 里，轮末由 summarize_falsifiable_observables
+        # 统一 resolve 成聚合标量后写收据，本字典本身不进入最终 JSON。
+        "stage_timing": stage_timing,
     }
     return g_rank, diagnostics
 
@@ -2503,6 +2557,11 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
     四项都不依赖尾部聚合是否开启：`z1'=0` 的臂里 `nonargmax_grad_share` 与
     `inner_tail_frac` 为 ``None``，另两项照常给出，C01 与 C11 因此可以逐项对比。
     输入是逐步诊断字典列表，输出只有标量与逐档标量字典，不含任何逐实体或逐流数组。
+
+    T3（第四章候选-BER训练效率机制.md 第 8.5 节，2026-09-02 实现）：本函数还是
+    ``stage_timing`` 里 CUDA 事件对唯一被 resolve 的地方——``elapsed_time()`` 只在
+    这里、每轮调用一次、且严格晚于该轮全部训练步完成之后才执行，逐步训练循环内
+    不发生任何设备同步。
     """
     import numpy as np
 
@@ -2513,10 +2572,32 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
             "per_budget_active_rate_epoch_mean": None,
             "pair_loss_batch_var": None,
             "inner_tail_frac_epoch_mean": None,
+            "stage_timing_seconds": None,
         }
 
     def _mean(values: list[float]) -> float | None:
         return float(np.mean(values)) if values else None
+
+    def _resolve_stage_seconds(entry: dict[str, Any]) -> dict[str, float] | None:
+        """把单步 ``stage_timing`` 标记 resolve 成秒数字典。CUDA 路径在此调用
+        ``start_event.elapsed_time(end_event)``（毫秒转秒）；主机路径的标记在
+        ``_stage_timer_end`` 里已经是秒数差值，原样取出。
+        """
+        timing = entry.get("stage_timing")
+        if not timing:
+            return None
+        backend = timing.get("backend")
+        resolved: dict[str, float] = {}
+        for stage_name in ("sample", "forward", "loss", "diagnostic_backward", "main_backward"):
+            marker = timing.get(stage_name)
+            if marker is None:
+                continue
+            if backend == "cuda_event":
+                start_event, end_event = marker
+                resolved[stage_name] = float(start_event.elapsed_time(end_event)) / 1000.0
+            else:
+                resolved[stage_name] = float(marker)
+        return resolved
 
     shares = [
         float(entry["nonargmax_grad_share"])
@@ -2541,6 +2622,26 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
         rates = (entry.get("per_budget_active_rate") or {}).get(active_policy) or {}
         for budget_key, value in rates.items():
             per_budget.setdefault(budget_key, []).append(float(value))
+
+    # T3 五段计时：resolve 后只保留每轮的均值/中位/总和，不落逐步数组。
+    stage_records = [
+        record for record in (_resolve_stage_seconds(entry) for entry in step_diagnostics) if record is not None
+    ]
+    stage_timing_seconds: dict[str, Any] | None = None
+    if stage_records:
+        timing_backend = next(
+            (entry["stage_timing"]["backend"] for entry in step_diagnostics if entry.get("stage_timing")), None
+        )
+        stage_timing_seconds = {"backend": timing_backend, "resolved_step_count": len(stage_records)}
+        for stage_name in ("sample", "forward", "loss", "diagnostic_backward", "main_backward"):
+            stage_values = [record[stage_name] for record in stage_records if stage_name in record]
+            stage_timing_seconds[stage_name] = {
+                "mean_seconds": _mean(stage_values),
+                "median_seconds": float(np.median(stage_values)) if stage_values else None,
+                "sum_seconds": float(np.sum(stage_values)) if stage_values else None,
+                "step_count": len(stage_values),
+            }
+
     return {
         "step_count": len(step_diagnostics),
         "active_policy": active_policy,
@@ -2554,6 +2655,7 @@ def summarize_falsifiable_observables(step_diagnostics: list[dict[str, Any]]) ->
         "pair_loss_batch_var": float(np.var(pair_means)) if pair_means else None,
         "pair_loss_batch_mean": _mean(pair_means),
         "inner_tail_frac_epoch_mean": _mean(tail_fractions),
+        "stage_timing_seconds": stage_timing_seconds,
     }
 
 
