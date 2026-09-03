@@ -173,6 +173,15 @@ tags:
 - **[[soc-alert-operations/2022-Alahmadi-99percent误报SOC分析员访谈|99% 误报：SOC 分析员访谈]]** — 20 份问卷 + 21 场访谈的定性研究；受访者把感知误报率量化为 99%「但我们仍然必须逐条看」，而验证告警靠的是**资产与网络上下文**（拓扑、设备用途、位置、责任人）。论文同时指出这些「误报」多为良性触发，不是技术缺陷。
 - **[[soc-alert-operations/2026-CALIBURN-区间依赖保形风险控制的告警预算|CALIBURN：把告警预算接到保形风险控制]]**（原件在 `raw/papers/attack-detection/`，非本节开头所述路径） — 安全域「运营告警预算 + 保形风险控制」的最直接先例：CRC 包装器把预算 `α` 转成阈值，但保证是**逐流的边际有效性**（物理第 18 页），无任何分面条件。论文自报的可证伪发现是该保证跨攻击流行率区间强烈失稳（`5.2%`/`22.06%`/`64%` 三档）。**预印本、单作者，数值只能作自报引用。**
 
+## FT-Transformer 训练协议核查（2026-09-03 新增）
+
+为核实本课题 FT-Transformer 训练超参（AdamW、`lr=1e-4`、`weight_decay=1e-5`、无学习率调度器）是否忠实原论文默认配方而入库，见 `thesis/methods/FT-Transformer训练协议核查.md`。
+
+- **[[2021-Gorishniy-表格数据深度学习模型再审视|Gorishniy 2021：FT-Transformer 原论文]]** — 本次核查补充了"FT-Transformer 默认训练协议核查"一节：常数学习率是作者为隔离架构贡献而主动排除的模型无关训练技巧之一（物理页 5-6，非遗漏）；默认配方（AdamW、`lr=1e-4`、`wd=1e-5`）逐字对应 Table 12（物理页 18）；官方调参空间 `LogUniform[1e-5,1e-3]`（HI 数据集所在组）与默认学习率的几何中位重合，核实非巧合杜撰（Table 13，物理页 18）。
+- **[[2023-Zhu-XTab跨表预训练|XTab：跨表预训练]]** — 骨干即 FT-Transformer；预训练与微调两阶段均逐字沿用 Gorishniy 2021 的 `AdamW/lr=1e-4/wd=1e-5`，全文零命中"scheduler"（物理页 5-6）。
+- **[[2020-Huang-TabTransformer上下文嵌入|TabTransformer：上下文嵌入]]** — 架构独立于 FT-Transformer（早一年、无逐字段数值 Token），但训练协议同样采用"AdamW + 全程常数学习率 + 早停 15"（物理页 10），提供跨架构的独立印证。
+- **[[2025-Zhou-Matern驱动KAN特征标记器|Matérn-KAN：FT-Transformer 特征标记器改造]]** — 基线 FT-T 沿用 3 块/192 维/8 头结构与 `lr=1e-4`、patience=16 惯例（物理页 7），未用调度器；同时是本次核查中唯一报告基线出现训练期准确率震荡的文献，但归因于数据集规模过小而非优化器设置（物理页 8）。
+
 ## 相关索引
 
 - **[[wiki/papers/rwkv/INDEX|RWKV 论文索引]]** — 架构与网络安全证据主索引。
