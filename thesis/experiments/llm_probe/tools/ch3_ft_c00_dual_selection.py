@@ -185,6 +185,19 @@ ENTITY_TAIL_AGGREGATION_PROVENANCE_KEYS = (
 # 不一致的袋合同（裁决报告第五节第 4 条「沿用截断 8192」）。
 ENTITY_TAIL_AGGREGATION_ALLOWED_KEYS = ("enabled", "kind", "alpha", "numeric_provenance")
 
+# ---------------------------------------------------------------------------
+# 四格共同底座：实体级 BCE（2026-09-03 实施计划任务 2）。算术实现只有一份，在
+# ch3_ft_entity_bce.entity_bce_loss（复用同一份 tail_aggregate，不重写聚合）；
+# 这里同样只放不依赖 torch 的纯字符串常量，使 --validate-config 能在缺 torch
+# 的项目 .venv 上跑通（既有约束，理由与上方各组常量相同）。
+#
+# 不设独立 alpha 键：entity_bce_loss 的 alpha 形参只接受已冻结的
+# ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA（0.5），挂载时直接复用该常量，不新增
+# 第二个可能与之不一致的冻结值。
+# ---------------------------------------------------------------------------
+ENTITY_BCE_AGGREGATIONS = ("maximum", "tail_mean")
+ENTITY_BCE_ALLOWED_KEYS = ("enabled", "weight", "aggregation")
+
 # 评价侧实体聚合口径字符串。z1'=0 保持历史值不变，z1'=1 换成尾部聚合口径——
 # 该字段进 science_projection，因此两臂的科学身份天然不同，不会撞车。
 ENTITY_AGGREGATION_MAXIMUM = "maximum_over_validation_flows"
@@ -345,6 +358,23 @@ def validate_config(config: dict[str, Any]) -> None:
             not entity_memory_enabled and not entity_gated_ple_enabled,
             "尾部聚合臂必须 entity_memory=false 且 entity_gated_ple=false"
             "（三者都是机制一候选，改的是同一处实体分数）",
+        )
+    # 实体级 BCE 共同底座同样就地缺省读取，不进 DEFAULT_MECHANISM（理由同上：
+    # 给它加键会改变缺 mechanism 键的 C00 配置的科学身份，拒掉既有在途检查点）。
+    entity_bce = mechanism.get("entity_bce", {})
+    entity_bce_enabled = entity_bce.get("enabled", False)
+    require(isinstance(entity_bce_enabled, bool), "mechanism.entity_bce.enabled 必须是布尔值")
+    if entity_bce_enabled:
+        unknown_entity_bce_keys = set(entity_bce) - set(ENTITY_BCE_ALLOWED_KEYS)
+        require(not unknown_entity_bce_keys, f"mechanism.entity_bce 含未登记键 {sorted(unknown_entity_bce_keys)}")
+        entity_bce_weight = entity_bce.get("weight")
+        require(
+            isinstance(entity_bce_weight, float) and entity_bce_weight > 0.0,
+            "mechanism.entity_bce.weight 必须是正浮点（须先按根 AGENTS.md 魔法数字门禁登记依据）",
+        )
+        require(
+            entity_bce.get("aggregation") in ENTITY_BCE_AGGREGATIONS,
+            f"mechanism.entity_bce.aggregation 取值不合法，须在 {ENTITY_BCE_AGGREGATIONS} 中",
         )
     if entity_gated_ple_enabled:
         # M-E 改的是分词器本身，与机制一的交叉注意力、机制二的第二数据流互不兼容；
@@ -1447,12 +1477,19 @@ def training_step(
     view: Any, train_rows: Any, generator: Any, device: Any, profile: dict[str, Any],
     precision: Any, torch_module: Any, positive_weight: Any,
     mechanism_context: dict[str, Any] | None = None,
+    entity_ids: Any = None,
 ) -> dict[str, Any]:
     """裸 FT 逐流训练步。
 
     ``mechanism_context`` 默认 ``None``，此时行为与既有 ``z1=0`` 路径逐字一致。
     M-E 开启时传入含 ``state_matrix`` 的上下文，按本批片段行索引取实体状态；
     该矩阵在 ``prepare_entity_gated_ple_context`` 阶段算一次，不在每步重算。
+
+    ``entity_ids`` 默认 ``None``：``mechanism.entity_bce`` 缺省关闭时不读取它，
+    此时全函数逐字保持既有行为（2026-09-03 实施计划任务 2，四格共同底座）。
+    启用时传入 ``arrays["E23"]``（逐片段实体 ID，与 ``validation_metrics`` 读同一
+    数组同一语义），在实体级 BCE 的加权项与既有逐流 BCE 求和后一起反传，不新增
+    第二次 ``backward()``、不改变梯度累积的微批边界。
     """
     import numpy as np
 
@@ -1471,6 +1508,19 @@ def training_step(
         expected_microbatches=config["training"]["gradient_accumulation_steps"],
     )
     accumulator.begin(optimizer)
+    # 实体级 BCE 共同底座：读取一次配置，供下方微批循环逐次调用。缺
+    # mechanism.entity_bce 键（既有全部配置）或 enabled=false 时，
+    # entity_bce_enabled 恒为 False，循环体内对应分支从不进入，
+    # 不调用新模块、不构造任何新张量——与改动前逐位相同。
+    mechanism = config.get("mechanism", DEFAULT_MECHANISM)
+    entity_bce_cfg = mechanism.get("entity_bce", {})
+    entity_bce_enabled = bool(entity_bce_cfg.get("enabled", False))
+    if entity_bce_enabled:
+        require(entity_ids is not None, "mechanism.entity_bce 已启用但调用方未传入 entity_ids", EXIT_RUNTIME)
+        entity_bce_weight = float(entity_bce_cfg["weight"])
+        entity_bce_aggregation = entity_bce_cfg["aggregation"]
+        entity_ids_array = np.asarray(entity_ids)
+        import ch3_ft_entity_bce as entity_bce_module  # 延迟导入，模块顶层经 tail_aggregate 无条件 import torch
     loss_total = 0.0
     model.train()
     for start in range(0, effective, micro):
@@ -1484,6 +1534,36 @@ def training_step(
         mask32 = valid_t.to(torch_module.float32)
         with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
             loss_sum = (loss_fn(logits32, labels_t.to(torch_module.float32)) * mask32).sum()
+            if entity_bce_enabled:
+                # 本微批的实体级 BCE：把 (micro, length) 逐流量摊平成一维，实体 ID
+                # 用 np.unique 重编为本微批局部的紧凑下标（entity_bce_loss 的契约
+                # 要求 entity_labels 长度即"批内实体总数"，见其文档字符串），
+                # 标签取该实体在本微批内全部有效流标签的最大值。诊断字典（含
+                # entity_scores 等实体级张量）就地丢弃、不落入任何收据——
+                # 避免重演 2026-09-02 张量写入 JSON 导致训练崩溃的事故（budget-receipt.json
+                # 的 one_optimizer_step 会原样吸收本函数的返回字典）。
+                micro_rows = rows[start:stop]
+                entity_ids_broadcast = np.broadcast_to(
+                    entity_ids_array[micro_rows][:, None], valid[start:stop].shape
+                )
+                flat_valid_np = valid[start:stop].reshape(-1)
+                flat_entity_global = entity_ids_broadcast.reshape(-1)
+                flat_labels_np = labels[start:stop].reshape(-1).astype(np.float32)
+                local_entity_ids, local_entity_of_row = np.unique(flat_entity_global, return_inverse=True)
+                local_entity_labels = np.zeros(local_entity_ids.shape[0], dtype=np.float32)
+                np.maximum.at(
+                    local_entity_labels, local_entity_of_row[flat_valid_np], flat_labels_np[flat_valid_np]
+                )
+                entity_bce_value, _entity_bce_diagnostics = entity_bce_module.entity_bce_loss(
+                    logits32.reshape(-1),
+                    valid_t.reshape(-1),
+                    torch_module.from_numpy(local_entity_of_row.astype(np.int64)).to(device),
+                    torch_module.from_numpy(local_entity_labels).to(device),
+                    entity_bce_aggregation,
+                    ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA,
+                    torch_module,
+                )
+                loss_sum = loss_sum + entity_bce_weight * entity_bce_value
         normalized = accumulator.backward(loss_sum, int(valid[start:stop].sum()), scaler=None)
         loss_total += float(normalized.detach().cpu())
     gradient_norm = accumulator.finish(list(model.parameters()), optimizer, torch_module)
@@ -2879,6 +2959,7 @@ def probe_runtime(config: dict[str, Any], config_path: Path) -> None:
             config, base_config, model, optimizer, view, train_rows, generator, device,
             profile, precision, torch_module, positive_weight,
             mechanism_context=entity_gated_ple_context,
+            entity_ids=arrays["E23"],
         )
     synchronize_device(torch_module, device)
     step_seconds = time.time() - step_started
@@ -3190,6 +3271,7 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
                     config, base_config, model, optimizer, view, train_rows, generator, device,
                     profile, precision, torch_module, positive_weight,
                     mechanism_context=entity_gated_ple_context,
+                    entity_ids=arrays["E23"],
                 )
             losses.append(result["loss"])
             step_count += 1
