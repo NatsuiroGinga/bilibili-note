@@ -3248,7 +3248,15 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
                     "grad_norm_rank_median": float(np.median(grad_norm_rank_values)) if grad_norm_rank_values else None,
                     "projection_triggered_step_count": projection_triggered_count,
                 },
-                "last_step_snapshot": epoch_ranking_diagnostics[-1] if epoch_ranking_diagnostics else None,
+                # 剔除 stage_timing：CUDA 路径下它装的是 torch.cuda.Event 对，不可 JSON 序列化
+                # （2026-09-02 C01-half 因此在第 1 轮写收据时崩溃，GPU 空转一夜）。
+                # 其秒数已由 summarize_falsifiable_observables 聚合进 stage_timing_seconds，
+                # 原始事件对无保留价值。
+                "last_step_snapshot": (
+                    {k: v for k, v in epoch_ranking_diagnostics[-1].items() if k != "stage_timing"}
+                    if epoch_ranking_diagnostics
+                    else None
+                ),
             })
         # entity_memory_enabled 分支（CEM）走 entity_memory_validation_metrics，不产出
         # validation_entity_ap_tail；用 .get 而不是下标，使该分支的收据形状保持完全
