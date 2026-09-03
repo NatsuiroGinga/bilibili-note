@@ -1662,6 +1662,81 @@ def forward_bare(
     return logits, valid_t
 
 
+def _entity_bce_mechanism_config(config: dict[str, Any], entity_ids: Any) -> dict[str, Any]:
+    """读取 ``mechanism.entity_bce`` 配置一次，供逐流训练步的微批循环反复调用。
+
+    ``training_step`` 与 ``_flow_phase_bare``（C01 的逐流阶段）共用本函数，是四格
+    共同底座「实体级 BCE」的唯一配置解析实现（2026-09-03 实施计划任务 2，接上
+    C01／新 C11 逐流段缺口）。返回字典恒含 ``enabled`` 键；缺
+    ``mechanism.entity_bce`` 键（既有全部配置）或显式 ``enabled=false`` 时，
+    ``enabled`` 恒为 ``False``，其余四键恒为 ``None``——调用方据此在微批循环内
+    完全跳过实体级 BCE 分支，不导入 ``ch3_ft_entity_bce``、不构造任何新张量，
+    与改动前 ``training_step`` 的行为逐位相同。
+    """
+    import numpy as np
+
+    mechanism = config.get("mechanism", DEFAULT_MECHANISM)
+    entity_bce_cfg = mechanism.get("entity_bce", {})
+    enabled = bool(entity_bce_cfg.get("enabled", False))
+    if not enabled:
+        return {"enabled": False, "weight": None, "aggregation": None, "entity_ids_array": None, "module": None}
+    require(entity_ids is not None, "mechanism.entity_bce 已启用但调用方未传入 entity_ids", EXIT_RUNTIME)
+    weight = float(entity_bce_cfg["weight"])
+    aggregation = entity_bce_cfg["aggregation"]
+    entity_ids_array = np.asarray(entity_ids)
+    import ch3_ft_entity_bce as entity_bce_module  # 延迟导入，模块顶层经 tail_aggregate 无条件 import torch
+    return {
+        "enabled": True, "weight": weight, "aggregation": aggregation,
+        "entity_ids_array": entity_ids_array, "module": entity_bce_module,
+    }
+
+
+def _add_entity_bce_microbatch_loss(
+    loss_sum: Any, entity_bce_context: dict[str, Any], logits32: Any, valid_t: Any,
+    micro_rows: Any, valid_micro: Any, labels_micro: Any, torch_module: Any, device: Any,
+) -> Any:
+    """把本微批的实体级 BCE 项按已冻结聚合口径加到 ``loss_sum`` 上并返回。
+
+    ``entity_bce_context["enabled"] is False`` 时原样返回 ``loss_sum``，不进入任何
+    计算分支——与改动前 ``training_step`` 循环体内 ``if entity_bce_enabled:`` 的
+    短路行为逐位相同。``entity_bce_context`` 由 ``_entity_bce_mechanism_config``
+    产出；本函数与它是 ``training_step`` 与 ``_flow_phase_bare`` 两处共用的唯一
+    算术实现来源，聚合口径（``maximum``／``tail_mean``）与冻结 α 值经
+    ``entity_bce_context["aggregation"]`` 与 ``ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA``
+    透传给 ``ch3_ft_entity_bce.entity_bce_loss``，不新增独立 alpha 键。
+    """
+    if not entity_bce_context["enabled"]:
+        return loss_sum
+    import numpy as np
+
+    # 把 (micro, length) 逐流量摊平成一维，实体 ID 用 np.unique 重编为本微批局部的
+    # 紧凑下标（entity_bce_loss 的契约要求 entity_labels 长度即"批内实体总数"，
+    # 见其文档字符串），标签取该实体在本微批内全部有效流标签的最大值。诊断字典
+    # （含 entity_scores 等实体级张量）就地丢弃、不落入任何收据——避免重演
+    # 2026-09-02 张量写入 JSON 导致训练崩溃的事故。
+    entity_ids_broadcast = np.broadcast_to(
+        entity_bce_context["entity_ids_array"][micro_rows][:, None], valid_micro.shape
+    )
+    flat_valid_np = valid_micro.reshape(-1)
+    flat_entity_global = entity_ids_broadcast.reshape(-1)
+    flat_labels_np = labels_micro.reshape(-1).astype(np.float32)
+    local_entity_ids, local_entity_of_row = np.unique(flat_entity_global, return_inverse=True)
+    local_entity_labels = np.zeros(local_entity_ids.shape[0], dtype=np.float32)
+    np.maximum.at(
+        local_entity_labels, local_entity_of_row[flat_valid_np], flat_labels_np[flat_valid_np]
+    )
+    entity_bce_value, _entity_bce_diagnostics = entity_bce_context["module"].entity_bce_loss(
+        logits32.reshape(-1),
+        valid_t.reshape(-1),
+        torch_module.from_numpy(local_entity_of_row.astype(np.int64)).to(device),
+        torch_module.from_numpy(local_entity_labels).to(device),
+        entity_bce_context["aggregation"],
+        ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA,
+        torch_module,
+    )
+    return loss_sum + entity_bce_context["weight"] * entity_bce_value
+
+
 def training_step(
     config: dict[str, Any], base_config: dict[str, Any], model: Any, optimizer: Any,
     view: Any, train_rows: Any, generator: Any, device: Any, profile: dict[str, Any],
@@ -1681,8 +1756,6 @@ def training_step(
     数组同一语义），在实体级 BCE 的加权项与既有逐流 BCE 求和后一起反传，不新增
     第二次 ``backward()``、不改变梯度累积的微批边界。
     """
-    import numpy as np
-
     effective = config["training"]["effective_batch_size"]
     micro = config["training"]["micro_batch_sequences"]
     positions = base.sample_distinct_positions(len(train_rows), effective, generator)
@@ -1698,19 +1771,13 @@ def training_step(
         expected_microbatches=config["training"]["gradient_accumulation_steps"],
     )
     accumulator.begin(optimizer)
-    # 实体级 BCE 共同底座：读取一次配置，供下方微批循环逐次调用。缺
+    # 实体级 BCE 共同底座：读取一次配置，供下方微批循环逐次调用。提取为共用函数
+    # _entity_bce_mechanism_config——training_step 与 _flow_phase_bare（C01 逐流
+    # 阶段）共用同一份配置解析与微批加损失实现（2026-09-03 实施计划任务 2）。缺
     # mechanism.entity_bce 键（既有全部配置）或 enabled=false 时，
-    # entity_bce_enabled 恒为 False，循环体内对应分支从不进入，
+    # entity_bce_context["enabled"] 恒为 False，循环体内对应分支从不进入，
     # 不调用新模块、不构造任何新张量——与改动前逐位相同。
-    mechanism = config.get("mechanism", DEFAULT_MECHANISM)
-    entity_bce_cfg = mechanism.get("entity_bce", {})
-    entity_bce_enabled = bool(entity_bce_cfg.get("enabled", False))
-    if entity_bce_enabled:
-        require(entity_ids is not None, "mechanism.entity_bce 已启用但调用方未传入 entity_ids", EXIT_RUNTIME)
-        entity_bce_weight = float(entity_bce_cfg["weight"])
-        entity_bce_aggregation = entity_bce_cfg["aggregation"]
-        entity_ids_array = np.asarray(entity_ids)
-        import ch3_ft_entity_bce as entity_bce_module  # 延迟导入，模块顶层经 tail_aggregate 无条件 import torch
+    entity_bce_context = _entity_bce_mechanism_config(config, entity_ids)
     loss_total = 0.0
     model.train()
     for start in range(0, effective, micro):
@@ -1724,36 +1791,13 @@ def training_step(
         mask32 = valid_t.to(torch_module.float32)
         with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
             loss_sum = (loss_fn(logits32, labels_t.to(torch_module.float32)) * mask32).sum()
-            if entity_bce_enabled:
-                # 本微批的实体级 BCE：把 (micro, length) 逐流量摊平成一维，实体 ID
-                # 用 np.unique 重编为本微批局部的紧凑下标（entity_bce_loss 的契约
-                # 要求 entity_labels 长度即"批内实体总数"，见其文档字符串），
-                # 标签取该实体在本微批内全部有效流标签的最大值。诊断字典（含
-                # entity_scores 等实体级张量）就地丢弃、不落入任何收据——
-                # 避免重演 2026-09-02 张量写入 JSON 导致训练崩溃的事故（budget-receipt.json
-                # 的 one_optimizer_step 会原样吸收本函数的返回字典）。
-                micro_rows = rows[start:stop]
-                entity_ids_broadcast = np.broadcast_to(
-                    entity_ids_array[micro_rows][:, None], valid[start:stop].shape
-                )
-                flat_valid_np = valid[start:stop].reshape(-1)
-                flat_entity_global = entity_ids_broadcast.reshape(-1)
-                flat_labels_np = labels[start:stop].reshape(-1).astype(np.float32)
-                local_entity_ids, local_entity_of_row = np.unique(flat_entity_global, return_inverse=True)
-                local_entity_labels = np.zeros(local_entity_ids.shape[0], dtype=np.float32)
-                np.maximum.at(
-                    local_entity_labels, local_entity_of_row[flat_valid_np], flat_labels_np[flat_valid_np]
-                )
-                entity_bce_value, _entity_bce_diagnostics = entity_bce_module.entity_bce_loss(
-                    logits32.reshape(-1),
-                    valid_t.reshape(-1),
-                    torch_module.from_numpy(local_entity_of_row.astype(np.int64)).to(device),
-                    torch_module.from_numpy(local_entity_labels).to(device),
-                    entity_bce_aggregation,
-                    ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA,
-                    torch_module,
-                )
-                loss_sum = loss_sum + entity_bce_weight * entity_bce_value
+            # budget-receipt.json 的 one_optimizer_step 会原样吸收本函数的返回字典，
+            # 故实体级 BCE 的诊断字典（含 entity_scores 等实体级张量）就地丢弃、
+            # 不落入任何收据——避免重演 2026-09-02 张量写入 JSON 导致训练崩溃的事故。
+            loss_sum = _add_entity_bce_microbatch_loss(
+                loss_sum, entity_bce_context, logits32, valid_t,
+                rows[start:stop], valid[start:stop], labels[start:stop], torch_module, device,
+            )
         normalized = accumulator.backward(loss_sum, int(valid[start:stop].sum()), scaler=None)
         loss_total += float(normalized.detach().cpu())
     gradient_norm = accumulator.finish(list(model.parameters()), optimizer, torch_module)
@@ -2331,6 +2375,7 @@ def _flat_grad_from_params(shared_params: list[Any], torch_module: Any) -> Any:
 def _flow_phase_bare(
     config: dict[str, Any], model: Any, optimizer: Any, view: Any, train_rows: Any, generator: Any,
     device: Any, profile: dict[str, Any], precision: Any, torch_module: Any, positive_weight: Any,
+    entity_ids: Any = None,
 ) -> tuple[Any, dict[str, Any]]:
     """z2=1、z1=0（C01）的第一步：原有逐流批照常前向，得 L_flow 与 g_f。
 
@@ -2339,7 +2384,15 @@ def _flow_phase_bare(
     调用方须在读出 ``g_flow`` 后自行合成梯度并更新，因此本函数独立实现而不是
     改造 ``training_step`` 本身：``training_step`` 是 z2=0 阻断条件的被保护对象，
     任何改造都有意外改变 z1=0/z2=0 既有路径的风险，重复少量代码换取零风险。
+
+    ``entity_ids`` 默认 ``None``：``mechanism.entity_bce`` 缺省关闭时不读取它，此时
+    行为与改动前逐位一致。启用时传入 ``arrays["E23"]``，与 ``training_step`` 共用
+    ``_entity_bce_mechanism_config``／``_add_entity_bce_microbatch_loss`` 两个提取
+    出的共用函数计算同一份实体级 BCE 算术，补 C01（z2=1）逐流段的四格共同底座
+    缺口（2026-09-03 实施计划任务 2；``training_step`` 本身不受此改动影响，见其
+    docstring 与函数体的对应重构）。
     """
+    entity_bce_context = _entity_bce_mechanism_config(config, entity_ids)
     effective = config["training"]["effective_batch_size"]
     micro = config["training"]["micro_batch_sequences"]
     positions = base.sample_distinct_positions(len(train_rows), effective, generator)
@@ -2365,6 +2418,10 @@ def _flow_phase_bare(
         mask32 = valid_t.to(torch_module.float32)
         with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
             loss_sum = (loss_fn(logits32, labels_t.to(torch_module.float32)) * mask32).sum()
+            loss_sum = _add_entity_bce_microbatch_loss(
+                loss_sum, entity_bce_context, logits32, valid_t,
+                rows[start:stop], valid[start:stop], labels[start:stop], torch_module, device,
+            )
         normalized = accumulator.backward(loss_sum, int(valid[start:stop].sum()), scaler=None)
         loss_total += float(normalized.detach().cpu())
     require(accumulator.consumed_valid_units == accumulator.total_valid_units, "逐流阶段未覆盖全部有效流", EXIT_RUNTIME)
@@ -2979,9 +3036,15 @@ def entity_ranking_training_step(
     generator: Any, np_rng: Any, device: Any, profile: dict[str, Any], precision: Any, torch_module: Any,
     positive_weight: Any, sampler: Any, xi_state: Any,
 ) -> dict[str, Any]:
-    """C01（z1=0,z2=1）训练步：裸 FT 逐流批 + 独立实体排序批，梯度控制器合成后一次更新。"""
+    """C01（z1=0,z2=1）训练步：裸 FT 逐流批 + 独立实体排序批，梯度控制器合成后一次更新。
+
+    逐流批传入 ``entity_ids=arrays["E23"]``，使 ``mechanism.entity_bce`` 启用时
+    ``_flow_phase_bare`` 能算出实体级 BCE（补四格共同底座，2026-09-03 实施计划
+    任务 2）；关闭时 ``_flow_phase_bare`` 内部不读取该实参，行为不变。
+    """
     g_flow, flow_diag = _flow_phase_bare(
         config, model, optimizer, view, train_rows, generator, device, profile, precision, torch_module, positive_weight,
+        entity_ids=arrays["E23"],
     )
     g_rank, rank_diag = _ranking_phase(
         config, model, optimizer, view, arrays, train_rows, np_rng, device, profile, precision, torch_module,
