@@ -311,17 +311,21 @@ def tail_scores(
     valid: torch.Tensor,
     segment_owner: torch.Tensor,
     alpha: float | None,
-) -> tuple[torch.Tensor, torch.Tensor, dict[str, Any]]:
+) -> tuple[torch.Tensor, torch.Tensor, dict[str, Any], torch.Tensor]:
     """训练侧 (B, T) 入口：与 ``prefix_scores`` 同位置替换的实体尾部聚合。
 
     形参与 ``prefix_scores`` 前三个逐字相同，末尾加尾部水平 ``alpha``；
     ``alpha is None`` 时 `k ≡ 1`，聚合与 ``prefix_scores`` 的 max 在同一批上逐位相等
     （自检见 ``assert_tail_aggregation_degenerates_to_max``）。
 
-    返回 ``(entity_scores[E], k_per_entity[E], 聚合标量收据)``。第二项供
-    ``nonargmax_grad_energy_share`` 用，第三项直接进运行收据。返回三元组而不是沿用
-    ``prefix_scores`` 的 ``(scores, source_row)``：尾部聚合没有「唯一来源片段」这个
-    概念，硬凑同一形状只会造出一个语义不明的字段。
+    返回 ``(entity_scores[E], k_per_entity[E], 聚合标量收据, m_per_entity[E])``。第二项
+    供 ``nonargmax_grad_energy_share`` 用，第三项直接进运行收据。第四项是
+    2026-09-03 机制耦合观测预注册（观测量三′）新增：`tail_aggregate` 内部本就算出
+    `m_per_entity`，此前只压进聚合标量收据（`mean_bag_size` 等），未按实体透出；
+    `τ^(e)` 需要逐实体的 `k_e/m_e`，故按原样透出这个既有张量，不改变前三项的任何
+    计算与既有调用方式。返回四元组而不是沿用 ``prefix_scores`` 的 ``(scores,
+    source_row)``：尾部聚合没有「唯一来源片段」这个概念，硬凑同一形状只会造出一个
+    语义不明的字段。
 
     **袋合同**：本函数不做任何自己的截断。排序袋的 8192 流上限由 BER 既有的
     ``BagPolicyConfig.truncate_length`` 经 ``_causal_truncate_valid`` 施加在 ``valid``
@@ -361,6 +365,7 @@ def tail_scores(
         aggregated["entity_scores"],
         k_per_entity,
         tail_aggregation_receipt(k_per_entity, m_per_entity, alpha),
+        m_per_entity,
     )
 
 
@@ -427,7 +432,7 @@ def assert_tail_aggregation_degenerates_to_max(
     valid = valid.cpu()
     segment_owner = segment_owner.cpu()
     reference, _source_row = prefix_scores(logits, valid, segment_owner)
-    degenerate, k_per_entity, _receipt = tail_scores(logits, valid, segment_owner, None)
+    degenerate, k_per_entity, _receipt, _m_per_entity = tail_scores(logits, valid, segment_owner, None)
     bitwise_equal = bool(torch.equal(reference, degenerate))
     all_k_one = bool(torch.equal(k_per_entity, torch.ones_like(k_per_entity)))
     require(
@@ -906,9 +911,11 @@ def bag_policy_diagnostics(
     的分位数不是该损失的最优 xi。
 
     `config.alpha` 非 None 时，三种袋处置的实体分数都改用 `tail_scores`；此时另返回
-    `active_entity_scores`（**持图**，供 `torch.autograd.grad` 取 ∂L/∂S_e）与
-    `active_k_per_entity`，两者一起喂 `nonargmax_grad_energy_share`。
-    `config.alpha is None` 时后者为 None，前者仍是 `prefix_scores` 的输出。
+    `active_entity_scores`（**持图**，供 `torch.autograd.grad` 取 ∂L/∂S_e）、
+    `active_k_per_entity` 与 `active_m_per_entity`（2026-09-03 机制耦合观测预注册
+    新增，逐实体有效流数 m_e，与 k_e 配对即可算 τ^(e) 所需的 k_e/m_e，不改变前两者
+    的既有语义）。`config.alpha is None` 时三者皆为 None，`active_entity_scores`
+    仍是 `prefix_scores` 的输出。
     """
     require(config.active_policy in _VALID_POLICIES, f"未知袋处置策略：{config.active_policy}")
     num_entities = int(segment_owner.max().item()) + 1
@@ -919,15 +926,18 @@ def bag_policy_diagnostics(
 
     def _score_and_loss(
         valid_mask: torch.Tensor, stratified: bool
-    ) -> tuple[torch.Tensor, dict[str, Any], torch.Tensor, torch.Tensor, torch.Tensor | None]:
+    ) -> tuple[
+        torch.Tensor, dict[str, Any], torch.Tensor, torch.Tensor, torch.Tensor | None, torch.Tensor | None
+    ]:
         # α 分派：None 走原封不动的 prefix_scores（四格 z1=0，与历史逐位相同），
         # 数值走 tail_scores（z1=1）。两条路径的下游损失、诊断与反传口径完全一致。
         if config.alpha is None:
             entity_scores, source_row = prefix_scores(logits, valid_mask, segment_owner)
             k_per_entity = None
+            m_per_entity = None
             tail_receipt: dict[str, Any] | None = None
         else:
-            entity_scores, k_per_entity, tail_receipt = tail_scores(
+            entity_scores, k_per_entity, tail_receipt, m_per_entity = tail_scores(
                 logits, valid_mask, segment_owner, config.alpha
             )
             source_row = None
@@ -950,7 +960,7 @@ def bag_policy_diagnostics(
         pairwise = torch.nn.functional.softplus(
             neg_scores.detach().unsqueeze(0) - pos_scores.detach().unsqueeze(1)
         )
-        return loss, diag, pairwise, entity_scores, k_per_entity
+        return loss, diag, pairwise, entity_scores, k_per_entity, m_per_entity
 
     results: dict[str, Any] = {"active_policy": config.active_policy, "policies": {}}
 
@@ -964,14 +974,14 @@ def bag_policy_diagnostics(
         return torch.no_grad()
 
     with _grad_context("full"):
-        full_loss, full_diag, full_pairwise, full_scores, full_k = _score_and_loss(valid, stratified=False)
+        full_loss, full_diag, full_pairwise, full_scores, full_k, full_m = _score_and_loss(valid, stratified=False)
     results["policies"]["full"] = {"loss_value": float(full_loss.detach()), **full_diag}
 
     entity_groups = _entity_groups(segment_owner, num_entities)
     truncated_valid = _causal_truncate_valid(valid, entity_groups, config.truncate_length)
     with _grad_context("causal_prefix_truncation"):
-        truncated_loss, truncated_diag, truncated_pairwise, truncated_scores, truncated_k = _score_and_loss(
-            truncated_valid, stratified=False
+        truncated_loss, truncated_diag, truncated_pairwise, truncated_scores, truncated_k, truncated_m = (
+            _score_and_loss(truncated_valid, stratified=False)
         )
     results["policies"]["causal_prefix_truncation"] = {
         "loss_value": float(truncated_loss.detach()),
@@ -979,18 +989,22 @@ def bag_policy_diagnostics(
     }
 
     with _grad_context("stratified_weighting"):
-        stratified_loss, stratified_diag, stratified_pairwise, stratified_scores, stratified_k = _score_and_loss(
-            valid, stratified=True
+        stratified_loss, stratified_diag, stratified_pairwise, stratified_scores, stratified_k, stratified_m = (
+            _score_and_loss(valid, stratified=True)
         )
     results["policies"]["stratified_weighting"] = {
         "loss_value": float(stratified_loss.detach()),
         **stratified_diag,
     }
 
-    active_loss, active_pairwise, active_scores, active_k = {
-        "full": (full_loss, full_pairwise, full_scores, full_k),
-        "causal_prefix_truncation": (truncated_loss, truncated_pairwise, truncated_scores, truncated_k),
-        "stratified_weighting": (stratified_loss, stratified_pairwise, stratified_scores, stratified_k),
+    active_loss, active_pairwise, active_scores, active_k, active_m = {
+        "full": (full_loss, full_pairwise, full_scores, full_k, full_m),
+        "causal_prefix_truncation": (
+            truncated_loss, truncated_pairwise, truncated_scores, truncated_k, truncated_m,
+        ),
+        "stratified_weighting": (
+            stratified_loss, stratified_pairwise, stratified_scores, stratified_k, stratified_m,
+        ),
     }[config.active_policy]
     results["loss"] = active_loss
     results["active_pairwise"] = active_pairwise
@@ -998,7 +1012,233 @@ def bag_policy_diagnostics(
     # （对 entity_scores 求一次 ∂L/∂S_e 即可，不需要再穿一遍代价高昂的实体前向）。
     results["active_entity_scores"] = active_scores
     results["active_k_per_entity"] = active_k
+    # m_e：2026-09-03 机制耦合观测预注册（观测量三′）新增，与 active_k_per_entity
+    # 逐位对齐，供宿主算 τ^(e) = mean(k_e/m_e | 活动) / mean(k_e/m_e | 非活动)。
+    results["active_m_per_entity"] = active_m
     return results
+
+
+# --------------------------------------------------------------------------
+# 3b. 机制耦合观测量（预注册：.Codex/docs/RWKV/2026-09-01-机制耦合观测预注册.md，
+#     2026-09-03 实现）
+# --------------------------------------------------------------------------
+#
+# 本节实现该预注册第二、三节的三个观测量：CVaR 阈值轮内相对波动 CV_K^(e)（观测量
+# 一）、活动集跨轮重合度 J_K^(e)（观测量二）、两层活动集嵌套一致性 τ^(e)（观测量
+# 三′，机制一为实体内尾部聚合即 config.alpha is not None 时适用）。预注册原文写
+# 「不新增任何阻断门」「披露优先于阻断」，本节全程遵守：任何量算不出来时输出
+# None 并由收据体现，不 raise。全部输出只含聚合标量与整数计数，不含任何逐流数组
+# 或实体 ID 列表——`negative_entity_ids` 只在内存中用于集合运算，函数返回后由
+# 宿主原样保留在一个跨轮次的局部变量里用于下一轮 Jaccard，从不写入任何 JSON、
+# 检查点或日志（预注册第四节「不得写出实体 ID 列表」）。
+#
+# 预注册原文对「活动负实体集」的记号在通用定义与两个观测量公式之间不完全一致，
+# 以下是本实现选择的具体口径（已在实施报告中列出交主代理与用户裁决，未获用户
+# 确认前这组口径只代表一种忠实但非唯一的解读）：
+#
+# 1. 通用定义写 `A_{p,K} = {n : L_pn > xi_{p,K}}`（按正实体 p 分别定义），但观测量
+#    二的 Jaccard 公式写的是 `A_K^(e)`（无 p 下标）。本实现把 `A_K^(e)` 取为「本轮
+#    末步、该预算档 K 下，对**至少一个**已抽样正实体为活动的负实体集合」，即按
+#    正实体取并集：`A_K^(e) = ∪_p A_{p,K}^(e)`。
+# 2. 观测量二定义 `J_K^(e) = |A_K^(e) ∩ A_K^(e+1)| / |A_K^(e) ∪ A_K^(e+1)|`，但轮末
+#    落盘时只能看到「当前轮」与「更早的上一轮」，看不到「下一轮」。本实现把落在
+#    第 e 轮收据里的 `jaccard` 字段，取为「第 e-1 轮末步活动集」与「第 e 轮末步
+#    活动集」的 Jaccard（即预注册记号下的 `J_K^(e-1)`，落在 e 轮文件是唯一可行的
+#    落盘时机）。第 15-20 轮共 6 个收据文件，其中第 16-20 轮的 5 份各带一个 J 值，
+#    与预注册「5 个相邻轮对」的计数一致。
+# 3. 观测量三′的 τ^(e) 在预注册原文中不带 K 下标（不同于按档给出的 CV_K、J_K），
+#    说明它须是一个不依赖具体档 K 的标量。本实现把「外层活动实体集」取为**全部
+#    合资格档（K_eff≥1）各自活动集的并集**：`A^(e) = ∪_{K: K_eff≥1} A_K^(e)`，
+#    而不是任取其中一档。τ 的分子分母都只在**负实体**范围内计算——与观测量二同
+#    一实体空间，因为 A_{p,K} 的定义域本就是负实体，正实体不参与这个二分。
+
+
+def mechanism_coupling_step_snapshot(
+    xi: torch.Tensor,
+    active_pairwise: torch.Tensor,
+    negative_entity_ids: np.ndarray,
+    active_k_per_entity: torch.Tensor | None,
+    active_m_per_entity: torch.Tensor | None,
+    entity_is_positive: torch.Tensor,
+) -> dict[str, Any]:
+    """把一步的原料压成机制耦合观测量所需的 numpy 快照，只在内存里跨步/跨轮传递。
+
+    调用方（宿主 `_ranking_phase`）须把本函数的返回值只放进本轮内部的临时列表，
+    绝不直接把它写入任何收据 JSON——`negative_entity_ids` 正是预注册第四节明令
+    禁止落盘的实体 ID，之所以仍在这里出现，是因为观测量二的跨轮 Jaccard 数学上
+    必须靠实体身份对齐两轮的活动集，该身份只能在内存中比较，绝不落盘。
+
+    全程只做设备搬运、类型转换与布尔索引，不接入任何反传图，不改变 `xi`、
+    `active_pairwise` 或 `k_e`/`m_e` 本身的数值——调用方传入前须已 `.detach()`。
+    """
+    require(xi.dim() == 2, "xi 须为二维 (Np, |K|)")
+    require(active_pairwise.dim() == 2, "active_pairwise 须为二维 (Np, Nn)")
+    with torch.no_grad():
+        xi_np = xi.detach().cpu().numpy()
+        pairwise_np = active_pairwise.detach().cpu().numpy()
+        neg_mask_np = (~entity_is_positive).detach().cpu().numpy()
+        if active_k_per_entity is not None and active_m_per_entity is not None:
+            k_negative = active_k_per_entity.detach().cpu().numpy()[neg_mask_np]
+            m_negative = active_m_per_entity.detach().cpu().numpy()[neg_mask_np]
+        else:
+            k_negative = None
+            m_negative = None
+    return {
+        "xi_per_budget": xi_np,
+        "active_pairwise": pairwise_np,
+        "negative_entity_ids": np.asarray(negative_entity_ids),
+        "active_k_per_entity_negative": k_negative,
+        "active_m_per_entity_negative": m_negative,
+    }
+
+
+def summarize_mechanism_coupling_observables(
+    step_snapshots: Sequence[dict[str, Any]],
+    raw_budgets: Sequence[int],
+    effective_budgets: Sequence[float],
+    previous_epoch_active_sets: dict[str, frozenset[int]] | None,
+) -> tuple[dict[str, Any], dict[str, frozenset[int]]]:
+    """把一轮内逐步快照（`mechanism_coupling_step_snapshot` 的返回值列表）压成
+    预注册第二、三节的三个观测量，全部聚合标量（第四节落盘要求）。
+
+    返回 `(收据字典, 本轮末步各合资格档的活动负实体 ID 集合)`；后者只用于**下一轮**
+    调用本函数时作为 `previous_epoch_active_sets` 传入以算 Jaccard。调用方在两轮
+    之间只能把它存在内存里的一个局部变量中，不得写入任何收据、检查点或日志——
+    它是本函数与「不得写出实体 ID 列表」这条硬约束之间唯一被允许存在的中间产物，
+    且只能经由本函数的返回值原样传递、原样吃回，不暴露给其他代码路径。
+
+    口径说明见本节顶部注释。`raw_budgets` 与 `effective_budgets` 须逐位对应
+    （即同一列既是某个配置预算档，也对应同一列的 K_eff），用于（a）用原始整数
+    预算命名收据键（比派生浮点数更稳定可读），（b）按 K_eff>=1 判定观测量二、
+    三′的「合资格档」。
+    """
+    budget_keys = [str(int(k)) for k in raw_budgets]
+    require(len(raw_budgets) == len(effective_budgets), "raw_budgets 与 effective_budgets 长度须一致")
+    eligible_idx = [i for i, k_eff in enumerate(effective_budgets) if float(k_eff) >= 1.0]
+    eligible_keys = [budget_keys[i] for i in eligible_idx]
+
+    if not step_snapshots:
+        empty = {key: None for key in budget_keys}
+        receipt = {
+            "step_count": 0,
+            "raw_budgets": [int(k) for k in raw_budgets],
+            "effective_budgets": [float(k) for k in effective_budgets],
+            "eligible_budgets": eligible_keys,
+            "cv_xi": dict(empty),
+            "cv_xi_sample_count": {key: 0 for key in budget_keys},
+            "active_set_size": dict(empty),
+            "jaccard": {key: None for key in eligible_keys},
+            "jaccard_transition": "previous_epoch_last_step_to_this_epoch_last_step",
+            "tail_nesting_consistency": None,
+        }
+        return receipt, dict(previous_epoch_active_sets or {})
+
+    # ---------------- 观测量一：CV_K^(e) ----------------
+    # 池化「本轮全部步 × 每步全部正实体」的 xi_{p,K} 序列（预注册原文「该轮所有
+    # 优化步的 xi_{p,K} 序列」——每步有 |正实体数| 个 xi 值，跨步池化成一条序列）。
+    xi_pool: list[list[float]] = [[] for _ in budget_keys]
+    for snap in step_snapshots:
+        xi_np = snap.get("xi_per_budget")
+        if xi_np is None or xi_np.size == 0:
+            continue
+        for col in range(min(xi_np.shape[1], len(budget_keys))):
+            xi_pool[col].extend(float(v) for v in xi_np[:, col])
+
+    cv_xi: dict[str, float | None] = {}
+    cv_xi_sample_count: dict[str, int] = {}
+    for col, key in enumerate(budget_keys):
+        values = xi_pool[col]
+        cv_xi_sample_count[key] = len(values)
+        if len(values) < 2:
+            cv_xi[key] = None
+            continue
+        arr = np.asarray(values, dtype=np.float64)
+        mean = float(arr.mean())
+        std = float(arr.std())  # 总体标准差（分母 n），与本文件 pair_loss_batch_var 同一口径
+        cv_xi[key] = (std / abs(mean)) if abs(mean) > 1e-12 else None
+
+    # ---------------- 末步快照：观测量二、三′ ----------------
+    last = step_snapshots[-1]
+    pairwise_np = last.get("active_pairwise")
+    xi_last = last.get("xi_per_budget")
+    neg_ids = last.get("negative_entity_ids")
+
+    active_set_size: dict[str, int | None] = {key: None for key in budget_keys}
+    current_active_sets: dict[str, frozenset[int]] = {}
+    pooled_active_mask: np.ndarray | None = None
+    have_last_step_data = (
+        pairwise_np is not None
+        and xi_last is not None
+        and neg_ids is not None
+        and pairwise_np.size > 0
+        and xi_last.size > 0
+    )
+    if have_last_step_data:
+        for col, key in enumerate(budget_keys):
+            if col >= xi_last.shape[1]:
+                continue
+            mask_any_p = (pairwise_np > xi_last[:, col : col + 1]).any(axis=0)  # (Nn,) 按正实体取并集
+            active_ids = frozenset(int(v) for v in np.asarray(neg_ids)[mask_any_p])
+            active_set_size[key] = len(active_ids)
+            if col in eligible_idx:
+                current_active_sets[key] = active_ids
+                pooled_active_mask = (
+                    mask_any_p.copy() if pooled_active_mask is None else (pooled_active_mask | mask_any_p)
+                )
+
+    jaccard: dict[str, float | None] = {}
+    prev = previous_epoch_active_sets or {}
+    for key in eligible_keys:
+        cur_set = current_active_sets.get(key)
+        prev_set = prev.get(key)
+        if cur_set is None or prev_set is None:
+            jaccard[key] = None
+            continue
+        union = cur_set | prev_set
+        jaccard[key] = (len(cur_set & prev_set) / len(union)) if union else None
+
+    # ---------------- 观测量三′：τ^(e) ----------------
+    tail_consistency: dict[str, Any] | None = None
+    k_neg = last.get("active_k_per_entity_negative")
+    m_neg = last.get("active_m_per_entity_negative")
+    if (
+        k_neg is not None
+        and m_neg is not None
+        and k_neg.size > 0
+        and pooled_active_mask is not None
+        and k_neg.shape[0] == pooled_active_mask.shape[0]
+    ):
+        inner_tail_frac = k_neg / np.maximum(m_neg, 1.0)
+        active_frac = inner_tail_frac[pooled_active_mask]
+        inactive_frac = inner_tail_frac[~pooled_active_mask]
+        mean_active = float(active_frac.mean()) if active_frac.size > 0 else None
+        mean_inactive = float(inactive_frac.mean()) if inactive_frac.size > 0 else None
+        tau = (
+            mean_active / mean_inactive
+            if (mean_active is not None and mean_inactive is not None and abs(mean_inactive) > 1e-12)
+            else None
+        )
+        tail_consistency = {
+            "tau": tau,
+            "active_entity_count": int(active_frac.size),
+            "inactive_entity_count": int(inactive_frac.size),
+            "mean_inner_tail_frac_active": mean_active,
+            "mean_inner_tail_frac_inactive": mean_inactive,
+        }
+
+    receipt = {
+        "step_count": len(step_snapshots),
+        "raw_budgets": [int(k) for k in raw_budgets],
+        "effective_budgets": [float(k) for k in effective_budgets],
+        "eligible_budgets": eligible_keys,
+        "cv_xi": cv_xi,
+        "cv_xi_sample_count": cv_xi_sample_count,
+        "active_set_size": active_set_size,
+        "jaccard": jaccard,
+        "jaccard_transition": "previous_epoch_last_step_to_this_epoch_last_step",
+        "tail_nesting_consistency": tail_consistency,
+    }
+    return receipt, current_active_sets
 
 
 # --------------------------------------------------------------------------

@@ -2843,6 +2843,19 @@ def _ranking_phase(
     g_rank = _flat_grad_from_params(shared_params, torch_module)
     require(bool(torch_module.isfinite(g_rank).all()), "排序阶段梯度非有限", EXIT_RUNTIME)
 
+    # 机制耦合观测预注册（.Codex/docs/RWKV/2026-09-01-机制耦合观测预注册.md，
+    # 2026-09-03 实现）：把本步原料压成 numpy 快照，供轮末 summarize_mechanism_
+    # coupling_observables 算 CV_K^(e)/J_K^(e)/τ^(e)。全部只读、已 detach，不改变
+    # 上面任何一步已经算出的损失、梯度或 xi 更新；负实体全局 ID 只在内存中传递，
+    # 绝不写入 diagnostics 之外的任何持久化路径（该键在轮末落盘 entity-ranking-
+    # diagnostics-<epoch>.json 的 last_step_snapshot 时被显式排除，见宿主训练循环）。
+    negative_entity_ids = unique_entities[(~entity_is_positive).detach().cpu().numpy()]
+    mechanism_coupling_snapshot = ranking.mechanism_coupling_step_snapshot(
+        xi, bag_result["active_pairwise"], negative_entity_ids,
+        bag_result.get("active_k_per_entity"), bag_result.get("active_m_per_entity"),
+        entity_is_positive,
+    )
+
     diagnostics = {
         "batch_composition": sampler.batch_composition_receipt(batch),
         "capped_segment_count": int(entity_rows.shape[0]),
@@ -2878,6 +2891,11 @@ def _ranking_phase(
         # 候选六 EAS（同文件第 9 节）的动机计数：本步活动集是否全空，逐步累积后
         # 在轮末压成 empty_active_step_frac / ranking_shortcut_step_count。
         "empty_active_set_step": empty_active_set_step,
+        # 机制耦合观测预注册用的原始快照（numpy 数组，含负实体全局 ID）：只在
+        # epoch_ranking_diagnostics 列表内部于轮末被 summarize_mechanism_coupling_
+        # observables 消费，绝不进入 entity-ranking-diagnostics-<epoch>.json 的
+        # last_step_snapshot（该处已显式排除本键，见宿主训练循环）。
+        "mechanism_coupling_snapshot": mechanism_coupling_snapshot,
     }
     return g_rank, diagnostics
 
@@ -3483,6 +3501,12 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
         "exit_code": None, "target_reads": 0,
     })
     started = time.time()
+    # 机制耦合观测预注册（.Codex/docs/RWKV/2026-09-01-机制耦合观测预注册.md）观测量
+    # 二的跨轮 Jaccard 状态：只在内存中持有上一轮末步各合资格档的活动负实体 ID
+    # 集合，从不写入检查点、收据或日志（预注册第四节禁止落盘实体 ID 列表）。因此
+    # 续训（resume）后的首轮没有该状态，J_K 在那一轮为 null——这是已知、可接受的
+    # 限制（本观测不构成阻断门），不重新从磁盘重建。
+    mechanism_coupling_active_sets: dict[str, Any] = {}
     for epoch in range(start_epoch, config["budget"]["epochs"] + 1):
         losses = []
         steps_per_epoch = config["budget"]["steps_per_epoch"]
@@ -3586,12 +3610,43 @@ def run_training(config: dict[str, Any], config_path: Path, resume: bool) -> Non
                 # 剔除 stage_timing：CUDA 路径下它装的是 torch.cuda.Event 对，不可 JSON 序列化
                 # （2026-09-02 C01-half 因此在第 1 轮写收据时崩溃，GPU 空转一夜）。
                 # 其秒数已由 summarize_falsifiable_observables 聚合进 stage_timing_seconds，
-                # 原始事件对无保留价值。
+                # 原始事件对无保留价值。剔除 mechanism_coupling_snapshot：其中的
+                # negative_entity_ids 是预注册第四节明令禁止落盘的实体 ID，且值是
+                # numpy 数组，本就不可 JSON 序列化；该键只供下面 mechanism-coupling-
+                # <epoch>.json 的写出逻辑在内存中消费。
                 "last_step_snapshot": (
-                    {k: v for k, v in epoch_ranking_diagnostics[-1].items() if k != "stage_timing"}
+                    {
+                        k: v
+                        for k, v in epoch_ranking_diagnostics[-1].items()
+                        if k not in ("stage_timing", "mechanism_coupling_snapshot")
+                    }
                     if epoch_ranking_diagnostics
                     else None
                 ),
+            })
+            # 机制耦合观测预注册（.Codex/docs/RWKV/2026-09-01-机制耦合观测预注册.md）：
+            # CV_K^(e)（观测量一）、J_K^(e)（观测量二）、τ^(e)（观测量三′，仅尾部聚合
+            # 机制开启时非 null）。全部聚合标量，不含实体 ID 列表；跨轮 Jaccard 状态
+            # mechanism_coupling_active_sets 只在内存中滚动，见其声明处的说明。
+            coupling_snapshots = [
+                entry["mechanism_coupling_snapshot"]
+                for entry in epoch_ranking_diagnostics
+                if entry.get("mechanism_coupling_snapshot") is not None
+            ]
+            coupling_effective_budgets = (
+                epoch_ranking_diagnostics[-1]["effective_budgets"] if epoch_ranking_diagnostics else []
+            )
+            coupling_receipt, mechanism_coupling_active_sets = ranking.summarize_mechanism_coupling_observables(
+                coupling_snapshots, xi_state.budgets, coupling_effective_budgets, mechanism_coupling_active_sets,
+            )
+            atomic_json(output_root / "receipts" / f"mechanism-coupling-{epoch}.json", {
+                "schema_version": "ch3-ft-mechanism-coupling-observables-receipt-v1",
+                "preregistration": ".Codex/docs/RWKV/2026-09-01-机制耦合观测预注册.md",
+                "epoch": epoch,
+                "target_reads": 0,
+                "active_policy": epoch_ranking_diagnostics[-1]["active_policy"] if epoch_ranking_diagnostics else None,
+                "tail_aggregation_alpha": entity_tail_aggregation_alpha_from_config(config),
+                **coupling_receipt,
             })
         # entity_memory_enabled 分支（CEM）走 entity_memory_validation_metrics，不产出
         # validation_entity_ap_tail；用 .get 而不是下标，使该分支的收据形状保持完全
