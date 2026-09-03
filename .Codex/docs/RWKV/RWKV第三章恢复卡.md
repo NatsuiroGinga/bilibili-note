@@ -173,6 +173,14 @@ timeout 100 expect tools/remote_exec/gpu_env_quiet.exp '<远端命令>'
 **正确写法**：`pkill -9 -f "[c]h3-ft-c01-halfwidth-screening-v1"`（首字母加方括号）。
 同理 `pgrep -cf "[c]h3-..."`。2026-09-03 因此连续两次误判为「SSH 故障」。
 
+**⚠️ 字符类只保护 pkill 自己的参数，不保护同一命令行的其他位置。**
+2026-09-03 第三次踩坑：`pkill -9 -f "[c]h3-…"; …; printf '{"run_id":"ch3-ft-c01-halfwidth-screening-v1",…}' > status.json`
+——参数用了字符类，但后半段 JSON 里有完整字面量，`pkill -f` 匹配**整行**，照样自杀。
+
+**规则**：执行 `pkill -f` 的那条命令行，**整行都不得出现被匹配的完整字符串**。
+需要同时杀进程并写文件时**拆成两次独立调用**：先杀（命令行不含完整运行名），
+再写（不含 pkill，字面量就无害）。
+
 ### D. 杀训练后必须两端同时清 `status.json`，否则死锁
 
 守护的判定逻辑：`state == "finished"` 记完成；**`state` 为空才启动**；
