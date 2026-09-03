@@ -315,7 +315,15 @@ def assert_cross_cell_agreement(configs: dict[str, dict[str, Any]]) -> dict[str,
         "sequence_length": lambda c: c["training"]["sequence_length"],
         "device_type": lambda c: c["runtime"]["device_type"],
         "precision_profile_id": lambda c: c["runtime"]["precision_profile_id"],
-        "torch_compile": lambda c: c["runtime"].get("torch_compile"),
+        # 只比较决定数值路径的两个键，忽略 ``evidence`` 说明文字：各格的 evidence 分别
+        # 引用自己对位的 v2 运行名，文本必然不同，但它不进入任何计算。2026-09-03 实测
+        # c00/c01 的 enabled/mode 逐位相同（均 False/default）却因 evidence 文本被判
+        # 「数值路径分叉」而拒绝评价——那是假阳性。本门禁要防的是编译前后 logits
+        # 最大绝对差 8.940697e-07 那类真实分叉，由 enabled 与 mode 决定。
+        "torch_compile": lambda c: {
+            k: (c["runtime"].get("torch_compile") or {}).get(k)
+            for k in ("enabled", "mode")
+        },
         "entity_aggregation": lambda c: c["evaluation"]["entity_aggregation"],
         "base_config_sha256": lambda c: c["base"]["config_sha256"],
         "base_tool_sha256": lambda c: c["base"]["tool_sha256"],
