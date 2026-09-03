@@ -120,3 +120,38 @@ normalized_loss.backward()
 - 第三节的更正：**同上**，`1/128` 的算法与实现不符
 - 第四节的判据：**冻结于测量之前**，未看任何数据
 - `w_e = N_flow` 这一取值：**数学推导，未经实验验证**
+
+## 七、2026-09-03 筛选臂占位取值（用户裁决，第四节实测尚未执行）
+
+**背景**：服务器 GPU 被目标年描述性评价占用（`16464 MiB`／`32760 MiB`），
+第四节的真实梯度范数比测量暂时无法开跑。用户裁决先用占位权重起筛选臂
+（`ch3-ft-c00-entitybce-newbase-halfwidth-screening-v1`），第四节测量待
+GPU 空闲后补做。
+
+**占位取值**：`w_e = 8192.0`，等于 `mechanism.entity_bce` 挂载点所在配置
+（`ch3-ft-c00-halfwidth-screening-v1` 系列）的 `effective_batch_size(64) ×
+sequence_length(128)` 理论上界。**这不是第四节要求的实测值**——真实
+`total_valid_units`（`tools/ch3_ft_c00_dual_selection.py:1502`
+`total_valid = int(valid.sum())`）因存在无效/填充位置，通常小于该上界，
+量级可能显著更低。用占位值可能使实体项被过度加权。
+
+**已知的方法论缺口（如实记录，未解决）**：第四节判据需要
+`‖∇_θ L_flow‖` 与 `‖∇_θ L_entity‖` **分别**的梯度范数比。但
+`training_step`（`ch3_ft_c00_dual_selection.py:1475-1575`）把两项加权求和
+后只做**一次** `backward()`（`accumulator.backward(loss_sum, ...)`，
+`:1567`），标准自动微分只能拿到合并梯度，不能事后拆分。若下一步打算
+"训练跑起来后读收据"来完成第四节测量，该路径**在当前代码下不成立**——
+必须另写一个对两项分别调用 `torch.autograd.grad`（或分两次独立
+`backward()`）的诊断脚本，不能复用 `training_step` 产生的常规训练收据。
+本条待第四节正式执行时处理，此处先记录，防止误以为"跑起来就有数据"。
+
+**取值依据登记**：
+| 必填项 | 内容 |
+| --- | --- |
+| 用途和值 | 占位权重，`mechanism.entity_bce.weight = 8192.0` |
+| 文献依据 | 无（同第五节） |
+| 数学推导 | 本次配置的 `effective_batch_size × sequence_length` 上界，非第四节要求的真实 `total_valid_units` |
+| 真实数据诊断 | **未执行**——第四节测量待 GPU 空闲后补做 |
+| 适用边界 | 仅限本筛选臂（`run_tier=screening_only`），其读数不得升级为正式候选证据 |
+| 是否接触最终目标标签 | 否 |
+| 核验状态 | **未验证（占位值）**。任务完成后须回填真实 `w_e` 并按需重跑 |
