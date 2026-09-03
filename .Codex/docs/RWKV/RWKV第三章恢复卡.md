@@ -276,6 +276,49 @@ BER 使速度降到 `35%`。验证固定 `44` 秒。四格（20/20/10/10 轮）�
    **该口径直接影响权重标定**：任务 3 要用 `‖∇L_flow‖` 与 `‖∇L_entity‖` 的量级比
    定权重，两者若统计粒度不同，比值就没有意义。**标定前须先确认两项的归一化口径一致。**
 
+### L4. 实体级 BCE 的 `w_e = 1.0` 实际不是等权，是 `1/128` 量级
+
+**2026-09-03 查实**：实体级 BCE 被累加器额外乘了 `M / N_flow`
+（`neural_precision_runtime.py:461` 按有效流数归一），而实体项本身**已经是逐实体均值**。
+
+当前配置 `M = 1`、`N_flow ≤ 8192`、批内实体 `≤ 64`，
+故写 `w_e = 1.0` **实际被压到约 `1/128`**。
+
+**标定权重前必须先对齐归一化口径**，否则用 `‖∇L_flow‖ / ‖∇L_entity‖` 定出的值
+会差两个数量级。这条精确化了 L3.2 的「口径不同」。
+
+### L5. `micro_batch_sequences` 不在科学身份里——已知缺陷
+
+它只在 `runtime_projection`，不在 `science_projection`。配合 L4 的归一化因子
+与非线性 top-k 聚合，**两次只改微批大小的运行会优化不同的目标，
+却共享同一个 `science_identity_sha256`**。
+
+身份哈希本应保证「同哈希 = 同科学定义」，此处不成立。
+**改微批时不要依赖哈希相同就认为科学等价。** 修法二选一（未裁决）：
+把微批参数移进 `science_projection`（改动小，但把运行参数升格为科学参数），
+或改并入项系数使损失对微批不变（彻底，但要改归一化逻辑）。
+
+### L6. 优化器确认为 `torch.optim.AdamW`，且原论文明确排除调度器
+
+- **实现**：`ch3_ft_transformer_field_token_protocol_a.py:3139`，只传 `lr` 与
+  `weight_decay`，`eps`／`betas` 取 PyTorch 默认。这关闭了多目标梯度冲突调研 1.5 节
+  列为未决的限定条件，并据此把候选 4（DB-MTL 全局尺度 `min→max`）降为低优先级
+  ——AdamW 的逐坐标二阶矩会吸收常数正缩放。
+- **原论文（Gorishniy 2021）明确不用调度器**：物理页 5「do not employ…
+  learning rate warmup, learning rate decay…」，物理页 6「We do not apply
+  learning rate schedules」。**这是为隔离架构贡献的方法论选择，不是遗漏。**
+  `lr = 1e-4`／`wd = 1e-5` 见 Table 12（物理页 18）；
+  调参空间 `LogUniform[1e-5, 1e-3]` 见 Table 13，几何中位恰为 `1e-4`，
+  代码注释「已知，不是笔误」经查属实。
+- **六篇后续工作中五篇无调度器**（XTab、TabM、TabTransformer、Matérn-KAN、TabReD），
+  唯一用衰减的 electronics-IoT 未披露机制、无消融、结构已偏离默认。
+- **后期震荡不可归因于缺少 LR 衰减**：唯一报告过 FT-Transformer 训练震荡的文献
+  （Matérn-KAN）归因为**数据集规模过小**。文献只能证明「不加调度器不反常」，
+  **因果需本课题自己做加/不加衰减的对照实验**。
+- **范围限定**：「无调度器」只对 FT-Transformer 这条线成立。
+  仓库内 DistilBERT 基线、RWKV 筛选、GRANDE **确有使用**
+  `CosineAnnealingLR`／`LambdaLR`，不要误读为本课题整体排斥调度器。
+
 ### L. Claude Code 的 `Agent` 工具没有 `effort` 参数
 
 可传参数只有 `subagent_type`、`model`、`prompt`、`description`、`isolation`、
