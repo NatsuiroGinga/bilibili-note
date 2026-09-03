@@ -109,11 +109,11 @@
   },
   "budget": {
     "state": "frozen",
-    "epochs": 20,
+    "epochs": 10,
     "steps_per_epoch": 1000,
     "validation_every_epochs": 1,
     "probe_optimizer_steps": 1,
-    "basis": "四格共同预算，与 C00/C01 冻结值一致（20 轮 x 1000 步）。本臂是 z1'=1 与 z2=1 同开的交互格：尾部聚合进入 BER 排序损失的训练图（C10 的 z2=0 训练图不含聚合），故 M1 的训练侧收益按构造集中在交互项 I = C11 - C10 - C01 + C00 上。预算不得单独重新校准，否则四格比较不公平。"
+    "basis": "四格共同预算原为 20 轮 × 1000 步。2026-09-03 用户裁定：缩容档筛选臂改为 10 轮——依据是 C00-half 实测 20 轮曲线，前 10 轮相邻轮差中位 0.0253/最大 0.0454，后 10 轮为 0.0705/0.3280（噪声 2.8 倍、峰值 7 倍），且末 5 轮均值在两个截断点仅差 -0.0044，多跑的 10 轮不提供关于『机制是否生效』的新信息。该缩短在数值上与跑 20 轮取前 10 轮等价——已核实本配置无学习率调度器（优化器 ft-transformer-official-default，全文无 LambdaLR/Cosine/OneCycle/StepLR），学习率为常数，故总轮数不影响前 10 轮的训练轨迹。读数口径同时冻结为第 8-10 轮均值，在看到任何 C01/C10/C11 结果前写定。"
   },
   "checkpoint": {
     "schema_version": "ch3-ft-candidate-unified-checkpoint-v2",
