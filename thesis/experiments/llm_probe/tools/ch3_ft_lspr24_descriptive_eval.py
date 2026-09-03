@@ -72,6 +72,20 @@ SCHEMA_VERSION = "ch3-ft-lspr24-descriptive-eval-receipt-v1"
 CELLS = ("c00", "c10", "c01", "c11")
 SELECTION_ROLES = ("entity", "flow")
 
+# 四格默认运行名：全容量正式档。``--cell-runs`` 缺省（None）时使用该映射，
+# 与改动前硬编码逐字一致；显式传参时完全替换（不与本映射合并），避免把缩容档
+# 与全容量档悄悄混评，破坏「同一比较集」前提。
+DEFAULT_CELL_RUN_IDS: dict[str, str] = {
+    "c00": "ch3-ft-c00-dual-selection-cuda-formal-v1",
+    "c10": "ch3-ft-c10-entity-memory-cuda-formal-v1",
+    "c01": "ch3-ft-c01-entity-ranking-cuda-formal-v1",
+    "c11": "ch3-ft-c11-cem-ber-cuda-formal-v1",
+}
+
+# 部分评价（--allow-partial-cells）由用户 2026-09-03 明确授权：缺省仍为 False，
+# 缺任一格即报错停止；开启时须在收据与控制台输出中显著记录该授权来源。
+PARTIAL_EVALUATION_AUTHORIZATION_NOTE = "部分评价由用户 2026-09-03 明确授权"
+
 # 目标年只有一档数据角色：源年的 0＝训练实体／1＝验证实体划分在目标年不存在。
 # 角色数组置该常量后，EntityMemoryState.reset_role(TARGET_ENTITY_ROLE) 命中全部实体，
 # 语义等于"重置全部目标年实体"，与源年验证每轮重置验证角色一致（2026-08-29 裁决 2）。
@@ -165,33 +179,75 @@ def write_status(output_root: Path, state: str, stage: str, exit_code: int | Non
 
 
 # ---------------------------------------------------------------------------
-# 源年封印预检（既有逻辑，未改动语义）
+# 源年封印预检
 # ---------------------------------------------------------------------------
 
 
-def resolve_cell_runs(runs_root: Path) -> dict[str, Path]:
-    """把四格短键映射到各自的正式运行目录；缺任一格即报错，不做部分评价。
+def parse_cell_runs_argument(value: str | None) -> dict[str, str] | None:
+    """解析 ``--cell-runs``：``"c00=<run_id>,c10=<run_id>,c01=<run_id>,c11=<run_id>"``。
 
-    部分评价没有意义：四格判据要求同时比较 C00/C10/C01/C11，缺一格则交互项无法计算。
+    缺省 ``None`` 时调用方沿用内置全容量正式档映射 ``DEFAULT_CELL_RUN_IDS``（改动前
+    行为逐字不变）。显式传入时不要求四格齐全——未提及的格视为未指定，由
+    ``resolve_cell_runs`` 按 ``allow_partial`` 决定报错还是继续。
     """
-    mapping = {
-        "c00": "ch3-ft-c00-dual-selection-cuda-formal-v1",
-        "c10": "ch3-ft-c10-entity-memory-cuda-formal-v1",
-        "c01": "ch3-ft-c01-entity-ranking-cuda-formal-v1",
-        "c11": "ch3-ft-c11-cem-ber-cuda-formal-v1",
-    }
+    if value is None:
+        return None
+    overrides: dict[str, str] = {}
+    for item in value.split(","):
+        item = item.strip()
+        if not item:
+            continue
+        if "=" not in item:
+            raise SystemExit(f"--cell-runs 格式错误，缺 '='：{item!r}")
+        cell, run_id = item.split("=", 1)
+        cell = cell.strip()
+        run_id = run_id.strip()
+        if cell not in CELLS:
+            raise SystemExit(f"--cell-runs 出现未知格短键 {cell!r}，应为 {CELLS} 之一")
+        if not run_id:
+            raise SystemExit(f"--cell-runs 中 {cell} 的运行名为空")
+        overrides[cell] = run_id
+    if not overrides:
+        raise SystemExit("--cell-runs 未解析出任何有效条目")
+    return overrides
+
+
+def resolve_cell_runs(runs_root: Path, cell_run_ids: dict[str, str] | None = None,
+                      allow_partial: bool = False) -> tuple[dict[str, Path], list[str]]:
+    """把四格短键映射到各自的运行目录。
+
+    ``cell_run_ids`` 为 ``None`` 时使用内置四个全容量正式档运行名（与改动前逐字
+    一致）；显式传入时**完全替换**默认映射，只核验其中给出的格，未提及的格视为
+    未指定——不回退到默认的全容量运行名，避免把缩容档与全容量档悄悄混评，破坏
+    ``assert_cross_cell_agreement`` 想要防止的"同一比较集"前提。
+
+    缺任一格默认报错，不做部分评价；``allow_partial`` 为真时允许继续，仅评价实际
+    存在的格——2026-09-03 用户明确授权的显式开关，缺省仍为 ``False``，门禁行为
+    与改动前逐字一致。返回值第二项是缺失格清单（``"{cell}({run_id})"`` 或
+    ``"{cell}(未指定)"``），供调用方在收据与日志中如实披露。
+    """
+    mapping = dict(DEFAULT_CELL_RUN_IDS) if cell_run_ids is None else dict(cell_run_ids)
     resolved: dict[str, Path] = {}
     missing: list[str] = []
-    for cell, run_id in mapping.items():
+    for cell in CELLS:
+        run_id = mapping.get(cell)
+        if run_id is None:
+            missing.append(f"{cell}(未指定)")
+            continue
         root = runs_root / run_id
         selection = root / "receipts" / "selection.json"
         if not selection.is_file():
             missing.append(f"{cell}({run_id})")
             continue
         resolved[cell] = root
-    if missing:
+    if missing and not allow_partial:
         raise SystemExit(f"四格未齐备，缺：{', '.join(missing)}；不做部分评价")
-    return resolved
+    if not resolved:
+        raise SystemExit(f"部分评价开启但没有任何格可用，至少需要一格：缺 {', '.join(missing)}")
+    if missing:
+        log(f"部分评价：缺 {', '.join(missing)}；继续评价已存在的 {sorted(resolved)} 格；"
+            f"{PARTIAL_EVALUATION_AUTHORIZATION_NOTE}")
+    return resolved, missing
 
 
 def load_sealed_selection(run_root: Path) -> dict[str, Any]:
@@ -203,6 +259,38 @@ def load_sealed_selection(run_root: Path) -> dict[str, Any]:
     if int(status.get("target_reads", -1)) != 0:
         raise SystemExit(f"{run_root.name} 源年运行的 target_reads 非零，封印已破")
     return receipt
+
+
+def compute_four_cell_verdict(ap_of_cell: dict[str, float], missing_cells: list[str],
+                              note_complete: str) -> dict[str, Any]:
+    """四格判据：C10/C01 相对 C00 的增量、C11 是否最佳、交互项。
+
+    ``ap_of_cell`` 只含实际存在格的主指标（源年用实体 AP、目标年用
+    ``entity_average_precision``）。``missing_cells`` 非空时按用户 2026-09-03 授权
+    做部分评价：凡涉及缺格的判据显式标注"无法计算"字符串，不输出占位数字（不写
+    ``null``、不写 ``0``）；交互项在四格未齐备时无定义，同样标"无法计算"。
+    """
+    verdict: dict[str, Any] = {
+        "partial_evaluation": bool(missing_cells),
+        "missing_cells": list(missing_cells),
+    }
+
+    def pairwise(cell: str) -> float | str:
+        if "c00" in ap_of_cell and cell in ap_of_cell:
+            return ap_of_cell[cell] - ap_of_cell["c00"]
+        return f"无法计算：c00 或 {cell} 缺失"
+
+    verdict["c10_over_c00"] = pairwise("c10")
+    verdict["c01_over_c00"] = pairwise("c01")
+    if all(cell in ap_of_cell for cell in CELLS):
+        verdict["c11_is_best"] = ap_of_cell["c11"] >= max(ap_of_cell[c] for c in ("c00", "c10", "c01"))
+        verdict["interaction"] = ap_of_cell["c11"] - ap_of_cell["c10"] - ap_of_cell["c01"] + ap_of_cell["c00"]
+        verdict["note"] = note_complete
+    else:
+        verdict["c11_is_best"] = "无法计算：四格未齐备"
+        verdict["interaction"] = "无法计算：四格未齐备"
+        verdict["note"] = f"部分评价：四格未齐备，涉及缺格的判据标记为'无法计算'；{PARTIAL_EVALUATION_AUTHORIZATION_NOTE}"
+    return verdict
 
 
 # ---------------------------------------------------------------------------
@@ -238,7 +326,9 @@ def assert_cross_cell_agreement(configs: dict[str, dict[str, Any]]) -> dict[str,
         distinct = {canonical_sha256(value) for value in values.values()}
         if len(distinct) != 1:
             raise SystemExit(f"四格在 {name} 上不一致，拒绝并列评价：{values}")
-        agreement[name] = values[CELLS[0]]
+        # 部分评价时 ``configs`` 可能不含 c00：取任意一格的值即可，distinct 长度已
+        # 保证该组内全部相同（原实现固定取 CELLS[0]=c00，不能在 c00 缺席时沿用）。
+        agreement[name] = next(iter(values.values()))
     if agreement["entity_aggregation"] != "maximum_over_validation_flows":
         raise SystemExit(f"实体聚合口径不符：{agreement['entity_aggregation']}")
     # 逐格记录各自的验证批（C00=128、C10=64 已实测不同）：它只影响分批，不影响数值，
@@ -267,11 +357,14 @@ def load_shared_transform(cell_runs: dict[str, Path]) -> tuple[Any, dict[str, An
         hashes[cell] = str(receipt["state_hash"])
     if len(set(hashes.values())) != 1:
         raise SystemExit(f"四格封印输入变换 state_hash 不一致，拒绝评价：{hashes}")
-    transform_path = cell_runs[CELLS[0]] / "artifacts" / "sealed-input-transform.pkl"
+    # 部分评价时 cell_runs 可能不含 c00：取字典中第一个实际存在的格（插入顺序遵循
+    # CELLS＝c00,c10,c01,c11），其 state_hash 已由上面的一致性检查保证与其余格相同。
+    first_cell = next(iter(cell_runs))
+    transform_path = cell_runs[first_cell] / "artifacts" / "sealed-input-transform.pkl"
     transform = base.load_input_transform(transform_path)
-    if transform.state_hash != hashes[CELLS[0]]:
+    if transform.state_hash != hashes[first_cell]:
         raise SystemExit(
-            f"封印变换对象 state_hash 与收据不符：{transform.state_hash} vs {hashes[CELLS[0]]}"
+            f"封印变换对象 state_hash 与收据不符：{transform.state_hash} vs {hashes[first_cell]}"
         )
     # 目标年计数分区：只影响诊断计数器，绝不改变任何冻结状态（FieldTokenTransform.switch_region）。
     transform.switch_region("target")
@@ -907,8 +1000,13 @@ def load_completed_unit(output_root: Path, cell: str, role: str,
     return aggregate
 
 
-def build_manifest(output_root: Path) -> None:
-    """重写制品清单；逐流与逐实体分数一律不落盘，出现即报错。"""
+def build_manifest(output_root: Path, present_cells: tuple[str, ...],
+                   missing_cells: list[str]) -> None:
+    """重写制品清单；逐流与逐实体分数一律不落盘，出现即报错。
+
+    ``present_cells``/``missing_cells`` 如实记录本次实际评价的格——部分评价
+    （``--allow-partial-cells``）时 ``cells`` 不再恒为四格，须显式披露缺格与授权来源。
+    """
     forbidden = ("flow-score", "flow_score", "entity-score", "entity_score", ".pt", ".pth",
                  ".ckpt", ".npy", ".parquet", ".pkl")
     files: dict[str, Any] = {}
@@ -922,7 +1020,12 @@ def build_manifest(output_root: Path) -> None:
         "schema_version": f"{SCHEMA_VERSION}-manifest-v1",
         "run_id": RUN_ID,
         "files": files,
-        "cells": list(CELLS),
+        "cells": list(present_cells),
+        "missing_cells": list(missing_cells),
+        "partial_evaluation": bool(missing_cells),
+        "partial_evaluation_authorization": (
+            PARTIAL_EVALUATION_AUTHORIZATION_NOTE if missing_cells else None
+        ),
         "selection_roles": list(SELECTION_ROLES),
         "training_runs": 0,
         "new_checkpoints_written": 0,
@@ -939,11 +1042,15 @@ def build_manifest(output_root: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def run_preflight(runs_root: Path) -> tuple[dict[str, Path], dict[str, Any], dict[str, Any]]:
+def run_preflight(runs_root: Path, cell_run_ids: dict[str, str] | None = None,
+                  allow_partial: bool = False,
+                  ) -> tuple[dict[str, Path], dict[str, Any], dict[str, Any], list[str]]:
     log("核验四格齐备与源年封印状态")
-    cell_runs = resolve_cell_runs(runs_root)
+    cell_runs, missing_cells = resolve_cell_runs(runs_root, cell_run_ids, allow_partial)
     sealed: dict[str, Any] = {}
     for cell in CELLS:
+        if cell not in cell_runs:
+            continue
         root = cell_runs[cell]
         receipt = load_sealed_selection(root)
         best_entity = receipt["best_by_entity"]
@@ -963,30 +1070,31 @@ def run_preflight(runs_root: Path) -> tuple[dict[str, Path], dict[str, Any], dic
         log(f"  {cell}: 源年实体AP={best_entity['metric']:.6f}（轮{best_entity['epoch']}）"
             f" 逐流AP={best_flow['metric']:.6f}（轮{best_flow['epoch']}）")
 
-    interaction = (
-        sealed["c11"]["source_entity_ap"] - sealed["c10"]["source_entity_ap"]
-        - sealed["c01"]["source_entity_ap"] + sealed["c00"]["source_entity_ap"]
+    ap_of_cell = {cell: item["source_entity_ap"] for cell, item in sealed.items()}
+    verdict = compute_four_cell_verdict(
+        ap_of_cell, missing_cells,
+        note_complete="以上为源年读数，仅用于确认四格结构；目标年读数在下方 target 段",
     )
-    baseline = sealed["c00"]["source_entity_ap"]
-    verdict = {
-        "c10_over_c00": sealed["c10"]["source_entity_ap"] - baseline,
-        "c01_over_c00": sealed["c01"]["source_entity_ap"] - baseline,
-        "c11_is_best": sealed["c11"]["source_entity_ap"] >= max(
-            sealed[c]["source_entity_ap"] for c in ("c00", "c10", "c01")
-        ),
-        "interaction": interaction,
-        "note": "以上为源年读数，仅用于确认四格结构；目标年读数在下方 target 段",
-    }
-    log(f"源年四格判据：C10−C00={verdict['c10_over_c00']:+.6f} "
-        f"C01−C00={verdict['c01_over_c00']:+.6f} "
-        f"C11最佳={verdict['c11_is_best']} 交互={interaction:+.6f}")
-    return cell_runs, sealed, verdict
+    if missing_cells:
+        log(f"部分评价：缺 {', '.join(missing_cells)}；C10−C00={verdict['c10_over_c00']} "
+            f"C01−C00={verdict['c01_over_c00']} C11最佳={verdict['c11_is_best']} "
+            f"交互={verdict['interaction']}；{PARTIAL_EVALUATION_AUTHORIZATION_NOTE}")
+    else:
+        log(f"源年四格判据：C10−C00={verdict['c10_over_c00']:+.6f} "
+            f"C01−C00={verdict['c01_over_c00']:+.6f} "
+            f"C11最佳={verdict['c11_is_best']} 交互={verdict['interaction']:+.6f}")
+    return cell_runs, sealed, verdict, missing_cells
 
 
 def evaluate(args: argparse.Namespace, cell_runs: dict[str, Path], sealed: dict[str, Any],
-             verdict: dict[str, Any]) -> dict[str, Any]:
+             verdict: dict[str, Any], missing_cells: list[str]) -> dict[str, Any]:
     output_root = Path(args.output_root).resolve()
     output_root.mkdir(parents=True, exist_ok=True)
+    # present_cells 保持 CELLS 的规范顺序（c00,c10,c01,c11），部分评价时只含实际存在的格。
+    present_cells = tuple(cell for cell in CELLS if cell in cell_runs)
+    if missing_cells:
+        log(f"部分评价：本次只评价 {list(present_cells)}，缺 {', '.join(missing_cells)}；"
+            f"{PARTIAL_EVALUATION_AUTHORIZATION_NOTE}")
     target_reads = {
         "definition": "目标年读取＝数组载入次数 + 全量前向打分次数；本运行不做任何目标年物化",
         "target_array_loads": 0,
@@ -1027,8 +1135,9 @@ def evaluate(args: argparse.Namespace, cell_runs: dict[str, Path], sealed: dict[
         **target["receipt"],
     })
 
-    torch_module, device, profile, precision = dual.resolve_runtime(configs[CELLS[0]])
-    log(f"运行时：设备={device.type} 精度profile={configs[CELLS[0]]['runtime']['precision_profile_id']} "
+    torch_module, device, profile, precision = dual.resolve_runtime(configs[present_cells[0]])
+    log(f"运行时：设备={device.type} "
+        f"精度profile={configs[present_cells[0]]['runtime']['precision_profile_id']} "
         f"torch={torch_module.__version__}")
     view = build_target_view(target, transform)
 
@@ -1050,7 +1159,7 @@ def evaluate(args: argparse.Namespace, cell_runs: dict[str, Path], sealed: dict[
 
     completed: dict[str, dict[str, Any]] = {}
     run_started = time.time()
-    for cell in CELLS:
+    for cell in present_cells:
         config = configs[cell]
         base_config = dual.effective_base_config(config)
         entity_memory_enabled = bool(agreement["entity_memory_enabled"][cell])
@@ -1129,16 +1238,19 @@ def evaluate(args: argparse.Namespace, cell_runs: dict[str, Path], sealed: dict[
             if device.type == "cuda":
                 torch_module.cuda.empty_cache()
 
-    expected_units = {unit_name(cell, role) for cell in CELLS for role in SELECTION_ROLES}
+    expected_units = {unit_name(cell, role) for cell in present_cells for role in SELECTION_ROLES}
     if set(completed) != expected_units:
-        raise SystemExit(f"八个评价单元未全部完成：缺 {sorted(expected_units - set(completed))}")
+        raise SystemExit(
+            f"{len(expected_units)} 个评价单元未全部完成：缺 {sorted(expected_units - set(completed))}"
+        )
 
     primary = {
-        cell: completed[unit_name(cell, "entity")]["metrics"] for cell in CELLS
+        cell: completed[unit_name(cell, "entity")]["metrics"] for cell in present_cells
     }
-    target_interaction = (
-        primary["c11"]["entity_average_precision"] - primary["c10"]["entity_average_precision"]
-        - primary["c01"]["entity_average_precision"] + primary["c00"]["entity_average_precision"]
+    primary_ap = {cell: metrics["entity_average_precision"] for cell, metrics in primary.items()}
+    target_verdict = compute_four_cell_verdict(
+        primary_ap, missing_cells,
+        note_complete="以上为目标年主口径（entity 选轮）四格判据",
     )
     result = {
         "schema_version": f"{SCHEMA_VERSION}-target-descriptive-evaluation-v1",
@@ -1151,7 +1263,7 @@ def evaluate(args: argparse.Namespace, cell_runs: dict[str, Path], sealed: dict[
             "主口径为源年实体 AP 择优的 selected-by-entity（2026-08-28 冻结裁决）；"
             "selected-by-flow 一并评价，作协议敏感性对照，不作主口径、不参与排名"
         ),
-        "cell_order": list(CELLS),
+        "cell_order": list(present_cells),
         "dr_fpr_grid": list(base.DR_FPR_GRID),
         "source_sealed": sealed,
         "source_verdict": verdict,
@@ -1161,13 +1273,14 @@ def evaluate(args: argparse.Namespace, cell_runs: dict[str, Path], sealed: dict[
         "data_verification": data_receipt,
         "target_year_read": target["receipt"],
         "units": {name: completed[name] for name in sorted(completed)},
-        "target_primary_verdict": {
-            "c10_over_c00": primary["c10"]["entity_average_precision"] - primary["c00"]["entity_average_precision"],
-            "c01_over_c00": primary["c01"]["entity_average_precision"] - primary["c00"]["entity_average_precision"],
-            "c11_is_best": primary["c11"]["entity_average_precision"] >= max(
-                primary[c]["entity_average_precision"] for c in ("c00", "c10", "c01")
+        "target_primary_verdict": target_verdict,
+        "partial_evaluation": {
+            "enabled": bool(missing_cells),
+            "present_cells": list(present_cells),
+            "missing_cells": list(missing_cells),
+            "authorization_note": (
+                PARTIAL_EVALUATION_AUTHORIZATION_NOTE if missing_cells else None
             ),
-            "interaction": target_interaction,
         },
         "selection": {
             "selection_performed": False,
@@ -1215,14 +1328,19 @@ def evaluate(args: argparse.Namespace, cell_runs: dict[str, Path], sealed: dict[
                     completed[unit_name(cell, role)]["metrics"]["flow_average_precision"],
                 "target_dr_at_fpr": completed[unit_name(cell, role)]["metrics"]["dr_at_fpr"],
             }
-            for cell in CELLS for role in SELECTION_ROLES
+            for cell in present_cells for role in SELECTION_ROLES
         ],
         "target_primary_verdict": result["target_primary_verdict"],
+        "partial_evaluation": result["partial_evaluation"],
         "result_sha256": result["result_sha256"],
     })
-    write_status(output_root, "complete", "complete", 0,
-                 "四格双选轮 LSPR24 描述性评价完成", target_reads)
-    build_manifest(output_root)
+    write_status(
+        output_root, "complete", "complete", 0,
+        ("部分评价完成：" if missing_cells else "四格双选轮 LSPR24 描述性评价完成")
+        + (f"缺 {', '.join(missing_cells)}；{PARTIAL_EVALUATION_AUTHORIZATION_NOTE}" if missing_cells else ""),
+        target_reads,
+    )
+    build_manifest(output_root, present_cells, missing_cells)
     return result
 
 
@@ -1231,23 +1349,51 @@ def main() -> int:
     parser.add_argument("--runs-root", default="runs/diagnostics")
     parser.add_argument("--target-config", default="configs/ch3-protocol-a-raw83-target-v1.json")
     parser.add_argument("--output-root", default=f"runs/diagnostics/{RUN_ID}")
+    parser.add_argument(
+        "--cell-runs", default=None,
+        help=(
+            "覆盖默认四格运行名，格式 'c00=<run_id>,c10=<run_id>,c01=<run_id>,c11=<run_id>'；"
+            "缺省使用内置的四个全容量正式档运行名。显式传入时完全替换默认映射，"
+            "未在此参数中提及的格视为未指定（不回退到默认运行名）"
+        ),
+    )
+    parser.add_argument(
+        "--allow-partial-cells", action="store_true",
+        help=(
+            "允许缺格继续评价，仅评价实际存在的格；缺省关闭，缺任一格即报错停止。"
+            f"{PARTIAL_EVALUATION_AUTHORIZATION_NOTE}；开启时交互项在缺格时不计算，"
+            "收据与日志中显著记录缺失格与本项授权"
+        ),
+    )
     parser.add_argument("--dry-run", action="store_true",
                         help="只核验四格齐备与封印状态，不做前向；用于四格跑完前的预检")
     args = parser.parse_args()
 
     runs_root = Path(args.runs_root).resolve()
     output_root = Path(args.output_root).resolve()
+    cell_run_ids = parse_cell_runs_argument(args.cell_runs)
 
     try:
-        cell_runs, sealed, verdict = run_preflight(runs_root)
+        cell_runs, sealed, verdict, missing_cells = run_preflight(
+            runs_root, cell_run_ids, args.allow_partial_cells
+        )
         if args.dry_run:
             atomic_json(output_root / "preflight.json", {
                 "schema_version": SCHEMA_VERSION, "run_id": RUN_ID, "stage": "preflight",
                 "source_sealed": sealed, "source_verdict": verdict, "target_reads": 0,
+                "cells_present": sorted(cell_runs), "missing_cells": missing_cells,
+                "partial_evaluation": bool(missing_cells),
+                "partial_evaluation_authorization": (
+                    PARTIAL_EVALUATION_AUTHORIZATION_NOTE if missing_cells else None
+                ),
             })
-            log("预检完成（--dry-run），未做目标年前向")
+            if missing_cells:
+                log(f"预检完成（--dry-run），部分评价：缺 {', '.join(missing_cells)}；"
+                    f"{PARTIAL_EVALUATION_AUTHORIZATION_NOTE}；未做目标年前向")
+            else:
+                log("预检完成（--dry-run），未做目标年前向")
             return 0
-        evaluate(args, cell_runs, sealed, verdict)
+        evaluate(args, cell_runs, sealed, verdict, missing_cells)
         log("目标年描述性评价完成")
         return 0
     except SystemExit as error:
