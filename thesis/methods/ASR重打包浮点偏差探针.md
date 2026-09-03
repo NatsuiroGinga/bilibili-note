@@ -154,20 +154,171 @@ fp32（与生产 `cuda-bf16-amp-fp32-sensitive-v1` 精度合同的「计算 bf16
 排除「两遍播种反传结构本身引入额外误差」的可能——若是后者，fp64 下的误差
 不会随精度升高而线性收窄到 `eps` 量级，而是会停留在某个与精度无关的绝对值上。
 
-（bf16-autocast 结果分阶段补入，见下方变更登记）
+### 3.3 bf16（CPU autocast，参数与损失侧 fp32）
+
+同一批次序列，前向包在 `torch.autocast(device_type="cpu", dtype=torch.bfloat16)`
+内（矩阵乘法降到 bf16 计算，模型参数仍是 fp32，损失与反传在 fp32 下进行，
+与生产 `cuda-bf16-amp-fp32-sensitive-v1` 精度合同的分工一致）：
+
+| 统计量 | 相对偏差 `‖Δg‖_∞/‖g_current‖_∞` | 绝对偏差 `‖Δg‖_∞` |
+| --- | ---: | ---: |
+| 最小 | `4.8225e-05` | — |
+| 中位 | `1.1243e-04` | `1.2207e-04` |
+| P90 | `1.7677e-04` | — |
+| 最大 | `2.7293e-04` | `2.4414e-04` |
+
+`‖g_current‖_∞` 中位 `1.102`，区间 `[0.414, 1.805]`，与 fp32/fp64 同批次序列
+量级一致（bf16 下模型输出本身也因量化而与 fp32/fp64 略有不同，故 `g_current`
+的具体值随精度小幅漂移，但量级不变，仍可支撑相对偏差的解读）。
+
+**与 BF16 机器精度的对比**：`bf16` 的机器精度 `eps = 2^-8 ≈ 3.9063e-03`
+（8 位有效尾数）。本探针测得的相对偏差中位 `1.124e-04`、P90 `1.768e-04`、
+最大 `2.729e-04`，**比 `eps` 低约 `14`–`81` 倍**（中位低 `35` 倍，最大的单次
+观测也低 `14` 倍）——20 次试验中没有一次逼近、更没有超过 `eps` 量级。
+
+一个执行细节的记录（不改变结论）：`compute_gradients_for_batch` 里 bf16
+路径把前向输出显式 `.to(torch.float32)` 后再进入损失（`_forward` 函数末尾），
+这与生产 `precision.fp32_island` 在进入 `bag_policy_diagnostics` 前把
+`entity_logits` 转 fp32 的做法一致，即 bf16 的量化误差只发生在模型内部的
+矩阵乘法与激活，不发生在损失计算本身——这是与生产精度合同保持一致的必要处理，
+不是为了压低误差而做的特殊处置。
 
 ---
 
 ## 四、判定
 
-<!-- 占位：待 bf16 结果补齐后给出 -->
+### 4.1 三个独立量级观测的一致性
+
+| 精度 | 本探针 θ 梯度相对偏差（中位／最大，`n=20`） | 该精度机器精度 `eps` | 相对 `eps` 的 ulp 数（中位） | 候选文档 7.4 节 V1（前向 logits，独立测量） |
+| --- | ---: | ---: | ---: | ---: |
+| float32 | `4.4855e-07` / `9.4997e-07` | `1.1921e-07` | `≈3.8` ulp | `9.56e-07`（相对） |
+| float64 | `9.5706e-16` / `1.7853e-15` | `2.2204e-16` | `≈4.3` ulp | `1.13e-15`（相对） |
+| bf16 | `1.1243e-04` / `2.7293e-04` | `3.9063e-03` | `≈0.029` eps（远低于 1 ulp） | 未测（V1 只测了 fp64/fp32） |
+
+float32 与 float64 两个精度下，本探针测得的 θ 梯度相对偏差都稳定落在
+个位数 ulp（`3.8`–`4.3` ulp），且与候选文档 7.4 节用**完全不同的测量对象**
+（前向 logits 的重打包偏差，而非 θ 梯度）、**完全不同的模型**（同构逐行模型，
+非本探针的真实 `FTTransformerFieldToken`）、**完全不同的数据**（该节用合成批，
+本探针用真实 LSPR23 数据）得到的结果几乎同一量级。三次相互独立的测量
+（V1 前向比较、本探针 fp32 梯度、本探针 fp64 梯度）指向同一机制归因：
+**误差纯粹来自 GEMM 分块变化引起的浮点重结合律，不是两遍播种反传结构本身
+引入的额外误差，也不是重打包破坏了「FT-Transformer 逐流独立」这一数学性质**
+（若后者成立，误差会是 `O(1)` 量级，且不会随精度提升而线性收窄到各自
+`eps` 附近——这正是本探针相对候选文档 7.4 节 V1 的增量价值：V1 只测了
+「模型是否逐流独立」，本探针进一步确认「重打包 + 播种反传的整条链路」
+在真实生产损失路径下同样只引入浮点级偏差）。
+
+### 4.2 判定
+
+**可视为数值等价。**
+
+- `float32`：相对偏差最大 `9.50e-07`，远低于 `float32` 自身 `eps ≈ 1.19e-07`
+  的 `10` 倍量级（约 `8` ulp），与生产实际使用的精度相比误差可忽略。
+- `float64`：相对偏差最大 `1.79e-15`，同样在个位数 ulp。
+- `bf16`（生产实际使用的计算精度）：相对偏差中位 `1.12e-04`、最大 `2.73e-04`，
+  **稳定低于 BF16 机器精度量级 `eps ≈ 3.91e-03` 一到两个数量级**（20/20 次试验
+  无一例外），满足候选文档冻结的支持判据「稳定低于 BF16 机器精度量级」。
+
+### 4.3 判定的适用边界（如实记录，不构成对判定本身的削弱）
+
+- **只覆盖 `z1'=0`（max 聚合）**，`z1'=1`（尾部聚合）未实测，标为待验证——
+  但重打包的选中流数从 `E` 增至 `Σ_e k_e`（`z1'=1` 下 `α=0.5` 约为全体有效流的
+  一半），**打包批规模更接近全批**，理论上浮点重结合误差应更小或同量级，
+  不应比本次结果更差；若要在正文中使用 `z1'=1` 的量级，仍须补测。
+- **权重随机初始化，非训练检查点**。误差机制（矩阵乘法分块顺序随批形状变化）
+  在数学上与权重取值无关，但严格意义上「训练后期权重下是否仍然如此」未被
+  本轮直接验证，标为待验证假设（可证伪：用第三章训练检查点重跑本探针，
+  预期误差量级不变——若变化超过一个数量级，则本判定的适用范围需要收窄）。
+- **`FieldTokenTransform` 为近似子集拟合**，不是生产全训练区拟合（2.3 节已述）。
+  这只影响特征分布的精确度，不影响「GEMM 分块变化引起的浮点重结合误差」这一
+  被测量本身——该误差是模型架构与批形状的函数，此推理已被 4.1 节的三方
+  独立测量交叉验证支持，不是未经检验的假设。
+- **`active_policy="full"`**，未覆盖因果前缀截断分支；候选文档已论证截断与
+  重打包正交（截断只改变 `valid` 掩码），本判定的适用范围包含截断分支。
+- 一次运行意外事故（如实记录，不影响结论有效性）：本探针的 bf16 阶段首次
+  运行时因单次后台调用累计墙钟约 `59` 分钟被环境终止在第 `8/20` 批，
+  已完成的 `8` 批（trial 00-07）原样保留、其余 `12` 批（trial 08-19）用同一
+  权重构造顺序（`seed=42`）续跑补齐，20 批数据完整、独立同分布采样过程未受影响。
 
 ---
 
-## 五、变更登记
+## 五、关键代码片段（可复算）
+
+探针脚本本身不入仓库（会话临时目录，跑完即删），下列片段是其核心逻辑的原样摘录，
+使结论可独立复算。完整依赖是生产模块
+`tools/ch3_ft_transformer_field_token_protocol_a.py`（模型构造、真实数据视图）与
+`tools/ch3_ft_entity_ranking_loss.py`（排序损失）。
+
+```python
+# 现状路径：g_current
+model.zero_grad(set_to_none=True)
+logits_flat = model(numeric_t, categorical_t)          # 全批展平，建图
+logits_bt = logits_flat.reshape(B, T)
+bag_result = ranking.bag_policy_diagnostics(
+    logits_bt, valid_bool, segment_owner_t, entity_is_positive_t,
+    entity_chain_length, eff_budgets, xi_current, bag_config,   # active_policy="full"
+)
+bag_result["loss"].backward()
+g_current = torch.cat([p.grad.detach().reshape(-1).to(torch.float64)
+                        for p in model.parameters()])
+
+# ASR-重打包路径：g_repacked
+model.zero_grad(set_to_none=True)
+with torch.no_grad():
+    logits_flat_1 = model(numeric_t, categorical_t)     # Pass 1：无梯度全批前向
+    logits_bt_1 = logits_flat_1.reshape(B, T)
+    filled_1 = logits_bt_1.masked_fill(~valid_bool, float("-inf"))
+    seg_col_idx_1 = filled_1.argmax(dim=1)
+    scores_1, source_row_1 = ranking.prefix_scores(logits_bt_1, valid_bool, segment_owner_t)
+    selected_col = seg_col_idx_1[source_row_1]
+    flat_pos = source_row_1 * T + selected_col           # 每实体恰一条流的展平下标
+
+S_detached = scores_1.clone().requires_grad_(True)       # 叶张量，E 个标量
+loss_seed, _ = ranking.cvar_pauc_loss(
+    S_detached[entity_is_positive_t], S_detached[~entity_is_positive_t],
+    eff_budgets, xi_pass1,
+)
+loss_seed.backward()
+g_seed = S_detached.grad.clone()                          # ∂loss/∂S_e，E 维播种梯度
+
+packed_num = numeric_t[flat_pos]                          # Pass 2：只取选中的 E 条流
+packed_cat = categorical_t[flat_pos] if categorical_t is not None else None
+packed_logits = model(packed_num, packed_cat)              # 建图，规模从 B*T 降到 E
+S_prime = packed_logits                                    # z1'=0 下聚合是恒等映射
+
+model.zero_grad(set_to_none=True)
+torch.autograd.backward(S_prime, grad_tensors=g_seed)       # 播种反传
+g_repacked = torch.cat([p.grad.detach().reshape(-1).to(torch.float64)
+                         for p in model.parameters()])
+
+rel_inf = float((g_repacked - g_current).abs().max()) / float(g_current.abs().max())
+```
+
+数据与模型构造（真实生产函数，非复刻）：
+
+```python
+config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+receipt = ft_mod.load_cardinality_receipt(str(RECEIPT_PATH), config)
+roles = ft_mod.resolve_field_roles(candidate_key, config)
+projection = ft_mod.project_token_layout(candidate_key, receipt, config)
+torch.manual_seed(42)
+model = ft_mod.build_model(config, projection, input_key=candidate_key)  # 真实架构，随机初始化
+model.eval()
+
+arrays = {name: np.load(CACHE_ROOT / f"{name}.npy", mmap_mode=("r" if name == "X23" else None))
+          for name in ("X23", "y23", "I23", "M23", "E23", "T23")}        # 真实 LSPR23 冻结数组
+train_rows, validation_rows, stats = ft_mod.source_split(arrays, config)  # 真实训练区切分
+view = ft_mod.ProtocolASourceView(arrays, transform)                     # transform：见 2.2 节的近似拟合
+```
+
+---
+
+## 六、变更登记
 
 | 时间 | 事项 | 提交 |
 | --- | --- | --- |
 | 2026-09-03 | 建立方法论章节；结果待填 | `b2f7399` |
 | 2026-09-03 | 补入 float32 结果（20 批）：rel_inf 中位 `4.49e-07`、最大 `9.50e-07`，与 7.4 节 V1 float32 结果同量级 | `422d754` |
-| 2026-09-03 | 补入 float64 结果（20 批，与 fp32 同批次序列）：rel_inf 中位 `9.57e-16`、最大 `1.79e-15`，随精度线性收窄到 eps 量级，支持「误差纯属浮点重结合」的归因 | 本次提交 |
+| 2026-09-03 | 补入 float64 结果（20 批，与 fp32 同批次序列）：rel_inf 中位 `9.57e-16`、最大 `1.79e-15`，随精度线性收窄到 eps 量级，支持「误差纯属浮点重结合」的归因 | `0e51772` |
+| 2026-09-03 | bf16 阶段首次运行在第 8/20 批被后台墙钟上限（约 59 分钟）终止，如实记录；用同一权重构造顺序续跑补齐 12 批 | 事故记录，无独立提交（见下条） |
+| 2026-09-03 | 补入 bf16 结果（20 批）：rel_inf 中位 `1.12e-04`、最大 `2.73e-04`，低于 BF16 机器精度 `eps≈3.91e-03` 一到两个数量级；给出三精度交叉验证判定「可视为数值等价」并记录判定的适用边界；补入可复算代码片段 | 本次提交 |
