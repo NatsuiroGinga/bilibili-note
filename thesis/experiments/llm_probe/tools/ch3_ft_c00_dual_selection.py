@@ -64,26 +64,29 @@ BARE_FT_PARAMETER_COUNT = 924283
 # ---------------------------------------------------------------------------
 WIDTH_PROFILE_FULL = "full"
 WIDTH_PROFILE_HALF = "half"
-# 第三档同时缩宽度与层数，故名称写全两个维度加用途，不用 "quarter" 一词单独指代
+# 第三档同时缩宽度与层数，故名称写全两个维度加用途，不用单个分数词指代
 # （根 AGENTS.md：主展示名须直接表达机制、角色或实验目的，读者无需查表即可区分）。
-WIDTH_PROFILE_LOCAL_SCREENING_QUARTER_WIDTH_SINGLE_LAYER = "local_screening_quarter_width_single_layer"
+# "sixth_width" 与既有 "half" 同口径，都是相对官方默认配方宽度 192 的分数。
+WIDTH_PROFILE_LOCAL_SCREENING_SIXTH_WIDTH_SINGLE_LAYER = "local_screening_sixth_width_single_layer"
 WIDTH_PROFILES: tuple[str, ...] = (
     WIDTH_PROFILE_FULL,
     WIDTH_PROFILE_HALF,
-    WIDTH_PROFILE_LOCAL_SCREENING_QUARTER_WIDTH_SINGLE_LAYER,
+    WIDTH_PROFILE_LOCAL_SCREENING_SIXTH_WIDTH_SINGLE_LAYER,
 )
 # half 档 d_token：官方默认配方宽度对半，n_heads=8 仍整除（96/8=12），层数与头数不变。
 HALF_WIDTH_D_TOKEN = base.D_TOKEN // 2
-# 本机筛选档（2026-09-03 新增）：官方默认配方宽度的四分之一 + 单层。
+# 本机筛选档（2026-09-03 新增）：官方默认配方宽度的六分之一（192 // 6 == 32）+ 单层。
+# 取值依据是 2026-09-03 本机实测的相对 d=96/3 层的加速比：d=32 得 8.47×（四格约 21 小时），
+# d=48 只有 6.02×，d=24 反而更慢（已进固定开销受限区），故 32 是本机可行区的最优点。
 #
 # 头数保持官方 n_heads=8 不变，依据是两处实测约束：
 #   1. 协议 A 的 MultiheadAttention（ch3_ft_transformer_field_token_protocol_a.py:2153）
-#      只要求 ``d_token % n_heads == 0``；48 % 8 == 0，头宽 48/8=6，可整除，不需要调头数。
+#      只要求 ``d_token % n_heads == 0``；32 % 8 == 0，头宽 32/8=4，可整除，不需要调头数。
 #   2. base.validate_config 第 1131 行硬断言 ``architecture.n_heads == N_HEADS``
 #      （「论文明写不调头数」）。该断言在 effective_base_config 里对**覆写前**的
 #      base_config 执行，故本档只能保持 8；改头数会让全部 31 份配置在该断言上失败。
 # 故本档只改 d_token 与 n_layers 两个维度，头数与其余架构字段逐位沿用官方默认配方。
-QUARTER_WIDTH_D_TOKEN = base.D_TOKEN // 4
+SIXTH_WIDTH_D_TOKEN = base.D_TOKEN // 6
 # 单层：base.expected_parameter_count 与 base.build_model 都已有 n_layers 形参并从
 # architecture["n_layers"] 读取，闭式 ``4*d*L`` 的 LayerNorm 计数在 L=1 处仍成立
 # （norm1 一个 + last_normalization 一个 = 2L，首块按 first_block_skips_first_normalization
@@ -103,8 +106,8 @@ def bare_ft_expected_parameter_count(width_profile: str) -> int:
     ``full`` 档直接返回既有冻结常量 ``BARE_FT_PARAMETER_COUNT``（不改变现状行为）；
     ``half`` 档复用 ``base.expected_parameter_count`` 同一闭式，只把 ``d_token`` 换成
     ``HALF_WIDTH_D_TOKEN``，不新写公式、不手填数字；
-    ``local_screening_quarter_width_single_layer`` 档同样复用该闭式，同时传
-    ``d_token=QUARTER_WIDTH_D_TOKEN`` 与 ``n_layers=SINGLE_LAYER_N_LAYERS``。
+    ``local_screening_sixth_width_single_layer`` 档同样复用该闭式，同时传
+    ``d_token=SIXTH_WIDTH_D_TOKEN`` 与 ``n_layers=SINGLE_LAYER_N_LAYERS``。
     """
     if width_profile == WIDTH_PROFILE_FULL:
         return BARE_FT_PARAMETER_COUNT
@@ -115,12 +118,12 @@ def bare_ft_expected_parameter_count(width_profile: str) -> int:
             BARE_FT_VOCABULARY_TOTAL_COLUMNS,
             d_token=HALF_WIDTH_D_TOKEN,
         )
-    if width_profile == WIDTH_PROFILE_LOCAL_SCREENING_QUARTER_WIDTH_SINGLE_LAYER:
+    if width_profile == WIDTH_PROFILE_LOCAL_SCREENING_SIXTH_WIDTH_SINGLE_LAYER:
         return base.expected_parameter_count(
             base.NUMERIC_TOKEN_FIELD_COUNT,
             base.VOCABULARY_TOKEN_FIELD_COUNT,
             BARE_FT_VOCABULARY_TOTAL_COLUMNS,
-            d_token=QUARTER_WIDTH_D_TOKEN,
+            d_token=SIXTH_WIDTH_D_TOKEN,
             n_layers=SINGLE_LAYER_N_LAYERS,
         )
     raise ValueError(f"未知 model.width_profile：{width_profile}")
@@ -682,16 +685,16 @@ def effective_base_config(config: dict[str, Any]) -> dict[str, Any]:
     # model.width_profile 覆写骨干宽度：缺省 full 时不触碰 architecture，
     # 现有 21 份配置的行为与 base_config 逐位不变；half 档按同一表达式联动 d_ffn_hidden
     # （int(d_token * 1.333333333333333)，与官方配方 int(192*1.333…)=255 同式）。
-    # local_screening_quarter_width_single_layer 档在此基础上再改 architecture["n_layers"]
+    # local_screening_sixth_width_single_layer 档在此基础上再改 architecture["n_layers"]
     # ——该键是既有配置键（第 582 行的显存投影、build_model 与 parameter_count_decomposition
     # 都从它读取），故只需覆写取值，不新增字段、不改协议 A 工具。
     width_profile = config.get("model", {}).get("width_profile", WIDTH_PROFILE_FULL)
     if width_profile == WIDTH_PROFILE_HALF:
         result["architecture"]["d_token"] = HALF_WIDTH_D_TOKEN
         result["architecture"]["d_ffn_hidden"] = int(HALF_WIDTH_D_TOKEN * 1.333333333333333)
-    elif width_profile == WIDTH_PROFILE_LOCAL_SCREENING_QUARTER_WIDTH_SINGLE_LAYER:
-        result["architecture"]["d_token"] = QUARTER_WIDTH_D_TOKEN
-        result["architecture"]["d_ffn_hidden"] = int(QUARTER_WIDTH_D_TOKEN * 1.333333333333333)
+    elif width_profile == WIDTH_PROFILE_LOCAL_SCREENING_SIXTH_WIDTH_SINGLE_LAYER:
+        result["architecture"]["d_token"] = SIXTH_WIDTH_D_TOKEN
+        result["architecture"]["d_ffn_hidden"] = int(SIXTH_WIDTH_D_TOKEN * 1.333333333333333)
         result["architecture"]["n_layers"] = SINGLE_LAYER_N_LAYERS
     elif width_profile != WIDTH_PROFILE_FULL:
         raise ValueError(f"未知 model.width_profile：{width_profile}")
