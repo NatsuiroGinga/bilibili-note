@@ -23,6 +23,16 @@
             "timeout": 5000
           }
         ]
+      },
+      {
+        "matcher": "Bash|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "H=\"$(git rev-parse --show-toplevel)/.Codex/hooks/on_demand_rule_reminder.py\"; [ -f \"$H\" ] || H=\"$(git rev-parse --path-format=absolute --git-common-dir)/../.Codex/hooks/on_demand_rule_reminder.py\"; [ -f \"$H\" ] && python3 \"$H\" || true",
+            "timeout": 5000
+          }
+        ]
       }
     ],
     "PreCompact": [
