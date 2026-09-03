@@ -115,10 +115,24 @@ def _text_values(value: object, keys: Iterable[str]) -> list[str]:
     ]
 
 
+def _runs_in_background(tool_input: object) -> bool:
+    """命令是否跑在后台。
+
+    禁令针对的是「占住回合空等」；后台任务不占回合，运行时会在它结束时回调，
+    所以后台里的等待与轮询是正当手段，不拦。
+    """
+    if not isinstance(tool_input, Mapping):
+        return False
+    return tool_input.get("run_in_background") is True
+
+
 def extract_command_texts(payload: Mapping[str, object]) -> list[str]:
     if payload.get("tool_name") not in TARGET_TOOL_NAMES:
         return []
-    return _text_values(payload.get("tool_input"), COMMAND_KEYS)
+    tool_input = payload.get("tool_input")
+    if _runs_in_background(tool_input):
+        return []
+    return _text_values(tool_input, COMMAND_KEYS)
 
 
 def deny_output(reason: str) -> dict[str, object]:
