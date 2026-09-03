@@ -41,7 +41,12 @@
       "T23"
     ],
     "target_reads": 0,
-    "input_candidate": "ft-transformer-input-protocol-vocabulary-token"
+    "input_candidate": "ft-transformer-input-protocol-vocabulary-token",
+    "entity_subsample": {
+      "fraction": 0.2,
+      "seed": 42,
+      "positive_fraction": 1.0
+    }
   },
   "model": {
     "role": "bare_ft_transformer",
@@ -81,8 +86,8 @@
   "training": {
     "seed": 42,
     "effective_batch_size": 64,
-    "micro_batch_sequences": 64,
-    "gradient_accumulation_steps": 1,
+    "micro_batch_sequences": 8,
+    "gradient_accumulation_steps": 8,
     "validation_batch_sequences": 128,
     "sequence_length": 128,
     "normalization_unit": "valid_flow",
@@ -129,9 +134,11 @@
     "host": "local-macbook",
     "device": "mps",
     "memory_gb": 16,
-    "data_scope": "全量 LSPR23，不抽样（IO 实测后确认无需缩减）",
+    "data_scope": "正实体全保留(239)＋负实体抽 20%(30,088)，共 30,327 实体",
     "purpose": "screening_only — 机制排序与止损，不得作为正式结论",
     "not_comparable_with": "服务器 CUDA 运行（ch3-ft-c*-halfwidth-screening-v1 等）——设备、精度 profile、数据规模三者皆不同",
-    "only_validates": "趋势方向，非量级；与服务器读数不可量级对比（设备 MPS/精度 fp32 两变量不同）"
+    "only_validates": "趋势方向，非量级；与服务器读数不可量级对比（设备 MPS/精度 fp32 两变量不同）",
+    "oom_note": "2026-09-03 本机 MPS 实测：微批 64（=8192 行）在 18.07 GiB 撞 20.13 GiB 上限 OOM；改微批 8＋累积 8，有效批 64 不变，数学等价",
+    "subsample_reason": "2026-09-03 实测：本机磁盘 6 MB/s，全量 5.51 GB 数据准备逾 14 分钟未进训练，内存空闲从 79% 跌至 29%。抽样为本机硬约束所迫，非提速。正负同比抽 20% 会使正实体从 239 降至 48——而源年验证集 20 个正实体时实体 AP 后十轮标准差已达 0.0843，48 个训练正实体会令机制信号被噪声淹没；故正实体全保留、只抽负实体，数据量仅增 0.6% 而恶意样本零损失。已实测：正例率 0.1586%→0.1593%、袋大小分位 [1,1,1,4] 抽样前后一致。"
   }
 }

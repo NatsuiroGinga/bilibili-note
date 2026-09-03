@@ -789,9 +789,122 @@ def build_training_flow_mask(arrays: dict[str, Any], train_rows: Any, length: in
     return mask
 
 
+def entity_subsample_spec_from_config(config: dict[str, Any]) -> dict[str, Any] | None:
+    """极小档筛选实验用的可选实体分层抽样配置（2026-09-03 新增，本机资源保护）。
+
+    缺省 ``None`` 表示不抽样，与改动前逐位相同；只有显式给出
+    ``data.entity_subsample`` 时才启用。既有 21 份 ``ch3-ft-*.json`` 均无此字段，
+    ``validate_config`` 对 ``data`` 块本就不做未知键拒绝，新增本字段不改变其
+    science 身份判定路径，不触碰 ``tools/ch3_ft_transformer_field_token_protocol_a.py``
+    的哈希锁定范围。
+    """
+    spec = config.get("data", {}).get("entity_subsample")
+    if spec is None:
+        return None
+    require(isinstance(spec, dict), "data.entity_subsample 必须是对象")
+    fraction = spec.get("fraction")
+    seed = spec.get("seed")
+    require(
+        isinstance(fraction, (int, float)) and not isinstance(fraction, bool) and 0.0 < fraction < 1.0,
+        "data.entity_subsample.fraction 必须是 (0,1) 内的小数",
+    )
+    require(isinstance(seed, int) and not isinstance(seed, bool), "data.entity_subsample.seed 必须是整数")
+    # positive_fraction 缺省 None ⇒ 正负同比例，与本字段新增前逐位相同。
+    positive_fraction = spec.get("positive_fraction")
+    if positive_fraction is not None:
+        require(
+            isinstance(positive_fraction, (int, float))
+            and not isinstance(positive_fraction, bool)
+            and 0.0 < positive_fraction <= 1.0,
+            "data.entity_subsample.positive_fraction 必须落在 (0,1]",
+        )
+        positive_fraction = float(positive_fraction)
+    return {
+        "fraction": float(fraction),
+        "seed": int(seed),
+        "positive_fraction": positive_fraction,
+    }
+
+
+def compute_entity_labels_for_subsample(arrays: dict[str, Any], entity_count: int) -> Any:
+    """逐实体标签（用于分层抽样前的正负分层，不用于训练或选轮）。
+
+    该实体全部片段（不分训练/验证角色）中任一有效流 ``y23=1`` 即标记为正，
+    与既有验证口径（``run_source_validation`` 内 ``np.maximum.at`` over
+    ``entities``/``labels``）同一定义，只是覆盖全部 271815 行而非单一角色的行
+    子集，纯粹为抽样阶段的分层依据，不进入任何指标计算。
+    """
+    import numpy as np
+
+    entity_labels = np.zeros(entity_count, dtype=np.float32)
+    total_rows = arrays["E23"].shape[0]
+    chunk = 20_000
+    for start in range(0, total_rows, chunk):
+        stop = min(start + chunk, total_rows)
+        rows = np.arange(start, stop)
+        indices = np.asarray(arrays["I23"][rows])
+        valid = np.asarray(arrays["M23"][rows]) > 0.5
+        entities = np.broadcast_to(np.asarray(arrays["E23"][rows])[:, None], indices.shape)
+        flat_valid_indices = indices[valid]
+        flat_valid_entities = entities[valid]
+        flat_labels = np.asarray(arrays["y23"])[flat_valid_indices]
+        np.maximum.at(entity_labels, flat_valid_entities, flat_labels)
+    return entity_labels
+
+
+def select_entity_subsample(
+    arrays: dict[str, Any], entity_count: int, fraction: float, seed: int,
+    positive_fraction: float | None = None,
+) -> tuple[Any, dict[str, int]]:
+    """按实体正负标签分层随机抽样，返回布尔保留掩码（长度 ``entity_count``）与统计。
+
+    正负各自独立按 ``fraction`` 取整数个（四舍五入，至少 1 个），保持整体正例率
+    大致不变；只用本函数已加载的 LSPR23 逐实体标签，不读取 LSPR24。种子固定、
+    确定性可复现，与训练/验证角色划分（``base.source_split``）相互独立——
+    角色本身仍由该冻结函数在全量数据上决定，本函数只在其返回的行集合上做
+    进一步的实体子集过滤（见 ``prepare_data`` 调用点）。
+
+    ``positive_fraction`` 缺省 ``None`` 时正负同用 ``fraction``，与改动前逐位相同。
+    显式给出时正实体单独按该比例保留（典型取 ``1.0`` 即全保留）。
+
+    **为什么需要它**（2026-09-03 实测）：全量仅 `239` 个正实体、`150,441` 个负实体，
+    正实体率 `0.1586%`。正负同比例抽 `20%` 后正实体只剩 `48` 个——而源年验证集
+    `20` 个正实体时实体 AP 后十轮标准差已达 `0.0843`，`48` 个训练正实体会使
+    机制信号被噪声淹没。数据量的大头是负实体，**只抽负实体即可缩减规模而不损失正样本**。
+    """
+    import numpy as np
+
+    labels = compute_entity_labels_for_subsample(arrays, entity_count)
+    positive_ids = np.flatnonzero(labels > 0.5)
+    negative_ids = np.flatnonzero(labels <= 0.5)
+    rng = np.random.RandomState(seed)
+    pos_fraction = fraction if positive_fraction is None else float(positive_fraction)
+    require(
+        0.0 < pos_fraction <= 1.0,
+        "positive_fraction 必须落在 (0, 1]",
+    )
+    pos_keep = max(1, int(round(len(positive_ids) * pos_fraction)))
+    neg_keep = max(1, int(round(len(negative_ids) * fraction)))
+    sampled_pos = rng.choice(positive_ids, size=min(pos_keep, len(positive_ids)), replace=False)
+    sampled_neg = rng.choice(negative_ids, size=min(neg_keep, len(negative_ids)), replace=False)
+    keep = np.zeros(entity_count, dtype=bool)
+    keep[sampled_pos] = True
+    keep[sampled_neg] = True
+    stats = {
+        "positive_entities_total": int(len(positive_ids)),
+        "negative_entities_total": int(len(negative_ids)),
+        "positive_entities_sampled": int(sampled_pos.size),
+        "negative_entities_sampled": int(sampled_neg.size),
+    }
+    return keep, stats
+
+
 def prepare_data(config: dict[str, Any], base_config: dict[str, Any], output_root: Path) -> tuple[dict[str, Any], Any, Any, Any]:
+    import numpy as np
+
     arrays = load_source_arrays_mmap(config["paths"]["cache_root"])
     train_rows, validation_rows, split_stats = base.source_split(arrays, base_config)
+
     transform_path = output_root / "artifacts" / "sealed-input-transform.pkl"
     receipt = base.load_cardinality_receipt(config["paths"]["cardinality_receipt"], base_config)
     # 跨运行复用输入变换（显式指定，缺省不启用，现有配置行为不变）。
@@ -823,6 +936,41 @@ def prepare_data(config: dict[str, Any], base_config: dict[str, Any], output_roo
     view = base.ProtocolASourceView(arrays, transform)
     atomic_json(output_root / "receipts" / "split.json", split_stats)
     atomic_json(output_root / "receipts" / "input-transform.json", transform.receipt())
+
+    # 实体分层抽样（可选，screening_only 极小档专用，2026-09-03 新增）：**必须放在
+    # 输入变换拟合之后**——``base.fit_input_transform``（冻结、不可改）机械核验训练
+    # 有效流掩码的行数与 SHA256 均须等于冻结收据 ``training_effective_flows``，只能
+    # 在全量 ``train_rows`` 上拟合；抽样因此只裁剪拟合完成后的行集合，不改变词表、
+    # 分位数或缺失填充这些从全量训练区学出的统计量。在冻结的角色划分之上，只保留
+    # 一个按正负标签分层抽出的实体子集对应的行；未出现在抽样集合中的实体既不会进
+    # train_rows 也不会进 validation_rows，评价侧 AP 计算本就按 ``np.isfinite``/
+    # ``m_per_entity>0`` 过滤未打分实体，天然与本抽样兼容，不需要改动任何评价函数。
+    subsample_spec = entity_subsample_spec_from_config(config)
+    if subsample_spec is not None:
+        entity_count = int(np.max(arrays["E23"])) + 1
+        keep_entity, subsample_stats = select_entity_subsample(
+            arrays, entity_count, subsample_spec["fraction"], subsample_spec["seed"],
+            positive_fraction=subsample_spec.get("positive_fraction"),
+        )
+        train_entities = np.asarray(arrays["E23"])[train_rows]
+        validation_entities = np.asarray(arrays["E23"])[validation_rows]
+        subsampled_train_rows = train_rows[keep_entity[train_entities]]
+        subsampled_validation_rows = validation_rows[keep_entity[validation_entities]]
+        require(len(subsampled_train_rows) > 0, "实体抽样后训练集为空", EXIT_INPUT)
+        require(len(subsampled_validation_rows) > 0, "实体抽样后验证集为空", EXIT_INPUT)
+        atomic_json(output_root / "receipts" / "entity-subsample.json", {
+            "schema_version": "ch3-ft-c00-entity-subsample-receipt-v1",
+            "fraction": subsample_spec["fraction"],
+            "seed": subsample_spec["seed"],
+            **subsample_stats,
+            "train_rows_before": int(len(train_rows)),
+            "train_rows_after": int(len(subsampled_train_rows)),
+            "validation_rows_before": int(len(validation_rows)),
+            "validation_rows_after": int(len(subsampled_validation_rows)),
+        })
+        train_rows = subsampled_train_rows
+        validation_rows = subsampled_validation_rows
+
     return arrays, train_rows, validation_rows, view
 
 
