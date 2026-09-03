@@ -28,6 +28,7 @@
 | `ch3-ft-c00-halfwidth-screening-v1` | `2e35c17aa278…` | 一次训练服务 C00 与 C10 两格 |
 | `ch3-ft-c01-halfwidth-screening-v1` | `d1102e2bf4ce…` | 复用 C00-half 的输入变换 |
 | `ch3-ft-c11-halfwidth-screening-v1` | `38345702…` | 同上 |
+| `ch3-ft-c10-halfwidth-screening-v1` | `dfed8add18f7…` | 2026-09-03 补齐缩容档缺失的第四格，`z1'=1,z2=0`：`mechanism` 只含 C11 的 `entity_aggregation` 块（含 `numeric_provenance`），省略 `entity_ranking`；复用 C00-half 输入变换；`--validate-config` 通过，C00/C01/C11 三份既有身份逐位未变。补齐依据的实施计划在 `codex/ch3-cpa-elp-20260820` 分支的 `.Codex/docs/RWKV/2026-09-03-C10缩容档配置补齐实施计划.md`（本工作树未同步该文件，跨分支不可点开，仅记路径供追溯） |
 
 **串行守护 `btu323yyp` 已起**：C00-half → C01-half → C11-half 自动接力，
 每 5 分钟轮询、GPU 空闲才启动、幂等。
