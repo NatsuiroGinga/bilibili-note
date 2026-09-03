@@ -430,7 +430,8 @@ LSPR24 的产物，只是特征矩阵未同步到本机**。
 `Permission denied (publickey,password)`——因为那是另一台机器，密码自然对不上。
 **一个子代理为此耗掉大半时间反复排查 DNS，方向全错。**
 
-**处置**：**以本节 B 条记载的地址为准，不要从 `GPU_SSH_B76` 取地址。**
+**处置**：**以本条上表「实际在用」那一行的域名与端口为准，不要从 `GPU_SSH_B76` 取地址**
+（B 条只给动态解析 IP 的方法，不记地址；域名与端口在这里）。
 派子代理时在简报里直接给出可用连接段，并写明「环境变量已过时，不要自行排查连接」。
 **未经用户明确要求，不得修改用户的 `~/.zshrc`。**
 
@@ -532,9 +533,11 @@ C01-half 的日志是 `logs/ch3-ft-c01-halfwidth-screening-v1.log`；
 ### I. 训练配置的三个易错点
 
 - **无学习率调度器**：优化器为 `ft-transformer-official-default`（AdamW、`lr=1e-4`、
-  `weight_decay=1e-5`），全文搜 `LambdaLR`/`Cosine`/`OneCycle`/`StepLR` **零命中**，
-  **学习率是常数**。故「跑 N 轮」与「跑 2N 轮取前 N 轮」训练轨迹逐位相同。
-  **该常数 LR 是否为原论文做法，尚在核查中**（见 `thesis/methods/FT-Transformer训练协议核查.md`）。
+  `weight_decay=1e-5`），**FT-Transformer 训练脚本内**搜 `LambdaLR`/`Cosine`/`OneCycle`/`StepLR`
+  零命中，**学习率是常数**。故「跑 N 轮」与「跑 2N 轮取前 N 轮」训练轨迹逐位相同。
+  **⚠️ 两处已更正**：其一，检索范围是**该脚本**不是整个仓库（DistilBERT／RWKV／GRANDE
+  确有使用调度器，见 L6 与误判登记）；其二，「是否为原论文做法尚在核查中」**已核完**——
+  原论文明确排除调度器，见 L6 条与〇之二点九。
 - **`budget.epochs` 不进科学身份哈希**：实测改 20→10 后
   `science_identity_sha256` 逐位不变。改轮数不需重新登记身份。
 - **`_ranking_phase` 只在 `z2=1` 调用**：C00／C10 走 `training_step`，不经过它。
