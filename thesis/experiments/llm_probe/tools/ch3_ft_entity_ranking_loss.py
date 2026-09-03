@@ -1070,9 +1070,27 @@ def mechanism_coupling_step_snapshot(
 
     全程只做设备搬运、类型转换与布尔索引，不接入任何反传图，不改变 `xi`、
     `active_pairwise` 或 `k_e`/`m_e` 本身的数值——调用方传入前须已 `.detach()`。
+
+    披露优先于阻断（预注册第五节、`llm_probe/AGENTS.md`「默认不新增阻断门」）：
+    形状不符预期时不 raise，只打印披露并返回一份全 None 快照——调用方
+    `summarize_mechanism_coupling_observables` 已按「原料缺失」处理这类快照
+    （不计入 CV 池化、不参与末步 Jaccard/τ），相当于该步对机制耦合观测「零贡献」，
+    不影响主训练路径的任何数值或是否继续运行。
     """
-    require(xi.dim() == 2, "xi 须为二维 (Np, |K|)")
-    require(active_pairwise.dim() == 2, "active_pairwise 须为二维 (Np, Nn)")
+    if xi.dim() != 2 or active_pairwise.dim() != 2:
+        print(
+            f"[机制耦合观测] 披露：本步 xi/active_pairwise 形状异常"
+            f"（xi.shape={tuple(xi.shape)}, active_pairwise.shape={tuple(active_pairwise.shape)}），"
+            "本步快照记为空，不参与本轮 CV/J/τ 聚合，不中断训练。",
+            flush=True,
+        )
+        return {
+            "xi_per_budget": None,
+            "active_pairwise": None,
+            "negative_entity_ids": None,
+            "active_k_per_entity_negative": None,
+            "active_m_per_entity_negative": None,
+        }
     with torch.no_grad():
         xi_np = xi.detach().cpu().numpy()
         pairwise_np = active_pairwise.detach().cpu().numpy()
@@ -1113,8 +1131,20 @@ def summarize_mechanism_coupling_observables(
     三′的「合资格档」。
     """
     budget_keys = [str(int(k)) for k in raw_budgets]
-    require(len(raw_budgets) == len(effective_budgets), "raw_budgets 与 effective_budgets 长度须一致")
-    eligible_idx = [i for i, k_eff in enumerate(effective_budgets) if float(k_eff) >= 1.0]
+    # 披露优先于阻断：raw_budgets 与 effective_budgets 正常来自同一次
+    # `[effective_budget(k, ...) for k in xi_state.budgets]` 列表推导，逐位对应；
+    # 若调用方传入长度不一致（内部接线错误），不 raise，只按较短一侧截断并披露。
+    if len(raw_budgets) != len(effective_budgets):
+        print(
+            f"[机制耦合观测] 披露：raw_budgets（{len(raw_budgets)} 项）与 "
+            f"effective_budgets（{len(effective_budgets)} 项）长度不一致，按较短一侧"
+            "截断计算合资格档，不中断训练。",
+            flush=True,
+        )
+    eligible_idx = [
+        i for i, k_eff in enumerate(effective_budgets)
+        if i < len(budget_keys) and float(k_eff) >= 1.0
+    ]
     eligible_keys = [budget_keys[i] for i in eligible_idx]
 
     if not step_snapshots:
