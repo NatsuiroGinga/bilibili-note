@@ -125,6 +125,143 @@
 `1.2866296768188477`）。其二，曾据「MLP vs FT」「M1 vs 服务器」两个反例论证「缩容不可外推」，
 **三者性质不同**（换架构／换硬件／换容量），属不同类证据混用，已更正。
 
+## 〇之三、操作事实速查（**每次会话都在重新发现这些，先读这里**）
+
+本节只放**会被反复用到、且不看就会踩坑**的操作性事实。每条都是实测，不是推测。
+
+### A. 两条分支是独立研究线，不是一份代码的两个副本
+
+| | 文件数 |
+| --- | ---: |
+| 仅 `codex/ch3-cpa-elp-20260820`（主仓库工作树）有 | **242** |
+| 仅 `codex/ch4-dtep-pbc-20260819`（`.worktrees/` 工作树）有 | **295** |
+
+- **宿主代码、冻结配置、运行制品、恢复卡** 只在 `ch4-dtep-pbc-20260819`（worktree）。
+  **实验相关的一切都在这里做。**
+- `raw/papers/attack-detection/` 的 `drift/`、`encrypted/`、`entity-granularity/`、
+  `fingerprinting/`、`open-set/`、`chinese-surveys/` 等整片文献只在主仓库分支。
+- 派子代理时**必须在简报里写死 worktree 绝对路径**
+  （`/Users/bilibili/personal/note/.worktrees/ch4-dtep-pbc-20260819`），
+  否则它会在主仓库找不到宿主脚本（2026-09-03 已发生两次）。
+- 需要另一分支的证据文件时用
+  `git checkout <branch> -- <精确路径>` 逐路径取回并单独提交，**不要整分支合并**。
+- **遗留项**：`wiki/papers/methodology/INDEX.md` 在两分支各有独立不冲突的新增内容，
+  需人工合并，尚未处理。
+
+### B. 连服务器的固定套路（DNS 被本机代理劫持，必须 DoH 绕过）
+
+凭据键见 `RWKV路线总控.md` 第五节。每次重新解析 IP，**不要写死**（容器重启会变）：
+
+```
+IP=$(curl -s --noproxy '*' --max-time 15 \
+  "https://1.1.1.1/dns-query?name=<服务器域名>&type=A" \
+  -H 'accept: application/dns-json' | grep -o '"data":"[0-9.]*"' | tail -1 | grep -o '[0-9.]*')
+export GPU_SSH_ACTIVE="ssh -p <端口> -o ProxyCommand=none -o ProxyJump=none \
+  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=25 root@$IP"
+export GPU_PWD_ACTIVE='<从凭据来源取>'
+timeout 100 expect tools/remote_exec/gpu_env_quiet.exp '<远端命令>'
+```
+
+工具在 `llm_probe/tools/remote_exec/`：`gpu_env_quiet.exp`（跑命令，输出自带脱敏）、
+`gpu_rsync_push.exp`、`gpu_rsync_pull.exp`。
+
+### C. 远程 `pkill` 会自杀——必须用字符类打断自匹配
+
+`pkill -f "ch3-ft-c01-halfwidth"` 会匹配到**执行它的那条 SSH 命令行本身**，
+杀掉自己后返回 **退出码 255**，看起来像连接失败，实际进程没杀掉。
+
+**正确写法**：`pkill -9 -f "[c]h3-ft-c01-halfwidth-screening-v1"`（首字母加方括号）。
+同理 `pgrep -cf "[c]h3-..."`。2026-09-03 因此连续两次误判为「SSH 故障」。
+
+### D. 杀训练后必须两端同时清 `status.json`，否则死锁
+
+守护的判定逻辑：`state == "finished"` 记完成；**`state` 为空才启动**；
+读到 `"running"` 就 `break`，认为还在跑。
+
+`pkill -9` 强杀的进程来不及改状态，**留下永远为 `running` 的僵尸文件**。
+更糟的是：**本机回传守护是 push**，每 300 秒把本机旧副本推回服务器，
+**只清服务器那份会被它推回来**。2026-09-03 因此 GPU 空转 20 分钟。
+
+**处置**：本机与服务器的 `status.json` **同时**改名保留
+（如 `status.stale-killed-<时刻>.json`），再等守护接管。
+
+### E. 手动启动与守护轮询会撞车
+
+守护在启动前查 `nvidia-smi` 忙闲，但**检查与启动之间有几十秒窗口**。
+2026-09-03 手动启动恰在轮询同刻，起了**两个训练挤一张卡**（各 `15558 MiB`、触发 OOM 警告、
+污染 T3 计时）。
+
+**要么只让守护起，要么先停守护再手动起。** 已经起重了就**按 PID 精确杀一条链**
+（`kill -9 <pid> <ppid>`），**不能用 `pkill -f 配置名`**——那会把两个都杀掉。
+
+### F. 日志文件名容易认错
+
+C01-half 的日志是 `logs/ch3-ft-c01-halfwidth-screening-v1.log`；
+`logs/ch3-ft-c01-ranking-eager-formal-v2.log` 是**全容量线的旧日志**，
+其中的 `Traceback` 计数与当前运行无关。2026-09-03 曾据后者误判训练状态一小时。
+
+**判断崩溃要比较增量而非总数**——日志是追加写的，历史 Traceback 会一直在。
+
+### G. 收据里不得放非 JSON 可序列化对象
+
+2026-09-02 T3 埋点把 `torch.cuda.Event` 留在 `last_step_snapshot` 里，
+第 1 轮写收据即崩，**GPU 空转 15 小时**。已修（`b866542`：写入前剔除 `stage_timing`）。
+
+**凡进诊断字典、且会被 `atomic_json` 落盘的量，必须先 `.item()` 或 `float()` 转标量。**
+本机无 CUDA，这类 bug 在本机永远测不出——**目标环境特有路径的改动，本机验证不算验证**。
+
+### H. hook 在 worktree 里会解析错路径
+
+`$(git rev-parse --show-toplevel)` 在 worktree 返回 **worktree 根**，
+而 hook 文件可能只提交在另一分支。2026-09-03 因此把 worktree 内所有 Bash 命令挡死。
+
+已改为回退到 `--git-common-dir`（`15996c4`）。**新增全局 hook 后必须在 worktree 里也验一遍。**
+
+`sleep_guard.py` 现拦：前台 `sleep > 30` 秒、前台循环内 sleep；
+**放行**：后台任务（读 `run_in_background`）、`sleep ≤ 30`、动态时长 `sleep $VAR`。
+
+### I. 训练配置的三个易错点
+
+- **无学习率调度器**：优化器为 `ft-transformer-official-default`（AdamW、`lr=1e-4`、
+  `weight_decay=1e-5`），全文搜 `LambdaLR`/`Cosine`/`OneCycle`/`StepLR` **零命中**，
+  **学习率是常数**。故「跑 N 轮」与「跑 2N 轮取前 N 轮」训练轨迹逐位相同。
+  **该常数 LR 是否为原论文做法，尚在核查中**（见 `thesis/methods/FT-Transformer训练协议核查.md`）。
+- **`budget.epochs` 不进科学身份哈希**：实测改 20→10 后
+  `science_identity_sha256` 逐位不变。改轮数不需重新登记身份。
+- **`_ranking_phase` 只在 `z2=1` 调用**：C00／C10 走 `training_step`，不经过它。
+  改 `_ranking_phase` 不影响 C00／C10 在跑的训练。
+
+### J. 缩容档四格的当前身份与预算
+
+| 配置 | `epochs` | `science_identity_sha256` |
+| --- | ---: | --- |
+| C00-half | 20 | `2e35c17aa278120e42e9fb021b0c077e1604634f0891349d64f2a6874057220d` |
+| C01-half | 20 | `d1102e2bf4cec02e0ed047126826b0298b5c51da886a77c659f38205a31f2a7c` |
+| C10-half | **10** | `dfed8add18f7f574…7005` |
+| C11-half | **10** | `383457025029c09483b15972058cb5a4f886d60c782139608c78f4ad1078f231` |
+
+**读数口径已冻结（2026-09-03，见任何 C01/C10/C11 结果之前）：第 8–10 轮均值。**
+
+依据：C00-half 实测前 10 轮相邻轮差中位 `0.0253`／最大 `0.0454`，
+后 10 轮 `0.0705`／`0.3280`（噪声 `2.8` 倍、峰值 `7` 倍）；末 5 轮均值在两截断点
+仅差 `−0.0044`。**后 10 轮不提供关于「机制是否生效」的新信息，且信噪比更差。**
+
+### K. 实测速度基准（缩容档）
+
+| 格 | 步/秒 | 单轮（含验证） |
+| --- | ---: | ---: |
+| C00-half（无 BER） | `3.403` | `5.6` 分钟 |
+| C01-half（有 BER） | `1.217` | `15.35` 分钟 |
+
+BER 使速度降到 `35%`。验证固定 `44` 秒。四格（20/20/10/10 轮）合计约 **`9` 小时**。
+
+### L. Claude Code 的 `Agent` 工具没有 `effort` 参数
+
+可传参数只有 `subagent_type`、`model`、`prompt`、`description`、`isolation`、
+`run_in_background`。**推理强度只能由 `.claude/agents/<name>.md` 或会话设置决定**，
+派发时无法指定。汇报时只能如实写「模型 X，effort 继承会话设置」，
+**不得把简报里的「高强度」措辞报告为已生效的运行参数**。
+
 ## 一、最小恢复入口
 
 1. 先读同目录[路线规则](AGENTS.md)与[路线总控](RWKV路线总控.md)。
