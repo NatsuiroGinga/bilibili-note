@@ -106,11 +106,30 @@ def prefix_scores(
         0, segment_owner, segment_scores.detach(), reduce="amax", include_self=True
     )
     is_entity_max = segment_scores.detach() == max_per_entity[segment_owner]
-    positions = torch.arange(segment_scores.shape[0], device=device)
-    sentinel = segment_scores.shape[0]
-    candidate_pos = torch.where(is_entity_max, positions, torch.full_like(positions, sentinel))
-    first_pos = torch.full((num_entities,), sentinel, dtype=positions.dtype, device=device)
-    first_pos = first_pos.scatter_reduce(0, segment_owner, candidate_pos, reduce="amin", include_self=True)
+    # 「取并列最大值中的首个片段」原以 int64 下标做 ``scatter_reduce(reduce="amin")``，
+    # 但 **MPS 后端对 int64 的该算子直接 RuntimeError: not supported for torch.int64**，
+    # 使整条 BER 排序路径在本机无法运行（2026-09-03 实测：S1 筛选臂起跑即死于本行）。
+    # 上面第 105 行对 float32 的 ``amax`` 在 MPS 上是成功的，说明缺口在 dtype 而非算子。
+    #
+    # 故把定位用的 amin 放在 float32 上做，再转回 long。**这是精确等价而非近似**：
+    # candidate_pos 存的是行下标与哨兵，上界为批内片段数，远小于 float32 的整数精确
+    # 表示上限 2^24 = 16,777,216，转换无舍入；amin 在整数值上的比较语义不变，
+    # 并列取首个的性质随之保持。
+    #
+    # 等价性已机器验证（6 组用例逐位相同，含三成并列、全并列、单实体全并列、
+    # 65,536 片段的边界规模），同一探针并确认原 int64 写法在 MPS 上确实失败。
+    # 该改动对 CUDA 结果同样逐位不变，故两端保持同一条代码路径，不引入设备分支。
+    n_segments = segment_scores.shape[0]
+    sentinel = n_segments
+    positions_f = torch.arange(n_segments, device=device, dtype=torch.float32)
+    candidate_pos_f = torch.where(
+        is_entity_max, positions_f, torch.full_like(positions_f, float(sentinel))
+    )
+    first_pos_f = torch.full((num_entities,), float(sentinel), dtype=torch.float32, device=device)
+    first_pos_f = first_pos_f.scatter_reduce(
+        0, segment_owner, candidate_pos_f, reduce="amin", include_self=True
+    )
+    first_pos = first_pos_f.to(torch.long)
     require(not bool((first_pos == sentinel).any()), "存在没有任何片段的实体紧凑下标")
 
     entity_scores = segment_scores.gather(0, first_pos)
