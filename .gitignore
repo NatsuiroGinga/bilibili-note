@@ -53,7 +53,12 @@ Thumbs.db
 raw/datasets/
 
 # 会话日志与中间产物（不入库）
-.claude/logs/
+# 2026-09-04 实测更正：`.claude/logs/` 因含中间斜杠被 git 锚定到仓库根，
+# 只保护根级 `.claude/logs/`，保护不到子目录下的同名目录——实测
+# `thesis/experiments/llm_probe/tools/.claude/logs/` 与
+# `thesis/chapters/.claude/logs/` 均未被忽略且已进版本库。
+# 改为 `**/` 前缀以覆盖任意深度。已入库的三份不因本规则自动移除，须另行处置。
+**/.claude/logs/
 output/pdf-md/
 
 # 子代理开发的本地进度与工具依赖
@@ -62,6 +67,7 @@ output/pdf-md/
 
 # 实验缓存与本地下载制品
 .cache/literature-search/
+scripts/literature_search/.venv/
 thesis/experiments/__pycache__/
 thesis/experiments/llm_probe/**/*/target/
 thesis/experiments/llm_probe/**/*/__pycache__/

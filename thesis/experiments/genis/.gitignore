@@ -1,0 +1,20 @@
+# GeNIS 实验的局部忽略规则（2026-09-04 补）。
+#
+# 补这份文件的直接原因：全历史仅有的两个超 50 MB blob
+# （`genis/runs/q0/.../v1/data/fit/features.npy.partial` 与
+# `.../v1-rerun1/data/fit/features.npy`，各 53,778,336 字节）
+# 由提交 `300feca`（2026-08-18）一次性进入版本库并已推送到远端。
+#
+# 根因（2026-09-04 用 `git check-ignore -v` 实测）：运行制品的忽略规则写在
+# **局部**文件 `thesis/experiments/llm_probe/.gitignore:9`（`runs/*`），
+# 不是根 `.gitignore`；而本目录此前没有自己的忽略文件，故整棵树无任何覆盖。
+# 本文件按同一模式补齐，防止同类文件再次进入。
+#
+# 边界：本规则**只阻止今后新增**，已在历史中的两个 blob 不受影响——
+# 从历史移除属破坏性改写（需 force push，仓库规则明禁），须用户单独授权后另行处置。
+
+runs/*
+__pycache__/
+*.pyc
+*.tmp
+*.log
