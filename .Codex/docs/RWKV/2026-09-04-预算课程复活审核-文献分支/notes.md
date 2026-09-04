@@ -83,6 +83,55 @@ Bardou 的 `(α_n)` 是**单水平沿时间移动**，算法内部**没有并列
 它只活在**一个其输出被丢弃、只留初值的预热相**（A3）；
 定理证明的是**退火渐近无害**而非有益（A4）。
 
+### B. Kawaguchi & Lu, Ordered SGD（`本地全文`，`raw/papers/methodology/ranking/2019-Kawaguchi-Ordered-SGD-arXiv.pdf`）
+
+行号指全文笔记 `wiki/papers/…/2019-Kawaguchi-Ordered-SGD-arXiv-全文.md`。
+
+**B1. `q` 确实是风险水平类量，但退火时旧 `q` 不留在损失中。**
+
+- Theorem 1（行 `94`）：批内 top-`q` 的梯度是 `L_q(θ) = (1/q)Σ_j γ_j L_(j)(θ) + R(θ)` 的无偏次梯度。
+- Proposition 1（行 `112`）：`1 − (1/s)γ(z)` 是 `Beta(z; q, s−q)` 的 CDF，「悬崖」位置由 `q/s` 决定——
+  故 `q/s` 是一个尾部比例，与 `β` 同型。
+- §6（行 `190`）：`The value of q was **automatically updated at the end of each epoch** based on this
+  simple rule.` **每个时刻恰有一个 `q` 生效，`L_q` 整体被替换**；不存在「旧 `q` 项仍在损失里」的写法。
+
+**B2.（本次核验的关键发现）该退火表的自述目的是「消掉一个超参数自由度」，不是一个被主张的机制。**
+
+- §6 原句（行 `190`）：`**To avoid an extra freedom due to the hyper-parameter q**, we introduce a
+  single fixed setup of the adaptive values of q as the default setting…`
+  紧接：`This rule was derived based on the **intuition** that in the early stage of training, all
+  samples are informative…`
+  **即：这是为公平基准而固定的默认设置，作者未把它作为贡献主张，也未给出任何论证。**
+
+**B3. 全部定理都只覆盖固定 `q`，退火过程无理论覆盖。**
+
+- Theorem 2（行 `134`）显式假设 `there exists a finite θ* ∈ argmin_θ L_q(θ)`——**单一固定目标 `L_q`**。
+- Theorem 3（行 `164`）的泛化界依赖固定的 `(q, s)`。
+- **全文没有对「`q` 随轮次变化」这一非平稳目标序列的收敛性或泛化性作任何陈述。**
+
+**B4. 论文自身的消融不支持「退火优于固定 `q`」。**
+
+- 行 `536`（Figure 8 讨论）：`ordered SGD generally improved the test errors of mini-batch SGD,
+  **even with fixed q values**.` 随后只定性说小 `q` 在后期有效、初期低效。
+  **未给出「自适应规则优于最佳固定 `q`」的结论。**
+
+**B5. 无「多个 `q` 并列」的讨论。**
+
+全文检索 `multiple q`／`set of q`／`values of q` 只命中 Figure 8 的**跨运行**对比
+（不同固定 `q` 各跑一次），不是同一损失内并列。
+相关工作节（行 `254`）把 Fan et al. (2017) 的 average top-`k` 明确区分为**不同目标**。
+
+### 判一小结（三问逐条）
+
+1. **Bardou 的 `(α_n)`：单水平沿时间移动**，算法内部不并列多个 VaR/CVaR 水平。
+   但它移动的是一条**被作者明确声明「in no case to approximate ξ*_α or C*_α」的伴随过程**，
+   活在一个输出被丢弃、只留初值的预热相；定理证的是**渐近无害**（`Σγ_n(α−α_n)² < ∞`），不是有益。
+2. **Ordered SGD 的 `q`：等价于一个尾部比例水平**；退火时**旧 `q` 不留在损失中**（逐轮整体替换）；
+   全文**无任何「多个 `q` 并列」或「`q` 的集合」讨论**；且该退火表自述目的是**消超参自由度**，
+   全部定理只覆盖固定 `q`，论文自身消融也未证明退火优于固定 `q`。
+3. **没有任何一篇实际上是多水平的。** 主代理「多档 staging 无先例」的结论**不被这两篇推翻**；
+   但「单水平退火有成熟先例」这句话**须大幅限定**——见判二。
+
 ## 判二证据
 
 （待填）
