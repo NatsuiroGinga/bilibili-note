@@ -64,23 +64,18 @@ BARE_FT_PARAMETER_COUNT = 924283
 # ---------------------------------------------------------------------------
 WIDTH_PROFILE_FULL = "full"
 WIDTH_PROFILE_HALF = "half"
-# 筛选主用档（2026-09-03 用户裁定：此后机制筛选一律用本档，不再用 half）。
-# 名称写出被改的维度与用途，不用纯代号（根 AGENTS.md 命名要求）。
-WIDTH_PROFILE_SCREENING_WIDTH56 = "screening_width56"
 WIDTH_PROFILES: tuple[str, ...] = (
     WIDTH_PROFILE_FULL,
     WIDTH_PROFILE_HALF,
-    WIDTH_PROFILE_SCREENING_WIDTH56,
 )
 # half 档 d_token：官方默认配方宽度对半，n_heads=8 仍整除（96/8=12），层数与头数不变。
 HALF_WIDTH_D_TOKEN = base.D_TOKEN // 2
-# 筛选档 d_token = 56：用户要求「约 9 万参数」，闭式实测 d=56/L=3 得 86,965，
-# 是 8 的倍数中最接近 9 万且**只改宽度**的取值（d=96/L=1 得 91,839 更接近，
-# 但要动层数轴——官方配方是 3 层，且「缩容效应方向可外推」的唯一正面证据
-# full→half 是宽度轴上的，层数轴零证据，故取宽度轴）。
-# n_heads 保持官方 8：56 % 8 == 0，头宽 7，满足协议 A 的整除要求，
-# 也满足 base.validate_config 对覆写前 base_config 的 n_heads == N_HEADS 硬断言。
-SCREENING_WIDTH56_D_TOKEN = 56
+# 2026-09-03 曾先后新增两个更小的档位（本机 MPS 用的六分之一宽度单层、
+# 约 9 万参数的 screening_width56），当日均按用户裁决**完全删除**。
+# 删除依据（写在此处以免再次提出）：新四格必须与既有 half 档读数
+# （C00 0.650418、C01 0.886216，第 8-10 轮均值）保持**只差共同底座这一个变量**，
+# 才能回答「实体级 BCE 是否稀释 BER 增益」；换骨干会同时引入第二个变量，
+# 使该问题无法归因。故机制筛选一律在 half 档上做。
 # 2026-09-03 曾新增第三档（六分之一宽度 + 单层，供本机 MPS 筛选用），当日即按用户裁决
 # **完全删除**：服务器恢复后本机筛选路线整体作废，该档不再存在，也不得重新引入。
 # 删除范围含档位常量、参数量分支、effective_base_config 覆写分支与四份 LOCAL 配置。
@@ -108,13 +103,6 @@ def bare_ft_expected_parameter_count(width_profile: str) -> int:
             base.VOCABULARY_TOKEN_FIELD_COUNT,
             BARE_FT_VOCABULARY_TOTAL_COLUMNS,
             d_token=HALF_WIDTH_D_TOKEN,
-        )
-    if width_profile == WIDTH_PROFILE_SCREENING_WIDTH56:
-        return base.expected_parameter_count(
-            base.NUMERIC_TOKEN_FIELD_COUNT,
-            base.VOCABULARY_TOKEN_FIELD_COUNT,
-            BARE_FT_VOCABULARY_TOTAL_COLUMNS,
-            d_token=SCREENING_WIDTH56_D_TOKEN,
         )
     raise ValueError(f"未知 model.width_profile：{width_profile}")
 
@@ -679,9 +667,6 @@ def effective_base_config(config: dict[str, Any]) -> dict[str, Any]:
     if width_profile == WIDTH_PROFILE_HALF:
         result["architecture"]["d_token"] = HALF_WIDTH_D_TOKEN
         result["architecture"]["d_ffn_hidden"] = int(HALF_WIDTH_D_TOKEN * 1.333333333333333)
-    elif width_profile == WIDTH_PROFILE_SCREENING_WIDTH56:
-        result["architecture"]["d_token"] = SCREENING_WIDTH56_D_TOKEN
-        result["architecture"]["d_ffn_hidden"] = int(SCREENING_WIDTH56_D_TOKEN * 1.333333333333333)
     elif width_profile != WIDTH_PROFILE_FULL:
         raise ValueError(f"未知 model.width_profile：{width_profile}")
 
@@ -2238,7 +2223,12 @@ def assert_tail_aggregation_degeneracy(
     with precision.fp32_island(logits, device_type=device.type, torch_module=torch_module) as (logits32,):
         receipt = ranking.assert_tail_aggregation_degenerates_to_max(logits32, valid_t, segment_owner)
     alpha = entity_tail_aggregation_alpha_from_config(config)
-    _scores, k_per_entity, tail_receipt = ranking.tail_scores(logits32, valid_t, segment_owner, alpha)
+    # tail_scores 于 2026-09-04 由三元组改为四元组（新增逐实体袋大小 m_per_entity，
+    # 供机制耦合观测量三′ 计算 k_e/m_e），前三项数值不变。本调用点当时被遗漏，
+    # 导致 C10 起跑即 ValueError: too many values to unpack——本处补齐。
+    _scores, k_per_entity, tail_receipt, _m_per_entity = ranking.tail_scores(
+        logits32, valid_t, segment_owner, alpha
+    )
     # 非平凡性：全是单流实体时 `k ≡ 1` 恒成立，自检退化成空断言，抓不到任何分组错位。
     # 这条不是新增的科学门，而是保证上面那条自检确实检查了东西。
     require(
