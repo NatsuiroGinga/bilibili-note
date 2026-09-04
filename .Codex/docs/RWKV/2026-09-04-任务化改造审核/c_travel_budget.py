@@ -89,11 +89,6 @@ def part_b():
               % (rate[0], BETAS[0], ratios[0]))
 
 
-if __name__ == "__main__":
-    part_a()
-    part_b()
-
-
 def part_c():
     """(C) 在**实测活动率**下，c=1e-5 的逐步行程有多少。
 
@@ -121,4 +116,6 @@ def part_c():
 
 
 if __name__ == "__main__":
+    part_a()
+    part_b()
     part_c()

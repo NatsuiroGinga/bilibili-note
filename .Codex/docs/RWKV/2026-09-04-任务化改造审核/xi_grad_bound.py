@@ -97,10 +97,6 @@ def main():
                 print(f"{c:>8.0e} {k:>6} {lr_k:>12.4e} {disp:>12.4e} {(1e-4) / disp:>20.2f}")
 
 
-if __name__ == "__main__":
-    main()
-
-
 def typical_case():
     """用 C01 实测活动率算「典型步」位移，而不是最坏情形上界。
 
@@ -124,4 +120,5 @@ def typical_case():
 
 
 if __name__ == "__main__":
+    main()
     typical_case()
