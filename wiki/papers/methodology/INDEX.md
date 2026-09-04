@@ -175,7 +175,7 @@ tags:
 - **[[ranking/2022-Yao-区间FPR大规模PartialAUC优化|Yao 2022：区间 FPR 大规模 Partial AUC 优化（NeurIPS）]]** — 把区间 FPR 约束的 PAUC 优化转化为差凸规划，用 Moreau 包络平滑求解，`Õ(1/ε⁶)` 复杂度；同一求解器可用于 SoRR 损失。**须澄清的非先例**：把 FPR 限定在 `[α,β]` 的动机是「低 FPR 段无实际相关性」，不是「估计不准」，不能引用为"因不可表示而放弃档位"的先例。
 - **[[ranking/2008-Bardou-VaR-CVaR随机逼近与移动风险水平|Bardou 2009：VaR/CVaR 随机逼近与移动风险水平]]** — Robbins-Monro 联合估计 VaR/CVaR，瓶颈是「只在罕见事件上更新」；用**分段常数移动置信水平**（`50%→80%→目标α`，`M≈15000`）加速重要性抽样参数初始化，不改变原中心极限定理。**本次全文核验补齐了此前文献核查遗留的解析调度式缺口（Z6）**。
 - **[[ranking/2026-Asness-EASIeST指数自适应平滑与重要性抽样|Asness 2026：EASIeST 指数自适应平滑与重要性抽样]]** — 用广义 Fermi-Dirac 熵（`ln(1+exp(·))` 家族）生成 Bregman 散度，对偶分布的近端点更新同时给出自适应平滑与内建重要性抽样；原文明确 `α→1` 时「越来越大比例样本对目标和梯度均无贡献却仍产生计算开销」，与本课题极端小预算档的病理描述一致。作者含 Stan Uryasev（Rockafellar-Uryasev CVaR 表述提出者之一）。
-- **[[ranking/2019-Prashanth-CVaR估计的集中不等式|Prashanth 2019：CVaR 估计的集中不等式（轻尾/重尾）]]** — 给出经验 CVaR 估计量的双侧指数集中界，轻尾（Theorem 3.3）与重尾（仅需 `p` 阶矩存在，Theorem 4.1）情形均保持指数衰减；应用于固定预算 K 臂老虎机的最优 CVaR 臂识别。**与文献核查文档笼统归入的"Prashanth et al. ICML 2020"是否为同一工作未经核实**，本笔记仅对本文（arXiv:1901.00997）本身负责。
+- **[[ranking/2019-Prashanth-CVaR估计的集中不等式|Prashanth 2019：CVaR 估计的集中不等式（轻尾/重尾）]]** — 给出经验 CVaR 估计量的双侧指数集中界，轻尾（Theorem 3.3）与重尾（仅需 `p` 阶矩存在，Theorem 4.1）情形均保持指数衰减；应用于固定预算 K 臂老虎机的最优 CVaR 臂识别。经 Web 检索核实，即文献核查文档笼统归入的"Prashanth et al. ICML 2020"（PMLR 119: 5577–5586）的预印本，为同一工作。
 
 ## 主机级与关系级聚合的安全先例
 

@@ -3,7 +3,7 @@ title: "Concentration bounds for CVaR estimation: The cases of light-tailed and 
 authors: [Prashanth L.A., Krishna Jagannathan, Ravi Kumar Kolla]
 year: 2019
 date: 2026-09-04
-journal: "arXiv preprint arXiv:1901.00997（2019-08-25；Indian Institute of Technology Madras / ABInBev）"
+journal: "ICML 2020（PMLR 119: 5577–5586）；arXiv 预印本 arXiv:1901.00997（2019-08-25；Indian Institute of Technology Madras / ABInBev）"
 source_pdf: "[[raw/papers/methodology/ranking/2019-Prashanth-Concentration-Bounds-CVaR-arXiv.pdf]]"
 sha256: "b766c3e910013d8f92d877166878498846a4182da1a83c12467bf72b7c1c98eb"
 tags:
@@ -36,18 +36,18 @@ aliases:
 
 ## 与本课题的关系（本课题检索目的：CVaR 集中不等式家族的文献核验，补充 BER 训练/评价样本量充分性的理论依据）
 
-- `thesis/methods/第三章-极端分位数CVaR估计文献核查.md` 第八节证据台账把"CVaR 集中不等式一族（Kolla et al. 2019；Prashanth et al. ICML 2020；Bhat & Prashanth；Thomas & Learned-Miller）"整体标为 `L3`（检索层综合，未取全文），用于支撑 Q1 的"`n=Ω(1/α)` 对插件估计量"这一论断。**需明确的是：本文（arXiv:1901.00997，2019 年 8 月版，三位作者）与该核查文档所指"Prashanth et al. ICML 2020"是否为同一工作未经核实**——很可能是同一研究团队在不同版本/后续会议发表的相关但不完全相同的论文，本笔记只对**本文（arXiv:1901.00997）本身**的内容负责，不代表已核验该核查文档引用的 ICML 2020 版本。
+- `thesis/methods/第三章-极端分位数CVaR估计文献核查.md` 第八节证据台账把"CVaR 集中不等式一族（Kolla et al. 2019；Prashanth et al. ICML 2020；Bhat & Prashanth；Thomas & Learned-Miller）"整体标为 `L3`（检索层综合，未取全文），用于支撑 Q1 的"`n=Ω(1/α)` 对插件估计量"这一论断。**本次 Web 检索已核实：本文（arXiv:1901.00997）即该核查文档所指"Prashanth et al. ICML 2020"的预印本，二者为同一工作**（ICML 官方版 PMLR 119: 5577–5586），该核查文档遗留的"该子工作未单独核验"缺口已补齐。
 - 本文 Theorem 3.3/4.1 的双侧指数集中界，为"CVaR 插件估计量所需样本量 `n=Ω(1/α)`"这一该核查文档 Q1 论断提供了**独立于 Levy et al./Curi et al. 的第三条数学工具**——三者的共同结论方向一致：CVaR 尾部估计需要的有效样本量与目标分位水平 `α`（或 `β`）的严格反比关系是这一问题domain的普遍现象，不是 SOPA/BER 特有实现的缺陷。
 - 本文的老虎机应用（CVaR-SR）与深度学习训练场景不直接相关，**不构成可迁移的算法**，但其"轻尾优于重尾"的表述方式提示：BER 训练中若能诊断成对损失分布在目标分位邻域是否为轻尾（而非重尾/退化），可能影响所需批量的量级——这与该核查文档"六、可执行动作"A1（测本课题成对损失分布在六档目标分位邻域的逆 CDF 局部斜率）属同一诊断方向的独立佐证，但本文并未直接讨论"逆 CDF 利普希茨"这一 Levy et al. 使用的具体正则性条件，两者是同一问题的不同数学刻画（轻尾矩条件 vs 逆 CDF 利普希茨条件），不能等同。
 
 ## 证据记录
 
 - 全文：arXiv 预印本 PDF（2019-08-25），正文约 12 物理页；已用 `pdf-converter`（`mineru-open-api extract`）全文转换，逐段核对定义、Theorem 3.3/4.1 陈述、老虎机应用与部分证明（Lemma 5.1、Theorem 3.3 证明起始部分）。
-- 官方链接：<https://arxiv.org/abs/1901.00997>；未见期刊/会议正式发表信息（截至笔记撰写时点仅确认 arXiv 预印本）。
-- 证据强度：**本次为该论文首次独立入库全文核验**（此前该核查文档只将其笼统归入"CVaR 集中不等式一族"`L3`，未单独核验）；本文本身证明完整、逻辑自洽，作者单位为 IIT Madras 电气工程/计算机科学系，属该子领域活跃研究者。
+- 官方链接：<https://arxiv.org/abs/1901.00997>；**经 Web 检索核实，本文即 ICML 2020 会议正式发表版本的预印本**（PMLR 119: 5577–5586，DOI 见 <https://proceedings.mlr.press/v119/l-a-20a.html>）——该核查文档此前笼统归入的"Prashanth et al. ICML 2020"与本文（arXiv:1901.00997）**是同一工作**，此前的证据链接缺口已解决。ICML 官方版标题额外覆盖"sub-Gaussian"情形（本笔记核验的 arXiv 版摘要只提"light-tailed and heavy-tailed"两类），二者是否为同一版本的表述差异或 ICML 版有实质性增补内容，本次未逐段对比确认。
+- 证据强度：**本次为该论文首次独立入库全文核验**（此前该核查文档只将其笼统归入"CVaR 集中不等式一族"`L3`，未单独核验）；本文本身证明完整、逻辑自洽，作者单位为 IIT Madras 电气工程/计算机科学系，属该子领域活跃研究者；ICML 正式发表进一步提高可信度。
 
 ## 疑问 / 待验证
 
-- 未核实本文与该核查文档引用的"Prashanth et al. ICML 2020"是否为同一工作的不同版本；若正文/答辩需要引用后者，须单独检索确认。
+- 已核实本文与该核查文档引用的"Prashanth et al. ICML 2020"为同一工作（见上文"证据记录"），但**未逐段对比** arXiv 版与 ICML 官方发表版在正文内容上是否存在差异（如 ICML 版标题提及的"sub-Gaussian"情形）；若正文/答辩引用需精确到页码，应以 PMLR 官方版为准核对。
 - Theorem 3.6（老虎机错误识别概率界）的完整证明（第 5 节其余部分）本次未逐行核验，仅核对了定理陈述与轻尾集中界证明的起始步骤。
 - 本文"轻尾"定义（矩生成函数存在）与 Levy et al. 的"逆 CDF 利普希茨"正则性条件之间的数学关系（是否互相蕴含、哪个更弱）未经推导，两者不能直接互换使用。

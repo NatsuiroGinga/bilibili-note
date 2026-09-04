@@ -3,7 +3,7 @@ title: "Leveraging Uncertainty for Improved Static Malware Detection Under Extre
 authors: [Andre T. Nguyen, Edward Raff, Charles Nicholas, James Holt]
 year: 2021
 date: 2026-09-04
-journal: "arXiv preprint arXiv:2108.04081（Laboratory for Physical Sciences / Booz Allen Hamilton / University of Maryland, Baltimore County）"
+journal: "IJCAI-21 第一届自适应网络防御国际研讨会（1st International Workshop on Adaptive Cyber Defense, held with IJCAI 2021）；arXiv:2108.04081（Laboratory for Physical Sciences / Booz Allen Hamilton / University of Maryland, Baltimore County）"
 source_pdf: "[[raw/papers/methodology/ranking/2021-Nguyen-Extreme-FPR-Malware-Detection-arXiv.pdf]]"
 sha256: "8ed1c493162e9765f03e9da74e26368f5aabb122436df29aff19110f63d93743"
 tags:
@@ -44,10 +44,10 @@ aliases:
 ## 证据记录
 
 - 全文：arXiv 预印本 PDF，正文约 12 物理页；已用 `pdf-converter`（`mineru-open-api extract`）全文转换，并结合 `thesis/methods/第三章-极端分位数CVaR估计文献核查.md` 已核验的页码/原文引用（第 5 页 §4.1）交叉核对。
-- 官方链接：<https://arxiv.org/abs/2108.04081>；作者单位含 Laboratory for Physical Sciences（美国国家安全局下属研究实验室）、Booz Allen Hamilton、UMBC；未见期刊/会议正式发表信息（该核查文档此前标注"作者与发表载体未核"，本次下载确认作者与单位，仍未核实是否有正式发表版本）。
+- 官方链接：<https://arxiv.org/abs/2108.04081>；作者单位含 Laboratory for Physical Sciences（美国国家安全局下属研究实验室）、Booz Allen Hamilton、UMBC。**经 Web 检索核实，本文发表于 IJCAI-21 第一届自适应网络防御国际研讨会**（与 IJCAI 2021 同期举办），该核查文档此前标注的"作者与发表载体未核"已补齐。
 - 证据强度：原为该核查文档标注的 `L2`（在线全文已读、原件未入库）；**本次下载官方 PDF 入库后升级为本地全文 `L1`**。
 
 ## 疑问 / 待验证
 
-- 未核实本文是否已在某会议/期刊正式发表（截至笔记撰写时点仅确认 arXiv 预印本）。
+- 已核实发表载体（IJCAI-21 自适应网络防御研讨会），但未核实 arXiv 版本与研讨会正式发表版本在内容上是否有差异。
 - 第 5 页判据的推导依据（假阳性数近似 Poisson 分布、相对标准误 `1/√K`）是该核查文档给出的统计等价形式，本文原文是否有更严格的推导本次未逐段核验。
