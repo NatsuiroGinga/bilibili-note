@@ -186,9 +186,105 @@ Bardou 的 `(α_n)` 是**单水平沿时间移动**，算法内部**没有并列
 3. **没有任何一篇实际上是多水平的。** 主代理「多档 staging 无先例」的结论**不被这两篇推翻**；
    但「单水平退火有成熟先例」这句话**须大幅限定**——见判二。
 
+### C. 多分位数 / 不交叉分位数（`在线摘要`＋检索返回的正文片段，**无本地原件**）
+
+**C1. Barrera, Crépey, Gobet, Nguyen, Saadeddine, *Statistical Learning of Value-at-Risk and
+Expected Shortfall*, Mathematical Finance 36(1):156–179, 2025, `doi:10.1111/mafi.70000`。**
+
+Scholar Gateway 返回该文 §「Multi-α Learning for VaR」的正文片段（chunk 30/31/42），关键原文：
+
+- `In this part we are interested in learning VaR(Y|X) for multiple confidence levels α ∈ (0,1)
+  **using a single empirical error minimization**.`
+- 明确区分两种形态：`single-α learning`（**每个水平重训一次**）vs
+  `multi-α learning`（**一次训练同时学所有水平**）。
+- `When several quantile levels α are considered, a flaw inherent to linear quantile regression is
+  the problem of **crossing quantile curves**, i.e., the violation of the monotonicity with respect
+  to α.` 综述了 He (1997)、Koenker (2004)、Takeuchi et al. (2006)、Bondell et al. (2010)、
+  Moon et al. (2021)、Cannon (2018)、Gasthaus et al. (2019)、Padilla et al. (2022)。
+- 该领域对「多水平互相干扰」的**两条标准解法**：
+  ① 训练期显式加不交叉约束（硬约束走原对偶算法，深网走**惩罚项**）；
+  ② 用**对 α 单调的假设空间**（分位数回归森林天然单调；Cannon 把置信水平当成额外协变量并强制单调；
+  Gasthaus/Padilla 用多输出且**约束为正**以逼近分位数增量）。
+  该文自身把 `α` 当协变量并**均匀随机采样**，再对 `∂_α ζ` 的负部加惩罚。
+
+**C2. 同族在库外的其他证据（Consensus，`在线摘要`）**：
+Moon et al. 2021 *Learning Multiple Quantiles With Neural Networks*（JCGS，45 引）；
+Cannon 2018 *MCQRNN*（SERRA，155 引）；Decke et al. 2024 *SCQRNN*；
+Park et al. 2021 *I(S)QF*（不交叉且可内插外推到未训练水平）；
+Shen et al. 2025 *Non-crossing Quantile Network*；Hatalis et al. 2019（平滑损失＋惩罚防交叉）。
+
+**C3.（本次最有杀伤力的发现）该领域没有一篇用「课程」解决多水平问题。**
+
+上述全部方法都**同时训练全部水平**，用**约束或单调参数化**处理水平间干扰。
+**检索未命中任何「先训宽松水平、后逐步加入严格水平」的多水平训练方案。**
+
+`【与本课题的对位】`本候选的新动机是「第 1 轮六档活动率只差 `2.45` 倍，而设计 `β` 跨度 `80.2` 倍，
+六档在此时做重复的事」。**这在数学上就是六个 `ξ_{p,k}` 之间「间距不足／接近交叉」**，
+与 quantile crossing 属同一问题族。**该问题族的成熟解法是次序约束与单调参数化，不是课程调度。**
+
+### D. 「课程」命中的实为另一类对象（`在线摘要`）
+
+- Açıkgözoğlu, *Early-Stage DDoS Detection in IPv6 Using Curriculum Training*, Concurrency &
+  Computation 38(15), 2026, `doi:10.1002/cpe.70902`：课程顺序 `15%,12%,10%,7%,5%,3%,1%`
+  的**攻击强度**，每级 4 轮，级间**不重初始化**。**课程作用于数据难度，不是损失的风险档位。**
+- Su et al., *CLRe*, Advanced Science, 2026, `doi:10.1002/advs.76827`：原文
+  `CLRe uses a **cumulative** easy-to-hard curriculum rather than replacing easy samples with hard
+  samples … newly introduced hard reactions are added together with the previously learned easier
+  ones, which remain in the active subset and continue to regularize the model.`
+  **「累积式课程」这一设计范式确有成熟先例，但其作用对象是训练样本，不是损失项。**
+  本候选的 ep1`{K6,K5}`→ep2 加 `{K4,K3}`→ep3 六档，正是把该范式**移植到损失项**上。
+
 ## 判二证据
 
-（待填）
+### 论点：把「六档并列」映射到「单水平退火」不是映射，是换损失
+
+**E1. 冻结合同的六档不是六个任务，是**一个**风险测度。**
+
+由第 3 组检索确认（`在线摘要`）：离散谱的谱风险测度＝若干水平 CVaR 的加权和（Kusuoka 表示，
+Rockafellar 学派称 mixed-quantile quadrangle）。BER 的
+`L_rank = (1/6) Σ_k mean_p[ ξ_{p,k} + (1/K_eff_k) Σ_n [L_pn − ξ_{p,k}]_+ ]`
+就是**谱测度取六个等权原子**的离散谱风险测度。
+
+**后果**：「单水平退火」不是把这个测度的调度换一下，而是**把六原子谱换成单原子谱**——
+即删掉五档、改写冻结的 `L_rank`。**文献支撑（若成立）支撑的是那个替换后的损失，不是 BER。**
+
+**E2. 冻结判据随之失效，且比 §7.4 已登记的失效更彻底。**
+
+筛选判据的主观测 `D = (1/6) Σ_k |log10 ρ_k|` 定义在**六个** `ρ_k` 上。
+单水平退火下每一时刻只有一个 `ρ`，`D` 无定义（或退化为 `|log10 ρ(t)|`）。
+`【推导】`先验裁决 §7.4 只要求「加权写法后须重新论证判据适用性」；
+**单水平形态下判据不是需要重新论证，而是不存在被测对象。**
+
+**E3. 与四格协议的可比性同时消失。**
+
+四格（C00/C01/C10/C11）比的是同一 `L_rank` 下的机制开关。把六档换成单水平后，
+被测的不再是「预算课程」这一机制，而是**另一个损失函数**——
+它不再是本机制的消融，无法回答「课程是否有用」。
+
+**E4.（决定性）即便换成单水平损失，判一已证明该「文献支撑」也撑不住它要撑的事。**
+
+主代理要用退火**改进最终模型**。但：
+Bardou 退火的是一条**被声明不估计目标**的伴随过程，活在**输出被丢弃**的预热相，
+定理证的是 `Σγ_n(α−α_n)² < ∞` 下**渐近无害**（判一 A2–A4）；
+Ordered SGD 的退火表是**为消超参自由度**而设的默认值，无理论覆盖，
+论文自身消融只说「固定 `q` 也能改进基线」，**未证明退火优于最佳固定 `q`**（判一 B2–B4）。
+
+**两篇都不支持「退火训练目标能改进学到的模型」这一命题。**
+
+**E5. 文献中有一处直接讨论「单水平 vs 多水平并列」的关系，方向不利于本候选。**
+
+Barrera et al. 2025（C1，`在线摘要`＋正文片段）把二者并置为
+`single-α learning`（逐水平重训）与 `multi-α learning`（一次训完所有水平），
+**结论是后者更可取**（省重训、可得全分布、可内插未训练水平）。
+**没有任何一处把「退火单水平」作为「多水平并列」的替代方案推荐。**
+
+### 判二裁断
+
+**是**——「六档并列 → 单水平退火」本身就是一次没有先例的任务化改造，
+而且它改造的不是调度而是**冻结损失、冻结判据与四格可比性**三者。
+**「若本候选改走单水平退火形态，文献支撑立即成立」这句话不成立**：
+支撑的是别人的形态（且如 E4，连那个形态都只支撑「无害」不支撑「有益」），
+不是本课题要跑的那个东西。
 
 ## 判三证据
 
