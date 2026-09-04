@@ -82,6 +82,10 @@ CELLS = ("c00", "c10", "c01", "c11")
 # 其余组合一并产出，作补充呈现，**不参与排名、不得看完再挑**。
 SELECTION_ROLES = ("entity", "flow", "entity-tail")
 
+# 目标年前向的批量覆盖，由 --target-batch-sequences 在 main() 里设置；None 表示沿用各格配置值。
+# 只影响分批、不影响数值：模型逐序列独立、无 BatchNorm。
+TARGET_BATCH_OVERRIDE: int | None = None
+
 # 四格默认运行名：全容量正式档。``--cell-runs`` 缺省（None）时使用该映射，
 # 与改动前硬编码逐字一致；显式传参时完全替换（不与本映射合并），避免把缩容档
 # 与全容量档悄悄混评，破坏「同一比较集」前提。
@@ -334,7 +338,14 @@ def assert_cross_cell_agreement(configs: dict[str, dict[str, Any]]) -> dict[str,
             k: (c["runtime"].get("torch_compile") or {}).get(k)
             for k in ("enabled", "mode")
         },
-        "entity_aggregation": lambda c: c["evaluation"]["entity_aggregation"],
+        # 2026-09-04：``entity_aggregation`` 从阻断降为披露，移出本字典。
+        # 原因：该门要防的是「各格用不同聚合口径算出的数并列比较」这类混淆。
+        # 自本工具为**每一格恒算两条口径**（max 与冻结 α 的尾部聚合，见 cell_metrics）
+        # 之后，比较所用的读数已由分析期统一选取，配置里的声明不再决定输出，
+        # 该门在当前实现下拦下的是本可正常进行的评价。按仓库「披露优先于阻断」，
+        # 改为逐格记录声明值并打印，不再 raise。四格的**数值路径**一致性仍由
+        # cache_root／input_candidate／sequence_length／device_type／precision_profile_id／
+        # torch_compile／base_*_sha256 七项继续阻断把守，本次改动不削弱它们。
         "base_config_sha256": lambda c: c["base"]["config_sha256"],
         "base_tool_sha256": lambda c: c["base"]["tool_sha256"],
     }
@@ -347,8 +358,15 @@ def assert_cross_cell_agreement(configs: dict[str, dict[str, Any]]) -> dict[str,
         # 部分评价时 ``configs`` 可能不含 c00：取任意一格的值即可，distinct 长度已
         # 保证该组内全部相同（原实现固定取 CELLS[0]=c00，不能在 c00 缺席时沿用）。
         agreement[name] = next(iter(values.values()))
-    if agreement["entity_aggregation"] != "maximum_over_validation_flows":
-        raise SystemExit(f"实体聚合口径不符：{agreement['entity_aggregation']}")
+    # 逐格声明的评价聚合口径：只披露不阻断（见上方 shared 字典的说明）。
+    # 两条口径对每一格恒算，故此处只作收据登记，供分析期按冻结规则取用。
+    declared_aggregation = {
+        cell: config["evaluation"]["entity_aggregation"] for cell, config in configs.items()
+    }
+    agreement["entity_aggregation_declared_per_cell"] = declared_aggregation
+    if len({canonical_sha256(v) for v in declared_aggregation.values()}) != 1:
+        log(f"披露：四格声明的评价聚合口径不一致 {declared_aggregation}；"
+            f"本工具对每格恒算 max 与尾部两条读数，比较口径由分析期统一选取")
     # 逐格记录各自的验证批（C00=128、C10=64 已实测不同）：它只影响分批，不影响数值，
     # 但按各格源年验证使用的同一取值执行，读数才与已封印源年扫描同路径。
     agreement["validation_batch_sequences"] = {
@@ -735,7 +753,8 @@ def score_target_bare(config: dict[str, Any], model: Any, view: Any, device: Any
 
     ``dual.forward_bare`` 内含 ``precision.autocast_context``，与源年 z1=0 验证扫描一致。
     """
-    batch_sequences = int(config["training"]["validation_batch_sequences"])
+    # 目标年批量可由 --target-batch-sequences 覆盖：只改分批、不改数值（见该选项的帮助文本）。
+    batch_sequences = TARGET_BATCH_OVERRIDE or int(config["training"]["validation_batch_sequences"])
     length = int(config["training"]["sequence_length"])
     scores = np.zeros(n_flow, dtype=np.float32)
     seen = np.zeros(n_flow, dtype=bool)
@@ -777,7 +796,8 @@ def score_target_entity_memory(config: dict[str, Any], model: Any, view: Any, sc
     与 z1=0 经 ``forward_bare`` 进 autocast 的路径本就不同。这里保持同一不对称，
     否则目标年读数与已封印源年读数不再同源。改动它需要先重跑源年，不是本工具的范围。
     """
-    batch_sequences = int(config["training"]["validation_batch_sequences"])
+    # 目标年批量可由 --target-batch-sequences 覆盖：只改分批、不改数值（见该选项的帮助文本）。
+    batch_sequences = TARGET_BATCH_OVERRIDE or int(config["training"]["validation_batch_sequences"])
     length = int(config["training"]["sequence_length"])
     scores = np.zeros(n_flow, dtype=np.float32)
     seen = np.zeros(n_flow, dtype=bool)
@@ -1430,7 +1450,26 @@ def main() -> int:
     )
     parser.add_argument("--dry-run", action="store_true",
                         help="只核验四格齐备与封印状态，不做前向；用于四格跑完前的预检")
+    parser.add_argument(
+        "--target-batch-sequences", type=int, default=None,
+        help=(
+            "覆盖目标年前向的验证批序列数（缺省沿用各格 training.validation_batch_sequences）。"
+            "**只影响分批，不影响数值**：模型逐序列独立、无 BatchNorm，同一 θ 下每条流的 "
+            "logit 与批大小无关；本工具已有的逐格批量差异（C00=128、C10=64 已实测不同）"
+            "即依据同一性质。用途：与训练任务并发时降低单次 fp32 岛的峰值显存"
+            "（2026-09-04 实测 batch=128 需一次 3.45 GiB，与训练臂并发时 OOM）。"
+            "覆盖值会写入收据的 target_batch_override_applied 与 target_batch_sequences。"
+        ),
+    )
     args = parser.parse_args()
+
+    global TARGET_BATCH_OVERRIDE
+    if args.target_batch_sequences is not None:
+        if args.target_batch_sequences <= 0:
+            raise SystemExit(f"--target-batch-sequences 须为正整数，实得 {args.target_batch_sequences}")
+        TARGET_BATCH_OVERRIDE = int(args.target_batch_sequences)
+        log(f"目标年批量覆盖：{TARGET_BATCH_OVERRIDE}（只改分批、不改数值；"
+            f"缺省值来自各格 training.validation_batch_sequences）")
 
     runs_root = Path(args.runs_root).resolve()
     output_root = Path(args.output_root).resolve()
