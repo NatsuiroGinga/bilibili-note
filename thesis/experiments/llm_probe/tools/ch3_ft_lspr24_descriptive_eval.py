@@ -30,7 +30,8 @@ false=-0.7505650520324707`，raw83 下应为 `1.0 / 0.0`；`field_integer_like` 
 `I24.npy` / `M24.npy`；标签取 `y24.npy`；实体分组键取 `s24.npy` / `d24.npy`
 （无向地址对，与 `base.run_evaluate_stage` 同口径）。
 
-选轮口径：四格统一取源年实体 AP 择优的 `selected-by-entity.pt`（2026-08-28 冻结裁决）；
+选轮口径：主组合按各格自身配置声明（2026-09-04 用户裁决）——C00／C01 取 `selected-by-entity.pt`（max），
+C10／C11 取 `selected-by-entity-tail.pt`（tail）；三种选轮全部评价，非主组合作补充呈现不参与排名。
 `selected-by-flow.pt` 一并评价，作协议敏感性对照，不作主口径。
 
 输入变换：复用源年封印的 `sealed-input-transform.pkl`——目标年**不重新拟合**，
@@ -70,7 +71,16 @@ import ch3_ft_transformer_field_token_protocol_a as base  # noqa: E402
 RUN_ID = "ch3-ft-lspr24-descriptive-eval-v1"
 SCHEMA_VERSION = "ch3-ft-lspr24-descriptive-eval-receipt-v1"
 CELLS = ("c00", "c10", "c01", "c11")
-SELECTION_ROLES = ("entity", "flow")
+# 2026-09-04 增加 "entity-tail"：ETA 臂（C10／C11）的自身声明口径是尾部聚合，
+# 其源年最优轮与 max 口径不同轮（实测 C10：max 峰在第 9 轮、tail 峰在第 10 轮），
+# 只评 max 选出的检查点会系统性低估 ETA 臂。检查点文件名天然对齐——
+# 训练侧已产出 selected-by-entity-tail.pt，本工具按 f"selected-by-{role}.pt" 取，无需改路径拼装。
+#
+# **主组合在看到任何目标年读数之前定死**（各格按自身配置声明，与源年同规则）：
+#   C00／C01 → 选轮 entity（max）＋ 读数 max
+#   C10／C11 → 选轮 entity-tail    ＋ 读数 tail
+# 其余组合一并产出，作补充呈现，**不参与排名、不得看完再挑**。
+SELECTION_ROLES = ("entity", "flow", "entity-tail")
 
 # 四格默认运行名：全容量正式档。``--cell-runs`` 缺省（None）时使用该映射，
 # 与改动前硬编码逐字一致；显式传参时完全替换（不与本映射合并），避免把缩容档
