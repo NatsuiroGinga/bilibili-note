@@ -6,11 +6,20 @@
 立场是证伪；任一环把方案打死即停。
 
 ## Phases
-- [ ] Phase 0: 建计划与笔记，读生产代码（tail_aggregate / _combine_and_step / gradient_controller）
-- [ ] Phase 1（最便宜证伪点，优先）: 用真实袋大小分布算「α 移动时行为真正改变的实体占比」
-- [ ] Phase 2（文献，优先）: 插值式软 top-k／连续分位数先例；已知问题；两级风险聚合提法；α 退化到端点
-- [ ] Phase 3（代码）: §四 四项核验，尤其第 3 项 α 梯度是否被 c 缩放；复现主代理三条自测
+- [x] Phase 0: 建计划与笔记，读生产代码（tail_aggregate / _combine_and_step / gradient_controller）
+- [x] Phase 1（最便宜证伪点）: 真实袋分布 → **未能证伪**，作用面 32.19%，不是「极低」
+- [ ] Phase 2（文献）: 已派 literature-reviewer / opus 后台代理，待回
+- [x] Phase 3（代码）: §四 四项核验完成；三条自测逐位复现
 - [ ] Phase 4: 写交付文档，落盘提交
+
+## 已测结论（Phase 1/3）
+- E1 `bag_alpha_reach.py`：α∈(0,1/2] 内行为改变面上确界 = `0.3219`（训练侧）/`0.3163`（验证侧）。
+  **未证伪**。m=1 占 `46.22%`、m=2 占 `21.59%`。n_neg=64 下每步约 `20.6` 个负实体向 α 回传。
+- E2 `alpha_controller_interaction.py`：`combined[α] == c·g_rank[α]` **逐位成立**；c=0 步上精确 0。
+  `∂S_e/∂α = (s_⌊t⌋ − S_e)/α ≤ 0` 恒成立（200/200）。边界处 clamp 打平点梯度泄漏。
+  α 不注册进 model.parameters() 时位移精确 0。
+- E3 `alpha_param_bitwise.py`：多一个恒零坐标不改 c（四格安全）；α 须常量初始化否则 RNG 流平移；
+  Adam 在 90% 零梯度占空比下 50 步仍移动 `+0.1619` ⟹ **c=0 是减速不是阻断**。
 
 ## Key Questions
 1. α 在 (0, 1/2] 内移动时，实际改变行为的实体占比是多少？若极低 ⇒ 判据 2 结构上不可能成立。
