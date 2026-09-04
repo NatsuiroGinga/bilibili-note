@@ -16,7 +16,61 @@ Zhu 2022 pAUC-DRO、Shi 2023 HNS-OPAUC、Jiang 2025 pAUC Two Formulations、Asne
 
 ## 检索日志
 
-（每组查询后立即追加：查询式、来源、命中、证据等级、与三条判据的关系）
+### 第 1 组：本地混合索引（`本地`）
+
+索引 `status --json` 初次为 `stale=true`（`source_added`/`source_changed`），
+已用 `build --json` 增量重建（`note_count=1960`，`papers=891`，`index_bytes=903024640`，退出码 `0`），
+**向量通道正常运行**（`vector_count=142289`，`dim=384`，`device=mps:0`），未降级 lexical。
+
+| 查询式 | scope/mode | 结论 |
+| --- | --- | --- |
+| `spectral risk measure Kusuoka representation weighted mixture of multiple CVaR confidence levels` | paper/hybrid | **本地无谱风险测度类论文**；top 命中是 Duchi-Namkoong DRO、Levy DRO、Bardou、Curi、Asness 等已知件 |
+| `simultaneous estimation of multiple quantiles non-crossing quantile levels neural network` | paper/hybrid | **本地无多分位数/不交叉分位数论文**；命中漂移到 TAILING、conformal、PINN |
+| `sum of ranked range average top-k loss combining two rank thresholds multiple budget levels in one objective` | paper/hybrid | 命中 `2021-Hu-SoRR`、`2022-Yao-Large-Scale-Partial-AUC-FPR-Range`、`2025-Jiang-Partial-AUC-Two-Formulations`（均在库） |
+
+**本地语料在「多水平风险度量」这一支上基本是空白**——本课题此前的「无先例」结论
+有很大一部分是本地语料覆盖不到，而不是文献真的没有。
+
+### 第 2 组：Zotero 语义检索（`仅题录`）
+
+- `spectral risk measure Kusuoka representation optimizing weighted combination of multiple CVaR confidence levels`
+- `simultaneous multiple quantile regression non-crossing quantile levels curriculum from central to extreme quantiles`
+
+两次检索 **12/12 命中相似度全为负**（最高 `−0.171`、`−0.122`），返回的是 GRPO 课程采样、FoRA、
+conformal、RWKV 预测等无关条目。**Zotero 库在本主题上无任何相关条目**，
+不构成「无先例」证据，只说明该库未收录该方向。
+
+### 第 3 组：在线（来源状态如实登记）
+
+- **Elicit（`mcp__990aea2c…__search_papers`）：不可用**——返回 `api_access_denied`，
+  该账户套餐不含 API。**本次调研未能使用该来源。**
+- `github`／`GitLab`／`stack-mcp-server`／`streamable-mcp-server`：本会话连接失败（未使用）。
+- 可用来源：alphaXiv `discover_papers`、Consensus `search`、scite `search_literature`、
+  Scholar Gateway `semanticSearch`。
+
+**第 3 组核心发现（`在线摘要`级，除另注明外均未取得全文）：**
+
+`【重要】`**「多个风险水平并列于同一目标」不是空白，而是有专名的成熟方向——谱风险测度
+（spectral risk measure, SRM）／Kusuoka 表示／混合 CVaR（mixed-CVaR quadrangle）。**
+离散谱的 SRM **就是**若干个不同水平 CVaR 的加权和，每个水平自带一个对偶阈值变量。
+命中（Consensus，均 `在线摘要`）：
+
+| 文献 | 与本课题的关系 |
+| --- | --- |
+| Ge et al., **SOREL: A Stochastic Algorithm for Spectral Risks Minimization**, 2024 | 自称首个带收敛保证的谱风险随机梯度算法 |
+| Mehta et al., **Distributionally Robust Optimization with Bias and Variance Reduction**（Prospect）, 2023 | 谱风险不确定集 DRO；明写「includes … regularized CVaR and average top-k loss」 |
+| Kim et al., **Spectral-Risk Safe RL with Convergence Guarantees**（SRCPO）, 2024 | 双层优化，**外层优化由风险测度导出的对偶变量**——与「六个 `ξ`」同构 |
+| Moghimi et al., **Beyond CVaR: Static Spectral Risk Measures in Distributional RL**, 2025 | 静态 SRM 优化，泛化 CVaR 与 Mean-CVaR |
+| Chu et al., **Nonasymptotic Estimation of Risk Measures via SGLD**, 2021 | 明写用 **Kusuoka 谱表示**把 AVaR 估计「bootstrap」到一般律不变风险测度 |
+| Fröhlich et al., **Risk Measures and Upper Probabilities: Coherence and Stratification**, 2022 | 谱风险测度族的刻画与分层 |
+| Rockafellar 学派 **mixed-quantile quadrangle**（scite 命中，`在线摘要`） | 把 CVaR quadrangle 的积分**离散化为一组水平参数**，即多水平混合 |
+
+**对本课题的直接后果**：BER 的「六档等权平均」在数学上就是一个**离散谱风险测度**
+（谱测度取六个原子、等权）。**「多档并列」本身毫无新意**，是 Kusuoka 表示的标准构造。
+这**不推翻**主代理的主张（其主张是「多档**分阶段引入**无先例」），
+但它**改变了论证的基线**：本课题不是在一个无人涉足的结构上做课程，
+而是在一个**有成熟名字、成熟算法、成熟收敛理论**的结构上做课程——
+**先例检索必须在 SRM 文献内部做，而非在「多预算 pAUC」这个自造词下做。**
 
 ## 判一证据
 
