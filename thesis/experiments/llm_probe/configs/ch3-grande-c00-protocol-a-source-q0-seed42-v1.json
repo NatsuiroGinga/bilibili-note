@@ -86,14 +86,12 @@
     "diagnostics_do_not_select_candidate": true
   },
   "resource_contract": {
-    "total_gpu_hour_cap": 4.5,
     "maximum_parallel_training_units": 1,
     "minimum_free_gpu_memory_gib": 12,
     "minimum_cgroup_available_memory_gib": 30,
     "minimum_free_disk_gib": 10,
     "r0_real_batch_sequences": 64,
-    "r1_steps": 1000,
-    "g_b_requires_projected_budget": true
+    "r1_steps": 1000
   },
   "upstream": {
     "repository": "https://github.com/s-marton/GRANDE",

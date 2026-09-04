@@ -1,11 +1,11 @@
 {
-  "schema_version": "ch3-full-mlp-strict-past-cpa-protocol-a-q0-config-v1",
-  "run_id": "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1",
-  "display_name": "全容量多层感知机严格过去CPA协议A Q0",
+  "schema_version": "ch3-full-mlp-strict-past-cpa-protocol-a-q0-rerun-config-v1",
+  "run_id": "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1-rerun1",
+  "display_name": "全容量多层感知机严格过去CPA协议A Q0横轴修复重跑1",
   "model_key": "full_mlp",
   "paths": {
     "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
-    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1"
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1-rerun1"
   },
   "parent": {
     "run_id": "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1",
@@ -16,6 +16,32 @@
     "code_sha256": "45ad7d1be85832e4b235a8942615e4aad7b94c154ec2cef7ad00ec2510feb2da",
     "cells": ["B10", "O11"],
     "reuse_read_only": true
+  },
+  "recovery": {
+    "previous_run_id": "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1",
+    "previous_output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1",
+    "previous_launcher_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1",
+    "previous_input_config_sha256": "feef122f6a35b5b1fcfcd31cb29151139f866a09e07b6508ca163ac2caf9da77",
+    "previous_frozen_config_sha256": "92eddabc58e0f92befafee115ba30761bc179c5aeb7eeae2ce08842ad6258e79",
+    "previous_code_sha256": "688139f80d7aa7ab0553d8012b0ca1cd843dd255983cd456852db7ac22e7f90d",
+    "source_data_inventory_sha256": "195e3e3f081920c72f37493cba59faf34b596271a86083b7f3897543eb04e88d",
+    "parent_artifact_receipt_sha256": "b19b3163c5fdcf02937106498716020d13b73c1a8de070d07f7cce8d98ebda32",
+    "required_failure_detail": "RuntimeError: S10_vs_B10 完整预算曲线横轴不一致",
+    "required_target_year_arrays_read": 0,
+    "scientific_contract_unchanged": true,
+    "reuse_cells": {
+      "S10": {
+        "selection_receipt_sha256": "3efcec392a6d2a2bbda923fd6b31ea615f4a37d23ece20e63e30898d89f1e765",
+        "selected_checkpoint_sha256": "466e806651711260c8a67aa940f95dbf8a707eae1cb3a78c58a77e4d0bb7b19b",
+        "epoch_checkpoint_count": 20
+      },
+      "S11": {
+        "selection_receipt_sha256": "05ea512420fe9a6c003450b3e2d3b47b9ae611f253b97f1c4919bd07d20eb96a",
+        "selected_checkpoint_sha256": "80c084736cf44a6b2e1b9b9abe18e6da6917165d999aeb8f61cd8496446d5faf",
+        "epoch_checkpoint_count": 20
+      }
+    },
+    "retrain_cells": []
   },
   "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
   "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24", "t24"],
@@ -70,12 +96,13 @@
   },
   "artifact_policy": {
     "persist_selected_checkpoint_per_cell": true,
-    "persist_every_epoch_checkpoint_per_cell": true,
-    "persist_inflight_epoch_checkpoint": true,
+    "persist_every_epoch_checkpoint_per_cell": false,
+    "persist_inflight_epoch_checkpoint": false,
     "persist_per_flow_scores": false,
     "persist_per_entity_scores": false,
     "persist_complete_budget_curve_aggregate": true,
-    "reuse_parent_checkpoints_read_only": true
+    "reuse_parent_checkpoints_read_only": true,
+    "reuse_previous_failed_run_training_read_only": true
   },
   "resource_contract": {
     "minimum_free_gpu_memory_mib": 12288,
@@ -89,8 +116,8 @@
   "swanlab": {
     "workspace": "mortiswang",
     "project": "ns3-rwkv-lspr24",
-    "name": "全容量多层感知机严格过去CPA协议A Q0",
-    "group": "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1",
+    "name": "全容量多层感知机严格过去CPA协议A Q0横轴修复重跑1",
+    "group": "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1-rerun1",
     "mode": "cloud",
     "tags": ["chapter3", "full-mlp", "strict-past-cpa", "protocol-a", "q0", "seed42"]
   },

@@ -654,6 +654,16 @@ def effective_base_config(config: dict[str, Any]) -> dict[str, Any]:
     result["paths"]["cache_root"] = config["paths"]["cache_root"]
     result["paths"]["field_cardinality_receipt"] = config["paths"]["cardinality_receipt"]
     result["training"]["seed"] = config["training"]["seed"]
+    # validation_fraction 的 per-run 覆写（2026-09-04 用户裁决把源年验证划分从 0.10
+    # 改为 0.20）。**缺省不覆写**：既有 27 份配置不含该键，行为与 base_config 逐位不变，
+    # 身份哈希不动；只有显式声明该键的新配置才走 0.20。
+    # 依据：0.10 时验证正实体仅 25 个，后十轮实体 AP 标准差 0.0843、极差 0.3380，
+    # 选轮分辨率不足；0.20 使正实体升至 51（本机 2026-09-04 只读诊断，seed=42、
+    # time_tail_fraction=0.15），噪声约降 1.41 倍，代价是训练序列减少 11.1%
+    # （208,598 → 185,538）。改划分使 AP 算在不同验证集上，故 0.10 下的全部读数
+    # 一并作废、由 0.20 重跑取代。
+    if "validation_fraction" in config["training"]:
+        result["training"]["validation_fraction"] = config["training"]["validation_fraction"]
     result["training"]["sequence_length"] = config["training"]["sequence_length"]
     result["training"]["effective_batch_size"] = config["training"]["effective_batch_size"]
     result["training"]["micro_batch_sequences"] = config["training"]["micro_batch_sequences"]
