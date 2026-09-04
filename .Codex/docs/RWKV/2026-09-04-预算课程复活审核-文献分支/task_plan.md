@@ -12,20 +12,20 @@ effort **继承会话设置**（Claude Code 的 Agent 工具无 `effort` 入参�
 
 ## 三条待判
 
-- [ ] 判一：Bardou `(α_n)` 与 Ordered SGD `q` 退火，是否真是「单水平」？有没有哪一篇实际上就是多水平？
-- [ ] 判二：把「六档并列」映射到「单水平退火」，本身是否就是一次没有先例的任务化改造？
-- [ ] 判三：补检索邻近先例（multi-quantile / non-crossing / spectral risk / multi-level CVaR /
+- [x] 判一：Bardou `(α_n)` 与 Ordered SGD `q` 退火，是否真是「单水平」？有没有哪一篇实际上就是多水平？
+- [x] 判二：把「六档并列」映射到「单水平退火」，本身是否就是一次没有先例的任务化改造？
+- [x] 判三：补检索邻近先例（multi-quantile / non-crossing / spectral risk / multi-level CVaR /
       multi-budget pAUC / curriculum over quantile levels），裁断「有先例／无先例／有邻近但不对位」
 
 ## Phases
 
-- [ ] P0 建立检查点文件（本文件 + notes.md），提交
-- [ ] P1 读主代理待审文档（`thesis/methods/机制一候选-预算课程调度-先验裁决.md` §7.1、
+- [x] P0 建立检查点文件（本文件 + notes.md），提交
+- [x] P1 读主代理待审文档（`thesis/methods/机制一候选-预算课程调度-先验裁决.md` §7.1、
       `机制一候选-预算课程调度.md` §7.2）与既有笔记
-- [ ] P2 判一：回 Bardou / Kawaguchi **原件正文**核实（全文笔记 + 必要时 pdf-converter 重转），给页码/公式号
-- [ ] P3 判二：裁断映射代价；检索文献中是否讨论「单水平退火 vs 多水平并列」的关系
-- [ ] P4 判三：本地混合索引 → Zotero → 在线（google-scholar / MCP），补检索六个方向
-- [ ] P5 写 `裁断.md`，提交
+- [x] P2 判一：回 Bardou / Kawaguchi **原件正文**核实（全文笔记 + 必要时 pdf-converter 重转），给页码/公式号
+- [x] P3 判二：裁断映射代价；检索文献中是否讨论「单水平退火 vs 多水平并列」的关系
+- [x] P4 判三：本地混合索引 → Zotero → 在线（google-scholar / MCP），补检索六个方向
+- [x] P5 写 `裁断.md`，提交
 
 ## Key Questions
 
@@ -44,4 +44,4 @@ effort **继承会话设置**（Claude Code 的 Agent 工具无 `effort` 入参�
 
 ## Status
 
-**P0 进行中** — 建立检查点。
+**已完成** — 三条判断全部出结论，`裁断.md` 已落盘。判一/判二基于本地全文；判三仅到在线摘要，入库为阻断项。
