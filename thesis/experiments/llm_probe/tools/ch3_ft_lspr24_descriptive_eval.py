@@ -884,9 +884,22 @@ def forward_resources(model: Any, device: Any, torch_module: Any, started: float
 def cell_metrics(cell: str, scores: Any, seen: Any, target: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
     """按 base FT 模块的实体聚合与曲线函数计算目标年读数。
 
-    四格 ``evaluation.entity_aggregation`` 均为 ``maximum_over_validation_flows``，没有
-    可学 Lp 池化（那是 CPA-ELP 家族的口径），故 ``entity_scores`` 一律传 ``p_value=None``，
-    主口径实体分数与最大池化实体分数在构造上就是同一组数。
+    **两条口径恒算**（2026-09-04 起）：
+
+    - 口径一 ``maximum_over_validation_flows``：历史实现，``entity_scores`` 传
+      ``p_value=None``（没有可学 Lp 池化，那是 CPA-ELP 家族的口径），主口径实体分数与
+      最大池化实体分数在构造上是同一组数。**本条一行未改，向后兼容。**
+    - 口径二 ``entity_tail_mean_over_validation_flows``：ETA 臂（C10／C11）按其配置声明
+      的自身口径。与训练侧、源年评价侧调用**同一份** ``ranking.tail_aggregate``——
+      该函数的 docstring 明写「评价侧宿主传扁平数组直接调用本函数，两处共用这一份算术，
+      不存在第二套口径」。
+
+    **两条口径都恒算、不按格分支**：与源年评价侧同构（那里对 ``validation_entity_ap``
+    与 ``validation_entity_ap_tail`` 同样与配置的 alpha 无关地恒算），使「用哪条口径」
+    成为分析期依据冻结规则的选择，而不是烧进运行本身。
+
+    **量纲已核实**：源年与目标年的 ``scores`` 均为 ``sigmoid(logits)`` 概率。
+    ``max`` 在单调变换下不变，**尾部均值不变**，故两侧必须同量纲；此处与源年一致。
     """
     from sklearn.metrics import average_precision_score, roc_auc_score
 
@@ -895,6 +908,23 @@ def cell_metrics(cell: str, scores: Any, seen: Any, target: dict[str, Any]) -> t
     entity_labels = target["entity_labels"]
     aggregated = base.entity_scores(scores, seen, target["flow_entity"], target["entity_count"], None)
     scored_entities = np.isfinite(aggregated)
+
+    # 延迟导入：本文件的 --validate-config 路径必须能在缺 torch 的项目 .venv 上跑通，
+    # 与 ch3_ft_c00_dual_selection 源年评价段的同名处置一致。
+    import torch as torch_module  # noqa: PLC0415
+
+    import ch3_ft_entity_ranking_loss as ranking  # noqa: PLC0415
+
+    tail_alpha = dual.ENTITY_TAIL_AGGREGATION_FROZEN_ALPHA
+    tail = ranking.tail_aggregate(
+        torch_module.from_numpy(np.ascontiguousarray(scores, dtype=np.float64)),
+        torch_module.from_numpy(np.ascontiguousarray(seen, dtype=bool)),
+        torch_module.from_numpy(np.ascontiguousarray(target["flow_entity"], dtype=np.int64)),
+        int(target["entity_count"]),
+        tail_alpha,
+    )
+    tail_entity_scores = tail["entity_scores"].numpy()
+    scored_entities_tail = (tail["m_per_entity"] > 0).numpy()
     metrics = {
         "cell": cell,
         "entity_aggregation": "maximum_over_validation_flows",
@@ -914,6 +944,21 @@ def cell_metrics(cell: str, scores: Any, seen: Any, target: dict[str, Any]) -> t
             f"fpr_{value:g}": base.dr_at_fpr(aggregated, entity_labels, value)
             for value in base.DR_FPR_GRID
         },
+        # ---- 口径二：α 冻结的实体内尾部聚合（ETA 臂的自身声明口径）----
+        "entity_average_precision_tail": float(
+            average_precision_score(
+                entity_labels[scored_entities_tail], tail_entity_scores[scored_entities_tail]
+            )
+        ),
+        "dr_at_fpr_tail": {
+            f"fpr_{value:g}": base.dr_at_fpr(tail_entity_scores, entity_labels, value)
+            for value in base.DR_FPR_GRID
+        },
+        "tail_aggregation_alpha": tail_alpha,
+        "tail_aggregation_receipt": ranking.tail_aggregation_receipt(
+            tail["k_per_entity"], tail["m_per_entity"], tail_alpha
+        ),
+        "scored_entity_count_tail": int(scored_entities_tail.sum()),
         "entity_count": int(target["entity_count"]),
         "scored_entity_count": int(scored_entities.sum()),
         "positive_entity_count": int(entity_labels.sum()),
