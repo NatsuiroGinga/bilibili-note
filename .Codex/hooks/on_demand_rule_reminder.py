@@ -56,6 +56,8 @@ from prettier_guard import (  # noqa: E402
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FILE_TOOL_NAMES = frozenset({"Edit", "Write", "MultiEdit", "NotebookEdit"})
+# Workflow 派发前注入夜间事故教训；settings.json 的 PreToolUse matcher 需含 Workflow。
+WORKFLOW_TOOL_NAMES = frozenset({"Workflow"})
 FILE_PATH_KEYS = ("file_path", "path", "notebook_path")
 RULE_FILE_NAMES = frozenset({"AGENTS.md", "CLAUDE.md"})
 # 根 AGENTS.md「规则发现与子域路由」节登记的组合上限。
@@ -191,8 +193,38 @@ def _rule_budget_reminder(payload: Mapping[str, object]) -> str | None:
 # --- 汇总与输出 -------------------------------------------------------------
 
 
+def _workflow_reminder(payload: Mapping[str, object]) -> str | None:
+    """派发 Workflow 前注入 2026-09-03 夜间的四条实测教训。
+
+    该夜三路并发（10 + 6 + 1 个 sonnet 代理）合计约 280 万 token 触顶会话额度，
+    两个工作流的核验阶段全部失败；其第一阶段产出只因 journal.jsonl 才得以抢救。
+    四条都不是推测，是当晚的原始事故记录，故按「命中即提示、不拦截」注入。
+    """
+    if payload.get("tool_name") not in WORKFLOW_TOOL_NAMES:
+        return None
+    return (
+        "[Workflow 派发] 2026-09-03 夜实测教训，派发前逐条过一遍：\n"
+        "  1) 额度：当晚 10+6+1 个 sonnet 代理约 280 万 token 触顶，"
+        "核验阶段全废。单个复审类代理经验值 20–30 万 token，"
+        "**先按代理数 × 25 万估总量**；超过预算就串行分批，或先只跑复审阶段不带核验。\n"
+        "  2) pipeline 的 null 陷阱：第二段抛错会把该 item 整条链丢成 null，"
+        "**第一段的产出不会出现在返回值里**。返回 raw:[null,...] 时先读 "
+        "transcript 目录的 journal.jsonl（每个完成代理一行 type\":\"result\"），"
+        "**不要据空返回值判断代理没产出**。\n"
+        "  3) 未经核验的等级是自评：复审代理自己标的「阻断／严重」不得直接采信，"
+        "核验阶段没跑成就必须主代理逐条回原文与制品核实。当晚 5 条自评阻断里，"
+        "有一条实测只对了一半（实体级 BCE 是「只挂了一半」而非「完全未挂载」）。\n"
+        "  4) 子代理必须分阶段落盘：简报里写死「每完成一个子结论立即写文件并提交」。"
+        "未落盘的工作随进程消失，主代理看不到中间结果。"
+    )
+
+
 def build_additional_context(payload: Mapping[str, object]) -> str | None:
     reminders: list[str] = []
+
+    workflow_reminder = _workflow_reminder(payload)
+    if workflow_reminder:
+        reminders.append(workflow_reminder)
 
     tool_name = payload.get("tool_name")
     if tool_name in COMMAND_TOOL_NAMES:
