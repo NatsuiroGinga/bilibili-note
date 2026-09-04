@@ -34,12 +34,7 @@ import ch3_ft_transformer_field_token_protocol_a as base  # noqa: E402
 # 2026-09-03 曾把测速复刻件的 23,041 当成宿主闭式结果写进文档。
 TIER_DISPLAY = {
     dual.WIDTH_PROFILE_FULL: ("满血档", base.D_TOKEN, base.N_LAYERS),
-    dual.WIDTH_PROFILE_HALF: ("缩容档 half（历史）", dual.HALF_WIDTH_D_TOKEN, base.N_LAYERS),
-    dual.WIDTH_PROFILE_SCREENING_WIDTH56: (
-        "筛选档 width56（当前主用）",
-        dual.SCREENING_WIDTH56_D_TOKEN,
-        base.N_LAYERS,
-    ),
+    dual.WIDTH_PROFILE_HALF: ("缩容档 half（机制筛选主用）", dual.HALF_WIDTH_D_TOKEN, base.N_LAYERS),
 }
 
 
@@ -75,9 +70,12 @@ def describe(path: Path) -> dict[str, object]:
         "验证批序列": training.get("validation_batch_sequences"),
         "抽样": "有" if cfg.get("data", {}).get("entity_subsample") else "无",
         "实体级BCE": on("entity_bce"),
-        "尾部聚合ETA": on("entity_tail_aggregation"),
+        # 配置里的键名是 entity_aggregation（不是 entity_tail_aggregation）——
+        # 2026-09-04 首次使用本工具时因写错键名，把四份配置的 ETA 一律报成「关」，
+        # 并据此误报「机制开关完全相同」。键名以 validate_config 实际读取的为准。
+        "尾部聚合ETA": on("entity_aggregation"),
         "实体排序BER": on("entity_ranking"),
-        "因果记忆CEM": on("entity_memory"),
+        "历史机制": on("entity_memory"),
     }
 
 

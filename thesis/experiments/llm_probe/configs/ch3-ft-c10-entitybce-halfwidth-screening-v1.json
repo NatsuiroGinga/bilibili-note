@@ -1,7 +1,7 @@
 {
   "schema_version": "ch3-ft-c00-dual-selection-config-v1",
   "identity": {
-    "run_id": "ch3-ft-c10-nobase-val20-halfwidth-screening-v1",
+    "run_id": "ch3-ft-c10-entitybce-halfwidth-screening-v1",
     "run_tier": "screening_only",
     "candidate_key": "entity-tail-aggregation-c10-dual-selection",
     "science_contract_version": "ch3-ft-entity-tail-aggregation-science-v1"
@@ -28,7 +28,7 @@
   "paths": {
     "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
     "cardinality_receipt": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-lspr23-field-cardinality-receipt-v1/field-cardinality-receipt.json",
-    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-ft-c10-nobase-val20-halfwidth-screening-v1",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-ft-c10-entitybce-halfwidth-screening-v1",
     "precision_contract": "configs/neural-precision-profiles-v1.json"
   },
   "data": {
@@ -41,7 +41,8 @@
       "T23"
     ],
     "target_reads": 0,
-    "input_candidate": "ft-transformer-input-protocol-vocabulary-token"
+    "input_candidate": "ft-transformer-input-protocol-vocabulary-token",
+    "reuse_input_transform_from": "ch3-ft-c00-halfwidth-screening-v1"
   },
   "model": {
     "role": "bare_ft_transformer",
@@ -66,8 +67,7 @@
       "validation_flow_ap",
       "validation_entity_ap"
     ],
-    "tie_rule": "strict_argmax_earliest",
-    "validation_fraction": 0.2
+    "tie_rule": "strict_argmax_earliest"
   },
   "budget": {
     "state": "frozen",
@@ -75,7 +75,7 @@
     "steps_per_epoch": 1000,
     "validation_every_epochs": 1,
     "probe_optimizer_steps": 1,
-    "basis": "验证划分 0.20（正实体 51，2026-09-04 只读诊断）；10 轮 × 1000 步，读第 8-10 轮均值。0.10 划分下的全部读数已作废，由本组重跑取代。"
+    "basis": "新四格（含共同底座实体级 BCE，w_e=1303 实测标定）；沿用协议 A 冻结划分（validation_fraction=0.10）；10 轮 × 1000 步，读第 8-10 轮均值，与既有 half 档旧四格同口径可比。"
   },
   "checkpoint": {
     "schema_version": "ch3-ft-candidate-unified-checkpoint-v2",
@@ -100,7 +100,7 @@
   "tracking": {
     "mode": "cloud",
     "aggregate_only": true,
-    "group": "ch3-ft-c10-nobase-val20-halfwidth-screening-v1"
+    "group": "ch3-ft-c10-entitybce-halfwidth-screening-v1"
   },
   "mechanism": {
     "entity_aggregation": {
@@ -116,6 +116,11 @@
         "touches_target_labels": false,
         "verification_status": "结构性质已实测核验（见 real_data_diagnostic）；**有效性实验待证**，由本臂与 C11 的正式运行按既有冻结门禁裁决。alpha 随 2026-09-01 裁决报告冻结，任何正式结果产出后不得回调。"
       }
+    },
+    "entity_bce": {
+      "enabled": true,
+      "weight": 1303.0,
+      "aggregation": "tail_mean"
     }
   }
 }
