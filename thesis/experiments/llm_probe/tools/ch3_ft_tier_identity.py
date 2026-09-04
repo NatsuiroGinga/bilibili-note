@@ -34,11 +34,11 @@ import ch3_ft_transformer_field_token_protocol_a as base  # noqa: E402
 # 2026-09-03 曾把测速复刻件的 23,041 当成宿主闭式结果写进文档。
 TIER_DISPLAY = {
     dual.WIDTH_PROFILE_FULL: ("满血档", base.D_TOKEN, base.N_LAYERS),
-    dual.WIDTH_PROFILE_HALF: ("缩容档 half", dual.HALF_WIDTH_D_TOKEN, base.N_LAYERS),
-    dual.WIDTH_PROFILE_LOCAL_SCREENING_SIXTH_WIDTH_SINGLE_LAYER: (
-        "本机档 sixth-width 单层",
-        dual.SIXTH_WIDTH_D_TOKEN,
-        1,
+    dual.WIDTH_PROFILE_HALF: ("缩容档 half（历史）", dual.HALF_WIDTH_D_TOKEN, base.N_LAYERS),
+    dual.WIDTH_PROFILE_SCREENING_WIDTH56: (
+        "筛选档 width56（当前主用）",
+        dual.SCREENING_WIDTH56_D_TOKEN,
+        base.N_LAYERS,
     ),
 }
 
@@ -91,23 +91,10 @@ MUST_MATCH = (
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="并排核对四格配置的档位身份")
-    ap.add_argument("configs", nargs="*", type=Path)
-    ap.add_argument("--all-sixth", action="store_true", help="列出全部本机档配置")
+    ap.add_argument("configs", nargs="+", type=Path)
     args = ap.parse_args()
 
     paths = list(args.configs)
-    if args.all_sixth:
-        for p in sorted(Path("configs").glob("*.json")):
-            try:
-                cfg = json.loads(p.read_text())
-            except Exception:
-                continue
-            if cfg.get("model", {}).get("width_profile") == (
-                dual.WIDTH_PROFILE_LOCAL_SCREENING_SIXTH_WIDTH_SINGLE_LAYER
-            ):
-                paths.append(p)
-    if not paths:
-        ap.error("未指定配置；给出路径或用 --all-sixth")
 
     rows = [describe(p) for p in paths]
     keys = list(rows[0])
