@@ -107,12 +107,19 @@ top-k 尾部聚合第 8 轮 `0.8125102756720405`；连同 C01 v2
 非此前的占位值 `8192`）。运行身份一律含 `entitybce` 字样；
 **与旧四格读数跨套比较一律无效**——两套的 C00 训练目标不同。
 
-| 臂 | 运行身份 | 状态 | 第 8–10 轮均值（实体 AP） |
+**比较口径已冻结（2026-09-04 用户裁决）**：各格按自身配置的 `evaluation.entity_aggregation`
+读数——C00／C01 用 `max`，C10／C11 用 `tail`。该声明起跑前已写进四份配置。
+
+| 臂 | 运行身份 | 状态 | 主读数（第 8–10 轮均值） |
 | --- | --- | --- | ---: |
-| C00 | `ch3-ft-c00-entitybce-halfwidth-screening-v1` | **完成**（`11:59:07`，`exit 0`） | **`0.691031`**（tail 口径 `0.719218`） |
-| C10 | `ch3-ft-c10-entitybce-halfwidth-screening-v1` | 运行中（`11:59:07` 起） | 待出 |
-| C01 | `ch3-ft-c01-entitybce-halfwidth-screening-v1` | 排队 | 待出 |
-| C11 | `ch3-ft-c11-entitybce-halfwidth-screening-v1` | 排队 | 待出 |
+| C00 | `ch3-ft-c00-entitybce-halfwidth-screening-v1` | **完成**（`exit 0`） | `0.691031`（`max`） |
+| **C10** | `ch3-ft-c10-entitybce-halfwidth-screening-v1` | **完成**（`exit 0`） | **`0.796184`（`tail`）＝ `+15.22%`** |
+| C01 | `ch3-ft-c01-entitybce-halfwidth-screening-v1` | 运行中 | 待出（`max`） |
+| C11 | `ch3-ft-c11-entitybce-halfwidth-screening-v1` | 排队 | 待出（`tail`） |
+
+运行目录在服务器 `runs/diagnostics/<运行身份>/`（**不在 `runs/<运行身份>/`**，
+2026-09-04 找路径时踩过一次）。同口径并列读数与措辞边界见
+[第三章定案](../../../thesis/methods/第三章定案.md) §2.2 之二。
 
 实测步速：无 BER 臂 `6.2`–`6.3` 步/秒（新卡比旧 4080 SUPER 的 `3.352` 快 `1.9` 倍），
 单臂约 `31` 分钟；带 BER 臂另计。四臂预计 `15:05` 齐。
