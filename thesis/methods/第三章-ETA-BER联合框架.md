@@ -50,6 +50,24 @@ and difficult to deploy」。
 **本框架据此把 `α` 从冻结常量改为可学参数** `α ∈ (0, 1/2]`，
 经 `S_e(α)` 参与前向、由反传更新。
 
+> **⚠️ 两个 `α` 不是同一个参数，引用时不得混用**（2026-09-04 原件核对）：
+>
+> | | AutoPool 的 `α`（其式 8） | 本课题 ETA 的 `α` |
+> | --- | --- | --- |
+> | 含义 | soft-max 池化的**温度** | **尾部比例** `k_e = max(1, ⌈α·m_e⌉)` |
+> | `α → 0` | 无权**均值** | `k_e = 1`，即 **max** |
+> | 增大 `α` | 趋近 **max**（`α → ∞`） | 趋近**均值**（`α = 1` 取全体） |
+>
+> **方向相反、量纲不同。** 故 AutoPool 的两个正则化装置——CAP（`φ₊ = 0.5` 的显式界）
+> 与 RAP（`α²` 二次惩罚，"promotes mean-like behavior"）——**不能逐字迁移**：
+> 它们抑制的是「向 max 漂移」，而在本课题的参数化下向 max 漂移对应 `α → 0`，
+> 惩罚项的方向须重新推导。
+>
+> **可迁移的是做法层面的结论**：聚合参数应连续可学，并加正则抑制其滑向 max 端点。
+> 原文逐字支撑（`autopool.md` 行 112、159、209、213）：
+> max 池化「sensitive to initialization, generally unstable, and difficult to deploy」；
+> 「Treating `α` as a free parameter to be learned alongside the model parameters `θ`」。
+
 ### 2.2 机制二（软化 BER）：分档软化，温度闭式设定
 
 `【文献】`软化对 `β` 的依赖是**对数**的，硬计数是**线性**的——这是极端 `β` 下
