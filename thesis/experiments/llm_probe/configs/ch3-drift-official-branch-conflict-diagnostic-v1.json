@@ -1,0 +1,26 @@
+{
+  "schema_version": "ch3-drift-official-branch-conflict-diagnostic-v1",
+  "run_identity": "ch3-drift-official-branch-conflict-t17-t18-t19-v1",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "screening_only": true,
+  "data_root": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD",
+  "reference_root": "runs/source-snapshots/2026-DSN-DRIFT-e20d1fdf56c623993966c6786f61c01f91dec6d2",
+  "checkpoint": "runs/models/drift-official-dsn2026/finetuning.pt",
+  "tokenizer": "artifacts/tokenizer/tokenizer-0-30522-both.json",
+  "batch_size": 1024,
+  "evaluation_per_class": 366200,
+  "evaluation_sample_basis": "沿用已登记的95%最坏二项比例半宽样本量，不从T18/T19指标选择",
+  "diagnostic_fpr_anchors": [0.0001, 0.001, 0.002, 0.005, 0.01],
+  "inputs": [
+    {"path": "T17_benign_val.parquet", "year": "T17", "label": 0, "full": true},
+    {"path": "T17_dga_val.parquet", "year": "T17", "label": 1, "full": true},
+    {"path": "T18_benign_test.parquet", "year": "T18", "label": 0, "full": false},
+    {"path": "T18_dga_test.parquet", "year": "T18", "label": 1, "full": false},
+    {"path": "T19_benign_test.parquet", "year": "T19", "label": 0, "full": false},
+    {"path": "T19_dga_test.parquet", "year": "T19", "label": 1, "full": false}
+  ],
+  "counterfactual": {
+    "neutral_feature": "T17良性与DGA合并后的全局分支均值",
+    "basis": "以源侧类无关均值中和单一分支，保持原分类头不变；仅作负迁移诊断，不冒充独立训练单支模型"
+  }
+}

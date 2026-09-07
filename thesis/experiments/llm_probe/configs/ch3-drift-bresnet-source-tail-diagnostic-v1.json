@@ -1,0 +1,52 @@
+{
+  "schema_version": "ch3-drift-bresnet-source-tail-diagnostic-v1",
+  "run_identity": "ch3-drift-bresnet-t17-t18-t19-source-tail-diagnostic-v1",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "screening_only": true,
+  "seed": 42,
+  "data_root": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD",
+  "source_code": "runs/source-snapshots/rwth-explainability-analyzed-dga-models-7efed21b/models/resnet_binary.py",
+  "data": {
+    "train": [
+      {"path": "T17_benign_train.parquet", "year": "T17", "label": 0},
+      {"path": "T17_dga_train.parquet", "year": "T17", "label": 1}
+    ],
+    "evaluation": [
+      {"path": "T17_benign_val.parquet", "year": "T17", "role": "source_validation", "label": 0, "full": true},
+      {"path": "T17_dga_val.parquet", "year": "T17", "role": "source_validation", "label": 1, "full": true},
+      {"path": "T18_benign_test.parquet", "year": "T18", "role": "source_development", "label": 0, "full": false},
+      {"path": "T18_dga_test.parquet", "year": "T18", "role": "source_development", "label": 1, "full": false},
+      {"path": "T19_benign_test.parquet", "year": "T19", "role": "source_confirmation", "label": 0, "full": false},
+      {"path": "T19_dga_test.parquet", "year": "T19", "role": "source_confirmation", "label": 1, "full": false}
+    ]
+  },
+  "model": {
+    "max_length": 253,
+    "vocabulary_size": 40,
+    "embedding_dim": 128,
+    "filters": 128,
+    "kernel_sizes": [4, 4],
+    "pool_size": 4,
+    "basis": "公开 B-ResNet commit 7efed21b8cf12efaf6b2ffb8de3c939319a54f31 的 settings.py 与 models/resnet_binary.py"
+  },
+  "training": {
+    "epochs": 1,
+    "batch_size": 128,
+    "io_rows_per_class": 8192,
+    "optimizer": "adam",
+    "learning_rate": 0.001,
+    "betas": [0.9, 0.999],
+    "epsilon": 1e-7,
+    "weight_decay": 0.0,
+    "cuda_bf16_autocast": true,
+    "basis": "公开 poc_b-resnet.py 固定一轮、batch_size=128、Keras Adam 默认参数；I/O 批量只控制内存与断点粒度"
+  },
+  "sampling": {
+    "evaluation_per_class": 366200,
+    "basis": "沿用已登记的 95% 最坏二项比例半宽样本量，不从 T18/T19 指标选择"
+  },
+  "diagnostic_fpr_anchors": {
+    "values": [0.0001, 0.001, 0.002, 0.005, 0.01],
+    "basis": "仅作源阈值迁移诊断：Woodbridge 1e-4、CharBot 1e-3、Drichel 2023 1e-3至2e-3及实测约5e-3；不等于论文最终预算"
+  }
+}
