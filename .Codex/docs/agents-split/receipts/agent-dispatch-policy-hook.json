@@ -55,13 +55,11 @@
   ],
   "owned_files": [
     ".Codex/hooks/agent_dispatch_guard.py",
-    ".Codex/hooks.json",
     ".Codex/docs/2026-09-07-子代理派发Hook/报告.md",
     ".Codex/docs/agents-split/receipts/agent-dispatch-policy-hook.json"
   ],
   "actual_changed_files": [
     ".Codex/hooks/agent_dispatch_guard.py",
-    ".Codex/hooks.json",
     ".Codex/docs/2026-09-07-子代理派发Hook/报告.md",
     ".Codex/docs/agents-split/receipts/agent-dispatch-policy-hook.json"
   ],
@@ -75,7 +73,7 @@
       "exit_code": 0
     },
     {
-      "command": "合法 Terra、合法 Astra 与缺工作树非法 JSON 经守卫验证",
+      "command": "合法非写入 Sol、合法写入 Terra 与缺工作树非法 JSON 经 --preflight 验证",
       "exit_code": 0
     }
   ],
