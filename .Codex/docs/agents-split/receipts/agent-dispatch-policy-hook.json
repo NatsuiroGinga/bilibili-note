@@ -1,0 +1,87 @@
+{
+  "task": "子代理派发前机械校验 Hook",
+  "agent": "agent_dispatch_policy_hook_terra_high",
+  "model": "gpt-5.6-terra",
+  "effort": "high",
+  "required_skills": [
+    {
+      "name": "agent-identifier",
+      "path": "/Users/bilibili/.agents/skills/agent-identifier/SKILL.md",
+      "sha256": "e4b95d1aa05ed0edf1ddd126ced10998a914b98e8c2931ce788938552fa51a56",
+      "read_at": "2026-09-07T07:47:53Z",
+      "checklist": [
+        {
+          "item": "代理标识规则",
+          "evidence": "据此采用可解析的模型与强度名称后缀。"
+        }
+      ]
+    },
+    {
+      "name": "codex-hook-emulation",
+      "path": "/Users/bilibili/.codex/skills/codex-hook-emulation/SKILL.md",
+      "sha256": "84011df1cfed6e231a29f4c410c3b57c37531add2db662af1742f7f173470be9",
+      "read_at": "2026-09-07T07:47:53Z",
+      "checklist": [
+        {
+          "item": "派发前门禁边界",
+          "evidence": "守卫为确定性标准输入程序，放行时无副作用。"
+        }
+      ]
+    },
+    {
+      "name": "hook-development",
+      "path": "/Users/bilibili/.agents/skills/hook-development/SKILL.md",
+      "sha256": "3db8b26f91d0023caeee6e6e22de896067312423f24f55fbc914260e0247ca06",
+      "read_at": "2026-09-07T07:47:53Z",
+      "checklist": [
+        {
+          "item": "PreToolUse 拒绝输出",
+          "evidence": "拒绝结果使用 hookSpecificOutput.permissionDecision=deny。"
+        }
+      ]
+    },
+    {
+      "name": "daily-coding",
+      "path": "/Users/bilibili/.codex/skills/backup/daily-coding-20260811-112930/SKILL.md",
+      "sha256": "da2399b50859b9d57281b9bc0dc456082db93d47486ae22967ebf3f17d354ae3",
+      "read_at": "2026-09-07T07:47:53Z",
+      "checklist": [
+        {
+          "item": "先读后改与最小变更",
+          "evidence": "已读取现有 Hook 和守卫，仅新增一个守卫及一个匹配器。"
+        }
+      ]
+    }
+  ],
+  "owned_files": [
+    ".Codex/hooks/agent_dispatch_guard.py",
+    ".Codex/hooks.json",
+    ".Codex/docs/2026-09-07-子代理派发Hook/报告.md",
+    ".Codex/docs/agents-split/receipts/agent-dispatch-policy-hook.json"
+  ],
+  "actual_changed_files": [
+    ".Codex/hooks/agent_dispatch_guard.py",
+    ".Codex/hooks.json",
+    ".Codex/docs/2026-09-07-子代理派发Hook/报告.md",
+    ".Codex/docs/agents-split/receipts/agent-dispatch-policy-hook.json"
+  ],
+  "verification": [
+    {
+      "command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile .Codex/hooks/agent_dispatch_guard.py",
+      "exit_code": 0
+    },
+    {
+      "command": "/opt/miniconda3/envs/rwkv/bin/python -m json.tool .Codex/hooks.json",
+      "exit_code": 0
+    },
+    {
+      "command": "合法 Terra、合法 Astra 与缺工作树非法 JSON 经守卫验证",
+      "exit_code": 0
+    }
+  ],
+  "real_run": {
+    "applicable": false,
+    "reason": "未新建真实子代理以避免为验证产生无任务工作；已以 Codex PreToolUse 形状的 JSON 直接验证守卫输出。"
+  },
+  "status": "complete"
+}
