@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "chatgpt-handoff-readonly": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--project",
+        "/absolute/path/to/chatgpt_handoff_mcp",
+        "python",
+        "server.py",
+        "--transport",
+        "stdio",
+        "--project-root",
+        "/absolute/path/to/target-repository"
+      ]
+    }
+  }
+}

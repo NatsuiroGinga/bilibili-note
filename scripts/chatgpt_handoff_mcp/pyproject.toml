@@ -1,0 +1,9 @@
+[project]
+name = "chatgpt-handoff-mcp"
+version = "0.1.0"
+description = "只读 ChatGPT 交接包 MCP 原型"
+requires-python = ">=3.11"
+dependencies = ["mcp>=1.0,<2"]
+
+[tool.uv]
+package = false
