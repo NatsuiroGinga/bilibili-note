@@ -46,7 +46,7 @@
 - 文献、相关工作、路线、实验、正文或跨文档研究判断，先运行 `uv run --project scripts/literature_search --locked python -m scripts.literature_search status --json`，再按唯一作用域执行离线混合查询：论文 `paper`、项目 `project`、实验 `experiment`、正文 `thesis`，明确跨域才用 `all`；该 uv 项目仅是本地文献检索工具环境，不属于实验环境；精确代码和行号之后用 `rg` 补充。
 - 索引不存在或 `stale=true` 时按 `scripts/literature_search/README.md` 重建并复查；模型依赖确实不可用才降级 `lexical` 并披露向量通道未运行。结论记录作用域、模式、索引清单或构建时间、`stale=false` 和关键命中路径。
 - 在线题录、摘要、Google Scholar、OpenAlex、Semantic Scholar、Crossref、Hugging Face 和代码仓库只作候选发现；没有 `raw/` 原件与 `wiki/` 全文笔记的来源不得升级为全文证据，正式纳入时执行 `raw/AGENTS.md` 与 `wiki/AGENTS.md`。
-- 首次使用第三方库或对接口、属性、参数名不确定时，先核验目标环境实际版本，再查该版本官方文档或 Context7，记录库名、版本、来源和已核验签名。语法或导入通过不能证明运行时接口存在，事故细节留在专用故障手册。
+- 首次用第三方库或接口不确定时，核验目标版本并查官方文档或 Context7，记录库、版本、来源和签名。语法/导入通过不能证明运行时接口存在，事故细节留专用手册。
 
 ## 协作代理独立复核
 
@@ -56,7 +56,8 @@
 
 ## 实施、技能与验证
 
-- 非平凡多步骤任务、实现或缺陷修复按 `planning-with-files`、`writing-plans`、`subagent-driven-development`、`daily-coding` 执行，在 `.Codex/docs/` 保存计划、发现和交付物；计划写明边界、文件范围、验收命令、制品路径和阻塞条件，仅在新证据改变范围时修订。主代理负责计划、文件所有权、交接和最终验收，同一任务范围同一时间只允许一个实现代理修改。
+- 非平凡实现/修复按 `planning-with-files`、`writing-plans`、`subagent-driven-development`、`daily-coding` 执行；在 `.Codex/docs/` 留边界、文件、验收、制品和阻塞计划。主代理管所有权/交接/验收，每范围只一实现代理。
+- 生产代码子代理简报须列 `required_skills` 和唯一收据；改码前登记技能绝对路径、SHA256、读取时刻，交付逐项证据。主代理只运行一次验证器；缺失、漂移或越权退原代理，不重审且不阻塞实验。
 - 新研究机制、模型结构、公式或数据合同用 `research-ideation` 后再 `brainstorming`；常规启动、重复运行、参数扫描、结果查询、只读诊断和根因明确的修复不得重开冻结合同。
 - 缺陷或异常同时用 `systematic-debugging` 与 `bug-detective`，先定位根因，提出一个可证伪假设，一次只改一个变量。回归验证形式服从近层实验规则；连续三次基于新证据的修复仍失败时停止补丁并讨论架构。
 - 实验产出写入结论前执行 `results-analysis` 和 `results-report`；论文、图表、知识库和 Git 任务读取相应近层规则与技能。技能只提供工作流，不裁决研究路线、数据合同、候选存废或实验结论。

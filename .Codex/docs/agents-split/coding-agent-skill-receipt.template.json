@@ -1,0 +1,20 @@
+{
+  "task": "简短任务名",
+  "agent": "可读代理名",
+  "model": "完整模型名",
+  "effort": "实际强度",
+  "required_skills": [
+    {
+      "name": "daily-coding",
+      "path": "/absolute/path/to/SKILL.md",
+      "sha256": "64位小写十六进制哈希",
+      "read_at": "2026-09-07T00:00:00Z",
+      "checklist": [{"item": "先读后改", "evidence": "说明或路径"}]
+    }
+  ],
+  "owned_files": ["relative/path.py"],
+  "actual_changed_files": ["relative/path.py"],
+  "verification": [{"command": "python -m py_compile relative/path.py", "exit_code": 0}],
+  "real_run": {"applicable": false, "reason": "尚未进入真实运行阶段"},
+  "status": "complete"
+}
