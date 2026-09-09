@@ -8,7 +8,7 @@
 
 ## 唯一恢复链
 
-严格按 [LAMDA 路线规则](AGENTS.md)、[原始 PDF](../../../raw/papers/datasets/2026-Haque-LAMDA-Android-Malware-Concept-Drift.pdf)、[结构化全文笔记](../../../wiki/papers/datasets/2026-Haque-LAMDA-Android恶意软件长期漂移基准.md)、[领域综述](../../../wiki/papers/malware/LAMDA-2026-原论文与时间漂移相关工作综述.md)、[朱焱雷第三章构思分析](../../../thesis/methods/第三章-朱焱雷第三章机制构思与创新声明分析.md)、[LAMDA 第三章恢复卡](LAMDA第三章恢复卡.md) 恢复。除该链外，不加载其他路线恢复文档。
+严格按 [LAMDA 路线规则](AGENTS.md)、[原始 PDF](../../../raw/papers/datasets/2026-Haque-LAMDA-Android-Malware-Concept-Drift.pdf)、[结构化全文笔记](../../../wiki/papers/datasets/2026-Haque-LAMDA-Android恶意软件长期漂移基准.md)、[领域综述](../../../wiki/papers/malware/LAMDA-2026-原论文与时间漂移相关工作综述.md)、[朱焱雷第三章构思分析](../../../thesis/methods/第三章-朱焱雷第三章机制构思与创新声明分析.md)、[候选方案统一筛选台账](../../../thesis/methods/第三章-LAMDA候选方案统一筛选台账.md)、[LAMDA 第三章恢复卡](LAMDA第三章恢复卡.md) 恢复。除该链外，不加载其他路线恢复文档。
 
 ## 冻结数据身份与披露边界
 
@@ -50,7 +50,8 @@
 - 封印期 `2018--2025` 只在来源／开发期筛选完成后作一次评价；此前 `2020--2025` 筛查制品只作探索证据，不得回灌候选选择。
 
 - 阶段 C 已按上述合同完成来源／开发期四臂筛查：`ER+M`、`ER+O`、`ER+M+O` 均未通过开发期门槛，联合臂无互补收益；详见 `.Codex/docs/2026-09-09-LAMDA决策角色记忆双侧修复/analysis/analysis-report.md`。当前应停止这套等配额角色轮转＋等单位风险损失实现，不进入封印年。
-- 缺口感知条件风险门控四臂筛选已启动：运行身份 `ch3-lamda-gap-repair-screening-seed42-v1`，远端已完成入口启动并推进到 `experience_replay` 的 2013 年第 `1/10` 轮；该运行只作来源／开发期 `screening_only`，不读取 `2018--2025`。
+- 缺口感知条件风险门控四臂筛选已完成：运行身份 `ch3-lamda-gap-repair-screening-seed42-v1`，独立复算和分析包已回收；缺口修复、条件门控及联合实现均未通过开发期安全门，详见 `.Codex/docs/2026-09-09-LAMDA缺口修复/analysis/analysis-report.md`。不读取 `2018--2025`。
+- PCT/FPR gate 本机预筛已完成：入口 `ch3_lamda_pct_screening.py`、配置、PCT/Cotter/Kumar 原件和结构化笔记均已入库；四臂仅枚举 `2013/2014/2016/2017`，实际设备为 CPU，开发期独立分析将 PCT、缺口修复及联合臂标为不通过，不启动 CUDA 或封印年，详见 `.Codex/docs/2026-09-09-LAMDA-PCT-FPR门控/analysis/analysis-report.md`。
 - 开发期无重训阈值诊断仅得到边界级变化（F1 `+0.000079785`），不能作为下一机制；后续候选必须从新的源年病灶和全文方法证据提出。
 - 双风险梯度投影筛查已完成：FPR 和旧恶意负向翻转下降，但 FNR/AP 变差；它只能作为安全保持侧基线，不能单独形成第三章主方法，详见 `.Codex/docs/2026-09-09-LAMDA双风险梯度投影/analysis-report.md`。
 - 已实际启动一次真正的 ChatGPT Deep Research 增量检索（任务标识 `WEB:40805147-727c-4418-ae67-b5a9044ad760`），主题为“低 FPR 约束下的恶意漏判修复”；结果未回收前不改变候选排序或合同。

@@ -96,6 +96,8 @@
 - PCT＋FPR gate 四臂本机预筛已完成，服务器 CUDA 运行未启动；入口、原件、预筛分析和拒绝理由见 [PCT 分析报告](../2026-09-09-LAMDA-PCT-FPR门控/analysis/analysis-report.md)。
 - 双玩家速率约束四臂 MPS 预筛已启动，运行身份为 `ch3-lamda-dual-player-screening-mps-seed42-v1`；实际设备收据为 `mps` 且 `mps_available=true`。截至 `2026-09-09T09:09:32Z`，ER 与缺口修复两臂已完成 `2013/2014/2016/2017`，正在进入双玩家单臂和联合臂；封印年未读取，结果尚未裁决。
 - 双玩家速率约束 v1 实现已完成但标记为 `reject_implementation`：2014 年 `lambda_benign` 约 `225.14` 后双玩家与联合臂 pooled FPR 均为 `1.0`、FNR 为 `0.0`，联合臂后续缺口候选数为 `0`，没有形成有效交互。该失败来自按批次乘子累加和代理定义，不否定双玩家抽象；v1 读数仅用于根因记录，不能进入候选排序。
+- 双玩家速率约束 v2 MPS 复筛已完成：运行身份 `ch3-lamda-dual-player-screening-mps-seed42-v2`，`runtime-receipt.json` 实测 `device=mps`、`required_device=mps`、`mps_available=true`；`status.json` 于 `2026-09-09T09:37:47Z` 标记 `completed`，墙钟 `874.327` 秒，峰值 RSS 约 `1.83` GB（`platform_dependent`）。`run-manifest.json` 断言仅枚举 `2013/2014/2016/2017`，封印年 `2018--2025` 未读取；状态字段披露 `published_feature_space_uses_future_covariates=true`。
+- v2 `development-summary.json` 单年（current year 2017）初读 AP/FPR/FNR：ER `0.9871/0.0133/0.0553`、双玩家 `0.9874/0.0120/0.0608`、缺口修复 `0.9515/0.1447/0.0411`、联合臂 `0.9593/0.1133/0.0437`。联合臂未复现 v1 的全恶意塌缩（FPR 非 `1.0`），但该年 FPR 显著高于 ER。逐年 pooled、负向翻转与正向修复分解的独立分析未完成，按合同不得据本初读改变候选排序或进入封印年；`screening_only=true`。`prediction_sha256` 经源码核对（`ch3_lamda_dual_player_screening.py:371`）为样本身份清单哈希，四臂同值为同一评价集合的正常断言，非分数哈希相同。
 - 已按“本机先筛、服务器后正式确认”的新规则完成预筛身份 `ch3-lamda-pct-fpr-screening-mps-seed42-v1`；状态收据于 `2026-09-09T08:28:02Z` 标记 `completed`，四臂均枚举来源年 `2013/2014` 与开发年 `2016/2017`，封印年未读取。实际运行收据记录设备为 `cpu`（`torch=2.12.0`、`mps_built=true`、本轮 `mps_available=false`），总墙钟 `629.0021` 秒（约 10 分 29 秒），因此不得称为 MPS 速度或 CUDA 结果。该运行仅用于候选筛选，不续训 CUDA 权重、不替代服务器结果；独立分析完成前不得据其指标改变候选排序或启动封印年评价。服务器新端口信息暂存，待本机候选通过后再连接。
 
 ## 为什么成熟方法移植后未通过（2026-09-09）
