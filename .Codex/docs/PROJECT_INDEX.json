@@ -1,199 +1,98 @@
 {
-  "schema_version":"project-index-v2",
-  "content_manifest_sha256":"d611b91127b748393e45df7673eba357c7f2e37085dfd18f917ac38b1f214e81",
-  "generated_at":1788761861,
-  "manual":{},
-  "entries":[
+  "schema_version": "project-index-v2",
+  "content_manifest_sha256": "d611b91127b748393e45df7673eba357c7f2e37085dfd18f917ac38b1f214e81",
+  "generated_at": 1788761861,
+  "manual": {},
+  "entries": [
     {
-      "path":".Codex/docs/RWKV/RWKV第三章恢复卡.md",
-      "role":"第三章恢复",
-      "status":"当前",
-      "priority":"P0",
-      "summary":"顶部方向重置；旧FT/ETA-BER仅历史",
-      "generated":false
+      "path": ".Codex/docs/LAMDA/AGENTS.md",
+      "role": "LAMDA局部规则",
+      "status": "当前",
+      "priority": "P0",
+      "summary": "唯一恢复链与路线隔离边界",
+      "generated": false
     },
     {
-      "path":"thesis/methods/第三章-数据模型机制统一候选筛选台账.md",
-      "role":"候选状态",
-      "status":"当前",
-      "priority":"P0",
-      "summary":"第三章候选唯一状态入口",
-      "generated":false
+      "path": ".Codex/docs/LAMDA/LAMDA路线总控.md",
+      "role": "路线边界",
+      "status": "当前",
+      "priority": "P0",
+      "summary": "数据身份、未来协变量披露与有向机制门",
+      "generated": false
     },
     {
-      "path":".Codex/docs/RWKV/RWKV路线总控.md",
-      "role":"公共边界",
-      "status":"当前",
-      "priority":"P1",
-      "summary":"RWKV路线恢复与跨章约束",
-      "generated":false
+      "path": ".Codex/docs/LAMDA/LAMDA第三章恢复卡.md",
+      "role": "第三章恢复",
+      "status": "当前",
+      "priority": "P0",
+      "summary": "资格筛查已完成，研究设计待冻结",
+      "generated": false
     },
     {
-      "path":"AGENTS.md",
-      "role":"全仓规则",
-      "status":"当前",
-      "priority":"P0",
-      "summary":"证据、隔离、种子与Astra门",
-      "generated":false
+      "path": "raw/papers/datasets/2026-Haque-LAMDA-Android-Malware-Concept-Drift.pdf",
+      "role": "原始证据",
+      "status": "当前",
+      "priority": "P0",
+      "summary": "LAMDA 原论文全文",
+      "generated": false
     },
     {
-      "path":".Codex/docs/2026-09-07-长Goal规则迁移/报告.md",
-      "role":"长Goal合同",
-      "status":"当前",
-      "priority":"P0",
-      "summary":"泛化轴、强基线、2x2和止损",
-      "generated":true
+      "path": "wiki/papers/datasets/2026-Haque-LAMDA-Android恶意软件长期漂移基准.md",
+      "role": "结构化证据",
+      "status": "当前",
+      "priority": "P0",
+      "summary": "数据版本与未来协变量边界",
+      "generated": false
     },
     {
-      "path":".Codex/docs/2026-09-07-DRIFT零训练数据探针/可行性报告.md",
-      "role":"数据门",
-      "status":"进行中",
-      "priority":"P1",
-      "summary":"DRIFT资格与零训练前提",
-      "generated":true
+      "path": "wiki/papers/malware/LAMDA-2026-原论文与时间漂移相关工作综述.md",
+      "role": "文献综述",
+      "status": "当前",
+      "priority": "P1",
+      "summary": "原论文持续学习合同与直接近邻待核",
+      "generated": false
     },
     {
-      "path":".Codex/docs/2026-09-07-跨年数据集替代调研/数据集比较综述.md",
-      "role":"数据候选",
-      "status":"当前",
-      "priority":"P1",
-      "summary":"真实网络安全泛化轴候选",
-      "generated":true
+      "path": "thesis/experiments/llm_probe/tools/ch3_lamda_source_near_screening.py",
+      "role": "资格探针工具",
+      "status": "已完成",
+      "priority": "P1",
+      "summary": "published 特征空间的 screening_only 资格探针",
+      "generated": false
     },
     {
-      "path":".Codex/docs/2026-09-07-RWKV8-ROSA-DeepEmbed候选审查/候选机制综述与实验建议.md",
-      "role":"机制来源",
-      "status":"待核",
-      "priority":"P1",
-      "summary":"ROSA等机制的可试性",
-      "generated":true
+      "path": ".Codex/docs/2026-09-08-下一候选网络安全数据集筛选/lamda-screening-implementation-report.md",
+      "role": "资格探针实施报告",
+      "status": "已完成",
+      "priority": "P1",
+      "summary": "仅支持时间退化余量，不是无泄漏基线",
+      "generated": false
     },
     {
-      "path":".Codex/docs/2026-09-07-DRIFT零训练双探针/实现报告.md",
-      "role":"实现证据",
-      "status":"待核",
-      "priority":"P0",
-      "summary":"仅静态检查，无真实结果",
-      "generated":true
+      "path": "thesis/methods/第三章-朱焱雷第三章机制构思与创新声明分析.md",
+      "role": "构思参照",
+      "status": "当前",
+      "priority": "P1",
+      "summary": "机制来源与章节论证边界",
+      "generated": false
     },
     {
-      "path":".Codex/docs/2026-09-07-DRIFT引用与方法前沿/notes.md",
-      "role":"文献阶段记录",
-      "status":"进行中",
-      "priority":"P1",
-      "summary":"仅已落盘阶段结论",
-      "generated":true
+      "path": ".Codex/docs/LAMDA/LAMDA第三章研究卡.md",
+      "role": "研究卡",
+      "status": "待生成",
+      "priority": "P0",
+      "summary": "完成持续学习合同与近邻核验后创建",
+      "generated": false
     },
     {
-      "path":"thesis/experiments/llm_probe/tools/ch3_drift_rosa_deepembed_probe.py",
-      "role":"零训练探针",
-      "status":"待核",
-      "priority":"P0",
-      "summary":"pilot后才可冻结正式抽样",
-      "generated":false
-    },
-    {
-      "path":"thesis/experiments/llm_probe/configs/ch3-drift-t17-t25-rosa-deepembed-coverage-probe-v1.json",
-      "role":"探针配置",
-      "status":"当前",
-      "priority":"P0",
-      "summary":"DRIFT revision和四分面声明",
-      "generated":false
-    },
-    {
-      "path":"tools/update_project_index.py",
-      "role":"索引生成器",
-      "status":"当前",
-      "priority":"P1",
-      "summary":"幂等刷新、脏标记和会话结束回退",
-      "generated":false
-    },
-    {
-      "path":"thesis/experiments/llm_probe/tools/INDEX.md",
-      "role":"代码导航",
-      "status":"当前",
-      "priority":"P1",
-      "summary":"工具职责索引",
-      "generated":true
-    },
-    {
-      "path":"thesis/methods/第三章定案.md",
-      "role":"旧路线追溯",
-      "status":"历史",
-      "priority":"P2",
-      "summary":"不指挥当前实验",
-      "generated":false
-    },
-    {
-      "path":"wiki/INDEX.md",
-      "role":"已入库文献",
-      "status":"当前",
-      "priority":"P1",
-      "summary":"结构化全文笔记导航",
-      "generated":true
-    },
-    {
-      "path":"wiki/papers/rwkv/INDEX.md",
-      "role":"RWKV文献",
-      "status":"当前",
-      "priority":"P1",
-      "summary":"RWKV原件与笔记",
-      "generated":true
-    },
-    {
-      "path":".Codex/docs/AGENTS.md",
-      "role":"过程规则",
-      "status":"当前",
-      "priority":"P0",
-      "summary":"过程文档与敏感边界",
-      "generated":false
-    },
-    {
-      "path":".Codex/docs/RWKV/AGENTS.md",
-      "role":"RWKV局部规则",
-      "status":"当前",
-      "priority":"P0",
-      "summary":"恢复与追溯条件",
-      "generated":false
-    },
-    {
-      "path":".Codex/docs/2026-09-07-第三章恢复卡方向重置/报告.md",
-      "role":"迁移收据",
-      "status":"当前",
-      "priority":"P1",
-      "summary":"方向重置核验",
-      "generated":true
-    },
-    {
-      "path":".Codex/docs/RWKV/2026-09-04-第三章恢复卡过期内容归档.md",
-      "role":"历史证据",
-      "status":"归档",
-      "priority":"P3",
-      "summary":"旧候选与操作追溯",
-      "generated":false
+      "path": ".Codex/docs/LAMDA/LAMDA第三章研究计划.md",
+      "role": "研究计划",
+      "status": "待生成",
+      "priority": "P0",
+      "summary": "研究卡冻结后创建，不代表文件已存在",
+      "generated": false
     }
   ],
-  "unclassified_count":2264,
-  "unclassified_paths":[
-    ".Codex/docs/2026-07-17-生成式恶意流量探针实验设计.md",
-    ".Codex/docs/2026-07-18-H1正式裁决实验记录.md",
-    ".Codex/docs/2026-07-19-DEDALE后台下载任务计划.md",
-    ".Codex/docs/2026-07-19-DEDALE后台下载过程笔记.md",
-    ".Codex/docs/2026-07-19-Hugging-Face-发布审计报告.md",
-    ".Codex/docs/2026-07-19-Hugging-Face-发布审计笔记.md",
-    ".Codex/docs/2026-07-19-Hugging-Face-发布审计计划.md",
-    ".Codex/docs/2026-07-19-Hugging-Face-数据卡草案.md",
-    ".Codex/docs/2026-07-19-Hugging-Face-模型卡草案.md",
-    ".Codex/docs/2026-07-19-Qwen分层多分类与开放集实现计划.md",
-    ".Codex/docs/2026-07-19-Qwen分层多分类与开放集裁决设计.md",
-    ".Codex/docs/2026-07-19-SwanLab网页无图表官方文档核查-计划.md",
-    ".Codex/docs/2026-07-19-SwanLab网页无图表官方文档核查-过程笔记.md",
-    ".Codex/docs/2026-07-19-SwanLab网页无图表官方文档核查.md",
-    ".Codex/docs/2026-07-19-后台数据集下载记录.md",
-    ".Codex/docs/2026-07-19-生成式大模型网络流量安全论文研读-计划.md",
-    ".Codex/docs/2026-07-19-生成式大模型网络流量安全论文研读-过程笔记.md",
-    ".Codex/docs/2026-07-19-生成式大模型网络流量安全论文研读.md",
-    ".Codex/docs/2026-07-19-第一创新点收敛实验计划.md",
-    ".Codex/docs/2026-07-20-DEDALE解压与标签关联准备.md"
-  ]
+  "unclassified_count": 0,
+  "unclassified_paths": []
 }
