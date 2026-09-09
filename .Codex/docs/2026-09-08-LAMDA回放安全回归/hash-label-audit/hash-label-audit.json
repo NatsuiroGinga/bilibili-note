@@ -1,0 +1,329 @@
+{
+  "audit_version": 1,
+  "audit_scope": {
+    "mode": "screening_only",
+    "cpu_only": true,
+    "projected_columns": [
+      "hash",
+      "label",
+      "year_month"
+    ],
+    "feature_columns_read": false,
+    "future_feature_access": false,
+    "raw_hash_values_written": false
+  },
+  "input": {
+    "dataset_id": "lamda-iclr2026-baseline-ad9614bdd5556767",
+    "revision": "ad9614bdd5556767f97ced2fce797c2f06408ebf",
+    "manifest_sha256": "9ea0aa7ef45ac79a82cb9626c1d9b3a0a1df0928922b4dc834f4a2fd93d8e65e",
+    "data_root": "thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "file_count": 24,
+    "years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "rows_declared_by_manifest": 1008381
+  },
+  "counts": {
+    "total_rows": 1008381,
+    "nonnull_hash_rows": 1008381,
+    "null_hash_rows": 0,
+    "unique_non_null_hashes": 1008381,
+    "duplicate_rows_global": 0,
+    "duplicate_hashes_global": 0,
+    "duplicate_rows_within_file": 0,
+    "cross_year_hashes": 0,
+    "cross_year_rows": 0,
+    "cross_year_split_overlap_hashes": 0,
+    "label_conflict_hashes_any_year": 0,
+    "within_year_label_conflict_hashes": 0,
+    "cross_year_label_conflict_hashes": 0,
+    "invalid_label_rows": 0,
+    "null_year_month_rows": 0,
+    "year_month_directory_mismatch_rows": 0
+  },
+  "split_overlap_by_year": {
+    "2013": 0,
+    "2014": 0,
+    "2016": 0,
+    "2017": 0,
+    "2018": 0,
+    "2019": 0,
+    "2020": 0,
+    "2021": 0,
+    "2022": 0,
+    "2023": 0,
+    "2024": 0,
+    "2025": 0
+  },
+  "year_month_cardinality": {
+    "2013": 5,
+    "2014": 8,
+    "2016": 11,
+    "2017": 11,
+    "2018": 12,
+    "2019": 12,
+    "2020": 12,
+    "2021": 12,
+    "2022": 12,
+    "2023": 12,
+    "2024": 12,
+    "2025": 1
+  },
+  "files": [
+    {
+      "path": "Baseline/2013/2013_train.parquet",
+      "year": 2013,
+      "split": "train",
+      "rows": 69144,
+      "unique_non_null_hashes": 69144,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 11092987
+    },
+    {
+      "path": "Baseline/2013/2013_test.parquet",
+      "year": 2013,
+      "split": "test",
+      "rows": 17287,
+      "unique_non_null_hashes": 17287,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 5038968
+    },
+    {
+      "path": "Baseline/2014/2014_train.parquet",
+      "year": 2014,
+      "split": "train",
+      "rows": 80946,
+      "unique_non_null_hashes": 80946,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 12487482
+    },
+    {
+      "path": "Baseline/2014/2014_test.parquet",
+      "year": 2014,
+      "split": "test",
+      "rows": 20237,
+      "unique_non_null_hashes": 20237,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 5443399
+    },
+    {
+      "path": "Baseline/2016/2016_train.parquet",
+      "year": 2016,
+      "split": "train",
+      "rows": 87354,
+      "unique_non_null_hashes": 87354,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 14398505
+    },
+    {
+      "path": "Baseline/2016/2016_test.parquet",
+      "year": 2016,
+      "split": "test",
+      "rows": 21839,
+      "unique_non_null_hashes": 21839,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 5960131
+    },
+    {
+      "path": "Baseline/2017/2017_train.parquet",
+      "year": 2017,
+      "split": "train",
+      "rows": 79315,
+      "unique_non_null_hashes": 79315,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 13354470
+    },
+    {
+      "path": "Baseline/2017/2017_test.parquet",
+      "year": 2017,
+      "split": "test",
+      "rows": 19829,
+      "unique_non_null_hashes": 19829,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 5649193
+    },
+    {
+      "path": "Baseline/2018/2018_train.parquet",
+      "year": 2018,
+      "split": "train",
+      "rows": 83433,
+      "unique_non_null_hashes": 83433,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 15607825
+    },
+    {
+      "path": "Baseline/2018/2018_test.parquet",
+      "year": 2018,
+      "split": "test",
+      "rows": 20859,
+      "unique_non_null_hashes": 20859,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 6262941
+    },
+    {
+      "path": "Baseline/2019/2019_train.parquet",
+      "year": 2019,
+      "split": "train",
+      "rows": 72840,
+      "unique_non_null_hashes": 72840,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 15690934
+    },
+    {
+      "path": "Baseline/2019/2019_test.parquet",
+      "year": 2019,
+      "split": "test",
+      "rows": 18210,
+      "unique_non_null_hashes": 18210,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 6261497
+    },
+    {
+      "path": "Baseline/2020/2020_train.parquet",
+      "year": 2020,
+      "split": "train",
+      "rows": 81658,
+      "unique_non_null_hashes": 81658,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 18017553
+    },
+    {
+      "path": "Baseline/2020/2020_test.parquet",
+      "year": 2020,
+      "split": "test",
+      "rows": 20415,
+      "unique_non_null_hashes": 20415,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 6887534
+    },
+    {
+      "path": "Baseline/2021/2021_train.parquet",
+      "year": 2021,
+      "split": "train",
+      "rows": 64924,
+      "unique_non_null_hashes": 64924,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 16466550
+    },
+    {
+      "path": "Baseline/2021/2021_test.parquet",
+      "year": 2021,
+      "split": "test",
+      "rows": 16231,
+      "unique_non_null_hashes": 16231,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 6488711
+    },
+    {
+      "path": "Baseline/2022/2022_train.parquet",
+      "year": 2022,
+      "split": "train",
+      "rows": 69132,
+      "unique_non_null_hashes": 69132,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 16479514
+    },
+    {
+      "path": "Baseline/2022/2022_test.parquet",
+      "year": 2022,
+      "split": "test",
+      "rows": 17284,
+      "unique_non_null_hashes": 17284,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 6489157
+    },
+    {
+      "path": "Baseline/2023/2023_train.parquet",
+      "year": 2023,
+      "split": "train",
+      "rows": 43483,
+      "unique_non_null_hashes": 43483,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 11087033
+    },
+    {
+      "path": "Baseline/2023/2023_test.parquet",
+      "year": 2023,
+      "split": "test",
+      "rows": 10871,
+      "unique_non_null_hashes": 10871,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 5069927
+    },
+    {
+      "path": "Baseline/2024/2024_train.parquet",
+      "year": 2024,
+      "split": "train",
+      "rows": 38741,
+      "unique_non_null_hashes": 38741,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 9765856
+    },
+    {
+      "path": "Baseline/2024/2024_test.parquet",
+      "year": 2024,
+      "split": "test",
+      "rows": 9686,
+      "unique_non_null_hashes": 9686,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 4707670
+    },
+    {
+      "path": "Baseline/2025/2025_train.parquet",
+      "year": 2025,
+      "split": "train",
+      "rows": 35730,
+      "unique_non_null_hashes": 35730,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 9096942
+    },
+    {
+      "path": "Baseline/2025/2025_test.parquet",
+      "year": 2025,
+      "split": "test",
+      "rows": 8933,
+      "unique_non_null_hashes": 8933,
+      "null_hash_rows": 0,
+      "invalid_label_rows": 0,
+      "bytes": 4525089
+    }
+  ],
+  "runtime": {
+    "batch_size": 65536,
+    "wall_seconds": 3.191
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "archive_repo": "https://huggingface.co/Heehobino/lspr-route-weights-archive-20260909",
+  "archive_commit": "27403952ec67ff6854b6ca5c9a8cb14658eae6be",
+  "expected_weight_count": 158,
+  "remote_hf_weight_count": 158,
+  "local_remote_sha256_mismatch": 0,
+  "remote_exact_list_count": 158,
+  "remote_present_before_delete": 0,
+  "remote_present_after_delete": 0,
+  "lamda_data_preserved": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+  "lamda_status_preserved": "ch3-lamda-domain-il-naive-replay-screening-seed42-v1 completed",
+  "remote_old_pt_count_after_delete": 0,
+  "disk_after": "41% used, 60G available",
+  "recorded_at_utc": "2026-09-09T03:36:27Z"
+}

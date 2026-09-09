@@ -1,0 +1,1484 @@
+{
+  "audit_version": 1,
+  "input": {
+    "dataset_id": "lamda-iclr2026-baseline-ad9614bdd5556767",
+    "revision": "ad9614bdd5556767f97ced2fce797c2f06408ebf",
+    "manifest_sha256": "9ea0aa7ef45ac79a82cb9626c1d9b3a0a1df0928922b4dc834f4a2fd93d8e65e"
+  },
+  "scope": {
+    "cpu_only": true,
+    "projected_columns": [
+      "year_month",
+      "label"
+    ],
+    "feature_columns_read": false,
+    "screening_only": true
+  },
+  "by_year_month": {
+    "2013": {
+      "2013-06": {
+        "train": {
+          "benign": 18826,
+          "malware": 10062,
+          "total": 28888
+        },
+        "test": {
+          "benign": 4675,
+          "malware": 2486,
+          "total": 7161
+        }
+      },
+      "2013-09": {
+        "train": {
+          "benign": 1872,
+          "malware": 2126,
+          "total": 3998
+        },
+        "test": {
+          "benign": 494,
+          "malware": 560,
+          "total": 1054
+        }
+      },
+      "2013-10": {
+        "train": {
+          "benign": 5152,
+          "malware": 7961,
+          "total": 13113
+        },
+        "test": {
+          "benign": 1283,
+          "malware": 1983,
+          "total": 3266
+        }
+      },
+      "2013-11": {
+        "train": {
+          "benign": 4013,
+          "malware": 11587,
+          "total": 15600
+        },
+        "test": {
+          "benign": 973,
+          "malware": 2889,
+          "total": 3862
+        }
+      },
+      "2013-12": {
+        "train": {
+          "benign": 3775,
+          "malware": 3770,
+          "total": 7545
+        },
+        "test": {
+          "benign": 985,
+          "malware": 959,
+          "total": 1944
+        }
+      }
+    },
+    "2014": {
+      "2014-01": {
+        "train": {
+          "benign": 1731,
+          "malware": 1077,
+          "total": 2808
+        },
+        "test": {
+          "benign": 444,
+          "malware": 240,
+          "total": 684
+        }
+      },
+      "2014-02": {
+        "train": {
+          "benign": 1724,
+          "malware": 3834,
+          "total": 5558
+        },
+        "test": {
+          "benign": 431,
+          "malware": 992,
+          "total": 1423
+        }
+      },
+      "2014-03": {
+        "train": {
+          "benign": 1636,
+          "malware": 2566,
+          "total": 4202
+        },
+        "test": {
+          "benign": 418,
+          "malware": 623,
+          "total": 1041
+        }
+      },
+      "2014-04": {
+        "train": {
+          "benign": 1265,
+          "malware": 1257,
+          "total": 2522
+        },
+        "test": {
+          "benign": 340,
+          "malware": 282,
+          "total": 622
+        }
+      },
+      "2014-05": {
+        "train": {
+          "benign": 3363,
+          "malware": 10290,
+          "total": 13653
+        },
+        "test": {
+          "benign": 863,
+          "malware": 2627,
+          "total": 3490
+        }
+      },
+      "2014-06": {
+        "train": {
+          "benign": 9571,
+          "malware": 7942,
+          "total": 17513
+        },
+        "test": {
+          "benign": 2413,
+          "malware": 1912,
+          "total": 4325
+        }
+      },
+      "2014-07": {
+        "train": {
+          "benign": 22179,
+          "malware": 7835,
+          "total": 30014
+        },
+        "test": {
+          "benign": 5504,
+          "malware": 2027,
+          "total": 7531
+        }
+      },
+      "2014-08": {
+        "train": {
+          "benign": 2872,
+          "malware": 1804,
+          "total": 4676
+        },
+        "test": {
+          "benign": 673,
+          "malware": 448,
+          "total": 1121
+        }
+      }
+    },
+    "2016": {
+      "2016-02": {
+        "train": {
+          "benign": 6291,
+          "malware": 5867,
+          "total": 12158
+        },
+        "test": {
+          "benign": 1557,
+          "malware": 1522,
+          "total": 3079
+        }
+      },
+      "2016-03": {
+        "train": {
+          "benign": 3560,
+          "malware": 18540,
+          "total": 22100
+        },
+        "test": {
+          "benign": 916,
+          "malware": 4625,
+          "total": 5541
+        }
+      },
+      "2016-04": {
+        "train": {
+          "benign": 40805,
+          "malware": 3576,
+          "total": 44381
+        },
+        "test": {
+          "benign": 10188,
+          "malware": 928,
+          "total": 11116
+        }
+      },
+      "2016-05": {
+        "train": {
+          "benign": 115,
+          "malware": 2356,
+          "total": 2471
+        },
+        "test": {
+          "benign": 33,
+          "malware": 574,
+          "total": 607
+        }
+      },
+      "2016-06": {
+        "train": {
+          "benign": 366,
+          "malware": 760,
+          "total": 1126
+        },
+        "test": {
+          "benign": 91,
+          "malware": 189,
+          "total": 280
+        }
+      },
+      "2016-07": {
+        "train": {
+          "benign": 73,
+          "malware": 1204,
+          "total": 1277
+        },
+        "test": {
+          "benign": 14,
+          "malware": 299,
+          "total": 313
+        }
+      },
+      "2016-08": {
+        "train": {
+          "benign": 9,
+          "malware": 2308,
+          "total": 2317
+        },
+        "test": {
+          "benign": 3,
+          "malware": 540,
+          "total": 543
+        }
+      },
+      "2016-09": {
+        "train": {
+          "benign": 1,
+          "malware": 584,
+          "total": 585
+        },
+        "test": {
+          "benign": 2,
+          "malware": 142,
+          "total": 144
+        }
+      },
+      "2016-10": {
+        "train": {
+          "benign": 15,
+          "malware": 791,
+          "total": 806
+        },
+        "test": {
+          "benign": 6,
+          "malware": 182,
+          "total": 188
+        }
+      },
+      "2016-11": {
+        "train": {
+          "benign": 9,
+          "malware": 96,
+          "total": 105
+        },
+        "test": {
+          "benign": 1,
+          "malware": 23,
+          "total": 24
+        }
+      },
+      "2016-12": {
+        "train": {
+          "benign": 3,
+          "malware": 25,
+          "total": 28
+        },
+        "test": {
+          "benign": 1,
+          "malware": 3,
+          "total": 4
+        }
+      }
+    },
+    "2017": {
+      "2017-01": {
+        "train": {
+          "benign": 2474,
+          "malware": 1339,
+          "total": 3813
+        },
+        "test": {
+          "benign": 611,
+          "malware": 343,
+          "total": 954
+        }
+      },
+      "2017-02": {
+        "train": {
+          "benign": 18511,
+          "malware": 1218,
+          "total": 19729
+        },
+        "test": {
+          "benign": 4603,
+          "malware": 290,
+          "total": 4893
+        }
+      },
+      "2017-03": {
+        "train": {
+          "benign": 18109,
+          "malware": 3736,
+          "total": 21845
+        },
+        "test": {
+          "benign": 4474,
+          "malware": 927,
+          "total": 5401
+        }
+      },
+      "2017-04": {
+        "train": {
+          "benign": 19503,
+          "malware": 5466,
+          "total": 24969
+        },
+        "test": {
+          "benign": 4956,
+          "malware": 1354,
+          "total": 6310
+        }
+      },
+      "2017-05": {
+        "train": {
+          "benign": 15,
+          "malware": 10,
+          "total": 25
+        },
+        "test": {
+          "benign": 5,
+          "malware": 4,
+          "total": 9
+        }
+      },
+      "2017-07": {
+        "train": {
+          "benign": 1,
+          "malware": 1,
+          "total": 2
+        },
+        "test": {
+          "benign": 0,
+          "malware": 0,
+          "total": 0
+        }
+      },
+      "2017-08": {
+        "train": {
+          "benign": 4,
+          "malware": 4,
+          "total": 8
+        },
+        "test": {
+          "benign": 0,
+          "malware": 0,
+          "total": 0
+        }
+      },
+      "2017-09": {
+        "train": {
+          "benign": 1,
+          "malware": 2,
+          "total": 3
+        },
+        "test": {
+          "benign": 1,
+          "malware": 0,
+          "total": 1
+        }
+      },
+      "2017-10": {
+        "train": {
+          "benign": 912,
+          "malware": 2798,
+          "total": 3710
+        },
+        "test": {
+          "benign": 234,
+          "malware": 712,
+          "total": 946
+        }
+      },
+      "2017-11": {
+        "train": {
+          "benign": 1347,
+          "malware": 1237,
+          "total": 2584
+        },
+        "test": {
+          "benign": 346,
+          "malware": 337,
+          "total": 683
+        }
+      },
+      "2017-12": {
+        "train": {
+          "benign": 1351,
+          "malware": 1276,
+          "total": 2627
+        },
+        "test": {
+          "benign": 327,
+          "malware": 305,
+          "total": 632
+        }
+      }
+    },
+    "2018": {
+      "2018-01": {
+        "train": {
+          "benign": 8852,
+          "malware": 4183,
+          "total": 13035
+        },
+        "test": {
+          "benign": 2157,
+          "malware": 1044,
+          "total": 3201
+        }
+      },
+      "2018-02": {
+        "train": {
+          "benign": 796,
+          "malware": 708,
+          "total": 1504
+        },
+        "test": {
+          "benign": 187,
+          "malware": 175,
+          "total": 362
+        }
+      },
+      "2018-03": {
+        "train": {
+          "benign": 1062,
+          "malware": 1008,
+          "total": 2070
+        },
+        "test": {
+          "benign": 310,
+          "malware": 252,
+          "total": 562
+        }
+      },
+      "2018-04": {
+        "train": {
+          "benign": 794,
+          "malware": 681,
+          "total": 1475
+        },
+        "test": {
+          "benign": 200,
+          "malware": 177,
+          "total": 377
+        }
+      },
+      "2018-05": {
+        "train": {
+          "benign": 156,
+          "malware": 119,
+          "total": 275
+        },
+        "test": {
+          "benign": 28,
+          "malware": 38,
+          "total": 66
+        }
+      },
+      "2018-06": {
+        "train": {
+          "benign": 2950,
+          "malware": 2631,
+          "total": 5581
+        },
+        "test": {
+          "benign": 751,
+          "malware": 669,
+          "total": 1420
+        }
+      },
+      "2018-07": {
+        "train": {
+          "benign": 8151,
+          "malware": 15213,
+          "total": 23364
+        },
+        "test": {
+          "benign": 2045,
+          "malware": 3782,
+          "total": 5827
+        }
+      },
+      "2018-08": {
+        "train": {
+          "benign": 11210,
+          "malware": 4598,
+          "total": 15808
+        },
+        "test": {
+          "benign": 2799,
+          "malware": 1131,
+          "total": 3930
+        }
+      },
+      "2018-09": {
+        "train": {
+          "benign": 2980,
+          "malware": 13,
+          "total": 2993
+        },
+        "test": {
+          "benign": 751,
+          "malware": 3,
+          "total": 754
+        }
+      },
+      "2018-10": {
+        "train": {
+          "benign": 11474,
+          "malware": 7,
+          "total": 11481
+        },
+        "test": {
+          "benign": 2833,
+          "malware": 1,
+          "total": 2834
+        }
+      },
+      "2018-11": {
+        "train": {
+          "benign": 1943,
+          "malware": 1210,
+          "total": 3153
+        },
+        "test": {
+          "benign": 515,
+          "malware": 301,
+          "total": 816
+        }
+      },
+      "2018-12": {
+        "train": {
+          "benign": 1585,
+          "malware": 1109,
+          "total": 2694
+        },
+        "test": {
+          "benign": 413,
+          "malware": 297,
+          "total": 710
+        }
+      }
+    },
+    "2019": {
+      "2019-01": {
+        "train": {
+          "benign": 4249,
+          "malware": 410,
+          "total": 4659
+        },
+        "test": {
+          "benign": 1091,
+          "malware": 90,
+          "total": 1181
+        }
+      },
+      "2019-02": {
+        "train": {
+          "benign": 3405,
+          "malware": 229,
+          "total": 3634
+        },
+        "test": {
+          "benign": 842,
+          "malware": 67,
+          "total": 909
+        }
+      },
+      "2019-03": {
+        "train": {
+          "benign": 3112,
+          "malware": 250,
+          "total": 3362
+        },
+        "test": {
+          "benign": 775,
+          "malware": 77,
+          "total": 852
+        }
+      },
+      "2019-04": {
+        "train": {
+          "benign": 2672,
+          "malware": 250,
+          "total": 2922
+        },
+        "test": {
+          "benign": 643,
+          "malware": 48,
+          "total": 691
+        }
+      },
+      "2019-05": {
+        "train": {
+          "benign": 2724,
+          "malware": 298,
+          "total": 3022
+        },
+        "test": {
+          "benign": 692,
+          "malware": 80,
+          "total": 772
+        }
+      },
+      "2019-06": {
+        "train": {
+          "benign": 5467,
+          "malware": 16816,
+          "total": 22283
+        },
+        "test": {
+          "benign": 1346,
+          "malware": 4189,
+          "total": 5535
+        }
+      },
+      "2019-07": {
+        "train": {
+          "benign": 2825,
+          "malware": 195,
+          "total": 3020
+        },
+        "test": {
+          "benign": 735,
+          "malware": 56,
+          "total": 791
+        }
+      },
+      "2019-08": {
+        "train": {
+          "benign": 3161,
+          "malware": 224,
+          "total": 3385
+        },
+        "test": {
+          "benign": 785,
+          "malware": 47,
+          "total": 832
+        }
+      },
+      "2019-09": {
+        "train": {
+          "benign": 3389,
+          "malware": 159,
+          "total": 3548
+        },
+        "test": {
+          "benign": 882,
+          "malware": 36,
+          "total": 918
+        }
+      },
+      "2019-10": {
+        "train": {
+          "benign": 4728,
+          "malware": 13748,
+          "total": 18476
+        },
+        "test": {
+          "benign": 1217,
+          "malware": 3451,
+          "total": 4668
+        }
+      },
+      "2019-11": {
+        "train": {
+          "benign": 2964,
+          "malware": 110,
+          "total": 3074
+        },
+        "test": {
+          "benign": 704,
+          "malware": 31,
+          "total": 735
+        }
+      },
+      "2019-12": {
+        "train": {
+          "benign": 876,
+          "malware": 579,
+          "total": 1455
+        },
+        "test": {
+          "benign": 181,
+          "malware": 145,
+          "total": 326
+        }
+      }
+    },
+    "2020": {
+      "2020-01": {
+        "train": {
+          "benign": 742,
+          "malware": 14360,
+          "total": 15102
+        },
+        "test": {
+          "benign": 191,
+          "malware": 3508,
+          "total": 3699
+        }
+      },
+      "2020-02": {
+        "train": {
+          "benign": 1081,
+          "malware": 166,
+          "total": 1247
+        },
+        "test": {
+          "benign": 260,
+          "malware": 47,
+          "total": 307
+        }
+      },
+      "2020-03": {
+        "train": {
+          "benign": 1656,
+          "malware": 14370,
+          "total": 16026
+        },
+        "test": {
+          "benign": 419,
+          "malware": 3660,
+          "total": 4079
+        }
+      },
+      "2020-04": {
+        "train": {
+          "benign": 780,
+          "malware": 1792,
+          "total": 2572
+        },
+        "test": {
+          "benign": 189,
+          "malware": 429,
+          "total": 618
+        }
+      },
+      "2020-05": {
+        "train": {
+          "benign": 9054,
+          "malware": 2033,
+          "total": 11087
+        },
+        "test": {
+          "benign": 2294,
+          "malware": 523,
+          "total": 2817
+        }
+      },
+      "2020-06": {
+        "train": {
+          "benign": 8576,
+          "malware": 824,
+          "total": 9400
+        },
+        "test": {
+          "benign": 2176,
+          "malware": 207,
+          "total": 2383
+        }
+      },
+      "2020-07": {
+        "train": {
+          "benign": 4519,
+          "malware": 334,
+          "total": 4853
+        },
+        "test": {
+          "benign": 1116,
+          "malware": 93,
+          "total": 1209
+        }
+      },
+      "2020-08": {
+        "train": {
+          "benign": 4773,
+          "malware": 382,
+          "total": 5155
+        },
+        "test": {
+          "benign": 1206,
+          "malware": 103,
+          "total": 1309
+        }
+      },
+      "2020-09": {
+        "train": {
+          "benign": 4162,
+          "malware": 2057,
+          "total": 6219
+        },
+        "test": {
+          "benign": 1002,
+          "malware": 525,
+          "total": 1527
+        }
+      },
+      "2020-10": {
+        "train": {
+          "benign": 3399,
+          "malware": 252,
+          "total": 3651
+        },
+        "test": {
+          "benign": 799,
+          "malware": 68,
+          "total": 867
+        }
+      },
+      "2020-11": {
+        "train": {
+          "benign": 2906,
+          "malware": 238,
+          "total": 3144
+        },
+        "test": {
+          "benign": 740,
+          "malware": 47,
+          "total": 787
+        }
+      },
+      "2020-12": {
+        "train": {
+          "benign": 2926,
+          "malware": 276,
+          "total": 3202
+        },
+        "test": {
+          "benign": 752,
+          "malware": 61,
+          "total": 813
+        }
+      }
+    },
+    "2021": {
+      "2021-01": {
+        "train": {
+          "benign": 2500,
+          "malware": 440,
+          "total": 2940
+        },
+        "test": {
+          "benign": 640,
+          "malware": 116,
+          "total": 756
+        }
+      },
+      "2021-02": {
+        "train": {
+          "benign": 1936,
+          "malware": 258,
+          "total": 2194
+        },
+        "test": {
+          "benign": 429,
+          "malware": 78,
+          "total": 507
+        }
+      },
+      "2021-03": {
+        "train": {
+          "benign": 3172,
+          "malware": 531,
+          "total": 3703
+        },
+        "test": {
+          "benign": 820,
+          "malware": 133,
+          "total": 953
+        }
+      },
+      "2021-04": {
+        "train": {
+          "benign": 3128,
+          "malware": 513,
+          "total": 3641
+        },
+        "test": {
+          "benign": 748,
+          "malware": 130,
+          "total": 878
+        }
+      },
+      "2021-05": {
+        "train": {
+          "benign": 2943,
+          "malware": 437,
+          "total": 3380
+        },
+        "test": {
+          "benign": 778,
+          "malware": 128,
+          "total": 906
+        }
+      },
+      "2021-06": {
+        "train": {
+          "benign": 2962,
+          "malware": 411,
+          "total": 3373
+        },
+        "test": {
+          "benign": 715,
+          "malware": 109,
+          "total": 824
+        }
+      },
+      "2021-07": {
+        "train": {
+          "benign": 3004,
+          "malware": 457,
+          "total": 3461
+        },
+        "test": {
+          "benign": 721,
+          "malware": 106,
+          "total": 827
+        }
+      },
+      "2021-08": {
+        "train": {
+          "benign": 3520,
+          "malware": 449,
+          "total": 3969
+        },
+        "test": {
+          "benign": 888,
+          "malware": 115,
+          "total": 1003
+        }
+      },
+      "2021-09": {
+        "train": {
+          "benign": 3165,
+          "malware": 385,
+          "total": 3550
+        },
+        "test": {
+          "benign": 772,
+          "malware": 86,
+          "total": 858
+        }
+      },
+      "2021-10": {
+        "train": {
+          "benign": 3356,
+          "malware": 324,
+          "total": 3680
+        },
+        "test": {
+          "benign": 836,
+          "malware": 86,
+          "total": 922
+        }
+      },
+      "2021-11": {
+        "train": {
+          "benign": 3412,
+          "malware": 17593,
+          "total": 21005
+        },
+        "test": {
+          "benign": 872,
+          "malware": 4383,
+          "total": 5255
+        }
+      },
+      "2021-12": {
+        "train": {
+          "benign": 3324,
+          "malware": 6704,
+          "total": 10028
+        },
+        "test": {
+          "benign": 887,
+          "malware": 1655,
+          "total": 2542
+        }
+      }
+    },
+    "2022": {
+      "2022-01": {
+        "train": {
+          "benign": 2790,
+          "malware": 341,
+          "total": 3131
+        },
+        "test": {
+          "benign": 701,
+          "malware": 79,
+          "total": 780
+        }
+      },
+      "2022-02": {
+        "train": {
+          "benign": 2731,
+          "malware": 182,
+          "total": 2913
+        },
+        "test": {
+          "benign": 678,
+          "malware": 47,
+          "total": 725
+        }
+      },
+      "2022-03": {
+        "train": {
+          "benign": 3054,
+          "malware": 99,
+          "total": 3153
+        },
+        "test": {
+          "benign": 756,
+          "malware": 29,
+          "total": 785
+        }
+      },
+      "2022-04": {
+        "train": {
+          "benign": 3371,
+          "malware": 16825,
+          "total": 20196
+        },
+        "test": {
+          "benign": 811,
+          "malware": 4215,
+          "total": 5026
+        }
+      },
+      "2022-05": {
+        "train": {
+          "benign": 2651,
+          "malware": 7279,
+          "total": 9930
+        },
+        "test": {
+          "benign": 717,
+          "malware": 1789,
+          "total": 2506
+        }
+      },
+      "2022-06": {
+        "train": {
+          "benign": 3473,
+          "malware": 1290,
+          "total": 4763
+        },
+        "test": {
+          "benign": 874,
+          "malware": 327,
+          "total": 1201
+        }
+      },
+      "2022-07": {
+        "train": {
+          "benign": 2837,
+          "malware": 807,
+          "total": 3644
+        },
+        "test": {
+          "benign": 696,
+          "malware": 190,
+          "total": 886
+        }
+      },
+      "2022-08": {
+        "train": {
+          "benign": 2575,
+          "malware": 5764,
+          "total": 8339
+        },
+        "test": {
+          "benign": 652,
+          "malware": 1487,
+          "total": 2139
+        }
+      },
+      "2022-09": {
+        "train": {
+          "benign": 2784,
+          "malware": 122,
+          "total": 2906
+        },
+        "test": {
+          "benign": 726,
+          "malware": 34,
+          "total": 760
+        }
+      },
+      "2022-10": {
+        "train": {
+          "benign": 3060,
+          "malware": 299,
+          "total": 3359
+        },
+        "test": {
+          "benign": 774,
+          "malware": 79,
+          "total": 853
+        }
+      },
+      "2022-11": {
+        "train": {
+          "benign": 3124,
+          "malware": 213,
+          "total": 3337
+        },
+        "test": {
+          "benign": 746,
+          "malware": 37,
+          "total": 783
+        }
+      },
+      "2022-12": {
+        "train": {
+          "benign": 3364,
+          "malware": 97,
+          "total": 3461
+        },
+        "test": {
+          "benign": 823,
+          "malware": 17,
+          "total": 840
+        }
+      }
+    },
+    "2023": {
+      "2023-01": {
+        "train": {
+          "benign": 4023,
+          "malware": 225,
+          "total": 4248
+        },
+        "test": {
+          "benign": 1003,
+          "malware": 66,
+          "total": 1069
+        }
+      },
+      "2023-02": {
+        "train": {
+          "benign": 3750,
+          "malware": 372,
+          "total": 4122
+        },
+        "test": {
+          "benign": 963,
+          "malware": 90,
+          "total": 1053
+        }
+      },
+      "2023-03": {
+        "train": {
+          "benign": 4232,
+          "malware": 234,
+          "total": 4466
+        },
+        "test": {
+          "benign": 1081,
+          "malware": 52,
+          "total": 1133
+        }
+      },
+      "2023-04": {
+        "train": {
+          "benign": 2570,
+          "malware": 154,
+          "total": 2724
+        },
+        "test": {
+          "benign": 613,
+          "malware": 41,
+          "total": 654
+        }
+      },
+      "2023-05": {
+        "train": {
+          "benign": 1782,
+          "malware": 207,
+          "total": 1989
+        },
+        "test": {
+          "benign": 442,
+          "malware": 46,
+          "total": 488
+        }
+      },
+      "2023-06": {
+        "train": {
+          "benign": 1888,
+          "malware": 159,
+          "total": 2047
+        },
+        "test": {
+          "benign": 460,
+          "malware": 36,
+          "total": 496
+        }
+      },
+      "2023-07": {
+        "train": {
+          "benign": 2221,
+          "malware": 153,
+          "total": 2374
+        },
+        "test": {
+          "benign": 516,
+          "malware": 35,
+          "total": 551
+        }
+      },
+      "2023-08": {
+        "train": {
+          "benign": 2124,
+          "malware": 121,
+          "total": 2245
+        },
+        "test": {
+          "benign": 563,
+          "malware": 26,
+          "total": 589
+        }
+      },
+      "2023-09": {
+        "train": {
+          "benign": 2341,
+          "malware": 132,
+          "total": 2473
+        },
+        "test": {
+          "benign": 574,
+          "malware": 36,
+          "total": 610
+        }
+      },
+      "2023-10": {
+        "train": {
+          "benign": 2899,
+          "malware": 155,
+          "total": 3054
+        },
+        "test": {
+          "benign": 745,
+          "malware": 46,
+          "total": 791
+        }
+      },
+      "2023-11": {
+        "train": {
+          "benign": 4213,
+          "malware": 2624,
+          "total": 6837
+        },
+        "test": {
+          "benign": 1093,
+          "malware": 657,
+          "total": 1750
+        }
+      },
+      "2023-12": {
+        "train": {
+          "benign": 5126,
+          "malware": 1778,
+          "total": 6904
+        },
+        "test": {
+          "benign": 1240,
+          "malware": 447,
+          "total": 1687
+        }
+      }
+    },
+    "2024": {
+      "2024-01": {
+        "train": {
+          "benign": 1927,
+          "malware": 24,
+          "total": 1951
+        },
+        "test": {
+          "benign": 464,
+          "malware": 7,
+          "total": 471
+        }
+      },
+      "2024-02": {
+        "train": {
+          "benign": 1217,
+          "malware": 331,
+          "total": 1548
+        },
+        "test": {
+          "benign": 311,
+          "malware": 87,
+          "total": 398
+        }
+      },
+      "2024-03": {
+        "train": {
+          "benign": 5412,
+          "malware": 48,
+          "total": 5460
+        },
+        "test": {
+          "benign": 1336,
+          "malware": 7,
+          "total": 1343
+        }
+      },
+      "2024-04": {
+        "train": {
+          "benign": 5207,
+          "malware": 33,
+          "total": 5240
+        },
+        "test": {
+          "benign": 1358,
+          "malware": 8,
+          "total": 1366
+        }
+      },
+      "2024-05": {
+        "train": {
+          "benign": 2488,
+          "malware": 13,
+          "total": 2501
+        },
+        "test": {
+          "benign": 607,
+          "malware": 5,
+          "total": 612
+        }
+      },
+      "2024-06": {
+        "train": {
+          "benign": 2285,
+          "malware": 25,
+          "total": 2310
+        },
+        "test": {
+          "benign": 613,
+          "malware": 5,
+          "total": 618
+        }
+      },
+      "2024-07": {
+        "train": {
+          "benign": 1266,
+          "malware": 10,
+          "total": 1276
+        },
+        "test": {
+          "benign": 301,
+          "malware": 2,
+          "total": 303
+        }
+      },
+      "2024-08": {
+        "train": {
+          "benign": 4567,
+          "malware": 43,
+          "total": 4610
+        },
+        "test": {
+          "benign": 1107,
+          "malware": 12,
+          "total": 1119
+        }
+      },
+      "2024-09": {
+        "train": {
+          "benign": 6650,
+          "malware": 53,
+          "total": 6703
+        },
+        "test": {
+          "benign": 1652,
+          "malware": 13,
+          "total": 1665
+        }
+      },
+      "2024-10": {
+        "train": {
+          "benign": 1638,
+          "malware": 13,
+          "total": 1651
+        },
+        "test": {
+          "benign": 428,
+          "malware": 1,
+          "total": 429
+        }
+      },
+      "2024-11": {
+        "train": {
+          "benign": 3267,
+          "malware": 26,
+          "total": 3293
+        },
+        "test": {
+          "benign": 820,
+          "malware": 8,
+          "total": 828
+        }
+      },
+      "2024-12": {
+        "train": {
+          "benign": 2182,
+          "malware": 16,
+          "total": 2198
+        },
+        "test": {
+          "benign": 530,
+          "malware": 4,
+          "total": 534
+        }
+      }
+    },
+    "2025": {
+      "2025-01": {
+        "train": {
+          "benign": 35712,
+          "malware": 18,
+          "total": 35730
+        },
+        "test": {
+          "benign": 8928,
+          "malware": 5,
+          "total": 8933
+        }
+      }
+    }
+  },
+  "wall_seconds": 0.794
+}

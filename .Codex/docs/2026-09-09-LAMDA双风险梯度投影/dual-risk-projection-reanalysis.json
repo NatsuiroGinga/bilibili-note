@@ -1,0 +1,219 @@
+{
+  "schema_version": "ch3-lamda-dual-risk-projection-reanalysis-v1",
+  "run_id": "ch3-lamda-dual-risk-projection-screening-seed42-v1",
+  "run_tier": "screening_only",
+  "independent_final_test": false,
+  "seed_count": 1,
+  "enumerated_years": [
+    2013,
+    2014,
+    2016,
+    2017
+  ],
+  "development_years": [
+    2016,
+    2017
+  ],
+  "sealed_final_years_not_read": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "source_artifacts": {
+    "run_root": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-dual-risk-projection-screening-seed42-v1",
+    "development_summary": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-dual-risk-projection-screening-seed42-v1/development-summary.json",
+    "run_manifest": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-dual-risk-projection-screening-seed42-v1/run-manifest.json",
+    "resource_receipt": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-dual-risk-projection-screening-seed42-v1/resource-receipt.json",
+    "tool": "thesis/experiments/llm_probe/tools/ch3_lamda_dual_risk_projection_screening.py"
+  },
+  "artifact_completeness": {
+    "metrics_per_arm": {
+      "experience_replay": 4,
+      "dual_risk_projection": 4
+    },
+    "prediction_files_per_arm": {
+      "experience_replay": 10,
+      "dual_risk_projection": 10
+    },
+    "status": {
+      "detail": "LAMDA 双风险梯度投影筛查完成",
+      "published_feature_space_uses_future_covariates": true,
+      "schema_version": "ch3-lamda-domain-il-replay-status-v1",
+      "screening_only": true,
+      "started_at": "2026-09-09T05:15:37.452526Z",
+      "state": "completed",
+      "updated_at": "2026-09-09T05:32:19.355338Z"
+    }
+  },
+  "pooled_development_current_year": {
+    "experience_replay": {
+      "n": 41668,
+      "AP": 0.9872426530423574,
+      "AUROC": 0.9920059296860873,
+      "F1": 0.9555385790679908,
+      "FPR": 0.0131481546758786,
+      "FNR": 0.0594781562523498,
+      "Brier": 0.022609419445909495,
+      "confusion": {
+        "TN": 27996,
+        "FP": 373,
+        "FN": 791,
+        "TP": 12508
+      },
+      "threshold": 0.5
+    },
+    "dual_risk_projection": {
+      "n": 41668,
+      "AP": 0.9851011619583182,
+      "AUROC": 0.9902410304581463,
+      "F1": 0.9507112648981161,
+      "FPR": 0.012231661320455427,
+      "FNR": 0.07030603804797353,
+      "Brier": 0.025135687267470078,
+      "confusion": {
+        "TN": 28022,
+        "FP": 347,
+        "FN": 935,
+        "TP": 12364
+      },
+      "threshold": 0.5
+    }
+  },
+  "delta_dual_projection_minus_er": {
+    "AP": -0.00214149108403916,
+    "AUROC": -0.0017648992279409859,
+    "F1": -0.004827314169874697,
+    "FPR": -0.0009164933554231727,
+    "FNR": 0.010827881795623731,
+    "Brier": 0.002526267821560582
+  },
+  "per_year_current_year": {
+    "2016": {
+      "experience_replay": {
+        "AP": 0.9895955012431196,
+        "AUROC": 0.9921986088427056,
+        "Brier": 0.029036656539401937,
+        "F1": 0.9549893366258839,
+        "FNR": 0.05749418411432369,
+        "FPR": 0.02208866687480487,
+        "n": 21839,
+        "threshold": 0.5
+      },
+      "dual_risk_projection": {
+        "AP": 0.9877873861307764,
+        "AUROC": 0.9908335449128384,
+        "Brier": 0.03331496802597838,
+        "F1": 0.9478157402685704,
+        "FNR": 0.07344632768361582,
+        "FPR": 0.02013737121448642,
+        "n": 21839,
+        "threshold": 0.5
+      }
+    },
+    "2017": {
+      "experience_replay": {
+        "AP": 0.9803582008263034,
+        "AUROC": 0.9897640900239039,
+        "Brier": 0.015530674633524547,
+        "F1": 0.9567089213106912,
+        "FNR": 0.06367041198501873,
+        "FPR": 0.005785177090698721,
+        "n": 19829,
+        "threshold": 0.5
+      },
+      "dual_risk_projection": {
+        "AP": 0.9783712806766902,
+        "AUROC": 0.988066138742173,
+        "Brier": 0.016127299931494338,
+        "F1": 0.9568233464896544,
+        "FNR": 0.06367041198501873,
+        "FPR": 0.005720897345246513,
+        "n": 19829,
+        "threshold": 0.5
+      }
+    }
+  },
+  "backward_old_malicious_negative_flip": {
+    "experience_replay": {
+      "eligible_n": 43161,
+      "negative_flip_n": 2249,
+      "rate": 0.05210722643126897,
+      "by_endpoint": [
+        {
+          "trained_through_year": 2016,
+          "eligible_n": 17180,
+          "negative_flip_n": 227,
+          "rate": 0.013213038416763679
+        },
+        {
+          "trained_through_year": 2017,
+          "eligible_n": 25981,
+          "negative_flip_n": 2022,
+          "rate": 0.07782610369115893
+        }
+      ]
+    },
+    "dual_risk_projection": {
+      "eligible_n": 43147,
+      "negative_flip_n": 1380,
+      "rate": 0.03198368368600366,
+      "by_endpoint": [
+        {
+          "trained_through_year": 2016,
+          "eligible_n": 17398,
+          "negative_flip_n": 342,
+          "rate": 0.01965743188872284
+        },
+        {
+          "trained_through_year": 2017,
+          "eligible_n": 25749,
+          "negative_flip_n": 1038,
+          "rate": 0.04031224513573343
+        }
+      ]
+    }
+  },
+  "projection_activity": {
+    "2013": {
+      "projection_events": 0,
+      "projection_dot_sum": 0.0
+    },
+    "2014": {
+      "projection_events": 736,
+      "projection_dot_sum": -56.57914466006332
+    },
+    "2016": {
+      "projection_events": 734,
+      "projection_dot_sum": 2336.1478491850767
+    },
+    "2017": {
+      "projection_events": 551,
+      "projection_dot_sum": 3287.101553018045
+    }
+  },
+  "resource": {
+    "cuda_max_memory_allocated": 163743232,
+    "cuda_max_memory_reserved": 247463936,
+    "device": "cuda",
+    "max_rss": 4967600,
+    "max_rss_unit": "platform_dependent",
+    "wall_seconds": 1001.9020447488874
+  },
+  "decision": {
+    "status": "safety_signal_but_repair_insufficient",
+    "passed_gates": {
+      "FPR_not_higher": true,
+      "old_malicious_negative_flip_not_higher": true
+    },
+    "failed_gates": {
+      "FNR_not_higher": true,
+      "AP_not_lower": true
+    },
+    "next_action": "保留为 A-GEM 双风险投影基线与安全保持组件；不进入封印年，不单独宣称第三章主方法。若继续，只能在不破坏这两个安全门的前提下寻找独立恶意修复机制，并用四臂因果消融验证。"
+  }
+}

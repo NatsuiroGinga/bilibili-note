@@ -1,0 +1,24 @@
+# LAMDA 资格增量深度研究启动收据
+
+- 启动时间：2026-09-08 17:07:31 CST。
+- 对话：https://chatgpt.com/c/6a9f912e-4abc-83ea-b7ba-3aa85cc61d6a
+- 对话复用：复用 2026-09-08 已完成的旧 LAMDA 深度研究对话；未创建第二个会话。
+- 出站包：`.Codex/docs/chatgpt-handoffs/lamda-2026-qualification-deep-research-outbound.md`。
+- 出站包 SHA-256：`546ce758bfed22675e5eed0c30ab5b61d465ce6c03e875d5f5069360d759840c`。
+- 出站包规模：`43` 行、`3216` 字节。
+- 预检：使用现有 `chatgpt_handoff.py create` 执行唯一一次机械预检；包内容发送前未再修改。
+- 增量范围：只补 v3 脱敏聚合诊断、独立引用/第三方复现/实际使用增量，以及 LAMDA 与 DRIFT 的证据化比较；明确禁止重做旧题录、论文表格、官方制品枚举和既有综述。
+- requested_mode：`deep-research`。
+- actual_mode：发送前输入框显示“深度研究”，发送后显示 `Pro 思考中`；最终以回收报告自报为准。
+- requested_model：`auto` 高能力研究模型。
+- actual_model：发送时模型按钮显示 `6 Pro`；最终以回收报告自报为准。
+- requested_effort：`high`。
+- actual_effort：界面无独立可核档位，标为未核。
+- requested_apps：Sider Scholar、Consensus、Scite、GitHub。
+- 发送时可见应用：Sider Scholar。最终报告自报实际使用 Sider Scholar、Consensus、GitHub；Scite 未提供引用语境证据。
+- 发送安全：只发送预检通过的出站包及用户明确允许的九个聚合指标；未发送原始数据、样本、权重、日志、服务器信息、凭据、个人绝对路径或未来测试读数。
+- 期望原始输出：`.Codex/docs/chatgpt-handoffs/inbox/LAMDA-2026-qualification-followup-raw.md`。
+- 期望本地清单：`.Codex/docs/chatgpt-handoffs/inbox/LAMDA-2026-qualification-followup-local-review-checklist.md`。
+- 当前状态：`completed`。增量报告已回收到 `.Codex/docs/chatgpt-handoffs/inbox/LAMDA-2026-qualification-followup-raw.md`。
+- 回收制品：`302` 行、`22970` 字节，SHA-256 为 `e1d35d19a51ec2d363d3decfa189f3e5210a37540268e4458c442322938a78de`。
+- 最终自报：模型 `GPT-6 Astra Pro`；思考强度无独立可核档位；结果只能作为外部候选，待本地全文和实验复核。

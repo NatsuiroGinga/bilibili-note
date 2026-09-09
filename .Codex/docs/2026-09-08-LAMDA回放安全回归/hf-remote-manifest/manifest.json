@@ -1,0 +1,736 @@
+{
+  "schema_version": 1,
+  "archive_id": "lspr-route-weights-20260909",
+  "source": "remote LSPR route diagnostics",
+  "expected_count": 158,
+  "present_count": 145,
+  "missing_count": 13,
+  "files": [
+    {
+      "path": "diagnostics/ch3-drift-bresnet-dual-condrisk-screen-v1-c10/checkpoint.pt",
+      "bytes": 1745179,
+      "sha256": "568ba8d7df7f9c2cef0d7efe4ce3bdb420eef8ece4969cbb51cf858ef985235f"
+    },
+    {
+      "path": "diagnostics/ch3-drift-bresnet-t17-t18-t19-source-tail-diagnostic-v1/pilot-10000/checkpoint.pt",
+      "bytes": 1745115,
+      "sha256": "156bcf9f37b26a7ff2d1f512bd24c00f4f714899923802001b6d1f1dc0661328"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/fold-0-char-pretrain.pt",
+      "bytes": 12347835,
+      "sha256": "5ca3501b12a5e3506ad860dd432fea5d115ab8df1ad9c06a4807b2665b110fa0"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00/checkpoint.pt",
+      "bytes": 72710571,
+      "sha256": "45abd75581a711c1907855bf9a3311ed4bfef459d2c690675574b750b576d86d"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/fold-0-char-gradients.pt",
+      "bytes": 24316329,
+      "sha256": "c39ae82559ba1f1798e6177f1a1fb1698e7954315d132ee2939afff83baf575e"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-m1-v2-short-window-v1/unit_hinge_control/checkpoint.pt",
+      "bytes": 37226,
+      "sha256": "2f2d903e268205d1db654ef7619a9b9b406869fc751fee075c815c28000e8c69"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00/token-backbone.pt",
+      "bytes": 19653619,
+      "sha256": "1190c1bd0a3d0c65762d4deb94f443eeae3ad938b46b447ef16394f5e9befc5e"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/fold-0-probe.pt",
+      "bytes": 531821,
+      "sha256": "50d337cdb2212457a1f22d4b874a8e0f7303ac781375bb9d0492e35f1dd4c50d"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/checkpoint.pt",
+      "bytes": 16725,
+      "sha256": "e7035f5e1f81755a5ae84bf6267dcc27fa673ee6169ece52dd09cef164ba18c9"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00/char-backbone.pt",
+      "bytes": 4072353,
+      "sha256": "fe33df4b907d3a342e157c4e0dc68566715a25145c389eb18e8eab0a9ec38041"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/fold-0-endpoint.pt",
+      "bytes": 165782611,
+      "sha256": "eb1ad432360320bcf743c60159a5a755481995333f08f6dbafdfadb3528e6117"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/fold-0-subword-gradients.pt",
+      "bytes": 117804783,
+      "sha256": "8d33c563bf4477aa8ac34f40590a4e17545b5df74af2ccb6f704da55f58513be"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/fold-1-char-pretrain.pt",
+      "bytes": 12347835,
+      "sha256": "ed0e78af71d456545411ba96e2b689a2389e8af5325b0bf39a3d6b0f54477101"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p1_gate/conservative_correction/checkpoint.pt",
+      "bytes": 34517,
+      "sha256": "79f4f64da83207c0cc567bf0517db08c23fae07935aeb65866e8e2e678074c52"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1/fold-0-subword-pretrain.pt",
+      "bytes": 153455443,
+      "sha256": "379f057b8a474f8de840a18714860821c380b2e00cf0793d3effa85c813b5ef0"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p1_gate/qmf/checkpoint.pt",
+      "bytes": 34325,
+      "sha256": "438a343b5be5eba37fb52cacd79a6c338c66f88280172ca40d97745d9acc9247"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-m1-v2-short-window-v1/scale_free_primal_dual/checkpoint.pt",
+      "bytes": 37226,
+      "sha256": "c8b5395ebd646df0e1a1024d63f64e619674b5835ec17a449d1f03de7d4f794a"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p1_gate/dynamic/checkpoint.pt",
+      "bytes": 34325,
+      "sha256": "9db7ce9da08671677070e340f115904f5d3335f31caf9802109ae7d40b30f780"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p1_gate/constant/checkpoint.pt",
+      "bytes": 34325,
+      "sha256": "a167ad6c4340dd36f34c81affdef9d25d788cb60a032a8c18633121b7c8a7c49"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n12-g1-equal3-gradient-screen-v1/checkpoint.pt",
+      "bytes": 170336859,
+      "sha256": "0dd2adb94ca639f57e0ec270d0dbda7f1270db212b55e59b6c1128c9f4bd9b8a"
+    },
+    {
+      "path": "diagnostics/ch3-drift-bresnet-dual-condrisk-screen-v1-c00/checkpoint.pt",
+      "bytes": 1745179,
+      "sha256": "4e0fe703ff7f15f46bcd1db454c9f9111f38c2afe7de010f60df0f5e4654e041"
+    },
+    {
+      "path": "diagnostics/ch3-drift-bresnet-t17-t18-t19-source-tail-diagnostic-v1/formal-v1/checkpoint.pt",
+      "bytes": 1745179,
+      "sha256": "ee71137f45e53e55e63b5353699f8462e706eb030cf9b37ae7966c8dbc023839"
+    },
+    {
+      "path": "diagnostics/ch3-drift-bresnet-dual-condrisk-screen-v1-c01/checkpoint.pt",
+      "bytes": 1745179,
+      "sha256": "962bffff160ff0a1e08b3fa3efedb6b7f090b1f1ead26a7884d33525c3f0d283"
+    },
+    {
+      "path": "diagnostics/ch3-drift-n10-conservative-fusion-pilot-v1/p0_c00/checkpoint.pt",
+      "bytes": 12342699,
+      "sha256": "d58269dc548cdfde8612bfa20a67246e94753e8bae5e2da1c96edc5f41170fe8"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/rwkv7-C11/B/rwkv7/cells/rwkv7-C11/selected.pt",
+      "bytes": 376265,
+      "sha256": "053a34cdca125226344fb4dd320c2fdfa0c9e9b74c3e3a054039dc5362bb764e"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/rwkv7-C11/A2/rwkv7/cells/rwkv7-C11/selected.pt",
+      "bytes": 376265,
+      "sha256": "e5228121501a40f9de3b1638c36c2afbbbd915bdcf324969746b665a73f15d33"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/rwkv7-C11/A2/rwkv7/cells/rwkv7-C11/inflight.pt",
+      "bytes": 1531021,
+      "sha256": "2bf77eee1d7523a4f327165aea48d0bea3a55fed971f41ecf57cf05c248c2ca7"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/rwkv7-C11/B/rwkv7/cells/rwkv7-C11/inflight.pt",
+      "bytes": 1530957,
+      "sha256": "3c16615d678c5e7c03605aadc8f90adcd2e22f4e5c1cdb2d003bda78092a1d7b"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/transformer-C11/B/transformer/cells/transformer-C11/inflight.pt",
+      "bytes": 1494973,
+      "sha256": "160aec0a34ea628a127a08abeff950d2125aebd85a055d8411db05a4185f74cc"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/transformer-C11/B/transformer/cells/transformer-C11/selected.pt",
+      "bytes": 368618,
+      "sha256": "9ec7a62b371b441898379becfe3a6570272c06003fec243da8d2da853cecdf75"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/transformer-C11/A/transformer/cells/transformer-C11/inflight.pt",
+      "bytes": 1494973,
+      "sha256": "d7080c6f6da97d20b52f4ce587732da3289d6739bb642bdef5c78753205168dd"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/transformer-C11/A/transformer/cells/transformer-C11/selected.pt",
+      "bytes": 368618,
+      "sha256": "d356fd592674e254e9506b7289b2ca1817f83d03b1cf077aed8e0590d3a9c15a"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/transformer-C11/A2/transformer/cells/transformer-C11/inflight.pt",
+      "bytes": 1494909,
+      "sha256": "c74d21b190112cc6ee26b0385c4d8393ecdb6ec9b6d3b5902748ef44745641bd"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/transformer-C11/A2/transformer/cells/transformer-C11/selected.pt",
+      "bytes": 368618,
+      "sha256": "29ee17d420e137252ec01bf60c41b5f07c1b65e68a9695657399615fc8c18531"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/rwkv7-C11/A/rwkv7/cells/rwkv7-C11/selected.pt",
+      "bytes": 376265,
+      "sha256": "a47b6c9926f6c2663e2df59d31bc5b2a6bcb2f637037959a003572bd54d7c521"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/rwkv7-C11/A/rwkv7/cells/rwkv7-C11/inflight.pt",
+      "bytes": 1530957,
+      "sha256": "d89c7c6b85c644bbbcd5f7b9ff0e070088ee53a4d30244e98c78277fdc7317e6"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/gru-C11/B/gru/cells/gru-C11/selected.pt",
+      "bytes": 364233,
+      "sha256": "320f95023648f56828c0a5393c832caf7cf6f28995ca1c38aa1163646eba9be9"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/gru-C11/B/gru/cells/gru-C11/inflight.pt",
+      "bytes": 1473692,
+      "sha256": "589dcae76acddb12bc1fd17c3b5f1523d6c58093e0092829fe0741ee74330222"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/gru-C11/A2/gru/cells/gru-C11/selected.pt",
+      "bytes": 364297,
+      "sha256": "433663020b4576afc4ba1dbecc10fbce8ec29f00664f87310949103a01708683"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/gru-C11/A2/gru/cells/gru-C11/inflight.pt",
+      "bytes": 1473756,
+      "sha256": "b6e3121d90c97d80ba402de7770456ed2e854aa5ce1aa831978830ad9ab0f08f"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C00/inflight.pt",
+      "bytes": 1491390,
+      "sha256": "32786b1f1794c12ae27bbd9ffa8a2c7b638c69bd665bcbc464646c3f96dd7395"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/gru-C11/A/gru/cells/gru-C11/selected.pt",
+      "bytes": 364297,
+      "sha256": "e438efc323166990d2bcedcfab420ad72bba78e10a5f984095a42eb9f182f386"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C00/selected.pt",
+      "bytes": 368450,
+      "sha256": "290dcf171a60404369b21d9d2e444e0fc56d5b6b8798480a6547ff427ec6c35e"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/gru-C11/A/gru/cells/gru-C11/inflight.pt",
+      "bytes": 1473756,
+      "sha256": "28cb7dcab47d7472690991184dcce5bfb1f3385f928af6cf3be13bd9696b5517"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C01/inflight.pt",
+      "bytes": 1492149,
+      "sha256": "1bacd1458b7a86829972c88dad0a12d8adb58ee6d76dfc69b9acc43e2bfed2b7"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C01/selected.pt",
+      "bytes": 368450,
+      "sha256": "f3c436d06e65aae50d0d7c2fc3a182e829ba20baaa8416c08ef17c04b6486c89"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C10/selected.pt",
+      "bytes": 368450,
+      "sha256": "0b4b1b0f56d3ce4fd573e831c282246c7decb9e2871c5a2104d4d25dd17cead7"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C10/inflight.pt",
+      "bytes": 1491390,
+      "sha256": "65a1d13af6ae9c08cdd977fab5ad9adc762f5705b94c8463344db1c00b53eab6"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C11/inflight.pt",
+      "bytes": 1492149,
+      "sha256": "cc761628e8b2287a6281eabfb7551ef61dba31e2e7f8be13dac2690731a6bb3b"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C01/inflight.pt",
+      "bytes": 1492149,
+      "sha256": "c8f2bfb94a9ef70f95ecaf82e61c45a036df12eb4bc09e19a037a59ff6cb0565"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C01/selected.pt",
+      "bytes": 368450,
+      "sha256": "7965925ec21ef7a87c2da40b6723e8e2ab3ce164ba1444c8914d3c417c2e1248"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C01/selected.pt",
+      "bytes": 368450,
+      "sha256": "d3224504e3afc8e40e8783f1d7b443470b0e5fa573c249a8a2d63e823f95c73b"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C11/selected.pt",
+      "bytes": 368450,
+      "sha256": "f8f59dbb6fc83cf4b27a467af068be3219fc85fa98c3dbdfe6b41a7cd789517a"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C11/inflight.pt",
+      "bytes": 1492149,
+      "sha256": "943dece5e5eb2f53a4154ea80b94c7342a012da17c346efc2177808424996886"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C01/inflight.pt",
+      "bytes": 1492149,
+      "sha256": "0ade00567050cd0bddf988eb73df4635137151dcbda3f0c3c7e370f21b95307d"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C10/inflight.pt",
+      "bytes": 1491390,
+      "sha256": "bc7bc322847b5fa4532b9c76e6e29c20c9c9d2e220073dac5efb417b1fab531e"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C10/selected.pt",
+      "bytes": 368450,
+      "sha256": "7710a699e81c8d5203a5afc670fefd484fe4c25dd4fc93ef4faebbf5ec68818e"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C10/inflight.pt",
+      "bytes": 1491390,
+      "sha256": "2df24d3ad023d31cacad02c53b8c93ad0168549f431f75a4f95d6ca03a3c58c2"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C11/inflight.pt",
+      "bytes": 1492149,
+      "sha256": "8015ae9e280a9a12acb1b6973b948ff3bb314fd995d14d57b0e9de3eedfe4a99"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C10/selected.pt",
+      "bytes": 368450,
+      "sha256": "22d4847b9988ed058f103101f6a80d1df62244cd49cd42f0387fbe6cbf1ff641"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C11/selected.pt",
+      "bytes": 368450,
+      "sha256": "43446760d01483d7b2f94e8b5b6330faa6794dde0114fd5b24e78e6fc52d5b4a"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C00/inflight.pt",
+      "bytes": 1491390,
+      "sha256": "55850be1be159710c9e6467a1358f96525211cae6ba502fe1b04d7663da707b1"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/A/cnn/cells/cnn-C00/selected.pt",
+      "bytes": 368450,
+      "sha256": "54ab12877f87ba627e7c09aec1c37efc6e1695432fbcb51e5a4a97eb8461acaa"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C00/inflight.pt",
+      "bytes": 1491390,
+      "sha256": "8e849b34612e2e49af421a6075339231e5c0da2472adee032bb8770c52388436"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/B/cnn/cells/cnn-C00/selected.pt",
+      "bytes": 368450,
+      "sha256": "09cecff8bf3882e4fb662c462bb1cf0432b223b3ee04c95fd46af8d6b0e6ed24"
+    },
+    {
+      "path": "diagnostics/_resume_audit_tmp/full4-cnn/C/cnn/cells/cnn-C11/selected.pt",
+      "bytes": 368450,
+      "sha256": "0485c4e5923305b217e849a6da0466c469d596c86ff668fa07a41aa01c3f5b83"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2/ckpt/done_C00_0p0003.pt",
+      "bytes": 1831275,
+      "sha256": "aacd448d2e194dc959646e0a03ccdd0e09ce4948b54febf3d40d0d7306b8fdeb"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C00.pt",
+      "bytes": 1833259,
+      "sha256": "9c921af7a5d2a0139ec17de922901f38aec418e6b3af49002c39ae941ba78e03"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C01.pt",
+      "bytes": 1835356,
+      "sha256": "2a66cb65e988b0239adc494357b1071518eae372b17f5f76e2755aac61c0c0a3"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C11CTRL.pt",
+      "bytes": 1816220,
+      "sha256": "8160221bc847b596f8b1a06d5bcafddc96d4571bbc41cc71fb2675d43db2842a"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C11WIDE.pt",
+      "bytes": 8826829,
+      "sha256": "fdeba9553da20d06565cd7efada8bb9c24be13ce2911d45e48da16756c99e9ef"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C00_0p0003.pt",
+      "bytes": 1831275,
+      "sha256": "a8c8d374452270c4541ed4d772b010999da3ff1b38e63bff2d2d5465f1192b02"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C00_0p002.pt",
+      "bytes": 1831275,
+      "sha256": "5619e102d6fb2aa051589129e17b42fb70876e6e40d947d96d25d8798a015c8e"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C00_0p005.pt",
+      "bytes": 1831275,
+      "sha256": "69fab395a2779073bd673e75a1efbca5872b0634bf84931a2b0101f6f40857eb"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C00_0p001.pt",
+      "bytes": 1831275,
+      "sha256": "bf402967d121c27a923b215c1354ded4c81fbfba998c819d86634180fc54eb6e"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C01_0p0003.pt",
+      "bytes": 1832732,
+      "sha256": "889e16004f5d46603918fb6ff7a2d4a4d40223851a789c791610826e68bfc4a9"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C01_0p001.pt",
+      "bytes": 1832732,
+      "sha256": "d71db29db3fb221cf65a5a0a947addf09da7ac50ce80f148754f6eef5cd1cdc9"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C00R3_0p005.pt",
+      "bytes": 1831275,
+      "sha256": "97aef2072e1339954ad2d2bc5d29ddcf6616749860888448f7e4d16a61567e30"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C01_0p002.pt",
+      "bytes": 1832732,
+      "sha256": "68b9848ca0117fce6cf86712c39c03273f49c65c0196ba59c9959c36bd606a46"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C01_0p005.pt",
+      "bytes": 1832732,
+      "sha256": "d698c14859024b681e9eb9816d040dbdfb57cba48da906baef2a9df8456a939c"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C00R2_0p005.pt",
+      "bytes": 1831275,
+      "sha256": "cc62cd8646b328e33eeb33bf983f13df6ea895c7833c9eb2cfccd6cff4bceeea"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C10_0p0003.pt",
+      "bytes": 1812075,
+      "sha256": "f9bbf3e30dbb370115ac3b853a3ffc915048dbe5b9ce9e935a58972c4a5e4bbc"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C10_0p001.pt",
+      "bytes": 1812075,
+      "sha256": "ac3fd7da9cdceb5fa8b1df6318bda0e043834e05bf60fad5d630075cb8e0dfa0"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C10_0p002.pt",
+      "bytes": 1812075,
+      "sha256": "8b38d76d9ddf095e60ef30e8e4a044c275c867e6a279b2e570cdf69a36406403"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C11.pt",
+      "bytes": 1816220,
+      "sha256": "45cc55fc213d47af794e093b3c229d7e26660decc74e98847875570282245cc7"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C10.pt",
+      "bytes": 1814059,
+      "sha256": "cc0c9b6af4ef473a32b89558e5ed267a40dcf359d8fa90c063e71063ff2957d5"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C10_0p005.pt",
+      "bytes": 1812075,
+      "sha256": "cffa415e102e7200d359fb50871e4ef684afe0327717de5327dd8b9d3432b7ee"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11CTRL_0p0003.pt",
+      "bytes": 1813532,
+      "sha256": "29cb2ae89a09150e3dbb52001321c205e2970149920c5d5d84412b6040c67627"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C00R3.pt",
+      "bytes": 1831467,
+      "sha256": "b0f18c8bbb4e04051e842c5d04e0233c67e0071428d73f3a2eb0166cb1d025ae"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/cell_C00R2.pt",
+      "bytes": 1831467,
+      "sha256": "6e0541d301e7f147799029f6da60b4551303a5b6f446b4b2a4c8534e44b084da"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11CTRL_0p001.pt",
+      "bytes": 1813532,
+      "sha256": "e6ba8b894004c8da0e9d0806c9310d494a335b81d7862d3dd16bdec3ddbbebce"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2/ckpt/inflight_C00_0p001.pt",
+      "bytes": 5511225,
+      "sha256": "49186ca7bad77e0aa9b86499f16a40580c4bd57cb7a300132824b70c6908e731"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11CTRL_0p002.pt",
+      "bytes": 1813532,
+      "sha256": "31daead64765c28d60420cf6e0948d0460cac7eb292d9f34863d1545332236f1"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11CTRL_0p005.pt",
+      "bytes": 1813532,
+      "sha256": "2ea567831476230865d59ccb6fd82a49a816a4ddde80093d66ca761f040c12f0"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11WIDE_0p0003.pt",
+      "bytes": 8824141,
+      "sha256": "798ca364469dc7af00863026611e8214c6dee667e09dfe4a6e392bb6666b32fa"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11WIDE_0p001.pt",
+      "bytes": 8824141,
+      "sha256": "9775332c1676eef9198b93c7ad5fd2e8ba3ad299938d722f6e8ebd99224bb85e"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11_0p005.pt",
+      "bytes": 1813532,
+      "sha256": "5e5d27c88ec1b3d0dff40434f097f386b90d3b0d567226e0522cde80d60cf28b"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11_0p002.pt",
+      "bytes": 1813532,
+      "sha256": "a57fcf59ce902f3a90e4740119a3f301054b8850e4a485aa5f706b440ed82314"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11_0p001.pt",
+      "bytes": 1813532,
+      "sha256": "911981ef782d27154654b8631e403403fb4d98a06deb7c29ec6d09a326083b4d"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11_0p0003.pt",
+      "bytes": 1813532,
+      "sha256": "395739961933b6830283e3be99ad06ea96d196b514c7f4fd8acf070abb0b35f5"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11WIDE_0p005.pt",
+      "bytes": 8824141,
+      "sha256": "f9a7751c9f08f00ededd8d3e08e9ff9cb8de7db1f896044d2e846de9e72b0455"
+    },
+    {
+      "path": "diagnostics/ch3-cnn-backbone-2x2-same-run-c00-v2/ckpt/done_C11WIDE_0p002.pt",
+      "bytes": 8824141,
+      "sha256": "7cedd9e884921672519dde5cf9133347a9bdae267ba55781cea0e6dcf62421b6"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/lr_select/lr1/selected.pt",
+      "bytes": 364937,
+      "sha256": "e9d34318cefe929ebd9c4602497750cc6a670c0558fe0a9a124ff14fd28f4446"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/lr_select/lr0/selected.pt",
+      "bytes": 364809,
+      "sha256": "42289cc73f255d8ca655b5b70c844871ecf9b36566a197c1c369426cb8ca5e05"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/cells/gru-C01/inflight.pt",
+      "bytes": 1474524,
+      "sha256": "cbcce3a0f492d0c11b1bb0d863b01b9fafe07a3f9d284838599bcb97e7f440e4"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/cells/gru-C10/inflight.pt",
+      "bytes": 1473701,
+      "sha256": "d94943bccefc482587e7f2876eb868de3a3ea8a06bbbb987aa49c405abe2ae10"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/cells/gru-C01/selected.pt",
+      "bytes": 364937,
+      "sha256": "f7afdb73a140f19844a18023de44886f7f14455fdba2c329b1d9d1f09cd60a8f"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/lr_select/lr1/inflight.pt",
+      "bytes": 1473765,
+      "sha256": "9f373f395682d72141c629389adcff67811ba733d7e52e827c63166e742f0d95"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/cells/gru-C11/inflight.pt",
+      "bytes": 1474524,
+      "sha256": "968e6a56875627abc5ab6bf953cc7ea72a5ea9ab7f2dd5416209a9ad6adfe192"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C11/inflight.pt",
+      "bytes": 1495613,
+      "sha256": "e3f5ac63590f161b68723cc2351770d6a4ed3f95583e93f40bb90ea80ee7a436"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/cells/gru-C10/selected.pt",
+      "bytes": 364937,
+      "sha256": "64803d263db3a36ecbe1ec0c2e6807abee9390c4203c59e3fce33db219b58a4c"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/lr_select/lr0/inflight.pt",
+      "bytes": 1473509,
+      "sha256": "98e55960dc77f12fb69b8e997a0b0928ecbbfef0a9ab4b1eaabfadbc5f1e1194"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C00/inflight.pt",
+      "bytes": 1494662,
+      "sha256": "295f7e8f4acaa87afc94420e8b518fe59765f8cc8b799a49a7f3c5c9e71dd150"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/cells/gru-C11/selected.pt",
+      "bytes": 364937,
+      "sha256": "7acd116a9f255889c93b9191a1189fe11c703fcf9f1c50a988ad670396b4911b"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C11/selected.pt",
+      "bytes": 369258,
+      "sha256": "636d867d0d155a0d8d831db05af431bae7cef1bc683f6ea1869992d3404f9f1d"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C01/inflight.pt",
+      "bytes": 1495677,
+      "sha256": "788a4e7b92c89f84e3a501e5e8b584a41f3a80bd5a2bfe4c0a7401d2a919957a"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C00/selected.pt",
+      "bytes": 369066,
+      "sha256": "ec4869bfff861a16909cc5a13110f5f31607dd20d9670ccea2762ee71437a685"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C10/inflight.pt",
+      "bytes": 1494854,
+      "sha256": "a5507a77877c61d25e41e761acb3c8534d633323349370be29b66d63f3837bc9"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C01/selected.pt",
+      "bytes": 369258,
+      "sha256": "705ba26cd8de0d7fd589590e85e4418a21185d5c1732f839d62077b7f8a56411"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/transformer/cells/transformer-C10/selected.pt",
+      "bytes": 369258,
+      "sha256": "f5c69b36bdc2ceff6d5b0c50dd9eac4d31d8f965a1c671fe5f291ec677822ed0"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C11/inflight.pt",
+      "bytes": 1495485,
+      "sha256": "cde3ae48090f89b3eedca2f9beb8f331582d235238dc35c87f01c0b061473ec5"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C11/selected.pt",
+      "bytes": 369066,
+      "sha256": "77138f25e4636c7fd73ec04ad97c226fb554da263b24999f8ed86ed31e50a27d"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C11/inflight.pt",
+      "bytes": 1474268,
+      "sha256": "19b180d3e05735946e9abdc650d95e3b52ab6113588c737239612869a3edfda1"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C11/selected.pt",
+      "bytes": 364745,
+      "sha256": "0c42348ab984a5ea06923d12a4afd7908e5592b70afec1f5581259636c5ba467"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C01/selected.pt",
+      "bytes": 364745,
+      "sha256": "38df9e53f013ea999bf86ccbb3b932100731dfadcaf59a6c7c43104b512dc7c6"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-2x2-rerun-protocol-b-seed42-v1/gru/cells/gru-C00/selected.pt",
+      "bytes": 364745,
+      "sha256": "9ed84bd82818f0490ef2dd9cb4fe4f6ac1c373bf2c4476c39d1074246cd1905f"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C10/selected.pt",
+      "bytes": 364745,
+      "sha256": "88d66c658588f858bdee1a4e428aec57605cab0e7985bd76117a6bf50419d96a"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C10/inflight.pt",
+      "bytes": 1494662,
+      "sha256": "ec98d86fba22016d0207597590afb4bddf40e374cebfa2e06c2ab33ff5b4171e"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C10/inflight.pt",
+      "bytes": 1473445,
+      "sha256": "a411f5622df5e582b957c3bb8a22f388bf8a0553ffe91586a61d5d820f449521"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C01/inflight.pt",
+      "bytes": 1495485,
+      "sha256": "ec186ca9ef5397c03c7dcaf849c97e562388cd97cbce359e3f064ebf15efbb30"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C01/inflight.pt",
+      "bytes": 1474268,
+      "sha256": "159c5297f65ee34712fc0e74e81cfee052148cce0c4df91a7ca969167043278a"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C00/inflight.pt",
+      "bytes": 1473445,
+      "sha256": "bef6b01a7e05a98f39b0bf7830757f8e39a5f497d543a4310042fe947c5776c3"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C01/selected.pt",
+      "bytes": 369066,
+      "sha256": "939bd281dd6c3ed91b967a30865305731d95a1840ee02913a9445544ca118c09"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/gru/cells/gru-C00/selected.pt",
+      "bytes": 364745,
+      "sha256": "5c27ad129566df002f98052105c057102aab0368cb74aa6b6f5dac9b242aa157"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C00/selected.pt",
+      "bytes": 369066,
+      "sha256": "8270e600fffff096d8dd500141ea66f20d02a07e064f91d438e1b0ac95ab10f1"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C00/inflight.pt",
+      "bytes": 1494662,
+      "sha256": "278e16f955eb2ea3a40443aea3e379a7d9fd6cea5d2ca3b789af634c86e26b91"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/transformer/cells/transformer-C10/selected.pt",
+      "bytes": 369066,
+      "sha256": "2ef2cf80a4c23c3e731c3382521dbbc3600bc7730f386420a938918277bf2fbd"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C00/inflight.pt",
+      "bytes": 1491774,
+      "sha256": "26f36ae416d5eefb90d4cba62c98624003045597cadbb6ce5f9d918a26f921d9"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C00/selected.pt",
+      "bytes": 368898,
+      "sha256": "11da7b10f815257635b891718639f82043a845cb1c6952b4fa504a84edeea80f"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C10/inflight.pt",
+      "bytes": 1491774,
+      "sha256": "9318b7fa7c76453bcc52b235b3726e5701e25207ab17ae969be122ed2b9dd2d7"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C10/selected.pt",
+      "bytes": 368898,
+      "sha256": "d66b27d8e5f9f545435852e2930ce3cf930062da621f216f98cd7f6c76a8f9bf"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C01/inflight.pt",
+      "bytes": 1492597,
+      "sha256": "f1afede67114e5a63840cc14be31eeb5474c98cd50a25eaecfe4be6756cbacb9"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C01/selected.pt",
+      "bytes": 368898,
+      "sha256": "390954b888e0e0895a0c269699956e2fa737bc7d55d1572bce5524fbe9f8fd3b"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C11/inflight.pt",
+      "bytes": 1492597,
+      "sha256": "37308297c7ab1e590c653ab03eb2d733bf16e8891405c338ac3120bbbedf1f91"
+    },
+    {
+      "path": "diagnostics/ch3-backbone-protocolA-v2/cnn/cells/cnn-C11/selected.pt",
+      "bytes": 368898,
+      "sha256": "5373b7a7df57bd8f5607e39f3784ab101cba58b4ac62ea3fc4570729565a3aca"
+    }
+  ],
+  "created_at_utc": "2026-09-09T03:11:50Z"
+}

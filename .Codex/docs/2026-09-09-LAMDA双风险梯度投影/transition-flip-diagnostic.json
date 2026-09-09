@@ -1,0 +1,159 @@
+{
+  "schema_version": "ch3-lamda-transition-flip-diagnostic-v1",
+  "endpoints": [
+    2014,
+    2016,
+    2017
+  ],
+  "source_note": "只比较同一历史评价集合的前后模型；未读取封印年。",
+  "results": {
+    "stage_c": {
+      "experience_replay": [
+        {
+          "from_endpoint": 2014,
+          "to_endpoint": 2016,
+          "n_common": 17287,
+          "malicious_positive_repair_n": 276,
+          "malicious_negative_flip_n": 50,
+          "benign_new_false_positive_n": 404,
+          "benign_false_positive_clear_n": 205,
+          "malicious_n": 8877,
+          "benign_n": 8410
+        },
+        {
+          "from_endpoint": 2016,
+          "to_endpoint": 2017,
+          "n_common": 37524,
+          "malicious_positive_repair_n": 42,
+          "malicious_negative_flip_n": 1007,
+          "benign_new_false_positive_n": 255,
+          "benign_false_positive_clear_n": 672,
+          "malicious_n": 18028,
+          "benign_n": 19496
+        }
+      ],
+      "role_conditioned_memory": [
+        {
+          "from_endpoint": 2014,
+          "to_endpoint": 2016,
+          "n_common": 17287,
+          "malicious_positive_repair_n": 216,
+          "malicious_negative_flip_n": 108,
+          "benign_new_false_positive_n": 271,
+          "benign_false_positive_clear_n": 236,
+          "malicious_n": 8877,
+          "benign_n": 8410
+        },
+        {
+          "from_endpoint": 2016,
+          "to_endpoint": 2017,
+          "n_common": 37524,
+          "malicious_positive_repair_n": 163,
+          "malicious_negative_flip_n": 3535,
+          "benign_new_false_positive_n": 509,
+          "benign_false_positive_clear_n": 607,
+          "malicious_n": 18028,
+          "benign_n": 19496
+        }
+      ],
+      "risk_repair_update": [
+        {
+          "from_endpoint": 2014,
+          "to_endpoint": 2016,
+          "n_common": 17287,
+          "malicious_positive_repair_n": 472,
+          "malicious_negative_flip_n": 197,
+          "benign_new_false_positive_n": 3459,
+          "benign_false_positive_clear_n": 67,
+          "malicious_n": 8877,
+          "benign_n": 8410
+        },
+        {
+          "from_endpoint": 2016,
+          "to_endpoint": 2017,
+          "n_common": 37524,
+          "malicious_positive_repair_n": 378,
+          "malicious_negative_flip_n": 2974,
+          "benign_new_false_positive_n": 613,
+          "benign_false_positive_clear_n": 5930,
+          "malicious_n": 18028,
+          "benign_n": 19496
+        }
+      ],
+      "role_conditioned_memory_risk_repair": [
+        {
+          "from_endpoint": 2014,
+          "to_endpoint": 2016,
+          "n_common": 17287,
+          "malicious_positive_repair_n": 509,
+          "malicious_negative_flip_n": 216,
+          "benign_new_false_positive_n": 3675,
+          "benign_false_positive_clear_n": 96,
+          "malicious_n": 8877,
+          "benign_n": 8410
+        },
+        {
+          "from_endpoint": 2016,
+          "to_endpoint": 2017,
+          "n_common": 37524,
+          "malicious_positive_repair_n": 538,
+          "malicious_negative_flip_n": 3422,
+          "benign_new_false_positive_n": 853,
+          "benign_false_positive_clear_n": 6157,
+          "malicious_n": 18028,
+          "benign_n": 19496
+        }
+      ]
+    },
+    "dual_projection": {
+      "experience_replay": [
+        {
+          "from_endpoint": 2014,
+          "to_endpoint": 2016,
+          "n_common": 17287,
+          "malicious_positive_repair_n": 276,
+          "malicious_negative_flip_n": 50,
+          "benign_new_false_positive_n": 404,
+          "benign_false_positive_clear_n": 205,
+          "malicious_n": 8877,
+          "benign_n": 8410
+        },
+        {
+          "from_endpoint": 2016,
+          "to_endpoint": 2017,
+          "n_common": 37524,
+          "malicious_positive_repair_n": 42,
+          "malicious_negative_flip_n": 1007,
+          "benign_new_false_positive_n": 255,
+          "benign_false_positive_clear_n": 672,
+          "malicious_n": 18028,
+          "benign_n": 19496
+        }
+      ],
+      "dual_risk_projection": [
+        {
+          "from_endpoint": 2014,
+          "to_endpoint": 2016,
+          "n_common": 17287,
+          "malicious_positive_repair_n": 176,
+          "malicious_negative_flip_n": 81,
+          "benign_new_false_positive_n": 488,
+          "benign_false_positive_clear_n": 237,
+          "malicious_n": 8877,
+          "benign_n": 8410
+        },
+        {
+          "from_endpoint": 2016,
+          "to_endpoint": 2017,
+          "n_common": 37524,
+          "malicious_positive_repair_n": 170,
+          "malicious_negative_flip_n": 478,
+          "benign_new_false_positive_n": 477,
+          "benign_false_positive_clear_n": 651,
+          "malicious_n": 18028,
+          "benign_n": 19496
+        }
+      ]
+    }
+  }
+}

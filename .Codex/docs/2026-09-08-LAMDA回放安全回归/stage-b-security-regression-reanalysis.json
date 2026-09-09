@@ -1,0 +1,486 @@
+{
+  "schema_version": "ch3-lamda-security-regression-reanalysis-v1",
+  "run_id": "ch3-lamda-security-regression-ablation-seed42-v1",
+  "run_tier": "screening_only",
+  "independent_final_test": false,
+  "seed_count": 1,
+  "qualification_years": [
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "source_artifacts": {
+    "run_root": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-security-regression-ablation-seed42-v1",
+    "qualification_summary": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-security-regression-ablation-seed42-v1/qualification-summary.json",
+    "run_manifest": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-security-regression-ablation-seed42-v1/run-manifest.json",
+    "resource_receipt": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-security-regression-ablation-seed42-v1/resource-receipt.json",
+    "tool": "thesis/experiments/llm_probe/tools/ch3_lamda_security_regression_ablation.py"
+  },
+  "artifact_completeness": {
+    "metrics_per_arm": {
+      "naive_security_regression": 12,
+      "replay_security_regression": 12
+    },
+    "prediction_files_per_arm": {
+      "naive_security_regression": 34,
+      "replay_security_regression": 34
+    },
+    "status": {
+      "detail": "安全回归消融完成",
+      "published_feature_space_uses_future_covariates": true,
+      "schema_version": "ch3-lamda-domain-il-replay-status-v1",
+      "screening_only": true,
+      "started_at": "2026-09-09T03:25:15.438622Z",
+      "state": "completed",
+      "updated_at": "2026-09-09T03:38:40.112870Z"
+    }
+  },
+  "pooled_current_year_2020_2025": {
+    "naive_security_regression": {
+      "n": 83420,
+      "AP": 0.9958274252710939,
+      "AUROC": 0.9972670804892149,
+      "F1": 0.9790798150534374,
+      "FPR": 0.008252563562298075,
+      "FNR": 0.023953453226537705,
+      "Brier": 0.01146227302451667,
+      "confusion": {
+        "TN": 56482,
+        "FP": 470,
+        "FN": 634,
+        "TP": 25834
+      },
+      "threshold": 0.5
+    },
+    "replay_security_regression": {
+      "n": 83420,
+      "AP": 0.9957889497431716,
+      "AUROC": 0.9971893011543246,
+      "F1": 0.9790699876882281,
+      "FPR": 0.008463267312824835,
+      "FNR": 0.02353785703491008,
+      "Brier": 0.011443605994700257,
+      "confusion": {
+        "TN": 56470,
+        "FP": 482,
+        "FN": 623,
+        "TP": 25845
+      },
+      "threshold": 0.5
+    }
+  },
+  "delta_replay_minus_naive": {
+    "AP": -3.847552792235476e-05,
+    "AUROC": -7.777933489028221e-05,
+    "F1": -9.827365209380545e-06,
+    "FPR": 0.00021070375052676012,
+    "FNR": -0.0004155961916276242,
+    "Brier": -1.8667029816413216e-05
+  },
+  "per_year_current_year": {
+    "2020": {
+      "naive_security_regression": {
+        "AP": 0.996462662580785,
+        "AUROC": 0.9964386792507617,
+        "Brier": 0.016950254220403402,
+        "F1": 0.9778522039757995,
+        "FNR": 0.023729910473519578,
+        "FPR": 0.017049533381191674,
+        "n": 20415,
+        "threshold": 0.5
+      },
+      "replay_security_regression": {
+        "AP": 0.9963181368381051,
+        "AUROC": 0.9962159306478926,
+        "Brier": 0.017034579691727555,
+        "F1": 0.9784304233231134,
+        "FNR": 0.018983928378815663,
+        "FPR": 0.020190236898779614,
+        "n": 20415,
+        "threshold": 0.5
+      }
+    },
+    "2021": {
+      "naive_security_regression": {
+        "AP": 0.9973402025833878,
+        "AUROC": 0.9972051124957132,
+        "Brier": 0.012199170220107237,
+        "F1": 0.9837746716302592,
+        "FNR": 0.01712280701754386,
+        "FPR": 0.011970129584889085,
+        "n": 16231,
+        "threshold": 0.5
+      },
+      "replay_security_regression": {
+        "AP": 0.997605680182816,
+        "AUROC": 0.9975077238450838,
+        "Brier": 0.010956249586089551,
+        "F1": 0.9855623635467287,
+        "FNR": 0.017964912280701753,
+        "FPR": 0.008455963101251922,
+        "n": 16231,
+        "threshold": 0.5
+      }
+    },
+    "2022": {
+      "naive_security_regression": {
+        "AP": 0.9985578740822082,
+        "AUROC": 0.9985379990727584,
+        "Brier": 0.010650264301235245,
+        "F1": 0.9873082706766917,
+        "FNR": 0.014765906362545019,
+        "FPR": 0.009828009828009828,
+        "n": 17284,
+        "threshold": 0.5
+      },
+      "replay_security_regression": {
+        "AP": 0.9985565652081614,
+        "AUROC": 0.9985149118838959,
+        "Brier": 0.011710904257304545,
+        "F1": 0.9855893880012059,
+        "FNR": 0.018847539015606242,
+        "FPR": 0.00915791824882734,
+        "n": 17284,
+        "threshold": 0.5
+      }
+    },
+    "2023": {
+      "naive_security_regression": {
+        "AP": 0.9743261596042107,
+        "AUROC": 0.9908581380400391,
+        "Brier": 0.014937351864480412,
+        "F1": 0.9419685796729721,
+        "FNR": 0.06907477820025348,
+        "FPR": 0.007747767136554395,
+        "n": 10871,
+        "threshold": 0.5
+      },
+      "replay_security_regression": {
+        "AP": 0.973053374541076,
+        "AUROC": 0.9897258004000722,
+        "Brier": 0.014925459436519172,
+        "F1": 0.93854033290653,
+        "FNR": 0.07097591888466413,
+        "FPR": 0.008608630151727106,
+        "n": 10871,
+        "threshold": 0.5
+      }
+    },
+    "2024": {
+      "naive_security_regression": {
+        "AP": 0.7514890764403376,
+        "AUROC": 0.939944269613076,
+        "Brier": 0.006135576686042501,
+        "F1": 0.7647058823529411,
+        "FNR": 0.34591194968553457,
+        "FPR": 0.0009446835310171093,
+        "n": 9686,
+        "threshold": 0.5
+      },
+      "replay_security_regression": {
+        "AP": 0.7657355570982883,
+        "AUROC": 0.9287876297289466,
+        "Brier": 0.005865171536286149,
+        "F1": 0.7916666666666666,
+        "FNR": 0.2830188679245283,
+        "FPR": 0.001574472551695182,
+        "n": 9686,
+        "threshold": 0.5
+      }
+    },
+    "2025": {
+      "naive_security_regression": {
+        "AP": 0.05548935326006055,
+        "AUROC": 0.985103046594982,
+        "Brier": 0.000699241897543977,
+        "F1": 0.0,
+        "FNR": 1.0,
+        "FPR": 0.00022401433691756272,
+        "n": 8933,
+        "threshold": 0.5
+      },
+      "replay_security_regression": {
+        "AP": 0.035893799365199805,
+        "AUROC": 0.9665770609318997,
+        "Brier": 0.0008460528849589734,
+        "F1": 0.0,
+        "FNR": 1.0,
+        "FPR": 0.0003360215053763441,
+        "n": 8933,
+        "threshold": 0.5
+      }
+    }
+  },
+  "backward_old_malicious_negative_flip": {
+    "all_training_endpoints": {
+      "naive_security_regression": {
+        "eligible_n": 493141,
+        "negative_flip_n": 8923,
+        "rate": 0.018094216461417727,
+        "by_endpoint": [
+          {
+            "trained_through_year": 2014,
+            "eligible_n": 8877,
+            "negative_flip_n": 179,
+            "rate": 0.02016446997859637
+          },
+          {
+            "trained_through_year": 2016,
+            "eligible_n": 17582,
+            "negative_flip_n": 378,
+            "rate": 0.021499260607439428
+          },
+          {
+            "trained_through_year": 2017,
+            "eligible_n": 25671,
+            "negative_flip_n": 918,
+            "rate": 0.03576019633048966
+          },
+          {
+            "trained_through_year": 2018,
+            "eligible_n": 29293,
+            "negative_flip_n": 987,
+            "rate": 0.03369405660055303
+          },
+          {
+            "trained_through_year": 2019,
+            "eligible_n": 36439,
+            "negative_flip_n": 599,
+            "rate": 0.016438431351025
+          },
+          {
+            "trained_through_year": 2020,
+            "eligible_n": 45748,
+            "negative_flip_n": 367,
+            "rate": 0.008022208621141908
+          },
+          {
+            "trained_through_year": 2021,
+            "eligible_n": 55354,
+            "negative_flip_n": 663,
+            "rate": 0.011977454203851573
+          },
+          {
+            "trained_through_year": 2022,
+            "eligible_n": 62105,
+            "negative_flip_n": 366,
+            "rate": 0.005893245310361485
+          },
+          {
+            "trained_through_year": 2023,
+            "eligible_n": 70929,
+            "negative_flip_n": 1214,
+            "rate": 0.017115707256552325
+          },
+          {
+            "trained_through_year": 2024,
+            "eligible_n": 71497,
+            "negative_flip_n": 2188,
+            "rate": 0.03060268263004042
+          },
+          {
+            "trained_through_year": 2025,
+            "eligible_n": 69646,
+            "negative_flip_n": 1064,
+            "rate": 0.015277259282658013
+          }
+        ]
+      },
+      "replay_security_regression": {
+        "eligible_n": 493781,
+        "negative_flip_n": 7722,
+        "rate": 0.01563851180989143,
+        "by_endpoint": [
+          {
+            "trained_through_year": 2014,
+            "eligible_n": 8877,
+            "negative_flip_n": 226,
+            "rate": 0.025459051481356312
+          },
+          {
+            "trained_through_year": 2016,
+            "eligible_n": 17460,
+            "negative_flip_n": 275,
+            "rate": 0.01575028636884307
+          },
+          {
+            "trained_through_year": 2017,
+            "eligible_n": 25834,
+            "negative_flip_n": 771,
+            "rate": 0.02984439111248742
+          },
+          {
+            "trained_through_year": 2018,
+            "eligible_n": 29476,
+            "negative_flip_n": 814,
+            "rate": 0.027615687338851946
+          },
+          {
+            "trained_through_year": 2019,
+            "eligible_n": 36916,
+            "negative_flip_n": 570,
+            "rate": 0.015440459421389099
+          },
+          {
+            "trained_through_year": 2020,
+            "eligible_n": 45943,
+            "negative_flip_n": 508,
+            "rate": 0.011057179548571055
+          },
+          {
+            "trained_through_year": 2021,
+            "eligible_n": 55174,
+            "negative_flip_n": 463,
+            "rate": 0.00839163374052996
+          },
+          {
+            "trained_through_year": 2022,
+            "eligible_n": 62080,
+            "negative_flip_n": 307,
+            "rate": 0.004945231958762886
+          },
+          {
+            "trained_through_year": 2023,
+            "eligible_n": 70606,
+            "negative_flip_n": 1279,
+            "rate": 0.0181146078236977
+          },
+          {
+            "trained_through_year": 2024,
+            "eligible_n": 71018,
+            "negative_flip_n": 1556,
+            "rate": 0.021909938325494944
+          },
+          {
+            "trained_through_year": 2025,
+            "eligible_n": 70397,
+            "negative_flip_n": 953,
+            "rate": 0.013537508700654857
+          }
+        ]
+      }
+    },
+    "qualification_endpoints_2020_2025": {
+      "naive_security_regression": {
+        "eligible_n": 375279,
+        "negative_flip_n": 5862,
+        "rate": 0.0156203784384418,
+        "by_endpoint": [
+          {
+            "trained_through_year": 2020,
+            "eligible_n": 45748,
+            "negative_flip_n": 367,
+            "rate": 0.008022208621141908
+          },
+          {
+            "trained_through_year": 2021,
+            "eligible_n": 55354,
+            "negative_flip_n": 663,
+            "rate": 0.011977454203851573
+          },
+          {
+            "trained_through_year": 2022,
+            "eligible_n": 62105,
+            "negative_flip_n": 366,
+            "rate": 0.005893245310361485
+          },
+          {
+            "trained_through_year": 2023,
+            "eligible_n": 70929,
+            "negative_flip_n": 1214,
+            "rate": 0.017115707256552325
+          },
+          {
+            "trained_through_year": 2024,
+            "eligible_n": 71497,
+            "negative_flip_n": 2188,
+            "rate": 0.03060268263004042
+          },
+          {
+            "trained_through_year": 2025,
+            "eligible_n": 69646,
+            "negative_flip_n": 1064,
+            "rate": 0.015277259282658013
+          }
+        ]
+      },
+      "replay_security_regression": {
+        "eligible_n": 375218,
+        "negative_flip_n": 5066,
+        "rate": 0.01350148447036123,
+        "by_endpoint": [
+          {
+            "trained_through_year": 2020,
+            "eligible_n": 45943,
+            "negative_flip_n": 508,
+            "rate": 0.011057179548571055
+          },
+          {
+            "trained_through_year": 2021,
+            "eligible_n": 55174,
+            "negative_flip_n": 463,
+            "rate": 0.00839163374052996
+          },
+          {
+            "trained_through_year": 2022,
+            "eligible_n": 62080,
+            "negative_flip_n": 307,
+            "rate": 0.004945231958762886
+          },
+          {
+            "trained_through_year": 2023,
+            "eligible_n": 70606,
+            "negative_flip_n": 1279,
+            "rate": 0.0181146078236977
+          },
+          {
+            "trained_through_year": 2024,
+            "eligible_n": 71018,
+            "negative_flip_n": 1556,
+            "rate": 0.021909938325494944
+          },
+          {
+            "trained_through_year": 2025,
+            "eligible_n": 70397,
+            "negative_flip_n": 953,
+            "rate": 0.013537508700654857
+          }
+        ]
+      }
+    }
+  },
+  "resource": {
+    "cuda_max_memory_allocated": 124980736,
+    "cuda_max_memory_reserved": 209715200,
+    "device": "cuda",
+    "max_rss": 4671980,
+    "max_rss_unit": "platform_dependent",
+    "wall_seconds": 804.6733692488633
+  },
+  "implementation_audit": {
+    "effective_config_claim": "只从已到达年度 train 中由上一模型正确判为恶意的样本构造安全记忆",
+    "code_observation": "collect_safety_memory 在当前年度训练、current_year/backward 评价之后调用；update_from_predictions 使用当前模型对同一年度 train 的 score >= 0.5 选择样本。",
+    "code_locations": [
+      "tools/ch3_lamda_security_regression_ablation.py:122-129",
+      "tools/ch3_lamda_security_regression_ablation.py:184-194"
+    ],
+    "consequence": "本运行不是文献中严格的上一冻结模型 PCT/FD-LM 实现，只能命名为一侧安全记忆 BCE 候选筛查。"
+  },
+  "interpretation": {
+    "supported": [
+      "联合臂 pooled FNR 略低",
+      "联合臂 pooled 旧恶意负向翻转率较低",
+      "2024 current_year F1/AP/FNR 有较明显改善"
+    ],
+    "not_supported": [
+      "联合臂全面优于朴素臂",
+      "联合臂降低 FPR",
+      "2025 低阳性年度得到改善",
+      "多种子显著性或正式最终测试结论"
+    ],
+    "next_candidate": "若继续，只能先实现并比较严格的上一模型正确恶意保护集合 PCT/FD-LM 与普通蒸馏对照；不应把本运行直接升级为第三章主机制。"
+  }
+}

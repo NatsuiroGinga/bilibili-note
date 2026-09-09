@@ -1,0 +1,347 @@
+{
+  "schema_version": "ch3-lamda-mo-source-dev-screening-reanalysis-v1",
+  "run_id": "ch3-lamda-mo-source-dev-screening-seed42-v1",
+  "run_tier": "screening_only",
+  "independent_final_test": false,
+  "seed_count": 1,
+  "enumerated_years": [
+    2013,
+    2014,
+    2016,
+    2017
+  ],
+  "development_years": [
+    2016,
+    2017
+  ],
+  "sealed_final_years_not_read": [
+    2018,
+    2019,
+    2020,
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "source_artifacts": {
+    "run_root": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-mo-source-dev-screening-seed42-v1",
+    "development_summary": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-mo-source-dev-screening-seed42-v1/development-summary.json",
+    "run_manifest": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-mo-source-dev-screening-seed42-v1/run-manifest.json",
+    "resource_receipt": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-mo-source-dev-screening-seed42-v1/resource-receipt.json",
+    "tool": "thesis/experiments/llm_probe/tools/ch3_lamda_mo_source_dev_screening.py"
+  },
+  "artifact_completeness": {
+    "metrics_per_arm": {
+      "experience_replay": 4,
+      "role_conditioned_memory": 4,
+      "risk_repair_update": 4,
+      "role_conditioned_memory_risk_repair": 4
+    },
+    "prediction_files_per_arm": {
+      "experience_replay": 10,
+      "role_conditioned_memory": 10,
+      "risk_repair_update": 10,
+      "role_conditioned_memory_risk_repair": 10
+    },
+    "status": {
+      "detail": "LAMDA 来源／开发期 M/O 筛查完成",
+      "published_feature_space_uses_future_covariates": true,
+      "schema_version": "ch3-lamda-domain-il-replay-status-v1",
+      "screening_only": true,
+      "started_at": "2026-09-09T04:23:59.107015Z",
+      "state": "completed",
+      "updated_at": "2026-09-09T04:55:25.835918Z"
+    }
+  },
+  "pooled_development_current_year": {
+    "experience_replay": {
+      "n": 41668,
+      "AP": 0.9872426530423574,
+      "AUROC": 0.9920059296860873,
+      "F1": 0.9555385790679908,
+      "FPR": 0.0131481546758786,
+      "FNR": 0.0594781562523498,
+      "Brier": 0.022609419445909495,
+      "confusion": {
+        "TN": 27996,
+        "FP": 373,
+        "FN": 791,
+        "TP": 12508
+      },
+      "threshold": 0.5
+    },
+    "role_conditioned_memory": {
+      "n": 41668,
+      "AP": 0.98654248088232,
+      "AUROC": 0.9919291523552877,
+      "F1": 0.9506681557361266,
+      "FPR": 0.011456166942789664,
+      "FNR": 0.07188510414316866,
+      "Brier": 0.024598514015247062,
+      "confusion": {
+        "TN": 28044,
+        "FP": 325,
+        "FN": 956,
+        "TP": 12343
+      },
+      "threshold": 0.5
+    },
+    "risk_repair_update": {
+      "n": 41668,
+      "AP": 0.9368165450127528,
+      "AUROC": 0.9676649567108143,
+      "F1": 0.8797367583059124,
+      "FPR": 0.08925235292044133,
+      "FNR": 0.06519287164448455,
+      "Brier": 0.06347511728383069,
+      "confusion": {
+        "TN": 25837,
+        "FP": 2532,
+        "FN": 867,
+        "TP": 12432
+      },
+      "threshold": 0.5
+    },
+    "role_conditioned_memory_risk_repair": {
+      "n": 41668,
+      "AP": 0.9435776316199552,
+      "AUROC": 0.9709839922293544,
+      "F1": 0.8750963222416812,
+      "FPR": 0.09725404490817442,
+      "FNR": 0.060681254229641324,
+      "Brier": 0.06569306529685846,
+      "confusion": {
+        "TN": 25610,
+        "FP": 2759,
+        "FN": 807,
+        "TP": 12492
+      },
+      "threshold": 0.5
+    }
+  },
+  "delta_vs_experience_replay": {
+    "experience_replay": {
+      "AP": 0.0,
+      "AUROC": 0.0,
+      "F1": 0.0,
+      "FPR": 0.0,
+      "FNR": 0.0,
+      "Brier": 0.0
+    },
+    "role_conditioned_memory": {
+      "AP": -0.0007001721600373711,
+      "AUROC": -7.677733079958227e-05,
+      "F1": -0.00487042333186416,
+      "FPR": -0.0016919877330889357,
+      "FNR": 0.012406947890818865,
+      "Brier": 0.001989094569337567
+    },
+    "risk_repair_update": {
+      "AP": -0.050426108029604566,
+      "AUROC": -0.024340972975272934,
+      "F1": -0.07580182076207842,
+      "FPR": 0.07610419824456273,
+      "FNR": 0.0057147153921347504,
+      "Brier": 0.0408656978379212
+    },
+    "role_conditioned_memory_risk_repair": {
+      "AP": -0.04366502142240214,
+      "AUROC": -0.021021937456732864,
+      "F1": -0.08044225682630957,
+      "FPR": 0.08410589023229582,
+      "FNR": 0.0012030979772915257,
+      "Brier": 0.04308364585094897
+    }
+  },
+  "per_year_current_year": {
+    "2016": {
+      "experience_replay": {
+        "AP": 0.9895955012431196,
+        "AUROC": 0.9921986088427056,
+        "Brier": 0.029036656539401937,
+        "F1": 0.9549893366258839,
+        "FNR": 0.05749418411432369,
+        "FPR": 0.02208866687480487,
+        "n": 21839,
+        "threshold": 0.5
+      },
+      "role_conditioned_memory": {
+        "AP": 0.9893594090594848,
+        "AUROC": 0.9921547322510217,
+        "Brier": 0.03359170809660589,
+        "F1": 0.9473203584270304,
+        "FNR": 0.08064694804475463,
+        "FPR": 0.015220106150483921,
+        "n": 21839,
+        "threshold": 0.5
+      },
+      "risk_repair_update": {
+        "AP": 0.9313191660440678,
+        "AUROC": 0.9555949567262413,
+        "Brier": 0.08533541849630838,
+        "F1": 0.87300356644441,
+        "FNR": 0.064473246925889,
+        "FPR": 0.14634717452388385,
+        "n": 21839,
+        "threshold": 0.5
+      },
+      "role_conditioned_memory_risk_repair": {
+        "AP": 0.9391473452386863,
+        "AUROC": 0.9595729626951525,
+        "Brier": 0.08767872924937212,
+        "F1": 0.8695340501792115,
+        "FNR": 0.059377423285698464,
+        "FPR": 0.15704027474242896,
+        "n": 21839,
+        "threshold": 0.5
+      }
+    },
+    "2017": {
+      "experience_replay": {
+        "AP": 0.9803582008263034,
+        "AUROC": 0.9897640900239039,
+        "Brier": 0.015530674633524547,
+        "F1": 0.9567089213106912,
+        "FNR": 0.06367041198501873,
+        "FPR": 0.005785177090698721,
+        "n": 19829,
+        "threshold": 0.5
+      },
+      "role_conditioned_memory": {
+        "AP": 0.9804808508716585,
+        "AUROC": 0.9898348549215774,
+        "Brier": 0.014693709660877446,
+        "F1": 0.9576130712763439,
+        "FNR": 0.05337078651685393,
+        "FPR": 0.008356366908787041,
+        "n": 19829,
+        "threshold": 0.5
+      },
+      "risk_repair_update": {
+        "AP": 0.944679811243629,
+        "AUROC": 0.9722584297348955,
+        "Brier": 0.03939890980088651,
+        "F1": 0.8943472409152086,
+        "FNR": 0.06671348314606741,
+        "FPR": 0.042231792762100664,
+        "n": 19829,
+        "threshold": 0.5
+      },
+      "role_conditioned_memory_risk_repair": {
+        "AP": 0.9465334606372994,
+        "AUROC": 0.974471243420655,
+        "Brier": 0.04147878746847852,
+        "F1": 0.8871396895787139,
+        "FNR": 0.06343632958801498,
+        "FPR": 0.048016969852799386,
+        "n": 19829,
+        "threshold": 0.5
+      }
+    }
+  },
+  "backward_old_malicious_negative_flip": {
+    "experience_replay": {
+      "eligible_n": 43161,
+      "negative_flip_n": 2249,
+      "rate": 0.05210722643126897,
+      "by_endpoint": [
+        {
+          "trained_through_year": 2016,
+          "eligible_n": 17180,
+          "negative_flip_n": 227,
+          "rate": 0.013213038416763679
+        },
+        {
+          "trained_through_year": 2017,
+          "eligible_n": 25981,
+          "negative_flip_n": 2022,
+          "rate": 0.07782610369115893
+        }
+      ]
+    },
+    "role_conditioned_memory": {
+      "eligible_n": 42678,
+      "negative_flip_n": 6570,
+      "rate": 0.1539434837621257,
+      "by_endpoint": [
+        {
+          "trained_through_year": 2016,
+          "eligible_n": 17181,
+          "negative_flip_n": 407,
+          "rate": 0.023688958733484665
+        },
+        {
+          "trained_through_year": 2017,
+          "eligible_n": 25497,
+          "negative_flip_n": 6163,
+          "rate": 0.24171471153469035
+        }
+      ]
+    },
+    "risk_repair_update": {
+      "eligible_n": 42654,
+      "negative_flip_n": 6000,
+      "rate": 0.14066676044450696,
+      "by_endpoint": [
+        {
+          "trained_through_year": 2016,
+          "eligible_n": 16943,
+          "negative_flip_n": 631,
+          "rate": 0.03724251903440949
+        },
+        {
+          "trained_through_year": 2017,
+          "eligible_n": 25711,
+          "negative_flip_n": 5369,
+          "rate": 0.20882112714402395
+        }
+      ]
+    },
+    "role_conditioned_memory_risk_repair": {
+      "eligible_n": 42627,
+      "negative_flip_n": 6585,
+      "rate": 0.15447955521148568,
+      "by_endpoint": [
+        {
+          "trained_through_year": 2016,
+          "eligible_n": 16900,
+          "negative_flip_n": 681,
+          "rate": 0.04029585798816568
+        },
+        {
+          "trained_through_year": 2017,
+          "eligible_n": 25727,
+          "negative_flip_n": 5904,
+          "rate": 0.2294865316593462
+        }
+      ]
+    }
+  },
+  "resource": {
+    "cuda_max_memory_allocated": 3238131200,
+    "cuda_max_memory_reserved": 8921284608,
+    "device": "cuda",
+    "max_rss": 7542768,
+    "max_rss_unit": "platform_dependent",
+    "wall_seconds": 1886.728025705088
+  },
+  "implementation_audit": {
+    "role_memory_rule": "角色顺序 protect→repair→fp_control→coverage，轮转填充 200 槽位；实际每角色约 50 条，形成隐式等配额。",
+    "risk_rule": "每批对 teacher 低分恶意、teacher 高分良性和保护记忆分别加入等单位损失；lambda 均为 1.0。",
+    "sealed_data": "入口枚举仅 2013/2014/2016/2017；封印年未读取。"
+  },
+  "decision": {
+    "experience_replay": "development_anchor",
+    "role_conditioned_memory": "reject_screening",
+    "risk_repair_update": "reject_screening",
+    "role_conditioned_memory_risk_repair": "reject_screening",
+    "reason": [
+      "M 臂开发期 AP/F1/FNR 与旧恶意回溯翻转均恶化，FPR 虽下降但不能抵消；",
+      "O 臂开发期 FPR 大幅上升且 AP/AUROC/F1 下降；",
+      "M+O 臂同时出现 FPR 大幅上升与 AP/F1 下降，未形成互补；",
+      "单种子、发布特征未来协变量和隐式等配额使本结果只作 screening_only。"
+    ]
+  },
+  "next_action": "停止该具体“等配额角色记忆＋等单位风险损失”组合；不要进入封印年。若继续研究，必须先由文献原件和新的源年病灶提出不同机制，并重新建立最小反例对照。"
+}
