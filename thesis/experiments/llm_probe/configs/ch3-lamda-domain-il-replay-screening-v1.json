@@ -1,0 +1,60 @@
+{
+  "schema_version": "ch3-lamda-domain-il-replay-screening-config-v1",
+  "identity": {
+    "run_id": "ch3-lamda-domain-il-naive-replay-screening-seed42-v1",
+    "display_name": "LAMDA Domain-IL Naive 对 Replay 资格筛查",
+    "run_tier": "screening_only",
+    "independent_final_test": false,
+    "published_feature_space_uses_future_covariates": true,
+    "screening_only_reason": "发布的 4561 维特征空间使用未来年份训练分片的协变量建立词表和方差选择；本运行只筛查经验回放的错误余量。"
+  },
+  "paths": {
+    "data_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-naive-replay-screening-seed42-v1"
+  },
+  "data": {
+    "dataset_revision": "ad9614bdd5556767f97ced2fce797c2f06408ebf",
+    "published_feature_count": 4561,
+    "metadata_columns": ["hash", "label", "family", "vt_count", "year_month"],
+    "protocol": "Domain-IL",
+    "label_arrival": "每个年份的 train 标签只在该年份训练阶段到达；该年份 test 只用于训练后评价，绝不加入训练或回放缓冲区。",
+    "year_order": [2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "year_split": "发布 Baseline/<year>/<year>_train.parquet 与 <year>_test.parquet 的 80/20 划分"
+  },
+  "arms": ["naive", "replay"],
+  "model": {
+    "backbone": [512, 384, 256, 128],
+    "head": [100, 100, 1],
+    "activation": "ReLU",
+    "head_dropout": 0.2,
+    "output": "Sigmoid",
+    "loss": "BCELoss"
+  },
+  "training": {
+    "seed": 42,
+    "epochs_per_year": 10,
+    "batch_size": 1024,
+    "optimizer": {"name": "SGD", "lr": 0.01, "momentum": 0.9, "weight_decay": 1e-6},
+    "cpu_feature_dtype": "uint8",
+    "device_feature_dtype": "float32",
+    "float32_matmul_precision": "high",
+    "torch_compile": false
+  },
+  "replay": {
+    "algorithm": "standard_single_example_reservoir",
+    "capacity": 200,
+    "update_timing": "仅在当前年份的全部训练和三个评价面均完成后更新；更新前不允许本年样本进入缓冲区。"
+  },
+  "evaluation": {
+    "threshold": 0.5,
+    "surfaces": ["current_year", "next_year", "backward"],
+    "metrics": ["AP", "AUROC", "F1", "FPR", "FNR", "Brier", "old_malicious_negative_flip_rate"],
+    "prediction_identity": ["sample_identity_sha256", "feature_label_sha256"],
+    "qualification_current_years": [2020, 2021, 2022, 2023, 2024, 2025]
+  },
+  "qualification_gate": {
+    "replay_fpr_must_not_increase": true,
+    "one_strict_improvement_required": ["AP_higher", "FNR_lower", "old_malicious_negative_flip_rate_lower"],
+    "failure_action": "标准经验回放不获资格；停止安全回归约束扩展。"
+  }
+}

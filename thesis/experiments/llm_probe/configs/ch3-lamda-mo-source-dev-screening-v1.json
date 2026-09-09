@@ -1,0 +1,93 @@
+{
+  "schema_version": "ch3-lamda-mo-source-dev-screening-config-v1",
+  "identity": {
+    "run_id": "ch3-lamda-mo-source-dev-screening-seed42-v1",
+    "display_name": "LAMDA 来源开发期决策角色记忆与双侧风险修复四臂筛查",
+    "run_tier": "screening_only",
+    "independent_final_test": false,
+    "published_feature_space_uses_future_covariates": true,
+    "screening_only_reason": "发布的 4561 维特征空间使用未来年份训练分片协变量；本运行只读取来源年和开发年。"
+  },
+  "paths": {
+    "data_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-mo-source-dev-screening-seed42-v1"
+  },
+  "data": {
+    "dataset_revision": "ad9614bdd5556767f97ced2fce797c2f06408ebf",
+    "protocol": "Domain-IL",
+    "published_feature_count": 4561,
+    "metadata_columns": ["hash", "label", "family", "vt_count", "year_month"],
+    "run_years": [2013, 2014, 2016, 2017],
+    "source_years": [2013, 2014],
+    "development_years": [2016, 2017],
+    "sealed_final_years": [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "label_arrival": "每个运行年度 train 标签只在该年度更新阶段到达；test 只用于训练后评价。"
+  },
+  "arms": [
+    "experience_replay",
+    "role_conditioned_memory",
+    "risk_repair_update",
+    "role_conditioned_memory_risk_repair"
+  ],
+  "model": {
+    "backbone": [512, 384, 256, 128],
+    "head": [100, 100, 1],
+    "activation": "ReLU",
+    "head_dropout": 0.2,
+    "output": "Sigmoid",
+    "loss": "BCELoss"
+  },
+  "training": {
+    "seed": 42,
+    "epochs_per_year": 10,
+    "batch_size": 1024,
+    "optimizer": {
+      "name": "SGD",
+      "lr": 0.01,
+      "momentum": 0.9,
+      "weight_decay": 1e-6
+    },
+    "float32_matmul_precision": "high",
+    "precision_profile": "fp32-screening-inherited",
+    "precision_basis": "与阶段 A/B 相同的 screening_only 公平比较配置"
+  },
+  "replay": {
+    "algorithm": "standard_single_example_reservoir",
+    "capacity": 200,
+    "update_timing": "当前年份训练和评价完成后更新"
+  },
+  "mechanism": {
+    "name": "decision_role_conditioned_memory",
+    "capacity": 200,
+    "role_order": ["protect", "repair", "fp_control", "coverage"],
+    "selection": "角色内按紧迫度排序，角色间固定轮转；不使用未来家族或封印年统计",
+    "numeric_basis": "网页候选报告提出的三类决策角色；轮转不引入显式比例"
+  },
+  "risk_repair": {
+    "name": "two_sided_risk_repair_update",
+    "lambda_protect": 1.0,
+    "lambda_repair": 1.0,
+    "lambda_fp_control": 1.0,
+    "weight_basis": "screening_only 等单位损失；无直接文献精确值，正式实验前需独立登记",
+    "protection_rule": "上一年度冻结模型在历史记忆中正确判恶意的样本",
+    "repair_rule": "当前训练区真实恶意且上一模型判为良性的样本",
+    "fp_control_rule": "当前训练区真实良性且上一模型判为恶意的样本"
+  },
+  "evaluation": {
+    "development_current_years": [2016, 2017],
+    "threshold": 0.5,
+    "surfaces": ["current_year", "next_year", "backward"],
+    "metrics": [
+      "AP",
+      "AUROC",
+      "F1",
+      "FPR",
+      "FNR",
+      "Brier",
+      "old_malicious_negative_flip_rate",
+      "current_malicious_positive_repair_rate",
+      "benign_new_false_positive_rate"
+    ]
+  },
+  "interpretation_boundary": "本运行只筛查来源／开发期信号；不构成无泄漏正式基线、封印期评价或第三章创新有效性结论。"
+}

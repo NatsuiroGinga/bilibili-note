@@ -1,0 +1,62 @@
+{
+  "schema_version": "ch3-lamda-security-regression-ablation-config-v1",
+  "identity": {
+    "run_id": "ch3-lamda-security-regression-ablation-seed42-v1",
+    "display_name": "LAMDA 安全回归保护消融：安全记忆与回放联合",
+    "run_tier": "screening_only",
+    "independent_final_test": false,
+    "published_feature_space_uses_future_covariates": true,
+    "screening_only_reason": "发布的 4561 维特征空间使用未来年份训练分片协变量；本运行只筛查安全回归约束的增量。"
+  },
+  "paths": {
+    "data_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-security-regression-ablation-seed42-v1"
+  },
+  "data": {
+    "dataset_revision": "ad9614bdd5556767f97ced2fce797c2f06408ebf",
+    "published_feature_count": 4561,
+    "metadata_columns": ["hash", "label", "family", "vt_count", "year_month"],
+    "protocol": "Domain-IL",
+    "label_arrival": "每个年份的 train 标签只在该年份更新阶段到达；test 只用于训练后评价，不进入保护集或回放缓冲区。",
+    "year_order": [2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  },
+  "arms": ["naive_security_regression", "replay_security_regression"],
+  "model": {
+    "backbone": [512, 384, 256, 128],
+    "head": [100, 100, 1],
+    "activation": "ReLU",
+    "head_dropout": 0.2,
+    "output": "Sigmoid",
+    "loss": "BCELoss"
+  },
+  "training": {
+    "seed": 42,
+    "epochs_per_year": 10,
+    "batch_size": 1024,
+    "optimizer": {"name": "SGD", "lr": 0.01, "momentum": 0.9, "weight_decay": 1e-6},
+    "cpu_feature_dtype": "uint8",
+    "device_feature_dtype": "float32",
+    "float32_matmul_precision": "high",
+    "torch_compile": false
+  },
+  "replay": {
+    "algorithm": "standard_single_example_reservoir",
+    "capacity": 200,
+    "update_timing": "当前年份训练和评价完成后更新，更新前不允许本年样本进入缓冲区。"
+  },
+  "security_regression": {
+    "algorithm": "previous_correct_malicious_soft_target_protection",
+    "capacity": 200,
+    "selection": "只从已到达年度 train 中由上一模型正确判为恶意的样本构造安全记忆",
+    "lambda": 1.0,
+    "lambda_basis": "与当前 BCE 同量纲的 screening_only 任务化设定，无文献精确值",
+    "update_timing": "当前年份训练和评价完成后更新安全记忆"
+  },
+  "evaluation": {
+    "threshold": 0.5,
+    "surfaces": ["current_year", "next_year", "backward"],
+    "metrics": ["AP", "AUROC", "F1", "FPR", "FNR", "Brier", "old_malicious_negative_flip_rate"],
+    "qualification_current_years": [2020, 2021, 2022, 2023, 2024, 2025]
+  },
+  "interpretation_boundary": "本运行只比较安全回归保护的筛查信号；不替代阶段 A Replay 资格门，不构成无泄漏正式基线或独立最终测试。"
+}

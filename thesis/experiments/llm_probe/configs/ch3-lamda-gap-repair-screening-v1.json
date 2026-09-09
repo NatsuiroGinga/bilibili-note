@@ -1,0 +1,73 @@
+{
+  "schema_version": "ch3-lamda-gap-repair-screening-config-v1",
+  "identity": {
+    "run_id": "ch3-lamda-gap-repair-screening-seed42-v1",
+    "display_name": "LAMDA 来源开发期缺口感知修复与条件双侧风险门控筛查",
+    "run_tier": "screening_only",
+    "independent_final_test": false,
+    "published_feature_space_uses_future_covariates": true,
+    "screening_only_reason": "发布的 4561 维特征空间使用未来年份训练分片协变量；本运行只读取来源年和开发年。"
+  },
+  "paths": {
+    "data_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-gap-repair-screening-seed42-v1"
+  },
+  "data": {
+    "dataset_revision": "ad9614bdd5556767f97ced2fce797c2f06408ebf",
+    "protocol": "Domain-IL",
+    "published_feature_count": 4561,
+    "metadata_columns": ["hash", "label", "family", "vt_count", "year_month"],
+    "run_years": [2013, 2014, 2016, 2017],
+    "source_years": [2013, 2014],
+    "development_years": [2016, 2017],
+    "sealed_final_years": [2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    "label_arrival": "每个运行年度 train 标签只在该年度更新阶段到达；test 只用于训练后评价。"
+  },
+  "arms": ["experience_replay", "gap_repair", "conditional_risk_gate", "gap_repair_conditional_risk_gate"],
+  "model": {
+    "backbone": [512, 384, 256, 128],
+    "head": [100, 100, 1],
+    "activation": "ReLU",
+    "head_dropout": 0.2,
+    "output": "Sigmoid",
+    "loss": "BCELoss"
+  },
+  "training": {
+    "seed": 42,
+    "epochs_per_year": 10,
+    "batch_size": 1024,
+    "optimizer": {"name": "SGD", "lr": 0.01, "momentum": 0.9, "weight_decay": 1e-6},
+    "float32_matmul_precision": "high",
+    "precision_profile": "fp32-screening-inherited",
+    "precision_basis": "与阶段 A、B、C 和双风险投影相同的 screening_only 公平比较配置"
+  },
+  "replay": {
+    "algorithm": "standard_single_example_reservoir",
+    "capacity": 200,
+    "update_timing": "当前年份训练和评价完成后更新"
+  },
+  "mechanism": {
+    "repair_weight": "margin_deficit",
+    "repair_definition": "当前年度真实恶意且上一冻结模型 score<0.5",
+    "repair_weight_formula": "max(0.5-old_score,0)，按当前批次权重归一化",
+    "risk_gate": "conditional_a_gem_two_reference",
+    "protection_reference": "回放中上一冻结模型 score>=0.5 的恶意样本",
+    "benign_reference": "当前年度训练区上一冻结模型 score>=0.5 的良性样本",
+    "projection_order": ["old_malicious_protection", "benign_false_positive_control"],
+    "projection_trigger": "候选总梯度与任一参考梯度内积<0",
+    "parameter_basis": "缺口权重与投影触发条件为本项目源年筛选任务化设定，无直接文献最优值；只在 screening_only 中验证"
+  },
+  "evaluation": {
+    "development_current_years": [2016, 2017],
+    "threshold": 0.5,
+    "surfaces": ["current_year", "next_year", "backward"],
+    "metrics": ["AP", "AUROC", "F1", "FPR", "FNR", "Brier", "old_malicious_negative_flip_rate", "current_malicious_positive_repair_rate", "benign_new_false_positive_rate"]
+  },
+  "qualification_gate": {
+    "fpr_not_increased": true,
+    "old_malicious_negative_flip_not_increased": true,
+    "at_least_one_of": ["AP_higher", "FNR_lower", "current_malicious_positive_repair_rate_higher"],
+    "joint_requires_both_single_arms_signal": true
+  },
+  "interpretation_boundary": "本运行只筛查缺口感知修复和条件风险门控信号；不构成无泄漏正式基线、封印期评价或第三章创新有效性结论。"
+}
