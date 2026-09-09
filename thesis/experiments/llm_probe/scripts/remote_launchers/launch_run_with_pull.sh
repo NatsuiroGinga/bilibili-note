@@ -8,7 +8,7 @@
 #
 # 用法：
 #   GPU_SSH_ACTIVE=... GPU_PWD_ACTIVE=... \
-#   bash scripts/remote_launchers/launch_run_with_pull.sh <配置相对路径> <run_id>
+#   bash scripts/remote_launchers/launch_run_with_pull.sh <配置相对路径> <run_id> [运行参数] [Python入口]
 #
 # 例：
 #   bash scripts/remote_launchers/launch_run_with_pull.sh \
@@ -16,17 +16,19 @@
 #
 # 凭据只从环境变量取，绝不写入文件、日志或参数。
 
-set -o pipefail
+set -euo pipefail
 
-CONFIG_PATH="$1"
-RUN_ID="$2"
+CONFIG_PATH="${1:-}"
+RUN_ID="${2:-}"
 # 第三个参数透传给训练入口，用于 --resume 等模式。默认 --run。
 RUN_MODE="${3:---run}"
+# 第四个参数允许同一启动与回传入口服务其他训练工具；省略时保持历史行为。
+PYTHON_ENTRYPOINT="${4:-tools/ch3_ft_c00_dual_selection.py}"
 PULL_INTERVAL_SECONDS="${PULL_INTERVAL_SECONDS:-300}"
 PULL_MAX_SIZE="${PULL_MAX_SIZE:-5m}"
 
 if [ -z "$CONFIG_PATH" ] || [ -z "$RUN_ID" ]; then
-  echo "用法：launch_run_with_pull.sh <配置相对路径> <run_id>" >&2
+  echo "用法：launch_run_with_pull.sh <配置相对路径> <run_id> [运行参数] [Python入口]" >&2
   exit 2
 fi
 for name in GPU_SSH_ACTIVE GPU_PWD_ACTIVE; do
@@ -47,7 +49,7 @@ mkdir -p "$LOCAL_RUN_DIR"
 
 echo "[1/2] 在服务器启动训练：$RUN_ID"
 expect tools/remote_exec/gpu_env_quiet.exp \
-  "cd $REMOTE_ROOT && mkdir -p logs runs/diagnostics/$RUN_ID && source tools/env/activate.sh >/dev/null 2>&1 && setsid nohup uv run --no-sync python tools/ch3_ft_c00_dual_selection.py --config $CONFIG_PATH $RUN_MODE < /dev/null >> logs/$RUN_ID.log 2>&1 & echo __CODEX_RESULT_BEGIN__; echo launched; echo __CODEX_RESULT_END__" \
+  "cd $REMOTE_ROOT && mkdir -p logs runs/diagnostics/$RUN_ID && touch logs/$RUN_ID.log && if [ -e runs/diagnostics/$RUN_ID/run.log ]; then [ logs/$RUN_ID.log -ef runs/diagnostics/$RUN_ID/run.log ]; else ln logs/$RUN_ID.log runs/diagnostics/$RUN_ID/run.log; fi && source tools/env/activate.sh >/dev/null 2>&1 && setsid -f nohup uv run --no-sync python \"$PYTHON_ENTRYPOINT\" --config \"$CONFIG_PATH\" $RUN_MODE < /dev/null >> logs/$RUN_ID.log 2>&1; echo __CODEX_RESULT_BEGIN__; echo launched; echo __CODEX_RESULT_END__" \
   2>/dev/null | tail -2
 
 # 回传守护：与训练同时起，脱离当前会话，会话结束后继续存活。
@@ -58,7 +60,7 @@ echo "[2/2] 起本机回传守护：每 ${PULL_INTERVAL_SECONDS} 秒一次，单
 # nohup 忽略 HUP 信号，配合 & 与后面的 disown 即可让守护脱离当前 shell 存活。
 nohup bash -c '
   while true; do
-    GPU_SSH_ACTIVE="'"$GPU_SSH_ACTIVE"'" GPU_PWD_ACTIVE="'"$GPU_PWD_ACTIVE"'" \
+    GPU_SSH_ACTIVE="'"$GPU_SSH_ACTIVE"'" GPU_PWD_ACTIVE="'"$GPU_PWD_ACTIVE"'" GPU_RSYNC_MAX_SIZE="'"$PULL_MAX_SIZE"'" \
       expect '"$LOCAL_ROOT"'/tools/remote_exec/gpu_rsync_pull.exp \
       "'"$REMOTE_RUN_DIR"'/" "'"$LOCAL_RUN_DIR"'/" >> "'"$PULL_LOG"'" 2>&1
     printf "%s 轮询回传完成\n" "$(date "+%Y-%m-%d %H:%M:%S")" >> "'"$PULL_LOG"'"
