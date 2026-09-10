@@ -57,6 +57,7 @@ LR_HEAD = 1e-4
 LR_BACKBONE = 1e-6
 EPOCHS = 3
 SEED = 42
+BETA_KL = 1.0  # E 臂 KL 权重：任务化设定（GRPO 家族 β 无文献精确值），首轮源侧标定
 ALPHA = "abcdefghijklmnopqrstuvwxyz0123456789-"
 
 
@@ -125,7 +126,7 @@ def metrics(model, tokenizer, domains: list[str], labels01: np.ndarray, tok_mean
 def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
               tokenizer, tok_mean, char_mean,
               eval_clean: tuple[list[str], np.ndarray], eval_adv: tuple[list[str], np.ndarray],
-              epochs: int) -> dict:
+              epochs: int, ref_model=None) -> dict:
     model = official.load_model(REF, CKPT, DEVICE)
     n_params = sum(p.numel() for p in model.parameters())
     # 分层 lr：官方模型参数名无 "backbone"，按分类头匹配（classifier_head=1e-4，骨干=1e-6）
@@ -151,6 +152,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
             idx = order[bi * BATCH:(bi + 1) * BATCH]
             batch_d = [train_d[i] for i in idx]
             batch_y = train_y[idx]
+            n_main = len(batch_d)  # 拼接变体前的主样本数（E 臂 KL 只锚定主样本段）
             if arm in ("B", "C"):
                 adv_batch = []
                 for i in idx:
@@ -165,11 +167,14 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm == "D":
-                # D 臂（GFPO 组相对过滤，2508.09726 §3 式(2) + Drichel 2024 §4.4.2 配比锚点）：
+            elif arm in ("D", "E"):
+                # D/E 臂（GFPO 组相对过滤，2508.09726 §3 式(2) + Drichel 2024 §4.4.2 配比锚点）：
                 # 与 B 同为 64 变体配额（批次规模 192、恶意:良性倾斜度相同），唯一差量 =
                 # 变体选择机制：每恶意样本 K=4 变体为组，组内 fooled（当前模型判良性）为优势，
                 # "fooled − 组均值"降序取 top-64 入批（被拒变体零梯度，GFPO 过滤式优势）
+                # E 臂 = D + 参考模型 KL 漂移约束（GRPO 2402.03300 式(3) −β·D_KL[π_θ‖π_ref] 任务化：
+                # π_ref = 冻结初始判别器，KL 只作用于干净主样本段——干净输出分布锚定，
+                # 对抗变体段自由硬化；β 为任务化设定（无文献精确值），首轮取 1.0 源侧标定）
                 mal_idx = [i for i in idx if train_y[i] == 1]
                 cands: list[str] = []
                 cand_owner: list[int] = []
@@ -238,6 +243,19 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                     loss_s = (ce * w).sum() / n_tot
                 else:
                     loss_s = ce.sum() / n_tot
+                if arm == "E" and ref_model is not None:
+                    # E 臂组件 2：干净主样本段的参考模型 KL 锚定（GRPO 式(3) −β·D_KL[π_θ‖π_ref] 任务化）
+                    _gl = torch.arange(s, min(s + BATCH, n_tot), device=DEVICE)
+                    _m = _gl < n_main
+                    if _m.any():
+                        _p = p_[_m]
+                        _log_p = torch.log(_p.clamp_min(1e-9))
+                        with torch.inference_mode():
+                            _tf_r, _cf_r = diag.branch_features(ref_model, tok[_m], ch[_m])
+                            _lg_r = ref_model.classifier_head(torch.cat([_tf_r, _cf_r], dim=1))
+                        _log_p0 = torch.log_softmax(_lg_r.float(), dim=1)
+                        _kl = (_p * (_log_p - _log_p0)).sum(dim=1)
+                        loss_s = loss_s + BETA_KL * _kl.sum() / n_tot
                 loss_s.backward()
                 loss_log += loss_s.item()
             opt.step()
@@ -296,9 +314,14 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
     epochs = 1 if dry else EPOCHS
     results: dict = {}
     adv_panels = {"k2": eval_adv_k2, "krand": eval_adv_krand, "maskdga": eval_adv_mask}
+    ref_model = None
+    if any(a_ == "E" for a_ in arms):
+        ref_model = official.load_model(REF, CKPT, DEVICE)
+        ref_model.eval()
+        print("[E 臂] 参考模型已加载（冻结初始判别器，KL 锚定用）", file=sys.stderr, flush=True)
     for arm in arms:
         t0 = time.time()
-        r = train_arm(arm, tr_d, tr_y, tokenizer, tok_mean, char_mean, eval_clean, eval_adv_k2, epochs)
+        r = train_arm(arm, tr_d, tr_y, tokenizer, tok_mean, char_mean, eval_clean, eval_adv_k2, epochs, ref_model=ref_model)
         r["wall_seconds"] = round(time.time() - t0, 1)
         arm_model = r.pop("_model")
         results[arm] = r
