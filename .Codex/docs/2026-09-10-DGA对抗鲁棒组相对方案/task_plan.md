@@ -173,7 +173,7 @@ L = L_clean + λ · L_adv(组相对优势 + 子集过滤) [+ γ · H̄ 项，方
 | 项 | 内容 |
 |---|---|
 | 目的 | 在**本课题数据与官方 DRIFT 权重**上验证：字符扰动确实降低检出率（对照 E1–E4 的他人读数） |
-| 对象 | 官方检查点 `runs/models/drift-official-dsn2026/finetuning.pt`（SHA-256 见恢复卡 §二既有记录）；域名为 T17 `val` 的 DGA 与良性全量 |
+| 对象 | 官方检查点 `runs/models/drift-official-dsn2026/finetuning.pt`，SHA-256 `090e5f844492ee532f72f8b1db1cb335bf67c9468fd2e0329344fe209b5969c3`（2026-09-10 本机 `shasum -a 256` 复算，与 [N13 TTA 方案](../2026-09-10-DRIFT-TTA任务化方案/task_plan.md) §2.2 既有制品记录一致），`24,180,226` 参数；域名取 T17 `val` 的 DGA 与良性全量 |
 | 扰动族 | `T_rand`（CharBot 式两字符替换）与 `T_grad`（代理梯度引导）各一组，编辑预算 `b` 冻结 |
 | 读数 | 干净 TPR@源冻结阈值 vs 扰动 TPR@同阈值；规避成功率（ASR）；扰动后仍满足域名合法性规则的比例 |
 | 成本 | 单年零训练前向 + 扰动生成，MPS 可跑（目标 < 1 小时，实测后登记） |

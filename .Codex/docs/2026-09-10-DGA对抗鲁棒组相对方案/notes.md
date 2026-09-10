@@ -24,11 +24,13 @@
 | V1 | `git status --short -- .Codex/docs/DRIFT/` + `git ls-files .Codex/docs/DRIFT/` | 恢复卡与总控**已跟踪且干净**；`AGENTS.md`／`CLAUDE.md`／`DRIFT历史交接入口.md` 为未跟踪 | 确认 HEAD `bfffe64` 即恢复卡的改前快照，无需空提交 |
 | V2 | `git diff --cached --name-only` | 暂存区为空 | 可安全做快照与提交 |
 | V3 | `fd -t f 'LAMDA'`／`ls thesis/methods/` | 本工作树**无** LAMDA 台账；DRIFT 树仅有 `第三章-数据模型机制统一候选筛选台账.md`（其 §零 为“DRIFT 活动区”） | 确认 DRIFT 侧候选登记位 = 恢复卡 §五（按路线规则，新 DRIFT 状态收敛到路线链，不回写台账矩阵） |
-| V4 | `rg -n 'N15'` | 第三章序列当前用到 `N14`；`N15` 仅出现在第四章基线清单（不同编号体系） | 新条目**暂记 N15**并标明以主代理裁决为准 |
-| V5 | `rg -n -i 'charbot|maskdga' wiki/ raw/ --no-ignore` | 命中原件 `raw/papers/attack-detection/2019-Peck-CharBot.pdf`、`2019-Sidi-MaskDGA.pdf` 与短笔记 `wiki/papers/attack-detection/dga/2019-*.md`；**`git status` 显示该目录整体未跟踪** | 病灶原文入库确实**进行中**；方案只引综述读数，原文页码锚点标“待补” |
+| V4 | `rg -n 'N15'` | 第三章序列当前用到 `N14`；`N15` 仅出现在第四章基线清单（不同编号体系） | **本次不新造编号**：登记以机制描述名为主，编号是否补 `N15` 由主代理裁决 |
+| V5 | `rg -l -i` 两关键词 `charbot`、`maskdga` 扫 `wiki/ raw/ --no-ignore` | 命中原件 `raw/papers/attack-detection/2019-Peck-CharBot.pdf`、`2019-Sidi-MaskDGA.pdf` 与短笔记 `wiki/papers/attack-detection/dga/2019-*.md`；**`git status` 显示该目录整体未跟踪** | 病灶原文入库确实**进行中**；方案只引综述读数，原文页码锚点标“待补” |
 | V6 | `rg -n '对抗' thesis/methods/第三章-数据模型机制统一候选筛选台账.md` | 仅 `N03 跨架构稳健表示` 一行含“域对抗”，与 DGA 规避无关；台账矩阵**无对抗规避候选** | 确认本方向不是既有候选改名 |
 | V7 | 综述逐行定位 | E1–E4 读数在综述 §1 第 4 条（文件第 10 行）、§5.3（第 123 行）、§7（第 171 行）、§8 第三类候选（第 195 行）、§10.4（第 254 行） | 方案 §二 的出处可回指 |
 | V8 | 基线证据表 `rg` | CharBot/MaskDGA 行：无时间角色、攻击从良性或 DGA 字符串构造、非开放集协议、CharBot 明确在 0.1%/1% FPR、无多种子区间 | 评价口径差异必须随引用转述 |
+| V9 | `shasum -a 256 runs/models/drift-official-dsn2026/finetuning.pt` | `090e5f844492ee532f72f8b1db1cb335bf67c9468fd2e0329344fe209b5969c3`，与 N13 TTA 方案 §2.2 记录一致；文件存在（96.8 MB） | P0 对象与模型身份可核，写入 §5.1 |
+| V10 | `git log --oneline -3`／`git show --stat` | 提交 `03f0225` 仅含本次 3 个文件（2 新增 + 恢复卡），无 Co-Authored-By，未夹带他人改动 | 交付核验 |
 
 ## 本次相对派发简报的登记项（不改变任务范围）
 
