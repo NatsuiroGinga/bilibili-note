@@ -1,0 +1,84 @@
+[评价面] 干净 15000、对抗 7500
+[A] 训练开始：120000 样本、133954 参数、6 epochs
+[A 心跳] epoch 1/6 acc=0.9250 用时 16.7s
+[A 心跳] epoch 2/6 acc=0.9572 用时 15.9s
+[A 心跳] epoch 3/6 acc=0.9634 用时 16.1s
+[A 心跳] epoch 4/6 acc=0.9667 用时 15.9s
+[A 心跳] epoch 5/6 acc=0.9699 用时 16.3s
+[A 心跳] epoch 6/6 acc=0.9729 用时 16.6s
+[里程碑] A: clean={"AP": 0.9921, "FPR": 0.0268, "FNR": 0.0535, "F1": 0.9593, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.1037, "F1": 0.9453, "n": 7500}
+[B] 训练开始：120000 样本、133954 参数、6 epochs
+[B 心跳] epoch 1/6 acc=0.9244 用时 29.9s
+[B 心跳] epoch 2/6 acc=0.9600 用时 26.7s
+[B 心跳] epoch 3/6 acc=0.9660 用时 25.6s
+[B 心跳] epoch 4/6 acc=0.9694 用时 25.7s
+[B 心跳] epoch 5/6 acc=0.9718 用时 25.1s
+[B 心跳] epoch 6/6 acc=0.9746 用时 23.9s
+[里程碑] B: clean={"AP": 0.9906, "FPR": 0.0392, "FNR": 0.0391, "F1": 0.9609, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.0293, "F1": 0.9851, "n": 7500}
+[C] 训练开始：120000 样本、133954 参数、6 epochs
+Traceback (most recent call last):
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 244, in <module>
+    main(dry=a.dry_run)
+    ~~~~^^^^^^^^^^^^^^^
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 220, in main
+    r = train_arm(arm, tr_d, tr_y, eval_clean, eval_adv)
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 149, in train_arm
+    if arm == "C" and half_epoch_model is not None:
+                      ^^^^^^^^^^^^^^^^
+NameError: name 'half_epoch_model' is not defined
+[评价面] 干净 15000、对抗 7500
+[A] 训练开始：120000 样本、133954 参数、6 epochs
+[A 心跳] epoch 1/6 acc=0.9250 用时 17.3s
+[A 心跳] epoch 2/6 acc=0.9573 用时 17.2s
+[A 心跳] epoch 3/6 acc=0.9631 用时 17.2s
+[A 心跳] epoch 4/6 acc=0.9661 用时 17.1s
+[A 心跳] epoch 5/6 acc=0.9697 用时 16.6s
+[A 心跳] epoch 6/6 acc=0.9730 用时 16.3s
+[里程碑] A: clean={"AP": 0.9924, "FPR": 0.0221, "FNR": 0.0537, "F1": 0.9615, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.0995, "F1": 0.9477, "n": 7500}
+[B] 训练开始：120000 样本、133954 参数、6 epochs
+[B 心跳] epoch 1/6 acc=0.9242 用时 28.6s
+[B 心跳] epoch 2/6 acc=0.9602 用时 25.4s
+[B 心跳] epoch 3/6 acc=0.9660 用时 25.4s
+[B 心跳] epoch 4/6 acc=0.9691 用时 26.0s
+[B 心跳] epoch 5/6 acc=0.9716 用时 24.8s
+[B 心跳] epoch 6/6 acc=0.9739 用时 22.7s
+[里程碑] B: clean={"AP": 0.9908, "FPR": 0.0355, "FNR": 0.0416, "F1": 0.9613, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.0307, "F1": 0.9844, "n": 7500}
+[C] 训练开始：120000 样本、133954 参数、6 epochs
+Traceback (most recent call last):
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 244, in <module>
+    main(dry=a.dry_run)
+    ~~~~^^^^^^^^^^^^^^^
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 220, in main
+    r = train_arm(arm, tr_d, tr_y, eval_clean, eval_adv)
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 149, in train_arm
+    if arm == "C" and half_epoch_model is not None:
+                      ^^^^^^^^^^^^^^^^
+NameError: name 'half_epoch_model' is not defined
+[评价面] 干净 15000、对抗 7500
+[A] 训练开始：120000 样本、133954 参数、6 epochs
+[A 心跳] epoch 1/6 acc=0.9246 用时 17.6s
+[A 心跳] epoch 2/6 acc=0.9572 用时 16.4s
+[A 心跳] epoch 3/6 acc=0.9631 用时 16.1s
+[A 心跳] epoch 4/6 acc=0.9672 用时 16.2s
+[A 心跳] epoch 5/6 acc=0.9699 用时 15.8s
+[A 心跳] epoch 6/6 acc=0.9729 用时 15.9s
+[里程碑] A: clean={"AP": 0.992, "FPR": 0.0231, "FNR": 0.0563, "F1": 0.9597, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.1108, "F1": 0.9414, "n": 7500}
+[B] 训练开始：120000 样本、133954 参数、6 epochs
+[B 心跳] epoch 1/6 acc=0.9246 用时 29.0s
+[B 心跳] epoch 2/6 acc=0.9601 用时 24.7s
+[B 心跳] epoch 3/6 acc=0.9660 用时 23.8s
+[B 心跳] epoch 4/6 acc=0.9692 用时 23.7s
+[B 心跳] epoch 5/6 acc=0.9722 用时 23.8s
+[B 心跳] epoch 6/6 acc=0.9752 用时 23.2s
+[里程碑] B: clean={"AP": 0.9909, "FPR": 0.0436, "FNR": 0.0367, "F1": 0.96, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.026, "F1": 0.9868, "n": 7500}
+[C] 训练开始：120000 样本、133954 参数、6 epochs
+Traceback (most recent call last):
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 244, in <module>
+    main(dry=a.dry_run)
+    ~~~~^^^^^^^^^^^^^^^
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 220, in main
+    r = train_arm(arm, tr_d, tr_y, eval_clean, eval_adv)
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/p2p3_grpo_proxy.py", line 149, in train_arm
+    if arm == "C" and half_epoch_model is not None:
+                      ^^^^^^^^^^^^^^^^
+NameError: name 'half_epoch_model' is not defined

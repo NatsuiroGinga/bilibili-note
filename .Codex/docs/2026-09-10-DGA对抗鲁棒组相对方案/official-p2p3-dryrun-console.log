@@ -1,0 +1,8 @@
+[官方 P2/P3] 训练 6000、评价干净 6000、对抗 3000
+[A] 官方模型 24180226 参数，训练 6000 样本 × 1 epochs
+[A 心跳] epoch 1 批 1/47 loss=0.0908 ETA 2.3 min
+[A 里程碑] epoch 1/1 完成（73.6s）
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+[里程碑] A: clean={"AP": 0.99711, "FPR": 0.014, "FNR": 0.029, "F1": 0.97834, "FP": 42, "FN": 87, "n": 6000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.343, "F1": 0.793, "FP": 0, "FN": 1029, "n": 3000}
+[里程碑] {"note": "dry-run 单臂"} -> official-p2p3-DRYRUN.json

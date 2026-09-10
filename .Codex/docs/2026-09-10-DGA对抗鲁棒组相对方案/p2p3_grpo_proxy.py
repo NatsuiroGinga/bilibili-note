@@ -143,8 +143,30 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                     if train_y[i] == 1:
                         if arm == "B" or i not in adv_cache:
                             if i not in adv_cache:
-                                adv_cache[i] = [perturb2(train_d[i], rng)]
+                                adv_cache[i] = [perturb2(train_d[i], rng) for _ in range(4)]
+                        if arm == "B":
                             adv_batch.append(adv_cache[i][0])
+                if arm == "C":
+                    # 组相对：每恶意样本的 4 变体为一组，组内"当前模型判良性"为被骗信号，
+                    # 优势 = 骗过 - 组均值，正优势变体优先入批（组相对优势的 batch 级任务化）
+                    mal_idx = [i for i in idx if train_y[i] == 1 and i in adv_cache]
+                    scored = []
+                    for i in mal_idx:
+                        vs = adv_cache[i]
+                        with torch.inference_mode():
+                            x = torch.from_numpy(encode(vs)).to(DEVICE)
+                            p_ = torch.softmax(model(x), dim=1)[:, 1].cpu().numpy()
+                        fooled = (p_ < 0.5).astype(np.float64)
+                        adv = fooled - fooled.mean()
+                        top = np.argsort(-adv)[:1]  # 组内正优势最大的变体
+                        for t_ in top:
+                            if adv[t_] > 0:
+                                scored.append((vs[t_], adv[t_]))
+                    if scored:
+                        batch_d = batch_d + [s[0] for s in scored]
+                        batch_y = np.concatenate([batch_y, np.ones(len(scored), dtype=np.int64)])
+                elif arm == "C":
+                    pass
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
