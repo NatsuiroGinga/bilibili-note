@@ -167,7 +167,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm in ("D", "E"):
+            elif arm in ("D", "E", "F"):
                 # D/E 臂（GFPO 组相对过滤，2508.09726 §3 式(2) + Drichel 2024 §4.4.2 配比锚点）：
                 # 与 B 同为 64 变体配额（批次规模 192、恶意:良性倾斜度相同），唯一差量 =
                 # 变体选择机制：每恶意样本 K=4 变体为组，组内 fooled（当前模型判良性）为优势，
@@ -232,7 +232,16 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 logits2 = logits2.float()
                 p_ = torch.softmax(logits2, dim=1)
                 ce = torch.nn.functional.cross_entropy(logits2, sub_y, reduction="none")
-                if arm == "C":
+                if arm == "F":
+                    # F 臂 = D + 良性误报加权（双侧组相对的良性侧最简形式）：
+                    # batch 内当前模型判恶意的真良性样本 CE ×3.0，把分布上移的误报拉回。
+                    # 权重 3.0 为任务化设定（无文献精确值）：对冲 64 变体配额的恶意侧压力量级，
+                    # 源侧标定；若有效再升级为良性 CharBot 近邻组相对完整形态
+                    fooled_b = (p_[:, 1] >= 0.5) & (sub_y == 0)
+                    w = torch.ones(len(sub_y), device=DEVICE)
+                    w[fooled_b] = 3.0
+                    loss_s = (ce * w).sum() / n_tot
+                elif arm == "C":
                     # 组相对加权：同一恶意样本的 4 变体一组，组内"当前模型判良性(骗过)"为优势，
                     # 正优势变体权重 2.0、未骗过变体 0.5、干净样本 1.0（组相对优势的任务化，
                     # 文献定位：无先例的任务化设定，对照 Drichel 均匀混合）
