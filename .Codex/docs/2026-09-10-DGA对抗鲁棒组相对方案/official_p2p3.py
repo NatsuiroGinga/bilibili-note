@@ -250,7 +250,7 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
     arms = tuple(arms_arg.split(",")) if arms_arg else (("A", "B", "C") if not dry else ("A",))
     epochs = 1 if dry else EPOCHS
     results: dict = {}
-    adv_panels = {"k2": eval_adv_k2, "krand": eval_adv_krand}
+    adv_panels = {"k2": eval_adv_k2, "krand": eval_adv_krand, "maskdga": eval_adv_mask}
     for arm in arms:
         t0 = time.time()
         r = train_arm(arm, tr_d, tr_y, tokenizer, tok_mean, char_mean, eval_clean, eval_adv_k2, epochs)
@@ -264,12 +264,15 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
 
     if len(results) == 3:
         a, b, c = results["A"], results["B"], results["C"]
+        am, bm, cm = a["adv_maskdga"], b["adv_maskdga"], c["adv_maskdga"]
         verdict = {
-            "P2_pass": bool(b["adv"]["AP"] > a["adv"]["AP"] and b["clean"]["FPR"] <= a["clean"]["FPR"]),
-            "P3_pass": bool(c["adv"]["AP"] > b["adv"]["AP"] and c["clean"]["FPR"] <= b["clean"]["FPR"]),
-            "adv_AP": {"A": round(a["adv"]["AP"], 4), "B": round(b["adv"]["AP"], 4), "C": round(c["adv"]["AP"], 4)},
+            "P2_pass": bool(bm["AP"] > am["AP"] and b["clean"]["FPR"] <= a["clean"]["FPR"]),
+            "P3_pass": bool(cm["AP"] > bm["AP"] and c["clean"]["FPR"] <= b["clean"]["FPR"]),
+            "panel": "maskdga-half",
+            "adv_AP": {"A": round(am["AP"], 4), "B": round(bm["AP"], 4), "C": round(cm["AP"], 4)},
             "clean_FPR": {"A": round(a["clean"]["FPR"], 4), "B": round(b["clean"]["FPR"], 4), "C": round(c["clean"]["FPR"], 4)},
-            "adv_FNR": {"A": round(a["adv"]["FNR"], 4), "B": round(b["adv"]["FNR"], 4), "C": round(c["adv"]["FNR"], 4)},
+            "adv_FNR": {"A": round(am["FNR"], 4), "B": round(bm["FNR"], 4), "C": round(cm["FNR"], 4)},
+            "k2_reference_FNR": {"A": round(a["adv"]["FNR"], 4), "B": round(b["adv"]["FNR"], 4), "C": round(c["adv"]["FNR"], 4)},
         }
     else:
         verdict = {"note": "dry-run 单臂"}
