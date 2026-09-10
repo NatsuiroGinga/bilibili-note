@@ -4,9 +4,10 @@
 # 凭据走 GPU_SSH_ACTIVE / GPU_PWD_ACTIVE 环境变量，不落盘
 
 set -e
-cd "$(dirname "$0")"
-EXP=thesis/experiments/llm_probe/tools/remote_exec
-L=$PWD/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/official_p2p3.py
+WT=/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908
+cd "$WT"
+EXP=$WT/thesis/experiments/llm_probe/tools/remote_exec
+L=$WT/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/official_p2p3.py
 R=/root/autodl-tmp/thesis/experiments/llm_probe
 
 echo "[1/4] 同步脚本与 T17 val 数据（中和均值重算用）"
@@ -14,7 +15,7 @@ expect $EXP/gpu_rsync_push.exp "$L" "$R/tools/official_p2p3.py" > /dev/null
 D=$R/runs/data-raw/drift-dga-2026-rev-3b3107020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD
 D=$R/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD
 for f in T17_benign_val.parquet T17_dga_val.parquet; do
-  expect $EXP/gpu_rsync_push.exp "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/$f" "$D/$f" > /dev/null
+  expect $EXP/gpu_rsync_push.exp "$WT/thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/$f" "$D/$f" > /dev/null
   echo "  ok: $f"
 done
 
