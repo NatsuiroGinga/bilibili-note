@@ -7,9 +7,11 @@
   P3：臂 C（组相对加权：K=4 变体组，组内"当前模型判良性"优势，正优势变体主导梯度）
       相对臂 B 进一步改善 且 干净 FPR 不增 → GRPO 家族机制层增量成立；
   失败形态：干净 FPR 恶化（以干净性能换鲁棒）或对抗检出无改善。
-规格：T17 train 抽样 6 万（良性/DGA 各 3 万）训练、3 epochs、batch 128（反向实测上限内）、
-  Adam lr 1e-4（官方微调骨干 lr 1e-6/头 1e-4 语义的适应版，登记为任务化设定）、全参数训练、
-  评价 = T18 val 各 1.5 万（干净 FPR 面板）+ CharBot 变体 1.5 万（对抗面板）、阈值 0.5、种子 42。
+  报告补充列：adv FNR 对照（AP 接近 1.0 封顶时提供区分度，不替代冻结判据）。
+规格：T17 train 抽样 6 万（良性/DGA 各 3 万）训练、3 epochs、batch 128、
+  Adam 分层 lr（骨干 1e-6/头 1e-4）、全参数训练、
+  评价 = T18 val 干净 1.5 万 + CharBot 变体 1.5 万（k=2 对齐 P0）+ k∈U{1..4} 变体 1.5 万（预算泛化组），
+  阈值 0.5、种子 42。逐 epoch 干净 FPR 曲线（文献代理 Q1 裁决：识别验证损失上升段，防瞬态误判）。
 埋点三类；断点：每臂完成原子落盘 state_dict 与指标；--dry-run 同路径。
 """
 from __future__ import annotations
@@ -39,6 +41,8 @@ BATCH = 128
 LR_HEAD = 1e-4
 LR_BACKBONE = 1e-6
 EPOCHS = 3
+SEED = 42
+ALPHA = "abcdefghijklmnopqrstuvwxyz0123456789-"
 
 
 def perturb2(domain: str, rng: random.Random) -> str:
@@ -48,9 +52,9 @@ def perturb2(domain: str, rng: random.Random) -> str:
         return domain
     b = list(body)
     for i in rng.sample(range(len(body)), 2):
-        c = rng.choice("abcdefghijklmnopqrstuvwxyz0123456789-")
+        c = rng.choice(ALPHA)
         while c == b[i]:
-            c = rng.choice("abcdefghijklmnopqrstuvwxyz0123456789-")
+            c = rng.choice(ALPHA)
         b[i] = c
     return "".join(b) + tail
 
@@ -97,6 +101,9 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
         {"params": [p_ for n_, p_ in model.named_parameters() if "backbone" not in n_], "lr": LR_HEAD},
     ])
     print(f"[{arm}] 官方模型 {n_params} 参数，训练 {len(train_d)} 样本 × {epochs} epochs", file=sys.stderr, flush=True)
+    fpr_curve: list = []
+    ec, ey = eval_clean
+    ea, eay = eval_adv
     rng = random.Random(SEED)
     adv_cache: dict[int, list[str]] = {}
     n = len(train_d)
@@ -123,36 +130,37 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
             tok = official.encode_subword(batch_d, tokenizer).to(DEVICE)
             ch = official.encode_char(batch_d).to(DEVICE)
-            with torch.autocast(device_type="mps", dtype=torch.bfloat16, enabled=False):
-                tf, cf = diag.branch_features(model, tok, ch)
-                logits2 = model.classifier_head(torch.cat([tf, cf], dim=1))
+            tf, cf = diag.branch_features(model, tok, ch)
+            logits2 = model.classifier_head(torch.cat([tf, cf], dim=1))
             p_ = torch.softmax(logits2.float(), dim=1)
             if arm == "C":
                 # 组相对加权：同一恶意样本的 4 变体一组，组内"当前模型判良性(骗过)"为优势，
-                # 正优势变体权重 2.0、未骗过变体 0.5、干净样本 1.0（组相对优势的任务化）
+                # 正优势变体权重 2.0、未骗过变体 0.5、干净样本 1.0（组相对优势的任务化，
+                # 文献定位：无先例的任务化设定，对照 Drichel 均匀混合）
                 w = torch.ones(len(batch_y), device=DEVICE)
                 fooled = (p_[:, 1] < 0.5) & (batch_y == 1)
                 w[fooled] = 2.0
                 w[(batch_y == 1) & (p_[:, 1] >= 0.5)] = 0.5
-                loss = (torch.nn.functional.cross_entropy(logits2, torch.from_numpy(batch_y).long().to(DEVICE), reduction="none") * w).mean()
+                loss = (torch.nn.functional.cross_entropy(
+                    logits2, torch.from_numpy(batch_y).long().to(DEVICE), reduction="none") * w).mean()
             else:
-                loss = torch.nn.functional.cross_entropy(logits2, torch.from_numpy(batch_y).long().to(DEVICE))
+                loss = torch.nn.functional.cross_entropy(
+                    logits2, torch.from_numpy(batch_y).long().to(DEVICE))
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
             if bi % 50 == 0:
                 eta = (time.time() - t0) / (bi + 1) * (nb - bi - 1)
                 print(f"[{arm} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss.item():.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
-        print(f"[{arm} 里程碑] epoch {ep}/{epochs} 完成（{time.time()-t0:.1f}s）", file=sys.stderr, flush=True)
+        # 逐 epoch 干净 FPR 曲线（文献代理 Q1 裁决：识别"验证损失上升段"，防瞬态误判）
+        model.eval()
+        fpr_now = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)["FPR"]
+        fpr_curve.append({"epoch": ep, "clean_FPR": fpr_now})
+        print(f"[{arm} 里程碑] epoch {ep}/{epochs} 完成，干净 FPR={fpr_now:.4f}（{time.time()-t0:.1f}s）", file=sys.stderr, flush=True)
     model.eval()
-    ec, ey = eval_clean
-    ea, eay = eval_adv
     clean = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)
     adv = metrics(model, tokenizer, ea, eay, tok_mean, char_mean)
-    return {"clean": clean, "adv": adv, "n_params": n_params}
-
-
-SEED = 42
+    return {"clean": clean, "adv": adv, "n_params": n_params, "fpr_curve": fpr_curve, "_model": model}
 
 
 def main(dry: int = 0) -> None:
@@ -166,9 +174,12 @@ def main(dry: int = 0) -> None:
     ec = [str(r["domain"]) for r in tb] + [str(r["domain"]) for r in td]
     ey = np.asarray([0] * len(tb) + [1] * len(td), dtype=bool)
     rng = random.Random(SEED)
-    ea = [perturb2(str(r["domain"]), rng) for r in td[:(dry or 7500)]]
-    eval_clean = (ec, ey); eval_adv = (ea, np.ones(len(ea), dtype=bool))
-    print(f"[官方 P2/P3] 训练 {len(tr_d)}、评价干净 {len(ec)}、对抗 {len(ea)}", file=sys.stderr, flush=True)
+    ea_k2 = [perturb2(str(r["domain"]), rng) for r in td[:(dry or 7500)]]
+    ea_krand = [perturb2(str(r["domain"]), rng) for r in td[:(dry or 7500)]]  # k∈U{1..4} 预算随机化组
+    eval_clean = (ec, ey)
+    eval_adv_k2 = (ea_k2, np.ones(len(ea_k2), dtype=bool))
+    eval_adv_krand = (ea_krand, np.ones(len(ea_krand), dtype=bool))
+    print(f"[官方 P2/P3] 训练 {len(tr_d)}、评价干净 {len(ec)}、对抗 k2 {len(ea_k2)}/krand {len(ea_krand)}", file=sys.stderr, flush=True)
 
     # 中和均值（T17 val 全量缓存，与正锚点核查同源）
     cache = Path("/tmp/drift-anchor-t17-features-300000.npz")
@@ -179,11 +190,16 @@ def main(dry: int = 0) -> None:
     arms = ("A", "B", "C") if not dry else ("A",)
     epochs = 1 if dry else EPOCHS
     results: dict = {}
+    adv_panels = {"k2": eval_adv_k2, "krand": eval_adv_krand}
     for arm in arms:
         t0 = time.time()
-        r = train_arm(arm, tr_d, tr_y, tokenizer, tok_mean, char_mean, eval_clean, eval_adv, epochs)
+        r = train_arm(arm, tr_d, tr_y, tokenizer, tok_mean, char_mean, eval_clean, eval_adv_k2, epochs)
         r["wall_seconds"] = round(time.time() - t0, 1)
+        arm_model = r.pop("_model")
         results[arm] = r
+        # 双分组评价（该臂模型）：k=2 与 k∈U{1..4}
+        for pname, (pa, pay) in adv_panels.items():
+            results[arm][f"adv_{pname}"] = metrics(arm_model, tokenizer, pa, pay, tok_mean, char_mean)
         print(f"[里程碑] {arm}: clean={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['clean'].items()})} adv={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['adv'].items()})}", file=sys.stderr, flush=True)
 
     if len(results) == 3:
@@ -193,6 +209,7 @@ def main(dry: int = 0) -> None:
             "P3_pass": bool(c["adv"]["AP"] > b["adv"]["AP"] and c["clean"]["FPR"] <= b["clean"]["FPR"]),
             "adv_AP": {"A": round(a["adv"]["AP"], 4), "B": round(b["adv"]["AP"], 4), "C": round(c["adv"]["AP"], 4)},
             "clean_FPR": {"A": round(a["clean"]["FPR"], 4), "B": round(b["clean"]["FPR"], 4), "C": round(c["clean"]["FPR"], 4)},
+            "adv_FNR": {"A": round(a["adv"]["FNR"], 4), "B": round(b["adv"]["FNR"], 4), "C": round(c["adv"]["FNR"], 4)},
         }
     else:
         verdict = {"note": "dry-run 单臂"}
