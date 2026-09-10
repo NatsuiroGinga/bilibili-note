@@ -22,6 +22,7 @@ import os
 import random
 import sys
 import time
+from contextlib import nullcontext
 from pathlib import Path
 
 import numpy as np
@@ -45,6 +46,13 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps")
 BATCH = 128            # 训练批量：冻结规格，不改
 EVAL_BATCH = 1024 if DEVICE.type == "cuda" else 128   # 评价批量只影响吞吐不改指标
 USE_BF16 = DEVICE.type == "cuda"                      # 对齐官方 BF16 训练
+
+
+def autocast_ctx():
+    """仅 CUDA 启用 bf16 autocast；MPS 返回 nullcontext——
+    torch.autocast(enabled=False) 在 MPS 上仍会改变 nn.Transformer 执行路径，
+    触发未实现的 _nested_tensor_from_mask_left_aligned 算子（2026-09-10 实测）。"""
+    return torch.autocast(device_type=DEVICE.type, dtype=torch.bfloat16) if USE_BF16 else nullcontext()
 LR_HEAD = 1e-4
 LR_BACKBONE = 1e-6
 EPOCHS = 3
@@ -98,7 +106,7 @@ def metrics(model, tokenizer, domains: list[str], labels01: np.ndarray, tok_mean
             chunk = domains[off:off + EVAL_BATCH]
             tok = official.encode_subword(chunk, tokenizer).to(DEVICE)
             ch = official.encode_char(chunk).to(DEVICE)
-            with torch.autocast(device_type=DEVICE.type, dtype=torch.bfloat16, enabled=USE_BF16):
+            with autocast_ctx():
                 tf, cf = diag.branch_features(model, tok, ch)
             s = diag.probabilities(model, tf.cpu().numpy(), cf.cpu().numpy(),
                                    tok_mean, char_mean, DEVICE, EVAL_BATCH)
@@ -159,7 +167,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
             tok = official.encode_subword(batch_d, tokenizer).to(DEVICE)
             ch = official.encode_char(batch_d).to(DEVICE)
-            with torch.autocast(device_type=DEVICE.type, dtype=torch.bfloat16, enabled=USE_BF16):
+            with autocast_ctx():
                 tf, cf = diag.branch_features(model, tok, ch)
                 logits2 = model.classifier_head(torch.cat([tf, cf], dim=1))
             logits2 = logits2.float()
