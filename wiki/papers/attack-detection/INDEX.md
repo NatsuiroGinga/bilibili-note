@@ -101,8 +101,28 @@ related:
 
 - **[[2026-Li-FT-Transformer物联网攻击检测|Li 2026：FT-Transformer 物联网攻击检测与跨数据集泛化]]** — 用 FT-Transformer 做 IoT 攻击检测；训练策略明确采用"AdamW + 学习率衰减 + 早停"组合并报告训练过程稳定（物理页 7、13），是本次核查（见 `thesis/methods/FT-Transformer训练协议核查.md`）六篇同谱系工作中**唯一**明确使用学习率衰减的一篇，但未披露衰减机制细节、无消融对照，不能作为因果证据；结构与学习率也偏离 Gorishniy 2021 默认配方（`d_token=64`、`lr=1e-3`）。笔记内附与另一篇同名撞车论文（容错计算领域"Fault-Tolerant Transformer"）的排除说明。
 
+## DGA 检测谱系与评价（2026-09-07）
+
+- **[[dga/2016-Woodbridge-LSTM-DGA检测|Woodbridge/Endgame LSTM]]** — 字符LSTM历史基线；静态AUC 0.9993并报告TPR 90%时FPR 0.01%，但无时间隔离。
+- **[[dga/2018-Schuppen-FANCI|FANCI]]** — 真实NXD上的21项特征随机森林；传统低成本、可解释基线。
+- **[[dga/2018-Yu-字符级DGA模型比较|Yu字符模型比较]]** — 定义MIT/NYU等字符CNN、CNN-LSTM谱系，静态同分布下复杂模型差异很小。
+- **[[dga/2020-Drichel-DGA分类器真实适用性|B/M-ResNet真实适用性]]** — 跨网络、1/17个月、未知DGA和3.7亿NXD真实月测试，是轻量外推C00首选。
+- **[[dga/2021-Drichel-EXPLAIN多类DGA|EXPLAIN]]** — 76项特征的一对其余随机森林多类基线，宏F1接近M-ResNet且可解释。
+- **[[dga/2023-Drichel-DGA分类器偏差审计|DGA分类器偏差审计]]** — 去除TLD、长度、无效域名、时间和基率捷径后性能大幅下降，规定低FPR与真实分布评价。
+- **[[dga/2023-Aravena-Dom2Vec|Dom2Vec]]** — Word2Vec、n-gram信誉分与词法随机森林；FPR 1%时TPR 86%，只属静态基线。
+- **[[dga/2019-Sidi-MaskDGA规避攻击|MaskDGA]]** — 代理梯度字符替换使四个字符模型平均F1由0.977降至0.495。
+- **[[dga/2019-Peck-CharBot规避攻击|CharBot]]** — 良性域两字符替换在FPR 0.1%下显著绕过LSTM/FANCI/RF，对抗重训仍不充分。
+- **[[dga/2024-Lee-中文域低误报DGA检测|中文域低误报]]** — FastText子词、词法特征和CNN-BiLSTM将中文良性域FPR降至1.27%，说明语言分布是独立病灶。
+- **[[dga/2024-Cebere-DGA检测九项假设审计|DGA检测九项假设审计]]** — 对38篇contextless论文审计良性污染、家族支持、共享生成器、未见家族、复现与部署假设。
+- **[[dga/2024-Lopez-LLM-DGA检测|LLM DGA检测]]** — Llama3在14个未见家族上F1 0.67，低于轻量LA Bin07的0.80，容量不能替代开放集泛化。
+
 ## 方法学入口
 
+- **[[2023-Chen-Android恶意软件持续学习|Chen-AL：Android 恶意软件持续学习]]** — USENIX Security 2023，层次对比主动学习在月度标签预算下把七年平均 FNR 从 14% 降到 9%，是 LAMDA 的直接强主动学习基线。
+- **[[2023-Chow-Android恶意软件漂移取证|Drift Forensics：Android 漂移家族根因]]** — AISec 2023，用 Oracle 差值和特征解释定位 Dnotua/Airpush 两个主要漂移家族；只可作事后分面，不得让目标月标签进入生产机制。
+- **[[2025-Haque-CITADEL半监督主动漂移适应|CITADEL：半监督主动漂移适应]]** — 直接使用 LAMDA 的预印本近邻；77.7% F1 依赖半监督主动更新，课程学习附录仅在 APIGraph 验证。
+- **[[2026-Kamol-McNdroid多模态长期漂移基准|McNdroid：多模态长期漂移基准]]** — 同作者群直接扩展 LAMDA，以静态/动态/图三模态和 2013 训练词表补足静态单模态与未来协变量预处理边界。
+- **[[2026-Sabbah-自监督强化学习漂移维护|自监督+RL 漂移维护]]** — 标签可用维护设置下用 PPO 选择适配动作；当前未在 LAMDA 实验，且评价标签参与状态和奖励，只作 RL 条件资格近邻。
 - **[[../methodology/INDEX#组条件控制与分层预算分配（2026-08-26 新增）|组条件控制与分层预算分配]]** — Vovk 条件 ICP、Barber 条件推断极限、p-filter 多层预算，本节两篇安全应用的理论侧对应。
 - **[[../datasets/data-protocol/INDEX|数据协议与跨域评测论文索引]]** — 组级切分、开放集、跨数据源、PCAP 表征与泄漏控制。
 - **[[../datasets/published-baseline/INDEX|已发表同输入流量基线索引]]** — 在共同字段预算和冻结划分下可复现的基线。
