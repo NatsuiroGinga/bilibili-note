@@ -165,6 +165,51 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "D":
+                # D 臂（GFPO 组相对过滤，2508.09726 §3 式(2) + Drichel 2024 §4.4.2 配比锚点）：
+                # 与 B 同为 64 变体配额（批次规模 192、恶意:良性倾斜度相同），唯一差量 =
+                # 变体选择机制：每恶意样本 K=4 变体为组，组内 fooled（当前模型判良性）为优势，
+                # "fooled − 组均值"降序取 top-64 入批（被拒变体零梯度，GFPO 过滤式优势）
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                cands: list[str] = []
+                cand_owner: list[int] = []
+                for i in mal_idx:
+                    if i not in adv_cache:
+                        base = perturb2(train_d[i], rng)
+                        adv_cache[i] = [perturb2(base, rng) for _ in range(4)]
+                    for v in adv_cache[i]:
+                        cands.append(v)
+                        cand_owner.append(i)
+                adv_batch = []
+                if cands:
+                    model.eval()
+                    with torch.inference_mode():
+                        _sc = []
+                        for off in range(0, len(cands), EVAL_BATCH):
+                            _tk = official.encode_subword(cands[off:off + EVAL_BATCH], tokenizer).to(DEVICE)
+                            _ch = official.encode_char(cands[off:off + EVAL_BATCH]).to(DEVICE)
+                            with autocast_ctx():
+                                _tf, _cf = diag.branch_features(model, _tk, _ch)
+                            _lg = model.classifier_head(torch.cat([_tf, _cf], dim=1))
+                            _sc.append(torch.softmax(_lg.float(), dim=1)[:, 1].cpu().numpy())
+                    p_cand = np.concatenate(_sc)
+                    fooled = (p_cand < 0.5).astype(np.float64)
+                    groups: dict[int, list[int]] = {}
+                    for j, o in enumerate(cand_owner):
+                        groups.setdefault(o, []).append(j)
+                    scored: list[tuple[float, int]] = []
+                    for js in groups.values():
+                        f = fooled[js]
+                        adv_g = f - f.mean()
+                        scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
+                    scored.sort(key=lambda t: -t[0])
+                    adv_batch = [cands[j] for _, j in scored[:64]]
+                    model.train()
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
             # MPS 带梯度反向 batch 上限 128：B/C 臂拼接变体后超限（192/320），
             # 用 128 子批梯度累积等效实现同一拼接大 batch 的（加权）平均损失，不改优化语义
             y_t = torch.from_numpy(batch_y).long().to(DEVICE)
