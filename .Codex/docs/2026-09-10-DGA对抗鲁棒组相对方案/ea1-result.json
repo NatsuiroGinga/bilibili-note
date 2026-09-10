@@ -1,0 +1,55 @@
+{
+  "n_benign": 15000,
+  "n_dga": 15000,
+  "thresholds": {
+    "fpr1": 0.831275,
+    "fpr01": 0.990418,
+    "half": 0.5
+  },
+  "results": {
+    "fpr1": {
+      "threshold": 0.831275,
+      "clean_detection": 0.9636,
+      "charbot2": {
+        "adv_detection": 0.64,
+        "relative_drop": 0.3358
+      },
+      "maskdga-approx": {
+        "adv_detection": 0.2981,
+        "relative_drop": 0.6906
+      }
+    },
+    "fpr01": {
+      "threshold": 0.990418,
+      "clean_detection": 0.8374,
+      "charbot2": {
+        "adv_detection": 0.5492,
+        "relative_drop": 0.3442
+      },
+      "maskdga-approx": {
+        "adv_detection": 0.2282,
+        "relative_drop": 0.7275
+      }
+    },
+    "half": {
+      "threshold": 0.5,
+      "clean_detection": 0.9849,
+      "charbot2": {
+        "adv_detection": 0.7125,
+        "relative_drop": 0.2765
+      },
+      "maskdga-approx": {
+        "adv_detection": 0.3847,
+        "relative_drop": 0.6094
+      }
+    }
+  },
+  "verdict": {
+    "best_relative_drop": 0.6906,
+    "criteria": {
+      "病灶坐实": true,
+      "病灶不成立": false,
+      "中间带（留裁量）": false
+    }
+  }
+}

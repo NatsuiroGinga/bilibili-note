@@ -1,0 +1,10 @@
+[E-A1 v2] 良性 15000 + DGA 15000
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+[心跳] 1024/15000
+[标定] FPR=1% 阈值=0.831275  FPR=0.1% 阈值=0.990418
+[心跳] 1024/15000
+[生成] 变体 30000 个，耗时 0.1s
+[心跳] 1024/30000
+[心跳] 21504/30000
+[里程碑] {"best_relative_drop": 0.6906, "criteria": {"病灶坐实": true, "病灶不成立": false, "中间带（留裁量）": false}} -> ea1-result.json
