@@ -222,7 +222,29 @@ MAB-Malware `WV4SU9BU`／RELEVAGAN `8NWW4DW2`／Jurečková `SYD8BRPX`／MADDPG 
 
 **结论：检索未获。** arXiv API 上不存在"用 LLM 生成恶意域名／DGA 域名以规避检测"的正式论文。12 个检索式的完整命中表、线索纠正（WebSearch 声称的 "LADB" 实为扩散模型域迁移论文；"MaskDGA 是 BERT-style masked LM" 已被本代理全文精读证伪）以及三篇邻近命中（DomainGAN `1911.06285`、伪 C2 生成 `2606.21349`、非 IID 流量分类 `2505.20866`）已写入 **`.Codex/docs/DRIFT/DRIFT第三章恢复卡.md` 的「文献综述更新」节**（含"弱病灶下机制增量可测性"三条邻近证据）。
 
-## 16. 完成清单（第二批）
+## 16. RL 家族知识交接接收（2026-09-10）
+
+已通读 `.Codex/docs/2026-09-10-RL家族盘点/knowledge-handover.md`（227 行，28,507 字节），接收其 32 条目家族全景、13 篇精读结论、熵坍缩三问答复、实现参考池与未读清单。
+
+### 归属更正（重要，防误记）
+
+交接代理在 §零 声明：「MAB 臂映射结论、两篇共演化的『不稳定教训与记忆归属』……不来自我的精读……归属须按主代理记录」。
+
+**该声明对本代理不适用，须更正为：**
+
+- **MAB 臂映射**（臂 = 动作—内容联合单元）与 **RELEVAGAN / Jurečková bilevel 的不稳定教训与记忆归属**，**是本代理直接读三篇原文全文得出的**，来源如下（均可在本文件与对应笔记核对）：
+  - MAB-Malware 臂定义：`raw/papers/attack-detection/2020-Song-MAB-Malware.pdf` §3.2（p.3–4）原文 "treats an action-content pair as an integral unit (a slot machine)"；已写入 `wiki/papers/attack-detection/2020-Song-MAB-Malware学习型黑盒规避.md`。
+  - RELEVAGAN 攻击者崩塌：同批 PDF §V（p.8）原文 "**No evasions happen after epoch number eight**"、CIC-2018 "after epoch three"、以及 "inverse relationship between the number of evasions and convergence"；稳定化机制见 §IV-C（"the weights of the neural network are **not reset**"）。**本代理于 2026-09-10 用 `rg` 直接命中原文行并回读上下文核验**（见本会话记录），非转述。
+  - bilevel 崩塌与稳定化：`2026-Jureckova-Bilevel-Malware-CoEvolution.pdf`，DCRat "sudden collapse in the attacker's success"、防御方沿"cumulative history of all preceding attacks"更新、以迭代间逃逸率稳定性判 ε-Nash。**同样由本代理直接核验。**
+- **交接代理所称的 T18 读数**（熵 30 批内 0.06→0.000–0.006、梯度范数不衰减、AP 0.997、两次干跑一次伤 FNR 一次伤 FPR）**与本代理的 (a)(b) 答复是两回事**，不得互相归因。
+
+### 本代理掌握的条目（可与交接摘要叠加引用）
+
+- **report (8) 批（本代理入库并逐篇全文精读，共 14 篇）**：MAB-Malware、RELEVAGAN、Jurečková bilevel、MADDPG、MalGAN、IDSGAN、PSRO、Foerster-Stabilising、Foerster-LOLA、Hernandez-Leal 综述、Cortellazzi 问题空间、Graph-GRPO、M²GRPO、OPERA/MAPGRPO；另有此前精读的 CharBot、MaskDGA、Drichel 2404.06236。
+- **交接摘要中与本课题对抗鲁棒直接相关的条目：仅 SAPO 一篇**（`2511.20347`）。其与本课题的连接点即交接摘要 §二.1 已标注的那条：**门函数只读重要性比率与优势符号、不读奖励内部结构**（式(7)(8)，p.3），故机制上不要求奖励可验证——但**这是推论，SAPO 全部实验是可验证奖励的数学推理与 Qwen3-VL 多模态**。
+- **须澄清的口径**：交接代理所列 32 条目（PPO/DPO/REINFORCE++/RLOO/GRPO 家族及 15 条本地变体）是**RL 策略优化家族**；本代理本批的 7 篇安全/博弈文献（MAB-Malware 等）**不在该 32 条目内**，两套清单是并行关系、不可混为一表。「与 P4 的距离」四级表由 report (8) 给出（固定攻击→学习攻击者+固定目标→学习攻击者+学习 surrogate→双侧共演化），本代理 14 篇笔记均已按其分级。
+
+## 17. 完成清单（第二批）
 
 - [x] 15 篇 PDF 下载 + `pdfinfo` 题名/页数逐一核验
 - [x] 14 篇 MinerU 转换（DeepSeekMath 去重）
