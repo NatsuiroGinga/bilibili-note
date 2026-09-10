@@ -123,19 +123,33 @@ PPO、DPO、IPO、KTO、SimPO、REINFORCE++、REINFORCE++-baseline、RLOO。
 
 Zotero：`zotero_add_items_by_arxiv` 13 条全部导入成功并附 PDF，key 见各笔记「文献信息」节。
 
-## 状态
+## 状态（全部完成）
 
 - [x] 盘点现有覆盖
 - [x] 合成总候选清单
 - [x] arXiv 逐个核验（含 2 处纠错、3 组同名冲突、1 处题录变更）
 - [x] 下载 13 个新 PDF
-- [x] mineru extract 转换 13/13
-- [x] Zotero 导入 13/13
-- [x] wiki 结构化笔记 8/13（SAPO、GMPO、GFPO、LitePPO、VAPO、GTPO-Tan、GTPO-Simoni、P-GRPO）
-- [ ] wiki 结构化笔记 5/13（SRPO、REINFORCE++、RLOO、PPO、DPO）
-- [ ] INDEX / 全景表更新
-- [ ] DRIFT 恢复卡写回
-- [ ] git 提交
+- [x] mineru extract 转换 13/13（57.7 s）
+- [x] Zotero 导入 13/13（均附 PDF）
+- [x] wiki 结构化笔记 13/13（八字段 frontmatter 经机械校验全部齐备；`source_pdf` 13/13 可解析）
+- [x] INDEX 家族全景表更新（32 个去重条目 + 纠错表 + 同名冲突表 + 检索未获登记 + 引用纪律五条）
+- [x] `GRPO变体群-方法选型.md` 增补「家族全谱系盘点摘要（2026-09-10）」
+- [x] DRIFT 第三章恢复卡写回「文献综述更新」节（新增节，未改动既有编号节）
+- [x] git 提交：分支 `exp/ch3-drift-20260908`，30 文件，1792 插入
+
+## 交付核验记录
+
+| 核验项 | 方法 | 结果 |
+|---|---|---|
+| frontmatter 八字段 | 逐文件 `rg` 断言 title/authors/year/date/journal/source_pdf/tags/key_finding | 13/13 通过 |
+| `source_pdf` 可解析 | 按 `wiki/papers/grpo/` 到仓库根的三级相对深度逐一定位文件 | 13/13 文件存在 |
+| 恢复卡相对链接 | 从 `.Codex/docs/DRIFT/` 解析三条链接目标 | 3/3 文件存在 |
+| 暂存区无夹带 | `git diff --cached --name-only` 排除四个任务路径后应为空 | 通过（30 文件全部在任务范围内） |
+| 页码锚点 | `findpage.py`（`pypdf` 逐页文本检索），非字号估算 | 每篇笔记的页码均来自该检索 |
+
+## 与主代理的设计咨询（非本任务交付物）
+
+主代理就 DRIFT TTA 最小臂的熵坍缩形态发起设计咨询，已就地答复（基于本轮 13 篇逐页读过的原文，页码可核）。要点：① 熵坍缩机制见 GMPO §4.4 p.9（加宽裁剪区间只能暂时缓解、熵仍下降）、DAPO §1/§3.1 p.2 与 p.4–5（Clip-Higher 机理）、Simoni-GTPO §4.2 p.3 与式(10)(11) p.5；② 低熵模型上做在线适应的**唯一显式前置门**是 Simoni 式(10) p.5 的 `<H>_ini < ln2`，且其方向是**削减更新**；"多少犹豫样本才够"在已读文献中**无答案，已明说未读到**；③ "批内相对熵"在已读文献中**无现成构造**，最接近的是 Tan-GTPO 式(14) p.6 的协方差项与命题 2.2 p.5 的零和守恒，稳定性依赖作者写明的"熵巩固条件"（命题 2.3，p.5）。三条建议均标注为**本课题推论、非文献结论**。未读原文的条目（GRPO 原文、Dr. GRPO 原文、TENT/CoTTA/SAR、IPO/KTO/SimPO、RL×TTA 交叉）已在答复中逐一列明。
 
 ## 检索未获正式论文（登记，不猜）
 
