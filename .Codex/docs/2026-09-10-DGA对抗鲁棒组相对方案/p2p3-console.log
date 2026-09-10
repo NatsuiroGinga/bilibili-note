@@ -82,3 +82,29 @@ Traceback (most recent call last):
     if arm == "C" and half_epoch_model is not None:
                       ^^^^^^^^^^^^^^^^
 NameError: name 'half_epoch_model' is not defined
+[评价面] 干净 15000、对抗 7500
+[A] 训练开始：120000 样本、133954 参数、6 epochs
+[A 心跳] epoch 1/6 acc=0.9250 用时 17.4s
+[A 心跳] epoch 2/6 acc=0.9573 用时 17.0s
+[A 心跳] epoch 3/6 acc=0.9631 用时 17.3s
+[A 心跳] epoch 4/6 acc=0.9667 用时 16.8s
+[A 心跳] epoch 5/6 acc=0.9696 用时 16.5s
+[A 心跳] epoch 6/6 acc=0.9732 用时 16.2s
+[里程碑] A: clean={"AP": 0.9922, "FPR": 0.0288, "FNR": 0.0472, "F1": 0.9616, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.0969, "F1": 0.9491, "n": 7500}
+[B] 训练开始：120000 样本、133954 参数、6 epochs
+[B 心跳] epoch 1/6 acc=0.9244 用时 29.4s
+[B 心跳] epoch 2/6 acc=0.9606 用时 26.3s
+[B 心跳] epoch 3/6 acc=0.9660 用时 26.0s
+[B 心跳] epoch 4/6 acc=0.9694 用时 26.2s
+[B 心跳] epoch 5/6 acc=0.9719 用时 26.0s
+[B 心跳] epoch 6/6 acc=0.9745 用时 24.5s
+[里程碑] B: clean={"AP": 0.9913, "FPR": 0.036, "FNR": 0.0421, "F1": 0.9608, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.03, "F1": 0.9848, "n": 7500}
+[C] 训练开始：120000 样本、133954 参数、6 epochs
+[C 心跳] epoch 1/6 acc=0.8670 用时 119.0s
+[C 心跳] epoch 2/6 acc=0.9203 用时 117.5s
+[C 心跳] epoch 3/6 acc=0.9291 用时 104.3s
+[C 心跳] epoch 4/6 acc=0.9333 用时 102.0s
+[C 心跳] epoch 5/6 acc=0.9375 用时 108.1s
+[C 心跳] epoch 6/6 acc=0.9402 用时 104.1s
+[里程碑] C: clean={"AP": 0.9908, "FPR": 0.0488, "FNR": 0.0356, "F1": 0.9581, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.0228, "F1": 0.9885, "n": 7500}
+[里程碑] {"P2_pass": false, "P3_pass": false, "detail": {"adv_AP": {"A": 1.0, "B": 1.0, "C": 1.0}, "clean_FPR": {"A": 0.0288, "B": 0.036, "C": 0.0488}, "adv_FNR": {"A": 0.0969, "B": 0.03, "C": 0.0228}}} -> p2p3-result.json
