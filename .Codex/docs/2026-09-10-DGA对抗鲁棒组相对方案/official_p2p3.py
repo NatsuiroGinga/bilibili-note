@@ -66,6 +66,22 @@ def perturb2(domain: str, rng: random.Random) -> str:
     return "".join(b) + tail
 
 
+def perturb_half(domain: str, rng: random.Random) -> str:
+    """MaskDGA 半替换近似（冻结 v2 算子，与 E-A1 v2 同源）：随机替换 SLD 一半位置。
+    主判据面板算子：官方模型实测相对降 69.1%，可打开 AP 判据空间（k2 面板 AP 封顶无空间）。"""
+    body = domain.rsplit(".", 1)[0]
+    tail = "." + domain.rsplit(".", 1)[1] if "." in domain else ""
+    if len(body) < 4:
+        return domain
+    b = list(body)
+    for i in rng.sample(range(len(body)), max(1, len(body) // 2)):
+        c = rng.choice(ALPHA)
+        while c == b[i]:
+            c = rng.choice(ALPHA)
+        b[i] = c
+    return "".join(b) + tail
+
+
 def load_split(limit: int) -> tuple[list[str], np.ndarray]:
     tb = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_benign_train.parquet").to_pylist()[:limit]
     td = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_dga_train.parquet").to_pylist()[:limit]
@@ -191,10 +207,12 @@ def main(dry: int = 0) -> None:
     rng = random.Random(SEED)
     ea_k2 = [perturb2(str(r["domain"]), rng) for r in td[:(dry or 7500)]]
     ea_krand = [perturb2(str(r["domain"]), rng) for r in td[:(dry or 7500)]]  # k∈U{1..4} 预算随机化组
+    ea_mask = [perturb_half(str(r["domain"]), rng) for r in td[:(dry or 7500)]]  # MaskDGA 半替换强攻击面板
     eval_clean = (ec, ey)
     eval_adv_k2 = (ea_k2, np.ones(len(ea_k2), dtype=bool))
     eval_adv_krand = (ea_krand, np.ones(len(ea_krand), dtype=bool))
-    print(f"[官方 P2/P3] 训练 {len(tr_d)}、评价干净 {len(ec)}、对抗 k2 {len(ea_k2)}/krand {len(ea_krand)}", file=sys.stderr, flush=True)
+    eval_adv_mask = (ea_mask, np.ones(len(ea_mask), dtype=bool))
+    print(f"[官方 P2/P3] 训练 {len(tr_d)}、评价干净 {len(ec)}、对抗 k2 {len(ea_k2)}/krand {len(ea_krand)}/maskdga {len(ea_mask)}", file=sys.stderr, flush=True)
 
     # 中和均值：优先 T17 val 全量缓存（本机，与正锚点核查同源）；缺缓存时现场重算
     cache = Path("/tmp/drift-anchor-t17-features-300000.npz")
