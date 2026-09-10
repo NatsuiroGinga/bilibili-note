@@ -78,6 +78,46 @@ G0 共同配置为 [ch3-drift-t17-equal3-auxheads-gradient-base-v1.json](../../.
 
 **口径声明**：以上全部为**文献盘点与候选线索**，不改变本卡第一节当前 Goal、第五节待证方向与第六节唯一下一动作。N13 的协议四项（到达顺序、无标签接口、更新对象、静态／适应分表）仍须由主代理拟定后交用户裁决，本节不构成任何一项的预先选定。
 
+### LLM 生成 DGA 攻击文献盘点（2026-09-10）
+
+**结论：检索未获——arXiv 上不存在"用 LLM 生成恶意域名／DGA 域名以规避检测"的正式论文。** 检索日期 2026-09-10，检索工具 arXiv API（`export.arxiv.org/api/query`），全部检索式与命中数如下（题录级核验，命中后逐篇核对摘要）：
+
+| 检索式 | 命中 | 相关命中 |
+| --- | --- | --- |
+| `abs:"domain generation algorithm" AND abs:"language model"` | 4 | 全部是**检测侧**（2410.21723、2411.03307、DomURLs_BERT 2409.09143） |
+| `abs:"LLM" AND abs:"DGA"` | 5 | 全部是**检测侧**或无关（DGA₂D 2608.00700 为图算法自动设计） |
+| `ti:"adversarial domain generation"` | 6 | 全被 "adversarial domain **generalization**" 污染，无一相关 |
+| `abs:"malicious domain" AND abs:"large language model"` | **0** | — |
+| `abs:"DGA" AND abs:"evade"` | 9 | 规避侧均为非 LLM（MaskDGA 1902.08909、DomainGAN 1911.06285 等） |
+| `abs:"domain generation" AND abs:"GPT"` | 25 | 全部无关（跨域文本生成等） |
+| `abs:"DGA" AND abs:"generative" AND abs:"evasion"` | 2 | MaskDGA、CONDENSER（2014，图方法） |
+| `ti:"malicious domain generation"` | **0** | — |
+| `abs:"domain name" AND abs:"LLM" AND abs:"attack"` | 3 | 全部检测侧（钓鱼页面、typosquatting 检测） |
+| `all:"LADB"` | 1 | 《Latent Aligned Diffusion Bridges for Semi-Supervised Domain Translation》——**与 DGA 无关** |
+| `abs:"botnet" AND abs:"large language model"` | 8 | 最接近者为伪 C2 生成（见下），**非规避** |
+| `abs:"domain flux" AND abs:"language model"` | 1 | 无关（Flux-OPD 在线蒸馏） |
+
+**线索纠正（登记，防复发）**：① 一次 WebSearch 声称的 "LADB" 经 `all:"LADB"` 直查为扩散模型域迁移论文，**DGA 无关，名称作废**；② 同次检索把 MaskDGA 说成 "BERT-style masked LM"，**已被本卡对抗规避病灶的全文精读证伪**——MaskDGA 是 JSMA 雅可比显著度驱动的字符替换（arXiv:1902.08909 §4.5），与掩码语言模型无关。**外部网页线索在本题材上不可靠，须以 arXiv API 与本地全文为准。**
+
+**最接近的三篇邻近命中（均非"LLM 生成 DGA 规避"）**：
+- **DomainGAN `1911.06285`（2019）**——用三种 GAN 变体生成具有良性域名特征的对抗域名，规避多个深度 DGA 分类器。是"**生成式对抗 DGA**"的最近先例，但生成器是 GAN 不是 LLM；Drichel 2024 的相关工作表亦已收录它。
+- **`2606.21349`（2026-06-19）**——LLM 从恶意二进制中提取通信规格并自动生成**伪 C2 服务器**，用途是**辅助动态分析（防御向）**，不是规避检测。
+- **`2505.20866`（2025-05-27）**——LLM 指令微调用于**非 IID 网络流量分类**，属检测侧，与本课题漂移轴相关但与"生成 DGA"无关。
+
+**与本课题对抗规避病灶的关系（推论，非论文主张）**：本卡当前病灶是 **MaskDGA 半替换式字符扰动**（24M 模型 69.1% 规避，见 §五）。若攻击者从"字符扰动"进化为"用生成模型产出低熵、词形自然、可注册的域名"，则可规避面将从**字符级异常**转向**分布级模仿**，而字符级检测器（含本课题双分支 Transformer 的字符通道）对此类样本的判别依据更少。**这条关联性判断目前只有邻近文献支撑、没有任何 LLM-生成-DGA 的实测**，因此只作**方向动机的强化线索**登记，不得写成文献结论，也不得据此改变当前判据或下一动作。**最小验证路径**：在取得任何 LLM 生成域名样本后，先用**同一 E-A1 规避探针**测其相对 MaskDGA 半替换的规避率，再做分布距离诊断（而非直接假定更强）。
+
+**指向**：本节的检索记录同时写入文献入库检查点 `.Codex/docs/2026-09-10-DGA对抗文献入库/notes.md`。相关已入库笔记：LLM 检测侧 [[../../../wiki/papers/attack-detection/dga/2024-Lopez-LLM-DGA检测]]、MaskDGA [[../../../wiki/papers/attack-detection/dga/2019-Sidi-MaskDGA规避攻击]]、Drichel 2024 [[../../../wiki/papers/attack-detection/dga/2024-Drichel-DGA检测鲁棒分类]]。
+
+### 弱病灶下机制增量可测性的邻近证据（2026-09-10，应 P2/P3 设计提问补记）
+
+本轮检索**未获**"弱信号下机制增量测量"的专门方法论文献。可作有限参照的**同一批已全文核验**的来源有三条，均**只作线索**：
+
+1. **均值掩盖分面差异**：Drichel 2024（2404.06236，Table 5，p.16–17）在"无鲁棒性—性能权衡"的均值结论下，仍有 bigviktor（0.32320→0.28760）、qsnatch（0.12244→0.08677）、chaes（0.00440→0.00330）三个**反向家族**；MaskDGA 原文（1902.08909 §5.6，p.7）同样报告 Suppobox 平均 F1 0.495 而 Corebot 0.7725。**即：弱增量在总体均值上可能不可测，在分面上可能可见。**
+2. **粒度决定可测性**：Graph-GRPO（arXiv:2603.02701，§4.3，Table 2，p.7）的消融给出了"**逐边级归因比整图级归因平均高 1.82%**"的对照——把 credit 从粗粒度降到细粒度后，原本被平均掉的贡献变得可测。**这是"换归因粒度而非换机制即可让弱信号显形"的直接先例。**
+3. **代理规模与病灶强度的关系**：本 proxy 的 13.7% 相对下降 vs 24M 模型的 69.1%，属**同一机制的弱化版**；上述两条只提示"应当在分面与粒度上找可测性"，**不构成对组相对增量是否可测的任何预测**。
+
+**口径声明**：口径同本节首条——只登记文献线索，不构成已支持机制、已批准方向或已冻结判据；组相对增量在弱病灶上的可测性仍须由 P2/P3 自身实验裁决。
+
 ## 六、唯一下一动作
 
 **唯一下一动作（2026-09-10 第二轮更新）**：**P0 病灶复现硬门（E-A1）是唯一执行动作**；N13 源年 TENT 臂已裁决关闭，不再作为并行动作，两条不同病灶轴不得合并叙事。

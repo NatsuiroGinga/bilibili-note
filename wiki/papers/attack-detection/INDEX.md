@@ -126,6 +126,53 @@ related:
 - **[[dga/2024-Cebere-DGA检测九项假设审计|DGA检测九项假设审计]]** — 对38篇contextless论文审计良性污染、家族支持、共享生成器、未见家族、复现与部署假设。
 - **[[dga/2024-Lopez-LLM-DGA检测|LLM DGA检测]]** — Llama3在14个未见家族上F1 0.67，低于轻量LA Bin07的0.80，容量不能替代开放集泛化。
 
+## 博弈 × 强化学习 × MARL × 对抗鲁棒（2026-09-10 入库，源：report (8) 引用台账）
+
+本批为 `deep-research-report (8)` 中标记 **✅ 原文核验**与 **◐ 部分核验**的文献；**全部经 arXiv API 复核题录**，PDF 入 `raw/papers/attack-detection/`，MinerU `extract`（token 模式）转换后逐节精读并实测页码锚点。**四级表**（用于判定与 P4 的距离）：**1** 固定/算法攻击 + 学习检测器（CharBot/MaskDGA/Drichel）；**2** 学习型攻击者 + 固定目标检测器（MAB-Malware）；**3** 学习型攻击者 + 学习 surrogate（MalGAN/IDSGAN）；**4** attacker + 实际 defender 共演化（RELEVAGAN/2026 bilevel）。
+
+### 第 4 层：最接近 P4 的共演化先例
+
+- **[[2022-Randhawa-RELEVAGAN共演化攻击者|RELEVAGAN：DRL 攻击者与 botnet 检测器共演化]]** — arXiv:2210.02840v1（2022-10-06，Randhawa 等）。**注意：`ti:"RELEVAGAN"` 在 arXiv 零命中（缩写所致），须按全文名检索。**
+- **[[2026-Jureckova-恶意软件检测双层共演化|Jurečková 2026：恶意软件与检测模型的双层共演化]]** — arXiv:2604.22569v1（2026-04-24），SECRYPT 2026；bilevel 框架，**先占边界文献**。
+
+### 第 2 层：学习型攻击者 + 冻结检测器（P3.5 资格门直接先例）
+
+- **[[2020-Song-MAB-Malware学习型黑盒规避|MAB-Malware]]** — RAID 2020，arXiv:2003.03100v3。把黑盒 PE 规避建模为**无状态多臂强盗**，MalConv 逃逸率 **97.72%**、EMBER **74.4%**（同期 GAMMA-hard-label 仅 63.6%/50.0%，Gym-Malware 最低）；商业 AV 32%–48%。三条设计洞察：无状态建模避免组合爆炸、复用成功 payload、动作最小化以精确归因 reward。**是"学习型攻击者优于固定攻击框架"的最强实证之一，但检测器全程冻结。**
+
+### 第 3 层：学习型攻击者 + 学习 surrogate（真目标仍冻结）
+
+- **[[2017-Hu-MalGAN替代检测器生成对抗样本|MalGAN]]** — arXiv:1702.05983v1，generator + substitute detector。
+- **[[2018-Lin-IDSGAN入侵检测攻击生成|IDSGAN]]** — arXiv:1809.02077v5（**注意：常见误记的 `1802.04821` 实为 Evolved Policy Gradients**）。discriminator 动态逼近黑盒 IDS，但被攻击的 IDS 本身不参与训练——**不得写成"攻击者与真实检测器双侧学习"**。
+
+### 形式化词汇的权威出处
+
+- **[[2019-Cortellazzi-问题空间对抗攻击与约束|问题空间对抗攻击的形式化]]** — arXiv:1911.02142v3（IEEE S&P 2020 扩展版；**常见误记的 `1911.09575` 实为内部威胁论文**）。给出四类约束 Γ={可用变换、保持语义、合理性、预处理鲁棒性}（定义 8–12，p.7–8）与**副效应特征 η**（定义 13，p.8–9）；结论"投影到问题空间后攻击置信度必然不高于特征空间"（p.9）。工程侧：**对抗重训一致失效（ASR 恒 >95%）**，而用问题空间样本做对抗训练显著优于特征空间样本（鲁棒性 +10–60%，p.22）。**本课题使用"有效性/保持语义/合理性"等概念应引本文。**
+
+### 通用 MARL 技术来源（不属四级表任何一层）
+
+- **[[2017-Lowe-MADDPG多智能体actor-critic|MADDPG]]** — arXiv:1706.02275v4，joint-action critic 的原始形式化。
+- **[[2017-Lanctot-PSRO种群博弈论方法|PSRO]]** — arXiv:1711.00832v2，meta-game / best-response / 种群理论锚。
+- **[[2017-Foerster-多智能体经验回放稳定化|Foerster：多智能体经验回放稳定化]]** — arXiv:1702.08887v3，stale replay 的重要性采样修正与 fingerprints。
+- **[[2017-Foerster-LOLA对手学习感知|LOLA]]** — arXiv:1709.04326v4，opponent-learning-aware 高阶更新。
+- **[[2017-HernandezLeal-多智能体非平稳性综述|Hernandez-Leal 非平稳性综述]]** — arXiv:1707.09183v2，moving-target 总框架。
+
+### GRPO × MARL：**"不能声称新"的三条锚点**
+
+**`MAPGRPO` 这一名称在 2025 年已被占用；"多智能体 + 组相对优势"已有三条独立先例，本课题不得把该组合本身作为创新主张。**
+
+- **[[2025-Liu-OPERA多智能体渐进组相对策略优化|OPERA / MAPGRPO]]** — arXiv:2508.16438v4。**`MAPGRPO` 名称的占用者**：N 个异构智能体顺序优化（定义 1，式(5)，p.4）；组构造的特殊之处是**混入 1 条离线预打分样本作 `cbest`**（算法 1，p.4）。消融：GRPO 34.8% → MAPGRPO 39.7% EM。
+- **[[2026-Cang-Graph-GRPO边级组相对策略优化|Graph-GRPO]]** — arXiv:2603.02701v1（Cang 等）。把组相对优势下沉到**边级**：条件成功率（式(4)）+ 组内标准化（式(5)）。消融 **边级比整图级平均高 1.82%**（Table 2，p.7）——**"信用分配粒度决定弱信号能否显形"的直接先例**。
+- **[[2026-Feng-M2GRPO曼巴多智能体组相对策略优化|M²GRPO / MAGRPO]]** — arXiv:2604.19404v1。组 = **同一智能体的并行环境集合**，$A_j^i=(R_j^i-\overline{R}^i)/(\mathrm{Std}^i(R)+\tau)$（式(5)，p.4），CTDE 且无集中 critic。
+- 已有笔记：**[[../grpo/2024-Shao-DeepSeekMath与GRPO开山|DeepSeekMath（GRPO 原始定义）]]**——**已完整入库**（结构化笔记 + 全文 + 原件在 `raw/papers/grpo/2402.03300.pdf`），本批不重复。
+
+### 本批纠正的三处题录错误（登记，防复发）
+
+| 线索/记忆编号 | 实际是什么 | 正确编号 |
+| --- | --- | --- |
+| `1802.04821`（以为是 IDSGAN） | Evolved Policy Gradients（Houthooft 等） | **IDSGAN = `1809.02077v5`** |
+| `2001.01878`（以为是 MAB-Malware） | Phase Transitions for the Information Bottleneck | **MAB-Malware = `2003.03100v3`** |
+| `1911.09575`（以为是 Pierazzi 问题空间） | Insider threats in Cyber Security | **问题空间 = `1911.02142v3`** |
+
 ## 方法学入口
 
 - **[[2023-Chen-Android恶意软件持续学习|Chen-AL：Android 恶意软件持续学习]]** — USENIX Security 2023，层次对比主动学习在月度标签预算下把七年平均 FNR 从 14% 降到 9%，是 LAMDA 的直接强主动学习基线。

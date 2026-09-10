@@ -149,4 +149,85 @@ MinerU token 模式（`mineru-open-api extract -l en`，v0.5.9），非 flash-ex
 - [x] Zotero 新增第三篇（集合归属待用户手动完成，见 §5）
 - [x] INDEX.md 更新（三条目 + 查重结论）
 - [x] 主代理 E-A1 算子忠实度答复
+- [x] git 提交（8b8c597、869e068、e6786e7）
+
+---
+
+# 第二批任务：report (8) 引用文献入库（2026-09-10 起）
+
+来源：`/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/.Codex/docs/chatgpt-handoffs/inbox/deep-research-report (8).md`（52,701 字节，1103 行，25 处 ✅、27 处 ◐）。
+目标：入库台账中标记 ✅ 与 ◐ 的文献（CharBot/MaskDGA/Drichel 2404.06236 已于本文件前段入库，不重复）。
+
+## 11. 题录核验（arXiv API 实录，编号以核验为准）
+
+**重要：我初始凭记忆给出的三个 arXiv 编号全部错误，均被 arXiv API 拦下**——
+
+| 我记忆的编号 | 实际是什么 | 正确的目标编号 |
+| --- | --- | --- |
+| `1802.04821` | Evolved Policy Gradients（Houthooft 等） | **IDSGAN = `1809.02077v5`**（Lin, Shi, Xue） |
+| `2001.01878` | Phase Transitions for the Information Bottleneck（Wu & Fischer） | **MAB-Malware = `2003.03100v3`**（Song 等） |
+| `1911.09575` | Insider threats in Cyber Security（Mazzarolo & Jurcut） | **Problem Space = `1911.02142v3`**（Cortellazzi, Pendlebury, Arp, Quiring, Pierazzi, Cavallaro） |
+
+核验通过的完整清单（题名、作者、日期均取自 arXiv API 返回）：
+
+| # | 文献 | arXiv | 首版日期 | 状态 |
+| --- | --- | --- | --- | --- |
+| 1 | MAB-Malware: A Reinforcement Learning Framework for Attacking Static Malware Classifiers | `2003.03100v3` | 2020-03-06 | Song, Li, Afroz, Garg, Kuznetsov, Yin |
+| 2 | Deep Reinforcement Learning based Evasion GAN for Botnet Detection（RELEVAGAN） | `2210.02840v1` | 2022-10-06 | Randhawa, Aslam, Alauthman, Khalid, Rafiq |
+| 3 | Adversarial Co-Evolution of Malware and Detection Models: A Bilevel Optimization | `2604.22569v1` | 2026-04-24 | Jurečková, Jureček, Kozák, Lórencz |
+| 4 | Multi-Agent Actor-Critic for Mixed Cooperative-Competitive Environments（MADDPG） | `1706.02275v4` | 2017-06-07 | Lowe, Wu, Tamar, Harb, Abbeel, Mordatch |
+| 5 | Generating Adversarial Malware Examples for Black-Box Attacks Based on GAN（MalGAN） | `1702.05983v1` | 2017-02-20 | Hu, Tan |
+| 6 | IDSGAN | `1809.02077v5` | 2018-09-06 | Lin, Shi, Xue |
+| 7 | A Unified Game-Theoretic Approach to Multiagent RL（PSRO） | `1711.00832v2` | 2017-11-02 | Lanctot 等 |
+| 8 | Stabilising Experience Replay for Deep Multi-Agent RL | `1702.08887v3` | 2017-02-28 | Foerster 等 |
+| 9 | A Survey of Learning in Multiagent Environments: Dealing with Non-Stationarity | `1707.09183v2` | 2017-07-28 | Hernandez-Leal, Kaisers, Baarslag, de Cote |
+| 10 | Intriguing Properties of Adversarial ML Attacks in the Problem Space [Extended] | `1911.02142v3` | 2019-11-05 | Cortellazzi, Pendlebury, Arp, Quiring, Pierazzi, Cavallaro |
+| 11 | Graph-GRPO: Stabilizing Multi-Agent Topology Learning via Group Relative Policy Optimization | `2603.02701v1` | 2026-03-03 | Cang, Zhang, Zhao, Ji, Liu, He, Ning 等 |
+| 12 | M²GRPO: Mamba-based Multi-Agent Group Relative Policy Optimization | `2604.19404v1` | 2026-04-21 | （按 `all:"M2GRPO"` 命中） |
+| 13 | OPERA: A RL-Enhanced Orchestrated Planner-Executor Architecture | `2508.16438v4` | 2025-08-22 | Liu, Liu, Yuan, Cao 等 |
+| 14 | Learning with Opponent-Learning Awareness（LOLA） | `1709.04326v4` | 2017-09-13 | Foerster, Chen, Al-Shedivat, Whiteson, Abbeel, Mordatch |
+| — | DeepSeekMath（GRPO 原始定义） | `2402.03300v3` | 2024-02-05 | **已入库，不重复** |
+
+**库内重复排查结果**：
+- **DeepSeekMath 完整已入库**：`wiki/papers/grpo/2024-Shao-DeepSeekMath与GRPO开山.md`（结构化笔记，含 §4.1 p.11–13 页码锚点）+ `2402.03300-全文.md` + `raw/papers/grpo/2402.03300.pdf`。本次下载件经 sha256 比对（`6cc20b3c…7e7b`）与既有原件**字节一致**，已删除本次重复下载，**不新建笔记**。
+- RELEVAGAN 在 arXiv 用 `ti:"RELEVAGAN"` **零命中**，是缩写所致；改按作者 `au:Randhawa AND abs:botnet` 才命中全称 `2210.02840v1`。登记该检索经验。
+- M²GRPO 用 `ti:"M2GRPO"` 零命中；改 `all:"M2GRPO"` 命中 `2604.19404v1`（题名含 LaTeX `M$^{2}$GRPO`，故题名检索失败）。登记。
+
+## 12. 下载与转换
+
+- 15 个 PDF 下载至 `raw/papers/attack-detection/`，全部 `http=200`；`pdfinfo` 逐一核验题名与页数一致（MAB-Malware 15 页、MADDPG 16 页、PSRO 27 页、Non-Stationarity 综述 64 页、Problem Space 36 页、Graph-GRPO 10 页、M²GRPO 9 页、OPERA 17 页、LOLA 14 页等）。
+- MinerU 转换脚本 `/tmp/dga-adv-20260910/run_extract.sh`（`mineru-open-api extract -l en -f md,json`，**幂等**：产物存在即 SKIP、可重入）。产物 `/tmp/dga-adv-20260910/marl/<name>/`，日志 `extract-run.log`。
+
+## 13. 待办
+
+- [ ] 转换全部完成
+- [ ] 撰写结构化笔记（重点：**与 P4 的距离四级表**层级、非平稳性处理方式、与 DGA 单步扰动博弈的可迁移机制）
+- [ ] Zotero 入库
+- [ ] INDEX 更新
+- [ ] git 提交
+
+## 14. 第二批执行记录（2026-09-10）
+
+**Zotero 入库 14 篇（全部成功，均含 PDF 附件）**：
+MAB-Malware `WV4SU9BU`／RELEVAGAN `8NWW4DW2`／Jurečková `SYD8BRPX`／MADDPG `FRK28IKF`／MalGAN `2BELS66E`／IDSGAN `ULAVEPZA`／PSRO `Q4VRGZN4`／Foerster-Stabilising `4U8FS56U`／Hernandez-Leal `EZ7Q48VD`／Problem Space `SV6RR4D2`／Graph-GRPO `2PB965QI`／M²GRPO `6VDKBCFS`／OPERA `RN7T3D7E`／LOLA `48HFHNNY`。
+**集合归属仍受阻**（同 §5）：写路径指向 Web 库，该库无 `attack-detection` 集合；14 篇均在 My Library 但未入集合，需用户桌面端手动拖入。
+
+**DeepSeekMath 去重**：`raw/papers/grpo/2402.03300.pdf` 已存在且与本次下载件 **sha256 一致**（`6cc20b3c…7e7b`），已删除重复下载，不新建笔记（既有结构化笔记 `wiki/papers/grpo/2024-Shao-DeepSeekMath与GRPO开山.md` 已含 §4.1 p.11–13 页码锚点）。
+
+**笔记撰写分工**：MAB-Malware、Problem Space、Graph-GRPO、M²GRPO、OPERA 由本代理自写；RELEVAGAN＋Jurečková、MADDPG＋PSRO＋LOLA、MalGAN＋IDSGAN＋Foerster-Stabilising＋Hernandez-Leal 由 3 个子代理并行撰写（各自 PDF 已就位、页码锚点由 json 的 `page_idx` 实测）。
+
+**转换**：脚本 `/tmp/dga-adv-20260910/run_extract.sh`（幂等、可重入），14 篇全部 `rc=0`，md + json 双产物。
+
+## 15. LLM 生成 DGA 攻击的调研（2026-09-10，第二次追加任务）
+
+**结论：检索未获。** arXiv API 上不存在"用 LLM 生成恶意域名／DGA 域名以规避检测"的正式论文。12 个检索式的完整命中表、线索纠正（WebSearch 声称的 "LADB" 实为扩散模型域迁移论文；"MaskDGA 是 BERT-style masked LM" 已被本代理全文精读证伪）以及三篇邻近命中（DomainGAN `1911.06285`、伪 C2 生成 `2606.21349`、非 IID 流量分类 `2505.20866`）已写入 **`.Codex/docs/DRIFT/DRIFT第三章恢复卡.md` 的「文献综述更新」节**（含"弱病灶下机制增量可测性"三条邻近证据）。
+
+## 16. 完成清单（第二批）
+
+- [x] 15 篇 PDF 下载 + `pdfinfo` 题名/页数逐一核验
+- [x] 14 篇 MinerU 转换（DeepSeekMath 去重）
+- [x] 14 篇结构化笔记（5 篇自写 + 9 篇子代理）
+- [x] Zotero 14 篇
+- [x] INDEX 新增「博弈 × 强化学习 × MARL × 对抗鲁棒」节
+- [x] DRIFT 恢复卡写回（LLM 生成 DGA 盘点 + 弱信号可测性线索）
 - [ ] git 提交
