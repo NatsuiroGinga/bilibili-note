@@ -232,8 +232,9 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 logits2 = logits2.float()
                 p_ = torch.softmax(logits2, dim=1)
                 ce = torch.nn.functional.cross_entropy(logits2, sub_y, reduction="none")
-                if arm == "F":
-                    # F 臂 = D + 良性误报加权（双侧组相对的良性侧最简形式）：
+                if arm in ("F", "G"):
+                    # F 臂 = D + 良性误报加权（双侧组相对的良性侧最简形式）；
+                    # G 臂 = 只组件 2（无对抗增广、仅良性误报加权）——四臂消融的对称单臂。
                     # batch 内当前模型判恶意的真良性样本 CE ×3.0，把分布上移的误报拉回。
                     # 权重 3.0 为任务化设定（无文献精确值）：对冲 64 变体配额的恶意侧压力量级，
                     # 源侧标定；若有效再升级为良性 CharBot 近邻组相对完整形态
