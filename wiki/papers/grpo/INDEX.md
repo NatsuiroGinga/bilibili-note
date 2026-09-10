@@ -137,6 +137,61 @@ ABC-GRPO `2601.03895` · NGRPO `2509.18851` · MMR-GRPO `2601.09085` · Pro-GRPO
 
 其余按 `arXiv 编号` 命名的单篇笔记与早期自动入库产物（如 `2402.03300.md`、`2511.03527.md`、`2512.15347.md`、`2601.22478.md` 四个约 1.2 KB 的文件）**元数据明显错误**（`year` 字段为浮点时间戳、`journal` 为无关期刊、`key_finding: 待补充`），**引用前须核对原文与页码，不得直接采信其 frontmatter**。
 
+## 代码实现参考（2026-09-10 登记）
+
+> **用途声明**：本节是**实现参考池**，不是论文证据。本课题若任务化某个家族机制，**优先参考其官方实现**的默认超参与工程 trick；**引用边界照旧**——机制思想可用，**算法名不得冒充本课题创新**（PIC-GRPO 的命名与差异化句仍按 [[GRPO变体群-方法选型]] 的定稿执行，不得因参考了某家族实现就声称该算法是本课题贡献）。登记内容以**访问当日仓库现状**为准，日后不保证一致；许可证以仓库声明为准，**未声明许可证者不得直接复用其代码**。
+
+**访问日期：2026-09-10。**
+
+### 主参考：OpenRLHF
+
+仓库 <https://github.com/OpenRLHF/OpenRLHF> · 许可证 **Apache-2.0** · `main` 分支 HEAD `ebc9e245b8c859ba52cbacc8b2e48fb024b64cb7`（pushed `2026-09-10T07:40:06Z`）。README 的 "State-of-the-Art RL Algorithms" 表列出 **PPO／REINFORCE++／REINFORCE++-baseline／RLOO／GRPO／Dr. GRPO** 六档，GSPO 与 DAPO 以损失类型与开关形式支持。
+
+| 算法 | CLI 档位／开关 | 实现位置（main 分支，行号为 2026-09-10 快照） |
+|---|---|---|
+| PPO | `--algo.advantage.estimator` 默认（`gae`） | `openrlhf/trainer/ppo_utils/experience_maker.py` L292（优势分派）；`openrlhf/models/loss.py` L116 `class PolicyLoss`（默认 `policy_loss_type="ppo"`，`clip_eps_low/high=0.2`） |
+| REINFORCE++ | `--algo.advantage.estimator reinforce` | `experience_maker.py` L292 |
+| REINFORCE++-baseline | `--algo.advantage.estimator reinforce_baseline` | `experience_maker.py` L267 |
+| RLOO | `--algo.advantage.estimator rloo` | `experience_maker.py` L264 |
+| GRPO | `--algo.advantage.estimator group_norm` | `experience_maker.py` L269 |
+| Dr. GRPO | `--algo.advantage.estimator dr_grpo`（README 注"Removes local `/std` norm"） | `experience_maker.py` L267（与 `reinforce_baseline` 同分支） |
+| GSPO | `--actor.policy_loss_type gspo`（`choices=["ppo","gspo"]`，默认 `ppo`） | CLI：`openrlhf/cli/train_ppo_ray.py` L420；实现：`openrlhf/models/loss.py` **L170–171**（源码注释直接引 `https://arxiv.org/pdf/2507.18071`，即本目录 GSPO 原文）；GSPO 要求序列级损失见 `loss.py` L142 |
+| DAPO | `--algo.dynamic_filtering_enable`（动态过滤）；`--reward.overlong_buffer_len`／`--reward.overlong_penalty_factor`（超长软惩罚） | `openrlhf/trainer/ppo_utils/length_penalty.py` L16 `apply_overlong_penalty`（文件头注明 "DAPO Overlong Penalty"）；示例 `examples/scripts/train_dapo_ray_hybrid_engine.sh` |
+| DPO | `openrlhf/cli/train_dpo.py` | `openrlhf/trainer/dpo_trainer.py`；`openrlhf/models/loss.py` L300 `class DPOLoss` |
+
+**参数命名约定**：该仓库用嵌套命名 `--algo.*`（算法层）、`--actor.*`（策略层）、`--reward.*`（奖励层）。核验方式：逐文件 `curl` raw 内容后 `rg` 定位，非凭记忆。
+
+### 其它家族成员的官方实现
+
+| 家族成员 | 官方（或所属框架）实现 | 许可证 | 来源与核验 |
+|---|---|---|---|
+| **SAPO** `2511.20347` | **ms-swift** `--loss_type sapo` | Apache-2.0 | **论文正文无仓库链接**。ms-swift 实现：`swift/rlhf_trainers/grpo_trainer.py` **L1045**（`elif self.loss_type == 'sapo':`）、L1088；示例 `examples/train/grpo/internal/sapo.sh`、`examples/megatron/grpo/sapo.sh`；文档 `docs/source_en/Instruction/GRPO/AdvancedResearch/SAPO.md`（2026-09-10 直接核验） |
+| **Dr. GRPO** `2503.20783` | `sail-sg/oat` | Apache-2.0 | 论文参考文献列表给出 `github.com/sail-sg/oat`（本地全文 `2503.20783-全文.md` 第 255 行）；另有 `sail-sg/understand-r1-zero`（MIT，1275 stars）仓库存在，但**本轮未从论文正文核到该链接**，故不登记为官方 |
+| **GSPO** `2507.18071` | OpenRLHF `--actor.policy_loss_type gspo` | Apache-2.0 | 见上主表；论文原文本轮未检索到作者自带仓库链接 |
+| **DAPO** `2503.14476` | `verl`（原 `volcengine/verl`，现 **`verl-project/verl`**） | Apache-2.0 | 论文正文给出 `https://github.com/volcengine/verl`；仓库已迁移改名（2026-09-10 核验重定向）；DAPO 说明 `docs/algo/dapo.md`，优势与策略损失实现 `verl/trainer/ppo/core_algos.py` |
+| **GMPO** `2507.20673` | `callsys/GMPO` | **无许可证声明** | 论文正文 p.1 直接给出该链接；105 stars（2026-09-10 核验） |
+| **LitePPO** `2508.08221` | **alibaba/ROLL** | Apache-2.0 | 论文正文给出 `https://github.com/alibaba/ROLL`；算法文档 `docs_roll/docs/User Guides/Algorithms/LitePPO.md`（2026-09-10 核验存在）；**具体实现文件本轮未定位** |
+| **GTPO**（Simoni）`2508.03772` | `winstonsmith1897/GTPO` | **无许可证声明** | 论文正文脚注给出；42 stars（2026-09-10 核验） |
+| **P-GRPO／ReCode** `2508.05170` | `ZJU-CTAG/ReCode` | **无许可证声明** | 论文正文脚注给出；0 stars（2026-09-10 核验） |
+| **SRPO** `2504.14286` | 模型权重 `huggingface.co/Kwaipilot/SRPO-Qwen-32B` | 未核 | 论文正文给出；**训练代码未见提供** |
+| 通用基座（PPO／RLOO／DPO／GRPO） | `huggingface/trl` | Apache-2.0 | GFPO 论文自述以 TRL 为训练框架；**TRL 自身的算法清单本轮未逐项核验** |
+
+### 未获公开官方实现（登记，不猜）
+
+以下条目的**判定依据**统一为：对论文 PDF 做逐页 `pypdf` 文本抽取后，检索 `github.com`／`huggingface.co`／`hf.co` 链接（2026-09-10）。
+
+| 家族成员 | 结论 | 备注 |
+|---|---|---|
+| **VAPO** `2504.05118` | **无公开官方实现**（论文无代码或权重链接） | 逐页检索零命中 |
+| **GFPO** `2508.09726` | **无公开官方实现**（论文仅引用 TRL 为训练框架与 AIME 数据集链接） | 逐页检索仅命中 TRL 与 HuggingFace datasets |
+| **SAPO** `2511.20347` | **论文未提供官方仓库**；可用实现见 ms-swift（上表） | 逐页检索零命中 |
+| **GTPO／GRPO-S**（Tan）`2508.04349` | **无公开官方实现** | 逐页检索仅命中一篇 HuggingFace 博客（非本方法实现） |
+| **PPO** `1707.06347` | 原论文（2017）无代码链接；现代实现见 OpenRLHF／verl／TRL | — |
+| **RLOO** `2402.14740` | 论文无独立仓库；实现见 OpenRLHF `rloo` 与 TRL | — |
+| **DPO** `2305.18290` | 论文无代码链接；实现见 OpenRLHF `train_dpo.py` 与 TRL | 逐页检索仅命中无关链接 |
+
+**许可证风险提示（强制）**：`callsys/GMPO`、`winstonsmith1897/GTPO`、`ZJU-CTAG/ReCode` 三个仓库**未声明许可证**。按本仓库安全与合规边界，**不得直接把其代码复制进本课题代码库**；如需复用，只能参考其**方法描述**并自行实现，或先与作者确认许可。
+
 ## 引用纪律（本轮盘点后新增）
 
 1. **引用「GRPO 不稳、有偏」必须指明修正线**：裁剪区间（DAPO）、归一化（Dr. GRPO）、比率粒度（GSPO）、聚合算子（GMPO）、裁剪算子（SAPO）五条互不重叠。
