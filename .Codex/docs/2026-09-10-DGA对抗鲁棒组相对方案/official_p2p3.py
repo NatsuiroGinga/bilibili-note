@@ -165,32 +165,40 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            tok = official.encode_subword(batch_d, tokenizer).to(DEVICE)
-            ch = official.encode_char(batch_d).to(DEVICE)
-            with autocast_ctx():
-                tf, cf = diag.branch_features(model, tok, ch)
-                logits2 = model.classifier_head(torch.cat([tf, cf], dim=1))
-            logits2 = logits2.float()
-            p_ = torch.softmax(logits2, dim=1)
-            if arm == "C":
-                # 组相对加权：同一恶意样本的 4 变体一组，组内"当前模型判良性(骗过)"为优势，
-                # 正优势变体权重 2.0、未骗过变体 0.5、干净样本 1.0（组相对优势的任务化，
-                # 文献定位：无先例的任务化设定，对照 Drichel 均匀混合）
-                w = torch.ones(len(batch_y), device=DEVICE)
-                fooled = (p_[:, 1] < 0.5) & (batch_y == 1)
-                w[fooled] = 2.0
-                w[(batch_y == 1) & (p_[:, 1] >= 0.5)] = 0.5
-                loss = (torch.nn.functional.cross_entropy(
-                    logits2, torch.from_numpy(batch_y).long().to(DEVICE), reduction="none") * w).mean()
-            else:
-                loss = torch.nn.functional.cross_entropy(
-                    logits2, torch.from_numpy(batch_y).long().to(DEVICE))
+            # MPS 带梯度反向 batch 上限 128：B/C 臂拼接变体后超限（192/320），
+            # 用 128 子批梯度累积等效实现同一拼接大 batch 的（加权）平均损失，不改优化语义
+            y_t = torch.from_numpy(batch_y).long().to(DEVICE)
             opt.zero_grad(set_to_none=True)
-            loss.backward()
+            loss_log = 0.0
+            n_tot = len(batch_d)
+            for s in range(0, n_tot, BATCH):
+                sub_d = batch_d[s:s + BATCH]
+                sub_y = y_t[s:s + BATCH]
+                tok = official.encode_subword(sub_d, tokenizer).to(DEVICE)
+                ch = official.encode_char(sub_d).to(DEVICE)
+                with autocast_ctx():
+                    tf, cf = diag.branch_features(model, tok, ch)
+                    logits2 = model.classifier_head(torch.cat([tf, cf], dim=1))
+                logits2 = logits2.float()
+                p_ = torch.softmax(logits2, dim=1)
+                ce = torch.nn.functional.cross_entropy(logits2, sub_y, reduction="none")
+                if arm == "C":
+                    # 组相对加权：同一恶意样本的 4 变体一组，组内"当前模型判良性(骗过)"为优势，
+                    # 正优势变体权重 2.0、未骗过变体 0.5、干净样本 1.0（组相对优势的任务化，
+                    # 文献定位：无先例的任务化设定，对照 Drichel 均匀混合）
+                    fooled = (p_[:, 1] < 0.5) & (sub_y == 1)
+                    w = torch.ones(len(sub_y), device=DEVICE)
+                    w[fooled] = 2.0
+                    w[(sub_y == 1) & (p_[:, 1] >= 0.5)] = 0.5
+                    loss_s = (ce * w).sum() / n_tot
+                else:
+                    loss_s = ce.sum() / n_tot
+                loss_s.backward()
+                loss_log += loss_s.item()
             opt.step()
-            if bi % 50 == 0:
+            if bi % 20 == 0:
                 eta = (time.time() - t0) / (bi + 1) * (nb - bi - 1)
-                print(f"[{arm} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss.item():.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
+                print(f"[{arm} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss_log:.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
         # 逐 epoch 干净 FPR 曲线（文献代理 Q1 裁决：识别"验证损失上升段"，防瞬态误判）
         model.eval()
         fpr_now = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)["FPR"]
@@ -202,7 +210,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     return {"clean": clean, "adv": adv, "n_params": n_params, "fpr_curve": fpr_curve, "_model": model}
 
 
-def main(dry: int = 0) -> None:
+def main(dry: int = 0, arms_arg: str | None = None) -> None:
     torch.manual_seed(SEED); np.random.seed(SEED); random.seed(SEED)
     tokenizer = official.PreTrainedTokenizerFast(
         tokenizer_file=str(REF / "artifacts/tokenizer/tokenizer-0-30522-both.json")
@@ -239,7 +247,7 @@ def main(dry: int = 0) -> None:
         print(f"[均值] 缓存缺失，现场重算：{len(_dom)} 域", file=sys.stderr, flush=True)
         del model0, _tok, _char
 
-    arms = ("A", "B", "C") if not dry else ("A",)
+    arms = tuple(arms_arg.split(",")) if arms_arg else (("A", "B", "C") if not dry else ("A",))
     epochs = 1 if dry else EPOCHS
     results: dict = {}
     adv_panels = {"k2": eval_adv_k2, "krand": eval_adv_krand}
@@ -273,5 +281,6 @@ def main(dry: int = 0) -> None:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", type=int, default=0)
+    ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,B,C（默认全量三臂/干跑 A）")
     a = ap.parse_args()
-    main(dry=a.dry_run)
+    main(dry=a.dry_run, arms_arg=a.arms)
