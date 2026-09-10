@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import sys
 import time
@@ -27,7 +28,11 @@ import numpy as np
 import pyarrow.parquet as pq
 import torch
 
-ROOT = Path("/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe")
+# 环境变量 LLM_PROBE_ROOT 覆盖项目根（服务器设为 /root/autodl-tmp/thesis/experiments/llm_probe）
+ROOT = Path(os.environ.get(
+    "LLM_PROBE_ROOT",
+    "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe",
+))
 sys.path.insert(0, str(ROOT / "tools"))
 import ch3_drift_official_branch_conflict_diagnostic as diag
 import ch3_drift_official_checkpoint_t17_eval as official
@@ -35,9 +40,11 @@ import ch3_drift_official_checkpoint_t17_eval as official
 REF = ROOT / "runs/source-snapshots/2026-DSN-DRIFT-e20d1fdf56c623993966c6786f61c01f91dec6d2"
 CKPT = ROOT / "runs/models/drift-official-dsn2026/finetuning.pt"
 DATA = ROOT / "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521"
-OUT = Path(__file__).resolve().parent
-DEVICE = torch.device("mps")
-BATCH = 128
+OUT = Path(os.environ.get("P2P3_OUT", Path(__file__).resolve().parent))
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps")
+BATCH = 128            # 训练批量：冻结规格，不改
+EVAL_BATCH = 1024 if DEVICE.type == "cuda" else 128   # 评价批量只影响吞吐不改指标
+USE_BF16 = DEVICE.type == "cuda"                      # 对齐官方 BF16 训练
 LR_HEAD = 1e-4
 LR_BACKBONE = 1e-6
 EPOCHS = 3
@@ -71,13 +78,14 @@ def metrics(model, tokenizer, domains: list[str], labels01: np.ndarray, tok_mean
     model.eval()
     scores = []
     with torch.inference_mode():
-        for off in range(0, len(domains), BATCH):
-            chunk = domains[off:off + BATCH]
+        for off in range(0, len(domains), EVAL_BATCH):
+            chunk = domains[off:off + EVAL_BATCH]
             tok = official.encode_subword(chunk, tokenizer).to(DEVICE)
             ch = official.encode_char(chunk).to(DEVICE)
-            tf, cf = diag.branch_features(model, tok, ch)
+            with torch.autocast(device_type=DEVICE.type, dtype=torch.bfloat16, enabled=USE_BF16):
+                tf, cf = diag.branch_features(model, tok, ch)
             s = diag.probabilities(model, tf.cpu().numpy(), cf.cpu().numpy(),
-                                   tok_mean, char_mean, DEVICE, BATCH)
+                                   tok_mean, char_mean, DEVICE, EVAL_BATCH)
             scores.append(s["static_fusion"])
     s = np.concatenate(scores)
     from sklearn.metrics import average_precision_score
@@ -96,10 +104,13 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
               epochs: int) -> dict:
     model = official.load_model(REF, CKPT, DEVICE)
     n_params = sum(p.numel() for p in model.parameters())
+    # 分层 lr：官方模型参数名无 "backbone"，按分类头匹配（classifier_head=1e-4，骨干=1e-6）
     opt = torch.optim.Adam([
-        {"params": [p_ for n_, p_ in model.named_parameters() if "backbone" in n_], "lr": LR_BACKBONE},
-        {"params": [p_ for n_, p_ in model.named_parameters() if "backbone" not in n_], "lr": LR_HEAD},
+        {"params": [p_ for n_, p_ in model.named_parameters() if "classifier_head" not in n_], "lr": LR_BACKBONE},
+        {"params": [p_ for n_, p_ in model.named_parameters() if "classifier_head" in n_], "lr": LR_HEAD},
     ])
+    n_head = sum(p_.numel() for n_, p_ in model.named_parameters() if "classifier_head" in n_)
+    print(f"[{arm}] 分层 lr：骨干 {sum(p_.numel() for p_ in model.parameters()) - n_head} 参数 @1e-6，分类头 {n_head} 参数 @1e-4", file=sys.stderr, flush=True)
     print(f"[{arm}] 官方模型 {n_params} 参数，训练 {len(train_d)} 样本 × {epochs} epochs", file=sys.stderr, flush=True)
     fpr_curve: list = []
     ec, ey = eval_clean
@@ -125,14 +136,18 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                             adv_cache[i] = [base] if arm == "B" else [perturb2(base, rng) for _ in range(4)]
                         if arm == "B":
                             adv_batch.append(adv_cache[i][0])
+                        else:
+                            adv_batch.extend(adv_cache[i])  # C 臂：K=4 变体全部入批，组相对加权才作用在变体上
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
             tok = official.encode_subword(batch_d, tokenizer).to(DEVICE)
             ch = official.encode_char(batch_d).to(DEVICE)
-            tf, cf = diag.branch_features(model, tok, ch)
-            logits2 = model.classifier_head(torch.cat([tf, cf], dim=1))
-            p_ = torch.softmax(logits2.float(), dim=1)
+            with torch.autocast(device_type=DEVICE.type, dtype=torch.bfloat16, enabled=USE_BF16):
+                tf, cf = diag.branch_features(model, tok, ch)
+                logits2 = model.classifier_head(torch.cat([tf, cf], dim=1))
+            logits2 = logits2.float()
+            p_ = torch.softmax(logits2, dim=1)
             if arm == "C":
                 # 组相对加权：同一恶意样本的 4 变体一组，组内"当前模型判良性(骗过)"为优势，
                 # 正优势变体权重 2.0、未骗过变体 0.5、干净样本 1.0（组相对优势的任务化，
@@ -181,11 +196,22 @@ def main(dry: int = 0) -> None:
     eval_adv_krand = (ea_krand, np.ones(len(ea_krand), dtype=bool))
     print(f"[官方 P2/P3] 训练 {len(tr_d)}、评价干净 {len(ec)}、对抗 k2 {len(ea_k2)}/krand {len(ea_krand)}", file=sys.stderr, flush=True)
 
-    # 中和均值（T17 val 全量缓存，与正锚点核查同源）
+    # 中和均值：优先 T17 val 全量缓存（本机，与正锚点核查同源）；缺缓存时现场重算
     cache = Path("/tmp/drift-anchor-t17-features-300000.npz")
-    z = np.load(cache)
-    tok_mean = z["tok"].mean(axis=0, dtype=np.float64).astype(np.float32)
-    char_mean = z["char"].mean(axis=0, dtype=np.float64).astype(np.float32)
+    if cache.exists():
+        z = np.load(cache)
+        tok_mean = z["tok"].mean(axis=0, dtype=np.float64).astype(np.float32)
+        char_mean = z["char"].mean(axis=0, dtype=np.float64).astype(np.float32)
+    else:
+        model0 = official.load_model(REF, CKPT, DEVICE)
+        _tb = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_benign_val.parquet").to_pylist()
+        _td = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_dga_val.parquet").to_pylist()
+        _dom = [str(r["domain"]) for r in _tb] + [str(r["domain"]) for r in _td]
+        _tok, _char = diag.extract_features(model0, tokenizer, _dom, DEVICE, EVAL_BATCH)
+        tok_mean = _tok.mean(axis=0, dtype=np.float64).astype(np.float32)
+        char_mean = _char.mean(axis=0, dtype=np.float64).astype(np.float32)
+        print(f"[均值] 缓存缺失，现场重算：{len(_dom)} 域", file=sys.stderr, flush=True)
+        del model0, _tok, _char
 
     arms = ("A", "B", "C") if not dry else ("A",)
     epochs = 1 if dry else EPOCHS
