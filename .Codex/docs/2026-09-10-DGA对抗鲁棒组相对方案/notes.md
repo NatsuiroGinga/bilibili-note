@@ -394,6 +394,36 @@ Table 2 `Reward-Var.` 实测值：RLOO(k=4) `3.1`／RAFT(k=4) `3.2`／RLOO(k=2) 
 1. **凭据暴露（已由本代理独立复核，确证）**：`Zotero.txt`（worktree 根，30 字节）内容为一条 Zotero API key，且**被 Git 跟踪**（`git ls-files` 确证）、**未匹配任何 `.gitignore` 规则**、**历史中有 1 次提交**。检索代理在排查 Zotero 配置时用 `cat` 读取并在会话中回显了它。**处置建议（须用户授权，本代理未执行未授权操作）**：① 立即轮换该 key；② 将文件移出 Git 跟踪并加入忽略；③ 若需清历史，按根规则用 BFG／filter-branch 处理。**本文件与本次汇报均不回显该值。**
 2. **检索索引状态**：`status --json` 报告 **`stale=true`**（source_added 32、source_changed 3）；本轮执行期间另有一会话的 `literature_search build` 进程持锁重建索引，检索代理未干预。**后续使用本地混合检索前须先确认索引已重建且 `stale=false`。**
 
+#### H.2.8 三篇误报注入文献全文入库（2026-09-11）
+
+> 承接 §I.2 的裁决（摘要级不足以支撑正文论断，须过 `raw/` + `wiki/` 全文门）。**三篇终态均为「本地全文」。**
+
+| # | 原件（`raw/papers/attack-detection/`） | SHA-256（前 16） | 页数 | wiki 全文笔记 | 证据等级终态 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `2008-Barreno-Security-of-Machine-Learning.pdf` | `f65321cc2714ada9` | 26 | `2008-Barreno-机器学习安全与误报可用性攻击.md` | **本地全文**（MinerU + pypdf 逐页复核） |
+| 2 | `2021-Drahuntsov-Disguising-Attack-Vectors-SOC-SIEM.pdf` | `79d510a9a9990a8b` | 9 | `2021-Drahuntsov-SOC与SIEM误报洪水攻击向量.md` | **本地全文** |
+| 3 | `2026-Barbierato-Crying-Wolf-Alarm-Fatigue-Attacks.pdf` | `22dac4e0c8663c4e` | 25 | `2026-Barbierato-告警疲劳攻击与告警投毒.md` | **本地全文** |
+
+**入库时解决/发现的三项事实问题（登记，防复发）**：
+
+1. **Barreno 的版本问题（最重要）**：任务线索称「2006 ASIACCS 有 CMU 公开版」——**该 CMU 版不存在**（检索确认：只有 ACM 版与 Berkeley TRUST 海报）。按 `raw/AGENTS.md` 不使用不可信镜像的纪律，**未采用第三方课程页副本**，改用**作者所在机构（UC Berkeley EECS）的公开技术报告 UCB/EECS-2008-43**。**TR 正文 p.9 自述其分类学为「a preliminary version ... appears in previous work」，参考文献 p.23 指向 ASIACCS'06 ⇒ 分类学的优先权在 2006 会议版**。**后果：引用 2006 版的具体页码前必须取得该版全文；笔记内的页码锚点只对 2008 TR 有效。**
+2. **Barbierato 是单一作者**，不是 "Barbierato et al."；任务线索的写法已作废。MDPI 站点 403 为反爬，改用**出版方 CDN 直链**取得全文（CC BY）。
+3. **Drahuntsov 的页码**：出版方 OJS 元数据标 `6-16`，而**实际页眉为印刷 pp.6–14**（PDF 页 `N` ＝ 印刷页 `N+5`，逐页核对）。**引用以页眉为准。**
+
+**三篇的核心可引锚点（供 H 臂威胁模型一节取件）**：
+- Barreno：**p.8**「Availability attacks cause denial of service, usually via false positives」；**p.7**「false positives tend to violate the availability goal because the learner itself denies benign instances」；**p.19** SpamBayes 上 `10% FP ⇒ 不可用`（唯一定量锚点）；**p.14**「针对学习组件的探索式可用性攻击并不常见」。
+- Drahuntsov：**印刷 p.6** 摘要逐字「...distract the analytics stuff and perform its actions **under the cover of noise**」；**印刷 p.10**「**there were no actual incident but the alert still raised**」＋「consume too much SOC specialists' time ... adversary has more chances to stay undetected」；**印刷 p.11–12**「狼来了」使规则被关闭。
+- Barbierato：**p.1** alarm poisoning 定义（含 `deliberate injection`）；**p.4** 与 false data injection 划界（`targets the human response layer`）；**p.13** 三策略构成向量与 `Λ_fake = 1.0 h⁻¹` 固定；**p.15** 排序在 24 个参数设定中 22 个保持。
+
+**三条必须随引用转述的自限**：① Barreno 未涉及分析师人力与告警队列（与 Drahuntsov/Barbierato 层级不同，**不得合并引用**）；② Drahuntsov 为**概念性论文，无实验无数据，作者两次声明无在野证据**；③ Barbierato 为**仿真研究**，作者自述证据是**描述性排序**（p.22），联合不确定性下严格排序仅 21% 保持（p.16）。
+
+**同步更新**：`wiki/papers/attack-detection/INDEX.md` 新增「误报注入与告警疲劳攻击威胁模型（2026-09-11 入库）」节。
+
+**⚠️ Zotero 导入未完成（阻塞登记）**：本轮 **Zotero 应用未运行**（无进程、本地 API `127.0.0.1:23119` 连接被拒），MCP 全部工具返回 `[Errno 61] Connection refused`。已按裁决改用 `zotero.sqlite` **只读**直查完成查重：**库内 952 条中三篇均未收录（零命中），确认需要导入**。**未对 `zotero.sqlite` 做任何写入**（避免在应用未运行时损坏库）。**待办**：Zotero 启动后按 DOI/URL 导入三条并按 `raw/AGENTS.md` 关联本地全文——
+- Barreno：`https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-43.pdf`（会议版 DOI `10.1145/1128817.1128824`）
+- Drahuntsov：DOI `10.28925/2663-4023.2021.14.614`
+- Barbierato：DOI `10.3390/info17050434`
+
 ## I 主代理验收问答与结论（2026-09-11）
 
 > 本节回应主代理对 `beffd50` 的验收反馈（三采纳、一待定）与五个疑问。**只作文献层与设计层回答，不构成任何实验授权或判据冻结。**

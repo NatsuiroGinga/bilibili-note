@@ -106,6 +106,14 @@ related:
 - **[[2022-Barbero-Transcendent逐类保形拒识阈值|TRANSCENDENT：逐类保形拒识阈值（IEEE S&P 2022）]]** — 安全域**逐类（分面）阈值的最直接先例**：基于保形评估理论做带拒识的恶意软件分类，提出 ICE（归纳式）与 CCE（交叉式）两个低开销评估器替代原 TCE。但**逐类阈值由约束优化搜索得到**——目标函数取保留元素 F1，约束取逐类拒识数，原始工作用穷举网格（`|V|^{|Y|}` 次试验），本文改随机搜索（物理第 14 页）；原文另提及可「视觉挑分位」（物理第 8 页）。**全程无 `δ`、无有限样本上界，是分面阈值而非分面证书**，恰属 Tong 2018 所反对的经验选阈。
 - **[[../methodology/soc-alert-operations/2026-CALIBURN-区间依赖保形风险控制的告警预算|CALIBURN：告警预算接保形风险控制（预印本）]]** — 与上一篇互补的另一半：有证书机器但**只到边际**，无分面（原件在本目录）。
 
+## 误报注入与告警疲劳攻击威胁模型（2026-09-11 入库，供第三章 H 臂威胁建模引用）
+
+为 H 臂「双侧组相对对抗训练」的威胁模型表述入库。**三篇分工不同、层级不同，引用时不得合并**：分类学（Barreno）／面向 SOC 的攻击向量（Drahuntsov）／社会—技术动力学与命名（Barbierato）。**三篇全部停在威胁建模、攻击向量或影响仿真，没有一篇把该威胁模型反用为防御侧的训练信号**——这是本课题的机制差量所在。
+
+- **[[2008-Barreno-机器学习安全与误报可用性攻击|Barreno 等：The Security of Machine Learning（UCB/EECS-2008-43）]]** — **上位分类学来源**。三轴（influence：causative/exploratory × violation：integrity/availability × specificity：targeted/indiscriminate），**Availability attack 的正式表述为「造成拒绝服务，通常通过诱发误报」**（p.8），机制是「学习器自身执行拒绝」（p.7）。量化锚点：SpamBayes 上 **10% 误报率即使垃圾邮件过滤器不可用**（p.19）；**p.14 明言针对学习组件的探索式可用性攻击并不常见**。⚠️ **入库版本为 2008 技术报告（扩展版），2006 ASIACCS 会议版（分类学初步版、优先权所在）仍在 ACM 付费墙后，本轮未取得**——笔记的页码锚点只对 TR 版有效。
+- **[[2021-Drahuntsov-SOC与SIEM误报洪水攻击向量|Drahuntsov & Rabchun 2021：SIEM 伪装攻击向量]]** — **与「误报注入掩护真实攻击」最贴合的逐字文献**。把该模式命名为 **disguise attack**，给出三向量：① 伪造日志撑爆许可 EPS 配额（印刷 p.8–9）；② **逆向关联规则凑出"没有真实事件却触发告警"的假事件，消耗分析师时间，使真实攻击更可能不被发现**（印刷 p.10–11）；③ **「狼来了」——反复误报诱使防御方关闭检测规则**（印刷 p.11–12）。⚠️ **概念性论文，无实验无数据；作者两次明确声明无在野证据**（印刷 p.6、p.12）。
+- **[[2026-Barbierato-告警疲劳攻击与告警投毒|Barbierato 2026：alarm poisoning（Information 17(5):434）]]** — **命名与量化最正式的一篇**（同行评议、CC BY）。定义为*「the deliberate injection of false or misleading alerts…」*（p.1），并**明确与 false data injection 划界：针对人的响应层**（p.4）。CTMC + Gillespie 仿真，3 策略 × 50 次 = 150 次实现、168 h；**在假告警总强度固定（`Λ_fake = 1.0 h⁻¹`）下，高严重度构成（Fire–Spam）比低骚扰构成（Low–Severity Spam）崩溃更快**（p.13、p.15）；量化指标为 time-to-collapse（低信任比例 > `0.40`）、TRAM LBT、告警压力 `Z(t)`。⚠️ **仍是仿真研究不是真实测量**；作者自述证据为**描述性排序**（p.22），联合不确定性下严格排序仅 21% 保持（p.16）。**题录更正：本文为单一作者，不是 "Barbierato et al."。**
+
 ## FT-Transformer 训练协议核查（2026-09-03 新增）
 
 - **[[2026-Li-FT-Transformer物联网攻击检测|Li 2026：FT-Transformer 物联网攻击检测与跨数据集泛化]]** — 用 FT-Transformer 做 IoT 攻击检测；训练策略明确采用"AdamW + 学习率衰减 + 早停"组合并报告训练过程稳定（物理页 7、13），是本次核查（见 `thesis/methods/FT-Transformer训练协议核查.md`）六篇同谱系工作中**唯一**明确使用学习率衰减的一篇，但未披露衰减机制细节、无消融对照，不能作为因果证据；结构与学习率也偏离 Gorishniy 2021 默认配方（`d_token=64`、`lr=1e-3`）。笔记内附与另一篇同名撞车论文（容错计算领域"Fault-Tolerant Transformer"）的排除说明。
