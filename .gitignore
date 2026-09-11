@@ -28,6 +28,9 @@ copilot/
 .Codex/**/.ninja_log
 # 第三方下载的二进制密钥环（NVIDIA CUDA APT 公开公钥），非本仓库自有资产
 .Codex/**/*.gpg
+# 凭据文件一律不入库（Zotero API key 曾被误提交，2026-09-11 移出跟踪；key 须轮换）
+Zotero.txt
+**/Zotero.txt
 # 大体积原始下载/续传日志（2.0 MB + 324 KB），结论已在同目录 Markdown 留存
 .Codex/docs/tqh-c2-*.log
 # 兜底：临时物
