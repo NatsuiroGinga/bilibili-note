@@ -161,3 +161,58 @@ Google Scholar 通过本机 `scholar` 命令的参数列表调用，程序化查
 - 旧模板默认使用兼容报告模式：缺失的新字段和分区只产生警告，YAML 无法解析等基础错误仍会失败。
 - lint 只读文件并输出 `auto_modified=false`，不会自动修复或批量重写旧笔记。
 - 可执行示例与入库清单位于 `.agents/skills/indexed-paper-reading/references/`。
+
+## 已知故障与修复记录
+
+### 2026-09-11 向量通道全链路不可用（`EmbeddingBackend` 缺少 `device` 形参）
+
+**症状**：`build`（不带 `--lexical-only`）与 `query --mode vector|hybrid` 一律报错，只有 `build --lexical-only` 与 `query --mode lexical` 可用；`status --json` 长期显示 `vector_count: 0`、`vector_dimension: 0`、`vector_device: null`，索引停留在纯词法版本，因此容易被误读为「向量模型下载失败」。
+
+**根因**：`device` 参数的接线不完整。`search.py`、`build.py`、`evaluate.py` 的四个 `EmbeddingBackend(...)` 调用点都已按关键字传入 `device=device`，但 `embeddings.py` 的 `EmbeddingBackend.__init__` 没有同步接收该形参，四处调用全部抛：
+
+```text
+TypeError: EmbeddingBackend.__init__() got an unexpected keyword argument 'device'
+```
+
+**与模型下载、网络和 HF 端点无关。** 本次实测：`https://huggingface.co` 直连返回 `http=200`（耗时 1.2 秒，不需要镜像端点）；固定修订 `614241f6...` 的完整快照已存在于 `.cache/literature-search/model-cache/`；`local_files_only=False`、`HF_HUB_OFFLINE=1`、本地快照路径三种加载方式分别耗时 5.8／1.4／1.8 秒，全部成功并在 `mps:0` 上完成编码。
+
+**诊断命令**（先分清「索引无向量」与「模型不可用」）：
+
+```bash
+uv run --project scripts/literature_search --locked \
+  python -m scripts.literature_search status --json
+git show HEAD:scripts/literature_search/embeddings.py | rg -n "def __init__" -A 6
+rg -n "EmbeddingBackend\(" scripts/literature_search/*.py
+```
+
+`status --json` 的 `vector_count: 0` 只说明索引是纯词法构建，**不等于**模型不可用。这类报错不要先改 `HF_ENDPOINT` 镜像或清空模型缓存——本例两者都不是原因，改动它们只会掩盖 TypeError 这一真实根因。
+
+**修复**：`embeddings.py` 接收 `device` 形参（`auto`／`cpu`／`mps`）；`auto` 在 MPS 可用时优先 MPS，模型加载或编码抛 `RuntimeError` 时自动回退 CPU，并暴露 `device` 属性与 `fallback_reason` 供 `build`／`status` 记录。其余调用点无需改动。
+
+**修复后验证收据**（2026-09-11 实测）：
+
+| 项目 | 命令 | 实测结果 |
+|---|---|---|
+| 全量重建 | `build` | `vector_count: 156708`、`vector_dimension: 384`、`vector_device: "mps:0"`、`vector_device_fallback: null`、耗时 `1483.824` 秒、索引 `943484928` 字节 |
+| 状态 | `status --json` | `exists: true`、`vector_count: 156708`、`vector_dimension: 384`、`vector_device: "mps:0"` |
+| 混合查询 | `query "正常性漂移异常检测" --scope paper --mode hybrid` | 返回 `10` 条；前三条的词法／向量排名分别为 `1/1`、`2/2`、`3/15` |
+| 增量复用 | 改动一份笔记后重新 `build` | `reused: 156760`、`reembedded: 1`，耗时 `33.0` 秒 |
+
+前三条命中（`vector_score` 为归一化向量内积，查询侧 `query:` 前缀合同生效，前缀后带一个空格）：
+
+| 排名 | `note_path` | 词法排名 | 向量排名 | `vector_score` |
+|---|---|---|---|---|
+| 1 | `wiki/papers/attack-detection/2023-Han-OWAD正常性漂移适应.md` | 1 | 1 | 0.915877 |
+| 2 | `wiki/papers/attack-detection/2026-Kim-CANDI精选测试时适应.md` | 2 | 2 | 0.901550 |
+| 3 | `wiki/papers/attack-detection/2026-Huang-RTTAD风险感知测试时适应.md` | 3 | 15 | 0.889848 |
+
+本文件位于 `scripts/**/*.md`，属于索引语料：编辑后 `status` 会立即报 `stale=true`，需重新 `build`。该重建为增量，只重嵌入变化的分块，实测数十秒完成。
+
+**构建期间没有进度输出属正常现象**：`_encode` 的 `show_progress_bar` 条件为 `len(values) > batch_size`，而 `_write_vectors` 每次只传入一个大小为 `batch_size` 的批次，条件恒为假。判断构建是否仍在推进，用文件大小而不是日志：
+
+```bash
+ls -la .cache/literature-search/index.sqlite3.tmp   # 每隔数十秒应持续增长
+lsof -p <build_pid> | rg "com\.apple\.metal"       # 出现 Metal 库文件说明 MPS 后端已初始化
+```
+
+索引只有在全部向量写完后才原子替换正式文件；进程被杀会留下 `index.sqlite3.tmp`，下次 `build` 会自动删除并重来，无需手工清理。
