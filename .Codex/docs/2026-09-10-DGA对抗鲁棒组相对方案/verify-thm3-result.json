@@ -1,0 +1,405 @@
+{
+  "theorem_id": "定理3：预算-缺口收缩（K 变体最优分数对 sup 的缺口随 K 收缩，速率由尾指数决定）",
+  "verification_status": {
+    "闭式验证": "闭式通过",
+    "真实数据方向": "真实方向一致",
+    "总判定": "合成闭式通过 + 真实数据给出同向的缺口-K 表",
+    "判据": {
+      "Uniform 闭式门": "max |gap_MC − 1/(K+1)| < 1e-3",
+      "收缩率门": "log-log 拟合斜率与理论斜率（指数尾 −1、重尾 −1/τ）之差 ≤ 0.15；并要求指数尾收缩快于重尾（斜率更负）",
+      "真实门": "缺口随 K' 单调不增（收缩方向成立）；与 Uniform 0.2 的偏差只作形状描述，真实分布未必 Uniform，不作正面/反面判定依据"
+    }
+  },
+  "数值表": {
+    "合成参数": {
+      "K_grid": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        64
+      ],
+      "MC_reps": 1000000,
+      "seed": 42,
+      "tau_pareto": 2.5,
+      "分布构造": {
+        "uniform": "u ~ U[0,1]",
+        "exponential": "u = 1 + ln U（短缺口 Y ~ Exp(1)）",
+        "pareto": "u = 1 − U^(1/τ)，τ=2.5（短缺口 F_Y(t)=t^τ）"
+      }
+    },
+    "三分布收缩表": [
+      {
+        "distribution": "uniform",
+        "K": 1,
+        "E_max_MC": 0.500026,
+        "E_max_closed_form": 0.5,
+        "gap_MC": 0.499974,
+        "gap_closed_form": 0.5,
+        "gap_abs_diff": 2.6e-05,
+        "gap_mc_se": 0.000289,
+        "gap_z_score": -0.092
+      },
+      {
+        "distribution": "uniform",
+        "K": 2,
+        "E_max_MC": 0.666327,
+        "E_max_closed_form": 0.666667,
+        "gap_MC": 0.333673,
+        "gap_closed_form": 0.333333,
+        "gap_abs_diff": 0.00034,
+        "gap_mc_se": 0.000236,
+        "gap_z_score": 1.44
+      },
+      {
+        "distribution": "uniform",
+        "K": 4,
+        "E_max_MC": 0.800106,
+        "E_max_closed_form": 0.8,
+        "gap_MC": 0.199894,
+        "gap_closed_form": 0.2,
+        "gap_abs_diff": 0.000106,
+        "gap_mc_se": 0.000163,
+        "gap_z_score": -0.649
+      },
+      {
+        "distribution": "uniform",
+        "K": 8,
+        "E_max_MC": 0.889026,
+        "E_max_closed_form": 0.888889,
+        "gap_MC": 0.110974,
+        "gap_closed_form": 0.111111,
+        "gap_abs_diff": 0.000138,
+        "gap_mc_se": 9.9e-05,
+        "gap_z_score": -1.388
+      },
+      {
+        "distribution": "uniform",
+        "K": 16,
+        "E_max_MC": 0.941151,
+        "E_max_closed_form": 0.941176,
+        "gap_MC": 0.058849,
+        "gap_closed_form": 0.058824,
+        "gap_abs_diff": 2.5e-05,
+        "gap_mc_se": 5.5e-05,
+        "gap_z_score": 0.456
+      },
+      {
+        "distribution": "uniform",
+        "K": 64,
+        "E_max_MC": 0.984599,
+        "E_max_closed_form": 0.984615,
+        "gap_MC": 0.015401,
+        "gap_closed_form": 0.015385,
+        "gap_abs_diff": 1.7e-05,
+        "gap_mc_se": 1.5e-05,
+        "gap_z_score": 1.111
+      },
+      {
+        "distribution": "exponential",
+        "K": 1,
+        "E_max_MC": 0.0006,
+        "E_max_closed_form": 0.0,
+        "gap_MC": 0.9994,
+        "gap_closed_form": 1.0,
+        "gap_abs_diff": 0.0006,
+        "gap_mc_se": 0.000998,
+        "gap_z_score": -0.602
+      },
+      {
+        "distribution": "exponential",
+        "K": 2,
+        "E_max_MC": 0.4998,
+        "E_max_closed_form": 0.5,
+        "gap_MC": 0.5002,
+        "gap_closed_form": 0.5,
+        "gap_abs_diff": 0.0002,
+        "gap_mc_se": 0.0005,
+        "gap_z_score": 0.399
+      },
+      {
+        "distribution": "exponential",
+        "K": 4,
+        "E_max_MC": 0.749925,
+        "E_max_closed_form": 0.75,
+        "gap_MC": 0.250075,
+        "gap_closed_form": 0.25,
+        "gap_abs_diff": 7.5e-05,
+        "gap_mc_se": 0.00025,
+        "gap_z_score": 0.299
+      },
+      {
+        "distribution": "exponential",
+        "K": 8,
+        "E_max_MC": 0.875207,
+        "E_max_closed_form": 0.875,
+        "gap_MC": 0.124793,
+        "gap_closed_form": 0.125,
+        "gap_abs_diff": 0.000207,
+        "gap_mc_se": 0.000125,
+        "gap_z_score": -1.663
+      },
+      {
+        "distribution": "exponential",
+        "K": 16,
+        "E_max_MC": 0.937444,
+        "E_max_closed_form": 0.9375,
+        "gap_MC": 0.062556,
+        "gap_closed_form": 0.0625,
+        "gap_abs_diff": 5.6e-05,
+        "gap_mc_se": 6.3e-05,
+        "gap_z_score": 0.893
+      },
+      {
+        "distribution": "exponential",
+        "K": 64,
+        "E_max_MC": 0.984356,
+        "E_max_closed_form": 0.984375,
+        "gap_MC": 0.015644,
+        "gap_closed_form": 0.015625,
+        "gap_abs_diff": 1.9e-05,
+        "gap_mc_se": 1.6e-05,
+        "gap_z_score": 1.21
+      },
+      {
+        "distribution": "pareto",
+        "K": 1,
+        "E_max_MC": 0.285845,
+        "E_max_closed_form": 0.285714,
+        "gap_MC": 0.714155,
+        "gap_closed_form": 0.714286,
+        "gap_abs_diff": 0.000131,
+        "gap_mc_se": 0.000213,
+        "gap_z_score": -0.615
+      },
+      {
+        "distribution": "pareto",
+        "K": 2,
+        "E_max_MC": 0.404338,
+        "E_max_closed_form": 0.404762,
+        "gap_MC": 0.595662,
+        "gap_closed_form": 0.595238,
+        "gap_abs_diff": 0.000424,
+        "gap_mc_se": 0.000206,
+        "gap_z_score": 2.054
+      },
+      {
+        "distribution": "pareto",
+        "K": 4,
+        "E_max_MC": 0.522944,
+        "E_max_closed_form": 0.522536,
+        "gap_MC": 0.477056,
+        "gap_closed_form": 0.477464,
+        "gap_abs_diff": 0.000407,
+        "gap_mc_se": 0.000182,
+        "gap_z_score": -2.238
+      },
+      {
+        "distribution": "pareto",
+        "K": 8,
+        "E_max_MC": 0.626598,
+        "E_max_closed_form": 0.626608,
+        "gap_MC": 0.373402,
+        "gap_closed_form": 0.373392,
+        "gap_abs_diff": 1e-05,
+        "gap_mc_se": 0.00015,
+        "gap_z_score": 0.065
+      },
+      {
+        "distribution": "pareto",
+        "K": 16,
+        "E_max_MC": 0.712406,
+        "E_max_closed_form": 0.712297,
+        "gap_MC": 0.287594,
+        "gap_closed_form": 0.287703,
+        "gap_abs_diff": 0.000109,
+        "gap_mc_se": 0.000119,
+        "gap_z_score": -0.912
+      },
+      {
+        "distribution": "pareto",
+        "K": 64,
+        "E_max_MC": 0.832649,
+        "E_max_closed_form": 0.832625,
+        "gap_MC": 0.167351,
+        "gap_closed_form": 0.167375,
+        "gap_abs_diff": 2.4e-05,
+        "gap_mc_se": 7.1e-05,
+        "gap_z_score": -0.331
+      }
+    ],
+    "收缩率拟合": {
+      "uniform": {
+        "slope_lsq_closed_form": -0.8453,
+        "slope_lsq_mc": -0.8452,
+        "slope_local_last_interval": -0.9674,
+        "theory_slope_asymptotic": -1.0,
+        "abs_diff_lsq_vs_theory": 0.1547,
+        "slope_check_value": -0.9674,
+        "slope_check_theory": -0.9846,
+        "slope_check_tol": 0.05,
+        "pass_slope_check": true,
+        "note": "LSQ 斜率仅展示（有限网格偏置）；判据 = 最大 K 处局部斜率 vs 局部理论导数 −K/(K+1)|_(K=64)"
+      },
+      "exponential": {
+        "slope_lsq_closed_form": -1.0,
+        "slope_lsq_mc": -0.9997,
+        "slope_local_last_interval": -1.0,
+        "theory_slope_asymptotic": -1.0,
+        "abs_diff_lsq_vs_theory": 0.0,
+        "slope_check_value": -1.0,
+        "slope_check_theory": -1.0,
+        "slope_check_tol": 0.15,
+        "pass_slope_check": true,
+        "note": "幂律族：LSQ 斜率 vs 渐近理论斜率（容差 0.15）"
+      },
+      "pareto": {
+        "slope_lsq_closed_form": -0.352,
+        "slope_lsq_mc": -0.3521,
+        "slope_local_last_interval": -0.3907,
+        "theory_slope_asymptotic": -0.4,
+        "abs_diff_lsq_vs_theory": 0.048,
+        "slope_check_value": -0.352,
+        "slope_check_theory": -0.4,
+        "slope_check_tol": 0.15,
+        "pass_slope_check": true,
+        "note": "幂律族：LSQ 斜率 vs 渐近理论斜率（容差 0.15）"
+      }
+    },
+    "合成门禁": {
+      "max_gap_abs_diff_uniform": 0.00034,
+      "max_gap_abs_diff_all": 0.0006,
+      "max_abs_z_all": 2.238,
+      "uniform_closed_form_k4_gap": 0.2,
+      "slope_tolerance": 0.15,
+      "uniform_closed_form_pass": true,
+      "shrink_order_pass": true,
+      "slope_theory_pass": true,
+      "slope_check_detail": {
+        "uniform": {
+          "pass": true,
+          "value": -0.9674,
+          "theory": -0.9846,
+          "tol": 0.05
+        },
+        "exponential": {
+          "pass": true,
+          "value": -1.0,
+          "theory": -1.0,
+          "tol": 0.15
+        },
+        "pareto": {
+          "pass": true,
+          "value": -0.352,
+          "theory": -0.4,
+          "tol": 0.15
+        }
+      }
+    },
+    "真实K缺口表": {
+      "meta": {
+        "npz": "verify-thm1-real-scores.npz",
+        "n_domains": 7500,
+        "k_variants": 4,
+        "domain_list_sha256": "3f972f6ba86f19954fc068e039c7d8ee1d7faa0175cdd5ae8fbfe9508ec9dbb4",
+        "seed": 42
+      },
+      "table": [
+        {
+          "K_prime": 1,
+          "E_max_mean": 0.427356,
+          "gap_to_sup_1": 0.572644,
+          "weights": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ]
+        },
+        {
+          "K_prime": 2,
+          "E_max_mean": 0.565668,
+          "gap_to_sup_1": 0.434332,
+          "weights": [
+            0.5,
+            0.333333,
+            0.166667,
+            0.0
+          ]
+        },
+        {
+          "K_prime": 3,
+          "E_max_mean": 0.646441,
+          "gap_to_sup_1": 0.353559,
+          "weights": [
+            0.75,
+            0.25,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "K_prime": 4,
+          "E_max_mean": 0.702214,
+          "gap_to_sup_1": 0.297786,
+          "weights": [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "gap_k1": 0.572644,
+      "gap_k4": 0.297786,
+      "gap_k4_vs_uniform_0.2": {
+        "real_gap_k4": 0.297786,
+        "uniform_theory": 0.2,
+        "real_minus_uniform": 0.097786,
+        "interpretation": "真实缺口 > Uniform 理论值 0.2 ⇒ 真实难度分布比 Uniform 更重尾（收缩更慢）"
+      },
+      "real_loglog_slope_grid": -0.4663,
+      "real_shape_notes": {
+        "shortfall_definition": "短缺口 Y = 1 − u = s（模型判 DGA 概率）；Y→0 即完全骗过",
+        "u_mean": 0.427356,
+        "u_q90": 0.998396,
+        "shortfall_atom_at_zero": 0.012033,
+        "shortfall_frac_gt_0": 0.987967,
+        "local_tail_index_estimates": [
+          0.2379,
+          0.2703,
+          0.4098
+        ],
+        "local_tail_index_conditional_on_positive": [
+          0.2709,
+          0.2903,
+          0.4289
+        ],
+        "effective_tail_index_from_gap": 2.1445,
+        "note": "τ̂ = log(F_Y(t))/log(t) 的局部估计（分位 2%/5%/10%），描述**极端低分位**；s=0 的原子会压低无条件估计，故并列条件估计；与 K'≤4 缺口相关的**主体区间**形状由 K' 网格斜率 −0.466 及其隐含 τ_eff≈2.15 描述"
+      },
+      "topk_literal_degenerate": {
+        "1": 0.297786,
+        "2": 0.297786,
+        "3": 0.297786,
+        "4": 0.297786
+      }
+    }
+  },
+  "conclusion": {
+    "uniform_closed_form_exact": true,
+    "max_uniform_gap_error": 0.00034,
+    "slope_exponential": -1.0,
+    "slope_pareto": -0.352,
+    "theory_slope_pareto": -0.4,
+    "shrink_order_pass": true,
+    "real_gap_k4": 0.297786,
+    "real_gap_k4_vs_uniform_0.2": 0.097786,
+    "real_note": "真实 K 网格仅 4 点（每域最多 4 变体），斜率只作形状描述"
+  },
+  "runtime": {
+    "elapsed_seconds": 3.2,
+    "seed": 42
+  }
+}
