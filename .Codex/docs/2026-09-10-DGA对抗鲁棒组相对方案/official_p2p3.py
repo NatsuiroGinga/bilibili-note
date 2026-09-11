@@ -142,6 +142,8 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     ea, eay = eval_adv
     rng = random.Random(SEED)
     adv_cache: dict[int, list[str]] = {}
+    benign_cache: dict[int, list[str]] = {}
+    benign_rng = random.Random(SEED + 7)  # 良性变体独立种子，不与恶意变体序列耦合
     n = len(train_d)
     for ep in range(1, epochs + 1):
         model.train()
@@ -167,7 +169,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm in ("D", "E", "F"):
+            elif arm in ("D", "E", "F", "H"):
                 # D/E 臂（GFPO 组相对过滤，2508.09726 §3 式(2) + Drichel 2024 §4.4.2 配比锚点）：
                 # 与 B 同为 64 变体配额（批次规模 192、恶意:良性倾斜度相同），唯一差量 =
                 # 变体选择机制：每恶意样本 K=4 变体为组，组内 fooled（当前模型判良性）为优势，
@@ -213,6 +215,47 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+                if arm == "H":
+                    # H 臂良性侧（对称组相对，设计修正①②③④见 notes.md §J）：
+                    # CharBot 近邻组（每良性样本 K=4），误报优势 = 连续分数 − 组均值，
+                    # 跨组配额 top-32 全局竞争入批（标签 0）；与 F 的差量 = 良性侧从
+                    # 「真样本加权 3.0」换为「组相对选择近邻变体」，恶意侧与 D/F 完全相同
+                    ben_idx = [i for i in idx if train_y[i] == 0]
+                    bcands: list[str] = []
+                    bowner: list[int] = []
+                    for i in ben_idx:
+                        if i not in benign_cache:
+                            benign_cache[i] = [perturb2(train_d[i], benign_rng) for _ in range(4)]
+                        for v in benign_cache[i]:
+                            bcands.append(v)
+                            bowner.append(i)
+                    adv_ben: list[str] = []
+                    if bcands:
+                        model.eval()
+                        with torch.inference_mode():
+                            _bs = []
+                            for off in range(0, len(bcands), EVAL_BATCH):
+                                _tk = official.encode_subword(bcands[off:off + EVAL_BATCH], tokenizer).to(DEVICE)
+                                _ch = official.encode_char(bcands[off:off + EVAL_BATCH]).to(DEVICE)
+                                with autocast_ctx():
+                                    _tf, _cf = diag.branch_features(model, _tk, _ch)
+                                _bs.append(torch.softmax(
+                                    model.classifier_head(torch.cat([_tf, _cf], dim=1)).float(), dim=1)[:, 1].cpu().numpy())
+                        p_ben = np.concatenate(_bs)
+                        groups_b: dict[int, list[int]] = {}
+                        for j, o in enumerate(bowner):
+                            groups_b.setdefault(o, []).append(j)
+                        scored_b: list[tuple[float, int]] = []
+                        for js in groups_b.values():
+                            pb = p_ben[js]
+                            adv_g = pb - pb.mean()  # 设计修正①：连续分数中心化（非二值 fooled）
+                            scored_b.extend((float(adv_g[k]), j) for k, j in enumerate(js))
+                        scored_b.sort(key=lambda t: (-t[0], t[1]))  # 设计修正②：确定性并列破法
+                        adv_ben = [bcands[j] for _, j in scored_b[:32]]  # 设计修正③④：显式跨组配额
+                        model.train()
+                    if adv_ben:
+                        batch_d = batch_d + adv_ben
+                        batch_y = np.concatenate([batch_y, np.zeros(len(adv_ben), dtype=np.int64)])
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
             # MPS 带梯度反向 batch 上限 128：B/C 臂拼接变体后超限（192/320），
