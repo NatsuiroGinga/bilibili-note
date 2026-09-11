@@ -275,7 +275,23 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 logits2 = logits2.float()
                 p_ = torch.softmax(logits2, dim=1)
                 ce = torch.nn.functional.cross_entropy(logits2, sub_y, reduction="none")
-                if arm in ("F", "G"):
+                if arm == "I":
+                    # I 臂 = D + 良性侧 CVaR_α 尾部软加权（组件 2 的 min-max 任务化）：
+                    # 对 batch 内真良性样本的 CE 取 CVaR_α（最坏 α 分位的均值，softplus 连续松弛），
+                    # 与恶意侧组相对 top-q 构成同一 min-max 泛函的两个威胁方向实例化。
+                    # α=0.05 任务化设定（源侧标定）；理论对偶见 pAUC-DRO/CVaR 文献（本地全文）
+                    ben_m = sub_y == 0
+                    if ben_m.any():
+                        ce_ben = ce[ben_m]
+                        k_alpha = max(1, int(0.05 * ce_ben.numel()))
+                        tail = torch.topk(ce_ben, k_alpha).values  # 最坏 α 分位（硬 CVaR）
+                        cvaR = tail.mean()
+                        ce_rest = ce[~ben_m].sum() if (~ben_m).any() else ce_ben.sum() * 0
+                        # 恶意侧正常 CE + λ·CVaR_α(良性)；λ=1 对冲 64 变体配额压力（同 F 的量级逻辑）
+                        loss_s = (ce_rest + cvaR * ben_m.sum() * 1.0) / n_tot
+                    else:
+                        loss_s = ce.sum() / n_tot
+                elif arm in ("F", "G"):
                     # F 臂 = D + 良性误报加权（双侧组相对的良性侧最简形式）；
                     # G 臂 = 只组件 2（无对抗增广、仅良性误报加权）——四臂消融的对称单臂。
                     # batch 内当前模型判恶意的真良性样本 CE ×3.0，把分布上移的误报拉回。
