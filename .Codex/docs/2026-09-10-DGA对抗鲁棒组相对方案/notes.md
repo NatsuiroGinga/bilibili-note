@@ -541,6 +541,24 @@ adv_batch = [cands[j] for _, j in scored[:64]]   # 跨组全局 top-64
 - 四近邻全文笔记：`wiki/papers/methodology/adversarial-training/`（Tramèr 2019／MaxUp 2020／MMEL 2021／BiB 2025）+ 该目录 `INDEX.md`
 - 威胁模型新增两篇：`wiki/papers/attack-detection/2008-Nelson-垃圾邮件过滤器的可用性攻击.md`、`wiki/papers/attack-detection/2006-Newsome-Paragraph-签名学习投毒.md`
 
+### J.8 本轮新增 7 篇的 Zotero 导入登记（阻塞，与 §H.2.8 同因）
+
+**Zotero 应用仍未运行**（无进程、本地 API `127.0.0.1:23119` 连接被拒），MCP 不可用。已用 `zotero.sqlite` **只读**直查完成查重：**库内 952 条中本轮 7 篇（Nelson／Paragraph／Tramèr／MaxUp／MMEL／BiB／Allergy）全部零命中**，确认均需导入。**未对 `zotero.sqlite` 做任何写入。**
+
+**待办（Zotero 启动后按 DOI/arXiv 导入并关联本地全文）**：
+
+| 篇 | 标识 |
+| --- | --- |
+| Nelson 2008 LEET | USENIX 页 `https://www.usenix.org/conference/leet-08/exploiting-machine-learning-subvert-your-spam-filter`（无 DOI） |
+| Newsome 2006 Paragraph | DOI `10.1007/11856214_5` |
+| Chung & Mok 2006 Allergy | DOI `10.1007/11856214_4`（**仅题录，无本地全文**） |
+| Tramèr & Boneh 2019 | arXiv `1904.13000` |
+| MaxUp 2020 | arXiv `2002.09024` |
+| MMEL 2021（**ICLR 2021**，题录已更正） | arXiv `2103.08933` |
+| Batch-in-Batch 2025 | arXiv `2406.04070`；期刊版 *Complex & Intelligent Systems* 11:132, 2025 |
+
+**题录更正登记（防复发）**：本轮下载时先按记忆试了两个 arXiv 编号，**两个都错**（`1901.10565` 实为 *Ulam-Warburton Automaton*、`2002.08155` 实为 *CodeBERT*）；后经 arXiv API（须用 **https**，`http` 端点无响应）按题名反查才得正确编号。**教训：`raw/AGENTS.md` 的「新增前用稳定信息去重」必须落到 arXiv API 直查，不得凭记忆填编号。**
+
 ## I 主代理验收问答与结论（2026-09-11）
 
 > 本节回应主代理对 `beffd50` 的验收反馈（三采纳、一待定）与五个疑问。**只作文献层与设计层回答，不构成任何实验授权或判据冻结。**
