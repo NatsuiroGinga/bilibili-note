@@ -143,17 +143,33 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_
     n_params = sum(p_.numel() for p_ in model.parameters())
     print(f"[{arm}] 官方模型 {n_params} 参数，训练 {len(train_d)} 样本 × {epochs} epochs，主批 {BATCH}", file=sys.stderr, flush=True)
     fpr_curve, epoch_log = [], []
+    # ── 断点恢复：epoch+batch 双粒度，model/optimizer/RNG/变体缓存/进度指针全量恢复 ──
+    ckpt_path = OUT / f"ckpt_{arm}.pt"
+    start_ep, start_bi = 1, 0
+    if ckpt_path.exists():
+        ck = torch.load(ckpt_path, map_location=DEVICE, weights_only=False)
+        model.load_state_dict(ck["model"]); opt.load_state_dict(ck["optimizer"])
+        random.setstate(ck["rng_py"]); np.random.set_state(ck["rng_np"]); torch.set_rng_state(ck["rng_torch"])
+        rng.setstate(ck["rng_variant"]); adv_cache = ck["adv_cache"]
+        fpr_curve, epoch_log = ck["fpr_curve"], ck["epoch_log"]
+        start_ep, start_bi = ck["epoch"], ck["batch_idx"]
+        ckpt_path.unlink()  # 已读入内存，删除避免崩溃后重复加载同一进度
+        print(f"[{arm}] 断点恢复：epoch {start_ep} 批 {start_bi} 起（fpr_curve {len(fpr_curve)} 点）", file=sys.stderr, flush=True)
     ec, ey = eval_clean
     rng = random.Random(SEED)
     adv_cache: dict[int, list[str]] = {}
     quota = BATCH // 2
     n = len(train_d)
     for ep in range(1, epochs + 1):
+        if ep < start_ep:
+            continue  # 断点恢复：跳过已完成的 epoch（其指标已从 checkpoint 恢复）
         model.train()
         order = list(range(n)); random.Random(SEED + ep).shuffle(order)
         t0 = time.time()
         nb = (n + BATCH - 1) // BATCH
-        for bi in range(nb):
+        for bi in range(start_bi if ep == start_ep else 0, nb):
+            if ep == start_ep and bi == start_bi:
+                print(f"[{arm}] 从 epoch {ep} 批 {bi}/{nb} 续训", file=sys.stderr, flush=True)
             idx = order[bi * BATCH:(bi + 1) * BATCH]
             batch_d = [train_d[i] for i in idx]
             batch_y = train_y[idx]
@@ -223,6 +239,15 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_
                 loss_s.backward()
                 loss_log += loss_s.item()
             opt.step()
+            # 断点保存（batch 粒度，每 2000 批原子写一次：model+optimizer+RNG+变体缓存+进度）
+            if (bi + 1) % 2000 == 0:
+                _ck = {"arm": arm, "epoch": ep, "batch_idx": bi, "model": model.state_dict(),
+                       "optimizer": opt.state_dict(), "rng_py": random.getstate(),
+                       "rng_np": np.random.get_state(), "rng_torch": torch.get_rng_state(),
+                       "rng_variant": rng.getstate(), "adv_cache": adv_cache,
+                       "fpr_curve": fpr_curve, "epoch_log": epoch_log}
+                _tmp = OUT / f"ckpt_{arm}.tmp"
+                torch.save(_ck, _tmp); _tmp.replace(OUT / f"ckpt_{arm}.pt")
             if bi % 500 == 0:
                 eta = (time.time() - t0) / (bi + 1) * (nb - bi - 1)
                 print(f"[{arm} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss_log:.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
@@ -233,7 +258,14 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_
         print(f"[{arm} 里程碑] epoch {ep}/{epochs} 干净 FPR={fpr_now:.4f}（{time.time()-t0:.1f}s）", file=sys.stderr, flush=True)
         if run is not None:
             run.log({"clean_FPR": fpr_now, "epoch": ep})
-        # 每 epoch 断点（原子）
+        # 每 epoch 断点（原子，含 optimizer/RNG——中断后从下一 epoch 起点恢复）
+        _ck = {"arm": arm, "epoch": ep, "batch_idx": nb - 1, "model": model.state_dict(),
+               "optimizer": opt.state_dict(), "rng_py": random.getstate(),
+               "rng_np": np.random.get_state(), "rng_torch": torch.get_rng_state(),
+               "rng_variant": rng.getstate(), "adv_cache": adv_cache,
+               "fpr_curve": fpr_curve, "epoch_log": epoch_log}
+        _tmp = OUT / f"ckpt_{arm}.tmp"
+        torch.save(_ck, _tmp); _tmp.replace(OUT / f"ckpt_{arm}.pt")
         (OUT / f"epochlog_{arm}.json").write_text(json.dumps(epoch_log, ensure_ascii=False, indent=1), encoding="utf-8")
     model.eval()
     clean = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)
