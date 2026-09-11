@@ -144,6 +144,12 @@ related:
 - **[[dga/2024-Cebere-DGA检测九项假设审计|DGA检测九项假设审计]]** — 对38篇contextless论文审计良性污染、家族支持、共享生成器、未见家族、复现与部署假设。
 - **[[dga/2024-Lopez-LLM-DGA检测|LLM DGA检测]]** — Llama3在14个未见家族上F1 0.67，低于轻量LA Bin07的0.80，容量不能替代开放集泛化。
 
+**DGA 生成侧（攻击者）——2026-09-11 入库（供第三章方向 a「差量四层定位」引用）**：三篇均本地 PDF 全文核验，MinerU 转换产物**无页标记** ⇒ 笔记一律按**节号／式号／表号**锚定，**页码待补**。
+
+- **[[dga/2016-Anderson-DeepDGA|DeepDGA（AISec 2016，arXiv:1610.01969v1）]]** — **「生成器—检测器对抗轮次」的早期先例**：字符自编码器（Alexa 1M 预训练）拆为 GAN 的生成器／判别器，多轮对抗后生成域名 unigram 逼近 Alexa；对独立手工特征 RF 的 FNR ≈ **1/14**（次优 pykspa 1/106），混合 10 族训练时检出率仅 **0.48**（simda／kraken_v2 为 0.96／0.98）；**追加 10K 对抗样本做 leave-one-family-out 硬化**后，未见家族在固定 **1% FPR** 的 TPR 平均 `0.68→0.70`（dircrypt／lockyv2 略降）；`§VI` 自陈「GAN 样本意在匹配真实分布，**若不谨慎 FPR 可能被不利影响**」——与本课题实测 FPR 代价同向。**⇒ 禁用「首次让攻击者与检测器同时学习」「首次用学习模型生成规避域名」。**
+- **[[dga/2019-Corley-DomainGAN|DomainGAN（2019，arXiv:1911.06285v3）]]** — 三种 GAN 变体（原始 GAN／LSGAN／**WGANGP 最优**）生成良性样域名；未微调时对六个主流分类器规避率 **94.9–99.6%**；**对抗微调后同变体规避率显著下降、跨变体仍高**（如 GAN 微调对 WGANGP 仍 74.8–79.4%），且**微调伴随干净准确率下降**（95.5–98.6% → 78.3–95.2%）；独有可用性分析（已存在域名碰撞 `29.6/19.6/12.3%`、重复碰撞 `53.2/16.1/7.4%`）。**⇒ 禁用「首次用生成模型造 DGA 规避域名」。**
+- **[[dga/2022-Nie-PKDGA|PKDGA（2022，arXiv:2212.04234v1）]]** — **「RL 学 DGA 生成器」的完整先例**：token 级 action（式 6）＋ `date` 为 seed（式 5）＋ DNS 反馈 reward（式 10）＋ likelihood-ratio 策略梯度（式 13–14）＋ MC rollout 估中间奖励（式 16–17）；部分知识设定下反检测能力平均提升 **24.1–39.2 个百分点**、逼近 AUC≈50%；**`Finding #2` 明确报告 PKDGA 可抵抗对抗训练**（对照 Suppobox 低至 2.10%）；**`§VI` 提出「训练攻击器 → 增量训练检测器」的博弈式防御**（式 21–22）。**⇒ 禁用「首次做字符级 policy gradient DGA」「首次做攻击者—检测器交替训练」。**
+
 ## 博弈 × 强化学习 × MARL × 对抗鲁棒（2026-09-10 入库，源：report (8) 引用台账）
 
 本批为 `deep-research-report (8)` 中标记 **✅ 原文核验**与 **◐ 部分核验**的文献；**全部经 arXiv API 复核题录**，PDF 入 `raw/papers/attack-detection/`，MinerU `extract`（token 模式）转换后逐节精读并实测页码锚点。**四级表**（用于判定与 P4 的距离）：**1** 固定/算法攻击 + 学习检测器（CharBot/MaskDGA/Drichel）；**2** 学习型攻击者 + 固定目标检测器（MAB-Malware）；**3** 学习型攻击者 + 学习 surrogate（MalGAN/IDSGAN）；**4** attacker + 实际 defender 共演化（RELEVAGAN/2026 bilevel）。
@@ -154,6 +160,8 @@ related:
 - **[[2026-Jureckova-恶意软件检测双层共演化|Jurečková 2026：恶意软件与检测模型的双层共演化]]** — arXiv:2604.22569v1（2026-04-24），SECRYPT 2026；bilevel 框架，**先占边界文献**。
 
 ### 第 2 层：学习型攻击者 + 冻结检测器（P3.5 资格门直接先例）
+
+- **[[2018-Anderson-RL-Malware-Evasion|Anderson 2018：RL 黑盒 PE 规避（gym-malware）]]** — arXiv:`1801.08917v2`，2026-09-11 入库（本地 PDF 全文、节号锚定）。MDP：状态＝**2350 维 PE 特征**，动作＝**保持格式与功能**的随机化变异，奖励＝杀软判定（`R = 10`），**ACER** agent；被攻击 GBDT ROC-AUC `0.993`（阈值 `0.9` ≈ **1% FPR @ 90% TPR**），每样本 ≤10 次变异、总预算 50K 变异。**`TABLE 2` holdout 规避率 agent vs 随机 = `24/23`、`12/9`、`10/9`、`19/18`（%）——学习策略对随机的优势很小**；**加固实验**：用 1543 个 RL 规避样本增训后，agent 规避率 `12% → 8%`（**−33%**）。**两条警示已写入第三章方向 a 必查项**：① **对抗训练可能学到攻击器实现指纹**（二进制库 LIEF 留下 `.l1`／`.l2` 类节名；原文警告 *one could actually begin to poison one's own dataset via adversarial training*）② 「按构造功能保持」仍会失效（10 个规避变体仅 8 个可执行）。
 
 - **[[2020-Song-MAB-Malware学习型黑盒规避|MAB-Malware]]** — RAID 2020，arXiv:2003.03100v3。把黑盒 PE 规避建模为**无状态多臂强盗**，MalConv 逃逸率 **97.72%**、EMBER **74.4%**（同期 GAMMA-hard-label 仅 63.6%/50.0%，Gym-Malware 最低）；商业 AV 32%–48%。三条设计洞察：无状态建模避免组合爆炸、复用成功 payload、动作最小化以精确归因 reward。**是"学习型攻击者优于固定攻击框架"的最强实证之一，但检测器全程冻结。**
 
