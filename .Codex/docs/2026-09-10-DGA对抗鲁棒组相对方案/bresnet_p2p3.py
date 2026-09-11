@@ -117,7 +117,7 @@ EVAL_BATCH = off.EVAL_BATCH        # MPS 128／CUDA 1024，只影响吞吐不改
 autocast_ctx = off.autocast_ctx    # 数值策略与 DRIFT 侧一致（CUDA bf16／MPS fp32）
 SEED = off.SEED                    # 42
 EPOCHS = off.EPOCHS                # 3
-LR = 1e-3                          # 全参数单 lr：论文未明示，任务化设定（简报冻结，未验证）
+LR = 1e-3                          # 全参数单 lr：论文未明示，任务化设定（--lr 可覆盖；1e-3 首轮实测 FPR 代价过大，1e-4 为协议选优臂）
 SEQ_LEN = 63                       # 官方代码默认「Use 63 for e2LDs」
 VOCAB_SIZE = 40                    # §7.2：nn.Embedding(40, 128)
 EMBED_DIM = 128
@@ -437,5 +437,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", type=int, default=0, help="每类样本数（干跑 1 epoch）；0 = 全量")
     ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,D,F,G（默认全量 A,D,F,G／干跑 A）")
+    ap.add_argument("--lr", type=float, default=None, help="覆盖全参数学习率（协议实测选优用）")
     a = ap.parse_args()
+    if a.lr is not None:
+        LR = a.lr  # __main__ 为模块顶层，直接赋值即覆盖模块级 LR
     main(dry=a.dry_run, arms_arg=a.arms)
