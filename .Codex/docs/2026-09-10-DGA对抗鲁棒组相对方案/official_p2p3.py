@@ -170,6 +170,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     ea, eay = eval_adv
     rng = random.Random(SEED)
     adv_cache: dict[int, list[str]] = {}
+    adv_cache_p: dict[int, list] = {}  # P 臂 K=8 扩展缓存
     adv_cache_l: dict[tuple, list] = {}  # L 臂课程缓存（键含 epoch）
     adv_cache_m: dict[tuple, list] = {}  # M 臂 Mix 缓存（键=(样本, 档位)）
     benign_cache: dict[int, list[str]] = {}
@@ -200,12 +201,14 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm == "N":
-                # N 臂（per-group top-1 训练对照，BiB-CP 型分析参照算子，V1 谱系的训练级验证）：
+            elif arm in ("N", "N2"):
+                # N 臂（per-group top-1 训练对照，BiB-CP 型分析参照算子）与
+                # N2 臂（per-group 选择 + 良性误报加权×3.0）：
                 # 与 D 同预算（64 变体、批 192）、同变体生成（perturb2）、同组结构（K=4），
                 # 唯一差量 = 选择算子：每组内取 u 最大（s 最小=最难）的 1 个入批，
-                # 无跨组竞争、无中心化。V1 谱系预测捕获率 D 1.0 > N ~0.73 > B 0.435——
-                # 若训练收益与捕获率同序，则定理 1 的算子谱系获得训练级实证。
+                # 无跨组竞争、无中心化。N2 在 N 基础上加组件 2（误报加权），对照 F（cross-group+加权）。
+                # 训练级发现（N 首轮）：per-group 检出优于 cross-group（反 V1 捕获率序）——
+                # 覆盖-强度权衡实证（chatgpt4 预警、对象三式 3.3 组重加权项）。
                 mal_idx = [i for i in idx if train_y[i] == 1]
                 cands: list[str] = []
                 cand_owner: list[int] = []
@@ -276,6 +279,49 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                         adv_g = f - f.mean()
                         scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
                     scored.sort(key=lambda t: (-t[0], t[1]))  # 确定性并列破法（notes.md §J 修正②）
+                    adv_batch = [cands[j] for _, j in scored[:64]]
+                    model.train()
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "P":
+                # P 臂（搜索预算扩展，定理 3/V3 的训练级检验）：与 D 唯一差量 = K 4→8
+                # （每干净恶意域名 8 个 perturb2 变体、候选池 256→512、配额不变 64）——
+                # V3 预测每干净样本覆盖缺口从 0.30 收至 ~0.16（Uniform 1/9），
+                # 若训练收益随覆盖单调则 P 优于 D。判据同 v2 口径（Mask 改善+FPR 门）。
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                cands: list[str] = []
+                cand_owner: list[int] = []
+                for i in mal_idx:
+                    if i not in adv_cache_p:
+                        base = perturb2(train_d[i], rng)
+                        adv_cache_p[i] = [perturb2(base, rng) for _ in range(8)]
+                    for v in adv_cache_p[i]:
+                        cands.append(v)
+                        cand_owner.append(i)
+                adv_batch = []
+                if cands:
+                    model.eval()
+                    with torch.inference_mode():
+                        _sc = []
+                        for off in range(0, len(cands), EVAL_BATCH):
+                            _tk = official.encode_subword(cands[off:off + EVAL_BATCH], tokenizer).to(DEVICE)
+                            _ch = official.encode_char(cands[off:off + EVAL_BATCH]).to(DEVICE)
+                            with autocast_ctx():
+                                _tf, _cf = diag.branch_features(model, _tk, _ch)
+                            _lg = model.classifier_head(torch.cat([_tf, _cf], dim=1))
+                            _sc.append(torch.softmax(_lg.float(), dim=1)[:, 1].cpu().numpy())
+                    p_cand = np.concatenate(_sc)
+                    fooled = (p_cand < 0.5).astype(np.float64)
+                    groups: dict[int, list[int]] = {}
+                    for j, o in enumerate(cand_owner):
+                        groups.setdefault(o, []).append(j)
+                    scored: list[tuple[float, int]] = []
+                    for js in groups.values():
+                        f = fooled[js]
+                        adv_g = f - f.mean()
+                        scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
+                    scored.sort(key=lambda t: (-t[0], t[1]))
                     adv_batch = [cands[j] for _, j in scored[:64]]
                     model.train()
                 if adv_batch:
@@ -468,9 +514,10 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                         loss_s = (ce_rest + cvaR * ben_m.sum() * 1.0) / n_tot
                     else:
                         loss_s = ce.sum() / n_tot
-                elif arm in ("F", "G"):
+                elif arm in ("F", "G", "N2"):
                     # F 臂 = D + 良性误报加权（双侧组相对的良性侧最简形式）；
-                    # G 臂 = 只组件 2（无对抗增广、仅良性误报加权）——四臂消融的对称单臂。
+                    # G 臂 = 只组件 2（无对抗增广、仅良性误报加权）——四臂消融的对称单臂；
+                    # N2 臂 = N（per-group 选择）+ 组件 2——对照 F（cross-group+加权）的选择算子检验。
                     # batch 内当前模型判恶意的真良性样本 CE ×3.0，把分布上移的误报拉回。
                     # 权重 3.0 为任务化设定（无文献精确值）：对冲 64 变体配额的恶意侧压力量级，
                     # 源侧标定；若有效再升级为良性 CharBot 近邻组相对完整形态
