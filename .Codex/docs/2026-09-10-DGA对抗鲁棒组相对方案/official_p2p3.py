@@ -58,6 +58,9 @@ LR_BACKBONE = 1e-6
 EPOCHS = 3
 SEED = 42
 BETA_KL = 1.0  # E 臂 KL 权重：任务化设定（GRPO 家族 β 无文献精确值），首轮源侧标定
+ALPHA_CVAR = 0.05   # J 臂 CVaR 尾部质量（任务化设定）
+LAMBDA_CVAR = 0.1   # J 臂 CVaR 项权重：量级对齐恶意 CE 项，避免 I 型尾部劫持（任务化设定）
+TAU_LR = 0.01       # J 臂对偶变量 τ 的解析下降步长
 ALPHA = "abcdefghijklmnopqrstuvwxyz0123456789-"
 
 
@@ -144,6 +147,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     adv_cache: dict[int, list[str]] = {}
     benign_cache: dict[int, list[str]] = {}
     benign_rng = random.Random(SEED + 7)  # 良性变体独立种子，不与恶意变体序列耦合
+    tau_val = torch.tensor(0.5, device=DEVICE)  # J 臂对偶变量 τ（RU 形式 min_τ）
     n = len(train_d)
     for ep in range(1, epochs + 1):
         model.train()
@@ -275,7 +279,23 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 logits2 = logits2.float()
                 p_ = torch.softmax(logits2, dim=1)
                 ce = torch.nn.functional.cross_entropy(logits2, sub_y, reduction="none")
-                if arm == "I":
+                if arm == "J":
+                    # J 臂 = D + 良性侧 CVaR τ-对偶（Rockafellar-Uryasev population 形式，区别于 I 的 batch top-k）：
+                    # loss = 恶意项 + λ·(τ + mean(relu(ce_ben−τ))/α)；τ 每批解析下降更新
+                    # （对偶 min_τ 的随机近似：dτ ∝ 1 − (1/α)·frac(ℓ>τ)）。
+                    # λ=0.1 量级对齐恶意项，避免 I 型尾部劫持（任务化设定，源侧标定）
+                    ben_m = sub_y == 0
+                    if ben_m.any():
+                        ce_ben = ce[ben_m]
+                        cvaR_est = tau_val + torch.relu(ce_ben - tau_val).mean() / ALPHA_CVAR
+                        ce_rest = ce[~ben_m].sum() if (~ben_m).any() else ce_ben.sum() * 0
+                        loss_s = (ce_rest + LAMBDA_CVAR * cvaR_est * ben_m.sum()) / n_tot
+                        with torch.no_grad():
+                            tau_val -= TAU_LR * (1.0 - (ce_ben > tau_val).float().mean() / ALPHA_CVAR)
+                            tau_val.clamp_(0.0, 20.0)
+                    else:
+                        loss_s = ce.sum() / n_tot
+                elif arm == "I":
                     # I 臂 = D + 良性侧 CVaR_α 尾部软加权（组件 2 的 min-max 任务化）：
                     # 对 batch 内真良性样本的 CE 取 CVaR_α（最坏 α 分位的均值，softplus 连续松弛），
                     # 与恶意侧组相对 top-q 构成同一 min-max 泛函的两个威胁方向实例化。
