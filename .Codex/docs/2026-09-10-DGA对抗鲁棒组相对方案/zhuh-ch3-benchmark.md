@@ -361,3 +361,112 @@
 4. **T20 缺失**（持久数据 28/30）——若正式实验需使用目标年面板，先解决 T20 的可得性，且**不得宣称数据完整**。
 5. **本文件全部读数均转引自 task_plan §5.6.2 的既有登记**，本文件**未重复运行任何实验、未读取任何服务器制品原件**；引用这些数字前须回到该节的原始 `result.json`。
 6. **朱的数字只作工作量与结构参照**——`4.2%~8.6%`、`+9.30/+12.30`、`16.1%` 一律**不得作为本课题门槛**；`16.1%` 已由恢复卡裁决为本课题早期先导实验自定门槛，与朱论文无关。
+
+---
+
+## §7 B-ResNet 第二骨干规格核查与适配建议（2026-09-11）
+
+> **用途**：为对标朱焱雷「4 臂 × 2 骨干」结构，把 **B-ResNet** 作为第二个骨干。B-ResNet 是 DGA 检测综述**强制并列的 C00 候选**（轻量、强外推、有真实流量证据）。
+> **本节只做规格核查与适配建议，不写实现代码**；全部规格**回原件与官方实现核验**，不采信二手转述。
+
+### 7.1 事实源
+
+| 项 | 内容 |
+| --- | --- |
+| 原始文献 | Drichel, Meyer, Schüppen, Teubert, *Analyzing the Real-World Applicability of DGA Classifiers*, ARES 2020, DOI `10.1145/3407023.3407030`，arXiv `2006.11103`，11 页 |
+| 本地原件 | `raw/papers/attack-detection/2020-Drichel-Real-World-DGA-Classifiers.pdf` |
+| 本地笔记 | `wiki/papers/attack-detection/dga/2020-Drichel-DGA分类器真实适用性.md`（**现有笔记只有结论，无架构规格——本节补齐**） |
+| **官方实现** | `https://gitlab.com/rwth-itsec/robust-dga-detection`，文件 `src/robust_dga_detection/models/cnn_resnet.py` |
+| 实现可信性依据 | 该文件类 `CNNResNetWithEmbedding` 的 docstring 逐字写明：*"A PyTorch implementation of the **'B-ResNet'** model introduced by Drichel et al."* 并引 2020 ARES 论文与 DOI —— **实现与文献已对上**，非同名猜测 |
+| 组织核查 | `rwth-itsec` 组经 GitLab API 枚举共 **18** 个项目；与本课题目相关的有 `robust-dga-detection`（**B-ResNet 实现所在**）、`explain`、`explainability-analyzed-dga-models`、`internationalizing-dga-detection`、`dga-transfer-learning-based-training`、`mtl-dga-detection`、`domainbert` |
+| **证据边界** | 该仓库树只含 `models/`、`attacks/`、`defenses/`、`utils/`——**没有训练脚本**。故「官方微调协议」**只有模型定义可核**，训练超参须回论文；**本轮未核验任何官方训练超参配置**。 |
+
+### 7.2 架构规格表（**以官方代码为准**）
+
+| 项 | 规格 | 来源 |
+| --- | --- | --- |
+| 输入视图 | `[BATCH, SEQ_LEN, 128]` → permute → `[BATCH, 128, SEQ_LEN]` | 官方代码 `CNNResNet.forward` |
+| 嵌入 | `nn.Embedding(num_embeddings=40, embedding_dim=128)` | 官方代码默认 `vocab_size=40, embedding_dim=128` |
+| **残差块数** | **1 个**（`CNNResNet` 只实例化一个 `ResidualITsec`） | 官方代码 + 论文 §3.2 正文 |
+| 块内结构 | `conv1` Conv1d(k=4, s=1, padding='same') → ReLU → `conv2` Conv1d(k=4, s=1, padding='same') → **与输入相加** | 官方代码 |
+| 通道对齐 | 仅当 `in≠out` 时用 1×1 `channel_adjust` Conv1d 调整跳连通道 | 官方代码 |
+| 块内恒定 | `in_channels = out_channels = 128` ⇒ **本配置下 `channel_adjust` 不生效** | 官方代码 |
+| 块后 | `F.relu` → `F.max_pool1d(kernel_size=4, padding=2)` | 官方代码 |
+| 展平 | `reshape(B, -1)`，`in_features = 128 × ceil(seq_len/4)`；**`seq_len=63` ⇒ `128 × 16 = 2048`** | 官方代码 |
+| 输出 | `nn.Linear(2048, 1)`；**默认返回 logits**，`with_sigmoid_output()` 上下文才返回 sigmoid | 官方代码 |
+| 损失 / 优化 | 二分类交叉熵（BCE）+ **Adam**，batch size **128** | 论文 §3.2，p.3 |
+| **`seq_len` 默认** | **63（e2LD）**——docstring：*"Use 63 for e2LDs"* | 官方代码 |
+
+### 7.3 ⚠️ 三处必须登记的原文／实现差异（引用前必读）
+
+1. **残差块数：以「1 个」为准，图注「6 Residuals」是矛盾项。** 论文 §3.2 正文逐字：*"For binary classification, **we use a single residual block**."*（p.3）；官方代码同样**只实例化一个** `ResidualITsec`。但**图 1(a) 的文字层含「6 Residuals」标注**（p.3），与正文和代码**都矛盾**（M-ResNet 是 11 块，也对不上 6）。**裁决：以正文＋代码为准，B-ResNet = 1 个残差块。** 引用架构时**不得写 6 块**；若正文需要展示该图，须加注说明图注与正文不一致。
+2. **输入长度：论文用 253（完整域名），官方代码默认 63（e2LD）。** 论文 §3.1（p.3）明确「**不删除 TLD**」，左零填充到 **253**；官方代码 `seq_len` 默认 **63** 且注明用于 **e2LD**（剥离 TLD 的有效二级域）。**两者不是同一个输入视图**，混用会同时改变「输入长度」与「TLD 是否存在」两个因素。
+3. **2020 年论文本身未给出作者自有代码链接。** 该版 PDF 全文检索只找到参考文献中 Bader 的 DGA 实现（`github.com/baderj/domain_generation_algorithms`）。**本节所用官方实现出自 2024 年的 `robust-dga-detection` 库**（该库的模型定义回溯引用 2020 ARES 论文）。引用「官方实现」时须写明**是哪个仓库**。
+
+### 7.4 与本课题 DRIFT 侧的接口差异（我们侧规格回代码核验）
+
+我们侧字符编码出自 `thesis/experiments/llm_probe/tools/ch3_drift_official_checkpoint_t17_eval.py` L20–L21、L59–L66：
+
+```
+CHARACTERS = 'abcdefghijklmnopqrstuvwxyz0123456789-.'      # 38 字符
+CHAR_TO_ID = {char: index + 5 for ...}                     # id 5..42
+def encode_char(domains):
+    result = np.zeros((len(domains), 77), dtype=np.int64)  # 长度 77
+    token_ids = [CHAR_TO_ID.get(char, 1) for char in domain[:75]]
+    result[row, 0] = 2                                     # [CLS]
+    result[row, 1:1+len] = token_ids
+    result[row, 1+len] = 3                                 # [SEP]
+```
+（子词支 `encode_subword` 用 WordPiece，长度 30；字符骨干 `PretrainedModel(43, 256, 8, 768, 12, 77)`。）
+
+| 维度 | DRIFT 字符支 | B-ResNet 官方默认 | 差异性质 |
+| --- | --- | --- | --- |
+| 词表 | **43**（0=pad, 1=unk, 2=cls, 3=sep, 5–42=38 字符） | **40** | 需重映射 |
+| 特殊符 | [CLS]/[SEP]（位置 0 与串尾） | **无**（纯字符序列） | 需去特殊符 |
+| 序列长度 | **77**（截断 75 + 2 特殊符） | **63**（e2LD）或 253（完整域名，论文） | **需选择** |
+| 嵌入维 | 256 | **128** | 架构固有 |
+| 主干 | 12 层 Transformer，8 头，hidden 768 | **1 个残差卷积块** | 架构固有 |
+| 输入内容 | **完整域名**（含 `.` 与 TLD；`.` 在词表内） | 论文=完整域名／代码=e2LD | **需裁决** |
+| 分支数 | **双支**（字符 + 子词） | **单支**（仅字符） | 见 §7.6 |
+
+### 7.5 训练协议对齐
+
+- **可对齐项**：损失（BCE）、优化器（Adam）、batch size（128）——论文明确给出（p.3），与现有 p2p3 arm 循环的 batch 128 一致。
+- **不可直接对齐项**：**权衰减、学习率与调度、训练轮数、阈值选择规则**——论文 §3.2 未给出，官方仓库又没有训练脚本，**本轮无法核验**。⇒ **必须作为「无直接文献依据的任务化设定」登记**（根 `AGENTS.md` 魔法数字门禁），不得冒充「官方微调协议」。
+- **现有可分性**：我们侧 p2p3 的冻结规格是 `3 epochs`、Adam 分层 lr（骨干 `1e-6`／分类头 `1e-4`）、seed `42`、阈值 `0.5`。**B-ResNet 的层结构与 DRIFT 完全不同，「分层 lr」这一项无对应物**，需要重新定义（建议：单组 lr）。
+- **一条强约束**：两骨干比较必须**共享同一冻结数据成员、切分、批大小、评价面板与阈值规则**（`thesis/AGENTS.md`），因此 B-ResNet 的轮数与 lr **不能按「跑出最好结果」调**，须在看结果前冻结。
+
+### 7.6 四臂机制移植点（结论：**与骨干无关，可直接套用**）
+
+| 组件 | 作用位置 | 是否依赖骨干 |
+| --- | --- | --- |
+| **组件 1**（组内相对过滤：`fooled − 组均值` → 跨组 top-64） | **批构成层**——作用在「候选变体集合」的**打分与选择**上 | **不依赖**。只需骨干能对候选域名**输出一个分数**（`p_mal` 或 logit） |
+| **组件 2**（良性误报加权 CE × 3.0） | **损失层**——对 batch 内被判恶意的真良性样本加权 | **不依赖**。只用到标签与预测 |
+| 对抗变体生成（CharBot 式 2 位替换） | **输入层** | **不依赖**（字符串级算子） |
+| **唯一真正需适配的** | **输入编码器**（§7.4 的表） | 依赖 |
+
+⇒ **四臂（A／G／D／F）的机制定义可以原样复用**；工作量集中在编码器与模型定义两处。
+
+### 7.7 工作量估算（设计可行 · 未实施）
+
+| 阶段 | 内容 | 估算 |
+| --- | --- | --- |
+| ① 模型定义移植 | 按 §7.2 实现 `CNNResNetWithEmbedding`（约 80 行，含 1 个残差块 + pool + linear） | **0.5 人日** |
+| ② 输入视图适配 | 选定长度视图（见下）、词表重映射、去特殊符 | **0.5–1 人日**（**唯一有外部依赖风险的一步**） |
+| ③ 训练循环接入 | 复用现有 arm 循环，替换模型构造与 `encode_char`，**机制代码不改** | **0.5 人日** |
+| ④ 打通与短跑 | 真实数据上跑通一个臂（编译/导入检查不算，须真跑） | **0.5 人日** |
+| ⑤ 四臂 screening | 服务器按现有单臂 ~10 分钟估：`4 臂 × ~10 min ≈ 1 小时` | **服务器 ~1 小时** |
+| **合计** | | **约 2–2.5 人日 + 服务器 ~1 小时** |
+
+**②的风险点与建议**：若采用官方 e2LD（`seq_len=63`）视图，需要**公共后缀（public suffix）切分**——本仓库此前无该依赖，属于**新增外部依赖**。**建议改用「完整域名 + 与 DRIFT 相同的长度处理」**，理由是：两骨干比较要隔离的变量是**架构**，若同时改变输入视图，则「架构差异」与「输入视图差异」纠缠，违背共同协议。此时 B-ResNet 的 `seq_len` 取 **63**（沿用官方超参）或 **253**（论文值）**须先冻结并登记**，且**必须与 DRIFT 侧使用同一份域名字符串**。
+
+### 7.8 未核验项（登记，不阻塞）
+
+1. **官方训练超参**（lr／轮数／调度／权衰减）本轮**未核**——仓库无训练脚本，论文未给。进入正式实验前须补核，或全部登记为任务化设定。
+2. **参数量**未核验：官方代码未给出参数量，论文亦未报告；**需要本地实例化后实测**（按 §7.2 结构可粗估：`40×128` 嵌入 + 2 个 `128×128×4` 卷积 + `2048×1` 线性 ≈ **14 万量级**，但这只是估算，**须实测后登记**，不得直接引用）。
+3. **B-ResNet 与 DRIFT 的算力可比性未核**：两者参数量级差异大，共同预算下的公平比较方式（等步数 vs 等墙钟 vs 等算力）**须先冻结**。
+4. 「B-ResNet 是综述强制并列的 C00 候选」这一判断来自本地综述（`.Codex/docs/2026-09-07-DGA检测系统综述/`），**本节只承接该结论，不重新裁决**。
+
+### 7.9 与 §6 设计建议的关系
+
+本节是 §6.2「基线集建议」中**「第二骨干」这一维度的落地规格**；§6 的四臂表结构与面板设计**不受本节影响**——两骨干共享同一套四臂定义与同一套评价面板。
