@@ -419,7 +419,9 @@ Table 2 `Reward-Var.` 实测值：RLOO(k=4) `3.1`／RAFT(k=4) `3.2`／RLOO(k=2) 
 
 **同步更新**：`wiki/papers/attack-detection/INDEX.md` 新增「误报注入与告警疲劳攻击威胁模型（2026-09-11 入库）」节。
 
-**⚠️ Zotero 导入未完成（阻塞登记）**：本轮 **Zotero 应用未运行**（无进程、本地 API `127.0.0.1:23119` 连接被拒），MCP 全部工具返回 `[Errno 61] Connection refused`。已按裁决改用 `zotero.sqlite` **只读**直查完成查重：**库内 952 条中三篇均未收录（零命中），确认需要导入**。**未对 `zotero.sqlite` 做任何写入**（避免在应用未运行时损坏库）。**待办**：Zotero 启动后按 DOI/URL 导入三条并按 `raw/AGENTS.md` 关联本地全文——
+**✅ Zotero 导入已完成（2026-09-11 更新）**：Zotero 应用恢复后经 MCP 导入成功，**各条 item key 见 §K**。以下保留当时（应用未运行）的阻塞登记原文，作过程记录：
+
+**⚠️ Zotero 导入未完成（阻塞登记，已于 2026-09-11 解除）**：本轮 **Zotero 应用未运行**（无进程、本地 API `127.0.0.1:23119` 连接被拒），MCP 全部工具返回 `[Errno 61] Connection refused`。已按裁决改用 `zotero.sqlite` **只读**直查完成查重：**库内 952 条中三篇均未收录（零命中），确认需要导入**。**未对 `zotero.sqlite` 做任何写入**（避免在应用未运行时损坏库）。**待办**：Zotero 启动后按 DOI/URL 导入三条并按 `raw/AGENTS.md` 关联本地全文——
 - Barreno：`https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-43.pdf`（会议版 DOI `10.1145/1128817.1128824`）
 - Drahuntsov：DOI `10.28925/2663-4023.2021.14.614`
 - Barbierato：DOI `10.3390/info17050434`
@@ -541,9 +543,11 @@ adv_batch = [cands[j] for _, j in scored[:64]]   # 跨组全局 top-64
 - 四近邻全文笔记：`wiki/papers/methodology/adversarial-training/`（Tramèr 2019／MaxUp 2020／MMEL 2021／BiB 2025）+ 该目录 `INDEX.md`
 - 威胁模型新增两篇：`wiki/papers/attack-detection/2008-Nelson-垃圾邮件过滤器的可用性攻击.md`、`wiki/papers/attack-detection/2006-Newsome-Paragraph-签名学习投毒.md`
 
-### J.8 本轮新增 7 篇的 Zotero 导入登记（阻塞，与 §H.2.8 同因）
+### J.8 本轮新增 7 篇的 Zotero 导入登记（**已于 2026-09-11 完成，见 §K**）
 
-**Zotero 应用仍未运行**（无进程、本地 API `127.0.0.1:23119` 连接被拒），MCP 不可用。已用 `zotero.sqlite` **只读**直查完成查重：**库内 952 条中本轮 7 篇（Nelson／Paragraph／Tramèr／MaxUp／MMEL／BiB／Allergy）全部零命中**，确认均需导入。**未对 `zotero.sqlite` 做任何写入。**
+**✅ 已解除**：Zotero 应用恢复后已全部导入成功，各条 key 见 §K。
+
+**（原阻塞登记，保留作过程记录）** ~~**Zotero 应用仍未运行**（无进程、本地 API `127.0.0.1:23119` 连接被拒），MCP 不可用。~~已用 `zotero.sqlite` **只读**直查完成查重：**库内 952 条中本轮 7 篇（Nelson／Paragraph／Tramèr／MaxUp／MMEL／BiB／Allergy）全部零命中**，确认均需导入。**未对 `zotero.sqlite` 做任何写入。**
 
 **待办（Zotero 启动后按 DOI/arXiv 导入并关联本地全文）**：
 
@@ -558,6 +562,37 @@ adv_batch = [cands[j] for _, j in scored[:64]]   # 跨组全局 top-64
 | Batch-in-Batch 2025 | arXiv `2406.04070`；期刊版 *Complex & Intelligent Systems* 11:132, 2025 |
 
 **题录更正登记（防复发）**：本轮下载时先按记忆试了两个 arXiv 编号，**两个都错**（`1901.10565` 实为 *Ulam-Warburton Automaton*、`2002.08155` 实为 *CodeBERT*）；后经 arXiv API（须用 **https**，`http` 端点无响应）按题名反查才得正确编号。**教训：`raw/AGENTS.md` 的「新增前用稳定信息去重」必须落到 arXiv API 直查，不得凭记忆填编号。**
+
+## K Zotero 导入完成登记（2026-09-11）
+
+Zotero 应用恢复后，经 MCP 逐条导入。**成功 10 / 失败 0**（Tramèr 首次 `The read operation timed out`，单独重试成功）。统一 `attach_pdf=false`——本地全文已在 `raw/`，不重复挂网附件。**抽查 3 条**（`VQZ2X3DM`／`UU8DERCD`／`S5DEP4QH`）：题录字段、类型、DOI 与原文一致。
+
+| Zotero key | 条目 | 类型 | 导入方式 |
+| --- | --- | --- | --- |
+| `UU8DERCD` | Barreno 等，*Can machine learning be secure?*（**ASIACCS'06 会议版**；本地全文为 TR 扩展版） | conferencePaper | DOI `10.1145/1128817.1128824` |
+| `G7EG4ZDS` | Drahuntsov & Rabchun 2021 | paper | DOI `10.28925/2663-4023.2021.14.614` |
+| `S5DEP4QH` | Barbierato 2026 | journalArticle | DOI `10.3390/info17050434` |
+| `TIMNV9PN` | Newsome 等 Paragraph RAID 2006 | paper | DOI `10.1007/11856214_5` |
+| `DT9UGSPX` | Chung & Mok **Allergy** RAID 2006（**仅题录，无本地全文**） | paper | DOI `10.1007/11856214_4` |
+| `I2PNUU5T` | Nelson 等 **LEET '08**（无 DOI） | **webpage** | 按 URL 入（USENIX 官方页） |
+| `HBURW3K5` | Tramèr & Boneh 2019 | paper | arXiv `1904.13000`（首次超时，重试成功） |
+| `JPG8TXXZ` | MaxUp 2020 | paper | arXiv `2002.09024` |
+| `IVRS5GKV` | MMEL（**ICLR 2021**） | paper | arXiv `2103.08933` |
+| `VQZ2X3DM` | Batch-in-Batch（**arXiv 预印本版**，非期刊版） | preprint | arXiv `2406.04070` |
+| `9WUKHNGP` | GRPO / DeepSeekMath | journalArticle | 本条为既有条目，本轮**只读核验** |
+| `UNYRKIG9` | GFPO | preprint | 同上 |
+| `HXRQG7PU` | RLOO | preprint | 同上 |
+| `QVI7J5QD` | Drichel 2024 *Towards Robust DGA Classification* | preprint | 同上 |
+| `CPILDEPS` | CharBot | preprint | 同上 |
+| `K3VYSJSY` | MaskDGA | preprint | 同上 |
+| `JJ5J9YR3` / `HMF49WET` | DRIFT（**库内有重复两条**） | preprint | 同上 |
+| **未核验** | Drichel 2020 B-ResNet（`2006.11103`）、pAUC-DRO（2022-Zhu） | — | 本轮未查到，待补 |
+
+**两条必须登记的库内问题（未擅自处置）**：
+1. **重复条目**：DRIFT（`JJ5J9YR3`／`HMF49WET`）、DAPO、Provable Dynamic Fusion、Lee 2024 中文域 DGA 各出现两条。**去重属破坏性操作，须用户明确授权。**
+2. **`Allergy` 的 Zotero 条目 ≠ 可引证据**：该条仅为题录，**本地无全文**，正文引用仍受 §H.2.1 的降级约束（只能标「据 Nelson 2008 §6 转述」）。
+
+**统一去向**：以上全部 key 已同步进 [第三章方法来源台账](../../../thesis/methods/第三章-方法来源台账.md) 的对应条目与 §七 Zotero 状态汇总。
 
 ## I 主代理验收问答与结论（2026-09-11）
 
