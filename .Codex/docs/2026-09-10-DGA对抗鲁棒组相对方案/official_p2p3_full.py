@@ -322,7 +322,7 @@ def main() -> None:
     eval_adv_mask = ([perturb_half(d, rng) for d in adv_src], np.ones(len(adv_src), dtype=bool))
     print(f"[面板] 对抗三面板各 {len(adv_src)} 域", file=sys.stderr, flush=True)
 
-    # 目标知情面板（T20-25 无后缀；T20 缺失则登记跳过）
+    # 目标知情面板（T20-25 无后缀；流式 stride 抽样——不全量 to_pylist，防大文件内存峰值）
     target_panels: dict[str, tuple[list[str], np.ndarray]] = {}
     for y in TARGET_YEARS:
         stems = [f"T{y}_benign", f"T{y}_dga"]
@@ -333,9 +333,18 @@ def main() -> None:
         lim = a.target_limit
         td, ty = [], []
         for s in stems:
-            d = load_domains(s)
-            if lim and len(d) > lim:
-                random.Random(SEED + y).shuffle(d); d = d[:lim]
+            pf = pq.ParquetFile(DATA / "DRIFT_input_eSLD" / f"{s}.parquet")
+            total = pf.metadata.num_rows
+            # 内存受控抽样：arrow 列式读（峰值≈紧凑列内存）+ take 均匀 stride，
+            # 仅对 lim 行 to_pylist——避免全文件 Python str 列表的数倍内存放大
+            stride = max(1, total // lim) if (lim and total > lim) else 1
+            tbl = pf.read(columns=["domain"])
+            col = tbl.column(0)
+            if stride > 1:
+                d = col.take(np.arange(0, total, stride)[:lim]).to_pylist()
+            else:
+                d = col.to_pylist()
+            del tbl, col
             td.extend(d); ty.extend([0 if "benign" in s else 1] * len(d))
         target_panels[f"T{y}"] = (td, np.asarray(ty, dtype=bool))
         print(f"[面板] T{y} {len(td)} 域", file=sys.stderr, flush=True)
