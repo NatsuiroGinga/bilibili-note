@@ -539,7 +539,7 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
             results[arm][f"adv_{pname}"] = metrics(arm_model, tokenizer, pa, pay, tok_mean, char_mean)
         print(f"[里程碑] {arm}: clean={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['clean'].items()})} adv={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['adv'].items()})}", file=sys.stderr, flush=True)
 
-    if len(results) == 3:
+    if "A" in results and "B" in results and "C" in results and len(results) == 3:
         a, b, c = results["A"], results["B"], results["C"]
         am, bm, cm = a["adv_maskdga"], b["adv_maskdga"], c["adv_maskdga"]
         verdict = {
@@ -552,7 +552,8 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
             "k2_reference_FNR": {"A": round(a["adv"]["FNR"], 4), "B": round(b["adv"]["FNR"], 4), "C": round(c["adv"]["FNR"], 4)},
         }
     else:
-        verdict = {"note": "dry-run 单臂"}
+        # 非 A/B/C 组合（如 L/M/D、单臂）：verdict 由主代理按冻结判据从 results 手工裁决
+        verdict = {"note": f"custom arms {sorted(results)} — manual adjudication per frozen criteria"}
     out_name = "official-p2p3-DRYRUN.json" if dry else "official-p2p3-result.json"
     (OUT / out_name).write_text(json.dumps({"results": results, "verdict": verdict}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[里程碑] {json.dumps(verdict, ensure_ascii=False)} -> {out_name}", file=sys.stderr, flush=True)
