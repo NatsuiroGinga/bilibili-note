@@ -1,8 +1,9 @@
-[官方 P2/P3] 训练 6000、评价干净 6000、对抗 3000
-[A] 官方模型 24180226 参数，训练 6000 样本 × 1 epochs
-[A 心跳] epoch 1 批 1/47 loss=0.0908 ETA 2.3 min
-[A 里程碑] epoch 1/1 完成（73.6s）
+[官方 P2/P3] 训练 1000、评价干净 1000、对抗 k2 500/krand 500/maskdga 500
+[A] 分层 lr：骨干 23654400 参数 @1e-6，分类头 525826 参数 @1e-4
+[A] 官方模型 24180226 参数，训练 1000 样本 × 1 epochs
+[A 心跳] epoch 1 批 1/8 loss=0.0408 ETA 0.3 min
 /opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
   elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
-[里程碑] A: clean={"AP": 0.99711, "FPR": 0.014, "FNR": 0.029, "F1": 0.97834, "FP": 42, "FN": 87, "n": 6000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.343, "F1": 0.793, "FP": 0, "FN": 1029, "n": 3000}
+[A 里程碑] epoch 1/1 完成，干净 FPR=0.0300（16.5s）
+[里程碑] A: clean={"AP": 0.99687, "FPR": 0.03, "FNR": 0.018, "F1": 0.97614, "FP": 15, "FN": 9, "n": 1000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.316, "F1": 0.81235, "FP": 0, "FN": 158, "n": 500}
 [里程碑] {"note": "dry-run 单臂"} -> official-p2p3-DRYRUN.json

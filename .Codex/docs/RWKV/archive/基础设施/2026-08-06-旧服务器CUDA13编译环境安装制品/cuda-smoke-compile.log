@@ -1,2 +1,0 @@
-ninja: Entering directory `/root/autodl-tmp/thesis/experiments/llm_probe/runs/toolchain/cuda13-compiler-install-20260806'
-[1/1] /usr/local/cuda-13.0/bin/nvcc -std=c++17 -O2 -lineinfo -arch=sm_120 minimal_cuda_smoke.cu -o minimal_cuda_smoke

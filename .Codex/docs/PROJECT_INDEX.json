@@ -1,15 +1,55 @@
 {
   "schema_version":"project-index-v2",
-  "content_manifest_sha256":"d611b91127b748393e45df7673eba357c7f2e37085dfd18f917ac38b1f214e81",
-  "generated_at":1788761861,
+  "content_manifest_sha256":"6aba62404fcd6c2bbe77ba5a1a837aadd76b552b8cbc9884243f29481c165ce4",
+  "generated_at":1788836955,
   "manual":{},
   "entries":[
     {
-      "path":".Codex/docs/RWKV/RWKV第三章恢复卡.md",
-      "role":"第三章恢复",
+      "path":".Codex/docs/DRIFT/DRIFT第三章恢复卡.md",
+      "role":"DRIFT第三章恢复",
       "status":"当前",
       "priority":"P0",
-      "summary":"顶部方向重置；旧FT/ETA-BER仅历史",
+      "summary":"当前状态、否决项与唯一下一动作",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/DRIFT/DRIFT路线总控.md",
+      "role":"DRIFT路线总控",
+      "status":"当前",
+      "priority":"P0",
+      "summary":"DRIFT独立恢复与公共合同",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/DRIFT/AGENTS.md",
+      "role":"DRIFT局部规则",
+      "status":"当前",
+      "priority":"P0",
+      "summary":"三类规范材料强制恢复链",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/DRIFT/CLAUDE.md",
+      "role":"Claude规则导入",
+      "status":"当前",
+      "priority":"P1",
+      "summary":"通过@AGENTS.md同步DRIFT规则",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/DRIFT/DRIFT历史交接入口.md",
+      "role":"DRIFT历史入口",
+      "status":"当前",
+      "priority":"P2",
+      "summary":"仅冲突与制品追溯时读取",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/RWKV/RWKV第三章恢复卡.md",
+      "role":"RWKV第三章恢复",
+      "status":"历史",
+      "priority":"P2",
+      "summary":"DRIFT已迁出；既有DRIFT段落仅迁移快照",
       "generated":false
     },
     {
@@ -37,11 +77,107 @@
       "generated":false
     },
     {
+      "path":".Codex/docs/2026-09-08-DRIFT逻辑路线隔离/Goal替换建议.md",
+      "role":"DRIFT Goal",
+      "status":"待设置",
+      "priority":"P0",
+      "summary":"统一主方法；因素数量由证据决定",
+      "generated":true
+    },
+    {
+      "path":".Codex/docs/2026-09-08-DRIFT逻辑路线隔离/迁移报告.md",
+      "role":"DRIFT迁移收据",
+      "status":"当前",
+      "priority":"P1",
+      "summary":"逻辑隔离范围与验证",
+      "generated":true
+    },
+    {
       "path":".Codex/docs/2026-09-07-长Goal规则迁移/报告.md",
-      "role":"长Goal合同",
+      "role":"旧长Goal合同",
+      "status":"历史",
+      "priority":"P2",
+      "summary":"旧双机制与2x2要求已被原文分析修正",
+      "generated":true
+    },
+    {
+      "path":"thesis/methods/第三章-DRIFT数据角色与评价协议.md",
+      "role":"DRIFT数据合同",
       "status":"当前",
       "priority":"P0",
-      "summary":"泛化轴、强基线、2x2和止损",
+      "summary":"T17至T19冻结；T20至T25整批正式评价",
+      "generated":false
+    },
+    {
+      "path":"thesis/methods/第三章-DRIFT方案A研究问题卡与最小证伪设计.md",
+      "role":"DRIFT研究问题",
+      "status":"当前",
+      "priority":"P1",
+      "summary":"M1与第二方向最小证伪",
+      "generated":false
+    },
+    {
+      "path":"thesis/methods/第三章-朱焱雷第三章机制构思与创新声明分析.md",
+      "role":"章节结构参照",
+      "status":"当前",
+      "priority":"P1",
+      "summary":"整体创新主语与条件性2x2",
+      "generated":false
+    },
+    {
+      "path":"raw/papers/datasets/2026-Lee-DRIFT-DGA-Temporal-Drift.pdf",
+      "role":"DRIFT原论文",
+      "status":"当前",
+      "priority":"P0",
+      "summary":"原始全文事实源",
+      "generated":false
+    },
+    {
+      "path":"wiki/papers/datasets/2026-Lee-DRIFT-DGA-Temporal-Drift.md",
+      "role":"DRIFT全文分析",
+      "status":"当前",
+      "priority":"P0",
+      "summary":"数据、方法、结果与复现边界",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/2026-09-07-DGA检测系统综述/文献综述.md",
+      "role":"DGA系统综述",
+      "status":"当前",
+      "priority":"P0",
+      "summary":"低误报、未见家族与强基线",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/2026-09-07-DRIFT引用与方法前沿/文献综述.md",
+      "role":"DRIFT前沿综述",
+      "status":"当前快照",
+      "priority":"P0",
+      "summary":"引用版图、近邻与剩余差量",
+      "generated":false
+    },
+    {
+      "path":".Codex/docs/2026-09-07-跨年数据集替代调研/数据集比较综述.md",
+      "role":"数据集选型台账",
+      "status":"当前快照",
+      "priority":"P1",
+      "summary":"替换任务先读；禁止重新广筛",
+      "generated":true
+    },
+    {
+      "path":".Codex/docs/2026-09-07-DRIFT方案A最小证伪实验/M1-v2投影原始对偶研究卡.md",
+      "role":"M1-v2证伪",
+      "status":"已批准短窗",
+      "priority":"P0",
+      "summary":"仅T17的32步短窗与一次验证",
+      "generated":true
+    },
+    {
+      "path":".Codex/docs/2026-09-07-DRIFT方案A最小证伪实验/第二机制竞争简报.md",
+      "role":"第二方向证伪",
+      "status":"待诊断",
+      "priority":"P0",
+      "summary":"T17伪未见family零更新诊断",
       "generated":true
     },
     {
@@ -173,7 +309,7 @@
       "generated":false
     }
   ],
-  "unclassified_count":2264,
+  "unclassified_count":2339,
   "unclassified_paths":[
     ".Codex/docs/2026-07-17-生成式恶意流量探针实验设计.md",
     ".Codex/docs/2026-07-18-H1正式裁决实验记录.md",

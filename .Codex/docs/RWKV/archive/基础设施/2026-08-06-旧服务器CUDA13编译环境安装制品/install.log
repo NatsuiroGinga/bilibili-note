@@ -1,93 +1,0 @@
-开始时间: 2026-08-06T12:20:54+08:00
-/usr/bin/rg
-/usr/bin/fdfind
-/root/.local/bin/uv
-/usr/bin/jq
-/usr/bin/curl
-/usr/bin/gpg
-/usr/bin/flock
-/usr/bin/apt-get
-/usr/bin/apt-cache
-ripgrep 13.0.0
-fd 8.3.1
-uv 0.11.29 (x86_64-unknown-linux-gnu)
-2.13.0+cu130
-NVIDIA GeForce RTX 5090
-(12, 0)
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:01 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0
-  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0100  1134  100  1134    0     0    395      0  0:00:02  0:00:02 --:--:-- 15324
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0  0     0    0     0    0     0      0      0 --:--:--  0:00:02 --:--:--     0
-100   190  100   190    0     0     73      0  0:00:02  0:00:02 --:--:--    73
-gpg: directory '/root/.gnupg' created
-gpg: keybox '/root/.gnupg/pubring.kbx' created
-gpg: /root/.gnupg/trustdb.gpg: trustdb created
-fpr:::::::::EB693B3035CD5710E231E123A4B469963BF863CC:
-Hit:1 https://repo.huaweicloud.com/ubuntu jammy InRelease
-Get:2 https://repo.huaweicloud.com/ubuntu jammy-backports InRelease [127 kB]
-Get:3 https://repo.huaweicloud.com/ubuntu jammy-proposed InRelease [279 kB]
-Get:4 https://repo.huaweicloud.com/ubuntu jammy-security InRelease [129 kB]
-Get:5 https://repo.huaweicloud.com/ubuntu jammy-updates InRelease [128 kB]
-Get:6 https://repo.huaweicloud.com/ubuntu jammy-backports/main Sources [9389 B]
-Get:7 https://repo.huaweicloud.com/ubuntu jammy-backports/universe Sources [11.4 kB]
-Get:8 https://repo.huaweicloud.com/ubuntu jammy-proposed/main Sources [52.9 kB]
-Get:9 https://repo.huaweicloud.com/ubuntu jammy-proposed/universe Sources [15.0 kB]
-Get:10 https://repo.huaweicloud.com/ubuntu jammy-proposed/restricted Sources [31.1 kB]
-Get:11 https://repo.huaweicloud.com/ubuntu jammy-proposed/multiverse Sources [813 B]
-Get:12 https://repo.huaweicloud.com/ubuntu jammy-proposed/multiverse amd64 Packages [1188 B]
-Get:13 https://repo.huaweicloud.com/ubuntu jammy-proposed/universe amd64 Packages [55.8 kB]
-Get:14 https://repo.huaweicloud.com/ubuntu jammy-proposed/restricted amd64 Packages [2265 kB]
-Get:15 https://repo.huaweicloud.com/ubuntu jammy-proposed/main amd64 Packages [760 kB]
-Get:16 https://repo.huaweicloud.com/ubuntu jammy-security/main Sources [386 kB]
-Get:17 https://repo.huaweicloud.com/ubuntu jammy-security/restricted Sources [91.2 kB]
-Get:18 https://repo.huaweicloud.com/ubuntu jammy-security/multiverse Sources [30.6 kB]
-Get:19 https://repo.huaweicloud.com/ubuntu jammy-security/universe Sources [326 kB]
-Get:20 https://repo.huaweicloud.com/ubuntu jammy-security/restricted amd64 Packages [7479 kB]
-Get:21 https://repo.huaweicloud.com/ubuntu jammy-security/universe amd64 Packages [1314 kB]
-Get:22 https://repo.huaweicloud.com/ubuntu jammy-security/multiverse amd64 Packages [84.1 kB]
-Get:23 https://repo.huaweicloud.com/ubuntu jammy-security/main amd64 Packages [4155 kB]
-Get:24 https://repo.huaweicloud.com/ubuntu jammy-updates/universe Sources [496 kB]
-Get:25 https://repo.huaweicloud.com/ubuntu jammy-updates/restricted Sources [95.5 kB]
-Get:26 https://repo.huaweicloud.com/ubuntu jammy-updates/multiverse Sources [40.2 kB]
-Get:27 https://repo.huaweicloud.com/ubuntu jammy-updates/main Sources [593 kB]
-Get:28 https://repo.huaweicloud.com/ubuntu jammy-updates/universe amd64 Packages [1616 kB]
-Get:29 https://repo.huaweicloud.com/ubuntu jammy-updates/restricted amd64 Packages [7836 kB]
-Get:30 https://repo.huaweicloud.com/ubuntu jammy-updates/multiverse amd64 Packages [92.7 kB]
-Get:31 https://repo.huaweicloud.com/ubuntu jammy-updates/main amd64 Packages [4524 kB]
-Get:32 https://developer.download.nvidia.cn/compute/cuda/repos/ubuntu2204/x86_64  InRelease [1581 B]
-Get:33 https://developer.download.nvidia.cn/compute/cuda/repos/ubuntu2204/x86_64  Packages [2899 kB]
-Fetched 35.9 MB in 8s (4487 kB/s)
-Reading package lists...
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-        600 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64  Packages
-Reading package lists...
-Building dependency tree...
-Reading state information...
-cuda-compiler-13-0 is already the newest version (13.0.3-1).
-cuda-compiler-13-0 set to manually installed.
-cuda-libraries-dev-13-0 is already the newest version (13.0.3-1).
-The following NEW packages will be installed:
-  ninja-build
-0 upgraded, 1 newly installed, 0 to remove and 71 not upgraded.
-Need to get 111 kB of archives.
-After this operation, 358 kB of additional disk space will be used.
-Get:1 https://repo.huaweicloud.com/ubuntu jammy/universe amd64 ninja-build amd64 1.10.1-1 [111 kB]
-debconf: delaying package configuration, since apt-utils is not installed
-Fetched 111 kB in 0s (612 kB/s)
-Selecting previously unselected package ninja-build.
-(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 77945 files and directories currently installed.)
-Preparing to unpack .../ninja-build_1.10.1-1_amd64.deb ...
-Unpacking ninja-build (1.10.1-1) ...
-Setting up ninja-build (1.10.1-1) ...
-{"torch": "2.13.0+cu130", "torch_cuda": "13.0", "cuda_available": true, "device": "NVIDIA GeForce RTX 5090", "capability": [12, 0], "cpp_extension_cuda_home": "/usr/local/cuda-13.0"}
-{"torch": "2.13.0+cu130", "torch_cuda": "13.0", "cuda_available": true, "device": "NVIDIA GeForce RTX 5090", "capability": [12, 0], "cpp_extension_cuda_home": "/usr/local/cuda-13.0"}
-完成时间: 2026-08-06T12:21:22+08:00

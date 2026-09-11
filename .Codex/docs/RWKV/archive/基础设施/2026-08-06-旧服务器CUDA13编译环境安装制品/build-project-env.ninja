@@ -1,9 +1,0 @@
-nvcc = /usr/local/cuda-13.0/bin/nvcc
-
-rule cuda_compile_and_link
-  command = $nvcc -std=c++17 -O2 -lineinfo -arch=sm_120 $in -o $out
-  description = NVCC $out
-
-build minimal_cuda_smoke_project_env: cuda_compile_and_link minimal_cuda_smoke.cu
-
-default minimal_cuda_smoke_project_env
