@@ -594,6 +594,51 @@ Zotero 应用恢复后，经 MCP 逐条导入。**成功 10 / 失败 0**（Tram�
 
 **统一去向**：以上全部 key 已同步进 [第三章方法来源台账](../../../thesis/methods/第三章-方法来源台账.md) 的对应条目与 §七 Zotero 状态汇总。
 
+## L 组件 2 的定点排重（2026-09-11）：阈值诱导的逐样本误报加权
+
+> **被排重对象（组件 2）**：良性误报加权——batch 内**当前模型判恶意**的真良性样本 CE × `3.0`。
+> **数学对象**：固定决策阈值诱导的超额风险 `ψ_b(s) = ℓ_b(s) + 2(ℓ_b(s) − c_t)₊`，`c_t = −log(1−t)`，`t = 0.5`。
+> **等价化简（本代理推导，供核对）**：`c_t = −log(1−t)`，而良性样本的 `ℓ_b(s) = −log(1−p)`（`p`＝模型判恶意概率）⇒ **`ℓ_b(s) > c_t ⟺ p > t`** ⇒ `(ℓ_b(s) − c_t)₊` **恰是「该良性样本在当前工作点上被判恶意的指示」的平滑化**。故本组件的精确形态是：**以分类工作点为激活点、按当前模型输出逐样本决定的良性类线性放大**。
+
+### L.1 结论：**未检得精确同构先例**（但两个组成成分**各自都有先例**）
+
+| 成分 | 是否已有先例 |
+| --- | --- |
+| **阈值／工作点进入损失函数** | **有**（AdaCSL、ASL、label-dependent-cost 校准代理损失） |
+| **逐样本、依赖当前模型输出的加权** | **有**（Seesaw、NuCE、LiLAW、Focal、AFL） |
+| **二者的精确复合**（以工作点为激活点 ＋ 逐样本 ＋ 对良性类在阈值以上**线性放大**） | **未检得同构先例** |
+
+### L.2 最近邻（按接近程度降序；**全部为在线候选，未入库**）
+
+| # | 题录 | 机制位置 | 与本组件的精确差异 |
+| --- | --- | --- | --- |
+| 1 | **ASL** — Ridnik, Ben-Baruch, Zamir, Noy, Friedman, Protter, Zelnik-Manor，*Asymmetric Loss For Multi-Label Classification*，ICCV 2021（arXiv `2009.14119`；官方实现 `github.com/Alibaba-MIIL/ASL`） | 负类项做**概率平移** `p_m = max(p − m, 0)` 后再施聚焦指数：`L = −[y(1−p)^{γ+}log p + (1−y)p_m^{γ−}log(1−p_m)]` | **最接近**：同样是「负类 ＋ 模型输出依赖 ＋ 阈值平移」。**三处不同**：① ASL 对困难负样本是**封顶/丢弃**（`−log(1−p_m) → −log m` 有界），本组件是**线性放大**（无上界）；② ASL 的 `m` 是**超参**，不由决策工作点推出，本组件的 `c_t` **由 `t` 唯一确定**；③ ASL 面向多标签正负不平衡，无「良性误报」的安全语义 |
+| 2 | **AdaCSL** — Volk & Singer，*Adaptive Cost-Sensitive Learning in Neural Networks for Misclassification Cost Problems*，*Intelligent Systems with Applications* 2023（arXiv `2111.07382`） | 把**阈值比**与**代价比**乘进负类损失：`L = −y log ŷ − (C(1,0)/C(0,1))·((1−T′)/T′)·(1−y)log(1−ŷ)`（其 Theorem 2）；阈值按验证集**分组最优阈值**逐 epoch 更新 | **第二接近**：阈值**确实进入损失权重**。**两处不同**：① 权重是**类级**（作用于**全部**负样本），本组件是**逐样本**（只作用于当前判恶意的良性样本）；② 阈值来自验证集分组搜索，本组件由**分类工作点直接解析给出** |
+| 3 | **Seesaw Loss** — Wang, Zhang, Cui 等，*Seesaw Loss for Long-Tailed Instance Segmentation*，CVPR 2021（arXiv `2008.10032`） | **动态**利用「累计样本数比」＋「**训练中的实例级误分类**」；compensation factor 明确写为「compensate the gradients of **misclassified samples** to **avoid false positives**」 | 目标函数措辞与本组件最像（误分类＋避免假阳）。**两处不同**：① 服务长尾类别频率校正，不涉及**决策阈值**；② 作用在**被误分类样本自身类别项**上，不是「良性类 ＋ 阈值以上额外线性罚」 |
+| 4 | **Calibrated Surrogate Losses for Classification with Label-Dependent Costs**（arXiv `1009.2718`） | 铰链情形给出**铰链位于工作点 `α`** 的分段线性代理：`H(η) = η − α`（`η ≥ α`）／`(α−η)/γ`（`η < α`），`γ` 重加权阈值下分支 | 结构上与「铰链在工作点」同源。**三处不同**：① 铰链在**预测概率轴**、面向成本敏感的**校准一致性**；② 其阈值下分支是**缩小**（`/γ`），本组件是**放大**；③ 不针对假阳性的安全语义 |
+| 5 | **NuCE**（per-sample uncertainty-driven reweighting，`w = (1 − max_k p_k)^γ`）、**LiLAW**（由当前分数构造 `W_α/W_β/W_δ` 三段权重）、**Focal Loss**（`(1−p_t)^γ`）、**AFL**（学出来的难度系数） | 逐样本、模型输出依赖的**连续**调制 | **无阈值**：权重随输出**平滑**变化，没有「越过工作点后改变斜率」的**折点**。⇒ 反过来说，**Focal 类不是本组件的特例，本组件也不是 Focal 的特例** |
+| 6 | **OHEM**（已入库，见 [台账](../../../thesis/methods/第三章-方法来源台账.md) §6.1） | 按损失排序取 top-k 入批 | 是**选择**（0/1 入批），不是**加权**；且用**绝对损失**排序，无工作点诱导 |
+| 7 | **cost-sensitive learning with prediction-dependent costs** `c_i(ŷ_i)` | — | 该**子类**在综述性材料中被明确承认（代价可同时依赖实例与模型输出），但**本轮未检得以它为标题的经典论文**；且其代价通常来自**外生变量**（金额、寿命），非模型输出 |
+
+### L.3 已查检索式与工具状态（如实登记）
+
+- **本地混合检索**（索引 `built_at 2026-09-11T02:52`，`note_count 2229`，`chunk_count 156766`，**非 stale**）：查询式 `cost-sensitive learning asymmetric misclassification cost false positive weighting`、`threshold-dependent sample weighting decision threshold loss reweighting`、`误报加权 代价敏感 不平衡 损失函数`、`loss amplification above threshold false positive penalty detection`。**返回的是近邻家族**（Neyman-Pearson 分类、CALIBURN 保形风险控制、Extreme-FPR 恶意软件检测、Online Adaptive Anomaly Thresholding、QuantTree），**无一篇命中本组件的精确形态**。
+- **Zotero 语义检索**：`cost-sensitive learning asymmetric misclassification cost false positive weighting` → 返回 10 条但**相似度全为负**（−0.077 ~ −0.242），命中集中在标签移位与域适配，**无相关项**。
+- **rg 扫描**：`wiki/papers/` 全库 5 组模式（`cost-sensitive`／`代价敏感`／`threshold-dependent`／`decision threshold`／`focal loss`；`false positive.*weight`／`误报.*加权`／`asymmetric.*loss`／`class weight`；`ramp loss`／`loss truncation`／`hinge`；`AdaCSL`／`prediction-dependent`／`instance-dependent cost`；`extreme FPR`／`operating point`／`工作点`）**均无本组件的同构记载**。
+- **在线补充检索式**：`asymmetric loss multi-label false positive probability threshold shift`、`instance-dependent cost-sensitive learning loss weighting depends on model prediction false positive penalty threshold`、`AdaCSL adaptive cost-sensitive learning negative class weight validation threshold`、`"loss reweighting" misclassified samples current model prediction per-sample weight false positive penalty detection`、`training loss piecewise linear reweighting hinge above threshold decision boundary operating point aware loss`。
+
+### L.4 表述纪律（**强制，随结论一起写**）
+
+1. **禁「首次」**，一律写 **「未检得同构先例」**——「未检得」不是不存在证明（同族术语高度不统一：instance-dependent cost／prediction-dependent cost／augmentation reweighting／hard-view mining／operating-point-aware loss／calibration-consistent surrogate）。
+2. **不得把「未检得复合」当作创新差量已成立**。**每一半的成分都有先例**；按本路线 MMEL 的先例教训，**「只差一个复合」不自动等于足够大的方法创新差量**。本组件若要作为正式机制主张，须由 **H 臂的同预算单因素实验**（判据 G2／G3／G4）支撑，**不能靠文献空白支撑**。
+3. **与组件 1 的关系不变**：组件 2 的职责已由 F／G 臂实测界定为**纯 FPR 保护**（G 臂检出与 A 持平而 FPR `0.0120` 低于 A `0.0145`，见 [task_plan](task_plan.md) §5.6.2）——**该实验结论不因本次文献排重而改变**。
+4. **可安全借鉴之处（不是差量主张）**：ASL 的「负类概率平移」提示**阈值可作超参之外的解析选择**；AdaCSL 的「阈值比进权重」给出了 `(1−T′)/T′` 这一**可直接对照的参数化**；Seesaw 的 compensation factor 提供了「**误分类 → 避免假阳**」的**目标函数措辞先例**。若正文需要为「为什么以工作点为激活点」给文献依据，这三条**是可以引的**（但均需先按 `raw/`+`wiki/` 流程入库）。
+
+### L.5 待办
+
+- 若正文要引 ASL／AdaCSL／Seesaw 中任一，**须先入库全文**（`raw/` 原件 + `wiki/` 全文笔记 + Zotero + INDEX），当前状态为**仅在线候选，不得支撑正文论断**。
+- `1009.2718` 的作者与 venue **未核验**（本轮只取到 ar5iv 页面），入库时须补题录。
+
 ## I 主代理验收问答与结论（2026-09-11）
 
 > 本节回应主代理对 `beffd50` 的验收反馈（三采纳、一待定）与五个疑问。**只作文献层与设计层回答，不构成任何实验授权或判据冻结。**
