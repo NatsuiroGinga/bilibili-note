@@ -94,6 +94,31 @@ def perturb_half(domain: str, rng: random.Random) -> str:
     return "".join(b) + tail
 
 
+def perturb1(domain: str, rng: random.Random) -> str:
+    """1 位替换（弱攻击档，L 臂课程 epoch 1 用）：随机替换 SLD 的 1 个位置。"""
+    body = domain.rsplit(".", 1)[0]
+    tail = "." + domain.rsplit(".", 1)[1] if "." in domain else ""
+    if len(body) < 1:
+        return domain
+    b = list(body)
+    i = rng.randrange(len(body))
+    c = rng.choice(ALPHA)
+    while c == b[i]:
+        c = rng.choice(ALPHA)
+    b[i] = c
+    return "".join(b) + tail
+
+
+def gen_variants_L(domain: str, ep: int, rng: random.Random) -> list:
+    """L 臂课程档位算子：epoch 1=1 位(弱) → 2=2 位(中) → 3=半替换(强)。
+    相邻档位分布漂移最小化（Shi&Liu 2024 课程 AT 在线视角的调度原则）。"""
+    if ep == 1:
+        return [perturb1(domain, rng) for _ in range(4)]
+    elif ep == 2:
+        return [perturb2(domain, rng) for _ in range(4)]
+    return [perturb_half(domain, rng) for _ in range(4)]
+
+
 def load_split(limit: int) -> tuple[list[str], np.ndarray]:
     tb = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_benign_train.parquet").to_pylist()[:limit]
     td = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_dga_train.parquet").to_pylist()[:limit]
@@ -145,6 +170,8 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     ea, eay = eval_adv
     rng = random.Random(SEED)
     adv_cache: dict[int, list[str]] = {}
+    adv_cache_l: dict[tuple, list] = {}  # L 臂课程缓存（键含 epoch）
+    adv_cache_m: dict[tuple, list] = {}  # M 臂 Mix 缓存（键=(样本, 档位)）
     benign_cache: dict[int, list[str]] = {}
     benign_rng = random.Random(SEED + 7)  # 良性变体独立种子，不与恶意变体序列耦合
     tau_val = torch.tensor(0.5, device=DEVICE)  # J 臂对偶变量 τ（RU 形式 min_τ）
@@ -170,6 +197,99 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                             adv_batch.append(adv_cache[i][0])
                         else:
                             adv_batch.extend(adv_cache[i])  # C 臂：K=4 变体全部入批，组相对加权才作用在变体上
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "L":
+                # L 臂（攻击难度课程 × 组相对过滤，Shi&Liu 2024 漂移最小化框架的 DGA 实例化）：
+                # epoch 1=1 位替换(弱) → 2=2 位(中) → 3=半替换(强)，相邻档位分布漂移最小；
+                # 每档内部组相对过滤与 D 完全一致。判据（冻结，方案 §5.12）：
+                # L vs D 同 screening 规格：maskdga 面板检出改善，或检出持平+干净 FPR 更低；
+                # 理论预期（Shi&Liu 界）：课程版逐 epoch FPR 曲线更平稳、最终检出 ≥ D。
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                cands: list[str] = []
+                cand_owner: list[int] = []
+                for i in mal_idx:
+                    key = (i, ep)
+                    if key not in adv_cache_l:
+                        adv_cache_l[key] = gen_variants_L(train_d[i], ep, rng)
+                    for v in adv_cache_l[key]:
+                        cands.append(v)
+                        cand_owner.append(i)
+                adv_batch = []
+                if cands:
+                    model.eval()
+                    with torch.inference_mode():
+                        _sc = []
+                        for off in range(0, len(cands), EVAL_BATCH):
+                            _tk = official.encode_subword(cands[off:off + EVAL_BATCH], tokenizer).to(DEVICE)
+                            _ch = official.encode_char(cands[off:off + EVAL_BATCH]).to(DEVICE)
+                            with autocast_ctx():
+                                _tf, _cf = diag.branch_features(model, _tk, _ch)
+                            _lg = model.classifier_head(torch.cat([_tf, _cf], dim=1))
+                            _sc.append(torch.softmax(_lg.float(), dim=1)[:, 1].cpu().numpy())
+                    p_cand = np.concatenate(_sc)
+                    fooled = (p_cand < 0.5).astype(np.float64)
+                    groups: dict[int, list[int]] = {}
+                    for j, o in enumerate(cand_owner):
+                        groups.setdefault(o, []).append(j)
+                    scored: list[tuple[float, int]] = []
+                    for js in groups.values():
+                        f = fooled[js]
+                        adv_g = f - f.mean()
+                        scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
+                    scored.sort(key=lambda t: (-t[0], t[1]))  # 确定性并列破法（notes.md §J 修正②）
+                    adv_batch = [cands[j] for _, j in scored[:64]]
+                    model.train()
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "M":
+                # M 臂（Mix 对照，HARD-GATE 外审 §4.2）：三档候选池每批均匀混合、无课程顺序，
+                # 选择机制与 L/D 完全一致。归因结构：L−M = 课程顺序增量；M−D = 新增曝光增量。
+                # 判据 v2（冻结）：主判据=Mask 检出改善且 FPR 代价 Δ_B≤+0.005，或 Mask 非劣(|Δ_M|≤0.003)且 FPR 改善；
+                # 配对变化 Δ_B=(N_良性0→1−N_良性1→0)/N_良性 需报告（±0.003 为概率绝对差 0.3pp）
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                cands: list[str] = []
+                cand_owner: list[int] = []
+                for i in mal_idx:
+                    for tier in (1, 2, 3):
+                        key = (i, tier)
+                        if key not in adv_cache_m:
+                            if tier == 1:
+                                adv_cache_m[key] = [perturb1(train_d[i], rng) for _ in range(4)]
+                            elif tier == 2:
+                                adv_cache_m[key] = [perturb2(train_d[i], rng) for _ in range(4)]
+                            else:
+                                adv_cache_m[key] = [perturb_half(train_d[i], rng) for _ in range(4)]
+                        for v in adv_cache_m[key]:
+                            cands.append(v)
+                            cand_owner.append(i)
+                adv_batch = []
+                if cands:
+                    model.eval()
+                    with torch.inference_mode():
+                        _sc = []
+                        for off in range(0, len(cands), EVAL_BATCH):
+                            _tk = official.encode_subword(cands[off:off + EVAL_BATCH], tokenizer).to(DEVICE)
+                            _ch = official.encode_char(cands[off:off + EVAL_BATCH]).to(DEVICE)
+                            with autocast_ctx():
+                                _tf, _cf = diag.branch_features(model, _tk, _ch)
+                            _lg = model.classifier_head(torch.cat([_tf, _cf], dim=1))
+                            _sc.append(torch.softmax(_lg.float(), dim=1)[:, 1].cpu().numpy())
+                    p_cand = np.concatenate(_sc)
+                    fooled = (p_cand < 0.5).astype(np.float64)
+                    groups: dict[int, list[int]] = {}
+                    for j, o in enumerate(cand_owner):
+                        groups.setdefault(o, []).append(j)
+                    scored: list[tuple[float, int]] = []
+                    for js in groups.values():
+                        f = fooled[js]
+                        adv_g = f - f.mean()
+                        scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
+                    scored.sort(key=lambda t: (-t[0], t[1]))
+                    adv_batch = [cands[j] for _, j in scored[:64]]
+                    model.train()
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
