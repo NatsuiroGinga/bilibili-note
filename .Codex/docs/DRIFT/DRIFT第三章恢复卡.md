@@ -141,5 +141,6 @@ route/selection 族只在本键空间与本预算下未通过（[task_plan.md](.
 - [DRIFT 正锚点核查裁决与任务目录](../2026-09-09-DRIFT正锚点核查/task_plan.md)
 - [方法论复盘：为什么此前找不到成熟的路](../2026-09-09-DRIFT正锚点核查/methodology-postmortem.md)
 - [DRIFT 历史交接入口](DRIFT历史交接入口.md)
+- [朱焱雷第三章工作量与指标体系对位（含本课题正式实验指标与消融设计建议）](../2026-09-10-DGA对抗鲁棒组相对方案/zhuh-ch3-benchmark.md)
 
 除上述当前状态与唯一动作外，旧 LSPR、FT、ETA-BER、CEM-BER 和 RWKV 训练内容均不属于本卡。

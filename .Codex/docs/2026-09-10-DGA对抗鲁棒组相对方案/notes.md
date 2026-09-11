@@ -195,3 +195,201 @@
 8. **制品跟踪状态（已更新）**：E-A1 v2 三项制品、四个诊断脚本、v1 脚本，以及 P2／P3 的 `p2p3_grpo_proxy.py`／`p2p3-result-DRYRUN.json` **已随本目录入库**（commit `3a79cff`，13 文件；`__pycache__` 由 .gitignore 排除）。
 9. **P4 文献线索未入库**（李艺春 2025、杜威 2019、罗彪 2025、Hernandez-Leal 2019、Tampuu 2017、Tan 1993、Lowe MADDPG 2017）：题录／全文／页码均未核验，**不得引用**，投入 P4 前须完成入库。
 10. **Drichel 精读待交付（前置臂 C 冻结）**：由文献代理 `ab7083c2` 进行中；task_plan §6.4 已标“基于笔记级核验、未精读”，精读结论交付后由主代理裁决并回填页码锚点。
+
+## H 臂前置核验：RLOO 定理与误报注入近邻（2026-09-10）
+
+> **本节核验执行日期为 2026-09-11**（节标题沿用任务书给定字面串，便于检索）。本节只登记文献核验结果，不构成任何已支持机制、已批准方向或已冻结判据；判据数值门仍待主代理冻结。
+> **覆盖范围**：任务 1（RLOO 组内基线定理精确核验）、任务 2（误报注入攻击近邻检索）。
+
+### H.1 RLOO（arXiv 2402.14740）组内留一基线定理核验
+
+**核验物件**：原件 `raw/papers/grpo/2024-Ahmadian-Back-to-Basics-RLOO-REINFORCE-Style.pdf`（*Back to Basics: Revisiting REINFORCE Style Optimization for Learning from Human Feedback in LLMs*，Ahmadian 等，arXiv:2402.14740v2，28 页）。既有笔记：`wiki/papers/grpo/2024-Ahmadian-Back-to-Basics-RLOO-REINFORCE风格.md`。
+
+**核验方法（证据等级：MinerU 全文 + 逐页复核）**：MinerU `extract` 模式全篇转 Markdown（产物 `/tmp/rloo-mineru/`，一次性中间物，不入库）；页码用 `pypdf 6.18.0` 逐页文本索引独立复核。**印刷页码 = PDF 页码**（逐页页脚实测：PDF p.5 页脚 `5`、p.6 页脚 `6`、p.13 页脚 `13`）。
+
+#### H.1.1 留一均值基线的精确定义与公式
+
+| 项 | 核验结果 | 页码锚点 |
+| --- | --- | --- |
+| LOO 估计量主式 | `(1/k) Σ_{i=1}^{k} [ R(y_(i),x) − (1/(k−1)) Σ_{j≠i} R(y_(j),x) ] ∇logπ(y_(i)\|x)`，`y_(1..k) ~i.i.d. π_θ(·\|x)` | **§2.3，p.6**；**该式在原文无编号** |
+| 基线本体 `b_LOO` | `b_LOO(y_(i)) = (1/(k−1)) Σ_{j≠i} R(y_(j),x)`，即**其余 k−1 条**样本奖励的均值 | p.6 |
+| 一般基线减除式 | `(R(y,x) − b)∇logπ(y\|x)` = **式(7)** | p.6 |
+| 全局移动平均基线 | `b_MA = (1/S) Σ_s R(x^s,y^s)` = **式(8)** | p.6 |
+| 式(6) REINFORCE 梯度 | `E[R(y,x)∇logπ_θ(y\|x)]` | p.5 |
+
+**⚠️ 对既有 wiki 笔记的更正（必须登记，防复发）**：`2024-Ahmadian-Back-to-Basics-RLOO-REINFORCE风格.md` 第 17、46 行写「RLOO 估计量（**式(9)** 附近，§2.3，**p.5**）」。经原件双路径抽取（MinerU + pypdf）核验：
+
+1. **§2.3 位于 p.6，不是 p.5**（p.5 是 §2.2 REINFORCE 与式(5)(6)）。
+2. **RLOO 估计量在原文没有编号**——公式后直接接 `Where k refers to...`，无 `(9)` 标签。
+3. **式(9) 实际在 p.8**，是 Vanilla PG 的「轨迹回报 − 学习基线」优势项 `Σ_{t} γ^{T−i−1} R_t(x,y_t) − b_φ(s_t)`（`b_φ(s_t)` 为学习到的价值网络基线），**与 RLOO 无关**。
+
+该误链会把「学习基线（有偏的价值网络）」与「无参留一基线（无偏）」两类完全不同的基线机制混为一谈，是 H 臂理论表述的直接风险源。**该笔记的 `method` 与「机制」两处锚点已按本次核验就地更正**；`key_finding` 字段未含方程编号，无需改动。
+
+#### H.1.2 无偏性陈述：原文有无正式命题／推导
+
+**结论：没有。** 全文不存在针对 RLOO 无偏性的命题、定理、引理或附录推导；只有三处**散文级**陈述：
+
+| 位置 | 原文陈述（摘） | 性质 |
+| --- | --- | --- |
+| p.5（式(7) 上下文） | "...reduce the variance of the estimator in Eq. 6, **while keeping it unbiased**, by subtracting a baseline b that has high covariance with the stochastic gradient estimate of Eq. 6 (Williams, 1992; Mnih & Gregor, 2014)" | 断言 + 转引 |
+| p.6 | "...can be used for further **unbiased variance reduction**" | 断言 |
+| p.6 | "uses the remaining k − 1 samples to create an **unbiased estimate of the expected return** for the prompt, akin to a parameter-free value-function, but estimated at each training step" | 断言 |
+
+- **前提条件**：原文未显式列出。可核到的唯一结构假设写在公式尾部的 `y_(1),...,y_(k) ~i.i.d. π_θ(.|x)`（p.6）；`E[∇logπ]=0` 与「跨样本独立性使交叉项为零」这两步**原文没有写出来**。
+- **方法出处**：RLOO 估计量被明确归给 **Kool et al. 2019, "Buy 4 REINFORCE Samples, Get a Baseline for Free!"（DeepRLStructPred@ICLR）**，见 p.6 正文与参考文献（p.19–20）。**该文原件不在本仓库**，本次未检索、未核验其定理。
+- **能否作为我们 proposition 的引用依据**：**不能（证据不足）**。2402.14740 只能被引作「该文如此陈述／沿用 Kool 等的结果」；本课题正文若要写「留一基线减除不引入偏差」的正式命题，只有两条路——(a) **自证**（如下 H.1.4 的两步推导，本代理已给并已数值自检），或 (b) 取得 Kool 2019 原文后引其定理与前提。
+
+#### H.1.3 方差缩减陈述：形式化 or 实证
+
+**结论：无形式化论证，只有直觉陈述 + 一条经验表格。**
+
+| 类型 | 内容 | 位置 |
+| --- | --- | --- |
+| 直觉陈述（唯一） | "resulting in a **variance-reduced multi-sample Monte-Carlo (MC) estimate**"，并以两条理由说明：(1) 每条样本奖励可为其余样本当基线；(2) 策略更新在多样本梯度估计的均值上做 | p.6 |
+| 经验读数 | **Table 2**（Anthropic-HH）`Reward-Var.` 列 | p.13 |
+
+Table 2 `Reward-Var.` 实测值：RLOO(k=4) `3.1`／RAFT(k=4) `3.2`／RLOO(k=2) `3.0`／RAFT(k=2) `3.1`／REINFORCE w/ baseline `2.7`／Vanilla PG `3.7`／PPO `2.3`／DPO `N/A`。
+
+**三条防误引（逐条有原文锚点）**：
+
+1. **口径错位**：`Reward-Var.` 度量的主语是「**生成的奖励方差**」（原文 p.13：*"lower reward variance **amongst the generations**"*），**不是梯度估计量的方差**。用它支撑「梯度估计器方差下降」是换口径，属无效引用。
+2. **「27% 更小方差」的主语是 REINFORCE-with-baseline，不是 RLOO**（p.13–14：*"REINFORCE with baseline, however, empirically results in 27% less variance"*）。可复算：`(3.7 − 2.7)/3.7 = 27.0%`。
+3. **RLOO 的奖励方差并非最低**：PPO 为 `2.3`，低于 RLOO 的 `3.0–3.1`。Table 2 因此**不能**支撑「RLOO 方差最小」。
+
+**能否作为引用依据**：方差缩减只能引作「作者的经验观察（Table 2 `Reward-Var.` 列，p.13）」，**不能引作形式化方差缩减定理**。
+
+#### H.1.4 与 GRPO（2402.03300）全组均值基线的差异
+
+两文互不引用（同为 2024-02 投稿，各自独立）。
+
+**GRPO 侧的基线定义**：`Â_{i,t} = r̃_i = (r_i − mean(r)) / std(r)`，正文**内联、无编号**，位置 **2402.03300 p.14**（印刷页码 = PDF 页码，页脚实测），原文为 *"these rewards are normalized by subtracting the group average and dividing by the group standard deviation"*。注意 GRPO 是**两步**：先减全组均值，再除全组标准差。
+
+**无偏性差别（本代理推导 + 精确枚举数值自检）**：设组 `y_(1..k) ~i.i.d. π_θ(·|x)`，记 `g_i = ∇logπ_θ(y_(i)|x)`。利用 i.i.d. 下 `E[R_j g_i] = E[R]·E[g_i] = 0 (j≠i)` 与 `E[g] = 0`：
+
+- **留一版**：`E[G_LOO] = (1/k) Σ_i E[R_i g_i] = E[R∇logπ]` ⇒ **期望精确等于式(6) REINFORCE 梯度，无偏**。
+- **全组均值版**：`E[G_group] = (1 − 1/k)·E[R∇logπ]` ⇒ **系统性缩放到 `(1−1/k)` 倍**，作为梯度估计量**有偏**（自身样本 `R_i` 与 `g_i` 的相关项未被消去）。
+
+**数值自检（合成玩具分布，非实验）**：3 个动作、`k=3`、精确枚举全部 27 个组（脚本 `/tmp/rloo-mineru/unbiased_check.py`，一次性中间物）。留一版逐分量比值 `1.000000`（最大绝对误差 `2.22e-16`，机器精度）；全组均值版逐分量比值 `0.666667`，与 `1 − 1/k = 0.6666667` 的最大偏差 `3.33e-16`。**该自检只验证代数恒等式，不构成对本课题数据或任务的任何结论。**
+
+**必须与结论一起书写的限定**：`(1−1/k)` 是**正的标量倍数**，只缩放期望梯度方向上的步长、不改变期望方向（等价于有效学习率的缩放）。这解释了为何 GRPO 在主流实现中长期可用，而对其「有偏」的批评只以副作用形式出现；但把 GRPO 优势称为「无偏梯度估计」在数学上不成立。
+
+**独立佐证（本地全文）**：REINFORCE++（`wiki/papers/grpo/2025-Hu-REINFORCE-plus-plus全局优势归一化.md`，arXiv:2501.03262v9）摘要与 §2.2（p.2）明确把 GRPO／RLOO 一类的**提示级（局部）优势归一化**列为「有偏估计」，并指出 k=1 时局部归一化不存在（p.3）；解法是把统计量搬到全局批次（式(5)，p.3），随批量增大渐近无偏。**注意该文的批评对象是「除以组内标准差」这一步**；它与本代理的代数结论（留一键的**均值**减除本身无偏）并不冲突，引用时不得把两者合并成一条笼统结论。
+
+#### H.1.5 对 H 臂的可用性裁决（文献层，非实验层）
+
+| 主张 | 可否引用 2402.14740 支撑 | 可用替代依据 |
+| --- | --- | --- |
+| 留一均值基线的定义与形式 | **可以**（p.6，须注明该式无编号） | — |
+| 「留一基线不引入偏差」的正式命题 | **不可以**（原文无命题、无推导、无前提） | 自证（H.1.4 两步推导）或 Kool et al. 2019 原文 |
+| 「组内基线带来方差缩减」的形式化陈述 | **不可以**（只有 p.6 直觉陈述） | 无可替代；若须写，需自证或另找来源 |
+| 「RLOO 方差低于 X」的经验比较 | **可以但须限定**为 Table 2 的**奖励方差**（p.13），且该列不支持「RLOO 最低」 | — |
+| 与 GRPO 全组均值基线的无偏性差别 | **不可以**（两文互不引用，原文无此比较） | 自证（H.1.4）＋ REINFORCE++ p.2 的「局部归一化有偏」佐证 |
+
+**一条边界**：上述裁决只针对「引用依据是否充分」，**不构成对留一基线或组相对机制在本课题检测任务上是否有效的任何判断**；该判断仍须由本课题实验裁决。
+
+#### H.1.6 对 H 臂设计的文献层提示（三条，均不构成对 H 臂有效性的判断）
+
+> 对症 [H 臂 Research Question Card](h-arm-research-question-card.md)（2026-09-10 冻结）第 11 行假设、第 20–21 行证据表与第 42 行最小下一步。**以下三条不改动该卡的冻结判据**，只登记文献层约束与本课题推论。
+
+**① H 卡的「组内相对信号（组均值基线）提供方差缩减」不能引 2402.14740。** 该文的方差缩减只有散文直觉（p.6）与 Table 2 的**奖励方差**经验列（p.13）；且该列**不支持「RLOO 方差最低」**（PPO `2.3` 低于 RLOO 的 `3.0–3.1`），「27%」的主语也**不是 RLOO 而是 REINFORCE-with-baseline**。H 臂若要在正文写这一主张，须自证或另找来源（见 H.1.3、H.1.5）。
+
+**② 组均值基线 vs 留一基线在 H 臂的 `k=2` 下会产生一个标量差。** H 卡第 42 行写「良性样本 CharBot 近邻 **1 变体/样本**」⇒ 若组按「{原样本, 1 变体}」构造，组大小 `k = 2`。由 H.1.4 的代数结论：
+
+| 基线形式 | 期望优势 | 在 `k=2` 下的后果 |
+| --- | --- | --- |
+| **留一**（其余 `k−1` 条） | `E[R∇logπ]`，**无偏** | 无额外缩放 |
+| **全组均值**（含自身） | `(1 − 1/k)·E[R∇logπ]` | **系统性缩放到 `0.5`** |
+
+- 该缩放是**正的标量倍数**：**方向不变、幅度减半**（等价于有效学习率减半）。
+- **设计含义（本课题推论，非文献主张）**：H 臂与 F 臂若用**同一学习率**做同预算对比，这个 `0.5` 会成为**混淆项**。建议二者之一——(a) H 臂显式采用**留一式**基线（无缩放、期望无偏），或 (b) 保留全组均值但在登记中写明缩放，并确保与 F 臂的**有效**步长可比。
+- **证伪成本**：低——是否真的受影响可由 H 臂实测（同一设定下两种基线的读数差）判定；本提示**不预测** H 臂结果。
+
+**③ 算子同族提示：H 臂会使 `k2` 面板从「异族」降为「同族」。** H 卡证据行（第 19 行）确认 H 臂的训练算子是 **CharBot 2 位替换**（作用于**良性** SLD）；评价面板 `k2` 同样是 **CharBot 2 位替换**（作用于 **DGA**，task_plan §5.6.1）。两者**同算子、不同样本类**——**不是样本级泄漏**，但模型在该算子的扰动分布上受过训练。task_plan §5.2 已强制「训练用扰动族与评价用扰动族必须分组报告，**泛化主张只能基于异族列**」；**H 臂适用该条，且 `k2` 应归入同族列**。这是本课题的推论，不是文献结论；H 卡第 34 行「maskdga 主面板」的判读口径不受影响（maskdga 为不同算子）。
+
+### H.2 误报注入攻击近邻检索（任务 2）
+
+**检索目标**：判断「攻击者**故意**制造误报（false positive）以耗尽 defender 告警预算／掩护真实攻击」是否有正式学术文献。
+
+**结论（三句）**：
+1. **该攻击模式有正式文献支撑**，但**术语分散、无单一主流命名**（`alarm poisoning`／`false-positive alarm flooding`／`FPR manipulation attack`／`alert flooding` 各有人用）。
+2. **本地库（`wiki/` 第 917 篇 + Zotero 254 篇全文索引）中该攻击模式零命中**；本地命中的全部是**防御侧**材料（告警预算作为设计变量、告警聚合、误报率优化）。
+3. **与本课题场景最贴合的一篇已撤稿**（Ahsan & Liu，arXiv:2601.14505，v2 于 2026-05-05 撤稿），**不得作为正文支撑**。
+
+#### H.2.1 逐条证据（五档标注）
+
+| # | 题名 / 作者 / venue | 证据等级 | 相关强度 | 关键原文片段（英文原句） |
+| --- | --- | --- | --- | --- |
+| 1 | **Crying Wolf in Cyberspace: A Cybersecurity Dynamics Study of Alarm Fatigue Attacks** · Barbierato（单人）· *Information* (MDPI) 2026, 17(5):434 · DOI `10.3390/info17050434` · 附代码库 | **在线摘要**（MDPI 正文 HTTP 403） | **直接定义** | 主张把「告警疲劳」当作**蓄意的社会技术攻击向量**而非系统副产物，提出 **"alarm poisoning"**：攻击者入侵监控基础设施、按可配置强度注入假告警（含安全关键告警）；明确指出其 **targets the human response layer**，与针对自动化过程的 false data injection 相区别 |
+| 2 | **Potential Disguising Attack Vectors on Security Operation Centers and SIEM Systems** · Drahuntsov & Rabchun · *CEST* 2(14):6–14, 2021 · DOI `10.28925/2663-4023.2021.14.614` | **在线摘要**（另有乌克兰语版本，题录双源核验） | **直接定义** | "An attacker may trigger the malfunctioning alarm continuously to **distract the analytics stuff and perform its actions under the cover of noise**."（SIEM/SOC 三规避向量之第三 = false-positive alarm flooding） |
+| 3 | **Uncovering and Understanding FPR Manipulation Attack in Industrial IoT Networks** · Ahsan & Liu · arXiv:2601.14505 · **v2 已于 2026-05-05 撤稿** | **在线摘要 + 撤稿状态** | **直接定义，且与本课题最贴合** | 提出 FPR manipulation attack (FPA)：对良性流量做 packet-level perturbation 使其被误判为攻击。摘要："a systematic simple packet-level perturbation is performed to alter the labels of benign traffic samples"（成功率 80.19%–100%）；"even a small fraction of false positive alerts … can increase the delay of genuine alerts investigations up to 2 hr in a single day"。arXiv comments 原文撤稿理由："Technical contributions have some flaws" |
+| 4 | **False Alarms, Real Damage: Adversarial Attacks Using LLM-based Models on Text-based Cyber Threat Intelligence Systems** · Shafee, Bessani, Ferreira · arXiv:2507.06252（2025-07-05） | **在线全文片段**（ar5iv HTML，未下载入库） | **直接定义，但场景是 CTI 文本分类器，不是流量 NIDS** | §IV-A："injecting a high volume of deceptive FaN and **Fake Positive (FaP)** texts"；"flooding attacks waste the analyst's effort, leading to system failure" |
+| 5 | **Alert Flooding Attack on Snort and Its Mitigation** ·（KSU 站点 PDF） | **仅网页 PDF·题录未完整核验**（HTTPS 证书域名不匹配，作者与年份未确证） | **直接定义**（标题即攻击名） | 内容为告警关联／限流缓解；检索摘要指出知晓窗口式关联的攻击者可**故意把恶意包排在关联窗口之外**——即防御算法本身构成新攻击面 |
+| 6 | **Can Machine Learning Be Secure?** · Barreno, Nelson, Sears, Joseph, Tygar · ASIACCS 2006 · DOI `10.1145/1128817.1128824` | **在线摘要** | **近似（理论母类）** | 对抗 ML 三轴分类学的 **availability attack** 定义正是「制造足够多的误报与漏报使系统实际不可用」，举例：使 IDS 误拒大量合法连接直到管理员被迫关掉 IDS |
+| 7 | **Insertion, Evasion, and Denial of Service: Eluding Network Intrusion Detection** · Ptacek & Newsham, 1998 | **在线摘要（经二手转述，未取原件）** | **近似** | DoS 类别的经典来源，但方向是 **IDS 计算资源耗尽**，非「制造误报消耗人力」 |
+
+**明确不是攻击模式、列出以避免误引的防御侧材料**：Landauer 等 *Dealing with Security Alert Flooding*（ACM TOPS 25(3), 2022，DOI `10.1145/3510581`，标题含 "Alert Flooding" 但全文是**防御方**的告警聚合）、NoDoze（NDSS 2019，防御方自动化分诊，Zotero `3K6INJU2`）、本地 `wiki/papers/methodology/soc-alert-operations/` 全目录（告警预算作为**设计变量**）。
+
+#### H.2.2 两条已知本地线索的强制核验结论
+
+**① StealthCup 2025：不含误报注入／告警预算耗尽攻击向量。**
+
+`wiki/papers/datasets/2025-Kern-StealthCup规避导向IDS基准CTF.md` 的规则设计是「**触发告警即扣分**」（行 20），罚分 `P_t = Σ_k Σ_s w_{k,s}·a_{t,k,s}` 的目标是**最小化**（行 47）。**攻击者被规则设计为避开告警**，与本课题研究目标的**方向相反**。其可用价值在 **defender 侧**：该计分函数本身就是一个加权告警预算，且 Table 2 的「误报率 vs 漏检」权衡（Wazuh 默认 94.79%/95.30%/67.86%，商业方案 0.00% 但漏检更多，行 75–77）是本课题「同时报告 AP 与固定误报预算检出率」的**实测例证**（行 121–123 已作此定位）。**不可引作误报注入攻击的先例。**
+
+**② Zotero `XG6NP6QH`（Schroeder de Witt 等 2021）：不覆盖误报注入模式。**
+
+题录核验：*Fixed Points in Cyber Space: Rethinking Optimal Evasion Attacks in the Age of AI-NIDS*，Schroeder de Witt / Huang / Torr / Strohmeier，arXiv:2111.12197v1，2021-11-23；本地全文笔记 `wiki/papers/datasets/locked-shields-related/2021-SchroederdeWitt-AI-NIDS博弈不动点与规避攻击.md`。该文报告的**误报率上升**（2018 训练在自身验证 FPR 0.8%，换 2017 验证升至 5%，笔记行 70）是**分布漂移的观测后果**，作者**明确自限因果关系**（行 110 逐字："we cannot establish any causal relationship for these changes"），从未提出攻击者蓄意抬高误报；其对抗攻击（FAST）的奖励条件是 `C(x+δ)<0.5`，即**骗过分类器**＝漏报方向，与误报注入**方向相反**。**判定：不覆盖。**
+
+#### H.2.3 已查检索式清单与工具状态（如实披露）
+
+**本地混合检索**（入口 `uv run --project scripts/literature_search --locked python -m scripts.literature_search`，自 worktree 根执行）：
+
+| 查询式 | 模式 | 结果 |
+| --- | --- | --- |
+| `status --json` | — | 成功：2172 笔记 / 154253 chunk / papers 917，**`stale=true`**（source_added 32、source_changed 3） |
+| `query "误报注入 告警预算 耗尽" --scope local --mode hybrid --json` | hybrid | **失败**：`intfloat/multilingual-e5-small is not a local folder and is not a valid model identifier` |
+| 同上（加 `HF_HUB_OFFLINE=1`） | lexical | **超时未返回**（>600 s，已终止） |
+| `query "false positive injection intrusion detection" --scope local --mode hybrid --json` | hybrid | 输出仅为 `索引构建中，等待锁：.cache/literature-search/index.sqlite3.build.lock` |
+| `告警疲劳 攻击 规避`、`alert flooding attack alert budget`、`adversarial false positives camouflage attack` | — | **未执行**（工具在本轮不可用） |
+
+> **工具状态声明（必须随结论转述）**：本轮**无任何一条本地查询成功返回检索结果**，**向量通道未运行**。原因为模型标识无法解析（`HF_HUB_OFFLINE=1` 后转索引增量构建，`timeout 180` 未完成）＋ `stale=true` 且**另有一会话的 `build` 进程持锁重建索引**。因此 H.2 的「本地零命中」结论**主要由 rg 扫描与 Zotero 直查支撑**，不是由混合索引支撑。
+
+**rg 扫描**（`rg -il/-n --no-ignore`，覆盖 `wiki/`、`thesis/`、`output/`、`raw/`）共 **11 组模式**，其中：
+- 关键词组（`误报注入`／`告警洪水`／`alert flooding`／`false positive injection`／`alert fatigue`／`告警疲劳`／`alert budget`／`告警预算`）命中 26–35 个文件，**逐条判读后全部为误报率／告警疲劳的泛化讨论，无一为该攻击模式**；
+- 针对性正则组（攻击性修饰 + false positive/alarm；`exhaust|deplete|drain|overwhelm|saturate` + analyst/defender/alert/budget；`alert flooding` 变体；`adversarial false positive` 变体；IDS DoS；资源耗尽）**除 2 条无关命中外全部 0 命中**。
+
+**Zotero**：MCP 工具本轮**全部不可用**（本地 API `Connection refused`，Zotero 应用未运行）。改用 `zotero.sqlite` **只读直查**替代（`mode=ro&immutable=1`），执行：语义检索返回的 18 个 key 题录解析、标题扫描 2 组、全文索引词级查询 4 组（库内 254 篇有全文索引 / 77381 词）。`fatigue ∧ alert` → 3 条；`flooding ∧ alert` → 2 条；`alerts ∧ exhaustion` → 1 条（CALIBURN）；均非该攻击模式。
+
+**在线补充**：8 条查询式（WebSearch）+ 5 次 WebFetch 核验（`arxiv.org/abs/2507.06252`、ar5iv HTML、`arxiv.org/abs/2601.14505` 成功；MDPI 正文 403、KSU PDF 证书错误失败）。
+
+#### H.2.4 检索未获声明（不得外推为「不存在」）
+
+- **本地全域未获**：`wiki/` 全文、`wiki/papers/` 917 篇、Zotero 254 篇全文索引中，该攻击模式**零命中**（已查清单见 H.2.3）。
+- **顶会未获**：USENIX Security／CCS／NDSS／S&P／ICML／NeurIPS 中，以「alert budget exhaustion attack」或「false positive injection」为主张的论文，**本轮 8 条在线查询式未获**。**这是「本轮已查渠道未获」，不是「不存在」的断言。**
+- **未确证项**：KSU 的 "Alert Flooding Attack on Snort" 因站点证书错误无法核验作者与年份，**存在性未确证**。
+- **MITRE ATT&CK 的对应项未确证**：T1562.011（Impair Defenses: Spoof Security Alerting）来自**安全厂商博客解读，非学术文献**；本轮未取得 MITRE 官方定义文本，**不得据此断言 ATT&CK 收录了该战术**。
+
+#### H.2.5 对 H 臂「原创性边界」的含义（文献层，非实验层）
+
+**这是本方向迄今最主要的原创性风险，必须正面处理**：
+
+1. **攻击模式本身不是空白**——「故意制造误报以掩护／耗尽预算」在 2006 年（Barreno 的 availability attack）已有理论母类，2021 年（Drahuntsov）、2026 年（Barbierato）已有正式命名。**不得把「提出该攻击模式」当作本课题贡献。**
+2. **但「把误报注入作为训练信号」未检索到先例**——现有文献全部停在**威胁建模与影响评估**（攻击可行性、告警延迟、分析师疲劳），**没有一篇把它反用为防御侧的训练目标**（即：让模型对「良性近邻被误判」这一信号敏感）。H 臂的机制差量正落在这一层。
+3. **最贴合的那篇已撤稿**，因此「已被严格实验验证的 FPA」在本轮检索中**不存在可引用的证据**。若要引用该文，只能标为「已撤稿的待验证主张」。
+4. **H 卡需要补一条边界声明**：正文不得写「本课题首次提出误报注入威胁」，只能写「本课题将已有威胁模型（Barbierato 2026 的 alarm poisoning／Drahuntsov 2021 的 false-positive alarm flooding）转化为防御侧的训练信号」。**该措辞调整须经用户裁决**，本文件不代改 H 卡正文。
+5. **若要引用，排序建议**：① Barbierato 2026（同行评议期刊、附代码，用其 **"alarm poisoning"** 命名）与 ② Drahuntsov & Rabchun 2021（明确命名 false-positive alarm flooding，有逐字句）作「攻击模式已被正式命名」的锚点；③ Barreno 2006 作上位理论框架（availability attack）。**三篇均须先按 `raw/AGENTS.md` 与 `wiki/AGENTS.md` 完成入库与全文核验，方可进入正文**；本文件仅登记为**在线候选**。
+
+#### H.2.6 强相关但未入库的论文（仅题录·未入库，未下载）
+
+| 题名 | 作者 / 年份 / venue | ID |
+| --- | --- | --- |
+| Crying Wolf in Cyberspace: A Cybersecurity Dynamics Study of Alarm Fatigue Attacks | Barbierato, 2026, *Information* 17(5):434 | DOI `10.3390/info17050434` |
+| Potential Disguising Attack Vectors on Security Operation Centers and SIEM Systems | Drahuntsov & Rabchun, 2021, *CEST* 2(14):6–14 | DOI `10.28925/2663-4023.2021.14.614` |
+| Uncovering and Understanding FPR Manipulation Attack in Industrial IoT Networks | Ahsan & Liu, 2026 | arXiv:2601.14505（**已撤稿**） |
+| False Alarms, Real Damage: Adversarial Attacks Using LLM-based Models on Text-based Cyber Threat Intelligence Systems | Shafee, Bessani, Ferreira, 2025 | arXiv:2507.06252 |
+| Dealing with Security Alert Flooding: Using Machine Learning for Domain-independent Alert Aggregation | Landauer 等, 2022, ACM TOPS 25(3):1–36 | DOI `10.1145/3510581` |
+| Can Machine Learning Be Secure? | Barreno 等, 2006, ASIACCS | DOI `10.1145/1128817.1128824` |
+
+#### H.2.7 检索代理另报的两项发现（转登记，独立复核结论附后）
+
+1. **凭据暴露（已由本代理独立复核，确证）**：`Zotero.txt`（worktree 根，30 字节）内容为一条 Zotero API key，且**被 Git 跟踪**（`git ls-files` 确证）、**未匹配任何 `.gitignore` 规则**、**历史中有 1 次提交**。检索代理在排查 Zotero 配置时用 `cat` 读取并在会话中回显了它。**处置建议（须用户授权，本代理未执行未授权操作）**：① 立即轮换该 key；② 将文件移出 Git 跟踪并加入忽略；③ 若需清历史，按根规则用 BFG／filter-branch 处理。**本文件与本次汇报均不回显该值。**
+2. **检索索引状态**：`status --json` 报告 **`stale=true`**（source_added 32、source_changed 3）；本轮执行期间另有一会话的 `literature_search build` 进程持锁重建索引，检索代理未干预。**后续使用本地混合检索前须先确认索引已重建且 `stale=false`。**

@@ -127,7 +127,7 @@ ABC-GRPO `2601.03895` · NGRPO `2509.18851` · MMR-GRPO `2601.09085` · Pro-GRPO
 - **[[2017-Schulman-PPO裁剪代理目标|PPO：裁剪代理目标（arXiv:1707.06347）]]** — 式(7)（p.3）与 `min` 的不对称性；自适应 KL 替代（式(8)，p.4）；多轮 minibatch 更新是 off-policy 比率的来源（Algorithm 1，p.5）。
 - **[[2023-Rafailov-DPO直接偏好优化|DPO：直接偏好优化（arXiv:2305.18290）]]** — 推导链式(4)–(7)（p.4）；隐式奖励与 actor-critic 不稳定性论证（§5.1–5.2，p.6）。
 - **[[2025-Hu-REINFORCE-plus-plus全局优势归一化|REINFORCE++：全局优势归一化（arXiv:2501.03262）]]** — 式(4)(5)（p.3）；30 题过拟合对照（GRPO 训练 95.0／OOD 0.0 vs REINFORCE++ 71.0／2.5，§4.2.1，p.5–6）。
-- **[[2024-Ahmadian-Back-to-Basics-RLOO-REINFORCE风格|RLOO：Back to Basics（arXiv:2402.14740）]]** — RLOO 估计量（§2.3，p.5）；裁剪使用率 <5%（§3.2，p.8）；bandit 归约论证（§3.3，p.8）。
+- **[[2024-Ahmadian-Back-to-Basics-RLOO-REINFORCE风格|RLOO：Back to Basics（arXiv:2402.14740）]]** — RLOO 估计量（**§2.3，p.6，原文无编号**；2026-09-11 回原件更正，旧记 p.5 有误）；裁剪使用率 <5%（§3.2，p.8）；bandit 归约论证（**§3.3，p.9**）。
 
 ## 课题汇总笔记
 
