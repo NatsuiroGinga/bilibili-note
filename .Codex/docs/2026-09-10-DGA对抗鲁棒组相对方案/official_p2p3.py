@@ -200,7 +200,44 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm == "L":
+            elif arm == "N":
+                # N 臂（per-group top-1 训练对照，BiB-CP 型分析参照算子，V1 谱系的训练级验证）：
+                # 与 D 同预算（64 变体、批 192）、同变体生成（perturb2）、同组结构（K=4），
+                # 唯一差量 = 选择算子：每组内取 u 最大（s 最小=最难）的 1 个入批，
+                # 无跨组竞争、无中心化。V1 谱系预测捕获率 D 1.0 > N ~0.73 > B 0.435——
+                # 若训练收益与捕获率同序，则定理 1 的算子谱系获得训练级实证。
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                cands: list[str] = []
+                cand_owner: list[int] = []
+                for i in mal_idx:
+                    if i not in adv_cache:
+                        base = perturb2(train_d[i], rng)
+                        adv_cache[i] = [perturb2(base, rng) for _ in range(4)]
+                    for v in adv_cache[i]:
+                        cands.append(v)
+                        cand_owner.append(i)
+                adv_batch = []
+                if cands:
+                    model.eval()
+                    with torch.inference_mode():
+                        _sc = []
+                        for off in range(0, len(cands), EVAL_BATCH):
+                            _tk = official.encode_subword(cands[off:off + EVAL_BATCH], tokenizer).to(DEVICE)
+                            _ch = official.encode_char(cands[off:off + EVAL_BATCH]).to(DEVICE)
+                            with autocast_ctx():
+                                _tf, _cf = diag.branch_features(model, _tk, _ch)
+                            _lg = model.classifier_head(torch.cat([_tf, _cf], dim=1))
+                            _sc.append(torch.softmax(_lg.float(), dim=1)[:, 1].cpu().numpy())
+                    p_cand = np.concatenate(_sc)
+                    groups: dict[int, list[int]] = {}
+                    for j, o in enumerate(cand_owner):
+                        groups.setdefault(o, []).append(j)
+                    for js in groups.values():  # 每组取 s 最小（最难）1 个，无跨组竞争
+                        adv_batch.append(cands[js[int(np.argmin(p_cand[js]))]])
+                    model.train()
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
                 # L 臂（攻击难度课程 × 组相对过滤，Shi&Liu 2024 漂移最小化框架的 DGA 实例化）：
                 # epoch 1=1 位替换(弱) → 2=2 位(中) → 3=半替换(强)，相邻档位分布漂移最小；
                 # 每档内部组相对过滤与 D 完全一致。判据（冻结，方案 §5.12）：
