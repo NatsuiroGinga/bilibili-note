@@ -9,7 +9,8 @@
 - remote_ref：`refs/heads/exp/ch3-drift-20260908`
 - commit：`6c1c81b0f1b61ee95faa822a932d746dec0d8275`
 - snapshot_url：`https://github.com/NatsuiroGinga/bilibili-note/tree/6c1c81b0f1b61ee95faa822a932d746dec0d8275`
-- remote_verification：`origin/exp/ch3-drift-20260908` 已解析到上述提交
+- remote_verification：上述证据提交已推送且可从 `origin/exp/ch3-drift-20260908` 的历史访问；
+  分支头可包含后续交接元数据提交，实质审查固定读取上述证据提交
 - requested_model：`auto`
 - requested_effort：`high`
 - fallback_model：`auto`
