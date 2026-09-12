@@ -1,0 +1,240 @@
+{
+  "input_identity": {
+    "accessed_splits": [
+      "T17_dga_train.parquet"
+    ],
+    "domain_column_only": true,
+    "labels_read": false,
+    "member_list_sha256": "46be35d66e8303ff982a445acb8291228b110dd6413b3f52059d1e3d5b090f51",
+    "members": 30000,
+    "resampling": false,
+    "selection_code_evidence": {
+      "load_split_lines": "140-145",
+      "screening_call_lines": "591-604"
+    },
+    "selection_contract": "official_p2p3.py::load_split(30000) 的 DGA 分支：当前 Parquet 行序 [0,30000)，非随机抽样",
+    "source_file_sha256": "e41a357fbcccd26ba5b853b0af0ce6c7b233256a4cc4bad969de2514aa6aa22d",
+    "source_path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_train.parquet",
+    "source_row_count": 1500000,
+    "source_split": "T17_dga_train.parquet"
+  },
+  "interpretation_boundary": {
+    "current_production_shared_randomness": "当前 gen_variants_L 单档生成，未建立跨档三元组或共享编辑流。",
+    "posthoc_constructible_coupling": "可另行构造共享前缀，证明 T3 的条件命题可实现，但不追溯改变当前 production。",
+    "set_inclusion_only": "各预算威胁集合的包含不提供逐样本、逐字符的共同随机流。"
+  },
+  "observed_replay_summary": {
+    "all_three_pairs_hamming_bound_satisfied_rate": 0.0,
+    "all_three_pairs_observable_nested_rate": 0.0
+  },
+  "posthoc_constructible_shared_prefix_check": {
+    "all_three_pairs_hamming_bound_failure_count": 0,
+    "all_three_pairs_hamming_bound_satisfied_count": 30000,
+    "all_three_pairs_hamming_bound_satisfied_rate": 1.0,
+    "all_three_pairs_observable_nested_count": 30000,
+    "all_three_pairs_observable_nested_failure_count": 0,
+    "all_three_pairs_observable_nested_rate": 1.0,
+    "generation_semantics": "后验可构造：先抽一条无重复位置编辑流，三个预算分别取该流前缀。",
+    "is_current_production": false,
+    "members": 30000,
+    "operator_edit_budget_check": {
+      "m1": {
+        "exact_declared_budget_count": 30000,
+        "exact_declared_budget_rate": 1.0,
+        "mean_actual_changed_positions": 1.0
+      },
+      "m2": {
+        "exact_declared_budget_count": 30000,
+        "exact_declared_budget_rate": 1.0,
+        "mean_actual_changed_positions": 2.0
+      },
+      "mhalf": {
+        "exact_declared_budget_count": 30000,
+        "exact_declared_budget_rate": 1.0,
+        "mean_actual_changed_positions": 7.870233333333333
+      }
+    },
+    "pairwise": {
+      "m1_vs_m2": {
+        "failure_type_counts": {
+          "both_position_and_character_conflict": 0,
+          "lower_edit_position_missing_from_higher": 0,
+          "same_position_replacement_character_conflict": 0
+        },
+        "hamming_bound_failure_count": 0,
+        "hamming_bound_satisfied_count": 30000,
+        "hamming_bound_satisfied_rate": 1.0,
+        "max_integer_hamming_minus_bound": 0,
+        "mean_normalized_budget_gap_bound": 0.08675682418418244,
+        "mean_normalized_hamming": 0.08675682418418244,
+        "observable_nested_output_count": 30000,
+        "observable_nested_output_failure_count": 0,
+        "observable_nested_output_rate": 1.0,
+        "sample_count": 30000
+      },
+      "m1_vs_mhalf": {
+        "failure_type_counts": {
+          "both_position_and_character_conflict": 0,
+          "lower_edit_position_missing_from_higher": 0,
+          "same_position_replacement_character_conflict": 0
+        },
+        "hamming_bound_failure_count": 0,
+        "hamming_bound_satisfied_count": 30000,
+        "hamming_bound_satisfied_rate": 1.0,
+        "max_integer_hamming_minus_bound": 0,
+        "mean_normalized_budget_gap_bound": 0.4024613621107808,
+        "mean_normalized_hamming": 0.4024613621107808,
+        "observable_nested_output_count": 30000,
+        "observable_nested_output_failure_count": 0,
+        "observable_nested_output_rate": 1.0,
+        "sample_count": 30000
+      },
+      "m2_vs_mhalf": {
+        "failure_type_counts": {
+          "both_position_and_character_conflict": 0,
+          "lower_edit_position_missing_from_higher": 0,
+          "same_position_replacement_character_conflict": 0
+        },
+        "hamming_bound_failure_count": 0,
+        "hamming_bound_satisfied_count": 30000,
+        "hamming_bound_satisfied_rate": 1.0,
+        "max_integer_hamming_minus_bound": 0,
+        "mean_normalized_budget_gap_bound": 0.3157045379265627,
+        "mean_normalized_hamming": 0.3157045379265627,
+        "observable_nested_output_count": 30000,
+        "observable_nested_output_failure_count": 0,
+        "observable_nested_output_rate": 1.0,
+        "sample_count": 30000
+      }
+    }
+  },
+  "production_counterfactual_joint_replay": {
+    "all_three_pairs_hamming_bound_failure_count": 30000,
+    "all_three_pairs_hamming_bound_satisfied_count": 0,
+    "all_three_pairs_hamming_bound_satisfied_rate": 0.0,
+    "all_three_pairs_observable_nested_count": 0,
+    "all_three_pairs_observable_nested_failure_count": 30000,
+    "all_three_pairs_observable_nested_rate": 0.0,
+    "generation_semantics": "反事实联合重放：三次 production 调用只连续共享 Random 状态，各自抽样，不取一条编辑流的前缀。",
+    "is_actual_production_cross_tier_path": false,
+    "members": 30000,
+    "operator_edit_budget_check": {
+      "m1": {
+        "exact_declared_budget_count": 30000,
+        "exact_declared_budget_rate": 1.0,
+        "mean_actual_changed_positions": 1.0
+      },
+      "m2": {
+        "exact_declared_budget_count": 30000,
+        "exact_declared_budget_rate": 1.0,
+        "mean_actual_changed_positions": 2.0
+      },
+      "mhalf": {
+        "exact_declared_budget_count": 30000,
+        "exact_declared_budget_rate": 1.0,
+        "mean_actual_changed_positions": 7.870233333333333
+      }
+    },
+    "pairwise": {
+      "m1_vs_m2": {
+        "failure_type_counts": {
+          "both_position_and_character_conflict": 0,
+          "lower_edit_position_missing_from_higher": 24829,
+          "same_position_replacement_character_conflict": 5015
+        },
+        "hamming_bound_failure_count": 29844,
+        "hamming_bound_satisfied_count": 156,
+        "hamming_bound_satisfied_rate": 0.0052,
+        "max_integer_hamming_minus_bound": 2,
+        "mean_normalized_budget_gap_bound": 0.08675682418418244,
+        "mean_normalized_hamming": 0.23930640112739093,
+        "observable_nested_output_count": 156,
+        "observable_nested_output_failure_count": 29844,
+        "observable_nested_output_rate": 0.0052,
+        "sample_count": 30000
+      },
+      "m1_vs_mhalf": {
+        "failure_type_counts": {
+          "both_position_and_character_conflict": 0,
+          "lower_edit_position_missing_from_higher": 15380,
+          "same_position_replacement_character_conflict": 14192
+        },
+        "hamming_bound_failure_count": 29572,
+        "hamming_bound_satisfied_count": 428,
+        "hamming_bound_satisfied_rate": 0.014266666666666667,
+        "max_integer_hamming_minus_bound": 2,
+        "mean_normalized_budget_gap_bound": 0.4024613621107808,
+        "mean_normalized_hamming": 0.5322828118452246,
+        "observable_nested_output_count": 428,
+        "observable_nested_output_failure_count": 29572,
+        "observable_nested_output_rate": 0.014266666666666667,
+        "sample_count": 30000
+      },
+      "m2_vs_mhalf": {
+        "failure_type_counts": {
+          "both_position_and_character_conflict": 16053,
+          "lower_edit_position_missing_from_higher": 7478,
+          "same_position_replacement_character_conflict": 6465
+        },
+        "hamming_bound_failure_count": 29996,
+        "hamming_bound_satisfied_count": 4,
+        "hamming_bound_satisfied_rate": 0.00013333333333333334,
+        "max_integer_hamming_minus_bound": 4,
+        "mean_normalized_budget_gap_bound": 0.3157045379265627,
+        "mean_normalized_hamming": 0.5749000992351285,
+        "observable_nested_output_count": 4,
+        "observable_nested_output_failure_count": 29996,
+        "observable_nested_output_rate": 0.00013333333333333334,
+        "sample_count": 30000
+      }
+    }
+  },
+  "production_identity": {
+    "operator_definitions": {
+      "perturb1": {
+        "lines": "115-127",
+        "source_sha256": "84991ef75ae2bb58abaa4a180ef709f090e427b9c4cb738c6d83088e84d8aaae"
+      },
+      "perturb2": {
+        "lines": "85-96",
+        "source_sha256": "001536a261989f6dbb54fd1e9e54b1e8be5098cffc557d644eed5022eb06de13"
+      },
+      "perturb_half": {
+        "lines": "99-112",
+        "source_sha256": "d4df61cfd23e0cc229f2338e2e4756ff1c2ef106a1ed21889d2ca8e01613a92a"
+      }
+    },
+    "operator_extraction": "对同一源文件 AST 精确提取定义；未导入顶层模块，未执行 torch、CUDA 或 MPS 代码",
+    "production_file": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-10-DGA对抗鲁棒组相对方案/official_p2p3.py",
+    "production_file_sha256": "1f103880b4095ef081f6235364877f49f3ed3f88f26f50f6907cd355977dd079",
+    "production_generation_semantics": {
+      "finding": "每个 epoch 仅调用一个预算档并生成四个变体；缓存键为 (样本索引,epoch)，未为同一样本保存跨档三元组或共享编辑流。",
+      "gen_variants_L_lines": "130-137",
+      "same_random_edit_stream_constructed_by_production": false,
+      "training_cache_and_callsite_lines": "191-196,263-305"
+    }
+  },
+  "schema_version": "v4_nested_coupling_verification_v2",
+  "scope": {
+    "accessed_splits": [
+      "T17_dga_train.parquet"
+    ],
+    "execution_mode": "CPU-only：verifier 不导入 torch，只做 pyarrow 扫描与 Python 字符串编辑",
+    "mps_or_cuda_used": false,
+    "research_route": "DRIFT",
+    "source_period": "T17 only",
+    "t18_to_t25_accessed": false,
+    "training_started": false
+  },
+  "seed": 42,
+  "v4_precondition": {
+    "basis": "production 静态生成语义未构造共享流；反事实同 RNG 顺序重放亦没有全样本可观测嵌套。",
+    "current_production_shared_stream_failure_count": 30000,
+    "current_production_shared_stream_satisfied_count": 0,
+    "current_production_shared_stream_satisfied_rate": 0.0,
+    "not_a_formula_or_candidate_decision": true,
+    "required": "同一随机编辑序列；较小预算编辑位置与替换字符是较大预算的前缀。",
+    "verdict": "当前 production 不满足 V4 共享前缀前提"
+  },
+  "verification_status": "completed"
+}
