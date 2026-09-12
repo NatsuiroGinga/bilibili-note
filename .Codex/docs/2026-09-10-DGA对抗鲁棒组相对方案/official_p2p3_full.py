@@ -48,6 +48,7 @@ BATCH = 256            # 正式主批（冻结 v1）
 EPOCHS = 3
 SEED = 42
 CHECKPOINT_SCHEMA_VERSION = "p2p3_official_full_checkpoint_v2"
+ALLOWED_ARMS = ("A", "B", "D", "F", "G")
 LR_HEAD = 1e-4
 LR_BACKBONE = 1e-6
 BETA_BENIGN = 3.0      # 组件 2 良性误报加权（任务化设定，screening F 臂同值）
@@ -165,7 +166,42 @@ def checkpoint_contract(arm: str, n_train: int, n_batches: int, quota: int, epoc
         "n_batches": n_batches,
         "quota": quota,
         "progress_semantics": "next_batch_to_process",
+        "device_type": DEVICE.type,
+        "cuda_rng_state_count": torch.cuda.device_count() if DEVICE.type == "cuda" else 0,
     }
+
+
+def normalize_arms(raw_arms: str, parser: argparse.ArgumentParser) -> tuple[str, ...]:
+    parsed = tuple(part.strip() for part in raw_arms.split(","))
+    problems: list[str] = []
+    if not parsed or any(not arm for arm in parsed):
+        problems.append("不能包含空臂名")
+    duplicates = sorted({arm for arm in parsed if parsed.count(arm) > 1 and arm})
+    if duplicates:
+        problems.append(f"存在重复臂 {duplicates}")
+    unknown = sorted({arm for arm in parsed if arm and arm not in ALLOWED_ARMS})
+    if unknown:
+        problems.append(f"存在未知臂 {unknown}，仅允许 {list(ALLOWED_ARMS)}")
+    if problems:
+        parser.error("--arms 无效：" + "；".join(problems))
+    return tuple(arm for arm in ALLOWED_ARMS if arm in parsed)
+
+
+def validate_training_inputs(train_d: list[str], train_y: np.ndarray) -> None:
+    problems: list[str] = []
+    if BATCH <= 0:
+        problems.append(f"batch 必须为正数，当前为 {BATCH}")
+    if not train_d:
+        problems.append("训练集为空")
+    if len(train_d) != len(train_y):
+        problems.append(f"训练域与标签数不一致：{len(train_d)} != {len(train_y)}")
+    labels = {int(label) for label in np.unique(train_y)}
+    if labels != {0, 1}:
+        problems.append(f"训练标签必须同时且仅包含 0/1，当前为 {sorted(labels)}")
+    if BATCH > 0 and train_d and (len(train_d) + BATCH - 1) // BATCH == 0:
+        problems.append("训练批次数为零")
+    if problems:
+        raise RuntimeError("训练前数据门失败：" + "；".join(problems))
 
 
 def validate_checkpoint(checkpoint: dict, expected: dict) -> None:
@@ -189,6 +225,28 @@ def validate_checkpoint(checkpoint: dict, expected: dict) -> None:
             mismatches.append(f"next_batch_idx={next_batch_idx!r} 不在 [0, {expected['n_batches']}] 内")
         elif checkpoint.get("next_epoch") == expected["epochs"] + 1 and next_batch_idx != 0:
             mismatches.append("完成全部 epoch 后 next_batch_idx 必须为 0")
+    torch_rng = checkpoint.get("rng_torch")
+    if "rng_torch" in checkpoint:
+        if not isinstance(torch_rng, torch.Tensor):
+            mismatches.append("rng_torch 不是张量")
+        elif torch_rng.device.type != "cpu" or torch_rng.dtype != torch.uint8:
+            mismatches.append(f"rng_torch 必须为 CPU uint8 张量，实际为 {torch_rng.device}/{torch_rng.dtype}")
+    cuda_rng_states = checkpoint.get("rng_torch_cuda")
+    if expected["device_type"] == "cuda":
+        if not isinstance(cuda_rng_states, list):
+            mismatches.append("rng_torch_cuda 必须为 CUDA RNG 状态列表")
+        else:
+            if len(cuda_rng_states) != expected["cuda_rng_state_count"]:
+                mismatches.append(
+                    f"rng_torch_cuda 数量为 {len(cuda_rng_states)}，期望 {expected['cuda_rng_state_count']}")
+            for index, state in enumerate(cuda_rng_states):
+                if not isinstance(state, torch.Tensor):
+                    mismatches.append(f"rng_torch_cuda[{index}] 不是张量")
+                elif state.device.type != "cpu" or state.dtype != torch.uint8:
+                    mismatches.append(
+                        f"rng_torch_cuda[{index}] 必须为 CPU uint8 张量，实际为 {state.device}/{state.dtype}")
+    elif "rng_torch_cuda" in checkpoint and cuda_rng_states is not None:
+        mismatches.append("非 CUDA 断点的 rng_torch_cuda 必须为 None")
     if mismatches:
         raise RuntimeError("断点合同不匹配，拒绝加载且保留原文件：" + "；".join(mismatches))
 
@@ -237,11 +295,11 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_
     ckpt_path = OUT / f"ckpt_{arm}.pt"
     start_ep, start_bi = 1, 0
     if ckpt_path.exists():
-        ck = torch.load(ckpt_path, map_location=DEVICE, weights_only=False)
+        ck = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         validate_checkpoint(ck, contract)
         model.load_state_dict(ck["model"]); opt.load_state_dict(ck["optimizer"])
         random.setstate(ck["rng_py"]); np.random.set_state(ck["rng_np"]); torch.set_rng_state(ck["rng_torch"])
-        if torch.cuda.is_available():
+        if DEVICE.type == "cuda":
             torch.cuda.set_rng_state_all(ck["rng_torch_cuda"])
         rng.setstate(ck["rng_variant"]); adv_cache = ck["adv_cache"]
         fpr_curve, epoch_log = ck["fpr_curve"], ck["epoch_log"]
@@ -365,7 +423,7 @@ def main() -> None:
     ap.add_argument("--target-limit", type=int, default=200000, help="目标知情面板每年每类抽样上限（0=全量）")
     a = ap.parse_args()
     BATCH = a.batch; EPOCHS = a.epochs
-    arms = tuple(a.arms.split(","))
+    arms = normalize_arms(a.arms, ap)
     OUT.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(SEED); np.random.seed(SEED); random.seed(SEED)
     print(f"[正式] 臂={arms} 批={BATCH} epochs={EPOCHS} 种子={SEED} 设备={DEVICE} bf16={USE_BF16}", file=sys.stderr, flush=True)
@@ -375,6 +433,7 @@ def main() -> None:
     model0 = official.load_model(REF, CKPT, DEVICE)
 
     train_d, train_y = load_train()
+    validate_training_inputs(train_d, train_y)
     print(f"[数据] 训练合并 {len(train_d)} 域（良性 {int((train_y==0).sum())} / DGA {int((train_y==1).sum())}）", file=sys.stderr, flush=True)
     val_d, val_y = [], []
     for stem in VAL_FILES:
@@ -437,25 +496,27 @@ def main() -> None:
     except Exception as exc:  # noqa: BLE001
         print(f"[swanlab] 初始化失败（回退本地日志）：{exc}", file=sys.stderr, flush=True)
 
-    results: dict = {}
-    for arm in arms:
-        t0 = time.time()
-        with arm_writer_lock(arm):
-            r = train_arm(arm, train_d, train_y, tokenizer, tok_mean, char_mean,
-                          (val_d, val_y), eval_adv_k2, eval_adv_krand, eval_adv_mask, EPOCHS, run=run)
-            r["wall_seconds"] = round(time.time() - t0, 1)
-            for yname, (pa, pay) in target_panels.items():
-                m = official.load_model(REF, OUT / f"state_{arm}.pt", DEVICE)
-                r[f"target_{yname}"] = metrics(m, tokenizer, pa, pay, tok_mean, char_mean)
-                print(f"[{arm} 目标] {yname}: FPR={r[f'target_{yname}']['FPR']:.4f} FNR={r[f'target_{yname}']['FNR']:.4f}", file=sys.stderr, flush=True)
-            atomic_write_json(OUT / f"result_{arm}.json", r)
-            print(f"[里程碑] {arm} 完成 {r['wall_seconds']}s -> result_{arm}.json", file=sys.stderr, flush=True)
-        results[arm] = r
-    if run is not None:
-        run.finish()
-    summary_path = OUT / f"result_all_{'-'.join(arms)}.json"
-    atomic_write_json(summary_path, results)
-    print(f"[里程碑] 本次臂集合完成 -> {summary_path.name}", file=sys.stderr, flush=True)
+    try:
+        results: dict = {}
+        for arm in arms:
+            t0 = time.time()
+            with arm_writer_lock(arm):
+                r = train_arm(arm, train_d, train_y, tokenizer, tok_mean, char_mean,
+                              (val_d, val_y), eval_adv_k2, eval_adv_krand, eval_adv_mask, EPOCHS, run=run)
+                r["wall_seconds"] = round(time.time() - t0, 1)
+                for yname, (pa, pay) in target_panels.items():
+                    m = official.load_model(REF, OUT / f"state_{arm}.pt", DEVICE)
+                    r[f"target_{yname}"] = metrics(m, tokenizer, pa, pay, tok_mean, char_mean)
+                    print(f"[{arm} 目标] {yname}: FPR={r[f'target_{yname}']['FPR']:.4f} FNR={r[f'target_{yname}']['FNR']:.4f}", file=sys.stderr, flush=True)
+                atomic_write_json(OUT / f"result_{arm}.json", r)
+                print(f"[里程碑] {arm} 完成 {r['wall_seconds']}s -> result_{arm}.json", file=sys.stderr, flush=True)
+            results[arm] = r
+        summary_path = OUT / f"result_all_{'-'.join(arms)}.json"
+        atomic_write_json(summary_path, results)
+        print(f"[里程碑] 本次臂集合完成 -> {summary_path.name}", file=sys.stderr, flush=True)
+    finally:
+        if run is not None:
+            run.finish()
 
 
 if __name__ == "__main__":
