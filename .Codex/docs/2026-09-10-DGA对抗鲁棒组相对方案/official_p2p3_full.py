@@ -18,12 +18,13 @@
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import os
 import random
 import sys
 import time
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 
 import numpy as np
@@ -46,6 +47,7 @@ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "mps")
 BATCH = 256            # 正式主批（冻结 v1）
 EPOCHS = 3
 SEED = 42
+CHECKPOINT_SCHEMA_VERSION = "p2p3_official_full_checkpoint_v2"
 LR_HEAD = 1e-4
 LR_BACKBONE = 1e-6
 BETA_BENIGN = 3.0      # 组件 2 良性误报加权（任务化设定，screening F 臂同值）
@@ -132,6 +134,88 @@ def metrics(model, tokenizer, domains: list[str], labels01: np.ndarray, tok_mean
             "F1": tp / max(tp + 0.5 * (fp + fn), 1), "FP": fp, "FN": fn, "n": len(sc)}
 
 
+def atomic_write_json(path: Path, payload: dict) -> None:
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp_path.replace(path)
+
+
+@contextmanager
+def arm_writer_lock(arm: str):
+    lock_path = OUT / f"lock_{arm}.flock"
+    with lock_path.open("a+", encoding="utf-8") as lock_file:
+        try:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise RuntimeError(f"[{arm}] 同臂已有写者，立即停止：{lock_path}") from exc
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def checkpoint_contract(arm: str, n_train: int, n_batches: int, quota: int, epochs: int) -> dict:
+    return {
+        "schema_version": CHECKPOINT_SCHEMA_VERSION,
+        "arm": arm,
+        "seed": SEED,
+        "batch": BATCH,
+        "epochs": epochs,
+        "n_train": n_train,
+        "n_batches": n_batches,
+        "quota": quota,
+        "progress_semantics": "next_batch_to_process",
+    }
+
+
+def validate_checkpoint(checkpoint: dict, expected: dict) -> None:
+    mismatches: list[str] = []
+    for key, expected_value in expected.items():
+        if key not in checkpoint:
+            mismatches.append(f"缺少 {key}")
+        elif checkpoint[key] != expected_value:
+            mismatches.append(f"{key}={checkpoint[key]!r}，期望 {expected_value!r}")
+    for key in ("next_epoch", "next_batch_idx", "model", "optimizer", "rng_py", "rng_np",
+                "rng_torch", "rng_torch_cuda", "rng_variant", "adv_cache", "fpr_curve", "epoch_log"):
+        if key not in checkpoint:
+            mismatches.append(f"缺少 {key}")
+    if "next_epoch" in checkpoint:
+        next_epoch = checkpoint["next_epoch"]
+        if not isinstance(next_epoch, int) or not 1 <= next_epoch <= expected["epochs"] + 1:
+            mismatches.append(f"next_epoch={next_epoch!r} 不在 [1, {expected['epochs'] + 1}] 内")
+    if "next_batch_idx" in checkpoint:
+        next_batch_idx = checkpoint["next_batch_idx"]
+        if not isinstance(next_batch_idx, int) or not 0 <= next_batch_idx <= expected["n_batches"]:
+            mismatches.append(f"next_batch_idx={next_batch_idx!r} 不在 [0, {expected['n_batches']}] 内")
+        elif checkpoint.get("next_epoch") == expected["epochs"] + 1 and next_batch_idx != 0:
+            mismatches.append("完成全部 epoch 后 next_batch_idx 必须为 0")
+    if mismatches:
+        raise RuntimeError("断点合同不匹配，拒绝加载且保留原文件：" + "；".join(mismatches))
+
+
+def save_checkpoint(path: Path, model, opt, contract: dict, next_epoch: int, next_batch_idx: int,
+                    rng: random.Random, adv_cache: dict[int, list[str]], fpr_curve: list,
+                    epoch_log: list) -> None:
+    checkpoint = {
+        **contract,
+        "next_epoch": next_epoch,
+        "next_batch_idx": next_batch_idx,
+        "model": model.state_dict(),
+        "optimizer": opt.state_dict(),
+        "rng_py": random.getstate(),
+        "rng_np": np.random.get_state(),
+        "rng_torch": torch.get_rng_state(),
+        "rng_torch_cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+        "rng_variant": rng.getstate(),
+        "adv_cache": adv_cache,
+        "fpr_curve": fpr_curve,
+        "epoch_log": epoch_log,
+    }
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    torch.save(checkpoint, tmp_path)
+    tmp_path.replace(path)
+
+
 def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_mean, char_mean,
               eval_clean: tuple[list[str], np.ndarray], eval_adv_k2, eval_adv_krand, eval_adv_mask,
               epochs: int, run=None) -> dict:
@@ -142,34 +226,36 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_
     ])
     n_params = sum(p_.numel() for p_ in model.parameters())
     print(f"[{arm}] 官方模型 {n_params} 参数，训练 {len(train_d)} 样本 × {epochs} epochs，主批 {BATCH}", file=sys.stderr, flush=True)
+    ec, ey = eval_clean
+    quota = BATCH // 2
+    n = len(train_d)
+    nb = (n + BATCH - 1) // BATCH
+    contract = checkpoint_contract(arm, n, nb, quota, epochs)
+    rng = random.Random(SEED)
+    adv_cache: dict[int, list[str]] = {}
     fpr_curve, epoch_log = [], []
-    # ── 断点恢复：epoch+batch 双粒度，model/optimizer/RNG/变体缓存/进度指针全量恢复 ──
     ckpt_path = OUT / f"ckpt_{arm}.pt"
     start_ep, start_bi = 1, 0
     if ckpt_path.exists():
         ck = torch.load(ckpt_path, map_location=DEVICE, weights_only=False)
+        validate_checkpoint(ck, contract)
         model.load_state_dict(ck["model"]); opt.load_state_dict(ck["optimizer"])
         random.setstate(ck["rng_py"]); np.random.set_state(ck["rng_np"]); torch.set_rng_state(ck["rng_torch"])
+        if torch.cuda.is_available():
+            torch.cuda.set_rng_state_all(ck["rng_torch_cuda"])
         rng.setstate(ck["rng_variant"]); adv_cache = ck["adv_cache"]
         fpr_curve, epoch_log = ck["fpr_curve"], ck["epoch_log"]
-        start_ep, start_bi = ck["epoch"], ck["batch_idx"]
-        ckpt_path.unlink()  # 已读入内存，删除避免崩溃后重复加载同一进度
-        print(f"[{arm}] 断点恢复：epoch {start_ep} 批 {start_bi} 起（fpr_curve {len(fpr_curve)} 点）", file=sys.stderr, flush=True)
-    ec, ey = eval_clean
-    rng = random.Random(SEED)
-    adv_cache: dict[int, list[str]] = {}
-    quota = BATCH // 2
-    n = len(train_d)
+        start_ep, start_bi = ck["next_epoch"], ck["next_batch_idx"]
+        print(f"[{arm}] 断点恢复：从 epoch {start_ep} 批 {start_bi}/{nb} 开始（fpr_curve {len(fpr_curve)} 点）", file=sys.stderr, flush=True)
+    else:
+        print(f"[{arm}] 从头训练：从 epoch 1 批 0/{nb} 开始", file=sys.stderr, flush=True)
     for ep in range(1, epochs + 1):
         if ep < start_ep:
             continue  # 断点恢复：跳过已完成的 epoch（其指标已从 checkpoint 恢复）
         model.train()
         order = list(range(n)); random.Random(SEED + ep).shuffle(order)
         t0 = time.time()
-        nb = (n + BATCH - 1) // BATCH
         for bi in range(start_bi if ep == start_ep else 0, nb):
-            if ep == start_ep and bi == start_bi:
-                print(f"[{arm}] 从 epoch {ep} 批 {bi}/{nb} 续训", file=sys.stderr, flush=True)
             idx = order[bi * BATCH:(bi + 1) * BATCH]
             batch_d = [train_d[i] for i in idx]
             batch_y = train_y[idx]
@@ -241,13 +327,8 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_
             opt.step()
             # 断点保存（batch 粒度，每 2000 批原子写一次：model+optimizer+RNG+变体缓存+进度）
             if (bi + 1) % 2000 == 0:
-                _ck = {"arm": arm, "epoch": ep, "batch_idx": bi, "model": model.state_dict(),
-                       "optimizer": opt.state_dict(), "rng_py": random.getstate(),
-                       "rng_np": np.random.get_state(), "rng_torch": torch.get_rng_state(),
-                       "rng_variant": rng.getstate(), "adv_cache": adv_cache,
-                       "fpr_curve": fpr_curve, "epoch_log": epoch_log}
-                _tmp = OUT / f"ckpt_{arm}.tmp"
-                torch.save(_ck, _tmp); _tmp.replace(OUT / f"ckpt_{arm}.pt")
+                save_checkpoint(ckpt_path, model, opt, contract, ep, bi + 1, rng, adv_cache,
+                                fpr_curve, epoch_log)
             if bi % 500 == 0:
                 eta = (time.time() - t0) / (bi + 1) * (nb - bi - 1)
                 print(f"[{arm} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss_log:.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
@@ -259,13 +340,8 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray, tokenizer, tok_
         if run is not None:
             run.log({"clean_FPR": fpr_now, "epoch": ep})
         # 每 epoch 断点（原子，含 optimizer/RNG——中断后从下一 epoch 起点恢复）
-        _ck = {"arm": arm, "epoch": ep, "batch_idx": nb - 1, "model": model.state_dict(),
-               "optimizer": opt.state_dict(), "rng_py": random.getstate(),
-               "rng_np": np.random.get_state(), "rng_torch": torch.get_rng_state(),
-               "rng_variant": rng.getstate(), "adv_cache": adv_cache,
-               "fpr_curve": fpr_curve, "epoch_log": epoch_log}
-        _tmp = OUT / f"ckpt_{arm}.tmp"
-        torch.save(_ck, _tmp); _tmp.replace(OUT / f"ckpt_{arm}.pt")
+        save_checkpoint(ckpt_path, model, opt, contract, ep + 1, 0, rng, adv_cache,
+                        fpr_curve, epoch_log)
         (OUT / f"epochlog_{arm}.json").write_text(json.dumps(epoch_log, ensure_ascii=False, indent=1), encoding="utf-8")
     model.eval()
     clean = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)
@@ -364,21 +440,22 @@ def main() -> None:
     results: dict = {}
     for arm in arms:
         t0 = time.time()
-        r = train_arm(arm, train_d, train_y, tokenizer, tok_mean, char_mean,
-                      (val_d, val_y), eval_adv_k2, eval_adv_krand, eval_adv_mask, EPOCHS, run=run)
-        r["wall_seconds"] = round(time.time() - t0, 1)
-        for yname, (pa, pay) in target_panels.items():
-            m = official.load_model(REF, OUT / f"state_{arm}.pt", DEVICE)
-            r[f"target_{yname}"] = metrics(m, tokenizer, pa, pay, tok_mean, char_mean)
-            print(f"[{arm} 目标] {yname}: FPR={r[f'target_{yname}']['FPR']:.4f} FNR={r[f'target_{yname}']['FNR']:.4f}", file=sys.stderr, flush=True)
+        with arm_writer_lock(arm):
+            r = train_arm(arm, train_d, train_y, tokenizer, tok_mean, char_mean,
+                          (val_d, val_y), eval_adv_k2, eval_adv_krand, eval_adv_mask, EPOCHS, run=run)
+            r["wall_seconds"] = round(time.time() - t0, 1)
+            for yname, (pa, pay) in target_panels.items():
+                m = official.load_model(REF, OUT / f"state_{arm}.pt", DEVICE)
+                r[f"target_{yname}"] = metrics(m, tokenizer, pa, pay, tok_mean, char_mean)
+                print(f"[{arm} 目标] {yname}: FPR={r[f'target_{yname}']['FPR']:.4f} FNR={r[f'target_{yname}']['FNR']:.4f}", file=sys.stderr, flush=True)
+            atomic_write_json(OUT / f"result_{arm}.json", r)
+            print(f"[里程碑] {arm} 完成 {r['wall_seconds']}s -> result_{arm}.json", file=sys.stderr, flush=True)
         results[arm] = r
-        (OUT / f"result_{arm}.json").write_text(
-            json.dumps({k: v for k, v in r.items()}, ensure_ascii=False, indent=1), encoding="utf-8")
-        print(f"[里程碑] {arm} 完成 {r['wall_seconds']}s -> result_{arm}.json", file=sys.stderr, flush=True)
     if run is not None:
         run.finish()
-    (OUT / "result_all.json").write_text(json.dumps(results, ensure_ascii=False, indent=1), encoding="utf-8")
-    print("[里程碑] 全部臂完成 -> result_all.json", file=sys.stderr, flush=True)
+    summary_path = OUT / f"result_all_{'-'.join(arms)}.json"
+    atomic_write_json(summary_path, results)
+    print(f"[里程碑] 本次臂集合完成 -> {summary_path.name}", file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":
