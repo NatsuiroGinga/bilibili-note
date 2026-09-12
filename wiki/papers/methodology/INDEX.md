@@ -219,6 +219,17 @@ tags:
 
 - **[[2021-Diakogiannis-ResUNet-a-Roll-the-Dice-and-Demand-Attention|Diakogiannis 2021：遥感变化检测的帕累托选轮]]** — 唯一找到的"训练轮次上按多指标（验证 MCC × 分形 Tanimoto 相似度）求帕累托非支配前沿"的直接先例（第 7.5.2 节，物理第 12–13 页）；处置方式是**不选点，取全部前沿 checkpoint 的推理输出均值**（测试时集成），从而回避了"前沿多点时如何打破平局"这一问题，而非给出打破平局的规则；已披露实例（WHU 数据集）前沿恰好只有 2 点，前沿求解范围限定在最后一次学习率下降之后的末段区间。
 
+## 类别不平衡与代价敏感损失（2026-09-13 新增）
+
+- **[[2021-Ben-Baruch-ASL非对称多标签损失|ASL／非对称多标签损失]]** ↔ [[raw/papers/methodology/2021-Ben-Baruch-Asymmetric-Loss-Multi-Label.pdf|官方 arXiv v4 原件]] — 负标签分支使用非对称聚焦与概率平移，并按批级概率差更新聚焦指数；不是当前误报真良性样本的固定三倍逐样本硬门。
+- **[[2021-Volk-Singer-AdaCSL自适应代价敏感学习|AdaCSL／自适应代价敏感学习]]** ↔ [[raw/papers/methodology/2021-Volk-Singer-AdaCSL-Adaptive-Cost-Sensitive-Learning.pdf|官方 arXiv v1 原件]] — 用验证概率子组与最小代价阈值跨轮更新负类交叉熵系数，最终为下一轮统一的全局权重；不是当前批逐样本误报门。
+- **[[2021-Wang-Seesaw-Loss长尾实例分割|Seesaw Loss／跷跷板损失]]** ↔ [[raw/papers/methodology/2021-Wang-Seesaw-Loss-Long-Tailed-Instance-Segmentation.pdf|官方 arXiv v4 原件]] — 以类别累计量缓解负类梯度，并在当前样本负类概率超过真实类时连续补偿；覆盖输出触发假阳性补偿的宽结构，不覆盖二元冻结阈值后的固定三倍交叉熵。
+- **[[2012-Scott-标签依赖代价校准代理损失|Scott 2012／标签依赖代价校准代理]]** ↔ [[raw/papers/methodology/2012-Scott-Calibrated-Surrogate-Losses-Label-Dependent-Costs.pdf|官方 arXiv v1 原件]] — 给出 `U_α`、`α`-分类校准与静态类别级 `L_α` 变换；是标准代价敏感数学工具，不含当前输出跨工作点触发的逐样本三倍权重。
+
+## 选择性对抗训练（2026-09-13 新增）
+
+- **[[2024-Losch-ESAT选择性对抗训练|Losch et al. 2024：ESAT 选择性对抗训练]]** ↔ [[raw/papers/methodology/2024-Losch-ESAT-Selective-Adversarial-Training.pdf|ICLR 2024 官方原件]] — 用非鲁棒模型的跨快照平均样本熵在整个训练集排序，按固定全局子集预算只攻击入选样本；部分覆盖跨源预算与异量选择—训练，不含每源多候选、二值组中心化、批内候选总配额或可变源组份额。
+
 ## 定理推导包的数学引用依赖（2026-09-11 新增）
 
 为「双侧组相对对抗训练」的**定理包（定理 1–3）**提供数学支撑而入库。**本节只作索引，不构成任何定理已被证明或已被引用的声明**；能否引用某条结论，以其笔记的「不能直接声称内容」与「证据等级」为准。
