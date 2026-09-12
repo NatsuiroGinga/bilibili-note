@@ -423,6 +423,10 @@ def main() -> None:
     ap.add_argument("--target-limit", type=int, default=200000, help="目标知情面板每年每类抽样上限（0=全量）")
     a = ap.parse_args()
     BATCH = a.batch; EPOCHS = a.epochs
+    if EPOCHS <= 0:
+        ap.error(f"--epochs 必须为正整数，当前值为 {EPOCHS}")
+    if a.target_limit < 0:
+        ap.error(f"--target-limit 必须为 0（全量）或正整数，当前值为 {a.target_limit}")
     arms = normalize_arms(a.arms, ap)
     OUT.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(SEED); np.random.seed(SEED); random.seed(SEED)
@@ -516,7 +520,10 @@ def main() -> None:
         print(f"[里程碑] 本次臂集合完成 -> {summary_path.name}", file=sys.stderr, flush=True)
     finally:
         if run is not None:
-            run.finish()
+            try:
+                run.finish()
+            except Exception as exc:  # noqa: BLE001
+                print(f"[swanlab] 收尾失败，不影响本地结果：{exc}", file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":
