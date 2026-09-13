@@ -1,0 +1,78 @@
+{
+  "task": "正式评价按需共享编辑算子",
+  "agent": "direct_edit_luna_high",
+  "model": "gpt-5.6-luna",
+  "effort": "high",
+  "required_skills": [
+    {
+      "name": "daily-coding",
+      "path": "/Users/bilibili/.codex/skills/backup/daily-coding-20260811-112930/SKILL.md",
+      "sha256": "da2399b50859b9d57281b9bc0dc456082db93d47486ae22967ebf3f17d354ae3",
+      "read_at": "2026-09-13T06:57:54Z",
+      "checklist": [
+        {"item": "先读后改", "evidence": "已读取 direct-edit-brief.md、根规则、thesis/AGENTS.md、llm_probe/AGENTS.md、合同模块和现有配置"},
+        {"item": "最小变更", "evidence": "仅新增按简报限定的编辑模块、审计收据、报告和本收据；未修改合同、配置、模型或训练进程"},
+        {"item": "类型安全", "evidence": "公共函数、批次迭代器、审计聚合和内部流均使用 Python 类型注解并校验输入"},
+        {"item": "安全检查", "evidence": "复用长度前缀和路径边界；拒绝空输入、重复字符表、无效预算；不依赖对象哈希，不写原域名或攻击字符串"},
+        {"item": "执行验证", "evidence": "py_compile、轻依赖导入、CLI help 和真实 T17_dga_val 全量审计均通过"}
+      ]
+    }
+  ],
+  "owned_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_edit.py",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v1/direct-edit-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v1/attack-collision-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch4096/direct-edit-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch4096/attack-collision-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch16384/direct-edit-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch16384/attack-collision-audit.json",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-edit-report.md",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-edit-skill-receipt.json"
+  ],
+  "actual_changed_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_edit.py",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v1/direct-edit-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v1/attack-collision-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch4096/direct-edit-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch4096/attack-collision-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch16384/direct-edit-audit.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch16384/attack-collision-audit.json",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-edit-report.md",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-edit-skill-receipt.json"
+  ],
+  "verification": [
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_formal_edit.py", "exit_code": 0},
+    {"command": "导入编辑模块并检查 torch/numpy/pyarrow 未加载", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_edit.py --help", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_edit.py --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-edit-t17-validation-v1 --audit --scope t17-validation", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_edit.py --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch4096 --audit --scope t17-validation --batch-size 4096", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_edit.py --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch16384 --audit --scope t17-validation --batch-size 16384", "exit_code": 0},
+    {"command": "git diff --check", "exit_code": 0}
+  ],
+  "real_run": {
+    "applicable": true,
+    "reason": "真实 T17_dga_val 全部 150000 行由两个独立进程以不同批次读取并完成三档共享编辑聚合审计；未物化成员或攻击数据",
+    "evidence": [
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch4096/direct-edit-audit.json",
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch16384/direct-edit-audit.json"
+    ],
+    "status": "complete",
+    "rows_read": 150000,
+    "valid_rows": 150000,
+    "metadata_rows": 150000,
+    "fully_processed": true,
+    "deterministic_rows_passed": 150000,
+    "prefix_rows_passed": 150000,
+    "budget_degenerate_rows": 349,
+    "half_weaker_than_k2_rows": 0,
+    "failure_counts": {},
+    "collision_audit": [
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch4096/attack-collision-audit.json",
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-edit-t17-validation-v2-batch16384/attack-collision-audit.json"
+    ],
+    "independent_processes": 2,
+    "batch_sizes": [4096, 16384],
+    "aggregate_roots_equal": true
+  },
+  "status": "complete"
+}
