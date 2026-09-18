@@ -1,0 +1,23 @@
+{
+  "schema_version": "recovery-card-routes-v1",
+  "routes": {
+    "DRIFT": {
+      "sentinels": ["RESEARCH_ROUTE=DRIFT", "DRIFT", "DGA"],
+      "recovery_card": ".Codex/docs/DRIFT/DRIFT第三章恢复卡.md",
+      "method_roots": ["thesis/methods"],
+      "run_roots": ["thesis/experiments/llm_probe/runs/diagnostics"],
+      "status_names": ["status.json", "result.json"]
+    },
+    "RWKV": {
+      "sentinels": ["RESEARCH_ROUTE=RWKV", "RWKV"],
+      "recovery_card": ".Codex/docs/RWKV/RWKV第三章恢复卡.md",
+      "method_roots": ["thesis/methods"],
+      "run_roots": ["thesis/experiments/llm_probe/runs/diagnostics"],
+      "status_names": ["status.json", "result.json"]
+    }
+  },
+  "state_directory": ".Codex/docs/2026-09-08-恢复卡自动更新Hook/runtime-state",
+  "cooldown_seconds": 300,
+  "max_status_candidates": 128,
+  "max_method_candidates": 64
+}

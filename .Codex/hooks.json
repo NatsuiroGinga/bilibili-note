@@ -1,5 +1,5 @@
 {
-  "description": "禁止运行 Prettier，并在上下文压缩前更新活动计划快照；其他项目执行门禁继续暂停。",
+  "description": "禁止运行 Prettier、阻止实验持久制品使用系统临时目录，并在上下文压缩前更新活动计划快照。",
   "hooks": {
     "PreToolUse": [
       {
@@ -10,6 +10,52 @@
             "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/prettier_guard.py\"",
             "timeout": 5,
             "statusMessage": "检查是否调用 Prettier"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/experiment_temp_path_guard.py\"",
+            "timeout": 5,
+            "statusMessage": "检查实验持久路径是否误用系统临时目录"
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/experiment_temp_path_guard.py\"",
+            "timeout": 5,
+            "statusMessage": "检查配置或代码中的实验持久路径"
+          }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/agent_dispatch_guard.py\"",
+            "timeout": 3,
+            "statusMessage": "校验代理任务名与简报"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/recovery_card_state_reminder.py\"",
+            "timeout": 3,
+            "additionalContextLimit": 800,
+            "statusMessage": "检查恢复卡状态"
           }
         ]
       }
@@ -23,6 +69,18 @@
             "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/precompact_snapshot.py\"",
             "timeout": 8,
             "statusMessage": "更新活动计划快照"
+          }
+        ]
+      },
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/recovery_card_state_reminder.py\"",
+            "timeout": 3,
+            "additionalContextLimit": 800,
+            "statusMessage": "核对恢复卡状态"
           }
         ]
       }

@@ -1,0 +1,83 @@
+{
+  "task": "修复实验临时路径守卫的相对路径逃逸",
+  "agent": "experiment_temp_path_guard_fix_terra_high",
+  "model": "gpt-5.6-terra",
+  "effort": "high",
+  "status": "complete",
+  "required_skills": [
+    {
+      "name": "codex-hook-emulation",
+      "path": "/Users/bilibili/.codex/skills/codex-hook-emulation/SKILL.md",
+      "sha256": "84011df1cfed6e231a29f4c410c3b57c37531add2db662af1742f7f173470be9",
+      "read_at": "2026-09-07T15:57:32+0800",
+      "checklist": [
+        {
+          "item": "采用确定性 PreToolUse 守卫，不依赖无法自动拦截的会话替代流程",
+          "evidence": ".Codex/hooks/experiment_temp_path_guard.py 对含 tool_input.workdir 的 Codex 钩子 JSON 返回 deny 输出"
+        }
+      ]
+    },
+    {
+      "name": "hook-development",
+      "path": "/Users/bilibili/.agents/skills/hook-development/SKILL.md",
+      "sha256": "3db8b26f91d0023caeee6e6e22de896067312423f24f55fbc914260e0247ca06",
+      "read_at": "2026-09-07T15:57:32+0800",
+      "checklist": [
+        {
+          "item": "守卫只解析标准输入 JSON，不执行被检查命令，并返回 Codex PreToolUse deny 格式",
+          "evidence": "模拟 Bash 与 apply_patch 输入均得到 hookSpecificOutput.permissionDecision=deny，且配置中 Agent matcher 为零"
+        }
+      ]
+    },
+    {
+      "name": "daily-coding",
+      "path": "/Users/bilibili/.codex/skills/backup/daily-coding-20260811-112930/SKILL.md",
+      "sha256": "da2399b50859b9d57281b9bc0dc456082db93d47486ae22967ebf3f17d354ae3",
+      "read_at": "2026-09-07T15:57:32+0800",
+      "checklist": [
+        {
+          "item": "先读现有钩子、规则和配置后最小修改；不运行自动格式化器",
+          "evidence": "仅修改守卫中的相对路径解析，不运行自动格式化器，并完成语法与入口检查"
+        }
+      ]
+    }
+  ],
+  "owned_files": [
+    ".Codex/hooks/experiment_temp_path_guard.py",
+    ".Codex/hooks.json",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "thesis/experiments/llm_probe/AGENTS.md",
+    ".Codex/docs/agents-split/receipts/block-tmp-experiment-paths-hook.json"
+  ],
+  "actual_changed_files": [
+    ".Codex/hooks/experiment_temp_path_guard.py",
+    ".Codex/hooks.json",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "thesis/experiments/llm_probe/AGENTS.md",
+    ".Codex/docs/agents-split/receipts/block-tmp-experiment-paths-hook.json"
+  ],
+  "verification": [
+    {
+      "command": "python3 -B -c 'from pathlib import Path; source = Path(\".Codex/hooks/experiment_temp_path_guard.py\").read_text(encoding=\"utf-8\"); compile(source, \".Codex/hooks/experiment_temp_path_guard.py\", \"exec\")'",
+      "exit_code": 0
+    },
+    {
+      "command": "jq empty .Codex/hooks.json && jq -e '[.hooks.PreToolUse[] | select(.matcher == \"Agent\")] | length == 0' .Codex/hooks.json",
+      "exit_code": 0
+    },
+    {
+      "command": "git diff --check -- .Codex/hooks/experiment_temp_path_guard.py .Codex/hooks.json",
+      "exit_code": 0
+    },
+    {
+      "command": "模拟 Codex PreToolUse 输入：受管 workdir 的 --local-dir . 和 PDF 临时输出放行；/tmp workdir 的 --local-dir . 及 /private/tmp output_root 拒绝",
+      "exit_code": 0
+    }
+  ],
+  "real_run": {
+    "applicable": false,
+    "reason": "本任务只实现命令前静态守卫，不启动训练、评价、物化或其他实验运行；已直接调用守卫并保存允许与拒绝输入证据。"
+  }
+}
