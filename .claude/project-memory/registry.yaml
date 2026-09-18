@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "thesis": {
+      "project_id": "thesis",
+      "project_slug": "thesis",
+      "repo_roots": [
+        "/Users/bilibili/personal/note"
+      ],
+      "vault_name": "Dev",
+      "vault_root": "/Users/bilibili/Dev/Research/thesis",
+      "hub_note": "Research/thesis/00-Hub.md",
+      "status": "active",
+      "auto_sync": true,
+      "note_language": "zh-CN",
+      "updated_at": "2026-09-16T00:00:00Z"
+    }
+  }
+}
