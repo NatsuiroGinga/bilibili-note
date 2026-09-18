@@ -7,7 +7,7 @@
   "batch_size": 16,
   "chunk_max_chars": 400,
   "chunk_overlap_chars": 80,
-  "rrf_constant": 60,
+  "rrf_constant": 5,
   "default_top_k": 10,
   "online_limit": 5,
   "online_timeout_seconds": 8.0
