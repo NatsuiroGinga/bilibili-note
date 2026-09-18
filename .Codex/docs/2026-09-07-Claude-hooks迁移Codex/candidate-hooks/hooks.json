@@ -1,0 +1,102 @@
+{
+  "description": "用户级 Codex 生命周期钩子，已由 Claude Code 配置迁移并适配。",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"security-guard.js\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"rule-injector.js\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"rule-injector.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"skill-forced-eval.js\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"rule-injector.js\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"kb-reindex.js\" --if-kb-edit",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"session-start.js\"",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"kb-reindex.js\"",
+            "timeout": 5,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "other",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"session-summary.js\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.codex/hooks/run-node-hook.sh\" \"stop-summary.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
