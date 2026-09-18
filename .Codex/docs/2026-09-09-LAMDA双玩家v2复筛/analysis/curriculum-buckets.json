@@ -1,0 +1,112 @@
+{
+  "arm": "gap_repair",
+  "surface_note": "测试良性 θ⁻ 分数为同源良性密度代理；样本级 FP 归因不可得",
+  "years": {
+    "2016": {
+      "bucket1": {
+        "n": 391,
+        "score_diff_range": [
+          0.0003,
+          0.1364
+        ],
+        "repair_rate": 0.9974,
+        "crossed_benign_median": 91.0,
+        "crossed_benign_mean": 97.91
+      },
+      "bucket2": {
+        "n": 391,
+        "score_diff_range": [
+          0.1365,
+          0.276
+        ],
+        "repair_rate": 0.9847,
+        "crossed_benign_median": 352.0,
+        "crossed_benign_mean": 354.32
+      },
+      "bucket3": {
+        "n": 392,
+        "score_diff_range": [
+          0.2761,
+          0.4057
+        ],
+        "repair_rate": 0.9872,
+        "crossed_benign_median": 746.0,
+        "crossed_benign_mean": 794.82
+      },
+      "bucket4": {
+        "n": 390,
+        "score_diff_range": [
+          0.4061,
+          0.4757
+        ],
+        "repair_rate": 0.959,
+        "crossed_benign_median": 1786.0,
+        "crossed_benign_mean": 1751.65
+      },
+      "bucket5": {
+        "n": 392,
+        "score_diff_range": [
+          0.4758,
+          0.4969
+        ],
+        "repair_rate": 0.9184,
+        "crossed_benign_median": 5292.0,
+        "crossed_benign_mean": 6035.26
+      },
+      "cost_ratio_b5_over_b1": 61.64
+    },
+    "2017": {
+      "bucket1": {
+        "n": 38,
+        "score_diff_range": [
+          0.0044,
+          0.3156
+        ],
+        "repair_rate": 0.6316,
+        "crossed_benign_median": 466.5,
+        "crossed_benign_mean": 609.82
+      },
+      "bucket2": {
+        "n": 32,
+        "score_diff_range": [
+          0.319,
+          0.4181
+        ],
+        "repair_rate": 0.75,
+        "crossed_benign_median": 2060.0,
+        "crossed_benign_mean": 2122.31
+      },
+      "bucket3": {
+        "n": 43,
+        "score_diff_range": [
+          0.4272,
+          0.4584
+        ],
+        "repair_rate": 0.7907,
+        "crossed_benign_median": 3866.0,
+        "crossed_benign_mean": 3887.58
+      },
+      "bucket4": {
+        "n": 38,
+        "score_diff_range": [
+          0.4597,
+          0.4781
+        ],
+        "repair_rate": 0.6316,
+        "crossed_benign_median": 5924.0,
+        "crossed_benign_mean": 5991.58
+      },
+      "bucket5": {
+        "n": 38,
+        "score_diff_range": [
+          0.4789,
+          0.486
+        ],
+        "repair_rate": 0.7632,
+        "crossed_benign_median": 10931.0,
+        "crossed_benign_mean": 10094.74
+      },
+      "cost_ratio_b5_over_b1": 16.55
+    }
+  }
+}

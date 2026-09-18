@@ -1,0 +1,261 @@
+{
+  "note": "E1 修正版：clip→ER 参照；T_all/T_keep 双定义",
+  "arms": {
+    "gap_repair": {
+      "2016": {
+        "n_plus": 2009,
+        "n_minus": 2,
+        "net_fp_delta": 2007,
+        "er_fpr": 0.021464,
+        "arm_fp_total": 2282,
+        "defs": {
+          "T_all": {
+            "100": {
+              "coverage_n_plus": 0.0149,
+              "fpr_after_oracle_clip": 0.175851,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0338,
+              "fpr_after_oracle_clip": 0.172885,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0602,
+              "fpr_after_oracle_clip": 0.168826,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.1523,
+              "fpr_after_oracle_clip": 0.154387,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.3385,
+              "fpr_after_oracle_clip": 0.125195,
+              "passes_ER_FPR": false
+            }
+          },
+          "T_keep": {
+            "100": {
+              "coverage_n_plus": 0.0174,
+              "fpr_after_oracle_clip": 0.175382,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0428,
+              "fpr_after_oracle_clip": 0.171402,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0876,
+              "fpr_after_oracle_clip": 0.164377,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.1882,
+              "fpr_after_oracle_clip": 0.148611,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.3425,
+              "fpr_after_oracle_clip": 0.124415,
+              "passes_ER_FPR": false
+            }
+          }
+        }
+      },
+      "2017": {
+        "n_plus": 1748,
+        "n_minus": 27,
+        "net_fp_delta": 1721,
+        "er_fpr": 0.006557,
+        "arm_fp_total": 1823,
+        "defs": {
+          "T_all": {
+            "100": {
+              "coverage_n_plus": 0.0114,
+              "fpr_after_oracle_clip": 0.116346,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0143,
+              "fpr_after_oracle_clip": 0.116411,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0166,
+              "fpr_after_oracle_clip": 0.116218,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.0269,
+              "fpr_after_oracle_clip": 0.115189,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.0441,
+              "fpr_after_oracle_clip": 0.113711,
+              "passes_ER_FPR": false
+            }
+          },
+          "T_keep": {
+            "100": {
+              "coverage_n_plus": 0.0109,
+              "fpr_after_oracle_clip": 0.115961,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0177,
+              "fpr_after_oracle_clip": 0.115189,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0292,
+              "fpr_after_oracle_clip": 0.113904,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.0555,
+              "fpr_after_oracle_clip": 0.110947,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.1184,
+              "fpr_after_oracle_clip": 0.10394,
+              "passes_ER_FPR": false
+            }
+          }
+        }
+      }
+    },
+    "gap_repair_dual_player": {
+      "2016": {
+        "n_plus": 2243,
+        "n_minus": 2,
+        "net_fp_delta": 2241,
+        "er_fpr": 0.021464,
+        "arm_fp_total": 2516,
+        "defs": {
+          "T_all": {
+            "100": {
+              "coverage_n_plus": 0.0111,
+              "fpr_after_oracle_clip": 0.194427,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0299,
+              "fpr_after_oracle_clip": 0.191149,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0722,
+              "fpr_after_oracle_clip": 0.183734,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.144,
+              "fpr_after_oracle_clip": 0.171246,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.3032,
+              "fpr_after_oracle_clip": 0.143381,
+              "passes_ER_FPR": false
+            }
+          },
+          "T_keep": {
+            "100": {
+              "coverage_n_plus": 0.008,
+              "fpr_after_oracle_clip": 0.194973,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0366,
+              "fpr_after_oracle_clip": 0.189978,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0767,
+              "fpr_after_oracle_clip": 0.182953,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.1565,
+              "fpr_after_oracle_clip": 0.168982,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.2862,
+              "fpr_after_oracle_clip": 0.146269,
+              "passes_ER_FPR": false
+            }
+          }
+        }
+      },
+      "2017": {
+        "n_plus": 622,
+        "n_minus": 25,
+        "net_fp_delta": 597,
+        "er_fpr": 0.006557,
+        "arm_fp_total": 699,
+        "defs": {
+          "T_all": {
+            "100": {
+              "coverage_n_plus": 0.0129,
+              "fpr_after_oracle_clip": 0.044996,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0177,
+              "fpr_after_oracle_clip": 0.044932,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0241,
+              "fpr_after_oracle_clip": 0.044867,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.037,
+              "fpr_after_oracle_clip": 0.044353,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.0756,
+              "fpr_after_oracle_clip": 0.043067,
+              "passes_ER_FPR": false
+            }
+          },
+          "T_keep": {
+            "100": {
+              "coverage_n_plus": 0.0048,
+              "fpr_after_oracle_clip": 0.044739,
+              "passes_ER_FPR": false
+            },
+            "275": {
+              "coverage_n_plus": 0.0096,
+              "fpr_after_oracle_clip": 0.044546,
+              "passes_ER_FPR": false
+            },
+            "500": {
+              "coverage_n_plus": 0.0241,
+              "fpr_after_oracle_clip": 0.043967,
+              "passes_ER_FPR": false
+            },
+            "1000": {
+              "coverage_n_plus": 0.0723,
+              "fpr_after_oracle_clip": 0.042168,
+              "passes_ER_FPR": false
+            },
+            "2000": {
+              "coverage_n_plus": 0.1672,
+              "fpr_after_oracle_clip": 0.038375,
+              "passes_ER_FPR": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

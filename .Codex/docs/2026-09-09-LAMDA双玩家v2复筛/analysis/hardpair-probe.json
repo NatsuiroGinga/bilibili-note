@@ -1,0 +1,102 @@
+{
+  "experience_replay": {
+    "2016": {
+      "n": 21839,
+      "fn_n": 498,
+      "fp_n": 275,
+      "fn_score_quantiles": [
+        0.0083,
+        0.1224,
+        0.4413
+      ],
+      "benign_quantiles": [
+        0.0032,
+        0.0252,
+        0.91
+      ],
+      "fn_above_benign_median": 0.9578313253012049,
+      "fn_above_benign_p90": 0.7710843373493976,
+      "fn_above_benign_p99": 0.0,
+      "hard_pair_auc": 0.902542890889189,
+      "new_fp_if_threshold_to_lowest_fn": 11027,
+      "new_fp_if_threshold_fixes_half_fn": 611
+    },
+    "2017": {
+      "n": 19829,
+      "fn_n": 238,
+      "fp_n": 102,
+      "fn_score_quantiles": [
+        0.0013,
+        0.0169,
+        0.3898
+      ],
+      "benign_quantiles": [
+        0.0017,
+        0.0073,
+        0.2108
+      ],
+      "fn_above_benign_median": 0.8739495798319328,
+      "fn_above_benign_p90": 0.6302521008403361,
+      "fn_above_benign_p99": 0.18487394957983194,
+      "hard_pair_auc": 0.8297286260393467,
+      "new_fp_if_threshold_to_lowest_fn": 15049,
+      "new_fp_if_threshold_fixes_half_fn": 715
+    }
+  },
+  "gap_repair": {
+    "2016": {
+      "n": 21839,
+      "fn_n": 95,
+      "fp_n": 2282,
+      "fn_score_quantiles": [
+        0.021,
+        0.1108,
+        0.451
+      ],
+      "benign_quantiles": [
+        0.0336,
+        0.8435,
+        0.9915
+      ],
+      "fn_above_benign_median": 0.7578947368421053,
+      "fn_above_benign_p90": 0.0,
+      "fn_above_benign_p99": 0.0,
+      "hard_pair_auc": 0.6260746504099775,
+      "new_fp_if_threshold_to_lowest_fn": 12209,
+      "new_fp_if_threshold_fixes_half_fn": 3951
+    },
+    "2017": {
+      "n": 19829,
+      "fn_n": 451,
+      "fp_n": 1823,
+      "fn_score_quantiles": [
+        0.0275,
+        0.154,
+        0.437
+      ],
+      "benign_quantiles": [
+        0.0335,
+        0.5614,
+        0.9065
+      ],
+      "fn_above_benign_median": 0.8248337028824834,
+      "fn_above_benign_p90": 0.0,
+      "fn_above_benign_p99": 0.0,
+      "hard_pair_auc": 0.6830473359751217,
+      "new_fp_if_threshold_to_lowest_fn": 15443,
+      "new_fp_if_threshold_fixes_half_fn": 3924
+    }
+  },
+  "gap_fp_origin_vs_er": {
+    "2016": {
+      "gap_fp_total": 2282,
+      "fp_already_fp_in_er": 273,
+      "fp_new_by_gap_only": 2009
+    },
+    "2017": {
+      "gap_fp_total": 1823,
+      "fp_already_fp_in_er": 75,
+      "fp_new_by_gap_only": 1748
+    }
+  }
+}

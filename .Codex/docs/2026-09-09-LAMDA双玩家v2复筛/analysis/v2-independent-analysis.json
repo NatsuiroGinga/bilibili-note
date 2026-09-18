@@ -1,0 +1,206 @@
+{
+  "arms": {
+    "experience_replay": {
+      "pooled": {
+        "n": 41668,
+        "TP": 12563,
+        "FP": 377,
+        "TN": 27992,
+        "FN": 736,
+        "AP": 0.9871024959927732,
+        "AUROC": 0.9919287759763336,
+        "F1": 0.9575822249323526,
+        "FPR": 0.013289153653636011,
+        "FNR": 0.05534250695541018,
+        "Brier": 0.021965872962754155
+      },
+      "per_year_check": {
+        "max_abs_deviation_vs_tool": 0.0
+      },
+      "transitions": {
+        "malicious_repair": {
+          "num": 2916,
+          "den": 3472,
+          "rate": 0.8398617511520737
+        },
+        "malicious_negative_flip": {
+          "num": 180,
+          "den": 9827,
+          "rate": 0.018316882059631626
+        },
+        "benign_new_false_positive": {
+          "num": 174,
+          "den": 28369,
+          "rate": 0.0061334555324473895
+        }
+      }
+    },
+    "gap_repair": {
+      "pooled": {
+        "n": 41668,
+        "TP": 12753,
+        "FP": 4105,
+        "TN": 24264,
+        "FN": 546,
+        "AP": 0.9514735284539362,
+        "AUROC": 0.973402924105588,
+        "F1": 0.8457737838644428,
+        "FPR": 0.1447002009235433,
+        "FNR": 0.04105571847507331,
+        "Brier": 0.07988532504275302
+      },
+      "per_year_check": {
+        "max_abs_deviation_vs_tool": 0.0
+      },
+      "transitions": {
+        "malicious_repair": {
+          "num": 2031,
+          "den": 2145,
+          "rate": 0.9468531468531468
+        },
+        "malicious_negative_flip": {
+          "num": 432,
+          "den": 11154,
+          "rate": 0.038730500268961805
+        },
+        "benign_new_false_positive": {
+          "num": 3257,
+          "den": 28369,
+          "rate": 0.11480841763897212
+        }
+      }
+    },
+    "dual_player": {
+      "pooled": {
+        "n": 41668,
+        "TP": 12490,
+        "FP": 340,
+        "TN": 28029,
+        "FN": 809,
+        "AP": 0.9874369052451125,
+        "AUROC": 0.9922213986856334,
+        "F1": 0.9560258716368786,
+        "FPR": 0.011984913109379956,
+        "FNR": 0.06083164147680277,
+        "Brier": 0.022534910509911837
+      },
+      "per_year_check": {
+        "max_abs_deviation_vs_tool": 0.0
+      },
+      "transitions": {
+        "malicious_repair": {
+          "num": 2680,
+          "den": 3222,
+          "rate": 0.8317815021725636
+        },
+        "malicious_negative_flip": {
+          "num": 267,
+          "den": 10077,
+          "rate": 0.02649598094671033
+        },
+        "benign_new_false_positive": {
+          "num": 150,
+          "den": 28369,
+          "rate": 0.0052874616659029225
+        }
+      },
+      "multipliers": {
+        "2016": {
+          "lambda_benign_max": 0.08181817829608917,
+          "lambda_malicious_max": 0.011111111380159855,
+          "lambda_benign_final": 0.0,
+          "lambda_malicious_final": 0.011111111380159855,
+          "dual_updates_total": 3,
+          "repair_candidates_final": 0
+        },
+        "2017": {
+          "lambda_benign_max": 0.02654867246747017,
+          "lambda_malicious_max": 0.011904762126505375,
+          "lambda_benign_final": 0.02654867246747017,
+          "lambda_malicious_final": 0.011904762126505375,
+          "dual_updates_total": 3,
+          "repair_candidates_final": 0
+        }
+      }
+    },
+    "gap_repair_dual_player": {
+      "pooled": {
+        "n": 41668,
+        "TP": 12718,
+        "FP": 3215,
+        "TN": 25154,
+        "FN": 581,
+        "AP": 0.9593212689091186,
+        "AUROC": 0.9773956077122072,
+        "F1": 0.8701423097974822,
+        "FPR": 0.1133279283725193,
+        "FNR": 0.043687495300398525,
+        "Brier": 0.06776525170679872
+      },
+      "per_year_check": {
+        "max_abs_deviation_vs_tool": 0.0
+      },
+      "transitions": {
+        "malicious_repair": {
+          "num": 1566,
+          "den": 1694,
+          "rate": 0.9244391971664699
+        },
+        "malicious_negative_flip": {
+          "num": 453,
+          "den": 11605,
+          "rate": 0.03903489875053856
+        },
+        "benign_new_false_positive": {
+          "num": 2553,
+          "den": 28369,
+          "rate": 0.08999259755366773
+        }
+      },
+      "multipliers": {
+        "2016": {
+          "lambda_benign_max": 1.1363636255264282,
+          "lambda_malicious_max": 0.07777778059244156,
+          "lambda_benign_final": 0.672727270051837,
+          "lambda_malicious_final": 0.07777778059244156,
+          "dual_updates_total": 4,
+          "repair_candidates_final": 5890
+        },
+        "2017": {
+          "lambda_benign_max": 0.5486725941300392,
+          "lambda_malicious_max": 0.48275861516594887,
+          "lambda_benign_final": 0.0,
+          "lambda_malicious_final": 0.48275861516594887,
+          "dual_updates_total": 3,
+          "repair_candidates_final": 774
+        }
+      }
+    }
+  },
+  "delta_vs_er": {
+    "gap_repair": {
+      "AP": -0.03562896753883704,
+      "AUROC": -0.018525851870745513,
+      "F1": -0.11180844106790977,
+      "FPR": 0.1314110472699073,
+      "FNR": -0.01428678848033687,
+      "Brier": 0.057919452079998865
+    },
+    "dual_player": {
+      "AP": 0.0003344092523392961,
+      "AUROC": 0.00029262270929986123,
+      "F1": -0.001556353295473989,
+      "FPR": -0.001304240544256055,
+      "FNR": 0.0054891345213925885,
+      "Brier": 0.0005690375471576817
+    },
+    "gap_repair_dual_player": {
+      "AP": -0.027781227083654603,
+      "AUROC": -0.014533168264126317,
+      "F1": -0.08743991513487037,
+      "FPR": 0.10003877471888328,
+      "FNR": -0.011655011655011656,
+      "Brier": 0.045799378744044564
+    }
+  }
+}

@@ -40,6 +40,28 @@
 - 如果缺口修复有独立信号、PCT 只改善保持而未修复漏判，则可把二者任务化组合为主候选；若需要更强的记忆侧差量，再比较将固定角色记忆替换为 MIR/GSS 干扰感知选择的最小四臂。FreeMOCA 仅作无回放参数保持对照。
 - 任何新增组合都必须在相同 FPR operating point 下比较 FNR、恶意正向修复率和旧恶意负向翻转率，并继续遵守来源／项目开发层筛选、封印年不回灌的合同。
 
+## 博弈论候选（未冻结）
+
+- 不采用没有数据依据的“攻击者—防守者”博弈叙事；LAMDA 没有攻击者动作、响应或反事实收益。
+- 可采用有文献依据的双玩家约束优化：修复模型玩家最小化基础损失和恶意漏判修复损失，安全约束玩家最大化 FPR 约束的拉格朗日乘子。
+
+\[
+\min_\theta\max_{\lambda\ge0}
+L_{base}(\theta)+\lambda_rL_{mal\text{-}FN}(\theta)
++\lambda\left(\widehat{FPR}_{gate}(\theta)-FPR_{old}\right).
+\]
+
+- 其更新为：
+
+\[
+\theta\leftarrow\theta-\eta_\theta\nabla_\theta L(\theta,\lambda),\qquad
+\lambda\leftarrow[\lambda+\eta_\lambda(\widehat{FPR}_{gate}-FPR_{old})]_+.
+\]
+
+- 训练中的 FPR 必须使用可微代理，最终仍用独立且时间一致的良性 gate 做真实二值 FPR 验收；不能把未知未来年份的 FPR 写成数学保证。
+- 该候选的任务化增量是把安全玩家的约束对象限定为 LAMDA 的良性新增误报和旧恶意回归，并与恶意缺口修复回放通过时间顺序耦合。TFCO/Cotter 是约束优化来源，PCT 是直接安全回归基线，二者都不能改名为新算法。
+- 最小验证矩阵可在当前四臂完成后追加：ER、ER＋缺口修复、ER＋双玩家 FPR 约束、ER＋两者联合；若缺口修复或双玩家层没有 equal-FPR FNR/MPR 信号，立即停止该候选。
+
 ## 九组新增方法证据的任务化映射
 
 | 方法家族 | 已核对内容 | 对 LAMDA 第三章的处理 |
