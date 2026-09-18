@@ -57,6 +57,10 @@ related:
 
 ## LAMDA 第三章：持续学习回放与安全回归近邻（2026-09-09）
 
+- **[[2021-Yan-PCT正向一致训练|PCT：正向一致训练与 Focal Distillation]]** — 旧正确决策保护的直接基线。
+- **[[2019-Cotter-Proxy-Lagrangian约束优化|Proxy-Lagrangian：不可微速率约束]]** — FPR 等速率约束的双玩家理论来源。
+- **[[2019-Cotter-独立验证集约束泛化|独立验证集约束泛化]]** — 训练玩家与独立约束验证玩家分离的理论来源。
+- **[[2021-Kumar-固定FPR约束FNR|固定 FPR 下的 FNR 优化]]** — 固定 FPR operating point 的目标近邻。
 - **[[2025-Ghiani-Regression-aware持续学习安全回归|Regression-aware Continual Learning]]** — 用 NFR/PFR 分解安全回归并以 PCT 约束旧正确样本；是 LAMDA 安全回归候选的直接基线，不能直接当作新算法。
 - **[[2025-Mohamed-MADAR多样性感知回放|MADAR]]** — 用家族预算、代表性与异常样本做恶意软件多样性感知回放；历史池与 LAMDA 全程 200 容量不同。
 - **[[2019-Wei-GSS梯度样本选择在线持续学习|GSS]]** — 将记忆选择视为梯度约束压缩；梯度多样性记忆的直接先例。
