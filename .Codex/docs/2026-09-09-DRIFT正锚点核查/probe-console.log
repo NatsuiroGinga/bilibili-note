@@ -1,0 +1,108 @@
+模型加载完成
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+模型加载完成
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+中和均值计算完成（T17 val 全量）
+模型加载完成
+T17 特征提取开始（300000 域，缓存复用）
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+均值与 T17 特征缓存完成
+Traceback (most recent call last):
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-09-DRIFT正锚点核查/positive_anchor_probe.py", line 259, in <module>
+    main()
+    ~~~~^^
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-09-DRIFT正锚点核查/positive_anchor_probe.py", line 96, in main
+    gate = gate_features(domains, probs)
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-09-DRIFT正锚点核查/positive_anchor_probe.py", line 253, in gate_features
+    probs["stats"],
+    ~~~~~^^^^^^^^^
+KeyError: 'stats'
+模型加载完成
+T17 特征提取开始（300000 域，缓存复用）
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+均值与 T17 特征缓存完成
+[里程碑] T17: 三路判定与特征完成（n=300000）
+Traceback (most recent call last):
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-09-DRIFT正锚点核查/positive_anchor_probe.py", line 262, in <module>
+    main()
+    ~~~~^^
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-09-DRIFT正锚点核查/positive_anchor_probe.py", line 118, in main
+    "wrong": wrong, "rec_c": rec_c, "rec_s": rec_s,
+                             ^^^^^
+NameError: name 'rec_c' is not defined. Did you mean: 'pred_c'?
+模型加载完成
+T17 特征提取开始（300000 域，缓存复用）
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+均值与 T17 特征缓存完成
+[里程碑] T17: 三路判定与特征完成（n=300000）
+[里程碑] T18: 三路判定与特征完成（n=300000）
+Traceback (most recent call last):
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-09-DRIFT正锚点核查/positive_anchor_probe.py", line 262, in <module>
+    np.abs(fusion - ccf),
+    
+  File "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/.Codex/docs/2026-09-09-DRIFT正锚点核查/positive_anchor_probe.py", line 187, in main
+    # 问二：override。T17 按 cell 学 argmax_u（rescue-harm 效用），T18 上执行，计 coverage/rescued/induced
+ValueError: operands could not be broadcast together with shapes (300000,) (2802,) 
+模型加载完成
+T17 特征提取开始（300000 域，缓存复用）
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+特征缓存已落盘：/tmp/drift-anchor-t17-features-300000.npz
+均值与 T17 特征缓存完成
+[里程碑] T17: 三路判定与特征完成（n=300000）
+[里程碑] T18: 三路判定与特征完成（n=300000）
+{
+  "T17": {
+    "n": 300000,
+    "fusion_errors": 8474,
+    "fusion_error_rate": 0.028247,
+    "subword_recovers": 37,
+    "char_recovers": 6310,
+    "either_recovers": 6341,
+    "both_recover": 6,
+    "anchor_target_n": 31,
+    "anchor_neg_n": 6304,
+    "exclusive_correct_c": 97546,
+    "exclusive_correct_s": 9135,
+    "selector_trained": true
+  },
+  "T18": {
+    "n": 300000,
+    "fusion_errors": 6159,
+    "fusion_error_rate": 0.02053,
+    "subword_recovers": 20,
+    "char_recovers": 3932,
+    "either_recovers": 3952,
+    "both_recover": 0,
+    "anchor_target_n": 20,
+    "anchor_neg_n": 3932,
+    "exclusive_correct_c": 97857,
+    "exclusive_correct_s": 5235,
+    "anchor_auc_T17_to_T18": 0.527
+  },
+  "lookup_two_question": {
+    "question1_which_branch": {
+      "cells_used": 10,
+      "covered_n": 103037,
+      "correct_n": 98896,
+      "balanced_accuracy_proxy": 0.9598,
+      "confidence_heuristic_correct_rate": 0.9555
+    },
+    "question2_override": {
+      "coverage": 2885,
+      "rescued": 1339,
+      "induced": 1546,
+      "net": -207,
+      "rescue_rate_in_covered": 0.4641
+    },
+    "criteria": {
+      "q1_pass": true,
+      "q2_pass": false
+    }
+  }
+}

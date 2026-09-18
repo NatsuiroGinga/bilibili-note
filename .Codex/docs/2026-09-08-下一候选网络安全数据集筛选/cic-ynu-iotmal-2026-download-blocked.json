@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "dataset_id": "cic-ynu-iotmal-2026",
+  "formal_name": "CIC-YNU-IoTMal: A comprehensive multilayer dataset for static and dynamic analysis of IoT malware behavior",
+  "doi": "10.1016/j.is.2026.102722",
+  "checked_at": "2026-09-08T11:47:19+08:00",
+  "status": "blocked_official_access",
+  "official_dataset_page": "https://www.unb.ca/cic/datasets/ynu-iot-2026.html",
+  "official_download_form": "https://cicresearch.ca/CICDataset/Yokohama/",
+  "access_receipt": {
+    "form_page_contains_server_error": true,
+    "unauthenticated_browse_http_status": 403,
+    "official_huggingface_search_queries": [
+      "CIC-YNU-IoTMal",
+      "YNU-IoT"
+    ],
+    "official_huggingface_matches": 0
+  },
+  "official_size_bytes": null,
+  "official_file_hashes_available": false,
+  "dataset_license": null,
+  "paper_license": "CC BY 4.0",
+  "published_record_counts": {
+    "pcap": 2400000,
+    "sar": 1800000,
+    "strace": 105000000
+  },
+  "third_party_mirror_used": false,
+  "download_started": false,
+  "reason": "官方表单当前返回服务器错误，未登记浏览入口返回 403，且未找到作者或 UNBCIC 官方 Hugging Face 发布。数据许可证、精确字节和逐文件哈希均无法核验。",
+  "next_action": "仅在官方表单恢复或作者组织发布可核验直链后重试；不得使用未知第三方镜像。"
+}

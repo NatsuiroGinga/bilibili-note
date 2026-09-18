@@ -1,0 +1,16 @@
+{
+  "low_order_keys": {
+    "coverage": 0,
+    "rescued": 0,
+    "induced": 0,
+    "net": 0,
+    "criteria_pass": false
+  },
+  "k4_joint_keys": {
+    "coverage": 0,
+    "rescued": 0,
+    "induced": 0,
+    "net": 0,
+    "criteria_pass": false
+  }
+}

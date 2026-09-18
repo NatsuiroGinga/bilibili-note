@@ -1,0 +1,40 @@
+{
+  "schema_version": "drift-route-checkpoint-registry-v1",
+  "repository_id": "Heehobino/drift-route-checkpoints",
+  "repository_visibility": "private",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "entries": [
+    {
+      "run_identity": "ch3-drift-t17-equal3-auxheads-char-gradient-base-v1",
+      "registry_status": "prepared_for_upload",
+      "source_status": "completed",
+      "scientific_status": "screening_only；不能冒充正式模型或论文结果",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+      "registry_path": "checkpoints/ch3-drift-t17-equal3-auxheads-char-gradient-base-v1/"
+    },
+    {
+      "run_identity": "ch3-drift-t17-equal3-auxheads-subword-gradient-base-v1",
+      "registry_status": "prepared_for_upload",
+      "source_status": "completed",
+      "scientific_status": "screening_only；不能冒充正式模型或论文结果",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+      "registry_path": "checkpoints/ch3-drift-t17-equal3-auxheads-subword-gradient-base-v1/"
+    },
+    {
+      "run_identity": "ch3-drift-n12-g1-equal3-gradient-screen-v1",
+      "registry_status": "not_uploaded",
+      "source_status": "completed",
+      "scientific_status": "eligible_for_g2_only；screening_only，不能作为正式模型",
+      "exclusion_reason": "检查点含 FP32 梯度累积和 family 状态，不是可发布模型权重。",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521"
+    },
+    {
+      "run_identity": "ch3-drift-n12-g2-family-isolated-short-step-v1",
+      "registry_status": "pending",
+      "source_status": "running/verify",
+      "scientific_status": "实验待证；不得将运行中制品作为模型权重上传",
+      "exclusion_reason": "本轮只观察到运行状态，未读取任何可变检查点；尚无终态和哈希闭合。",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521"
+    }
+  ]
+}

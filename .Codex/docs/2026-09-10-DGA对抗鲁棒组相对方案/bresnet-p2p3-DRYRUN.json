@@ -1,0 +1,80 @@
+{
+  "spec": {
+    "backbone": "B-ResNet",
+    "n_params": 155009,
+    "vocab_size": 40,
+    "seq_len": 63,
+    "chars": "~abcdefghijklmnopqrstuvwxyz0123456789-_.",
+    "n_blocks": 1,
+    "lr": 0.0001,
+    "batch": 128,
+    "epochs": 1,
+    "seed": 42,
+    "loss": "binary_cross_entropy_with_logits",
+    "optimizer": "Adam(weight_decay=0)",
+    "prob_mapping": "sigmoid(single_logit)（无 classifier_head 融合，无中和均值）",
+    "arms": [
+      "A"
+    ]
+  },
+  "results": {
+    "A": {
+      "clean": {
+        "AP": 0.6073946143631956,
+        "FPR": 0.65,
+        "FNR": 0.25,
+        "F1": 0.625,
+        "FP": 130,
+        "FN": 50,
+        "n": 400
+      },
+      "adv": {
+        "AP": 1.0,
+        "FPR": 0.0,
+        "FNR": 0.28,
+        "F1": 0.8372093023255814,
+        "FP": 0,
+        "FN": 56,
+        "n": 200
+      },
+      "n_params": 155009,
+      "fpr_curve": [
+        {
+          "epoch": 1,
+          "clean_FPR": 0.65
+        }
+      ],
+      "wall_seconds": 1.4,
+      "adv_k2": {
+        "AP": 1.0,
+        "FPR": 0.0,
+        "FNR": 0.28,
+        "F1": 0.8372093023255814,
+        "FP": 0,
+        "FN": 56,
+        "n": 200
+      },
+      "adv_krand": {
+        "AP": 1.0,
+        "FPR": 0.0,
+        "FNR": 0.24,
+        "F1": 0.8636363636363636,
+        "FP": 0,
+        "FN": 48,
+        "n": 200
+      },
+      "adv_maskdga": {
+        "AP": 1.0,
+        "FPR": 0.0,
+        "FNR": 0.29,
+        "F1": 0.8304093567251462,
+        "FP": 0,
+        "FN": 58,
+        "n": 200
+      }
+    }
+  },
+  "verdict": {
+    "note": "dry-run 单臂"
+  }
+}

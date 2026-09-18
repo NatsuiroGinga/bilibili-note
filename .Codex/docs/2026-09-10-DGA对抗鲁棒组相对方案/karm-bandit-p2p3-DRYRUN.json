@@ -1,0 +1,113 @@
+{
+  "results": {
+    "K": {
+      "clean": {
+        "AP": 0.9950358499796335,
+        "FPR": 0.04,
+        "FNR": 0.015,
+        "F1": 0.9728395061728395,
+        "FP": 8,
+        "FN": 3,
+        "n": 400
+      },
+      "n_params": 24180226,
+      "fpr_curve": [
+        {
+          "epoch": 1,
+          "clean_FPR": 0.04
+        }
+      ],
+      "bandit": {
+        "gate_shape": [
+          3
+        ],
+        "V_shape": [
+          3,
+          2,
+          37
+        ],
+        "V_size": 222,
+        "n_params_total": 225,
+        "n_updates": 13176,
+        "n_gate_updates": 3013,
+        "n_rewards": 800,
+        "gate_edit_prob": [
+          0.8817610732936199,
+          0.8720270382151031,
+          0.913447151415834
+        ],
+        "V_mean_replace": 0.8595046661724244,
+        "V_mean_by_bucket": [
+          0.6796756477115822,
+          0.6817982862345956,
+          0.6777830653124586
+        ],
+        "V_min": 0.5,
+        "V_max": 1.048755401771168
+      },
+      "bandit_epochs": [
+        {
+          "epoch": 1,
+          "mean_edit_rate": 0.7713266545233758,
+          "mean_reward": 0.7762923553827006,
+          "mean_fooled_rate": 0.73625,
+          "char_choice_entropy_bit": 5.203567153904325,
+          "gate_edit_prob": [
+            0.8817610732936199,
+            0.8720270382151031,
+            0.913447151415834
+          ],
+          "n_updates_cum": 13176,
+          "n_gate_updates_cum": 3013
+        }
+      ],
+      "wall_seconds": 20.2,
+      "adv_k2": {
+        "AP": 1.0,
+        "FPR": 0.0,
+        "FNR": 0.3,
+        "F1": 0.8235294117647058,
+        "FP": 0,
+        "FN": 60,
+        "n": 200
+      },
+      "adv_krand": {
+        "AP": 1.0,
+        "FPR": 0.0,
+        "FNR": 0.31,
+        "F1": 0.8165680473372781,
+        "FP": 0,
+        "FN": 62,
+        "n": 200
+      },
+      "adv_maskdga": {
+        "AP": 1.0,
+        "FPR": 0.0,
+        "FNR": 0.665,
+        "F1": 0.50187265917603,
+        "FP": 0,
+        "FN": 133,
+        "n": 200
+      }
+    }
+  },
+  "verdict": {
+    "criterion_version": "v1（K vs D 同 screening 规格，冻结于脚本 docstring）",
+    "D_arm_ref": {
+      "maskdga_FNR": 0.0085,
+      "clean_FPR": 0.0236,
+      "clean_AP": 0.99724,
+      "source": "task_plan.md §5.6.2 官方 24.2M 滚动实验登记"
+    },
+    "K_arm": {
+      "maskdga_FNR": 0.665,
+      "clean_FPR": 0.04,
+      "clean_AP": 0.99504
+    },
+    "branch_detection_improve": false,
+    "branch_same_detection_lower_fpr": false,
+    "direction_a_pass": false,
+    "note": "方向 a 在固定预算下不成立（登记负结果，不得改判据或换面板）",
+    "dry_run_samples": 200
+  }
+}

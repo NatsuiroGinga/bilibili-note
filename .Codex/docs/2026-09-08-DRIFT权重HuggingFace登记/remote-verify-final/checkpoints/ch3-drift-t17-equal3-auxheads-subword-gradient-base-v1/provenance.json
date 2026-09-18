@@ -1,0 +1,25 @@
+{
+  "schema_version": "drift-route-state-dict-provenance-v1",
+  "run_identity": "ch3-drift-t17-equal3-auxheads-subword-gradient-base-v1",
+  "source_status": "completed",
+  "scientific_status": "screening_only；不能冒充正式模型或论文结果",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "source_checkpoint": {
+    "sha256": "1c4b931ff85d26cc2b517e21e2b1a821424b3089cec9d7513b4785c1f83c951c",
+    "bytes": 153449899
+  },
+  "config_sha256": "85f19d44be6a646df85c34daba7ff93390f5d997281ed06b419992459ec07ce5",
+  "script_sha256": "43601c2229bae12efc0185f72083df6951ee55092b41802ea9e4c5378c5bc68d",
+  "source_p0_config_sha256": "eab95b6539fa920aa4b929203f3ef81eaf11fa53335e00f367bd9615fce64fcf",
+  "source_p0_script_sha256": "92056fd37cb9c195d1952b59280101d8c1b9f0a622453ec9c929d378f9c85674",
+  "artifact": {
+    "path": "model_state_dict.pt",
+    "sha256": "791cb5af4b03502befa4944f6205045209c0104fcbdc66084bd2b1d8745f48fe",
+    "bytes": 51141177,
+    "serialization": "torch.save 的纯 state_dict；不含优化器、随机状态、样本、日志或凭据"
+  },
+  "upload": {
+    "commit": "f66608f9bc3a240152280fe81d5c40d34914d262",
+    "url": "https://huggingface.co/Heehobino/drift-route-checkpoints/commit/f66608f9bc3a240152280fe81d5c40d34914d262"
+  }
+}

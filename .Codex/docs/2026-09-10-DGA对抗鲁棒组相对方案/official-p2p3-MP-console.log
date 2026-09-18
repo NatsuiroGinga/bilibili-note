@@ -1,0 +1,31 @@
+[官方 P2/P3] 训练 60000、评价干净 15000、对抗 k2 7500/krand 7500/maskdga 7500
+[MP（混合曝光＋误报保护）] 分层 lr：骨干 23654400 参数 @1e-6，分类头 525826 参数 @1e-4
+[MP（混合曝光＋误报保护）] 官方模型 24180226 参数，训练 60000 样本 × 3 epochs
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 1/469 loss=2.7051 ETA 52.3 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 21/469 loss=2.2493 ETA 38.5 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 41/469 loss=1.4565 ETA 35.9 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 61/469 loss=0.7850 ETA 34.5 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 81/469 loss=0.7497 ETA 32.4 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 101/469 loss=0.4307 ETA 30.5 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 121/469 loss=0.5981 ETA 28.7 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 141/469 loss=0.3148 ETA 27.1 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 161/469 loss=0.2708 ETA 25.3 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 181/469 loss=0.1487 ETA 23.6 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 201/469 loss=0.2689 ETA 21.9 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 221/469 loss=0.4237 ETA 20.3 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 241/469 loss=0.3199 ETA 18.9 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 261/469 loss=0.2089 ETA 17.4 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 281/469 loss=0.2355 ETA 15.9 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 301/469 loss=0.1726 ETA 14.2 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 321/469 loss=0.2564 ETA 12.4 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 341/469 loss=0.2811 ETA 10.7 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 361/469 loss=0.2110 ETA 9.0 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 381/469 loss=0.3512 ETA 7.3 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 401/469 loss=0.1793 ETA 5.6 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 421/469 loss=0.1137 ETA 4.0 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 441/469 loss=0.1744 ETA 2.3 min
+[MP（混合曝光＋误报保护） 心跳] epoch 1 批 461/469 loss=0.1619 ETA 0.7 min
+[MP（混合曝光＋误报保护） 里程碑] epoch 1/3 完成，干净 FPR=0.0241（2324.7s）
+[MP（混合曝光＋误报保护） 心跳] epoch 2 批 1/469 loss=0.2633 ETA 33.7 min

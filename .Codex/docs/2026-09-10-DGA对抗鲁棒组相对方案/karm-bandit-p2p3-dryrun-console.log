@@ -1,0 +1,11 @@
+[K 臂] 训练 400、评价干净 400、对抗 k2 200/krand 200/maskdga 200；判据对照 D 臂冻结 maskdga FNR=0.0085（同检出分支用 clean FPR=0.0236）
+[K] 官方模型 24180226 参数，训练 400 样本 × 1 epochs
+[K] bandit 参数：编辑门 [3]（桶 3，初值 0.5）＋ 字符价值表 [3, 2, 37]（桶 3 × 操作 2 × 字符 37），合计 225 参数，η_bandit=0.05，形状奖励系数 0.1
+[K] 初始策略平均编辑率 = 0.529（应为 ~0.5：位置数 Bernoulli(0.5)）；两段式采样：编辑门定是否编辑 → 字符表选新字符
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+[K 心跳] epoch 1 批 1/4 loss=2.1950 编辑率=0.500 骗过率=0.612 动作更新=4208 ETA 0.3 min
+[K 里程碑] epoch 1/1 完成，干净 FPR=0.0400，平均编辑率=0.771，字符选择熵=5.20 bit，编辑概率=[0.882, 0.872, 0.913]，bandit 动作更新累计=13176（17.2s）
+[K bandit] 价值表 V 形状 [3, 2, 37]（222 参数），动作级更新 13176 次 / 奖励观测 800 次；V 均值 replace=0.8595，分桶均值=[0.6797, 0.6818, 0.6778]
+[K 里程碑] K: clean={"AP": 0.99504, "FPR": 0.04, "FNR": 0.015, "F1": 0.97284, "FP": 8, "FN": 3, "n": 400} maskdga={"AP": 1.0, "FPR": 0.0, "FNR": 0.665, "F1": 0.50187, "FP": 0, "FN": 133, "n": 200}
+[K 里程碑] 判据（dry-run 样本 200，仅供参考，不作裁决）: {"maskdga_FNR": 0.665, "clean_FPR": 0.04, "clean_AP": 0.99504} -> karm-bandit-p2p3-DRYRUN.json

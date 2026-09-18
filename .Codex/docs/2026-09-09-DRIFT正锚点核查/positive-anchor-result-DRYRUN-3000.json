@@ -1,0 +1,50 @@
+{
+  "T17": {
+    "n": 3000,
+    "fusion_errors": 79,
+    "fusion_error_rate": 0.026333,
+    "subword_recovers": 0,
+    "char_recovers": 56,
+    "either_recovers": 56,
+    "both_recover": 0,
+    "anchor_target_n": 0,
+    "anchor_neg_n": 56,
+    "exclusive_correct_c": 1025,
+    "exclusive_correct_s": 74,
+    "selector_skipped": "单类样本不足（小样本干跑正常现象）"
+  },
+  "T18": {
+    "n": 3000,
+    "fusion_errors": 61,
+    "fusion_error_rate": 0.020333,
+    "subword_recovers": 1,
+    "char_recovers": 35,
+    "either_recovers": 36,
+    "both_recover": 0,
+    "anchor_target_n": 1,
+    "anchor_neg_n": 35,
+    "exclusive_correct_c": 995,
+    "exclusive_correct_s": 48,
+    "anchor_auc_T17_to_T18": null
+  },
+  "lookup_two_question": {
+    "question1_which_branch": {
+      "cells_used": 3,
+      "covered_n": 1010,
+      "correct_n": 968,
+      "balanced_accuracy_proxy": 0.9584,
+      "confidence_heuristic_correct_rate": 0.9584
+    },
+    "question2_override": {
+      "coverage": 0,
+      "rescued": 0,
+      "induced": 0,
+      "net": 0,
+      "rescue_rate_in_covered": null
+    },
+    "criteria": {
+      "q1_pass": true,
+      "q2_pass": false
+    }
+  }
+}

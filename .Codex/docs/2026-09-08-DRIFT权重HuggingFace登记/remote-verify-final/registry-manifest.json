@@ -1,0 +1,68 @@
+{
+  "schema_version": "drift-route-checkpoint-registry-v1",
+  "repository_id": "Heehobino/drift-route-checkpoints",
+  "repository_visibility": "private",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "entries": [
+    {
+      "run_identity": "ch3-drift-t17-equal3-auxheads-char-gradient-base-v1",
+      "registry_status": "uploaded",
+      "source_status": "completed",
+      "scientific_status": "screening_only；不能冒充正式模型或论文结果",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+      "registry_path": "checkpoints/ch3-drift-t17-equal3-auxheads-char-gradient-base-v1/",
+      "config_sha256": "85f19d44be6a646df85c34daba7ff93390f5d997281ed06b419992459ec07ce5",
+      "script_sha256": "43601c2229bae12efc0185f72083df6951ee55092b41802ea9e4c5378c5bc68d",
+      "source_checkpoint_sha256": "70f195ff8048b450772f1d95a8913cc4633e52aca03cde0d621859451fb630a1",
+      "export_sha256": "238de2c4277c60271136d5f7326c412ff88773a85495ba6143a7c7124544c2b6",
+      "export_bytes": 4105657,
+      "upload_commit": "f66608f9bc3a240152280fe81d5c40d34914d262",
+      "upload_url": "https://huggingface.co/Heehobino/drift-route-checkpoints/commit/f66608f9bc3a240152280fe81d5c40d34914d262"
+    },
+    {
+      "run_identity": "ch3-drift-t17-equal3-auxheads-subword-gradient-base-v1",
+      "registry_status": "uploaded",
+      "source_status": "completed",
+      "scientific_status": "screening_only；不能冒充正式模型或论文结果",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+      "registry_path": "checkpoints/ch3-drift-t17-equal3-auxheads-subword-gradient-base-v1/",
+      "config_sha256": "85f19d44be6a646df85c34daba7ff93390f5d997281ed06b419992459ec07ce5",
+      "script_sha256": "43601c2229bae12efc0185f72083df6951ee55092b41802ea9e4c5378c5bc68d",
+      "source_checkpoint_sha256": "1c4b931ff85d26cc2b517e21e2b1a821424b3089cec9d7513b4785c1f83c951c",
+      "export_sha256": "791cb5af4b03502befa4944f6205045209c0104fcbdc66084bd2b1d8745f48fe",
+      "export_bytes": 51141177,
+      "upload_commit": "f66608f9bc3a240152280fe81d5c40d34914d262",
+      "upload_url": "https://huggingface.co/Heehobino/drift-route-checkpoints/commit/f66608f9bc3a240152280fe81d5c40d34914d262"
+    },
+    {
+      "run_identity": "ch3-drift-n12-g1-equal3-gradient-screen-v1",
+      "registry_status": "not_uploaded",
+      "source_status": "completed",
+      "scientific_status": "eligible_for_g2_only；screening_only，不能作为正式模型",
+      "exclusion_reason": "检查点含 FP32 梯度累积和 family 状态，不是可发布模型权重。",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+      "config_sha256": "a8684e2891aeda50ad3e312ab6220df68df2b3e41840e194425cb64dab66116a",
+      "script_sha256": "35d1300622c61cb692d715c70b0fbd17924f28520b55932ee68e548bb2f57612",
+      "source_checkpoint_sha256": "0dd2adb94ca639f57e0ec270d0dbda7f1270db212b55e59b6c1128c9f4bd9b8a",
+      "export_sha256": null,
+      "export_bytes": null,
+      "upload_commit": null,
+      "upload_url": null
+    },
+    {
+      "run_identity": "ch3-drift-n12-g2-family-isolated-short-step-v1",
+      "registry_status": "pending",
+      "source_status": "running/verify",
+      "scientific_status": "实验待证；不得将运行中制品作为模型权重上传",
+      "exclusion_reason": "本轮只观察到运行状态，未读取任何可变检查点；尚无终态和哈希闭合。",
+      "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+      "config_sha256": "680defe1231c6da7ed0ef5ade50193f716eaed637b98d43815029cc47ff07435",
+      "script_sha256": "ee77137c828d1cdeaf6c444bc3cd72e6d90fcce439ef3ee18e47dac5a9d2d593",
+      "source_checkpoint_sha256": null,
+      "export_sha256": null,
+      "export_bytes": null,
+      "upload_commit": null,
+      "upload_url": null
+    }
+  ]
+}

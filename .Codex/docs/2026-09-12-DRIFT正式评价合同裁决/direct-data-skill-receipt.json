@@ -1,0 +1,74 @@
+{
+  "task": "正式评价现有 Parquet 直读与确定性成员接口",
+  "agent": "direct_data_luna_high",
+  "model": "gpt-5.6-luna",
+  "effort": "high",
+  "required_skills": [
+    {
+      "name": "daily-coding",
+      "path": "/Users/bilibili/.codex/skills/backup/daily-coding-20260811-112930/SKILL.md",
+      "sha256": "da2399b50859b9d57281b9bc0dc456082db93d47486ae22967ebf3f17d354ae3",
+      "read_at": "2026-09-13T07:08:16Z",
+      "checklist": [
+        {"item": "先读后改", "evidence": "已完整读取直读简报、实现计划§3.1–3.2、近层规则、合同模块、三份配置和已验收编辑报告"},
+        {"item": "最小变更", "evidence": "仅修改简报限定的合同模块和三份配置，新建直读模块、报告与本收据；未修改编辑算子、训练脚本、启动器或恢复卡"},
+        {"item": "类型安全", "evidence": "公共直读接口、收据、源 Store、实体批次和目标统计均使用 Python 类型注解，并严格校验 domain、label、角色和批大小"},
+        {"item": "安全检查", "evidence": "复用路径边界、长度前缀和 SHA-256；PyArrow 延迟导入；只读打开 Parquet；不写成员、攻击、副本、索引、缓存或原始域名"},
+        {"item": "执行验证", "evidence": "通过语法、导入后设备模块检查、帮助入口、三配置严格加载、inputs 门禁、materialize 拒绝以及真实 T17 两文件两批次 CPU 审计"}
+      ]
+    }
+  ],
+  "owned_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py",
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py",
+    "thesis/experiments/llm_probe/configs/ch3-drift-formal-evaluation-v1.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-official-p2p3-formal-v3.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-bresnet-p2p3-formal-v1.json",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1/",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1-batch16384/",
+    "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1-rerun/",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-data-report.md",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-data-skill-receipt.json"
+  ],
+  "actual_changed_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py",
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py",
+    "thesis/experiments/llm_probe/configs/ch3-drift-formal-evaluation-v1.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-official-p2p3-formal-v3.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-bresnet-p2p3-formal-v1.json",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-data-report.md",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/direct-data-skill-receipt.json"
+  ],
+  "verification": [
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py", "exit_code": 0},
+    {"command": "导入两个模块并检查 torch、numpy、pyarrow 未加载", "exit_code": 0},
+    {"command": "两个模块 --help", "exit_code": 0},
+    {"command": "三份配置 load_config 严格加载", "exit_code": 0},
+    {"command": "合同 inputs --audit 真实角色存在性门禁", "exit_code": 0},
+    {"command": "合同 --materialize 明确拒绝", "exit_code": 2},
+    {"command": "真实 T17 两文件 development CPU 审计，批大小 8192", "exit_code": 0},
+    {"command": "真实 T17 两文件 development CPU 审计，批大小 16384", "exit_code": 0}
+  ],
+  "real_run": {
+    "applicable": true,
+    "reason": "真实 T17_benign_val 与 T17_dga_val 各 150000 行由直读接口完成完整内容审计、源唯一化、标签冲突审计、固定哈希选择和独立精确唯一计数；未访问目标年份或写入派生数据",
+    "evidence": [
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1/input-receipt.json",
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1/source-read-receipt.json",
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1/target-selection-receipt.json",
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1/target-unique-count-receipt.json",
+      "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-formal-direct-read-development-v1-batch16384/target-selection-receipt.json"
+    ],
+    "status": "complete",
+    "rows_read": {"T17_benign_val": 150000, "T17_dga_val": 150000},
+    "duplicate_rows": 0,
+    "cross_role_overlap_rows": 0,
+    "label_conflict_count": 0,
+    "selected_counts": {"benign": 150000, "dga": 150000},
+    "roots_equal_across_batch_sizes": true,
+    "batch_sizes": [8192, 16384],
+    "engineering_only": true,
+    "target_full_scope_not_covered": true
+  },
+  "status": "complete"
+}

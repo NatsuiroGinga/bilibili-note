@@ -1,0 +1,82 @@
+[官方 P2/P3] 训练 60000、评价干净 15000、对抗 k2 7500/krand 7500/maskdga 7500
+[P] 分层 lr：骨干 23654400 参数 @1e-6，分类头 525826 参数 @1e-4
+[P] 官方模型 24180226 参数，训练 60000 样本 × 3 epochs
+/opt/miniconda3/envs/rwkv/lib/python3.14/site-packages/torch/nn/modules/transformer.py:480: UserWarning: The operator 'aten::_nested_tensor_from_mask_left_aligned' is not currently supported on the MPS backend and will fall back to run on the CPU. This may have performance implications. (Triggered internally at /Users/runner/work/pytorch/pytorch/aten/src/ATen/mps/MPSFallback.mm:34.)
+  elif do_mask_check and not torch._nested_tensor_from_mask_left_aligned(
+[P 心跳] epoch 1 批 1/469 loss=2.0490 ETA 55.7 min
+[P 心跳] epoch 1 批 21/469 loss=1.4395 ETA 33.5 min
+[P 心跳] epoch 1 批 41/469 loss=1.0283 ETA 33.7 min
+[P 心跳] epoch 1 批 61/469 loss=0.6159 ETA 31.7 min
+[P 心跳] epoch 1 批 81/469 loss=0.4392 ETA 28.9 min
+[P 心跳] epoch 1 批 101/469 loss=0.2161 ETA 27.2 min
+[P 心跳] epoch 1 批 121/469 loss=0.3005 ETA 25.4 min
+[P 心跳] epoch 1 批 141/469 loss=0.1688 ETA 24.5 min
+[P 心跳] epoch 1 批 161/469 loss=0.1498 ETA 23.8 min
+[P 心跳] epoch 1 批 181/469 loss=0.1098 ETA 22.9 min
+[P 心跳] epoch 1 批 201/469 loss=0.1758 ETA 21.4 min
+[P 心跳] epoch 1 批 221/469 loss=0.2222 ETA 19.9 min
+[P 心跳] epoch 1 批 241/469 loss=0.1487 ETA 18.3 min
+[P 心跳] epoch 1 批 261/469 loss=0.1399 ETA 16.8 min
+[P 心跳] epoch 1 批 281/469 loss=0.1014 ETA 15.1 min
+[P 心跳] epoch 1 批 301/469 loss=0.0665 ETA 13.5 min
+[P 心跳] epoch 1 批 321/469 loss=0.1246 ETA 11.8 min
+[P 心跳] epoch 1 批 341/469 loss=0.1426 ETA 10.1 min
+[P 心跳] epoch 1 批 361/469 loss=0.1282 ETA 8.4 min
+[P 心跳] epoch 1 批 381/469 loss=0.1620 ETA 6.7 min
+[P 心跳] epoch 1 批 401/469 loss=0.0796 ETA 5.1 min
+[P 心跳] epoch 1 批 421/469 loss=0.1155 ETA 3.6 min
+[P 心跳] epoch 1 批 441/469 loss=0.0882 ETA 2.1 min
+[P 心跳] epoch 1 批 461/469 loss=0.0814 ETA 0.6 min
+[P 里程碑] epoch 1/3 完成，干净 FPR=0.0251（2098.0s）
+[P 心跳] epoch 2 批 1/469 loss=0.1265 ETA 26.4 min
+[P 心跳] epoch 2 批 21/469 loss=0.1521 ETA 26.1 min
+[P 心跳] epoch 2 批 41/469 loss=0.0996 ETA 25.5 min
+[P 心跳] epoch 2 批 61/469 loss=0.1078 ETA 24.2 min
+[P 心跳] epoch 2 批 81/469 loss=0.0468 ETA 23.0 min
+[P 心跳] epoch 2 批 101/469 loss=0.0612 ETA 21.7 min
+[P 心跳] epoch 2 批 121/469 loss=0.1451 ETA 20.5 min
+[P 心跳] epoch 2 批 141/469 loss=0.0885 ETA 19.2 min
+[P 心跳] epoch 2 批 161/469 loss=0.1085 ETA 18.0 min
+[P 心跳] epoch 2 批 181/469 loss=0.0679 ETA 16.8 min
+[P 心跳] epoch 2 批 201/469 loss=0.0746 ETA 15.7 min
+[P 心跳] epoch 2 批 221/469 loss=0.0494 ETA 14.5 min
+[P 心跳] epoch 2 批 241/469 loss=0.0642 ETA 13.3 min
+[P 心跳] epoch 2 批 261/469 loss=0.1154 ETA 12.1 min
+[P 心跳] epoch 2 批 281/469 loss=0.0857 ETA 11.0 min
+[P 心跳] epoch 2 批 301/469 loss=0.1108 ETA 9.8 min
+[P 心跳] epoch 2 批 321/469 loss=0.0785 ETA 8.6 min
+[P 心跳] epoch 2 批 341/469 loss=0.1123 ETA 7.5 min
+[P 心跳] epoch 2 批 361/469 loss=0.1299 ETA 6.3 min
+[P 心跳] epoch 2 批 381/469 loss=0.0550 ETA 5.1 min
+[P 心跳] epoch 2 批 401/469 loss=0.0786 ETA 4.0 min
+[P 心跳] epoch 2 批 421/469 loss=0.1088 ETA 2.8 min
+[P 心跳] epoch 2 批 441/469 loss=0.1592 ETA 1.6 min
+[P 心跳] epoch 2 批 461/469 loss=0.0722 ETA 0.5 min
+[P 里程碑] epoch 2/3 完成，干净 FPR=0.0253（1675.8s）
+[P 心跳] epoch 3 批 1/469 loss=0.1911 ETA 27.3 min
+[P 心跳] epoch 3 批 21/469 loss=0.0944 ETA 25.8 min
+[P 心跳] epoch 3 批 41/469 loss=0.0594 ETA 24.8 min
+[P 心跳] epoch 3 批 61/469 loss=0.1143 ETA 23.7 min
+[P 心跳] epoch 3 批 81/469 loss=0.1260 ETA 22.5 min
+[P 心跳] epoch 3 批 101/469 loss=0.0850 ETA 21.4 min
+[P 心跳] epoch 3 批 121/469 loss=0.0954 ETA 20.2 min
+[P 心跳] epoch 3 批 141/469 loss=0.0911 ETA 19.0 min
+[P 心跳] epoch 3 批 161/469 loss=0.0874 ETA 17.9 min
+[P 心跳] epoch 3 批 181/469 loss=0.0794 ETA 16.7 min
+[P 心跳] epoch 3 批 201/469 loss=0.1008 ETA 15.5 min
+[P 心跳] epoch 3 批 221/469 loss=0.0430 ETA 14.4 min
+[P 心跳] epoch 3 批 241/469 loss=0.1038 ETA 13.2 min
+[P 心跳] epoch 3 批 261/469 loss=0.0867 ETA 12.0 min
+[P 心跳] epoch 3 批 281/469 loss=0.1173 ETA 10.9 min
+[P 心跳] epoch 3 批 301/469 loss=0.0843 ETA 9.7 min
+[P 心跳] epoch 3 批 321/469 loss=0.0729 ETA 8.6 min
+[P 心跳] epoch 3 批 341/469 loss=0.0597 ETA 7.4 min
+[P 心跳] epoch 3 批 361/469 loss=0.0761 ETA 6.2 min
+[P 心跳] epoch 3 批 381/469 loss=0.0723 ETA 5.1 min
+[P 心跳] epoch 3 批 401/469 loss=0.0989 ETA 3.9 min
+[P 心跳] epoch 3 批 421/469 loss=0.0860 ETA 2.8 min
+[P 心跳] epoch 3 批 441/469 loss=0.1042 ETA 1.6 min
+[P 心跳] epoch 3 批 461/469 loss=0.0396 ETA 0.5 min
+[P 里程碑] epoch 3/3 完成，干净 FPR=0.0228（1661.3s）
+[里程碑] P: clean={"AP": 0.99739, "FPR": 0.0228, "FNR": 0.01947, "F1": 0.9789, "FP": 171, "FN": 146, "n": 15000} adv={"AP": 1.0, "FPR": 0.0, "FNR": 0.0172, "F1": 0.99133, "FP": 0, "FN": 129, "n": 7500}
+[里程碑] {"note": "custom arms ['P'] — manual adjudication per frozen criteria"} -> official-p2p3-result.json

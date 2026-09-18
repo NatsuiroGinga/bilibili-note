@@ -8,7 +8,7 @@
       相对臂 B 进一步改善 且 干净 FPR 不增 → GRPO 家族机制层增量成立；
   失败形态：干净 FPR 恶化（以干净性能换鲁棒）或对抗检出无改善。
   报告补充列：adv FNR 对照（AP 接近 1.0 封顶时提供区分度，不替代冻结判据）。
-规格：T17 train 抽样 6 万（良性/DGA 各 3 万）训练、3 epochs、batch 128、
+规格：T17 train 固定取各 Parquet 当前行序前 3 万（良性/DGA 各 3 万）训练、3 epochs、batch 128、
   Adam 分层 lr（骨干 1e-6/头 1e-4）、全参数训练、
   评价 = T18 val 干净 1.5 万 + CharBot 变体 1.5 万（k=2 对齐 P0）+ k∈U{1..4} 变体 1.5 万（预算泛化组），
   阈值 0.5、种子 42。逐 epoch 干净 FPR 曲线（文献代理 Q1 裁决：识别验证损失上升段，防瞬态误判）。
@@ -20,6 +20,7 @@ import argparse
 import json
 import os
 import random
+import re
 import sys
 import time
 from contextlib import nullcontext
@@ -62,6 +63,23 @@ ALPHA_CVAR = 0.05   # J 臂 CVaR 尾部质量（任务化设定）
 LAMBDA_CVAR = 0.1   # J 臂 CVaR 项权重：量级对齐恶意 CE 项，避免 I 型尾部劫持（任务化设定）
 TAU_LR = 0.01       # J 臂对偶变量 τ 的解析下降步长
 ALPHA = "abcdefghijklmnopqrstuvwxyz0123456789-"
+ARM_DISPLAY_NAMES = {"MP": "混合曝光＋误报保护"}
+SAFE_RESULT_NAME = re.compile(r"[A-Za-z0-9._-]+\Z")
+
+
+def arm_label(arm: str) -> str:
+    """返回同时包含稳定短键和机制展示名的日志标签。"""
+    display_name = ARM_DISPLAY_NAMES.get(arm)
+    return f"{arm}（{display_name}）" if display_name else arm
+
+
+def result_name_arg(value: str) -> str:
+    """校验结果文件名，拒绝路径分隔符和特殊文件名。"""
+    if value in {".", ".."} or not SAFE_RESULT_NAME.fullmatch(value):
+        raise argparse.ArgumentTypeError(
+            "结果文件名只能包含 ASCII 字母、数字、点、下划线和连字符，且不能是 . 或 .."
+        )
+    return value
 
 
 def perturb2(domain: str, rng: random.Random) -> str:
@@ -163,8 +181,9 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
         {"params": [p_ for n_, p_ in model.named_parameters() if "classifier_head" in n_], "lr": LR_HEAD},
     ])
     n_head = sum(p_.numel() for n_, p_ in model.named_parameters() if "classifier_head" in n_)
-    print(f"[{arm}] 分层 lr：骨干 {sum(p_.numel() for p_ in model.parameters()) - n_head} 参数 @1e-6，分类头 {n_head} 参数 @1e-4", file=sys.stderr, flush=True)
-    print(f"[{arm}] 官方模型 {n_params} 参数，训练 {len(train_d)} 样本 × {epochs} epochs", file=sys.stderr, flush=True)
+    label = arm_label(arm)
+    print(f"[{label}] 分层 lr：骨干 {sum(p_.numel() for p_ in model.parameters()) - n_head} 参数 @1e-6，分类头 {n_head} 参数 @1e-4", file=sys.stderr, flush=True)
+    print(f"[{label}] 官方模型 {n_params} 参数，训练 {len(train_d)} 样本 × {epochs} epochs", file=sys.stderr, flush=True)
     fpr_curve: list = []
     ec, ey = eval_clean
     ea, eay = eval_adv
@@ -327,9 +346,11 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm == "M":
+            elif arm in ("M", "MP"):
                 # M 臂（Mix 对照，HARD-GATE 外审 §4.2）：三档候选池每批均匀混合、无课程顺序，
                 # 选择机制与 L/D 完全一致。归因结构：L−M = 课程顺序增量；M−D = 新增曝光增量。
+                # MP 臂（混合曝光＋误报保护）：复用 M 的候选生成与跨组选择，
+                # 并在损失分支复用 F 的真良性误报 hard ×3.0 加权；除此之外不改变训练合同。
                 # 判据 v2（冻结）：主判据=Mask 检出改善且 FPR 代价 Δ_B≤+0.005，或 Mask 非劣(|Δ_M|≤0.003)且 FPR 改善；
                 # 配对变化 Δ_B=(N_良性0→1−N_良性1→0)/N_良性 需报告（±0.003 为概率绝对差 0.3pp）
                 mal_idx = [i for i in idx if train_y[i] == 1]
@@ -514,10 +535,11 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                         loss_s = (ce_rest + cvaR * ben_m.sum() * 1.0) / n_tot
                     else:
                         loss_s = ce.sum() / n_tot
-                elif arm in ("F", "G", "N2"):
+                elif arm in ("F", "G", "N2", "MP"):
                     # F 臂 = D + 良性误报加权（双侧组相对的良性侧最简形式）；
                     # G 臂 = 只组件 2（无对抗增广、仅良性误报加权）——四臂消融的对称单臂；
                     # N2 臂 = N（per-group 选择）+ 组件 2——对照 F（cross-group+加权）的选择算子检验。
+                    # MP 臂 = M（三档混合曝光＋跨组选择）+ 本分支的良性误报保护。
                     # batch 内当前模型判恶意的真良性样本 CE ×3.0，把分布上移的误报拉回。
                     # 权重 3.0 为任务化设定（无文献精确值）：对冲 64 变体配额的恶意侧压力量级，
                     # 源侧标定；若有效再升级为良性 CharBot 近邻组相对完整形态
@@ -554,19 +576,21 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
             opt.step()
             if bi % 20 == 0:
                 eta = (time.time() - t0) / (bi + 1) * (nb - bi - 1)
-                print(f"[{arm} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss_log:.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
+                print(f"[{label} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss_log:.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
         # 逐 epoch 干净 FPR 曲线（文献代理 Q1 裁决：识别"验证损失上升段"，防瞬态误判）
         model.eval()
         fpr_now = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)["FPR"]
         fpr_curve.append({"epoch": ep, "clean_FPR": fpr_now})
-        print(f"[{arm} 里程碑] epoch {ep}/{epochs} 完成，干净 FPR={fpr_now:.4f}（{time.time()-t0:.1f}s）", file=sys.stderr, flush=True)
+        print(f"[{label} 里程碑] epoch {ep}/{epochs} 完成，干净 FPR={fpr_now:.4f}（{time.time()-t0:.1f}s）", file=sys.stderr, flush=True)
     model.eval()
     clean = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)
     adv = metrics(model, tokenizer, ea, eay, tok_mean, char_mean)
     return {"clean": clean, "adv": adv, "n_params": n_params, "fpr_curve": fpr_curve, "_model": model}
 
 
-def main(dry: int = 0, arms_arg: str | None = None) -> None:
+def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = None) -> None:
+    if result_name is not None:
+        result_name = result_name_arg(result_name)
     torch.manual_seed(SEED); np.random.seed(SEED); random.seed(SEED)
     tokenizer = official.PreTrainedTokenizerFast(
         tokenizer_file=str(REF / "artifacts/tokenizer/tokenizer-0-30522-both.json")
@@ -617,11 +641,13 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
         r = train_arm(arm, tr_d, tr_y, tokenizer, tok_mean, char_mean, eval_clean, eval_adv_k2, epochs, ref_model=ref_model)
         r["wall_seconds"] = round(time.time() - t0, 1)
         arm_model = r.pop("_model")
+        if arm in ARM_DISPLAY_NAMES:
+            r["display_name"] = ARM_DISPLAY_NAMES[arm]
         results[arm] = r
         # 双分组评价（该臂模型）：k=2 与 k∈U{1..4}
         for pname, (pa, pay) in adv_panels.items():
             results[arm][f"adv_{pname}"] = metrics(arm_model, tokenizer, pa, pay, tok_mean, char_mean)
-        print(f"[里程碑] {arm}: clean={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['clean'].items()})} adv={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['adv'].items()})}", file=sys.stderr, flush=True)
+        print(f"[里程碑] {arm_label(arm)}: clean={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['clean'].items()})} adv={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['adv'].items()})}", file=sys.stderr, flush=True)
 
     if "A" in results and "B" in results and "C" in results and len(results) == 3:
         a, b, c = results["A"], results["B"], results["C"]
@@ -638,7 +664,7 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
     else:
         # 非 A/B/C 组合（如 L/M/D、单臂）：verdict 由主代理按冻结判据从 results 手工裁决
         verdict = {"note": f"custom arms {sorted(results)} — manual adjudication per frozen criteria"}
-    out_name = "official-p2p3-DRYRUN.json" if dry else "official-p2p3-result.json"
+    out_name = result_name or ("official-p2p3-DRYRUN.json" if dry else "official-p2p3-result.json")
     (OUT / out_name).write_text(json.dumps({"results": results, "verdict": verdict}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"[里程碑] {json.dumps(verdict, ensure_ascii=False)} -> {out_name}", file=sys.stderr, flush=True)
 
@@ -646,6 +672,7 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", type=int, default=0)
-    ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,B,C（默认全量三臂/干跑 A）")
+    ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,B,C 或 MP（默认全量三臂/干跑 A）")
+    ap.add_argument("--result-name", type=result_name_arg, default=None, help="结果文件名，不得含路径或特殊字符")
     a = ap.parse_args()
-    main(dry=a.dry_run, arms_arg=a.arms)
+    main(dry=a.dry_run, arms_arg=a.arms, result_name=a.result_name)

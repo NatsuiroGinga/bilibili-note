@@ -1,0 +1,22 @@
+# DRIFT N12 G1 文献与实验分析普通 ChatGPT 启动收据
+
+- 启动时间：2026-09-08 16:12:32 CST。
+- 出站包：`.Codex/docs/chatgpt-handoffs/drift-n12-g1-literature-experiment-analysis-outbound.md`。
+- 出站包 SHA-256：`d03f15d81b9a7e79113bcfe617f478a1b215720cd5905c417c4dd642f13f0e0a`。
+- 出站包规模：`86` 行、`7885` 字节。
+- 对话：https://chatgpt.com/c/6a9fc34b-6b5c-83ea-9b16-1dda99c309a9
+- 界面：普通 ChatGPT“聊天”，未进入“工作”。
+- requested_mode：`deep-research`。
+- actual_mode：发送前输入框显示“深度研究”，发送后显示 `Pro 思考中`；最终作业模式仍以回收报告自报为准。
+- requested_model：界面可用的最高能力研究模型。
+- actual_model：发送时模型按钮显示 `6 Pro`；最终模型以回收报告自报为准。
+- requested_effort：高。
+- actual_effort：界面无独立可核档位，标为未核。
+- requested_apps：Zotero、Scite、Sider Scholar 或 Consensus 中实际可用者。
+- used_apps：最终报告自报 Consensus 用于发现/交叉核对；Scite 可见但因月度额度未取得证据；实质性判断主要依据公开论文原文、正式 proceedings、arXiv/OpenReview。
+- 发送方式：受管 Chrome 运行时；本地文件上传被浏览器策略拒绝后，改为把同一份已脱敏 Markdown 原文粘贴到输入框。未重复创建任务。
+- 出站安全：发送内容逐字来自上述已脱敏出站包；未发送原始数据、检查点、日志、凭据、服务器连接、个人绝对路径或 T20 至 T25 读数。
+- 期望原始输出：`.Codex/docs/chatgpt-handoffs/inbox/drift-n12-g1-literature-experiment-analysis-raw.md`。
+- 当前状态：`completed`。完整原始报告已回收到 `.Codex/docs/chatgpt-handoffs/inbox/drift-n12-g1-literature-experiment-analysis-raw.md`。
+- 回收制品：`319` 行、`44478` 字节，SHA-256 为 `f9eccb4ed69e61e5376a34182a0fb4877ada83c614786be1255d30996e59403c`；与浏览器导出的 Markdown 逐字节一致。
+- 最终自报：模型 `GPT-5.5 Thinking`，研究/思考强度为高；仍是外部候选，由 Sol/主代理用本地全文和实验制品复核。

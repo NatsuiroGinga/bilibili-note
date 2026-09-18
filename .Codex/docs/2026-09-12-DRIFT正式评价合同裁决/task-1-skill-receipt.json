@@ -1,0 +1,54 @@
+{
+  "task": "任务1正式配置与共享合同",
+  "agent": "formal_contract_luna_high",
+  "model": "gpt-5.6-luna",
+  "effort": "high",
+  "required_skills": [
+    {
+      "name": "daily-coding",
+      "path": "/Users/bilibili/.codex/skills/backup/daily-coding-20260811-112930/SKILL.md",
+      "sha256": "da2399b50859b9d57281b9bc0dc456082db93d47486ae22967ebf3f17d354ae3",
+      "read_at": "2026-09-13T06:14:00Z",
+      "checklist": [
+        {"item": "先读后改", "evidence": "已读取任务简报、近层 AGENTS.md、历史训练脚本及四个目标文件状态"},
+        {"item": "最小变更", "evidence": "仅修改任务简报限定的四个生产文件与本任务报告/收据"},
+        {"item": "类型安全", "evidence": "Python 公共函数均保留类型注解，配置和状态字段执行类型校验"},
+        {"item": "安全检查", "evidence": "执行路径边界、符号链接越界、原子写入和禁止字段校验"},
+        {"item": "执行验证", "evidence": "三份配置严格加载、30 个真实 Parquet 元数据核对、语法、导入和入口检查通过"}
+      ]
+    }
+  ],
+  "owned_files": [
+    "thesis/experiments/llm_probe/configs/ch3-drift-formal-evaluation-v1.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-official-p2p3-formal-v3.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-bresnet-p2p3-formal-v1.json",
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/task-1-report.md",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/task-1-skill-receipt.json"
+  ],
+  "actual_changed_files": [
+    "thesis/experiments/llm_probe/configs/ch3-drift-formal-evaluation-v1.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-official-p2p3-formal-v3.json",
+    "thesis/experiments/llm_probe/configs/ch3-drift-bresnet-p2p3-formal-v1.json",
+    "thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/task-1-report.md",
+    ".Codex/docs/2026-09-12-DRIFT正式评价合同裁决/task-1-skill-receipt.json"
+  ],
+  "verification": [
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py", "exit_code": 0},
+    {"command": "load_config on the three real formal JSON configurations", "exit_code": 0},
+    {"command": "30 real Parquet existence and metadata audit; schema domain,label", "exit_code": 0},
+    {"command": "import contract module and assert torch/numpy/pyarrow absent", "exit_code": 0},
+    {"command": "assets --audit real entry", "exit_code": 0},
+    {"command": "git diff --check", "exit_code": 0}
+  ],
+  "real_run": {
+    "applicable": true,
+    "reason": "真实输入 audit_only 状态链已执行；未物化正式成员、攻击或模型资产",
+    "evidence": "task-1-report.md 第二轮修订后的真实审计状态记录；status_path 对应 created→running→complete 读回结果",
+    "status_path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-contract-audit-v1/status.json",
+    "status_sequence": ["created", "running", "complete"],
+    "formal_assets_complete": false
+  },
+  "status": "complete"
+}

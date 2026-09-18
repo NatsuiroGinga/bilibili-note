@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""B-ResNet（第二骨干）P2/P3 四臂：A（干净）／D（组相对过滤 top-64）／F（D＋良性误报加权 3.0）／G（只良性加权）。
+"""B-ResNet（第二骨干）P2/P3 五臂：A（干净）／B（朴素随机编辑增广）／D（组相对过滤 top-64）／F（D＋良性误报加权 3.0）／G（只良性加权）。
 
 许可证边界（强制，2026-09-11）
 --------------------------------------------------------------------------
@@ -67,7 +67,7 @@ B-ResNet 官方实现 `https://gitlab.com/rwth-itsec/robust-dga-detection`
 - 主判据面板 `maskdga-half`；判据：**对抗面板 AP 提升 且 干净 FPR 不增**。
   `verdict` 沿 official 的字段结构（`panel`／`adv_AP`／`clean_FPR`／`adv_FNR`／`k2_reference_FNR`），
   臂对按 B-ResNet 链替换为 `D_vs_A`／`F_vs_D`／`G_vs_A`，判据本身**不新增、不放宽**。
-  官方 `P2_pass`（B vs A）／`P3_pass`（C vs B）依赖 B／C 臂，本脚本不实现这两臂，故不出这两个键。
+  官方 `P2_pass`（B vs A）／`P3_pass`（C vs B）字段属于官方脚本口径，本脚本不产出这两个键；本脚本的 B 为朴素随机编辑增广臂。
 - 评价三面板：干净 `T18 val`、CharBot k=2 变体、MaskDGA 半替换近似变体，
   外加 official 既有的 `krand` 面板。**四面板的构造顺序、随机种子与算子逐行复用
   `official_p2p3.main`**（同一 `random.Random(42)`、同一调用次序）⇒ 两骨干的评价样本
@@ -87,11 +87,12 @@ B-ResNet 官方实现 `https://gitlab.com/rwth-itsec/robust-dga-detection`
 --------------------------------------------------------------------------
     PYTORCH_ENABLE_MPS_FALLBACK=1 /opt/miniconda3/envs/rwkv/bin/python bresnet_p2p3.py \
         --dry-run 200 --arms A
-    python bresnet_p2p3.py --arms A,D,F,G        # 全量（服务器 CUDA）
+    python bresnet_p2p3.py --arms A,B,D,F,G      # 全量（服务器 CUDA）
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import random
@@ -130,6 +131,15 @@ TOP_Q = 64                         # 组件 1：跨组 top-64 入批
 W_BENIGN_FP = 3.0                  # 组件 2：被判恶意的真良性样本 CE 权重
 BRESNET_N_PARAMS_EXPECTED = 155_009   # 台账 §五登记值
 BRESNET_N_PARAMS_MAX = 200_000        # 简报冻结上限
+ALLOWED_ARMS = ("A", "B", "D", "F", "G")
+IMPLEMENTATION_VERSION = "bresnet_p2p3_b_fix_v1"
+ARM_DISPLAY_NAMES = {
+    "A": "干净训练（A）",
+    "B": "朴素随机编辑增广（B）",
+    "D": "组相对过滤（D）",
+    "F": "组过滤加良性误报加权（F）",
+    "G": "只良性误报加权（G）",
+}
 
 # 字符表（40 项）：小写字母 26 ＋ 数字 10 ＋ `-` `_` `.` `~`。§7.2／台账 §五登记为 40 项。
 # 索引顺序**未登记**（论文与台账只给字符集与「左零填充」，未给映射顺序）⇒ 任务化设定。
@@ -243,16 +253,34 @@ def load_split(limit: int) -> tuple[list[str], np.ndarray]:
     return off.load_split(limit)
 
 
+def normalize_arms(raw_arms: str) -> tuple[str, ...]:
+    """校验并按用户给定顺序返回 A/B/D/F/G 臂，拒绝空值、未知值和重复值。"""
+    parsed = tuple(part.strip() for part in raw_arms.split(","))
+    problems: list[str] = []
+    if not parsed or any(not arm for arm in parsed):
+        problems.append("不能包含空臂名")
+    duplicates = sorted({arm for arm in parsed if parsed.count(arm) > 1 and arm})
+    if duplicates:
+        problems.append(f"存在重复臂 {duplicates}")
+    unknown = sorted({arm for arm in parsed if arm and arm not in ALLOWED_ARMS})
+    if unknown:
+        problems.append(f"存在未知臂 {unknown}，仅允许 {list(ALLOWED_ARMS)}")
+    if problems:
+        raise ValueError("--arms 无效：" + "；".join(problems))
+    return parsed
+
+
 def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
               eval_clean: tuple[list[str], np.ndarray],
               eval_adv: tuple[list[str], np.ndarray],
               epochs: int) -> dict:
-    """四臂训练（A／D／F／G），臂语义逐行对应 `official_p2p3.train_arm`：
+    """五臂训练（A／B／D／F／G），臂语义逐行对应 `official_p2p3.train_arm`：
+      B = 朴素随机编辑增广（每个恶意主样本一个 perturb2 变体）；
       A = 干净训练；D = 组件 1（K=4 组内 fooled−组均值 → 跨组 top-64 入批）；
       F = D ＋ 组件 2（被判恶意的真良性样本 CE×3.0）；G = 只组件 2（无对抗增广）。
     """
-    # 每臂重设 torch 全局种子 ⇒ 四臂共享**同一份初始权重**，臂间差量只剩机制本身。
-    # （official_p2p3 的同一性质来自「四臂都从同一 checkpoint 加载」，B-ResNet 从头训练，
+    # 每臂重设 torch 全局种子 ⇒ 五臂共享**同一份初始权重**，臂间差量只剩机制本身。
+    # （official_p2p3 的同一性质来自「各臂都从同一 checkpoint 加载」，B-ResNet 从头训练，
     #   故显式重设种子复现该性质；未重设则 A/D/F/G 会各自取到不同的随机初始化。）
     torch.manual_seed(SEED)
     model = BResNet().to(DEVICE)
@@ -262,7 +290,8 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     assert n_params <= BRESNET_N_PARAMS_MAX, f"参数量 {n_params} 超上限 {BRESNET_N_PARAMS_MAX}"
     # 全参数单 lr：B-ResNet 为 155K 参数从头训练，无预训练分层需求（简报冻结，见模块 docstring 数值登记）
     opt = torch.optim.Adam(model.parameters(), lr=LR)
-    print(f"[{arm}] B-ResNet {n_params} 参数（断言 = 台账登记 {BRESNET_N_PARAMS_EXPECTED}），"
+    log_arm = ARM_DISPLAY_NAMES[arm] if arm == "B" else arm
+    print(f"[{log_arm}] B-ResNet {n_params} 参数（断言 = 台账登记 {BRESNET_N_PARAMS_EXPECTED}），"
           f"单 lr {LR:g} 全参数训练，{len(train_d)} 样本 × {epochs} epochs", file=sys.stderr, flush=True)
     fpr_curve: list = []
     ec, ey = eval_clean
@@ -279,7 +308,19 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
             idx = order[bi * BATCH:(bi + 1) * BATCH]
             batch_d = [train_d[i] for i in idx]
             batch_y = train_y[idx]
-            if arm in ("D", "F"):
+            if arm == "B":
+                # B 臂：每个恶意主样本只生成一个 perturb2 变体，并按原样本索引缓存。
+                # 显式判断避免 dict.setdefault 的默认表达式在缓存命中时仍消耗随机数。
+                adv_batch: list[str] = []
+                for i in idx:
+                    if train_y[i] == 1:
+                        if i not in adv_cache:
+                            adv_cache[i] = [off.perturb2(train_d[i], rng)]
+                        adv_batch.append(adv_cache[i][0])
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm in ("D", "F"):
                 # 组件 1（GFPO 2508.09726 §3 式(2) + Drichel 2024 §4.4.2 配比锚点）：
                 # 每恶意样本 K=4 变体一组，组内 fooled（当前模型判良性）为优势，
                 # 「fooled − 组均值」降序取跨组 top-64 入批，被拒变体零梯度。
@@ -357,6 +398,15 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
 
 
 def main(dry: int = 0, arms_arg: str | None = None) -> None:
+    if arms_arg is not None:
+        try:
+            arms = normalize_arms(arms_arg)
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            raise SystemExit(2) from exc
+    else:
+        arms = ("A",) if dry else ("A", "D", "F", "G")
+    code_sha256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     torch.manual_seed(SEED); np.random.seed(SEED); random.seed(SEED)
     tr_d, tr_y = load_split(dry if dry else 30000)
     import pyarrow.parquet as pq
@@ -378,7 +428,6 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
           f"训练 {len(tr_d)}、评价干净 {len(ec)}、对抗 k2 {len(ea_k2)}/krand {len(ea_krand)}/maskdga {len(ea_mask)}",
           file=sys.stderr, flush=True)
 
-    arms = tuple(arms_arg.split(",")) if arms_arg else (("A",) if dry else ("A", "D", "F", "G"))
     epochs = 1 if dry else EPOCHS
     results: dict = {}
     for arm in arms:
@@ -394,7 +443,10 @@ def main(dry: int = 0, arms_arg: str | None = None) -> None:
               file=sys.stderr, flush=True)
 
     verdict = _verdict(results)
-    spec = {"backbone": "B-ResNet", "n_params": BRESNET_N_PARAMS_EXPECTED,
+    spec = {"backbone": "B-ResNet", "implementation_version": IMPLEMENTATION_VERSION,
+            "code_sha256": code_sha256,
+            "arm_display_names": ARM_DISPLAY_NAMES,
+            "n_params": BRESNET_N_PARAMS_EXPECTED,
             "vocab_size": VOCAB_SIZE, "seq_len": SEQ_LEN, "chars": CHARS,
             "n_blocks": N_BLOCKS, "lr": LR, "batch": BATCH, "epochs": epochs, "seed": SEED,
             "loss": "binary_cross_entropy_with_logits", "optimizer": "Adam(weight_decay=0)",
@@ -436,7 +488,7 @@ def _verdict(results: dict) -> dict:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", type=int, default=0, help="每类样本数（干跑 1 epoch）；0 = 全量")
-    ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,D,F,G（默认全量 A,D,F,G／干跑 A）")
+    ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,B,D,F,G（默认全量 A,D,F,G／干跑 A）")
     ap.add_argument("--lr", type=float, default=None, help="覆盖全参数学习率（协议实测选优用）")
     a = ap.parse_args()
     if a.lr is not None:
