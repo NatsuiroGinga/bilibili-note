@@ -92,3 +92,17 @@ ns3/*.tar.bz2
 wget-log
 *.download.log
 zeek_orange_dmz.zip
+
+# 可再生的工具/依赖缓存（换机可重建，避免把 GB 级噪声推上远端）
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+.cache/
+.ruff_cache/
+**/.mypy_cache/
+**/.pytest_cache/
+.codex-pycache/
+.codex-validation-cache/
+
+# 嵌套在子目录里的 Claude/Codex 会话日志
+**/.claude/logs/
