@@ -33,11 +33,28 @@ def entry(path: str, role: str, status: str, priority: str, summary: str, genera
 
 def known_entries() -> list[dict[str, Any]]:
     return [
-        entry(".Codex/docs/RWKV/RWKV第三章恢复卡.md", "第三章恢复", "当前", "P0", "顶部方向重置；旧FT/ETA-BER仅历史"),
+        entry(".Codex/docs/DRIFT/DRIFT第三章恢复卡.md", "DRIFT第三章恢复", "当前", "P0", "当前状态、否决项与唯一下一动作"),
+        entry(".Codex/docs/DRIFT/DRIFT路线总控.md", "DRIFT路线总控", "当前", "P0", "DRIFT独立恢复与公共合同"),
+        entry(".Codex/docs/DRIFT/AGENTS.md", "DRIFT局部规则", "当前", "P0", "三类规范材料强制恢复链"),
+        entry(".Codex/docs/DRIFT/CLAUDE.md", "Claude规则导入", "当前", "P1", "通过@AGENTS.md同步DRIFT规则"),
+        entry(".Codex/docs/DRIFT/DRIFT历史交接入口.md", "DRIFT历史入口", "当前", "P2", "仅冲突与制品追溯时读取"),
+        entry(".Codex/docs/RWKV/RWKV第三章恢复卡.md", "RWKV第三章恢复", "历史", "P2", "DRIFT已迁出；既有DRIFT段落仅迁移快照"),
         entry("thesis/methods/第三章-数据模型机制统一候选筛选台账.md", "候选状态", "当前", "P0", "第三章候选唯一状态入口"),
         entry(".Codex/docs/RWKV/RWKV路线总控.md", "公共边界", "当前", "P1", "RWKV路线恢复与跨章约束"),
         entry("AGENTS.md", "全仓规则", "当前", "P0", "证据、隔离、种子与Astra门"),
-        entry(".Codex/docs/2026-09-07-长Goal规则迁移/报告.md", "长Goal合同", "当前", "P0", "泛化轴、强基线、2x2和止损", True),
+        entry(".Codex/docs/2026-09-08-DRIFT逻辑路线隔离/Goal替换建议.md", "DRIFT Goal", "待设置", "P0", "统一主方法；因素数量由证据决定", True),
+        entry(".Codex/docs/2026-09-08-DRIFT逻辑路线隔离/迁移报告.md", "DRIFT迁移收据", "当前", "P1", "逻辑隔离范围与验证", True),
+        entry(".Codex/docs/2026-09-07-长Goal规则迁移/报告.md", "旧长Goal合同", "历史", "P2", "旧双机制与2x2要求已被原文分析修正", True),
+        entry("thesis/methods/第三章-DRIFT数据角色与评价协议.md", "DRIFT数据合同", "当前", "P0", "T17至T19冻结；T20至T25整批正式评价"),
+        entry("thesis/methods/第三章-DRIFT方案A研究问题卡与最小证伪设计.md", "DRIFT研究问题", "当前", "P1", "M1与第二方向最小证伪"),
+        entry("thesis/methods/第三章-朱焱雷第三章机制构思与创新声明分析.md", "章节结构参照", "当前", "P1", "整体创新主语与条件性2x2"),
+        entry("raw/papers/datasets/2026-Lee-DRIFT-DGA-Temporal-Drift.pdf", "DRIFT原论文", "当前", "P0", "原始全文事实源"),
+        entry("wiki/papers/datasets/2026-Lee-DRIFT-DGA-Temporal-Drift.md", "DRIFT全文分析", "当前", "P0", "数据、方法、结果与复现边界"),
+        entry(".Codex/docs/2026-09-07-DGA检测系统综述/文献综述.md", "DGA系统综述", "当前", "P0", "低误报、未见家族与强基线"),
+        entry(".Codex/docs/2026-09-07-DRIFT引用与方法前沿/文献综述.md", "DRIFT前沿综述", "当前快照", "P0", "引用版图、近邻与剩余差量"),
+        entry(".Codex/docs/2026-09-07-跨年数据集替代调研/数据集比较综述.md", "数据集选型台账", "当前快照", "P1", "替换任务先读；禁止重新广筛", True),
+        entry(".Codex/docs/2026-09-07-DRIFT方案A最小证伪实验/M1-v2投影原始对偶研究卡.md", "M1-v2证伪", "已批准短窗", "P0", "仅T17的32步短窗与一次验证", True),
+        entry(".Codex/docs/2026-09-07-DRIFT方案A最小证伪实验/第二机制竞争简报.md", "第二方向证伪", "待诊断", "P0", "T17伪未见family零更新诊断", True),
         entry(".Codex/docs/2026-09-07-DRIFT零训练数据探针/可行性报告.md", "数据门", "进行中", "P1", "DRIFT资格与零训练前提", True),
         entry(".Codex/docs/2026-09-07-跨年数据集替代调研/数据集比较综述.md", "数据候选", "当前", "P1", "真实网络安全泛化轴候选", True),
         entry(".Codex/docs/2026-09-07-RWKV8-ROSA-DeepEmbed候选审查/候选机制综述与实验建议.md", "机制来源", "待核", "P1", "ROSA等机制的可试性", True),
@@ -132,14 +149,14 @@ def table(rows: list[dict[str, Any]]) -> list[str]:
 def render(entries: list[dict[str, Any]], unknown: list[str], fingerprint: str) -> str:
     by_path = {item["path"]: item for item in entries}
     groups = [
-        ("当前权威入口", [".Codex/docs/RWKV/RWKV第三章恢复卡.md", "thesis/methods/第三章-数据模型机制统一候选筛选台账.md", "AGENTS.md"]),
-        ("当前 Goal 制品", [".Codex/docs/2026-09-07-长Goal规则迁移/报告.md", ".Codex/docs/2026-09-07-DRIFT零训练数据探针/可行性报告.md", ".Codex/docs/2026-09-07-跨年数据集替代调研/数据集比较综述.md", ".Codex/docs/2026-09-07-RWKV8-ROSA-DeepEmbed候选审查/候选机制综述与实验建议.md"]),
-        ("进行中任务", [".Codex/docs/2026-09-07-DRIFT零训练双探针/task_plan.md", ".Codex/docs/2026-09-07-DRIFT零训练双探针/实现报告.md", ".Codex/docs/2026-09-07-DRIFT引用与方法前沿/notes.md"]),
+        ("当前权威入口", [".Codex/docs/DRIFT/DRIFT第三章恢复卡.md", ".Codex/docs/DRIFT/DRIFT路线总控.md", "thesis/methods/第三章-DRIFT数据角色与评价协议.md", "thesis/methods/第三章-数据模型机制统一候选筛选台账.md", "AGENTS.md"]),
+        ("当前 Goal 制品", [".Codex/docs/2026-09-08-DRIFT逻辑路线隔离/Goal替换建议.md", "thesis/methods/第三章-DRIFT方案A研究问题卡与最小证伪设计.md", "thesis/methods/第三章-朱焱雷第三章机制构思与创新声明分析.md"]),
+        ("进行中任务", [".Codex/docs/2026-09-07-DRIFT方案A最小证伪实验/M1-v2投影原始对偶研究卡.md", ".Codex/docs/2026-09-07-DRIFT方案A最小证伪实验/第二机制竞争简报.md", ".Codex/docs/2026-09-08-DRIFT逻辑路线隔离/迁移报告.md"]),
         ("实验代码、配置与结果", ["thesis/experiments/llm_probe/tools/ch3_drift_rosa_deepembed_probe.py", "thesis/experiments/llm_probe/configs/ch3-drift-t17-t25-rosa-deepembed-coverage-probe-v1.json", "tools/update_project_index.py", "thesis/experiments/llm_probe/tools/INDEX.md"]),
         ("论文方法文档", ["thesis/methods/第三章-数据模型机制统一候选筛选台账.md", "thesis/methods/第三章定案.md"]),
-        ("文献综述", [".Codex/docs/2026-09-07-DRIFT引用与方法前沿/notes.md", "wiki/INDEX.md", "wiki/papers/rwkv/INDEX.md"]),
-        ("规则与恢复", [".Codex/docs/AGENTS.md", ".Codex/docs/RWKV/AGENTS.md", ".Codex/docs/RWKV/RWKV路线总控.md"]),
-        ("历史归档", [".Codex/docs/RWKV/2026-09-04-第三章恢复卡过期内容归档.md"]),
+        ("文献综述", ["raw/papers/datasets/2026-Lee-DRIFT-DGA-Temporal-Drift.pdf", "wiki/papers/datasets/2026-Lee-DRIFT-DGA-Temporal-Drift.md", ".Codex/docs/2026-09-07-DGA检测系统综述/文献综述.md", ".Codex/docs/2026-09-07-DRIFT引用与方法前沿/文献综述.md", ".Codex/docs/2026-09-07-跨年数据集替代调研/数据集比较综述.md"]),
+        ("规则与恢复", [".Codex/docs/AGENTS.md", ".Codex/docs/DRIFT/AGENTS.md", ".Codex/docs/DRIFT/CLAUDE.md", ".Codex/docs/DRIFT/DRIFT路线总控.md", ".Codex/docs/DRIFT/DRIFT历史交接入口.md", ".Codex/docs/RWKV/AGENTS.md", ".Codex/docs/RWKV/RWKV路线总控.md"]),
+        ("历史归档", [".Codex/docs/RWKV/RWKV第三章恢复卡.md", ".Codex/docs/2026-09-07-长Goal规则迁移/报告.md", ".Codex/docs/RWKV/2026-09-04-第三章恢复卡过期内容归档.md"]),
     ]
     lines = ["# 项目统一索引", "", "仅导航，不替代恢复卡、候选台账或原始制品。", "", MARKER_START]
     for title, paths in groups:

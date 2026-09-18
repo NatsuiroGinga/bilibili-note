@@ -34,7 +34,7 @@ def lexical_search(connection: sqlite3.Connection, query: str) -> List[RankedChu
         )
         return [RankedChunk(int(r["id"]), int(r["note_id"]), float(r["score"])) for r in rows]
     rows = connection.execute(
-        "SELECT c.id,c.note_id,-bm25(chunks_fts,5.0,2.0,1.0) score "
+        "SELECT c.id,c.note_id,-bm25(chunks_fts) score "
         "FROM chunks_fts JOIN chunks c ON c.id=chunks_fts.rowid "
         "WHERE chunks_fts MATCH ? ORDER BY score DESC,c.id",
         (match_query,),

@@ -123,7 +123,7 @@ if [[ "${1:-}" == "--worker" ]]; then
   ERR=""
   for attempt in 1 2; do
     TMP_OUT="$(mktemp -d "${TMPDIR:-/tmp}/pdf2md.XXXXXX")"
-    if OUT="$(mineru-open-api extract "$SRC_ABS" -o "$TMP_OUT/" --timeout 300 2>&1)"; then
+    if OUT="$(mineru-open-api extract "$SRC_ABS" -o "$TMP_OUT/" --timeout 900 2>&1)"; then
       PRODUCED="$(find "$TMP_OUT" -maxdepth 1 -type f -iname '*.md' -print -quit)"
       if [[ -n "$PRODUCED" && -s "$PRODUCED" ]]; then
         mkdir -p "$(dirname "$TARGET_ABS")"
