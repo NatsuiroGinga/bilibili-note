@@ -1,0 +1,56 @@
+{
+  "schema_version": "ch3-drift-source-frozen-suffix-probe-v1",
+  "run_identity": "ch3-drift-source-frozen-suffix-memory-t17-t18-screening-v1",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "screening_only": true,
+  "target_informed": true,
+  "input_root": "/tmp/drift-probe-data",
+  "batch_size": 65536,
+  "heartbeat_rows": 1000000,
+  "max_context_order": 3,
+  "max_context_order_basis": "formal-v3 已统计源侧 1/2/3-gram；原域内 ROSA 的匹配长度至少为 3 仅占可预测位置 0.62%，本探针不根据 T18 指标选择阶数。",
+  "smoothing": {
+    "name": "add_one",
+    "alpha": 1,
+    "basis": "不调参的拉普拉斯平滑，仅用于生成式快速诊断，不进入正式机制参数。"
+  },
+  "sampling": {
+    "requested_per_stratum": 366200,
+    "confidence": 0.95,
+    "basis": "沿用已冻结 T17 到 T25 双探针由最小分面 366200 行推导的 95% 最坏二项比例半宽；T18 不参与样本量选择。"
+  },
+  "inputs": {
+    "source": [
+      {
+        "path": "DRIFT_input_eSLD/T17_benign_train.parquet",
+        "year": "T17",
+        "label": 0,
+        "rows": 1500000,
+        "sha256": "7f12eec987d900e12e4a04b7f130cc68316f39dbd05b7e4a20ed524697bc0b5f"
+      },
+      {
+        "path": "DRIFT_input_eSLD/T17_dga_train.parquet",
+        "year": "T17",
+        "label": 1,
+        "rows": 1500000,
+        "sha256": "e41a357fbcccd26ba5b853b0af0ce6c7b233256a4cc4bad969de2514aa6aa22d"
+      }
+    ],
+    "target": [
+      {
+        "path": "DRIFT_input_eSLD/T18_benign_test.parquet",
+        "year": "T18",
+        "label": 0,
+        "rows": 15166488,
+        "sha256": "7183446ed51f34e56d9233e0f3c3f7ae5171c729b3a744fa5e8c99bd804ec983"
+      },
+      {
+        "path": "DRIFT_input_eSLD/T18_dga_test.parquet",
+        "year": "T18",
+        "label": 1,
+        "rows": 13465679,
+        "sha256": "c14106545fa18f8562b87fe60b2beef3db3cadc456c1b705cfac1208bc16247b"
+      }
+    ]
+  }
+}

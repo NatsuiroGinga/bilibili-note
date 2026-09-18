@@ -1,0 +1,29 @@
+{
+  "schema_version": "ch3-drift-official-source-family-diagnostic-v1",
+  "run_identity": "ch3-drift-official-source-family-diagnostic-v1",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "screening_only": true,
+  "raw_root": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/raw_including_TLD",
+  "reference_root": "runs/source-snapshots/2026-DSN-DRIFT-e20d1fdf56c623993966c6786f61c01f91dec6d2",
+  "checkpoint": "runs/models/drift-official-dsn2026/finetuning.pt",
+  "tokenizer": "artifacts/tokenizer/tokenizer-0-30522-both.json",
+  "source_threshold_result": "runs/diagnostics/ch3-drift-official-branch-conflict-t17-t18-t19-v1/result.json",
+  "batch_size": 1024,
+  "cpu_prefetch_depth": 0,
+  "resource_basis": {
+    "kind": "measured_gpu_memory_linear_extrapolation",
+    "device": "RTX 4080 SUPER",
+    "total_memory_mib": 32760,
+    "observed_batch_size": 1024,
+    "observed_peak_memory_mib": 1418,
+    "selected_batch_size": 1024,
+    "rejected_candidate": {"batch_size": 8192, "cpu_prefetch_depth": 1, "throughput_per_second": 5986, "sm_utilization_mean_10s": 0.37},
+    "basis": "1024 同步前向约9000/s且峰值约1418MiB。8192+单线程预取实测606208条/101.27秒约5986/s、10秒SM均值约37%，已否决；改用三年独立进程并发，运行资源标记为争用条件实测。"
+  },
+  "inputs": [
+    {"year": "T17", "path": "T17_dga.parquet", "ambiguous_esld_keys": 6505},
+    {"year": "T18", "path": "T18_dga.parquet", "ambiguous_esld_keys": 6679},
+    {"year": "T19", "path": "T19_dga.parquet", "ambiguous_esld_keys": 7733}
+  ],
+  "mapping_contract": "官方 eSLD 逐值等于 raw domain 首个点前标签；多 family 键隔离且 family 不等于 generator。"
+}

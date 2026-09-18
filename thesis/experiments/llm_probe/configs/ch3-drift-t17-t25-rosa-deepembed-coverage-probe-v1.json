@@ -1,0 +1,32 @@
+{
+  "schema_version": "ch3-drift-rosa-deepembed-probe-v1",
+  "run_identity": "ch3-drift-t17-t25-rosa-deepembed-coverage-probe-v1",
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "input_root": "/tmp/drift-probe-data",
+  "batch_size": 65536,
+  "heartbeat_rows": 1000000,
+  "inputs": {
+    "esld": [
+      {"path": "DRIFT_input_eSLD/T17_benign_train.parquet", "year": "T17", "role": "source", "label": 0},
+      {"path": "DRIFT_input_eSLD/T17_dga_train.parquet", "year": "T17", "role": "source", "label": 1},
+      {"path": "DRIFT_input_eSLD/T25_benign_test.parquet", "year": "T25", "role": "target", "label": 0},
+      {"path": "DRIFT_input_eSLD/T25_dga_test.parquet", "year": "T25", "role": "target", "label": 1}
+    ],
+    "raw": {"enabled": false}
+  },
+  "rosa_sampling": {
+    "confidence": 0.95,
+    "worst_case_binomial_half_width": 0.00161942,
+    "derivation": "以四个分面中最小的 T25 benign 元数据行数 366200 作为每分面最大均衡样本量；e=z_0.975*sqrt(0.25/366200)=0.0016194178626958457，向上取 0.00161942 后公式 n=ceil(z^2*0.25/e^2)=366200。最小分面全量，其余分面按固定 revision 文件行号的 SplitMix64 向量化哈希确定性抽样。",
+    "numeric_provenance": {
+      "pilot_receipt": "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-t17-t25-rosa-deepembed-coverage-probe-v1/pilot-10000-rwkv-env.json",
+      "pilot_domains_per_stratum": 10000,
+      "pilot_total_elapsed_seconds": 2.11910395801533,
+      "smallest_stratum": "T25:0",
+      "smallest_stratum_rows": 366200,
+      "selection_basis": "使用最小分面全部样本，避免人为指定抽样上限，并使四分面精度可直接比较。",
+      "target_informed": true,
+      "status": "frozen_for_zero_training_screening"
+    }
+  }
+}

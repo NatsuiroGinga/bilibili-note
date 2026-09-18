@@ -1,0 +1,20 @@
+{
+  "schema_version": "ch3-drift-n10-conservative-fusion-t18-selection-v1",
+  "run_identity": "ch3-drift-n10-conservative-fusion-t18-selection-v1",
+  "approved_scope": "p0_p1_t18_selection_only",
+  "screening_only": true,
+  "seed": 42,
+  "data_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "raw_root": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD",
+  "input": {
+    "benign": {"path": "T18_benign_test.parquet", "label": 0, "expected_rows": 366200},
+    "dga": {"path": "T18_dga_test.parquet", "label": 1, "expected_rows": 366200},
+    "schema": ["domain", "label"]
+  },
+  "p0_run_root": "runs/diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2",
+  "p1_arms": ["dynamic", "qmf", "conservative_correction", "constant"],
+  "model": {"d_model": 128, "nhead": 4, "num_layers": 6, "dim_feedforward": 384, "dropout": 0.1, "max_len_token": 30, "max_len_char": 77, "vocab_size_char": 43},
+  "evaluation": {"per_class": 366200, "batch_size": 1024, "ece_bins": 15, "resource_contention": false},
+  "selection": {"candidate_arm": "conservative_correction", "direct_controls": ["dynamic", "qmf"], "require_h_guardrail": true, "require_finite_metrics": true},
+  "interpretation_boundary": "单次筛选资格评价；仅输出聚合计数和选择状态，不持久化目标逐样本标签或分数，不构成论文结果。"
+}

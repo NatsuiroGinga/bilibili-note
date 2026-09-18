@@ -1,0 +1,27 @@
+{
+  "schema_version": "ch4-xgb-confidence-margin-fallback-same-model-source-q0-v1",
+  "run_id": "ch4-xgb-confidence-margin-fallback-same-model-source-q0-seed42-v1",
+  "display_name": "同模型三分风险余量有限样本确认与源阈值回退源年Q0",
+  "seed": 42,
+  "source_year_only": true,
+  "zero_training": true,
+  "base_adapter": "semantic168",
+  "power_mean_p": 1.0,
+  "observation_index": 1,
+  "entity_fpr_budget": 0.04,
+  "global_failure_probability": 0.05,
+  "direction_count": 3,
+  "per_direction_failure_probability": 0.016666666666666666,
+  "development_candidate_rule": "tong_one_sided_exact_upper_inverse",
+  "same_model_inner_roles": ["development", "calibration", "holdout"],
+  "comparison_operator": "strict_greater_than",
+  "target_year_arrays_read": 0,
+  "new_models_trained": 0,
+  "predict_batch": 2000000,
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  }
+}

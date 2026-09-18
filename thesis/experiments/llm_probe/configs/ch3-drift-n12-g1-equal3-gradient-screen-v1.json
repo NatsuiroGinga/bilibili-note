@@ -1,0 +1,81 @@
+{
+  "schema_version": "ch3-drift-n12-g1-equal3-gradient-screen-v1",
+  "run_identity": "ch3-drift-n12-g1-equal3-gradient-screen-v1",
+  "approved_scope": "t17_g1_zero_update_equal3_gradient_screen_only",
+  "screening_only": true,
+  "seed": 42,
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "p0": {
+    "config": "configs/ch3-drift-n10-conservative-fusion-pilot-v1.json",
+    "config_sha256": "eab95b6539fa920aa4b929203f3ef81eaf11fa53335e00f367bd9615fce64fcf",
+    "source_code": "tools/ch3_drift_n10_conservative_fusion_pilot.py",
+    "source_code_sha256": "92056fd37cb9c195d1952b59280101d8c1b9f0a622453ec9c929d378f9c85674",
+    "tokenizer": "runs/diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00/tokenizer.json",
+    "tokenizer_sha256": "fd80b543592c667c701cec0a86e2ff07108f5db30dfcb7ded7e5071e28192522"
+  },
+  "g0": {
+    "config": "configs/ch3-drift-t17-equal3-auxheads-gradient-base-v1.json",
+    "config_sha256": "85f19d44be6a646df85c34daba7ff93390f5d997281ed06b419992459ec07ce5",
+    "source_code": "runs/diagnostics/ch3-drift-t17-equal3-auxheads-char-gradient-base-v1/source/ch3_drift_t17_equal3_auxheads_gradient_base.py",
+    "source_code_sha256": "43601c2229bae12efc0185f72083df6951ee55092b41802ea9e4c5378c5bc68d",
+    "char": {
+      "run_dir": "runs/diagnostics/ch3-drift-t17-equal3-auxheads-char-gradient-base-v1",
+      "result_sha256": "1815b8e81289df2dd613ab640d49413d378afb1518344378c7b60aa422e17c71",
+      "checkpoint_sha256": "70f195ff8048b450772f1d95a8913cc4633e52aca03cde0d621859451fb630a1"
+    },
+    "subword": {
+      "run_dir": "runs/diagnostics/ch3-drift-t17-equal3-auxheads-subword-gradient-base-v1",
+      "result_sha256": "d8ddb63a94d107facd0ab6c910cf560bf46f798cda071406067b1fb1d949db2d",
+      "checkpoint_sha256": "1c4b931ff85d26cc2b517e21e2b1a821424b3089cec9d7513b4785c1f83c951c"
+    }
+  },
+  "inputs": {
+    "fit": [
+      {"label": 0, "path": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_train.parquet", "rows": 1500000, "sha256": "7f12eec987d900e12e4a04b7f130cc68316f39dbd05b7e4a20ed524697bc0b5f"},
+      {"label": 1, "path": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_train.parquet", "rows": 1500000, "sha256": "e41a357fbcccd26ba5b853b0af0ce6c7b233256a4cc4bad969de2514aa6aa22d"}
+    ],
+    "validation": [
+      {"label": 0, "path": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_val.parquet", "rows": 150000, "sha256": "b6e0ec6b16da3b7b3efe4c1fee4718807e3336ced458109d0cf05cd05d96f60d"},
+      {"label": 1, "path": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_val.parquet", "rows": 150000, "sha256": "dfd47b8e99837c0567b4da81595a55fe12aa0a452372694e552656454a14a0a4"}
+    ],
+    "raw_dga_family": {"label": 1, "path": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/raw_including_TLD/T17_dga.parquet", "rows": 16981076, "sha256": "f8b46e0ac9db0215679f922b4e1669e8955eba5569eb0992973324a7d5f3b69e"}
+  },
+  "probe": {
+    "pooling": "p0_max_mean",
+    "encoder_frozen": true,
+    "classifier": "p0_static_classifier",
+    "batch_size": 1024,
+    "optimizer": "adam",
+    "learning_rate": 0.0001,
+    "member_passes": 1,
+    "dropout": 0.1
+  },
+  "gradient": {
+    "tasks": ["MTP", "TPP", "TOV"],
+    "fit_mode": "train",
+    "risk_mode": "eval",
+    "normalization": "full_member_effective_supervision_mean",
+    "risks": ["benign_bce", "dga_micro_bce", "dga_family_macro_bce"],
+    "family_ambiguity": "exclude_from_macro_only"
+  },
+  "runtime": {
+    "batch_size": 1024,
+    "raw_parquet_batch_rows": 32768,
+    "checkpoint_batches": 32,
+    "precision_contract": "configs/neural-precision-profiles-v1.json",
+    "precision_contract_sha256": "49a1d04a7af5a4d898ff46815f649461672eeaba7acf1e415b4a07613e03ad0d",
+    "precision_profile": "cuda-bf16-amp-fp32-sensitive-v1"
+  },
+  "numeric_basis": {
+    "seed": "复用冻结 P0 与 G0 的种子 42",
+    "batch_size": "复用 P0/G0 的 1024",
+    "optimizer": "复用 P0/G0 的 Adam",
+    "learning_rate": "复用 P0/G0 的 1e-4",
+    "member_passes": "复用 P0/G0 的完整 T17 一遍成员",
+    "dropout": "复用 P0 StaticDual 分类器 0.1",
+    "checkpoint_batches": "复用 G0 每 32768 样本即 32 批的原子恢复节奏",
+    "family_macro": "研究卡第 6.1 节的 family 等权 DGA 风险",
+    "gradient_normalization": "研究卡第 6.2 节全成员梯度；按有效监督数归一以保持 MTP/TPP/TOV 原始损失语义"
+  },
+  "interpretation_boundary": "仅为 N12 G1 全 T17 零更新方向筛查；结果最多批准或否决进入 G2，不证明伪未来 family、短步伤害、课程或跨年效果。"
+}

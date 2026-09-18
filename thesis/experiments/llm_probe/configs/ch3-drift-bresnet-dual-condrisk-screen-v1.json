@@ -1,0 +1,15 @@
+{
+  "schema_version": "ch3-drift-bresnet-dual-condrisk-screen-v1",
+  "run_identity_prefix": "ch3-drift-bresnet-dual-condrisk-screen-v1",
+  "screening_only": true,
+  "base_config": "configs/ch3-drift-bresnet-source-tail-diagnostic-v1.json",
+  "boundary_receipt": "runs/diagnostics/ch3-drift-bresnet-t17-t18-t19-source-tail-diagnostic-v1/formal-v1/morphology.json",
+  "source_benign_length_boundaries": [8, 10, 14],
+  "arms": {
+    "c00": "普通逐样本交叉熵基线",
+    "c10": "仅恶意侧条件最坏组风险",
+    "c01": "仅良性侧条件最坏组风险"
+  },
+  "loss_definition": "按当前微批经验类别质量加权；开启侧以活动长度组平均 BCE 的硬最大替代该类普通平均，其余项保持逐样本 BCE。",
+  "interpretation_boundary": "标准最坏组近邻资格探针，不是最终任务化机制或原创算法。"
+}

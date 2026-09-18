@@ -1,0 +1,216 @@
+{
+  "schema_version": "ch3-full-capacity-mlp-source-screen-config-v1",
+  "run_id": "ch3-full-capacity-mlp-source-screen-seed42-v1",
+  "display_name": "全容量多层感知机容量与论文配方源年筛选",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-full-capacity-mlp-source-screen-seed42-v1"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "input_contract": {
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "train_sequences": 208598,
+    "validation_sequences": 22444
+  },
+  "training": {
+    "seed": 42,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "gradient_clip_norm": 1.0,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "activation": "relu",
+    "optimizer": "adamw",
+    "scheduler": "none",
+    "cell": "C00",
+    "selection_metric": "lspr23_entity_disjoint_validation_flow_ap",
+    "selection_rule": "single_epoch_argmax_earliest_tie_no_early_stopping",
+    "candidate_tie_break": [
+      "higher_validation_flow_ap",
+      "lower_parameter_count",
+      "lower_learning_rate"
+    ],
+    "deterministic_algorithms": true,
+    "cublas_workspace_config": ":4096:8"
+  },
+  "candidates": [
+    {
+      "unit_key": "mlp-depth2-width192-anchor--paper-log-median",
+      "display_name": "90K同筛选族锚点－论文对数中位学习率配方",
+      "architecture_key": "mlp-depth2-width192-anchor",
+      "recipe_key": "paper-log-median",
+      "hidden_depth": 2,
+      "hidden_size": 192,
+      "anchor": true,
+      "learning_rate": 0.0003162277660168379,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 90242
+    },
+    {
+      "unit_key": "mlp-depth2-width192-anchor--paper-log-q75",
+      "display_name": "90K同筛选族锚点－论文对数高四分位学习率配方",
+      "architecture_key": "mlp-depth2-width192-anchor",
+      "recipe_key": "paper-log-q75",
+      "hidden_depth": 2,
+      "hidden_size": 192,
+      "anchor": true,
+      "learning_rate": 0.001778279410038923,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 90242
+    },
+    {
+      "unit_key": "mlp-depth8-width192--paper-log-median",
+      "display_name": "深度扩展多层感知机－论文对数中位学习率配方",
+      "architecture_key": "mlp-depth8-width192",
+      "recipe_key": "paper-log-median",
+      "hidden_depth": 8,
+      "hidden_size": 192,
+      "anchor": false,
+      "learning_rate": 0.0003162277660168379,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 312578
+    },
+    {
+      "unit_key": "mlp-depth8-width192--paper-log-q75",
+      "display_name": "深度扩展多层感知机－论文对数高四分位学习率配方",
+      "architecture_key": "mlp-depth8-width192",
+      "recipe_key": "paper-log-q75",
+      "hidden_depth": 8,
+      "hidden_size": 192,
+      "anchor": false,
+      "learning_rate": 0.001778279410038923,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 312578
+    },
+    {
+      "unit_key": "mlp-depth2-width512--paper-log-median",
+      "display_name": "宽度扩展多层感知机－论文对数中位学习率配方",
+      "architecture_key": "mlp-depth2-width512",
+      "recipe_key": "paper-log-median",
+      "hidden_depth": 2,
+      "hidden_size": 512,
+      "anchor": false,
+      "learning_rate": 0.0003162277660168379,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 568322
+    },
+    {
+      "unit_key": "mlp-depth2-width512--paper-log-q75",
+      "display_name": "宽度扩展多层感知机－论文对数高四分位学习率配方",
+      "architecture_key": "mlp-depth2-width512",
+      "recipe_key": "paper-log-q75",
+      "hidden_depth": 2,
+      "hidden_size": 512,
+      "anchor": false,
+      "learning_rate": 0.001778279410038923,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 568322
+    },
+    {
+      "unit_key": "mlp-depth8-width512-full--paper-log-median",
+      "display_name": "深宽全容量多层感知机－论文对数中位学习率配方",
+      "architecture_key": "mlp-depth8-width512-full",
+      "recipe_key": "paper-log-median",
+      "hidden_depth": 8,
+      "hidden_size": 512,
+      "anchor": false,
+      "learning_rate": 0.0003162277660168379,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 2144258
+    },
+    {
+      "unit_key": "mlp-depth8-width512-full--paper-log-q75",
+      "display_name": "深宽全容量多层感知机－论文对数高四分位学习率配方",
+      "architecture_key": "mlp-depth8-width512-full",
+      "recipe_key": "paper-log-q75",
+      "hidden_depth": 8,
+      "hidden_size": 512,
+      "anchor": false,
+      "learning_rate": 0.001778279410038923,
+      "weight_decay": 0.0,
+      "dropout": 0.1,
+      "parameter_formula": "m*d^2+(m+84)*d+2",
+      "parameter_count": 2144258
+    }
+  ],
+  "evaluation": {
+    "selection_metric_only": "validation_flow_average_precision",
+    "diagnostic_flow_roc_auc": true,
+    "diagnostic_entity_average_precision": true,
+    "diagnostic_dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "diagnostics_do_not_select_candidate": true
+  },
+  "stop_gate": {
+    "anchor_architecture_key": "mlp-depth2-width192-anchor",
+    "anchor_value": "best_of_two_paper_recipes_in_this_source_screen",
+    "pass_rule": "best_non_anchor_validation_flow_ap_strictly_greater_than_anchor",
+    "stop_verdict": "reject_full_capacity_mlp_candidate_set_on_lspr23",
+    "pass_verdict": "freeze_unique_non_anchor_backbone_and_recipe_on_lspr23",
+    "target_entry_on_stop": false
+  },
+  "anchor_policy": {
+    "source_screen_anchor_retrained_with_both_paper_recipes": true,
+    "historical_protocol_a_target_result_loaded": false,
+    "historical_protocol_a_target_result_retrained": false,
+    "historical_anchor_role": "identity_and_parameter_reference_only"
+  },
+  "mechanism_policy": {
+    "screening_cell": "C00",
+    "cpa_enabled": false,
+    "elp_enabled": false,
+    "frozen_during_this_screen": true,
+    "future_versions_may_revise_with_development_evidence": true
+  },
+  "artifact_policy": {
+    "epoch_atomic_inflight_checkpoint": true,
+    "checkpoint_includes_model_optimizer_best_rng_and_identity": true,
+    "completed_unit_is_idempotently_skipped_on_resume": true,
+    "persist_selected_checkpoint_per_unit": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "generate_target_entry": false
+  },
+  "resource_contract": {
+    "serial_minimum_free_gpu_memory_gib": 12,
+    "serial_minimum_cgroup_available_memory_gib": 40,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_training_units": 1,
+    "resource_sample_interval_seconds": 5,
+    "candidate_execution_order": "as_listed",
+    "first_non_anchor_epoch_calibration": true,
+    "reauthorization_if_calibrated_total_exceeds_gpu_hours": 5.0
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "name": "全容量多层感知机容量与论文配方源年筛选",
+    "group": "ch3-full-capacity-mlp-source-screen-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "mlp", "full-capacity", "source-screen", "C00", "seed42"]
+  },
+  "source_year_only": true,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "target_year_arrays_read": 0
+}

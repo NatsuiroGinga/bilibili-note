@@ -5,14 +5,16 @@ set -Eeuo pipefail
 umask 027
 
 readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
-readonly RUN_ID=ch3-grande-c00-protocolA-source-q0-seed42-v1
-readonly SCREEN_NAME=ch3-grande-pa-src-q0-s42-v1
+readonly RUN_ID="${GRANDE_RUN_ID:-ch3-grande-c00-protocolA-source-q0-seed42-v1}"
+readonly SCREEN_NAME="${GRANDE_SCREEN_NAME:-ch3-grande-pa-src-q0-s42-v1}"
 readonly OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$RUN_ID"
 readonly LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"
 readonly STATUS_PATH="$OUTPUT_ROOT/status.json"
-readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch3-grande-c00-protocol-a-source-q0-seed42-v1.json"
+readonly CONFIG_PATH="${GRANDE_CONFIG_PATH:-$PROJECT_ROOT/configs/ch3-grande-c00-protocol-a-source-q0-seed42-v1.json}"
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch3_grande_protocol_a_source_q0.py"
-readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_grande_c00_protocol_a_source_q0_seed42_v1.sh"
+readonly SCRIPT_PATH="${GRANDE_SCRIPT_PATH:-$PROJECT_ROOT/scripts/remote_launchers/run_ch3_grande_c00_protocol_a_source_q0_seed42_v1.sh}"
+readonly REUSE_COMPLETED_G_A="${GRANDE_REUSE_COMPLETED_G_A:-false}"
+readonly PRECISION_PROFILE="${GRANDE_PRECISION_PROFILE:-fp32-all-ops-v1}"
 readonly VENDOR_ROOT="$PROJECT_ROOT/vendor/grande"
 readonly MEMORY_GATE_PATH="$PROJECT_ROOT/tools/memory_admission_gate.sh"
 readonly SWANLAB_WORKSPACE=mortiswang
@@ -23,6 +25,7 @@ readonly DISK_FREE_MIN_KIB=10485760
 readonly RESOURCE_RECEIPT_PATH="$OUTPUT_ROOT/resource-receipt.json"
 readonly RESOURCE_SAMPLES_PATH="$OUTPUT_ROOT/resource-samples.tsv"
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 RUN_STARTED_AT=$(date +%s.%N)
 readonly RUN_STARTED_AT
 
@@ -72,7 +75,6 @@ valid = (
     and config["training"]["cell"] == "C00"
     and config["training"]["epochs"] == 20
     and config["training"]["steps_per_epoch"] == 1000
-    and config["resource_contract"]["total_gpu_hour_cap"] == 4.5
     and config["source_year_only"] is True
     and config["target_year_arrays_read"] == 0
     and config["target_year_paths_enumerated"] == 0
@@ -147,7 +149,7 @@ value = {
     "actual_parallelism": 1, "maximum_parallelism": 1,
     "selection_reason": "candidate_order_and_single_gpu_efficiency_isolation",
     "thresholds": {"serial_gpu_gib": 12, "serial_memory_gib": 30, "disk_gib": 10},
-    "gpu_hour_cap": 4.5, "source_year_only": True,
+    "source_year_only": True,
     "target_year_arrays_read": 0, "target_year_paths_enumerated": 0,
 }
 temporary = path.with_name(path.name + f".partial.{os.getpid()}")
@@ -227,6 +229,10 @@ required = ["config.json", "input-identity.json", "dependency-receipt.json",
     "grande-c00-source-results.json", "source-screen-results.json", "complete-alert-budget-curves.npz",
     "complete-alert-budget-curves-receipt.json", "node-fallback-receipt.json", "resource-receipt.json",
     "swanlab-receipt.json", "manifest.json", "status.json"]
+if sys.argv[2] == "true":
+    required += ["g-a-migration-receipt.json", "g-b-memory-policy-receipt.json", "resource-calibration-G-B.json"]
+if sys.argv[3] == "cuda-bf16-amp-fp32-sensitive-v1":
+    required += ["precision-memory-policy-receipt.json", "resource-calibration-G-B.json"]
 candidates = seal["completed_structures"]
 required += [f"checkpoints/selected-{item[\"unit_key\"]}.pt" for item in candidates]
 required += [f"receipts/selection-{item[\"unit_key\"]}.json" for item in candidates]
@@ -236,6 +242,20 @@ valid = (
     and 1 <= result["fits_completed"] <= 2
     and 1 <= len(candidates) <= 2
     and all(len(item["history"]) == 20 and item["optimizer_steps"] == 20000 for item in candidates)
+    and (
+        sys.argv[2] != "true"
+        or next(item for item in candidates if item["unit_key"] == "G-B")["flow_microbatch_size"] == 2048
+    )
+    and (
+        sys.argv[3] != "cuda-bf16-amp-fp32-sensitive-v1"
+        or (
+            result["precision_profile"] == sys.argv[3]
+            and all(item["precision_profile"] == sys.argv[3] for item in candidates)
+            and all(item["precision_mode"] == "cuda_bf16_autocast" for item in candidates)
+            and all(item["flow_microbatch_size"] == 2048 for item in candidates)
+            and all(item["user_authorized_bf16_for_runtime"] is True for item in candidates)
+        )
+    )
     and all(len(item["diagnostic_entity"]["dr_at_fpr"]) == 6 for item in candidates)
     and isinstance(verdict["passed"], bool)
     and result["target_year_arrays_read"] == 0 and seal["target_year_arrays_read"] == 0
@@ -244,7 +264,7 @@ valid = (
     and all((root / name).is_file() for name in required)
 )
 raise SystemExit(0 if valid else 7)
-' "$OUTPUT_ROOT"
+' "$OUTPUT_ROOT" "$REUSE_COMPLETED_G_A" "$PRECISION_PROFILE"
 }
 
 worker() {
@@ -267,22 +287,22 @@ worker() {
     code=0
     launcher_status running prepare static_contract_and_vendor null
     run_python prepare "$resume_flag"
-    launcher_status running resource-calibrate G-A_R0_R1 null
-    run_python resource-calibrate "$resume_flag" G-A
-    launcher_status running train-unit G-A_remaining_epochs null
-    run_python train-unit --resume G-A
-    launcher_status running resource-calibrate G-B_R1_budget_probe null
-    run_python resource-calibrate --resume G-B
-    if uv run --no-sync python -c '
-import json, pathlib, sys
-p = pathlib.Path(sys.argv[1])
-raise SystemExit(0 if p.is_file() and json.loads(p.read_text(encoding="utf-8")).get("passed") else 1)
-' "$OUTPUT_ROOT/resource-calibration-G-B.json"; then
-        launcher_status running train-unit G-B_remaining_epochs null
-        run_python train-unit --resume G-B
+    if [[ "$REUSE_COMPLETED_G_A" == true ]]; then
+        [[ -s "$OUTPUT_ROOT/g-a-migration-receipt.json" \
+            && -s "$OUTPUT_ROOT/receipts/selection-G-A.json" \
+            && -s "$OUTPUT_ROOT/checkpoints/selected-G-A.pt" ]] \
+            || { printf 'G-A 迁移制品不完整，禁止训练 G-B。\n' >&2; return 67; }
+        launcher_status running migration G-A_reused_without_retraining null
     else
-        launcher_status running train-unit G-B_not_started_due_to_preregistered_resource_cap null
+        launcher_status running resource-calibrate G-A_R0_R1 null
+        run_python resource-calibrate "$resume_flag" G-A
+        launcher_status running train-unit G-A_remaining_epochs null
+        run_python train-unit --resume G-A
     fi
+    launcher_status running resource-calibrate G-B_R1_resource_observation null
+    run_python resource-calibrate --resume G-B
+    launcher_status running train-unit G-B_remaining_epochs null
+    run_python train-unit --resume G-B
     launcher_status running aggregate source_metrics_and_verdict null
     run_python aggregate --resume
     kill "$monitor_pid" 2>/dev/null || true
@@ -362,5 +382,5 @@ sha256sum "$CONFIG_PATH" "$TOOL_PATH" "$SCRIPT_PATH" "$MEMORY_GATE_PATH" \
     > "$LAUNCHER_ROOT/input-sha256.txt"
 launcher_status prepared launch static_contract_passed null
 screen -dmS "$SCREEN_NAME" bash "$SCRIPT_PATH" --worker "$resume_flag"
-printf 'CH3_GRANDE_PROTOCOL_A_SOURCE_Q0_STARTED session=%s output=%s structures=2 parallelism=1 cap=4.5GPUh resource_gate=12GiB_GPU/30GiB_RAM/10GiB_disk\n' \
-    "$SCREEN_NAME" "$OUTPUT_ROOT"
+printf 'CH3_GRANDE_PROTOCOL_A_SOURCE_Q0_STARTED session=%s output=%s structures=2 reuse_G_A=%s precision=%s parallelism=1 runtime_cap=none resource_gate=12GiB_GPU/30GiB_RAM/10GiB_disk\n' \
+    "$SCREEN_NAME" "$OUTPUT_ROOT" "$REUSE_COMPLETED_G_A" "$PRECISION_PROFILE"

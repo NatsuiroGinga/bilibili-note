@@ -1,0 +1,65 @@
+{
+  "schema_version": "ch3-drift-t17-equal3-auxheads-gradient-base-v1",
+  "approved_scope": "t17_equal3_auxiliary_gradient_baseline_only",
+  "screening_only": true,
+  "seed": 42,
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "arms": {
+    "char": "ch3-drift-t17-equal3-auxheads-char-gradient-base-v1",
+    "subword": "ch3-drift-t17-equal3-auxheads-subword-gradient-base-v1"
+  },
+  "p0": {
+    "config": "configs/ch3-drift-n10-conservative-fusion-pilot-v1.json",
+    "config_sha256": "eab95b6539fa920aa4b929203f3ef81eaf11fa53335e00f367bd9615fce64fcf",
+    "source_code": "tools/ch3_drift_n10_conservative_fusion_pilot.py",
+    "source_code_sha256": "92056fd37cb9c195d1952b59280101d8c1b9f0a622453ec9c929d378f9c85674",
+    "tokenizer": "runs/diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00/tokenizer.json",
+    "tokenizer_sha256": "fd80b543592c667c701cec0a86e2ff07108f5db30dfcb7ded7e5071e28192522",
+    "char_backbone": "runs/diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00/char-backbone.pt",
+    "char_backbone_sha256": "fe33df4b907d3a342e157c4e0dc68566715a25145c389eb18e8eab0a9ec38041",
+    "subword_backbone": "runs/diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00/token-backbone.pt",
+    "subword_backbone_sha256": "1190c1bd0a3d0c65762d4deb94f443eeae3ad938b46b447ef16394f5e9befc5e"
+  },
+  "fit_inputs": [
+    {
+      "label": 0,
+      "path": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_train.parquet",
+      "rows": 1500000,
+      "sha256": "7f12eec987d900e12e4a04b7f130cc68316f39dbd05b7e4a20ed524697bc0b5f"
+    },
+    {
+      "label": 1,
+      "path": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_train.parquet",
+      "rows": 1500000,
+      "sha256": "e41a357fbcccd26ba5b853b0af0ce6c7b233256a4cc4bad969de2514aa6aa22d"
+    }
+  ],
+  "training": {
+    "batch_size": 1024,
+    "optimizer": "adam",
+    "learning_rate": 0.0001,
+    "member_passes": 1,
+    "cuda_bf16_autocast": true,
+    "gradient_clip_norm": 1.0,
+    "checkpoint_samples": 32768,
+    "tasks": ["MTP", "TPP", "TOV"],
+    "loss_combination": "unweighted_sum"
+  },
+  "pretraining": {
+    "mask_ratio": 0.15,
+    "shuffle_probability": 0.5,
+    "ignore_index": -100,
+    "use_bert_pretokenizer": false
+  },
+  "numeric_basis": {
+    "batch_size": "复用冻结 P0 batch 1024 资源收据",
+    "learning_rate": "复用 DRIFT 官方与冻结 P0 的 Adam 1e-4",
+    "member_passes": "复用 P0 对完整 T17 fit 的一次成员遍历",
+    "gradient_clip_norm": "复用 P0 训练实现的 clip_grad_norm_ 1.0",
+    "checkpoint_samples": "复用 P0 每 32768 样本原子恢复节奏",
+    "mask_ratio": "复用官方 MTP 0.15",
+    "shuffle_probability": "复用官方 TOV 0.5",
+    "tasks": "原论文和 P0 的 MTP+TPP+TOV 等权基准，不按结果删任务"
+  },
+  "interpretation_boundary": "仅恢复 T17 等权三任务训练后辅助头，供后续梯度冲突诊断；不是课程算法、机制效果或未来年份结论。"
+}

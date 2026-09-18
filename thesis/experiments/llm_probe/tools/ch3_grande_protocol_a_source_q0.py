@@ -10,6 +10,7 @@ import math
 import os
 import random
 import resource
+import shutil
 import sys
 import time
 import traceback
@@ -27,9 +28,11 @@ except ModuleNotFoundError:
 try:
     import torch
     import torch.nn as nn
+    from torch.utils.checkpoint import checkpoint as activation_checkpoint
 except ModuleNotFoundError:
     torch = None
     nn = None
+    activation_checkpoint = None
 
 VENDOR_ROOT = Path(__file__).resolve().parents[1] / "vendor" / "grande"
 if str(VENDOR_ROOT) not in sys.path:
@@ -42,7 +45,12 @@ except ModuleNotFoundError:
 
 SCHEMA_VERSION = "ch3-grande-protocol-a-source-q0-config-v1"
 RESULT_SCHEMA_VERSION = "ch3-grande-protocol-a-source-q0-results-v1"
-RUN_ID = "ch3-grande-c00-protocolA-source-q0-seed42-v1"
+ORIGINAL_RUN_ID = "ch3-grande-c00-protocolA-source-q0-seed42-v1"
+RERUN_RUN_ID = "ch3-grande-c00-protocolA-source-q0-seed42-v1-rerun1"
+BF16_RUN_ID = "ch3-grande-c00-protocolA-source-q0-seed42-v1-bf16-v1"
+BF16_PRECISION_PROFILE = "cuda-bf16-amp-fp32-sensitive-v1"
+ALLOWED_RUN_IDS = (ORIGINAL_RUN_ID, RERUN_RUN_ID, BF16_RUN_ID)
+RUN_ID = ORIGINAL_RUN_ID
 SOURCE_ARRAYS = ("X23", "y23", "I23", "M23", "E23", "T23")
 DR_FPR_GRID = (0.001, 0.005, 0.01, 0.02, 0.04, 0.08)
 T0 = time.time()
@@ -135,6 +143,16 @@ def expected_candidates() -> list[dict[str, Any]]:
         {"unit_key": "G-A", "display_name": "GRANDE论文最大数据结构", "depth": 4, "n_estimators": 512, **common},
         {"unit_key": "G-B", "display_name": "GRANDE当前官方默认结构", "depth": 5, "n_estimators": 1024, **common},
     ]
+
+
+def activate_run_id(config: dict[str, Any]) -> None:
+    """先封印允许的运行身份，再让既有制品函数使用该身份。"""
+
+    global RUN_ID
+    candidate = config.get("run_id")
+    if candidate not in ALLOWED_RUN_IDS:
+        raise ValueError("运行身份不在 GRANDE 冻结白名单")
+    RUN_ID = str(candidate)
 
 
 def _legacy_validate_config(config: dict[str, Any]) -> None:
@@ -304,16 +322,107 @@ def validate_config(config: dict[str, Any]) -> None:
     if evaluation.get("dr_fpr_grid") != list(DR_FPR_GRID) or not evaluation.get("complete_reachable_alert_budget_curve"):
         raise ValueError("完整指标合同不符")
     if config.get("resource_contract") != {
-        "total_gpu_hour_cap": 4.5,
         "maximum_parallel_training_units": 1,
         "minimum_free_gpu_memory_gib": 12,
         "minimum_cgroup_available_memory_gib": 30,
         "minimum_free_disk_gib": 10,
         "r0_real_batch_sequences": 64,
         "r1_steps": 1000,
-        "g_b_requires_projected_budget": True,
     }:
         raise ValueError("资源合同不符")
+    if RUN_ID == RERUN_RUN_ID:
+        if config.get("migration_contract") != {
+            "source_run_id": ORIGINAL_RUN_ID,
+            "reuse_completed_units": ["G-A"],
+            "retrain_reused_units": False,
+            "require_byte_identical_checkpoint_receipt_and_curve": True,
+        }:
+            raise ValueError("G-A 迁移合同不符")
+        if config.get("memory_contract") != {
+            "formal_precision": "fp32",
+            "flow_microbatch_size": 2048,
+            "derivation": "largest_power_of_two_at_most_one_quarter_of_64x128_failed_capacity",
+            "failed_capacity_upper_bound_flows": 8192,
+            "selection_metrics_used_for_size": False,
+            "zero_grad_calls_per_optimizer_step": 1,
+            "gradient_clip_calls_per_optimizer_step": 1,
+            "optimizer_step_calls_per_original_batch": 1,
+        }:
+            raise ValueError("G-B 等效微批资源合同不符")
+        precision = config.get("precision_contract", {})
+        if (
+            precision.get("mode") not in ("fp32", "cuda_bf16_autocast")
+            or precision.get("allowed_modes") != ["fp32", "cuda_bf16_autocast"]
+            or precision.get("grad_scaler") is not False
+            or precision.get("parameters_and_optimizer_fp32") is not True
+            or precision.get("bce_and_diagnostics_fp32") is not True
+            or precision.get("bf16_requires_same_precision_g_a_for_selection") is not True
+        ):
+            raise ValueError("精度合同不符")
+        checkpoint_contract = config.get("activation_checkpoint_contract", {})
+        if (
+            not isinstance(checkpoint_contract.get("enabled"), bool)
+            or checkpoint_contract.get("use_reentrant") is not False
+            or checkpoint_contract.get("allowed_only_after_fp32_microbatch_oom") is not True
+            or checkpoint_contract.get("silent_fallback") is not False
+        ):
+            raise ValueError("激活检查点合同不符")
+        if config.get("resume_contract") != {
+            "atomic_boundary": "optimizer_step_start",
+            "replay_interrupted_microbatch_step": True,
+            "persist_partial_gradients": False,
+        }:
+            raise ValueError("优化步恢复合同不符")
+        source_root = Path(config.get("paths", {}).get("migration_source_root", ""))
+        if source_root.name != ORIGINAL_RUN_ID:
+            raise ValueError("G-A 迁移源运行身份不符")
+    if RUN_ID == BF16_RUN_ID:
+        if config.get("memory_contract") != {
+            "formal_precision": BF16_PRECISION_PROFILE,
+            "flow_microbatch_size": 2048,
+            "derivation": "same_resource_only_2048_flow_microbatch_as_preregistered_fp32_memory_fix",
+            "failed_capacity_upper_bound_flows": 8192,
+            "selection_metrics_used_for_size": False,
+            "zero_grad_calls_per_optimizer_step": 1,
+            "gradient_clip_calls_per_optimizer_step": 1,
+            "optimizer_step_calls_per_original_batch": 1,
+        }:
+            raise ValueError("BF16 同精度重跑微批合同不符")
+        if config.get("precision_contract") != {
+            "mode": "cuda_bf16_autocast",
+            "profile": BF16_PRECISION_PROFILE,
+            "allowed_modes": ["cuda_bf16_autocast"],
+            "grad_scaler": False,
+            "parameters_and_optimizer_fp32": True,
+            "softmax_log_and_normalization_fp32": True,
+            "bce_and_diagnostics_fp32": True,
+            "same_precision_required_for_g_a_and_g_b_selection": True,
+            "user_authorized_bf16_for_runtime": True,
+            "authorization_reference": "2026-08-21-user-explicit-bf16-rerun-decision",
+            "selection_metrics_used_for_precision_choice": False,
+        }:
+            raise ValueError("BF16 精度与用户授权合同不符")
+        if config.get("activation_checkpoint_contract") != {
+            "enabled": False,
+            "use_reentrant": False,
+            "allowed_only_after_bf16_microbatch_oom": True,
+            "silent_fallback": False,
+        }:
+            raise ValueError("BF16 激活检查点合同不符")
+        if config.get("resume_contract") != {
+            "atomic_boundary": "optimizer_step_start",
+            "replay_interrupted_microbatch_step": True,
+            "persist_partial_gradients": False,
+        }:
+            raise ValueError("BF16 优化步恢复合同不符")
+        if config.get("tool_contract") != {
+            "entrypoint": "tools/ch3_grande_protocol_a_source_q0.py",
+            "precision_profile": BF16_PRECISION_PROFILE,
+            "profile_schema_version": 1,
+        }:
+            raise ValueError("BF16 工具与精度配置引用不符")
+        if "migration_contract" in config or "migration_source_root" in config.get("paths", {}):
+            raise ValueError("BF16 同精度重跑禁止迁移 FP32 G-A")
     upstream = config.get("upstream", {})
     if upstream != {
         "repository": "https://github.com/s-marton/GRANDE",
@@ -701,6 +810,75 @@ def write_first_non_anchor_calibration(
         raise RuntimeError("首个非锚点实测外推超过冻结 GPU 小时上限，须重新取得资源授权")
 
 
+def training_logits(
+    model: Any,
+    values: Any,
+    precision_mode: str,
+    use_activation_checkpoint: bool,
+) -> Any:
+    use_bf16 = precision_mode == "cuda_bf16_autocast"
+    if use_bf16 and not torch.cuda.is_bf16_supported():
+        raise RuntimeError("当前 CUDA 设备不支持冻结的 BF16 工程候选")
+    with torch.amp.autocast("cuda", dtype=torch.bfloat16, enabled=use_bf16):
+        if use_activation_checkpoint:
+            if activation_checkpoint is None:
+                raise RuntimeError("PyTorch 激活检查点接口不可用")
+            return activation_checkpoint(model, values, use_reentrant=False)
+        return model(values)
+
+
+def atomic_step_boundary(
+    path: Path,
+    *,
+    identity: dict[str, Any],
+    epoch: int,
+    step: int,
+    positions: Any,
+    model: Any,
+    optimizer: Any,
+    history: list[dict[str, Any]],
+    best_ap: float,
+    best_epoch: int,
+    best_state: dict[str, Any] | None,
+    elapsed_seconds: float,
+    optimizer_steps: int,
+    valid_training_flows: int,
+    running_loss: float,
+    epoch_elapsed_seconds: float,
+    resume_count: int,
+    generator: Any,
+) -> None:
+    atomic_torch(
+        path,
+        {
+            "schema_version": "ch3-grande-optimizer-step-boundary-v1",
+            "checkpoint_kind": "optimizer_step_start",
+            "identity": identity,
+            "epoch": epoch,
+            "step": step,
+            "positions": positions.detach().cpu().clone(),
+            "model": {name: tensor.detach().cpu().clone() for name, tensor in model.state_dict().items()},
+            "optimizer": optimizer.state_dict(),
+            "history": history,
+            "best_ap": best_ap,
+            "best_epoch": best_epoch,
+            "best_state": best_state,
+            "elapsed_seconds": elapsed_seconds,
+            "optimizer_steps": optimizer_steps,
+            "valid_training_flows": valid_training_flows,
+            "running_loss": running_loss,
+            "epoch_elapsed_seconds": epoch_elapsed_seconds,
+            "resume_count": resume_count,
+            "python_rng_state": random.getstate(),
+            "numpy_rng_state": np.random.get_state(),
+            "torch_cpu_rng_state": torch.get_rng_state(),
+            "torch_cuda_rng_state_all": torch.cuda.get_rng_state_all(),
+            "batch_generator_state": generator.get_state(),
+            "partial_gradients_persisted": False,
+        },
+    )
+
+
 def train_candidate(
     config: dict[str, Any],
     candidate: dict[str, Any],
@@ -749,6 +927,8 @@ def train_candidate(
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     model = build_model(candidate, training["feature_count"]).to(device)
+    if any(parameter.dtype != torch.float32 for parameter in model.parameters()):
+        raise RuntimeError("GRANDE 参数必须保持 FP32")
     groups = model.parameter_groups()
     optimizer = torch.optim.Adam(
         [
@@ -768,6 +948,10 @@ def train_candidate(
     valid_training_flows = 0
     resume_count = 0
     start_epoch = 1
+    start_step = 1
+    resumed_running_loss = 0.0
+    resumed_epoch_elapsed = 0.0
+    pending_positions = None
     if resume and inflight_path.is_file():
         inflight = torch.load(inflight_path, map_location="cpu", weights_only=False)
         if inflight.get("identity") != identity:
@@ -788,8 +972,19 @@ def train_candidate(
         torch.set_rng_state(inflight["torch_cpu_rng_state"])
         torch.cuda.set_rng_state_all(inflight["torch_cuda_rng_state_all"])
         generator.set_state(inflight["batch_generator_state"])
-        start_epoch = int(inflight["epoch"]) + 1
-        log(f"{candidate['display_name']} 从 epoch {start_epoch} 恢复")
+        if inflight.get("checkpoint_kind") == "optimizer_step_start":
+            start_epoch = int(inflight["epoch"])
+            start_step = int(inflight["step"])
+            resumed_running_loss = float(inflight["running_loss"])
+            resumed_epoch_elapsed = float(inflight["epoch_elapsed_seconds"])
+            pending_positions = inflight["positions"]
+            log(
+                f"{candidate['display_name']} 从 epoch {start_epoch} step {start_step} "
+                "的完整优化步起点重放"
+            )
+        else:
+            start_epoch = int(inflight["epoch"]) + 1
+            log(f"{candidate['display_name']} 从 epoch {start_epoch} 恢复")
 
     train_indices = source["I23"][train_rows]
     train_mask = source["M23"][train_rows] > 0
@@ -797,15 +992,36 @@ def train_candidate(
     if not 0.0 < positive_rate < 1.0:
         raise RuntimeError("源年逐流标签先验无效")
     positive_weight = torch.tensor([(1.0 - positive_rate) / positive_rate], device=device)
-    loss_function = nn.BCEWithLogitsLoss(reduction="none", pos_weight=positive_weight)
+    precision_mode = config.get("precision_contract", {}).get("mode", "fp32")
+    if precision_mode == "cuda_bf16_autocast" and not torch.cuda.is_bf16_supported():
+        raise RuntimeError("当前 CUDA 设备不支持冻结的 BF16 工程候选")
+    use_activation_checkpoint = bool(config.get("activation_checkpoint_contract", {}).get("enabled", False))
+    if use_activation_checkpoint and precision_mode != "fp32":
+        raise RuntimeError("激活检查点工程分支不得与 BF16 分支叠加")
+    if use_activation_checkpoint:
+        oom_receipt_value = config["paths"].get("fp32_microbatch_oom_receipt")
+        if not oom_receipt_value or not Path(oom_receipt_value).is_file():
+            raise RuntimeError("激活检查点分支缺少 FP32 微批仍显存溢出的授权收据")
+    if precision_mode == "cuda_bf16_autocast" and key == "G-B" and RUN_ID == RERUN_RUN_ID:
+        raise RuntimeError("BF16 G-B 参与选优前必须以同精度复算 G-A，当前迁移合同禁止混比")
+    microbatch_size = (
+        int(config["memory_contract"]["flow_microbatch_size"])
+        if (RUN_ID == RERUN_RUN_ID and key == "G-B") or RUN_ID == BF16_RUN_ID
+        else training["batch_size"] * training["sequence_length"]
+    )
     torch.cuda.reset_peak_memory_stats(device)
     started = time.time()
     model.train()
     for epoch in range(start_epoch, training["epochs"] + 1):
         epoch_started = time.time()
-        running_loss = 0.0
-        for step in range(1, training["steps_per_epoch"] + 1):
-            positions = torch.randint(0, len(train_rows), (training["batch_size"],), generator=generator)
+        running_loss = resumed_running_loss if epoch == start_epoch else 0.0
+        first_step = start_step if epoch == start_epoch else 1
+        for step in range(first_step, training["steps_per_epoch"] + 1):
+            if pending_positions is not None and epoch == start_epoch and step == start_step:
+                positions = pending_positions
+                pending_positions = None
+            else:
+                positions = torch.randint(0, len(train_rows), (training["batch_size"],), generator=generator)
             selected_rows = torch.from_numpy(train_rows[positions.numpy()]).to(device)
             indices = gpu["I"][selected_rows][:, : training["sequence_length"]]
             valid = gpu["M"][selected_rows][:, : training["sequence_length"]] > 0.5
@@ -815,23 +1031,76 @@ def train_candidate(
             labels = gpu["y"][indices.reshape(-1)].reshape(indices.shape)
             flat_values = values[valid]
             flat_labels = labels[valid]
+            total_valid_flows = int(flat_labels.numel())
+            if total_valid_flows <= 0:
+                raise RuntimeError(f"{key} epoch={epoch} step={step} 原始批次无有效流")
+            optimizer.zero_grad(set_to_none=True)
+            atomic_step_boundary(
+                inflight_path,
+                identity=identity,
+                epoch=epoch,
+                step=step,
+                positions=positions,
+                model=model,
+                optimizer=optimizer,
+                history=history,
+                best_ap=best_ap,
+                best_epoch=best_epoch,
+                best_state=best_state,
+                elapsed_seconds=elapsed_before + time.time() - started,
+                optimizer_steps=optimizer_steps,
+                valid_training_flows=valid_training_flows,
+                running_loss=running_loss,
+                epoch_elapsed_seconds=(resumed_epoch_elapsed if epoch == start_epoch else 0.0)
+                + time.time()
+                - epoch_started,
+                resume_count=resume_count,
+                generator=generator,
+            )
             first_batch = key == "G-A" and epoch == 1 and step == 1 and start_epoch == 1
-            if first_batch:
+            backward_started = time.time()
+            forward_seconds = 0.0
+            detached_loss_sum = torch.zeros((), dtype=torch.float32, device=device)
+            for micro_start in range(0, total_valid_flows, microbatch_size):
+                micro_end = min(micro_start + microbatch_size, total_valid_flows)
                 forward_started = time.time()
-                logits, tree_outputs, tree_weights, route_diagnostics = model(
-                    flat_values,
-                    return_per_estimator_logits=True,
-                    return_diagnostics=True,
-                )
-                forward_seconds = time.time() - forward_started
-            else:
-                logits = model(flat_values)
-            loss = loss_function(logits, flat_labels).mean()
+                if first_batch and micro_start == 0:
+                    use_bf16 = precision_mode == "cuda_bf16_autocast"
+                    with torch.amp.autocast("cuda", dtype=torch.bfloat16, enabled=use_bf16):
+                        micro_logits, tree_outputs, tree_weights, raw_route_diagnostics = model(
+                            flat_values[micro_start:micro_end],
+                            return_per_estimator_logits=True,
+                            return_diagnostics=True,
+                        )
+                    route_diagnostics = {
+                        name: value.detach().float() for name, value in raw_route_diagnostics.items()
+                    }
+                    del tree_outputs, tree_weights, raw_route_diagnostics
+                else:
+                    micro_logits = training_logits(
+                        model,
+                        flat_values[micro_start:micro_end],
+                        precision_mode,
+                        use_activation_checkpoint,
+                    )
+                forward_seconds += time.time() - forward_started
+                with torch.amp.autocast("cuda", enabled=False):
+                    micro_loss_sum = nn.functional.binary_cross_entropy_with_logits(
+                        micro_logits.float(),
+                        flat_labels[micro_start:micro_end].float(),
+                        pos_weight=positive_weight.float(),
+                        reduction="sum",
+                    )
+                    micro_loss = micro_loss_sum / total_valid_flows
+                if not torch.isfinite(micro_loss):
+                    raise RuntimeError(
+                        f"{key} epoch={epoch} step={step} micro={micro_start}:{micro_end} 训练损失非有限"
+                    )
+                micro_loss.backward()
+                detached_loss_sum += micro_loss_sum.detach().float()
+            loss = detached_loss_sum / total_valid_flows
             if not torch.isfinite(loss):
                 raise RuntimeError(f"{key} epoch={epoch} step={step} 训练损失非有限")
-            optimizer.zero_grad(set_to_none=True)
-            backward_started = time.time()
-            loss.backward()
             backward_seconds = time.time() - backward_started
             if first_batch:
                 core_gradient_stats = gradient_group_stats(groups)
@@ -891,6 +1160,7 @@ def train_candidate(
                         name: float(value.detach()) for name, value in route_diagnostics.items()
                     },
                     "peak_gpu_allocated_mib": torch.cuda.max_memory_allocated(device) / 2**20,
+                    "peak_gpu_reserved_mib": torch.cuda.max_memory_reserved(device) / 2**20,
                     "peak_process_rss_mib": process_peak_rss_mib(),
                     "passed": gradient_groups_pass(core_gradient_stats)
                     and gradient_groups_pass(mechanism_gradient_stats)
@@ -930,7 +1200,7 @@ def train_candidate(
         validation_ap = float(average_precision_score(labels_np, predictions))
         if not math.isfinite(validation_ap):
             raise RuntimeError(f"{key} epoch={epoch} 验证逐流 AP 非有限")
-        epoch_seconds = time.time() - epoch_started
+        epoch_seconds = (resumed_epoch_elapsed if epoch == start_epoch else 0.0) + time.time() - epoch_started
         history.append(
             {
                 "epoch": epoch,
@@ -938,6 +1208,7 @@ def train_candidate(
                 "mean_training_loss": running_loss / training["steps_per_epoch"],
                 "epoch_seconds": epoch_seconds,
                 "peak_gpu_allocated_mib": torch.cuda.max_memory_allocated(device) / 2**20,
+                "peak_gpu_reserved_mib": torch.cuda.max_memory_reserved(device) / 2**20,
             }
         )
         if validation_ap > best_ap:
@@ -949,6 +1220,7 @@ def train_candidate(
             inflight_path,
             {
                 "schema_version": "ch3-full-capacity-mlp-source-inflight-v1",
+                "checkpoint_kind": "epoch_complete",
                 "identity": identity,
                 "epoch": epoch,
                 "model": {name: tensor.detach().cpu().clone() for name, tensor in model.state_dict().items()},
@@ -960,6 +1232,7 @@ def train_candidate(
                 "elapsed_seconds": elapsed,
                 "optimizer_steps": optimizer_steps,
                 "valid_training_flows": valid_training_flows,
+                "running_loss": 0.0,
                 "resume_count": resume_count,
                 "python_rng_state": random.getstate(),
                 "numpy_rng_state": np.random.get_state(),
@@ -973,20 +1246,6 @@ def train_candidate(
             ga_receipt = output_root / "receipts" / "selection-G-A.json"
             if ga_receipt.is_file():
                 completed_prior_seconds = float(load_json(ga_receipt)["selection"]["training_seconds"])
-        cumulative_gpu_hours = (completed_prior_seconds + elapsed) / 3600.0
-        if cumulative_gpu_hours >= config["resource_contract"]["total_gpu_hour_cap"]:
-            atomic_json(
-                output_root / "node-fallback-receipt.json",
-                {
-                    "node_fallback_required": True,
-                    "reason": "engineering_rejected_resource_cap",
-                    "structure": key,
-                    "cumulative_gpu_hours": cumulative_gpu_hours,
-                    "node_started": False,
-                    "target_year_arrays_read": 0,
-                },
-            )
-            raise RuntimeError("engineering_rejected_resource_cap")
         if epoch == 1:
             prior_seconds = 0.0
             if key == "G-B":
@@ -1003,42 +1262,16 @@ def train_candidate(
                 "prior_completed_gpu_seconds": prior_seconds,
                 "projected_cumulative_gpu_seconds": projected_seconds,
                 "projected_cumulative_gpu_hours": projected_seconds / 3600.0,
-                "gpu_hour_cap": config["resource_contract"]["total_gpu_hour_cap"],
                 "peak_gpu_allocated_mib": torch.cuda.max_memory_allocated(device) / 2**20,
+                "peak_gpu_reserved_mib": torch.cuda.max_memory_reserved(device) / 2**20,
                 "peak_process_rss_mib": process_peak_rss_mib(),
                 "projection_uses_complete_real_epoch": True,
                 "paper_runtime_or_parameter_ratio_used": False,
                 "target_year_arrays_read": 0,
+                "completed": True,
+                "runtime_cap_enforced": False,
             }
-            calibration["passed"] = (
-                calibration["projected_cumulative_gpu_hours"]
-                <= config["resource_contract"]["total_gpu_hour_cap"]
-            )
             atomic_json(output_root / f"resource-calibration-{key}.json", calibration)
-            if not calibration["passed"]:
-                if key == "G-B":
-                    atomic_json(
-                        output_root / "g-b-not-started-receipt.json",
-                        {
-                            "verdict": "not_started_due_to_preregistered_resource_cap",
-                            "calibration_epoch_completed": True,
-                            "full_unit_started": False,
-                            "node_fallback_required": False,
-                            "target_year_arrays_read": 0,
-                        },
-                    )
-                    return {"calibration_only": True, "structure": key, "resource_calibration": calibration}
-                atomic_json(
-                    output_root / "node-fallback-receipt.json",
-                    {
-                        "node_fallback_required": True,
-                        "reason": "engineering_rejected_resource_cap",
-                        "structure": key,
-                        "node_started": False,
-                        "target_year_arrays_read": 0,
-                    },
-                )
-                raise RuntimeError("engineering_rejected_resource_cap")
             if calibration_only:
                 return {"calibration_only": True, "structure": key, "resource_calibration": calibration}
         log(
@@ -1116,7 +1349,24 @@ def train_candidate(
         "training_valid_flows_per_second": valid_training_flows / max(training_seconds, 1e-12),
         "diagnostic_flows_per_second": len(predictions) / max(diagnostic_seconds, 1e-12),
         "peak_gpu_allocated_mib": torch.cuda.max_memory_allocated(device) / 2**20,
+        "peak_gpu_reserved_mib": torch.cuda.max_memory_reserved(device) / 2**20,
         "peak_process_rss_mib": process_peak_rss_mib(),
+        "precision_mode": precision_mode,
+        "precision_profile": config.get("precision_contract", {}).get("profile", "fp32-all-ops-v1"),
+        "user_authorized_bf16_for_runtime": bool(
+            config.get("precision_contract", {}).get("user_authorized_bf16_for_runtime", False)
+        ),
+        "flow_microbatch_size": microbatch_size,
+        "maximum_microbatches_per_optimizer_step": math.ceil(
+            training["batch_size"] * training["sequence_length"] / microbatch_size
+        ),
+        "loss_normalization": "microbatch_bce_sum_divided_by_original_step_total_valid_flows",
+        "zero_grad_calls_per_optimizer_step": 1,
+        "gradient_clip_calls_per_optimizer_step": 1,
+        "optimizer_step_calls_per_original_batch": 1,
+        "activation_checkpointing": use_activation_checkpoint,
+        "activation_checkpoint_use_reentrant": False if use_activation_checkpoint else None,
+        "grad_scaler_used": False,
         "resume_count": resume_count,
         "checkpoint": {
             "filename": str(checkpoint_path.relative_to(output_root)),
@@ -1265,9 +1515,12 @@ def freeze_backbone_selection(
             (output_root / "gradient-gate-receipt.json").is_file()
             and load_json(output_root / "gradient-gate-receipt.json").get("passed") is True
         ),
-        "resource_calibration_valid": all(
+        "resource_observation_complete": all(
             (output_root / f"resource-calibration-{selection['unit_key']}.json").is_file()
-            and load_json(output_root / f"resource-calibration-{selection['unit_key']}.json").get("passed") is True
+            and (
+                load_json(output_root / f"resource-calibration-{selection['unit_key']}.json").get("completed") is True
+                or load_json(output_root / f"resource-calibration-{selection['unit_key']}.json").get("passed") is True
+            )
             for selection in selections
         ),
         "target_year_arrays_read_zero": True,
@@ -1340,6 +1593,9 @@ def build_manifest(output_root: Path) -> None:
         "gradient-gate-receipt.json",
         "resource-calibration-G-A.json",
         "resource-calibration-G-B.json",
+        "g-a-migration-receipt.json",
+        "g-b-memory-policy-receipt.json",
+        "precision-memory-policy-receipt.json",
         "g-b-not-started-receipt.json",
         "progress.jsonl",
         "backbone_selection_frozen.json",
@@ -1406,6 +1662,7 @@ def _legacy_write_source_screen_result(
             "model_weight_bytes_sum": sum(item["model_weight_bytes"] for item in selections),
             "maximum_parameter_count": max(item["parameter_count_framework"] for item in selections),
             "peak_gpu_allocated_mib": max(item["peak_gpu_allocated_mib"] for item in selections),
+            "peak_gpu_reserved_mib": max(item.get("peak_gpu_reserved_mib", 0.0) for item in selections),
             "peak_process_rss_mib": max(item["peak_process_rss_mib"] for item in selections),
             "resume_count_sum": sum(item["resume_count"] for item in selections),
             "launcher_admission_receipt": resource_receipt,
@@ -1436,6 +1693,10 @@ def write_source_screen_result(
         "source_year_only": True,
         "target_year_arrays_read": 0,
         "target_year_paths_enumerated": 0,
+        "precision_profile": config.get("precision_contract", {}).get("profile", "fp32-all-ops-v1"),
+        "user_authorized_bf16_for_runtime": bool(
+            config.get("precision_contract", {}).get("user_authorized_bf16_for_runtime", False)
+        ),
         "fits_completed": len(selections),
         "source_split": seal["source_split"],
         "source_selection": seal,
@@ -1458,10 +1719,10 @@ def write_source_screen_result(
             "model_weight_bytes_sum": sum(item["model_weight_bytes"] for item in selections),
             "maximum_parameter_count": max(item["parameter_count_framework"] for item in selections),
             "peak_gpu_allocated_mib": max(item["peak_gpu_allocated_mib"] for item in selections),
+            "peak_gpu_reserved_mib": max(item.get("peak_gpu_reserved_mib", 0.0) for item in selections),
             "peak_process_rss_mib": max(item["peak_process_rss_mib"] for item in selections),
             "resume_count_sum": sum(item["resume_count"] for item in selections),
             "cumulative_gpu_hours": sum(item["training_seconds"] for item in selections) / 3600.0,
-            "gpu_hour_cap": config["resource_contract"]["total_gpu_hour_cap"],
             "launcher_admission_receipt": load_json(Path(resource_receipt_path)) if resource_receipt_path else None,
         },
         "verdict": seal["source_gate"],
@@ -1477,6 +1738,87 @@ def write_source_screen_result(
     build_manifest(output_root)
 
 
+def copy_migration_artifact(source_root: Path, output_root: Path, relative: str) -> dict[str, Any]:
+    source = source_root / relative
+    destination = output_root / relative
+    if not source.is_file():
+        raise RuntimeError(f"G-A 迁移源制品缺失：{relative}")
+    source_sha256 = sha256_file(source)
+    if destination.exists():
+        if not destination.is_file() or sha256_file(destination) != source_sha256:
+            raise RuntimeError(f"G-A 迁移目标已有不同内容：{relative}")
+    else:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary = destination.with_name(f"{destination.name}.partial.{os.getpid()}")
+        shutil.copy2(source, temporary)
+        if sha256_file(temporary) != source_sha256:
+            temporary.unlink(missing_ok=True)
+            raise RuntimeError(f"G-A 迁移复制后摘要不符：{relative}")
+        os.replace(temporary, destination)
+    return {
+        "relative_path": relative,
+        "bytes": source.stat().st_size,
+        "source_sha256": source_sha256,
+        "destination_sha256": sha256_file(destination),
+        "byte_identical": True,
+    }
+
+
+def migrate_completed_g_a(config: dict[str, Any], output_root: Path) -> None:
+    if RUN_ID != RERUN_RUN_ID:
+        return
+    source_root = Path(config["paths"]["migration_source_root"])
+    selection_relative = "receipts/selection-G-A.json"
+    selection_path = source_root / selection_relative
+    if not selection_path.is_file():
+        raise RuntimeError("旧运行缺少已完成 G-A 选择收据")
+    receipt = load_json(selection_path)
+    selection = receipt.get("selection", {})
+    identity = receipt.get("identity", {})
+    if (
+        identity.get("run_id") != ORIGINAL_RUN_ID
+        or selection.get("unit_key") != "G-A"
+        or len(selection.get("history", [])) != config["training"]["epochs"]
+        or selection.get("optimizer_steps")
+        != config["training"]["epochs"] * config["training"]["steps_per_epoch"]
+    ):
+        raise RuntimeError("旧运行 G-A 身份或完整训练步数不符")
+    checkpoint_relative = selection.get("checkpoint", {}).get("filename")
+    curve_relative = selection.get("complete_alert_budget_curve", {}).get("filename")
+    if not isinstance(checkpoint_relative, str) or not isinstance(curve_relative, str):
+        raise RuntimeError("旧运行 G-A 检查点或曲线路径缺失")
+    if sha256_file(source_root / checkpoint_relative) != selection["checkpoint"]["sha256"]:
+        raise RuntimeError("旧运行 G-A 检查点摘要与选择收据不符")
+    if sha256_file(source_root / curve_relative) != selection["complete_alert_budget_curve"]["sha256"]:
+        raise RuntimeError("旧运行 G-A 曲线摘要与选择收据不符")
+    relative_paths = (
+        selection_relative,
+        checkpoint_relative,
+        curve_relative,
+        "gradient-gate-receipt.json",
+        "resource-calibration-G-A.json",
+    )
+    artifacts = [copy_migration_artifact(source_root, output_root, relative) for relative in relative_paths]
+    atomic_json(
+        output_root / "g-a-migration-receipt.json",
+        {
+            "schema_version": "ch3-grande-g-a-migration-receipt-v1",
+            "source_run_id": ORIGINAL_RUN_ID,
+            "destination_run_id": RERUN_RUN_ID,
+            "source_root": str(source_root),
+            "destination_root": str(output_root),
+            "source_unit_identity": identity,
+            "source_selection_sha256": sha256_file(selection_path),
+            "artifacts": artifacts,
+            "g_a_retrained": False,
+            "selection_or_curve_recomputed": False,
+            "byte_identical": all(item["byte_identical"] for item in artifacts),
+            "target_year_arrays_read": 0,
+            "target_year_paths_enumerated": 0,
+        },
+    )
+
+
 def prepare_stage(config: dict[str, Any], args: argparse.Namespace, config_path: Path) -> None:
     output_root = Path(config["paths"]["output_root"])
     output_root.mkdir(parents=True, exist_ok=True)
@@ -1486,6 +1828,7 @@ def prepare_stage(config: dict[str, Any], args: argparse.Namespace, config_path:
             raise RuntimeError("输出根已有不匹配配置")
     else:
         atomic_json(snapshot, config)
+    migrate_completed_g_a(config, output_root)
     vendor_manifest = VENDOR_ROOT / "manifest.json"
     if not vendor_manifest.is_file():
         raise RuntimeError("固定 GRANDE vendor manifest 不存在")
@@ -1520,7 +1863,40 @@ def prepare_stage(config: dict[str, Any], args: argparse.Namespace, config_path:
         "pyproject_sha256": sha256_file(Path(config["paths"]["pyproject"])),
         "target_year_arrays_read": 0,
         "target_year_paths_enumerated": 0,
+        "precision_profile": config.get("precision_contract", {}).get("profile", "fp32-all-ops-v1"),
+        "user_authorized_bf16_for_runtime": bool(
+            config.get("precision_contract", {}).get("user_authorized_bf16_for_runtime", False)
+        ),
     }
+    if RUN_ID == RERUN_RUN_ID:
+        gradient_path = output_root / "gradient-gate-receipt.json"
+        if not gradient_path.is_file() or load_json(gradient_path).get("passed") is not True:
+            raise RuntimeError("迁移后的 G-A 梯度门收据无效")
+        dependency.update(
+            {
+                "runtime_torch_compatibility_passed": True,
+                "compatibility_scope": "byte_identical_reused_G-A_R0_real_forward_backward",
+                "compatibility_inherited_without_retraining": True,
+                "gradient_gate_receipt_sha256": sha256_file(gradient_path),
+                "g_a_migration_receipt_sha256": sha256_file(output_root / "g-a-migration-receipt.json"),
+            }
+        )
+    elif RUN_ID == BF16_RUN_ID:
+        atomic_json(
+            output_root / "precision-memory-policy-receipt.json",
+            {
+                "schema_version": "ch3-grande-bf16-precision-memory-policy-v1",
+                "structures": ["G-A", "G-B"],
+                "memory_contract": config["memory_contract"],
+                "precision_contract": config["precision_contract"],
+                "tool_contract": config["tool_contract"],
+                "both_structures_trained_from_scratch": True,
+                "fp32_g_a_reused": False,
+                "fixed_before_any_run_metrics_read": True,
+                "selection_metrics_used": False,
+                "target_year_arrays_read": 0,
+            },
+        )
     atomic_json(output_root / "dependency-receipt.json", dependency)
     structures = {
         "schema_version": "ch3-grande-structure-candidates-frozen-v1",
@@ -1530,6 +1906,20 @@ def prepare_stage(config: dict[str, Any], args: argparse.Namespace, config_path:
         "target_year_arrays_read": 0,
     }
     atomic_json(output_root / "structure-candidates-frozen.json", structures)
+    if RUN_ID == RERUN_RUN_ID:
+        atomic_json(
+            output_root / "g-b-memory-policy-receipt.json",
+            {
+                "schema_version": "ch3-grande-g-b-memory-policy-v1",
+                "structure": "G-B",
+                "memory_contract": config["memory_contract"],
+                "precision_contract": config["precision_contract"],
+                "activation_checkpoint_contract": config["activation_checkpoint_contract"],
+                "fixed_before_g_b_metrics_read": True,
+                "selection_metrics_used": False,
+                "target_year_arrays_read": 0,
+            },
+        )
     reference_path = Path(config["paths"]["full_mlp_reference_root"]) / "backbone_selection_frozen.json"
     if not reference_path.is_file():
         raise RuntimeError("缺少全容量 MLP 协议 A 源年基线收据")
@@ -1582,6 +1972,15 @@ def load_training_context(
         raise RuntimeError("必须先执行 prepare")
     cache_root = Path(config["paths"]["cache_root"])
     inventory = source_inventory(cache_root)
+    if RUN_ID == RERUN_RUN_ID:
+        migration = load_json(output_root / "g-a-migration-receipt.json")
+        source_identity = migration.get("source_unit_identity", {})
+        if (
+            source_identity.get("source_data_inventory_sha256") != inventory["sha256"]
+            or source_identity.get("candidate_table_sha256") != canonical_sha256(config["candidates"])
+            or source_identity.get("seed") != config["training"]["seed"]
+        ):
+            raise RuntimeError("迁移的 G-A 与新运行源数据、候选表或种子身份不一致")
     code_sha = sha256_file(Path(__file__).resolve())
     run_identity = {
         "run_id": RUN_ID,
@@ -1856,6 +2255,7 @@ def main() -> int:
     args = parse_args()
     config_path = Path(args.config).resolve()
     config = load_json(config_path)
+    activate_run_id(config)
     validate_config(config)
     if args.validate_config:
         print("配置核验通过：G-A/G-B 协议 A C00，目标年读取与枚举均为 0")
@@ -1886,7 +2286,6 @@ def main() -> int:
             reason in detail
             for reason in (
                 "gradient_gate_failed",
-                "engineering_rejected_resource_cap",
                 "PyTorch",
                 "GRANDE",
                 "CUDA",

@@ -123,6 +123,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--validate-config", action="store_true")
     parser.add_argument("--validate-inputs", action="store_true")
+    parser.add_argument(
+        "--diagnose-segment-eligibility",
+        action="store_true",
+        help="只读扫描目标实体的时间段资格；不读标签、不推理、不创建运行目录",
+    )
+    parser.add_argument(
+        "--diagnose-entity-arrival-queue",
+        action="store_true",
+        help="只读扫描排除 carry-in 后的实体到达队列；不读标签、不选择比例",
+    )
     return parser.parse_args()
 
 
@@ -361,6 +371,240 @@ def segment_entities(
     }
 
 
+def diagnose_segment_eligibility() -> None:
+    """只读重建生产实体键并报告预声明时间截止组合的资格计数。"""
+    source_address = np.load(CACHE / "s24.npy", allow_pickle=True)
+    destination_address = np.load(CACHE / "d24.npy", allow_pickle=True)
+    time_values = np.load(CACHE / "t24.npy")
+    if not (
+        len(source_address) == len(destination_address) == len(time_values) == N_FLOW_24
+    ):
+        raise SystemExit("LSPR24 地址或时间缓存长度不符")
+    if not np.isfinite(time_values).all():
+        raise SystemExit("LSPR24 时间缓存含非有限值")
+    entity_key = np.array(
+        [
+            left + "|" + right if left <= right else right + "|" + left
+            for left, right in zip(source_address, destination_address, strict=True)
+        ],
+        object,
+    )
+    _, entity = np.unique(entity_key, return_inverse=True)
+    if int(entity.max()) + 1 != N_ENTITY_24:
+        raise SystemExit(f"LSPR24 实体数不符：{int(entity.max()) + 1:,}")
+    del entity_key, source_address, destination_address
+
+    time_min = float(time_values.min())
+    time_max = float(time_values.max())
+    time_span = time_max - time_min
+    if not time_span > 0.0:
+        raise SystemExit("LSPR24 全局时间跨度必须为正")
+    first_time = np.full(N_ENTITY_24, math.inf, np.float64)
+    last_time = np.full(N_ENTITY_24, -math.inf, np.float64)
+    np.minimum.at(first_time, entity, time_values)
+    np.maximum.at(last_time, entity, time_values)
+    first_fraction = (first_time - time_min) / time_span
+    last_fraction = (last_time - time_min) / time_span
+    quantiles = (0.0, 0.01, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.75, 0.9, 0.95, 0.99, 1.0)
+    scans: dict[str, Any] = {}
+    for selection_end, confirmation_end in (
+        (0.10, 0.20),
+        (0.15, 0.30),
+        (0.20, 0.40),
+        (0.25, 0.50),
+    ):
+        selection = last_fraction <= selection_end
+        confirmation = (first_fraction > selection_end) & (
+            last_fraction <= confirmation_end
+        )
+        evaluation = first_fraction > confirmation_end
+        boundary = ~(selection | confirmation | evaluation)
+        role_total = int(selection.sum() + confirmation.sum() + evaluation.sum() + boundary.sum())
+        if role_total != N_ENTITY_24:
+            raise SystemExit("只读资格扫描未覆盖全部实体")
+        scans[f"{selection_end:g}/{confirmation_end:g}"] = {
+            "selection_complete_entities": int(selection.sum()),
+            "confirmation_complete_entities": int(confirmation.sum()),
+            "evaluation_new_entities": int(evaluation.sum()),
+            "boundary_crossing_entities": int(boundary.sum()),
+            "role_total_entities": role_total,
+        }
+    receipt = {
+        "schema_version": "ch4-two-stage-segment-eligibility-diagnostic-v1",
+        "read_only": True,
+        "run_identity_created": False,
+        "target_labels_loaded": False,
+        "model_predictions_run": False,
+        "n_flow": N_FLOW_24,
+        "n_entity": N_ENTITY_24,
+        "time_min_raw": time_min,
+        "time_max_raw": time_max,
+        "time_span_hours": time_span / 1_000_000.0 / 3600.0,
+        "entity_first_time_fraction_quantiles": {
+            f"q{quantile:g}": float(np.quantile(first_fraction, quantile))
+            for quantile in quantiles
+        },
+        "entity_last_time_fraction_quantiles": {
+            f"q{quantile:g}": float(np.quantile(last_fraction, quantile))
+            for quantile in quantiles
+        },
+        "cutoff_scans": scans,
+        "interpretation_limit": "仅检查时间段实体资格，不选择比例，不评价方法效果",
+    }
+    print(json.dumps(receipt, ensure_ascii=False, sort_keys=True), flush=True)
+
+
+def diagnose_entity_arrival_queue() -> None:
+    """只读报告按首次出现稳定排序的实体队列及冻结后评价余量。"""
+    source_address = np.load(CACHE / "s24.npy", allow_pickle=True)
+    destination_address = np.load(CACHE / "d24.npy", allow_pickle=True)
+    time_values = np.load(CACHE / "t24.npy")
+    if not (
+        len(source_address) == len(destination_address) == len(time_values) == N_FLOW_24
+    ):
+        raise SystemExit("LSPR24 地址或时间缓存长度不符")
+    if not np.isfinite(time_values).all():
+        raise SystemExit("LSPR24 时间缓存含非有限值")
+    entity_key = np.array(
+        [
+            left + "|" + right if left <= right else right + "|" + left
+            for left, right in zip(source_address, destination_address, strict=True)
+        ],
+        object,
+    )
+    _, entity = np.unique(entity_key, return_inverse=True)
+    if int(entity.max()) + 1 != N_ENTITY_24:
+        raise SystemExit(f"LSPR24 实体数不符：{int(entity.max()) + 1:,}")
+    del entity_key, source_address, destination_address
+
+    time_min = float(time_values.min())
+    time_max = float(time_values.max())
+    time_span = time_max - time_min
+    if not time_span > 0.0:
+        raise SystemExit("LSPR24 全局时间跨度必须为正")
+    first_time = np.full(N_ENTITY_24, math.inf, np.float64)
+    last_time = np.full(N_ENTITY_24, -math.inf, np.float64)
+    np.minimum.at(first_time, entity, time_values)
+    np.maximum.at(last_time, entity, time_values)
+
+    capture_start_present = first_time == time_min
+    later_first_times = first_time[~capture_start_present]
+    if len(later_first_times) == 0:
+        raise SystemExit("除 capture 起点实体外没有新到达实体")
+    new_arrival_start = float(later_first_times.min())
+    carry_in = capture_start_present | (
+        (first_time < new_arrival_start) & (last_time >= new_arrival_start)
+    )
+    eligible_ids = np.flatnonzero(~carry_in & (first_time >= new_arrival_start))
+    stable_order = np.argsort(first_time[eligible_ids], kind="stable")
+    arrival_ids = eligible_ids[stable_order]
+    if len(arrival_ids) == 0:
+        raise SystemExit("排除 carry-in 后没有实体到达队列")
+    if np.any(first_time[arrival_ids][1:] < first_time[arrival_ids][:-1]):
+        raise SystemExit("实体到达队列未按首次出现时间稳定排序")
+
+    required_negative_counts = (122, 245, 492)
+    queue_lengths = (128, 256, 512, 1024)
+    arrival_span = time_max - new_arrival_start
+    if not arrival_span > 0.0:
+        raise SystemExit("新实体到达时间跨度必须为正")
+    candidate_queues: list[dict[str, Any]] = []
+    for required_negative in required_negative_counts:
+        for queue_length in queue_lengths:
+            if queue_length > len(arrival_ids):
+                candidate_queues.append(
+                    {
+                        "required_confirmation_negative_entities": required_negative,
+                        "total_queue_length": queue_length,
+                        "queue_available": False,
+                        "available_arrival_entities": int(len(arrival_ids)),
+                    }
+                )
+                continue
+            queue_ids = arrival_ids[:queue_length]
+            queue_first = float(first_time[queue_ids[0]])
+            queue_max_last = float(last_time[queue_ids].max())
+            freeze_time = queue_max_last
+            remaining_new = (~carry_in) & (first_time > freeze_time)
+            crossing = (~carry_in) & (first_time <= freeze_time) & (
+                last_time > freeze_time
+            )
+            in_queue = np.zeros(N_ENTITY_24, bool)
+            in_queue[queue_ids] = True
+            completed_outside_queue = (
+                (~carry_in)
+                & ~in_queue
+                & (first_time <= freeze_time)
+                & (last_time <= freeze_time)
+            )
+            candidate_queues.append(
+                {
+                    "required_confirmation_negative_entities": required_negative,
+                    "total_queue_length": queue_length,
+                    "queue_available": True,
+                    "total_capacity_meets_negative_lower_bound": (
+                        queue_length >= required_negative
+                    ),
+                    "selection_capacity_if_requirement_were_all_benign": max(
+                        0,
+                        queue_length - required_negative,
+                    ),
+                    "benign_count_verifiable_without_labels": False,
+                    "queue_first_time_raw": queue_first,
+                    "queue_first_time_capture_fraction": (
+                        queue_first - time_min
+                    ) / time_span,
+                    "queue_first_time_arrival_fraction": (
+                        queue_first - new_arrival_start
+                    ) / arrival_span,
+                    "queue_max_last_time_raw": queue_max_last,
+                    "queue_max_last_time_capture_fraction": (
+                        queue_max_last - time_min
+                    ) / time_span,
+                    "queue_max_last_time_arrival_fraction": (
+                        queue_max_last - new_arrival_start
+                    ) / arrival_span,
+                    "freeze_time_raw": freeze_time,
+                    "freeze_time_capture_fraction": (
+                        freeze_time - time_min
+                    ) / time_span,
+                    "freeze_time_arrival_fraction": (
+                        freeze_time - new_arrival_start
+                    ) / arrival_span,
+                    "remaining_new_entities_after_freeze": int(remaining_new.sum()),
+                    "crossing_entities_at_freeze": int(crossing.sum()),
+                    "completed_nonqueue_entities_by_freeze": int(
+                        completed_outside_queue.sum()
+                    ),
+                }
+            )
+    receipt = {
+        "schema_version": "ch4-two-stage-entity-arrival-queue-diagnostic-v1",
+        "read_only": True,
+        "run_identity_created": False,
+        "target_labels_loaded": False,
+        "model_predictions_run": False,
+        "n_flow": N_FLOW_24,
+        "n_entity": N_ENTITY_24,
+        "time_span_hours": time_span / 1_000_000.0 / 3600.0,
+        "new_entity_arrival_start_raw": new_arrival_start,
+        "new_entity_arrival_start_capture_fraction": (
+            new_arrival_start - time_min
+        ) / time_span,
+        "capture_start_present_entities": int(capture_start_present.sum()),
+        "carry_in_entities_excluded": int(carry_in.sum()),
+        "arrival_queue_entities": int(len(arrival_ids)),
+        "arrival_queue_order": "实体首次出现时间稳定升序；同一时间保持实体编号升序",
+        "required_confirmation_negative_entities": list(required_negative_counts),
+        "candidate_total_queue_lengths": list(queue_lengths),
+        "candidate_queues": candidate_queues,
+        "interpretation_limit": (
+            "无标签扫描只证明队列总容量与时间可执行性；不能证明良性实体数，不能选择最终比例或评价方法效果"
+        ),
+    }
+    print(json.dumps(receipt, ensure_ascii=False, sort_keys=True), flush=True)
+
+
 def load_segment_entity_labels(
     entity: np.ndarray,
     segment: np.ndarray,
@@ -579,6 +823,12 @@ def segment_receipt(
 
 def main() -> None:
     args = parse_args()
+    if args.diagnose_segment_eligibility:
+        diagnose_segment_eligibility()
+        return
+    if args.diagnose_entity_arrival_queue:
+        diagnose_entity_arrival_queue()
+        return
     if not args.config.is_file():
         raise SystemExit(f"配置不存在：{args.config}")
     config = load_json(args.config)

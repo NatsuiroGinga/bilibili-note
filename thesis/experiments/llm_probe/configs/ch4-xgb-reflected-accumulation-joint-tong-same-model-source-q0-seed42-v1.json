@@ -1,0 +1,123 @@
+{
+  "schema_version": "ch4-xgb-reflected-accumulation-joint-tong-same-model-source-q0-v1",
+  "run_id": "ch4-xgb-reflected-cumulative-dual-evidence-lspr23-q0-seed42-v1-rerun2",
+  "display_name": "原子分数反射累积与路径最大双证据统一风险控制源年零训练Q0",
+  "seed": 42,
+  "screening_only": true,
+  "formal": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "source_year": "LSPR23",
+  "source_year_only": true,
+  "zero_training": true,
+  "models_trained": 0,
+  "target_year_arrays_read": 0,
+  "oof_models_loaded": 3,
+  "prediction_device": "cpu",
+  "entity_fpr_budget": 0.04,
+  "global_violation_probability": 0.05,
+  "direction_count": 9,
+  "per_direction_violation_probability": 0.005555555555555556,
+  "comparison_operator": ">",
+  "same_model_roles": ["development", "calibration", "evaluation"],
+  "role_rotation_count": 3,
+  "methods": ["B0", "B1", "M1", "A1", "J1"],
+  "length_buckets": [
+    {"name": "1-2", "minimum": 1, "maximum": 2},
+    {"name": "3-10", "minimum": 3, "maximum": 10},
+    {"name": "11-100", "minimum": 11, "maximum": 100},
+    {"name": "101-1000", "minimum": 101, "maximum": 1000},
+    {"name": "1001+", "minimum": 1001, "maximum": null}
+  ],
+  "kappa_rule": "(entity_equal_weight_atomic_mean_mu0+mu1)/2",
+  "reflected_update": "A_j=max(0,A_{j-1}+r_j-kappa)",
+  "rank_rule": "R=1-(1+count(development_benign_stat>=x))/(n+1)",
+  "joint_rule": "J=max(R_S(S),R_A(C))",
+  "a1_threshold_policy": "reuse_joint_tong_threshold_without_certificate",
+  "tong_calibration_count_per_direction": 1,
+  "score_pass_count": 2,
+  "source_score_clip": [1e-7, 1.0],
+  "near_threshold_challenge_ratio": 0.9777939759877333,
+  "qualification_status": "QUALIFIED_SOURCE_Q0",
+  "rejection_status": "REJECTED_SOURCE_Q0",
+  "drift_rejection_status": "REJECTED_DRIFT_ORIENTATION",
+  "diagnostic_contract": {
+    "run_id": "ch4-xgb-path-risk-length-bucket-lspr23-diagnostic-seed42-v1",
+    "aggregate_results_sha256": "2a6a60712be81b6bb6aff8b2172ba512b18057ccd20248f478e714273b26a172",
+    "manifest_sha256": "bfe4de81316d0ab5a2d6e6f640d90f1400d98e0271aba14a9eeed82a3057066a",
+    "resource_summary_sha256": "7839ec5c9f7a600e38c033165706e7311830ee9e5179cfe56d95f6146d886c1b"
+  },
+  "parent_m1_summary": {
+    "run_id": "ch4-xgb-entity-path-max-tong-same-model-q0-seed42-v1",
+    "sha256": "2e4bbfe044b9ce9407090af765220fc7bc5829188cadcdfb33284002f633d462",
+    "schema_version": "ch4-xgb-entity-path-max-tong-same-model-summary-v1"
+  },
+  "expected_parent_aggregate": {
+    "B0_first": {
+      "negative_entities": 150441,
+      "positive_entities": 239,
+      "false_positive_entities": 6017,
+      "detected_positive_entities": 232,
+      "entity_fpr": 0.03999574584056208,
+      "detection_rate": 0.9707112970711297
+    },
+    "B1_all_source": {
+      "negative_entities": 150441,
+      "positive_entities": 239,
+      "false_positive_entities": 7329,
+      "detected_positive_entities": 236,
+      "entity_fpr": 0.04871677268829641,
+      "detection_rate": 0.9874476987447699
+    },
+    "M1_path_max_tong_same_model_crosscal": {
+      "negative_entities": 150441,
+      "positive_entities": 239,
+      "false_positive_entities": 5583,
+      "detected_positive_entities": 235,
+      "entity_fpr": 0.03711089397172313,
+      "detection_rate": 0.9832635983263598
+    }
+  },
+  "tong_reference": {
+    "16715": {
+      "rank_one_based": 16111,
+      "strictly_above_cap": 604,
+      "violation_bound": 0.0051685926697284165,
+      "previous_violation_bound": 0.005808086444466389
+    },
+    "16716": {
+      "rank_one_based": 16112,
+      "strictly_above_cap": 604,
+      "violation_bound": 0.005145538980673262,
+      "previous_violation_bound": 0.005782506693476885
+    }
+  },
+  "resource_contract": {
+    "estimated_wall_minutes_min": 6,
+    "estimated_wall_minutes_max": 8,
+    "estimated_peak_host_gib": 18,
+    "minimum_available_host_gib": 18,
+    "minimum_free_gpu_memory_gib": 0,
+    "minimum_free_disk_gib": 30
+  },
+  "artifact_policy": {
+    "allowed_outputs": [
+      "aggregate-results.json",
+      "certificate-receipt.json",
+      "input-receipt.json",
+      "manifest.json",
+      "resource-summary.json",
+      "status.json",
+      "run.log"
+    ],
+    "persist_entity_keys": false,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_new_models": false,
+    "temporary_checkpoint_outputs": [
+      "p1-checkpoint.npz",
+      "p1-checkpoint-receipt.json"
+    ],
+    "temporary_checkpoint_cleanup_on_success": true
+  }
+}

@@ -108,7 +108,8 @@ class GrandeCore(nn.Module):
             raise ValueError("输入必须是 N×83 的二维张量")
         selected_inputs = inputs[:, self.features_by_estimator]
 
-        soft_indices = F.softmax(self.split_index_array, dim=-1)
+        with torch.amp.autocast(inputs.device.type, enabled=False):
+            soft_indices = F.softmax(self.split_index_array.float(), dim=-1)
         hard_indices = F.one_hot(
             torch.argmax(soft_indices, dim=-1),
             num_classes=soft_indices.shape[-1],
@@ -133,13 +134,15 @@ class GrandeCore(nn.Module):
             self.estimator_weights,
             path_probability,
         )
-        estimator_weight = F.softmax(selected_estimator_weight, dim=-1)
-        if self.training and self.dropout > 0.0:
-            estimator_weight = F.dropout(estimator_weight, p=self.dropout, training=True)
-            estimator_weight = estimator_weight / estimator_weight.sum(dim=1, keepdim=True).clamp_min(1e-8)
+        with torch.amp.autocast(inputs.device.type, enabled=False):
+            estimator_weight = F.softmax(selected_estimator_weight.float(), dim=-1)
+            if self.training and self.dropout > 0.0:
+                estimator_weight = F.dropout(estimator_weight, p=self.dropout, training=True)
+                estimator_weight = estimator_weight / estimator_weight.sum(dim=1, keepdim=True).clamp_min(1e-8)
         weighted_path = torch.einsum("bel,be->bel", path_probability, estimator_weight)
         per_estimator = torch.einsum("el,bel->be", self.leaf_classes_array, weighted_path)
-        logits = torch.einsum("be->b", per_estimator)
+        with torch.amp.autocast(inputs.device.type, enabled=False):
+            logits = torch.einsum("be->b", per_estimator.float())
 
         diagnostics = None
         if return_diagnostics:
@@ -151,7 +154,9 @@ class GrandeCore(nn.Module):
                 device=inputs.device,
             )
             leaf_counts.scatter_add_(1, selected_leaf.t(), torch.ones_like(selected_leaf.t(), dtype=torch.int64))
-            entropy = -(soft_indices.clamp_min(1e-12) * soft_indices.clamp_min(1e-12).log()).sum(-1)
+            with torch.amp.autocast(inputs.device.type, enabled=False):
+                stable_indices = soft_indices.float().clamp_min(1e-12)
+                entropy = -(stable_indices * stable_indices.log()).sum(-1)
             diagnostics = {
                 "split_selection_entropy": entropy.mean(),
                 "left_route_fraction": route.mean(),

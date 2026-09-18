@@ -7,6 +7,10 @@ set -Eeuo pipefail
 PROJECT_ROOT="/root/autodl-tmp/thesis/experiments/llm_probe"
 CONFIG="$PROJECT_ROOT/configs/ch3-tabular-resnet-paper-recipe-protocol-a-seed42-v1.json"
 TOOL="$PROJECT_ROOT/tools/ch3_tabular_resnet_paper_recipe_protocol_a.py"
+# `src/` 已由可编辑安装的 _editable_impl_flow_probe.pth 进入导入路径，但 `tools/` 没有。
+# `protocol_a_raw83` 依赖 `dijk2026_replication.dijk_fields`，该包位于 `tools/` 下，
+# 故显式把 `tools/` 并入 PYTHONPATH，否则依赖闭包导入在预检即失败。
+export PYTHONPATH="$PROJECT_ROOT/tools${PYTHONPATH:+:$PYTHONPATH}"
 RUN_ID="ch3-tabular-resnet-paper-recipe-protocol-a-seed42-v2"
 OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$RUN_ID"
 LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"

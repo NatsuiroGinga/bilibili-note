@@ -1,0 +1,35 @@
+{
+  "config_kind": "training",
+  "schema_version": "ch3_drift_formal_contract_v1",
+  "config_id": "ch3-drift-bresnet-p2p3-formal-v1",
+  "contract_id": "ch3_drift_formal_contract_v1",
+  "data_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "evaluation_config": "configs/ch3-drift-formal-evaluation-v1.json",
+  "backbone": "bresnet",
+  "allowed_arms": ["A", "B", "D", "F", "G"],
+  "training": {
+    "batch_size": 128,
+    "epochs": 3,
+    "seed": 42,
+    "optimizer": "Adam",
+    "learning_rate": {"all_parameters": 0.001},
+    "beta_benign": 3.0,
+    "online_augmentation_threshold": 0.5
+  },
+  "checkpoint": {
+    "schema_version": "ch3_drift_bresnet_p2p3_formal_checkpoint_v1",
+    "save_every_batches": 2000,
+    "save_at_epoch_end": true,
+    "progress_semantics": "next_batch_to_process",
+    "legacy_reuse": false
+  },
+  "input_views": {"training": "source_train_test_exact_unique_in_memory", "validation": "source_val_exact_unique_in_memory"},
+  "output_layout": {
+    "run_root": "runs/diagnostics/ch3-drift-bresnet-{arm}-formal-v1",
+    "checkpoint": "checkpoint/checkpoint.pt",
+    "model": "model.pt",
+    "summary": "training-summary.json"
+  },
+  "allowed_modes": ["audit", "run", "resume", "summarize"],
+  "forbidden_keys": ["member_seed", "target_limit", "attack_tier", "threshold_override", "arms"]
+}

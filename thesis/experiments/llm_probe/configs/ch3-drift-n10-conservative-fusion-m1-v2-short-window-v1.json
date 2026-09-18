@@ -1,0 +1,22 @@
+{
+  "schema_version": "ch3-drift-n10-conservative-fusion-m1-v2-short-window-v1",
+  "run_identity_prefix": "ch3-drift-n10-conservative-fusion-m1-v2-short-window-v1",
+  "implementation_status": "approved_for_t17_short_window",
+  "screening_only": true,
+  "seed": 42,
+  "p0_config": "configs/ch3-drift-n10-conservative-fusion-pilot-v1.json",
+  "p0_run_root": "runs/diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2",
+  "arms": ["scale_free_primal_dual", "unit_hinge_control"],
+  "training": {"batch_size": 1024, "steps": 32, "samples": 32768, "learning_rate": 0.0001, "cuda_bf16_autocast": true, "resource_contention": false},
+  "model": {"d_model": 128, "nhead": 4, "num_layers": 6, "dim_feedforward": 384, "dropout": 0.1, "max_len_token": 30, "max_len_char": 77, "vocab_size_char": 43},
+  "evaluation": {"validation_per_class": 150000, "ece_bins": 15},
+  "numeric_basis": {
+    "steps": {"value": 32, "source": "研究卡第五节", "boundary": "32768样本原子恢复窗口"},
+    "batch_size": {"value": 1024, "source": "冻结P0 batch1024资源收据", "boundary": "与P0共同批量"},
+    "learning_rate": {"value": 0.0001, "source": "冻结P1 Adam学习率", "boundary": "不添加对偶学习率"},
+    "alpha_initial": {"value": 0, "source": "研究卡第二节精确可行初始化", "boundary": "每步投影到[0,1]"},
+    "lambda_initial": {"value": 0, "source": "研究卡第三节", "boundary": "由G/sqrt(V)更新"},
+    "hinge_coefficient": {"value": 1, "source": "研究卡第四节无量纲单位惩罚", "boundary": "固定对照，不搜索"}
+  },
+  "interpretation_boundary": "仅为T17短窗资格探针；未批准完整训练、未来年份或正式结论。"
+}

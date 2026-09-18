@@ -1,0 +1,67 @@
+{
+  "schema_version": "ch4-xgb-confidence-fallback-source-q0-v1",
+  "run_id": "ch4-xgb-confidence-fallback-source-q0-seed42-v1",
+  "display_name": "有限样本目标确认与源阈值回退源年 Q0",
+  "seed": 42,
+  "screening_only": true,
+  "formal": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "source_year_only": true,
+  "zero_training": true,
+  "parent_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+  "parent_recovery_proof": {
+    "schema_version": "ch3-xgb-parent-recovery-proof-v1",
+    "requires_parent_incomplete": true,
+    "original_manifest_expected": false
+  },
+  "base_adapter": "semantic168",
+  "power_mean_p": 1.0,
+  "observation_index": 1,
+  "candidate_count": 1,
+  "comparison_operator": "strict_greater_than",
+  "fold_roles": {
+    "development": 0,
+    "calibration": 1,
+    "holdout": 2
+  },
+  "entity_fpr_budget": 0.04,
+  "confirmation_failure_probability": 0.05,
+  "minimum_zero_error_calibration_negatives": 74,
+  "allowed_arrays": ["X23", "y23", "E23", "I23", "M23"],
+  "target_year_arrays_read": 0,
+  "new_models_trained": 0,
+  "input_contract": {
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "positive_entity_count": 239,
+    "feature_count": 83,
+    "sequence_length": 128,
+    "fold_entity_counts": [50227, 50227, 50226],
+    "fold_positive_entity_counts": [80, 80, 79]
+  },
+  "predict_batch": 2000000,
+  "resource_contract": {
+    "estimated_peak_host_gib": 58,
+    "minimum_free_gpu_memory_gib": 11,
+    "runtime_gpu_floor_gib": 8,
+    "minimum_free_disk_gib": 30,
+    "inheritance": "沿用既有 XGBoost PBC 保守资源门，不新增训练资源参数"
+  },
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  },
+  "artifact_policy": {
+    "persist_aggregate_json": true,
+    "persist_status_log_manifest_resource": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false,
+    "persist_label_details": false,
+    "persist_new_models": false
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "ch3-drift-n10-conservative-fusion-pilot-v1",
+  "run_identity": "ch3-drift-n10-conservative-fusion-pilot-batch1024-v2",
+  "approved_scope": "p0_p1_only",
+  "screening_only": true,
+  "seed": 42,
+  "data_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "data": {
+    "raw_root": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD",
+    "schema": ["domain", "label"],
+    "fit": {
+      "year": "T17",
+      "benign": {"path": "T17_benign_train.parquet", "label": 0, "expected_rows": 1500000},
+      "dga": {"path": "T17_dga_train.parquet", "label": 1, "expected_rows": 1500000}
+    },
+    "validation": {
+      "year": "T17",
+      "benign": {"path": "T17_benign_val.parquet", "label": 0, "expected_rows": 150000},
+      "dga": {"path": "T17_dga_val.parquet", "label": 1, "expected_rows": 150000}
+    }
+  },
+  "model": {
+    "d_model": 128,
+    "nhead": 4,
+    "num_layers": 6,
+    "dim_feedforward": 384,
+    "dropout": 0.1,
+    "max_len_token": 30,
+    "max_len_char": 77,
+    "vocab_size_char": 43,
+    "vocab_size_subword": 30522
+  },
+  "training": {
+    "batch_size": 1024,
+    "optimizer": "adam",
+    "learning_rate": 0.0001,
+    "backbone_learning_rate": 0.000001,
+    "pretraining_member_passes": 1,
+    "finetuning_member_passes": 1,
+    "frozen_head_fraction": 0.5,
+    "cuda_bf16_autocast": true,
+    "resource_contention": false,
+    "resource_profile": {
+      "selected_batch_size": 1024,
+      "first_window_samples": 32768,
+      "first_window_gpu_memory_mib": 1392,
+      "first_window_sm_utilization_mean_12s": 0.198,
+      "rejected_resource_profile": {"batch_size": 128, "sm_utilization_range_12s": [0.17, 0.22], "cpu_utilization_percent": 321},
+      "selection_boundary": "仅改善筛选先导硬件利用率；学习率保持官方1e-4，不按批量线性缩放，优化步数随batch机械减少。"
+    },
+    "checkpoint_every_io_batches": 1
+  },
+  "pretraining": {
+    "tasks": ["MTP", "TPP", "TOV"],
+    "mask_ratio": 0.15,
+    "shuffle_probability": 0.5,
+    "use_bert_pretokenizer": false,
+    "ignore_index": -100
+  },
+  "p1": {
+    "arms": ["dynamic", "qmf", "conservative_correction", "constant"],
+    "qmf_component_boundary": "QMF 风格来源组件；未持久化逐样本历史损失，不是完整复现。",
+    "source_fpr": 0.01,
+    "qmf_temperature": 1.0,
+    "qmf_regularization": 0.1,
+    "harm_limit": 1.0
+  },
+  "evaluation": {
+    "per_class": 366200,
+    "ece_bins": 15,
+    "status": "候选评价精度字段；本入口不读取反馈或确认成员"
+  },
+  "time_roles": {
+    "fit": "T17",
+    "source_validation": "T17",
+    "future_evaluation": "未由本入口发现或读取"
+  },
+  "interpretation_boundary": "仅用于筛选方向的缩容先导；不得作为正式强 C00、论文结果或机制有效性结论。",
+  "numeric_basis": {
+    "seed": {"value": 42, "source": "现有 C00 确定性运行身份", "t17_basis": "不用于调优", "boundary": "单种子筛选身份"},
+    "data_members": {"value": {"fit_per_class": 1500000, "validation_per_class": 150000}, "source": "官方文件角色与实测行数", "t17_basis": "完整 T17 train/val", "boundary": "不抽样"},
+    "model_profile": {"value": {"d_model": 128, "nhead": 4, "num_layers": 6, "dim_feedforward": 384}, "source": "官方 256/8/12/768 逐项二分", "t17_basis": "保留双支、池化和任务", "boundary": "不得缩小或调档"},
+    "sequence_vocabularies": {"value": {"max_len_token": 30, "max_len_char": 77, "vocab_size_char": 43, "vocab_size_subword": 30522}, "source": "官方 utility/config.py", "t17_basis": "T17-only tokenizer 和两支编码", "boundary": "不读取发布 tokenizer"},
+    "dropout": {"value": 0.1, "source": "官方 model.py/utility/config.py", "t17_basis": "共同 profile", "boundary": "五臂共享"},
+    "batch_size": {"value": 1024, "source": "T17首窗32768样本实测资源收据", "t17_basis": "batch128仅约17%-22% SM且CPU约321%，1024用于共同筛选预算", "boundary": "学习率保持官方1e-4，不线性缩放；优化步数机械减少，非正式配方"},
+    "learning_rate": {"value": 0.0001, "source": "官方 utility/config.py 的 PretrainConfig/FinetuningConfig", "t17_basis": "仅在 T17 拟合", "boundary": "共同优化器族"},
+    "backbone_learning_rate": {"value": 0.000001, "source": "官方 utility/config.py 的 FinetuningConfig", "t17_basis": "仅在 T17 拟合", "boundary": "静态 C00 冻结后 P1 不更新骨干"},
+    "frozen_head_fraction": {"value": 0.5, "source": "官方 utility/config.py 的 unfreeze_at_epoch", "t17_basis": "完整 T17 成员遍历的一半", "boundary": "保留先冻头后解冻结构"},
+    "pretraining_probabilities": {"value": {"mask_ratio": 0.15, "shuffle_probability": 0.5, "ignore_index": -100}, "source": "官方 utility/config.py/preprocessing.py", "t17_basis": "MTP/TPP/TOV 共同任务", "boundary": "不按结果调整"},
+    "checkpoint_every_io_batches": {"value": 1, "source": "工程可恢复性设定", "t17_basis": "每32768条总行保存一次", "boundary": "不影响优化目标"},
+    "source_fpr": {"value": 0.01, "source": "既有 DGA 低误报诊断与硬最大裁决口径", "t17_basis": "150000条良性源验证并列组重计数", "boundary": "非正式部署预算"},
+    "qmf_temperature": {"value": 1.0, "source": "QMF PDF 附录实验设置", "t17_basis": "不读取后续成员调参", "boundary": "仅 QMF 风格来源组件"},
+    "qmf_regularization": {"value": 0.1, "source": "QMF PDF 附录实验设置", "t17_basis": "不读取后续成员调参", "boundary": "仅 QMF 风格来源组件"},
+    "harm_limit": {"value": 1.0, "source": "M1 相对静态 C00 的结构性非劣定义", "t17_basis": "完整 T17 验证集", "boundary": "比率不超过同一静态 C00"},
+    "use_bert_pretokenizer": {"value": false, "source": "官方 make_tokenizer.py 的默认参数", "t17_basis": "T17-only WordPiece", "boundary": "不得启用 BertPreTokenizer"},
+    "evaluation_per_class": {"value": 366200, "source": "既有评价精度候选收据", "t17_basis": "不参与本入口训练或验证", "boundary": "仅保留未来字段"},
+    "ece_bins": {"value": 15, "source": "无直接文献依据", "t17_basis": "完整 300k 源验证筛选护栏", "boundary": "预冻结 15 等宽概率分箱"}
+  }
+}

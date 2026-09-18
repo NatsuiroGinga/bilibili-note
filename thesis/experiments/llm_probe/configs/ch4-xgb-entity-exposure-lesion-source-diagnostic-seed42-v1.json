@@ -1,0 +1,83 @@
+{
+  "schema_version": "ch4-xgb-entity-exposure-lesion-source-diagnostic-v1",
+  "run_id": "ch4-xgb-entity-repeated-exposure-pathology-lspr23-q0-seed42-v1-rerun1",
+  "display_name": "实体重复曝光误报时延病灶源年诊断",
+  "seed": 42,
+  "screening_only": true,
+  "formal": false,
+  "formal_paper_evidence": false,
+  "independent_test": false,
+  "source_year": "LSPR23",
+  "source_year_only": true,
+  "zero_training": true,
+  "parent_run_id": "ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1",
+  "parent_recovery_proof": {
+    "schema_version": "ch3-xgb-parent-recovery-proof-v1",
+    "requires_parent_incomplete": true,
+    "original_manifest_expected": false,
+    "relative_path": "runs/recovery/ch3-xgb-cpa-elp-gpu-oof-seed42-v1-rerun1-for-ch4-xgb-pbc-q0-seed42-v1-rerun2-v1/parent-recovery-proof.json"
+  },
+  "base_adapter": "semantic168",
+  "power_mean_p": 1.0,
+  "comparison_operator": "strict_greater_than",
+  "entity_fpr_budget": 0.04,
+  "pathology_rule": "FPR(all)>0.04 AND N_late_positive>0",
+  "exposure_cutoff": null,
+  "allowed_arrays": ["X23", "y23", "I23", "M23", "E23", "ent23", "t23_flow"],
+  "target_year_arrays_read": 0,
+  "new_models_trained": 0,
+  "oof_models_loaded": 3,
+  "input_contract": {
+    "flow_count": 16353511,
+    "sequence_count": 271815,
+    "entity_count": 150680,
+    "positive_entity_count": 239,
+    "negative_entity_count": 150441,
+    "feature_count": 83,
+    "semantic_feature_count": 168,
+    "sequence_length": 128,
+    "fold_entity_counts": [50227, 50227, 50226],
+    "fold_positive_entity_counts": [80, 80, 79]
+  },
+  "source_threshold_contract": {
+    "relative_path": "runs/candidates/ch4-xgb-confidence-fallback-source-q0-seed42-v1/source-threshold-seal.json",
+    "file_sha256": "f70cb08c5e40413934b9a812debf98da47d6034940196348a808f8377dbe9334",
+    "receipt_sha256": "5693e44838514200bbe15ce61b01d06cffbfc3a4dc3b74b80c347378970dfb23",
+    "threshold": 3.660049696918577e-05,
+    "population": 150441,
+    "strictly_above_count": 6017,
+    "empirical_fpr": 0.03999574584056208,
+    "boundary_tie_count": 1,
+    "comparison_operator": ">",
+    "tie_policy": "阈值同分实体全部不告警，不拆并列组",
+    "entity_key_sha256": "40bdaf3e6a28b2a67e06754b8d5538edbc68cc8cc434d236e1643fba1ba314c6",
+    "first_exposure_score_sha256": "ab1ff9c89cfdce9f13c551ef907d3561847492ee5873e7bd54618f43a41a76c2",
+    "negative_first_exposure_score_sha256": "99bba9ff64bd0344f639a4306e1dc3c44e7cb0322f8261b036a682b777fcd5d7",
+    "fold_assignment_sha256": "a206048274edd5bb20c8e92874c0c2c1853009ebbd5ea1533940f2ab34fd5aa5",
+    "score_preprocessing": {
+      "threshold_reproduction": "raw_float32_xgboost_score",
+      "streaming_power_mean": "clip_[1e-7,1]_then_float64_cumulative_sum_then_float32_readout",
+      "power": 1.0
+    }
+  },
+  "predict_batch": 2000000,
+  "sequence_batch": 2048,
+  "curve_write_batch": 250000,
+  "resource_contract": {
+    "estimated_peak_host_gib": 58,
+    "minimum_available_host_gib": 64,
+    "minimum_free_gpu_memory_gib": 11,
+    "runtime_gpu_floor_gib": 8,
+    "minimum_free_disk_gib": 30
+  },
+  "artifact_policy": {
+    "persist_diagnostic_summary": true,
+    "persist_full_exposure_support_curve": true,
+    "persist_input_resource_status_log_manifest": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_fold_membership": false,
+    "persist_entity_ids": false,
+    "persist_new_models": false
+  }
+}

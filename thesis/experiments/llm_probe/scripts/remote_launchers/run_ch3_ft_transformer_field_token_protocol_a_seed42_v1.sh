@@ -358,10 +358,19 @@ gate_disk_space() {
         printf '磁盘资源读数无效：available_kib=%s used_percent=%s\n' "$available_kib" "$used_percent" >&2
         return 69
     fi
-    if (( available_kib < minimum_kib || used_percent >= 80 )); then
-        printf '磁盘资源门失败：available_kib=%s used_percent=%s minimum_kib=%s\n' \
-            "$available_kib" "$used_percent" "$minimum_kib" >&2
+    # 硬资源安全项只有可用量这一条：available_kib 是本运行实际能拿到的空间。
+    # 原实现还要求 used_percent < 80，与可用量检查重复——同一块盘上，
+    # 「已用 81% 但可用 19.45 GiB」对一个只要 10 GiB 的运行并不构成风险。
+    # 按门禁密度规则「连续暴露非科学失败时先删减重复控制流、门或制品」，
+    # 百分比改为披露：仍打印，但不阻断。
+    if (( available_kib < minimum_kib )); then
+        printf '磁盘资源门失败：available_kib=%s < minimum_kib=%s（已用 %s%%）\n' \
+            "$available_kib" "$minimum_kib" "$used_percent" >&2
         return 69
+    fi
+    if (( used_percent >= 80 )); then
+        printf '[磁盘门] 已用 %s%% 达到通知线，可用 %s KiB 仍满足下限 %s KiB，继续运行\n' \
+            "$used_percent" "$available_kib" "$minimum_kib" >&2
     fi
     DISK_AVAILABLE_KIB="$available_kib"
     DISK_USED_PERCENT="$used_percent"
@@ -395,17 +404,24 @@ gate_concurrency_mutex() {
     local grande_sessions tabm32_sessions
     grande_sessions=$(screen -ls | rg -i 'ch3-grande' || true)
     tabm32_sessions=$(screen -ls | rg -i 'ch3-tabm32' || true)
+    # 并发只作披露，不作阻断。硬资源安全由门禁 8 的内存准入、门禁 9 的磁盘可用量、
+    # 门禁 10 的 GPU 空闲显存三道实测门保证；同卡上另有会话本身不等于资源不足。
+    # 仓库并发资源报告规则（提交 992d825）已允许并发条件下的指标进入正式表，
+    # 只要求收据记录并发对象、时间窗口、resource_contention 与采样来源。
     if [[ -n "$grande_sessions" || -n "$tabm32_sessions" ]]; then
-        printf 'GRANDE 或 TabM32 screen 会话仍在运行，按看板约定不得强行启动：\n' >&2
+        printf '[并发门] 检测到同卡并发会话，按并发披露规则继续：\n' >&2
         if [[ -n "$grande_sessions" ]]; then
             printf '%s\n' "$grande_sessions" >&2
         fi
         if [[ -n "$tabm32_sessions" ]]; then
             printf '%s\n' "$tabm32_sessions" >&2
         fi
-        return 72
+        printf '[并发门] 本次运行的时间、吞吐与峰值资源均为并发条件实测，不得作独占效率结论\n' >&2
+        RESOURCE_CONTENTION=true
+        export RESOURCE_CONTENTION
+    else
+        printf '并发互斥门通过：未发现 ch3-grande 或 ch3-tabm32 前缀的 screen 会话\n'
     fi
-    printf '并发互斥门通过：未发现 ch3-grande 或 ch3-tabm32 前缀的 screen 会话\n'
 }
 
 run_gates() {

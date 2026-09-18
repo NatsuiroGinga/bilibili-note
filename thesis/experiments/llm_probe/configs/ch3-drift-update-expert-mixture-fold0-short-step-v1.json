@@ -1,0 +1,39 @@
+{
+  "schema_version": "ch3-drift-update-expert-mixture-fold0-short-step-v1",
+  "run_identity": "ch3-drift-update-expert-mixture-fold0-short-step-v1",
+  "approved_scope": "fold0_t17_zero_retraining_risk_constrained_update_only",
+  "screening_only": true,
+  "seed": 42,
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "arms": ["no_update", "joint_all_equal", "risk_feasible_update_mixture"],
+  "short_step": {"batch_size": 1024, "batches": 32, "samples": 32768},
+  "g2_source": {
+    "config": "configs/ch3-drift-n12-g2-family-isolated-short-step-v1.json",
+    "config_sha256": "680defe1231c6da7ed0ef5ade50193f716eaed637b98d43815029cc47ff07435",
+    "script": "tools/ch3_drift_n12_g2_family_isolated_short_step.py",
+    "script_sha256": "ee77137c828d1cdeaf6c444bc3cd72e6d90fcce439ef3ee18e47dac5a9d2d593",
+    "run_dir": "runs/diagnostics/ch3-drift-n12-g2-family-isolated-short-step-v1",
+    "fixed_block_sha256": "62fefb2765c8137f60155371b3e8a9d2bf0a609f2c65a94a09cf403858584b20",
+    "fixed_artifacts": {
+      "status.json": "2c06cc6a0b89cbc35efa67680a5c591ec06b0ea9d675ccb94d29b596e82076ca",
+      "checkpoint.pt": "e7035f5e1f81755a5ae84bf6267dcc27fa673ee6169ece52dd09cef164ba18c9",
+      "fold-0-char-gradients.pt": "c39ae82559ba1f1798e6177f1a1fb1698e7954315d132ee2939afff83baf575e",
+      "fold-0-subword-gradients.pt": "8d33c563bf4477aa8ac34f40590a4e17545b5df74af2ccb6f704da55f58513be"
+    },
+    "arm_receipts": {
+      "char": {"all_equal": "2a3d8de50a21ed9cc620a668c41976da78fd94067e9b53b14bf24c2fce9cb589", "all_unit_norm": "b9c11c283cfbd16ea0f6a0141855bda3616edf1cd844a63f7c072bebd5176109", "mtp_only": "3bc1307ed2cd23decacd6f5f1e10af5caf307ceb1508050d2e159e944099a4af", "mtp_tov_equal": "bb48479639061284f740693bb1211b321832710130ed23849397af7de86d14e6", "no_update": "f9a77f13ac8929e77b54a6135589aa4adc4ccd287fc3a1ca775109b6adfbe615", "tov_only": "b433a71abb3bb36feebf0e189c87e80420640254b9290e0520b0d1ea8f9fd8f4", "tpp_only": "80a9b8b67376645d79c2fc3b0603d0b2f3421d50a6c0871e902cd32e290994a6"},
+      "subword": {"all_equal": "c4434e1599c2d31746c179d3b79cf2bf42005f401d3a4b533e7bda93b91f5df3", "all_unit_norm": "fc1a32262dadb16fe4f2878f8e3ec7ab8d2187b67880138daa1fb50097ba886a", "mtp_only": "5d973ab40de7c5a6ffbc449150511cae4ebd31e4dbc1c56349e84b257b7da48f", "mtp_tov_equal": "6e72d636fef3712a73d3936e368ef9e6be709dede90b5814550c7d89fd43fa3d", "no_update": "87c043642519f44c53d1d1e6616afdd6e9b75fad7831400a1a7f5dfdc6de23d1", "tov_only": "efbf6bb53fdfd614b913bce4221e2bde779bf8791b521418cdaaf12947959157", "tpp_only": "89a910a3f4a66b18a8cfb114910164cbf69aa4b81f32c76f83fb20032a6e84fb"}
+    }
+  },
+  "mixture": {
+    "total_execution_mass": 6.0,
+    "execution_coefficients": {"char": {"TOV": 1.151309601185306}, "subword": {"TOV": 4.848690398814694}},
+    "raw_gradient_lp": {
+      "simplex_weights": {"char": {"MTP": 0.0, "TPP": 0.0, "TOV": 0.19188493353088432}, "subword": {"MTP": 0.0, "TPP": 0.0, "TOV": 0.8081150664691157}},
+      "max_min": 5.5313658312053884e-08,
+      "raw_dot": {"benign_bce": 5.531365831205384e-08, "dga_micro_bce": 0.4452714754086056, "dga_family_macro_bce": 5.531365832034396e-08},
+      "per_branch_simplex_max_min": -3.6728521172256757e-06
+    }
+  },
+  "interpretation_boundary": "仅为源期 G2 折0端点上的零重训、双侧风险约束有限步筛查。结果不证明课程、family 效应、跨年效果或正式训练收益；未通过时不得调权、另一折或重跑。"
+}

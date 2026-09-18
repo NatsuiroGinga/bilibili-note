@@ -5,15 +5,18 @@ set -Eeuo pipefail
 umask 027
 
 readonly PROJECT_ROOT=/root/autodl-tmp/thesis/experiments/llm_probe
-readonly RUN_ID=ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1
+readonly RUN_ID=ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1-rerun1
+readonly PREVIOUS_RUN_ID=ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1
 readonly PARENT_RUN_ID=ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1
-readonly SCREEN_NAME=ch3-full-mlp-spcpa-pa-q0-s42-v1
+readonly SCREEN_NAME=ch3-full-mlp-spcpa-pa-q0-s42-v1-rerun1
 readonly CONFIG_PATH="$PROJECT_ROOT/configs/ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1.json"
 readonly TOOL_PATH="$PROJECT_ROOT/tools/ch3_full_mlp_strict_past_cpa_protocol_a_q0.py"
 readonly SCRIPT_PATH="$PROJECT_ROOT/scripts/remote_launchers/run_ch3_full_mlp_strict_past_cpa_protocol_a_q0_seed42_v1.sh"
 readonly PARENT_CONFIG_PATH="$PROJECT_ROOT/configs/ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1.json"
 readonly PARENT_TOOL_PATH="$PROJECT_ROOT/tools/ch3_full_mlp_complete_entity_lp_protocol_a_q0.py"
 readonly PARENT_OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$PARENT_RUN_ID"
+readonly PREVIOUS_OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$PREVIOUS_RUN_ID"
+readonly PREVIOUS_LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$PREVIOUS_RUN_ID"
 readonly MEMORY_GATE_PATH="$PROJECT_ROOT/tools/memory_admission_gate.sh"
 readonly OUTPUT_ROOT="$PROJECT_ROOT/runs/diagnostics/$RUN_ID"
 readonly LAUNCHER_ROOT="$PROJECT_ROOT/runs/launchers/$RUN_ID"
@@ -58,6 +61,11 @@ valid = (
     and config["candidate"]["stable_row_order_unchanged"] is True
     and config["candidate"]["parameter_count"] == 2144258
     and config["parent"]["run_id"] == sys.argv[3]
+    and config["recovery"]["previous_run_id"] == sys.argv[7]
+    and config["recovery"]["previous_output_root"] == sys.argv[8]
+    and config["recovery"]["previous_launcher_root"] == sys.argv[9]
+    and config["recovery"]["scientific_contract_unchanged"] is True
+    and config["recovery"]["retrain_cells"] == []
     and config["parent"]["cells"] == ["B10", "O11"]
     and config["evaluation"]["source_gate_pairs"] == [["S10", "B10"], ["S11", "O11"]]
     and config["evaluation"]["target_evaluation_calls"] == 4
@@ -68,7 +76,8 @@ valid = (
     and config["swanlab"]["project"] == sys.argv[6]
 )
 raise SystemExit(0 if valid else 78)
-' "$CONFIG_PATH" "$RUN_ID" "$PARENT_RUN_ID" "$OUTPUT_ROOT" "$SWANLAB_WORKSPACE" "$SWANLAB_PROJECT"
+' "$CONFIG_PATH" "$RUN_ID" "$PARENT_RUN_ID" "$OUTPUT_ROOT" "$SWANLAB_WORKSPACE" "$SWANLAB_PROJECT" \
+    "$PREVIOUS_RUN_ID" "$PREVIOUS_OUTPUT_ROOT" "$PREVIOUS_LAUNCHER_ROOT"
 }
 
 validate_inputs() {
@@ -77,6 +86,8 @@ import json, pathlib, sys
 config = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
 cache = pathlib.Path(config["paths"]["cache_root"])
 parent_root = pathlib.Path(config["parent"]["output_root"])
+previous_root = pathlib.Path(config["recovery"]["previous_output_root"])
+previous_launcher_root = pathlib.Path(config["recovery"]["previous_launcher_root"])
 seal_path = parent_root / "selection_frozen.json"
 required = [
     pathlib.Path(config["parent"]["config_path"]),
@@ -84,6 +95,9 @@ required = [
     parent_root / "status.json",
     parent_root / "source-gate-results.json",
     seal_path,
+    previous_root / "status.json",
+    previous_root / "config.json",
+    previous_launcher_root / "input-sha256.txt",
 ]
 if not seal_path.is_file():
     raise SystemExit(66)
@@ -95,6 +109,10 @@ for cell in ("B10", "O11"):
     if not filename:
         raise SystemExit(66)
     required.append(parent_root / filename)
+for cell in ("S10", "S11"):
+    required.append(previous_root / "receipts" / f"selection-{cell}.json")
+    required.append(previous_root / "checkpoints" / f"selected-{cell}.pt")
+    required.extend(previous_root / "checkpoints" / "epochs" / cell / f"epoch-{epoch:02d}.pt" for epoch in range(1, 21))
 source_ok = len(config["source_arrays"]) == 6 and all((cache / f"{name}.npy").is_file() for name in config["source_arrays"])
 raise SystemExit(0 if source_ok and all(path.is_file() for path in required) else 66)
 ' "$CONFIG_PATH"
@@ -211,16 +229,19 @@ validate_outputs() {
     uv run --no-sync python -c '
 import json, pathlib, sys
 root = pathlib.Path(sys.argv[1]); result = json.loads((root / "aggregate-results.json").read_text(encoding="utf-8"))
-required = ["config.json", "parent-artifact-receipt.json", "selection_frozen.json", "source-gate-results.json",
-            "source-complete-alert-budget-curves.npz", "length-bucket-results.json", "aggregate-results.json",
-            "resource-receipt.json", "swanlab-receipt.json", "manifest.json", "status.json"]
+required = ["config.json", "parent-artifact-receipt.json", "training-reuse-receipt.json",
+        "selection_frozen.json", "source-gate-results.json",
+        "source-complete-alert-budget-curves.npz", "length-bucket-results.json", "aggregate-results.json",
+        "resource-receipt.json", "swanlab-receipt.json", "manifest.json", "status.json"]
 required += [f"checkpoints/selected-{cell}.pt" for cell in ("S10", "S11")]
-required += [f"checkpoints/epochs/{cell}/epoch-{epoch:02d}.pt" for cell in ("S10", "S11") for epoch in range(1, 21)]
+required += [f"receipts/reuse-selection-{cell}.json" for cell in ("S10", "S11")]
 if result["source_gate"]["passed"]:
     required += ["complete-alert-budget-curves.npz", "complete-alert-budget-curves-receipt.json"]
 valid = (
     result["run_id"] == sys.argv[2]
     and result["parent"]["run_id"] == sys.argv[3]
+    and result.get("resource", {}).get("new_training_cells") == 0
+    and result.get("resource", {}).get("previous_training_cells_reused") == 2
     and result.get("artifact_policy", {}).get("per_flow_scores_persisted", False) is False
     and all((root / name).is_file() for name in required)
 )
@@ -237,7 +258,7 @@ worker() {
     validate_inputs
     uv run --no-sync python -c 'import numpy, sklearn, swanlab, torch; assert torch.cuda.is_available()' > "$LAUNCHER_ROOT/dependency-check.txt"
     admit_resources
-    launcher_status running protocol-a source_selection_started_target_reads_0 null
+    launcher_status running protocol-a source_gate_reusing_sealed_training_target_reads_0 null
     resource_monitor &
     monitor_pid=$!
     if run_logged "$OUTPUT_ROOT/run${resume_flag:+-resume}.log" uv run --no-sync python "$TOOL_PATH" \
@@ -321,4 +342,4 @@ printf '%s\n' "$SCRIPT_PATH ${resume_flag}" > "$LAUNCHER_ROOT/command.txt"
 sha256sum "$CONFIG_PATH" "$TOOL_PATH" "$SCRIPT_PATH" "$PARENT_CONFIG_PATH" "$PARENT_TOOL_PATH" "$MEMORY_GATE_PATH" > "$LAUNCHER_ROOT/input-sha256.txt"
 launcher_status prepared launch static_and_parent_input_contract_passed null
 screen -dmS "$SCREEN_NAME" bash "$SCRIPT_PATH" --worker "$resume_flag"
-printf 'CH3_FULL_MLP_STRICT_PAST_CPA_PROTOCOL_A_Q0_STARTED session=%s output=%s new_cells=2 target_models=4 resume=%s\n' "$SCREEN_NAME" "$OUTPUT_ROOT" "${resume_flag:-false}"
+printf 'CH3_FULL_MLP_STRICT_PAST_CPA_PROTOCOL_A_Q0_RERUN1_STARTED session=%s output=%s new_training_cells=0 reused_training_cells=2 target_models=4 resume=%s\n' "$SCREEN_NAME" "$OUTPUT_ROOT" "${resume_flag:-false}"

@@ -27,7 +27,12 @@ readonly PEER_PATTERN='python.*[c]h3_full_mlp_s0_precision_aggregation_diagnosti
 
 mkdir -p -- "$LAUNCHER_ROOT" "$OUTPUT_ROOT"
 if [[ -r "$HOME/.bashrc" ]]; then
+    # 本脚本用 set -Eeuo pipefail。`.bashrc` 第 9 行引用 PS1，而非交互 shell 没有该
+    # 变量，`set -u` 会在 source 内部触发中止；`|| true` 只吞退出码，吞不掉这次中止。
+    # 故加载期间临时关闭 nounset 与 errexit，加载完立即恢复。
+    set +u +e
     source "$HOME/.bashrc" >> "$LAUNCHER_ROOT/shell-init.log" 2>&1 || true
+    set -u -e
 fi
 cd "$PROJECT_ROOT"
 source tools/env/activate.sh

@@ -32,9 +32,10 @@
       "modifications": [
         "仅保留二分类硬轴对齐树PyTorch核心",
         "删除DataFrame、AutoGluon、类别编码和高层fit/predict封装",
-        "暴露四个核心参数组与路由诊断"
+        "暴露四个核心参数组与路由诊断",
+        "BF16工程候选中softmax、对数诊断和权重归一化保持FP32"
       ],
-      "sha256": "caf94daf71cec89ac7a53705f8628b41f223966d6c70abf741426fda7a3370e6"
+      "sha256": "a5e7dbcce7fe14d7b88b49d08c1f4f26c76d00bade861b9f3a97ed7330553fbf"
     }
   }
 }

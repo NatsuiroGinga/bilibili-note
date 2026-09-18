@@ -1,0 +1,96 @@
+{
+  "schema_version": "ch3-protocol-a-backbone-2x2-config-v1",
+  "run_id": "ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1",
+  "model_key": "tabm4",
+  "display_name": "TabM4与CPA-ELP协议A四格直接重跑",
+  "paths": {
+    "cache_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/dijk-repro/cache",
+    "output_root": "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1"
+  },
+  "source_arrays": ["X23", "y23", "I23", "M23", "E23", "T23"],
+  "target_arrays": ["X24", "y24", "I24", "M24", "s24", "d24", "t24"],
+  "cells": {
+    "C00": {
+      "causal_prefix_aggregation": false,
+      "learned_lp_pooling": false
+    },
+    "C01": {
+      "causal_prefix_aggregation": false,
+      "learned_lp_pooling": true
+    },
+    "C10": {
+      "causal_prefix_aggregation": true,
+      "learned_lp_pooling": false
+    },
+    "C11": {
+      "causal_prefix_aggregation": true,
+      "learned_lp_pooling": true
+    }
+  },
+  "candidate": {
+    "hidden_size": 186,
+    "ensemble_members": 4,
+    "member_batch_sequences": 16,
+    "member_probability_reduction": "arithmetic_mean",
+    "elp_exponent": "shared_scalar",
+    "activation": "relu",
+    "parameter_formula": "2d^2+83d+k(84+7d)+1",
+    "parameter_count": 90175
+  },
+  "training": {
+    "seed": 42,
+    "sequence_length": 128,
+    "batch_size": 64,
+    "epochs": 20,
+    "steps_per_epoch": 1000,
+    "learning_rate": 0.002,
+    "weight_decay": 0.01,
+    "dropout": 0.1,
+    "gradient_clip_norm": 1.0,
+    "auxiliary_loss_weight": 1.0,
+    "validation_fraction": 0.1,
+    "time_tail_fraction": 0.15,
+    "selection_metric": "lspr23_entity_disjoint_validation_flow_ap",
+    "selection_rule": "single_epoch_argmax_earliest_tie_no_early_stopping"
+  },
+  "evaluation": {
+    "target_year": "LSPR24",
+    "target_previously_accessed": true,
+    "independent_test": false,
+    "target_load_after_all_selections_sealed": true,
+    "target_evaluation_calls": 4,
+    "flow_average_precision": true,
+    "entity_average_precision": true,
+    "maximum_entity_average_precision": true,
+    "dr_fpr_grid": [0.001, 0.005, 0.01, 0.02, 0.04, 0.08],
+    "complete_reachable_alert_budget_curve": true
+  },
+  "artifact_policy": {
+    "persist_selected_checkpoint_per_cell": true,
+    "persist_inflight_epoch_checkpoint": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_complete_budget_curve_aggregate": true
+  },
+  "resource_contract": {
+    "observed_tabm_single_job_peak_gpu_memory_mib": 8244,
+    "minimum_free_gpu_memory_mib": 8244,
+    "minimum_cgroup_available_memory_gib": 40,
+    "minimum_free_disk_gib": 10,
+    "maximum_parallel_jobs": 2,
+    "maximum_parallel_cells_per_job": 1,
+    "resource_sample_interval_seconds": 5,
+    "concurrent_resource_measurement_is_fair_efficiency_evidence": false,
+    "oom_fallback": "run_same_two_commands_serially"
+  },
+  "swanlab": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "group": "ch3-tabm4-cpa-elp-protocol-a-2x2-seed42-v1",
+    "mode": "cloud",
+    "tags": ["chapter3", "tabm4", "protocol-a", "2x2", "seed42", "single-run"]
+  },
+  "single_run_directly_comparable": true,
+  "formal_paper_evidence": false,
+  "independent_test": false
+}

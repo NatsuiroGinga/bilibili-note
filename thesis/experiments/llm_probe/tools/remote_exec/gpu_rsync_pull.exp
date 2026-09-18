@@ -17,7 +17,11 @@ set local_path [lindex $argv 1]
 set ssh_command [split $env(GPU_SSH_ACTIVE) " "]
 set remote_host [lindex $ssh_command end]
 set remote_shell [join [lrange $ssh_command 0 end-1] " "]
-spawn rsync -rtv --partial --progress -e $remote_shell "$remote_host:$remote_path" $local_path
+set rsync_args [list -rtv --partial --progress]
+if {[info exists env(GPU_RSYNC_MAX_SIZE)] && $env(GPU_RSYNC_MAX_SIZE) ne ""} {
+    lappend rsync_args "--max-size=$env(GPU_RSYNC_MAX_SIZE)"
+}
+spawn rsync {*}$rsync_args -e $remote_shell "$remote_host:$remote_path" $local_path
 expect {
     -re {(?i)are you sure you want to continue connecting} {
         send -- "yes\r"

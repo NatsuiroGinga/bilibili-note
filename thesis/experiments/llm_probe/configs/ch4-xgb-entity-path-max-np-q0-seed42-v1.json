@@ -1,0 +1,25 @@
+{
+  "schema_version": "ch4-xgb-entity-path-max-tong-same-model-q0-v1",
+  "run_id": "ch4-xgb-entity-path-max-tong-same-model-q0-seed42-v1",
+  "display_name": "Tong有限样本同模型实体路径最大风险源年零训练Q0",
+  "source_year": "LSPR23",
+  "seed": 42,
+  "entity_fpr_budget": 0.04,
+  "global_violation_probability": 0.05,
+  "simultaneous_round_count": 6,
+  "per_round_violation_probability": 0.008333333333333333,
+  "comparison_operator": ">",
+  "zero_training": true,
+  "target_year_arrays_read": 0,
+  "oof_models_loaded": 3,
+  "sequence_batch": 2048,
+  "methods": ["B0_first", "B1_all_source", "M1_path_max_tong_same_model_crosscal"],
+  "deferred_pressure_control": "A1_alpha_j=q/[j(j+1)]",
+  "qualification_rule": "all(v(k*)<=delta/6) AND FPR(M1)<=0.04 AND DR(M1)>DR(B0)",
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  }
+}

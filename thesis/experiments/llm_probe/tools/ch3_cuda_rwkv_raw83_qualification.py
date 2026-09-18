@@ -759,9 +759,16 @@ def _gpu_admission_measurement(config: Mapping[str, Any]) -> dict[str, Any]:
         for line in compute.stdout.splitlines()
         if line.strip() and line.strip().isdigit()
     ]
-    if free_mib < required_free_mib or compute_pids:
+    # 硬资源安全项只有空闲显存这一条：`memory.free` 已经把其他进程的占用扣除，
+    # 因此它单独就能保证本运行拿得到 `required_free_mib`。原实现额外要求
+    # `compute_pids` 为空，即 GPU 必须独占，这与空闲显存检查重复，且与仓库并发资源
+    # 报告规则（提交 992d825）冲突——该规则允许并发条件下的指标进入正式表，只要求
+    # 收据记录并发对象、时间窗口、`resource_contention` 与采样来源。按门禁密度规则
+    # 「连续暴露非科学失败时先删减重复控制流、门或制品」，并发进程改为写入收据披露。
+    if free_mib < required_free_mib:
         raise RuntimeError(
-            f"GPU 资源准入失败：free={free_mib} MiB, compute_pids={compute_pids}"
+            f"GPU 资源准入失败：free={free_mib} MiB < 需要 {required_free_mib} MiB"
+            f"，并发计算进程={compute_pids}"
         )
     return {
         "uuid": uuid,
@@ -770,6 +777,8 @@ def _gpu_admission_measurement(config: Mapping[str, Any]) -> dict[str, Any]:
         "free_memory_mib": free_mib,
         "required_free_memory_mib": required_free_mib,
         "compute_pids": compute_pids,
+        "resource_contention": bool(compute_pids),
+        "exclusive_gpu": not compute_pids,
         "admitted": True,
     }
 
@@ -817,11 +826,16 @@ def _process_admission_measurement() -> dict[str, Any]:
         command = parts[2]
         if any(pattern in command for pattern in patterns):
             matches.append({"pid": pid, "ppid": int(parts[1]), "command": command})
-    if matches:
-        raise RuntimeError(f"资源准入发现未授权并发进程：{matches}")
+    # 与 GPU 准入同理：并发只作披露，不作阻断。硬资源安全由显存与 cgroup 内存两道
+    # 实测门保证，本处按命令行模式匹配到的其他 llm_probe 进程既不代表显存不足，也不
+    # 代表内存不足。仓库并发资源报告规则（提交 992d825）允许并发条件下的指标进入正式
+    # 表，只要求记录并发对象、时间窗口、`resource_contention` 与采样来源；门禁密度规则
+    # 亦要求「连续暴露非科学失败时先删减重复控制流、门或制品」。故改为写入收据。
     return {
         "ancestor_pids": sorted(allowed),
-        "unauthorized_processes": [],
+        "concurrent_processes": matches,
+        "resource_contention": bool(matches),
+        "exclusive_host": not matches,
         "admitted": True,
     }
 

@@ -77,6 +77,151 @@ raise SystemExit(0 if len(names) == 13 and all((root / f"{name}.npy").is_file() 
 ' "$CONFIG_PATH"
 }
 
+resolve_resume_mode() {
+    uv run --no-sync python -c '
+import copy, hashlib, json, pathlib, re, sys
+
+config_path = pathlib.Path(sys.argv[1])
+tool_path = pathlib.Path(sys.argv[2])
+source_root = pathlib.Path(sys.argv[3])
+output_root = pathlib.Path(sys.argv[4])
+legacy_run_id = "ch3-rwkv7-field-aware-protocol-a-2x2-seed42-v1"
+rerun_id = f"{legacy_run_id}-rerun1"
+task_key = "adapter-R0-K0-C00"
+receipt_path = output_root / "checkpoint-migration-receipt.json"
+anchor_path = output_root / "inflight" / f"{task_key}.pt"
+native_markers = [
+    anchor_path,
+    output_root / "adapter_selection_frozen.json",
+    output_root / "capacity_selection_frozen.json",
+    output_root / "selection_frozen.json",
+]
+native_markers.extend((output_root / "inflight").glob("*.pt"))
+native_markers.extend((output_root / "receipts").glob("selection-*.json"))
+
+def fail(message):
+    raise SystemExit(f"恢复分流门失败：{message}")
+
+def load_json(path):
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        fail(f"JSON 顶层不是对象：{path}")
+    return value
+
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(16 * 1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+def migration_contract(value):
+    normalized = copy.deepcopy(value)
+    normalized["run_id"] = "<RUN_ID>"
+    normalized["paths"]["output_root"] = "<RUN_ID_DERIVED_OUTPUT_ROOT>"
+    normalized["swanlab"]["group"] = "<RUN_ID_DERIVED_GROUP>"
+    normalized["training"].pop("maximum_gpu_hours", None)
+    normalized["resource_contract"].pop("maximum_gpu_hours", None)
+    normalized["resource_contract"].pop("first_adapter_epoch_recalibration", None)
+    normalized["resource_contract"].pop("first_enlarged_capacity_epoch_recalibration", None)
+    return normalized
+
+if not receipt_path.is_file():
+    existing = sorted(str(path) for path in native_markers if path.exists())
+    if existing:
+        fail("迁移收据缺失但 rerun1 原生状态已存在，拒绝覆盖或重迁移")
+    print("legacy-migration")
+    raise SystemExit(0)
+
+receipt = load_json(receipt_path)
+if (
+    receipt.get("schema_version") != "ch3-rwkv7-checkpoint-migration-receipt-v1"
+    or receipt.get("source_run_id") != legacy_run_id
+    or receipt.get("target_run_id") != rerun_id
+    or receipt.get("scientific_contract_equal") is not True
+):
+    fail("首次迁移收据的身份或科学合同证明无效")
+
+source_config_path = source_root / "config.json"
+legacy_config_path = config_path.with_name(f"{legacy_run_id}.json")
+source_inflight = source_root / "inflight" / f"{task_key}.pt"
+source_epoch = source_root / "checkpoints" / "epochs" / task_key / "epoch-01.pt"
+for path in (source_config_path, legacy_config_path, source_inflight, source_epoch, anchor_path):
+    if not path.is_file():
+        fail(f"恢复证明制品缺失：{path}")
+config = load_json(config_path)
+source_config = load_json(source_config_path)
+legacy_config = load_json(legacy_config_path)
+if config.get("run_id") != rerun_id or config.get("paths", {}).get("output_root") != str(output_root):
+    fail("rerun1 配置身份或输出根不符")
+if source_config != legacy_config:
+    fail("迁移源冻结配置与旧生产配置不一致")
+if migration_contract(source_config) != migration_contract(config):
+    fail("迁移源与 rerun1 存在非白名单科学合同差异")
+if pathlib.Path(receipt.get("source_inflight_path", "")) != source_inflight:
+    fail("迁移收据指向的旧在途检查点不符")
+if receipt.get("source_inflight_sha256") != sha256_file(source_inflight):
+    fail("迁移源在途检查点摘要变化")
+if receipt.get("source_epoch_checkpoint_sha256") != sha256_file(source_epoch):
+    fail("迁移源第 1 轮检查点摘要变化")
+
+expected_run_identity = {
+    "run_id": rerun_id,
+    "config_sha256": sha256_file(config_path),
+    "code_sha256": sha256_file(tool_path),
+    "source_data_inventory_sha256": receipt.get("source_data_inventory_sha256"),
+}
+if not re.fullmatch(r"[0-9a-f]{64}", str(expected_run_identity["source_data_inventory_sha256"])):
+    fail("迁移收据中的源数据清单摘要无效")
+
+import torch
+
+inflight_paths = sorted((output_root / "inflight").glob("*.pt"))
+if not inflight_paths:
+    fail("迁移收据存在但 rerun1 原生在途检查点缺失")
+latest_path = max(inflight_paths, key=lambda path: path.stat().st_mtime_ns)
+for path in {anchor_path, latest_path}:
+    checkpoint = torch.load(path, map_location="cpu", weights_only=False)
+    identity = checkpoint.get("identity", {})
+    path_task_key = path.stem
+    required_identity = {
+        **expected_run_identity,
+        "schema_version": "ch3-rwkv7-protocol-a-task-identity-v1",
+        "task_key": path_task_key,
+    }
+    if any(identity.get(key) != value for key, value in required_identity.items()):
+        fail(f"原生在途检查点内部身份不符：{path}")
+    if checkpoint.get("schema_version") != "ch3-rwkv7-complete-inflight-v1" or checkpoint.get("complete_step") is not True:
+        fail(f"原生在途检查点不是完整优化步：{path}")
+    for key in (
+        "model", "optimizer", "history", "best_state", "gradient_gate",
+        "generator_state", "torch_rng_state", "cuda_rng_state_all",
+        "numpy_rng_state", "python_rng_state",
+    ):
+        if key not in checkpoint:
+            fail(f"原生在途检查点缺少恢复状态 {key}：{path}")
+
+for path in sorted((output_root / "receipts").glob("selection-*.json")):
+    selection_receipt = load_json(path)
+    identity = selection_receipt.get("identity", {})
+    if any(identity.get(key) != value for key, value in expected_run_identity.items()):
+        fail(f"已完成单元收据身份不符：{path}")
+    checkpoint_info = selection_receipt.get("selection", {}).get("checkpoint", {})
+    checkpoint_path = output_root / str(checkpoint_info.get("filename", ""))
+    if not checkpoint_path.is_file() or checkpoint_info.get("sha256") != sha256_file(checkpoint_path):
+        fail(f"已完成单元选择检查点摘要不符：{path}")
+
+for name in ("adapter_selection_frozen.json", "capacity_selection_frozen.json", "selection_frozen.json"):
+    path = output_root / name
+    if path.is_file():
+        seal = load_json(path)
+        if seal.get("identity") != expected_run_identity:
+            fail(f"原生选择封印身份不符：{path}")
+
+print("native-resume")
+' "$CONFIG_PATH" "$TOOL_PATH" "$MIGRATE_FROM_RUN_ROOT" "$OUTPUT_ROOT"
+}
+
 admit_resources() {
     mkdir -p -- "$LAUNCHER_ROOT" "$OUTPUT_ROOT"
     bash "$MEMORY_GATE_PATH" 30 "$RUN_ID" > "$LAUNCHER_ROOT/memory-admission-gate.log" 2>&1
@@ -171,13 +316,20 @@ run_logged() {
 }
 
 worker() {
-    local resume_flag=${1:-} monitor_pid= code=0
+    local resume_flag=${1:-} monitor_pid= code=0 resume_mode=
     local -a migration_args=()
-    if [[ -n "$MIGRATE_FROM_RUN_ROOT" ]]; then
-        migration_args=(--migrate-from-run-root "$MIGRATE_FROM_RUN_ROOT")
-    fi
     exec 9> "$LAUNCHER_ROOT/worker.lock"
     flock -n 9 || { printf '同名运行锁已占用。\n' >&2; return 75; }
+    if [[ -n "$MIGRATE_FROM_RUN_ROOT" ]]; then
+        resume_mode=$(resolve_resume_mode)
+        printf '%s\n' "$resume_mode" > "$LAUNCHER_ROOT/resume-mode.txt"
+        if [[ "$resume_mode" == legacy-migration ]]; then
+            migration_args=(--migrate-from-run-root "$MIGRATE_FROM_RUN_ROOT")
+        elif [[ "$resume_mode" != native-resume ]]; then
+            printf '未知恢复模式：%s\n' "$resume_mode" >&2
+            return 78
+        fi
+    fi
     trap '[[ -n ${monitor_pid:-} ]] && kill "$monitor_pid" 2>/dev/null || true; launcher_status interrupted signal received 130; exit 130' HUP INT TERM
     validate_static_contract
     validate_inputs

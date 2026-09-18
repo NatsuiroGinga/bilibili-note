@@ -1,0 +1,122 @@
+{
+  "schema_version": "ch4-xgb-path-max-tong-final-model-source-seed42-v1",
+  "run_id": "ch4-xgb-path-max-tong-final-model-source-seed42-v1-rerun2",
+  "display_name": "种子42最终单模型实体路径最大Tong源年六臂实验",
+  "source_year": "LSPR23",
+  "source_year_only": true,
+  "seed": 42,
+  "training_folds": [0, 1],
+  "holdout_fold": 2,
+  "calibration_half": 1,
+  "evaluation_half": 0,
+  "base_adapter": "semantic168",
+  "power_mean_p": 1.0,
+  "num_boost_round": 800,
+  "xgb_params": {
+    "tree_method": "hist",
+    "device": "cuda",
+    "max_depth": 8,
+    "eta": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "lambda": 1.0,
+    "max_bin": 256,
+    "objective": "binary:logistic",
+    "eval_metric": "aucpr",
+    "seed": 42,
+    "nthread": 32
+  },
+  "entity_fpr_budget": 0.04,
+  "global_violation_probability": 0.05,
+  "simultaneous_claim_count": 1,
+  "m1_violation_probability": 0.05,
+  "comparison_operator": ">",
+  "methods": [
+    "B0_first_empirical",
+    "B1_all_fixed_empirical",
+    "B2_first_tong",
+    "B3_path_max_empirical",
+    "B4_summable_exposure_budget",
+    "M1_path_max_tong"
+  ],
+  "target_year_arrays_read": 0,
+  "training_runs": 0,
+  "allowed_arrays": ["X23", "y23", "I23", "M23", "E23", "ent23", "t23_flow"],
+  "sequence_batch": 2048,
+  "dmatrix_batch": 500000,
+  "fold_contract": {
+    "fold_assignment_sha256": "a206048274edd5bb20c8e92874c0c2c1853009ebbd5ea1533940f2ab34fd5aa5",
+    "fold_entity_counts": [50227, 50227, 50226],
+    "fold_positive_entity_counts": [80, 80, 79],
+    "half_algorithm": "make_inner_halves_randomstate42_class_stratified_mod2_v1",
+    "training_entities": 100454,
+    "training_negative_entities": 100294,
+    "training_positive_entities": 160,
+    "calibration_entities": 25112,
+    "calibration_negative_entities": 25073,
+    "calibration_positive_entities_unused": 39,
+    "evaluation_entities": 25114,
+    "evaluation_negative_entities": 25074,
+    "evaluation_positive_entities": 40
+  },
+  "score_contract": {
+    "first_exposure_score": "raw_float32_xgboost_score",
+    "path_score": "clip_[1e-7,1]_then_float64_cumulative_sum_then_float32_readout",
+    "power": 1.0,
+    "feature_view": "semantic168"
+  },
+  "entity_path_contract": {
+    "entity_key": "LSPR23_frozen_entity_index",
+    "ordering": "stable_recorded_timestamp_order",
+    "path_end_rule": "LSPR23_frozen_capture_all_recorded_exposures",
+    "exposure_cutoff": null,
+    "state": [
+      "entity_key",
+      "cumulative_score",
+      "exposure_count",
+      "last_timestamp",
+      "alerted",
+      "first_crossing_exposure"
+    ]
+  },
+  "b4_contract": {
+    "allocation": "q_j=q/[j(j+1)]",
+    "calibration": "empirical_strict_greater_than",
+    "unavailable_level_threshold": "positive_infinity",
+    "certificate_claimed": false
+  },
+  "budget_curve": {
+    "integer_budget_min": 0,
+    "integer_budget_max_rule": "floor(q*n_cal_negative)",
+    "confirmatory_budget": 0.04,
+    "curve_is_descriptive": true
+  },
+  "qualification_rule": "M1_certificate_valid AND FPR(M1)<=0.04 AND delta_DR(M1-B0)>0 AND paired_95pct_lower>0",
+  "artifact_policy": {
+    "persist_final_model": true,
+    "persist_model_and_threshold_receipts": true,
+    "persist_aggregate_results_and_integer_budget_curve": true,
+    "persist_input_resource_swanlab_manifest": true,
+    "persist_per_flow_scores": false,
+    "persist_per_entity_scores": false,
+    "persist_entity_ids": false,
+    "persist_fold_membership": false,
+    "persist_target_year_artifacts": false
+  },
+  "resource_contract": {
+    "estimated_wall_minutes_min": 5,
+    "estimated_wall_minutes_max": 10,
+    "estimated_peak_host_gib": 17.0,
+    "host_admission_gib": 20.0,
+    "estimated_peak_gpu_gib": 18.0,
+    "gpu_floor_gib": 20.0,
+    "required_gpu_count": 1,
+    "required_gpu_memory_class_gib": 24
+  },
+  "tracking": {
+    "workspace": "mortiswang",
+    "project": "ns3-rwkv-lspr24",
+    "mode": "online",
+    "aggregate_only": true
+  }
+}

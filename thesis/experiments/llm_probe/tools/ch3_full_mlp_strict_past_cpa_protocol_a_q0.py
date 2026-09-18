@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import shutil
 import sys
 import time
 import traceback
@@ -20,9 +21,10 @@ torch = parent.torch
 nn = parent.nn
 average_precision_score = parent.average_precision_score
 
-SCHEMA_VERSION = "ch3-full-mlp-strict-past-cpa-protocol-a-q0-config-v1"
-RESULT_SCHEMA_VERSION = "ch3-full-mlp-strict-past-cpa-protocol-a-q0-results-v1"
-RUN_ID = "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1"
+SCHEMA_VERSION = "ch3-full-mlp-strict-past-cpa-protocol-a-q0-rerun-config-v1"
+RESULT_SCHEMA_VERSION = "ch3-full-mlp-strict-past-cpa-protocol-a-q0-rerun-results-v1"
+RUN_ID = "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1-rerun1"
+PREVIOUS_RUN_ID = "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1"
 PARENT_RUN_ID = "ch3-full-mlp-complete-entity-lp-protocol-a-q0-seed42-v1"
 CELL_ORDER = ("S10", "S11")
 EVALUATION_ORDER = ("B10", "O11", "S10", "S11")
@@ -110,12 +112,13 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("长度桶通过门不符")
     if config.get("artifact_policy") != {
         "persist_selected_checkpoint_per_cell": True,
-        "persist_every_epoch_checkpoint_per_cell": True,
-        "persist_inflight_epoch_checkpoint": True,
+        "persist_every_epoch_checkpoint_per_cell": False,
+        "persist_inflight_epoch_checkpoint": False,
         "persist_per_flow_scores": False,
         "persist_per_entity_scores": False,
         "persist_complete_budget_curve_aggregate": True,
         "reuse_parent_checkpoints_read_only": True,
+        "reuse_previous_failed_run_training_read_only": True,
     }:
         raise ValueError("制品合同不符")
     if config.get("resource_contract") != {
@@ -135,6 +138,41 @@ def validate_config(config: dict[str, Any]) -> None:
         raise ValueError("父配置摘要不符")
     if parent_contract.get("code_sha256") != "45ad7d1be85832e4b235a8942615e4aad7b94c154ec2cef7ad00ec2510feb2da":
         raise ValueError("父代码摘要不符")
+    recovery = config.get("recovery", {})
+    expected_recovery = {
+        "previous_run_id": PREVIOUS_RUN_ID,
+        "previous_output_root": (
+            "/root/autodl-tmp/thesis/experiments/llm_probe/runs/diagnostics/"
+            "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1"
+        ),
+        "previous_launcher_root": (
+            "/root/autodl-tmp/thesis/experiments/llm_probe/runs/launchers/"
+            "ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1"
+        ),
+        "previous_input_config_sha256": "feef122f6a35b5b1fcfcd31cb29151139f866a09e07b6508ca163ac2caf9da77",
+        "previous_frozen_config_sha256": "92eddabc58e0f92befafee115ba30761bc179c5aeb7eeae2ce08842ad6258e79",
+        "previous_code_sha256": "688139f80d7aa7ab0553d8012b0ca1cd843dd255983cd456852db7ac22e7f90d",
+        "source_data_inventory_sha256": "195e3e3f081920c72f37493cba59faf34b596271a86083b7f3897543eb04e88d",
+        "parent_artifact_receipt_sha256": "b19b3163c5fdcf02937106498716020d13b73c1a8de070d07f7cce8d98ebda32",
+        "required_failure_detail": "RuntimeError: S10_vs_B10 完整预算曲线横轴不一致",
+        "required_target_year_arrays_read": 0,
+        "scientific_contract_unchanged": True,
+        "reuse_cells": {
+            "S10": {
+                "selection_receipt_sha256": "3efcec392a6d2a2bbda923fd6b31ea615f4a37d23ece20e63e30898d89f1e765",
+                "selected_checkpoint_sha256": "466e806651711260c8a67aa940f95dbf8a707eae1cb3a78c58a77e4d0bb7b19b",
+                "epoch_checkpoint_count": 20,
+            },
+            "S11": {
+                "selection_receipt_sha256": "05ea512420fe9a6c003450b3e2d3b47b9ae611f253b97f1c4919bd07d20eb96a",
+                "selected_checkpoint_sha256": "80c084736cf44a6b2e1b9b9abe18e6da6917165d999aeb8f61cd8496446d5faf",
+                "epoch_checkpoint_count": 20,
+            },
+        },
+        "retrain_cells": [],
+    }
+    if recovery != expected_recovery:
+        raise ValueError("旧失败运行恢复合同不符")
     if config.get("target_informed") is not True or config.get("screening_only") is not True:
         raise ValueError("筛选证据身份不符")
     if config.get("formal_paper_evidence") or config.get("independent_test"):
@@ -204,35 +242,6 @@ def build_model(config: dict[str, Any], cell: str) -> Any:
     if actual != candidate["parameter_count"]:
         raise RuntimeError(f"严格过去模型参数量不符：{actual}")
     return model
-
-
-def train_new_cell(
-    config: dict[str, Any],
-    cell: str,
-    output_root: Path,
-    run_identity: dict[str, Any],
-    source: dict[str, np.ndarray],
-    train_rows: np.ndarray,
-    validation_rows: np.ndarray,
-    device: torch.device,
-    resume: bool,
-) -> dict[str, Any]:
-    original_builder = parent.build_model
-    try:
-        parent.build_model = build_model
-        return parent.train_cell(
-            config,
-            cell,
-            output_root,
-            run_identity,
-            source,
-            train_rows,
-            validation_rows,
-            device,
-            resume,
-        )
-    finally:
-        parent.build_model = original_builder
 
 
 def _require_file(path: Path, description: str) -> None:
@@ -337,6 +346,167 @@ def validate_parent_artifacts(config: dict[str, Any]) -> dict[str, Any]:
         "code_sha256": contract["code_sha256"],
         "source_data_inventory_sha256": parent_identity["source_data_inventory_sha256"],
     }
+
+
+def reuse_previous_training(
+    config: dict[str, Any],
+    output_root: Path,
+    run_identity: dict[str, Any],
+    source_inventory: dict[str, Any],
+) -> dict[str, Any]:
+    recovery = config["recovery"]
+    previous_root = Path(recovery["previous_output_root"])
+    previous_launcher_root = Path(recovery["previous_launcher_root"])
+    status_path = previous_root / "status.json"
+    frozen_config_path = previous_root / "config.json"
+    launcher_inputs_path = previous_launcher_root / "input-sha256.txt"
+    for path, description in (
+        (status_path, "旧失败状态"),
+        (frozen_config_path, "旧冻结配置"),
+        (launcher_inputs_path, "旧启动输入摘要"),
+    ):
+        _require_file(path, description)
+    if parent.sha256_file(frozen_config_path) != recovery["previous_frozen_config_sha256"]:
+        raise RuntimeError("旧冻结配置 SHA-256 不符")
+    previous_status = parent.load_json(status_path)
+    if (
+        previous_status.get("state") != "failed"
+        or previous_status.get("exit_code") != 1
+        or previous_status.get("detail") != recovery["required_failure_detail"]
+        or previous_status.get("target_year_arrays_read") != recovery["required_target_year_arrays_read"]
+    ):
+        raise RuntimeError("旧运行不是允许复用的曲线横轴失败状态")
+    launcher_inputs: dict[str, str] = {}
+    for line in launcher_inputs_path.read_text(encoding="utf-8").splitlines():
+        fields = line.split(maxsplit=1)
+        if len(fields) == 2:
+            launcher_inputs[Path(fields[1]).name] = fields[0]
+    if (
+        launcher_inputs.get("ch3-full-mlp-strict-past-cpa-protocol-a-q0-seed42-v1.json")
+        != recovery["previous_input_config_sha256"]
+        or launcher_inputs.get("ch3_full_mlp_strict_past_cpa_protocol_a_q0.py")
+        != recovery["previous_code_sha256"]
+    ):
+        raise RuntimeError("旧启动输入摘要不含冻结配置或代码身份")
+    previous_config = parent.load_json(frozen_config_path)
+    if previous_config.get("run_id") != PREVIOUS_RUN_ID:
+        raise RuntimeError("旧冻结配置运行身份不符")
+    scientific_keys = (
+        "model_key",
+        "source_arrays",
+        "target_arrays",
+        "cells",
+        "candidate",
+        "training",
+        "evaluation",
+        "target_informed",
+        "screening_only",
+        "formal_paper_evidence",
+        "independent_test",
+    )
+    for key in scientific_keys:
+        if previous_config.get(key) != config.get(key):
+            raise RuntimeError(f"旧运行与 rerun1 的科学合同 {key} 不一致")
+    if source_inventory["sha256"] != recovery["source_data_inventory_sha256"]:
+        raise RuntimeError("当前源数据清单与旧训练身份不符")
+
+    selections: dict[str, Any] = {}
+    cell_receipts: dict[str, Any] = {}
+    for cell in CELL_ORDER:
+        expected = recovery["reuse_cells"][cell]
+        selection_receipt_path = previous_root / "receipts" / f"selection-{cell}.json"
+        selected_checkpoint_path = previous_root / "checkpoints" / f"selected-{cell}.pt"
+        _require_file(selection_receipt_path, f"旧 {cell} 选择收据")
+        _require_file(selected_checkpoint_path, f"旧 {cell} 选中检查点")
+        if parent.sha256_file(selection_receipt_path) != expected["selection_receipt_sha256"]:
+            raise RuntimeError(f"旧 {cell} 选择收据 SHA-256 不符")
+        if parent.sha256_file(selected_checkpoint_path) != expected["selected_checkpoint_sha256"]:
+            raise RuntimeError(f"旧 {cell} 选中检查点 SHA-256 不符")
+        epoch_paths = sorted((previous_root / "checkpoints" / "epochs" / cell).glob("epoch-*.pt"))
+        expected_epoch_names = [f"epoch-{epoch:02d}.pt" for epoch in range(1, 21)]
+        if [path.name for path in epoch_paths] != expected_epoch_names:
+            raise RuntimeError(f"旧 {cell} 逐轮检查点不完整")
+        if len(epoch_paths) != expected["epoch_checkpoint_count"]:
+            raise RuntimeError(f"旧 {cell} 逐轮检查点计数不符")
+        selection_receipt = parent.load_json(selection_receipt_path)
+        previous_identity = selection_receipt.get("identity", {})
+        if (
+            previous_identity.get("run_id") != PREVIOUS_RUN_ID
+            or previous_identity.get("cell") != cell
+            or previous_identity.get("config_sha256") != recovery["previous_input_config_sha256"]
+            or previous_identity.get("code_sha256") != recovery["previous_code_sha256"]
+            or previous_identity.get("source_data_inventory_sha256") != source_inventory["sha256"]
+            or previous_identity.get("parent_artifact_receipt_sha256")
+            != recovery["parent_artifact_receipt_sha256"]
+            or previous_identity.get("context_definition") != config["candidate"]["context_definition"]
+        ):
+            raise RuntimeError(f"旧 {cell} 选择身份不符")
+        selection = selection_receipt.get("selection")
+        if not isinstance(selection, dict) or selection_receipt.get("checkpoint") != selection.get("checkpoint"):
+            raise RuntimeError(f"旧 {cell} 选择收据结构不符")
+        if selection["checkpoint"].get("sha256") != expected["selected_checkpoint_sha256"]:
+            raise RuntimeError(f"旧 {cell} 选择记录与检查点摘要不符")
+        checkpoint = torch.load(selected_checkpoint_path, map_location="cpu", weights_only=False)
+        if checkpoint.get("identity") != previous_identity:
+            raise RuntimeError(f"旧 {cell} 检查点内部身份不符")
+        model = build_model(config, cell)
+        model.load_state_dict(checkpoint["model"], strict=True)
+        del model, checkpoint
+
+        destination = output_root / "checkpoints" / f"selected-{cell}.pt"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.is_file():
+            if parent.sha256_file(destination) != expected["selected_checkpoint_sha256"]:
+                raise RuntimeError(f"rerun1 的 {cell} 复用检查点摘要不符")
+        else:
+            temporary = destination.with_name(f"{destination.name}.partial.{os.getpid()}")
+            shutil.copy2(selected_checkpoint_path, temporary)
+            if parent.sha256_file(temporary) != expected["selected_checkpoint_sha256"]:
+                temporary.unlink(missing_ok=True)
+                raise RuntimeError(f"rerun1 的 {cell} 检查点复制后摘要不符")
+            os.replace(temporary, destination)
+        cell_receipt = {
+            "schema_version": "ch3-strict-past-cpa-training-reuse-cell-v1",
+            "rerun_id": config["run_id"],
+            "cell": cell,
+            "source_run_id": PREVIOUS_RUN_ID,
+            "source_selection_receipt": {
+                "path": str(selection_receipt_path),
+                "sha256": expected["selection_receipt_sha256"],
+            },
+            "source_selected_checkpoint": {
+                "path": str(selected_checkpoint_path),
+                "sha256": expected["selected_checkpoint_sha256"],
+            },
+            "rerun_selected_checkpoint": {
+                "filename": str(destination.relative_to(output_root)),
+                "sha256": parent.sha256_file(destination),
+            },
+            "source_epoch_checkpoint_count": len(epoch_paths),
+            "source_identity": previous_identity,
+            "rerun_identity": run_identity,
+            "scientific_contract_unchanged": True,
+            "training_reexecuted": False,
+        }
+        parent.atomic_json(output_root / "receipts" / f"reuse-selection-{cell}.json", cell_receipt)
+        selections[cell] = selection
+        cell_receipts[cell] = cell_receipt
+    reuse_receipt = {
+        "schema_version": "ch3-strict-past-cpa-training-reuse-v1",
+        "rerun_id": config["run_id"],
+        "source_run_id": PREVIOUS_RUN_ID,
+        "source_status": previous_status,
+        "source_frozen_config_sha256": recovery["previous_frozen_config_sha256"],
+        "source_input_config_sha256": recovery["previous_input_config_sha256"],
+        "source_code_sha256": recovery["previous_code_sha256"],
+        "source_data_inventory_sha256": source_inventory["sha256"],
+        "cells": cell_receipts,
+        "scientific_contract_unchanged": True,
+        "training_reexecuted": False,
+        "target_year_arrays_read_before_source_gate": 0,
+    }
+    parent.atomic_json(output_root / "training-reuse-receipt.json", reuse_receipt)
+    return selections
 
 
 def model_specs(
@@ -470,14 +640,6 @@ def evaluate_source_gate(
             "positive_length_buckets_at_least_two": positive_buckets >= minimum_buckets,
         }
         criteria.update({f"{pair}__{name}": value for name, value in pair_criteria.items()})
-        candidate_x = curve_arrays[f"source__{candidate}__realized_fpr"]
-        candidate_dr = curve_arrays[f"source__{candidate}__detection_rate"]
-        baseline_x = curve_arrays[f"source__{baseline}__realized_fpr"]
-        baseline_dr = curve_arrays[f"source__{baseline}__detection_rate"]
-        if not np.array_equal(candidate_x, baseline_x):
-            raise RuntimeError(f"{pair} 完整预算曲线横轴不一致")
-        selected = candidate_x <= 0.08
-        difference = candidate_dr[selected] - baseline_dr[selected]
         comparisons[pair] = {
             "candidate": candidate,
             "baseline": baseline,
@@ -485,13 +647,21 @@ def evaluate_source_gate(
             "normalized_area_difference": branches[candidate]["normalized_area_0_8_fpr"] - branches[baseline]["normalized_area_0_8_fpr"],
             "flow_ap_difference": branches[candidate]["flow_average_precision"] - branches[baseline]["flow_average_precision"],
             "positive_length_buckets": positive_buckets,
-            "advantage_point_fraction_0_8_fpr": float((difference > 0).mean()),
-            "harmful_point_fraction_0_8_fpr": float((difference < 0).mean()),
+            "complete_curve_comparison": "independent_reachable_step_area_0_8_fpr",
+            "curve_axis_equality_required": False,
+            "interpolation_used": False,
+            "common_target_fpr_detection_rate_difference": {
+                f"fpr_{value:g}": (
+                    branches[candidate]["dr_at_fpr"][f"fpr_{value:g}"]
+                    - branches[baseline]["dr_at_fpr"][f"fpr_{value:g}"]
+                )
+                for value in config["evaluation"]["dr_fpr_grid"]
+            },
             "criteria": pair_criteria,
         }
     passed = all(criteria.values())
     result = {
-        "schema_version": "ch3-full-mlp-strict-past-cpa-source-gate-v1",
+        "schema_version": "ch3-full-mlp-strict-past-cpa-source-gate-v2",
         "branches": branches,
         "length_buckets": buckets,
         "comparisons": comparisons,
@@ -500,7 +670,8 @@ def evaluate_source_gate(
         "verdict": "source_gate_passed" if passed else "source_gate_rejected",
         "same_selection_and_source_description": True,
         "parent_cells_reused_read_only": ["B10", "O11"],
-        "new_cells_trained": ["S10", "S11"],
+        "previous_training_cells_reused_read_only": ["S10", "S11"],
+        "new_cells_trained": [],
         "target_year_arrays_read": 0,
     }
     return result, curve_arrays
@@ -511,6 +682,7 @@ def build_manifest(output_root: Path, run_id: str) -> None:
     names = (
         "config.json",
         "parent-artifact-receipt.json",
+        "training-reuse-receipt.json",
         "selection_frozen.json",
         "source-gate-results.json",
         "source-complete-alert-budget-curves.npz",
@@ -529,7 +701,7 @@ def build_manifest(output_root: Path, run_id: str) -> None:
     for cell in CELL_ORDER:
         relatives = (
             f"checkpoints/selected-{cell}.pt",
-            f"receipts/selection-{cell}.json",
+            f"receipts/reuse-selection-{cell}.json",
             f"receipts/target-evaluation-{cell}/receipt.json",
             f"receipts/target-evaluation-{cell}/complete-alert-budget-curve.npz",
         )
@@ -755,7 +927,20 @@ def run_experiment(config: dict[str, Any], args: argparse.Namespace, config_path
             raise RuntimeError("输出根已有不兼容冻结配置")
     else:
         parent.atomic_json(frozen_config_path, config)
-    parent.write_status(output_root, "running", "source-selection", None, "父制品核验通过，只加载 LSPR23 并训练 S10/S11")
+    parent.write_status(
+        output_root,
+        "running",
+        "source-selection",
+        None,
+        "父制品核验通过，只加载 LSPR23 并复用旧失败运行的 S10/S11 封印训练制品",
+    )
+    log("核验并复用旧失败运行的 S10/S11 封印训练制品，不重训")
+    reused_selections = reuse_previous_training(
+        config,
+        output_root,
+        run_identity,
+        source_inventory,
+    )
     selection_path = output_root / "selection_frozen.json"
     selections: dict[str, Any]
     if selection_path.is_file():
@@ -765,6 +950,8 @@ def run_experiment(config: dict[str, Any], args: argparse.Namespace, config_path
         if seal.get("identity") != run_identity or set(seal.get("cells", {})) != set(CELL_ORDER):
             raise RuntimeError("选择封印身份不符")
         selections = seal["cells"]
+        if selections != reused_selections:
+            raise RuntimeError("rerun1 选择封印与旧训练复用收据不一致")
         split_stats = seal["source_split"]
         source_gate = seal["source_gate"]
     else:
@@ -773,20 +960,7 @@ def run_experiment(config: dict[str, Any], args: argparse.Namespace, config_path
             raise RuntimeError("LSPR23 冻结缓存形状不符")
         train_rows, validation_rows, split_stats = parent.source_split(source, config)
         device = torch.device("cuda")
-        selections = {}
-        for cell in CELL_ORDER:
-            log(f"开始 {cell} 严格过去 CPA 协议 A 训练与选择")
-            selections[cell] = train_new_cell(
-                config,
-                cell,
-                output_root,
-                run_identity,
-                source,
-                train_rows,
-                validation_rows,
-                device,
-                args.resume,
-            )
+        selections = reused_selections
         source_gate, source_curves = evaluate_source_gate(
             config,
             output_root,
@@ -810,7 +984,14 @@ def run_experiment(config: dict[str, Any], args: argparse.Namespace, config_path
             "cells": selections,
             "parent": parent_receipt,
             "source_gate": source_gate,
+            "training_reuse": {
+                "source_run_id": PREVIOUS_RUN_ID,
+                "receipt": "training-reuse-receipt.json",
+                "training_reexecuted": False,
+            },
             "all_new_cells_sealed": True,
+            "new_training_cells": [],
+            "previous_training_cells_reused_read_only": list(CELL_ORDER),
             "all_parent_cells_verified": True,
             "target_arrays_loaded_before_seal": 0,
             "sealed_at_unix": time.time(),
@@ -830,13 +1011,20 @@ def run_experiment(config: dict[str, Any], args: argparse.Namespace, config_path
             "parent": parent_receipt,
             "source_selection": {"split": split_stats, "cells": selections},
             "source_gate": source_gate,
+            "training_reuse": {
+                "source_run_id": PREVIOUS_RUN_ID,
+                "receipt": "training-reuse-receipt.json",
+                "training_reexecuted": False,
+            },
             "target_year_arrays_read": 0,
             "target_evaluation_skipped": True,
             "verdict": "source_gate_rejected_target_not_loaded",
             "artifact_policy": {"per_flow_scores_persisted": False, "per_entity_scores_persisted": False},
             "resource": {
                 "parameter_count": config["candidate"]["parameter_count"],
-                "new_training_cells": 2,
+                "new_training_cells": 0,
+                "previous_training_cells_reused": 2,
+                "rerun_training_wall_seconds": 0.0,
                 "training_wall_seconds_sum": training_seconds,
                 "gpu_hours": training_seconds / 3600.0,
                 "peak_gpu_allocated_mib": max(float(selections[cell]["peak_gpu_allocated_mib"]) for cell in CELL_ORDER),
@@ -900,6 +1088,11 @@ def run_experiment(config: dict[str, Any], args: argparse.Namespace, config_path
         "parent": parent_receipt,
         "source_selection": {"split": split_stats, "cells": selections},
         "source_gate": source_gate,
+        "training_reuse": {
+            "source_run_id": PREVIOUS_RUN_ID,
+            "receipt": "training-reuse-receipt.json",
+            "training_reexecuted": False,
+        },
         "target_evaluation": target_evaluation,
         "target_comparisons_descriptive_only": comparisons,
         "isolation": {
@@ -912,13 +1105,16 @@ def run_experiment(config: dict[str, Any], args: argparse.Namespace, config_path
         "artifact_policy": {
             "per_flow_scores_persisted": False,
             "per_entity_scores_persisted": False,
-            "new_selected_checkpoints_persisted": 2,
+            "new_selected_checkpoints_persisted": 0,
+            "previous_selected_checkpoints_reused": 2,
             "parent_checkpoints_copied": False,
             "complete_alert_budget_curve": curve_receipt,
         },
         "resource": {
             "parameter_count": config["candidate"]["parameter_count"],
-            "new_training_cells": 2,
+            "new_training_cells": 0,
+            "previous_training_cells_reused": 2,
+            "rerun_training_wall_seconds": 0.0,
             "training_wall_seconds_sum": training_seconds,
             "evaluation_wall_seconds_sum": evaluation_seconds,
             "peak_gpu_allocated_mib": max(

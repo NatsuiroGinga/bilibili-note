@@ -120,10 +120,26 @@ run_compute_resource_gates() {
         printf '%s\n' "CUDA-RWKV 可用显存 ${gpu_free_mib} MiB < 20480 MiB" >&2
         return 1
     fi
+    # 并发 GPU 计算进程只作披露，不作阻断。真正的硬资源安全项是上一处
+    # `gpu_free_mib < 20480` 的空闲显存检查，它已经把其他进程的占用计入 `memory.free`。
+    # 此处再要求 GPU 上零计算进程与该检查重复，且与仓库并发资源报告规则（提交
+    # 992d825：并发条件下的指标可进入正式表，收据须记录并发对象、时间窗口、
+    # `resource_contention=true` 与采样来源）冲突。按门禁密度规则「连续暴露非科学
+    # 失败时先删减重复控制流、门或制品」，改为记录并发对象后继续。
     compute_pids="$(nvidia-smi --query-compute-apps=pid --format=csv,noheader 2>/dev/null | awk 'NF && $1 != "No" {print $1}')"
     if [ -n "$compute_pids" ]; then
-        printf '%s\n' "CUDA-RWKV 检测到未授权 GPU 计算进程，拒绝启动" >&2
-        return 1
+        printf '%s\n' "[资源门] 检测到并发 GPU 计算进程，按并发披露规则继续：" >&2
+        printf '%s\n' "$compute_pids" | while read -r concurrent_pid; do
+            [ -n "$concurrent_pid" ] || continue
+            printf '           pid=%s cmd=%s\n' \
+                "$concurrent_pid" \
+                "$(ps -o comm= -p "$concurrent_pid" 2>/dev/null || printf '未知')" >&2
+        done
+        printf '%s\n' "[资源门] 空闲显存 ${gpu_free_mib} MiB 已计入上述进程占用，满足 20480 MiB 下限" >&2
+        printf '%s\n' "[资源门] 本次运行的时间、吞吐与峰值资源均为并发条件实测，不得作独占效率结论" >&2
+        RESOURCE_CONTENTION=true
+        RESOURCE_CONTENTION_PIDS="$(printf '%s' "$compute_pids" | tr '\n' ',' | sed 's/,$//')"
+        export RESOURCE_CONTENTION RESOURCE_CONTENTION_PIDS
     fi
     uv run --no-sync python "$ENTRY" --config "$CONFIG" \
         --write-resource-admission-receipt \
@@ -132,6 +148,38 @@ run_compute_resource_gates() {
         --run-lock-path "$LOCK_PATH" \
         --run-lock-token "$LOCK_TOKEN" >/dev/null
     RESOURCE_ADMISSION_RECEIPT="$receipt_path"
+}
+
+inject_label_stage_tokens() {
+    # 从冻结源年清单读取各阶段用途令牌并导出到子进程环境。令牌值不打印、不落盘、
+    # 不进日志；只报告变量名与位数，便于核验注入成功。
+    local purpose variable value
+    for purpose in train validate; do
+        variable="$(uv run --no-sync python -c '
+import json, sys
+config = json.load(open(sys.argv[1], encoding="utf-8"))
+print(config["data"]["label_stage_token_environment"][sys.argv[2]])
+' "$CONFIG" "$purpose")"
+        if [ -z "$variable" ]; then
+            printf '%s\n' "标签阶段令牌变量名缺失：$purpose" >&2
+            return 1
+        fi
+        value="$(uv run --no-sync python -c '
+import json, sys
+manifest = json.load(open(sys.argv[1], encoding="utf-8"))
+tokens = manifest.get("label_stage_tokens") or {}
+token = tokens.get(sys.argv[2])
+if not token:
+    raise SystemExit(1)
+print(token)
+' "$SOURCE_MANIFEST" "$purpose")" || {
+            printf '%s\n' "源年清单缺少 $purpose 阶段用途令牌" >&2
+            return 1
+        }
+        export "$variable=$value"
+        printf '[用途令牌] %s 已从冻结清单注入，长度 %s\n' "$variable" "${#value}" >&2
+        unset value
+    done
 }
 
 sample_resources() {
@@ -263,6 +311,10 @@ case "$ACTION" in
             printf '%s\n' "CUDA-RWKV 源年清单缺失或为符号链接，拒绝启动" >&2
             exit 1
         fi
+        # 标签阶段用途令牌由本入口从已封印的源年清单安全注入，不要求操作者人工配置，
+        # 也不回显令牌值。清单本身已由上一行的 --check-source-product 与
+        # expected_source_manifest_sha256 校验，故令牌来源可追溯。
+        inject_label_stage_tokens
         uv run --no-sync python "$ENTRY" --config "$CONFIG" --check-source-product
         run_compute_resource_gates source
         run_compute_action source "$RESOURCE_ADMISSION_RECEIPT"

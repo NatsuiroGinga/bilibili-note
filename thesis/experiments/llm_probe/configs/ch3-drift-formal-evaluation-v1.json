@@ -1,0 +1,82 @@
+{
+  "config_kind": "evaluation",
+  "schema_version": "ch3_drift_formal_contract_v1",
+  "config_id": "ch3-drift-formal-evaluation-v1",
+  "contract_id": "ch3_drift_formal_contract_v1",
+  "data_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "input_root": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD",
+  "input_access": {
+    "mode": "direct_parquet_read_only",
+    "source_order": "input_role_order_then_row_first_occurrence",
+    "deduplicate_by": "exact_esld",
+    "derived_data_written": false
+  },
+  "input_roles": [
+    {"role": "T17_benign_train", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_train.parquet", "year": 17, "class": "benign", "split": "train", "scope": "source"},
+    {"role": "T17_benign_test", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_test.parquet", "year": 17, "class": "benign", "split": "test", "scope": "source"},
+    {"role": "T17_benign_val", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_val.parquet", "year": 17, "class": "benign", "split": "val", "scope": "source"},
+    {"role": "T17_dga_train", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_train.parquet", "year": 17, "class": "dga", "split": "train", "scope": "source"},
+    {"role": "T17_dga_test", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_test.parquet", "year": 17, "class": "dga", "split": "test", "scope": "source"},
+    {"role": "T17_dga_val", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_val.parquet", "year": 17, "class": "dga", "split": "val", "scope": "source"},
+    {"role": "T18_benign_train", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_benign_train.parquet", "year": 18, "class": "benign", "split": "train", "scope": "source"},
+    {"role": "T18_benign_test", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_benign_test.parquet", "year": 18, "class": "benign", "split": "test", "scope": "source"},
+    {"role": "T18_benign_val", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_benign_val.parquet", "year": 18, "class": "benign", "split": "val", "scope": "source"},
+    {"role": "T18_dga_train", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_train.parquet", "year": 18, "class": "dga", "split": "train", "scope": "source"},
+    {"role": "T18_dga_test", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_test.parquet", "year": 18, "class": "dga", "split": "test", "scope": "source"},
+    {"role": "T18_dga_val", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_val.parquet", "year": 18, "class": "dga", "split": "val", "scope": "source"},
+    {"role": "T19_benign_train", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_benign_train.parquet", "year": 19, "class": "benign", "split": "train", "scope": "source"},
+    {"role": "T19_benign_test", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_benign_test.parquet", "year": 19, "class": "benign", "split": "test", "scope": "source"},
+    {"role": "T19_benign_val", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_benign_val.parquet", "year": 19, "class": "benign", "split": "val", "scope": "source"},
+    {"role": "T19_dga_train", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_train.parquet", "year": 19, "class": "dga", "split": "train", "scope": "source"},
+    {"role": "T19_dga_test", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_test.parquet", "year": 19, "class": "dga", "split": "test", "scope": "source"},
+    {"role": "T19_dga_val", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_val.parquet", "year": 19, "class": "dga", "split": "val", "scope": "source"},
+    {"role": "T20_benign", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T20_benign.parquet", "year": 20, "class": "benign", "split": "target", "scope": "target"},
+    {"role": "T20_dga", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T20_dga.parquet", "year": 20, "class": "dga", "split": "target", "scope": "target"},
+    {"role": "T21_benign", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T21_benign.parquet", "year": 21, "class": "benign", "split": "target", "scope": "target"},
+    {"role": "T21_dga", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T21_dga.parquet", "year": 21, "class": "dga", "split": "target", "scope": "target"},
+    {"role": "T22_benign", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T22_benign.parquet", "year": 22, "class": "benign", "split": "target", "scope": "target"},
+    {"role": "T22_dga", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T22_dga.parquet", "year": 22, "class": "dga", "split": "target", "scope": "target"},
+    {"role": "T23_benign", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T23_benign.parquet", "year": 23, "class": "benign", "split": "target", "scope": "target"},
+    {"role": "T23_dga", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T23_dga.parquet", "year": 23, "class": "dga", "split": "target", "scope": "target"},
+    {"role": "T24_benign", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T24_benign.parquet", "year": 24, "class": "benign", "split": "target", "scope": "target"},
+    {"role": "T24_dga", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T24_dga.parquet", "year": 24, "class": "dga", "split": "target", "scope": "target"},
+    {"role": "T25_benign", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T25_benign.parquet", "year": 25, "class": "benign", "split": "target", "scope": "target"},
+    {"role": "T25_dga", "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T25_dga.parquet", "year": 25, "class": "dga", "split": "target", "scope": "target"}
+  ],
+  "approved_panels": ["target_official_annual_v1", "source_validation_benign_v1"],
+  "panels": [
+    {"panel_id": "target_official_annual_v1", "scope": "target", "formal": true, "years": [20, 21, 22, 23, 24, 25], "classes": ["benign", "dga"], "selection": {"method": "fixed_hash", "max_entities_per_year_class": 200000}, "qualification_receipt": null},
+    {"panel_id": "source_validation_benign_v1", "scope": "source", "formal": true, "years": [17, 18, 19], "classes": ["benign"], "selection": {"method": "all_unique_exact_esld"}, "qualification_receipt": null},
+    {"panel_id": "target_new_entity_annual_v1", "scope": "target", "formal": false, "years": [20, 21, 22, 23, 24, 25], "classes": ["benign", "dga"], "selection": {"method": "qualification_receipt_driven"}, "qualification_receipt": null}
+  ],
+  "member_identity": {
+    "namespace": "ch3-drift-members-v1",
+    "encoding": "utf8_length_prefix_u64_be",
+    "selection": {"deduplicate_by": "exact_esld", "sort_by": "member_hash_ascending", "take": "min(200000, unique_count)"},
+    "max_entities_per_year_class": 200000
+  },
+  "attacks": {
+    "namespace": "ch3-drift-shared-edit-v1",
+    "algorithm_version": "shared_prefix_edit_v1",
+    "alphabet": "abcdefghijklmnopqrstuvwxyz0123456789-",
+    "tiers": [
+      {"attack_tier": "k=1", "requested_budget": "min(1, L)"},
+      {"attack_tier": "k=2", "requested_budget": "min(2, L)"},
+      {"attack_tier": "random_half", "requested_budget": "min(max(1, floor(L/2)), L)"}
+    ]
+  },
+  "thresholds": {
+    "source_panel": "source_validation_benign_v1",
+    "workpoints": [{"name": "tau_0p1", "alpha": 0.001}, {"name": "tau_1p0", "alpha": 0.01}],
+    "decision_rule": "score >= threshold",
+    "tie_group_policy": "whole_equal_score_groups"
+  },
+  "result_contract": {
+    "clean_metrics": ["accuracy", "precision", "recall", "f1", "ap", "roc_auc", "fpr", "fnr", "tpr"],
+    "pure_dga_metrics": ["fnr", "tpr", "count", "clopper_pearson_95"],
+    "threshold_semantics": ["source_frozen", "target_informed_oracle_separate"],
+    "t25_required": true
+  },
+  "allowed_modes": ["audit", "run", "resume", "summarize"],
+  "forbidden_keys": ["member_seed", "krand", "maskdga", "target_limit", "threshold_override"]
+}

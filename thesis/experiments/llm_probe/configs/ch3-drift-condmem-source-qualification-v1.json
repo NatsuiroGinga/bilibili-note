@@ -1,0 +1,149 @@
+{
+  "schema_version": "ch3-drift-condmem-source-qualification-v1",
+  "run_identity": "ch3-drift-condmem-source-qualification-v1",
+  "approved_scope": "t17_t18_t19_source_qualification_only",
+  "screening_only": true,
+  "seed": 42,
+  "dataset_revision": "3b31077020cd1c013d0a75cad51042a2327c4521",
+  "data_root": "runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521",
+  "fit_inputs": [
+    {
+      "year": "T17",
+      "role": "fit",
+      "label": 0,
+      "path": "DRIFT_input_eSLD/T17_benign_train.parquet",
+      "rows": 1500000,
+      "sha256": "7f12eec987d900e12e4a04b7f130cc68316f39dbd05b7e4a20ed524697bc0b5f"
+    },
+    {
+      "year": "T17",
+      "role": "fit",
+      "label": 1,
+      "path": "DRIFT_input_eSLD/T17_dga_train.parquet",
+      "rows": 1500000,
+      "sha256": "e41a357fbcccd26ba5b853b0af0ce6c7b233256a4cc4bad969de2514aa6aa22d"
+    }
+  ],
+  "validation_inputs": [
+    {
+      "year": "T17",
+      "role": "same_year_validation",
+      "label": 0,
+      "path": "DRIFT_input_eSLD/T17_benign_val.parquet",
+      "rows": 150000,
+      "sha256": "b6e0ec6b16da3b7b3efe4c1fee4718807e3336ced458109d0cf05cd05d96f60d"
+    },
+    {
+      "year": "T17",
+      "role": "same_year_validation",
+      "label": 1,
+      "path": "DRIFT_input_eSLD/T17_dga_val.parquet",
+      "rows": 150000,
+      "sha256": "dfd47b8e99837c0567b4da81595a55fe12aa0a452372694e552656454a14a0a4"
+    },
+    {
+      "year": "T18",
+      "role": "source_forward_development",
+      "label": 0,
+      "path": "DRIFT_input_eSLD/T18_benign_val.parquet",
+      "rows": 150000,
+      "sha256": "64968611d7aa4f65e7ac356b339e293185a00e40172b4e996bb29afcb2176cf5"
+    },
+    {
+      "year": "T18",
+      "role": "source_forward_development",
+      "label": 1,
+      "path": "DRIFT_input_eSLD/T18_dga_val.parquet",
+      "rows": 150000,
+      "sha256": "2da2aa4e80335a8b1ef569fde4540547aac08845f68aae99218a802205780b12"
+    },
+    {
+      "year": "T19",
+      "role": "source_frozen_confirmation",
+      "label": 0,
+      "path": "DRIFT_input_eSLD/T19_benign_val.parquet",
+      "rows": 150000,
+      "sha256": "8ac4e9aec621bbe88fe3f62b5fa27ce9ed313f80cbc9e742ff7a1c291b12a1b5"
+    },
+    {
+      "year": "T19",
+      "role": "source_frozen_confirmation",
+      "label": 1,
+      "path": "DRIFT_input_eSLD/T19_dga_val.parquet",
+      "rows": 150000,
+      "sha256": "b6fe2d99bf71e4701d0e08d5a54d468ffb04c89019477f496e87c84cf25be764"
+    }
+  ],
+  "raw_family_inputs": [
+    {
+      "year": "T17",
+      "path": "raw_including_TLD/T17_dga.parquet",
+      "rows": 16981076,
+      "sha256": "f8b46e0ac9db0215679f922b4e1669e8955eba5569eb0992973324a7d5f3b69e"
+    },
+    {
+      "year": "T18",
+      "path": "raw_including_TLD/T18_dga.parquet",
+      "rows": 17956820,
+      "sha256": "846651837709ac942f0a8280cff69a736945be1b9694ce7b2a8c850a679684c3"
+    },
+    {
+      "year": "T19",
+      "path": "raw_including_TLD/T19_dga.parquet",
+      "rows": 20035646,
+      "sha256": "f089cdc1e80cf5c133e6e02d74bd34b810244c49bdbbe0ea4b3e44a47bf2fd1b"
+    }
+  ],
+  "p0": {
+    "root": "runs/diagnostics/ch3-drift-n10-conservative-fusion-pilot-batch1024-v2/p0_c00",
+    "checkpoint": "checkpoint.pt",
+    "checkpoint_sha256": "45abd75581a711c1907855bf9a3311ed4bfef459d2c690675574b750b576d86d",
+    "tokenizer": "tokenizer.json",
+    "tokenizer_sha256": "fd80b543592c667c701cec0a86e2ff07108f5db30dfcb7ded7e5071e28192522",
+    "effective_config": "effective-config.json",
+    "effective_config_sha256": "33e7ab8c47a2e256f6ff42271f29810d0fdb85d7b68be59b2bcd385185a470d1",
+    "result": "result.json",
+    "result_sha256": "f3c2c03e8fb7209493952e1ae1b4d05ec845d57a18d36414ea1b5be51cb9aca7",
+    "status": "status.json",
+    "status_sha256": "8dd422b61837b2ada86bd7b988812bdc0d42773c87f80de14ab891ca9497a83d",
+    "source_code": "tools/ch3_drift_n10_conservative_fusion_pilot.py",
+    "source_code_sha256": "92056fd37cb9c195d1952b59280101d8c1b9f0a622453ec9c929d378f9c85674"
+  },
+  "keys": {
+    "char_orders": [1, 2, 3],
+    "wordpiece_orders": [1],
+    "jeffreys_pseudocount": 0.5,
+    "exclude": ["full_esld_hash", "raw_domain", "tld", "family", "year", "row_index"]
+  },
+  "analysis": {
+    "confidence_z": 1.96,
+    "rank_transform": "t17_empirical_midrank",
+    "logistic_regression": {
+      "penalty": null,
+      "solver": "lbfgs",
+      "max_iter": 100,
+      "tol": 0.0001
+    },
+    "required_future_years": ["T18", "T19"],
+    "required_labels": [0, 1]
+  },
+  "runtime": {
+    "prediction_batch_size": 1024,
+    "parquet_batch_rows": 32768,
+    "progress_rows": 100000,
+    "cuda_bf16_autocast": false,
+    "resource_contention": false
+  },
+  "numeric_basis": {
+    "seed": "复用 T17-only P0 的冻结种子 42；负控偏移由配置哈希派生",
+    "char_orders": "字符一元用于 DeepEmbed 近邻，二/三元来自 Engram 条件记忆来源家族",
+    "wordpiece_orders": "DeepEmbed 只诊断直接 WordPiece token，不新增未来年选择的高阶组合",
+    "jeffreys_pseudocount": "Bernoulli 参数 Jeffreys 平滑 1/2，避免零计数无穷对数",
+    "confidence_z": "标准正态双侧 95% 区间分位 1.96，仅量化固定预测集样本不确定性",
+    "logistic_regression": "scikit-learn 无惩罚 lbfgs；max_iter 与 tol 使用库默认工程收敛设置，触顶即结果无效",
+    "prediction_batch_size": "复用 P0 的冻结 batch 1024 与既有资源收据",
+    "parquet_batch_rows": "复用 P0 的 32768 条原子 I/O 粒度",
+    "progress_rows": "仅控制日志频率，不改变科学计算"
+  },
+  "interpretation_boundary": "仅为 R02/R07 条件记忆轴的 T17-T19 源期资格诊断；不是训练效果、正式强 C00 或未来年份结论。"
+}
