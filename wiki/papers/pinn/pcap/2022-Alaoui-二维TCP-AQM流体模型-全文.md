@@ -1,0 +1,702 @@
+---
+title: "2022-Alaoui-二维TCP-AQM流体模型"
+date: 2026-09-03
+tags:
+  - 类型/全文转换
+  - "pinn"
+source_pdf: "raw/papers/pinn/pcap/2022-Alaoui-二维TCP-AQM流体模型.pdf"
+---
+
+> 本文件由 `tools/pdf_to_fulltext.sh`（`mineru-open-api extract`）机械批量转换生成，用于全文检索与细节复查；不是 `SCHEMA.md`「类型/论文」要求的结构化理解笔记（无背景/方法核心/我的理解等分节）。原件中的图片按 `wiki/AGENTS.md` 的规定未落库（不保存 PDF 转换中间文件），正文中的图片引用链接可能失效。
+
+# A two dimensional fluid model for TCP/AQM analysis <sup>?</sup>
+
+BELAMFEDEL ALAOUI, Sadek <sup>∗</sup> ROJAS, Alejandro J. <sup>∗∗</sup> HMAMED, Abdelaziz <sup>∗∗∗</sup> TISSIR El Houssaine
+
+Laboratory of Informatic, Signals, Automatic and Cognitivism,
+
+Faculty of sciences Dhar el mehraz University Sidi Mohamed Ben Abdellah (e-mails: sadek.belamfedelalaoui, elhoussaine.tissir
+
+(at)usmba.ac.ma).
+
+<sup>∗∗</sup> Departamento de Ingenieria Electrica, Universidad de Concepcion, Concepcion, Chile
+
+∗∗∗ Campus de l’universit´e priv´ee de F\`es (hmamed(at)upf.ac.ma)
+
+Abstract: This work proposes a new mathematical model for the TCP/AQM system that aims to improve the accuracy of existing fluid models, especially with respect to the sequential events that occur in the network. The analysis is based on the consideration of two time bases, one at the queue’s router level and the other at the congestion window level, which leads to the derivation of a new nonlinear two-dimensional fluid model for Internet congestion control. To avoid the dificult task of assessing stability of a 2D nonlinear dynamic model, we perform a loca stability analysis of a 2D linear TCP AQM model. By constructing a new two dimensional second order Bessel Legendre Lyapunov functional, new matrix inequalities are derived to evaluate the stability of the 0-input system and to synthesize a feedback controller. Finally, two Internet trafic scenarios, with state space matrices for replicability, are presented, demonstrating the validity of the theoretical results.
+
+Keywords: Active queue management, network assisted congestion control, TCP/AQM, 2D time delay systems, Roesser model, 2D second order bessel Legendre, Lyapunov.
+
+## 1. INTRODUCTION:
+
+Active Queue Management (AQM) addresses the buferbloat issue Staf (2012). This algorithm actively interacts with congestion control algorithms, in particular the Transmission Control Protocol (TCP) but also for any other transport protocol, to send higher amounts of data through the network. The bufer space available in routers and switches should meet the short-term bufering requirements. AQM schemes aim to reduce bufer occupancy and, as a result, end-to-end delay, see the Controlled Delay (CoDel) scheme Nichols and Jacobson (2012) and the Proportional Integral controller Enhanced (PIE) scheme Pan et al. (2013).
+
+There are several mathematical models for TCP/AQM fluid dynamics: Mathis et al. (1997); Kelly et al. (1998); Low (2003); Misra et al. (2000); Xu et al. (2015). The model proposed in Mathis et al. (1997) introduces significant inaccuracies due to many simplifications. The models proposed in Kelly et al. (1998) and Low (2003) are not scalable. The MGT model proposed in Misra et al. (2000) and its simplified version Hollot et al. (2001), are the most used models for AQM synthesis. It was shown in Xu et al. (2015), that the MGT model does not describe the behavior of the TCP/AQM loop in various network scenarios. The article Xu et al. (2015) proposed a model that takes into account diferent network scenarios. Several extensions and improvements of the model of Xu et al. (2015) have been developed in the literature, among which are, Belamfedel Alaoui et al. (2018) for multibottleneck topologies with successive delays and Belamfedel Alaoui et al. (2019, 2021) that model the efect of a denial of service attack over a network.
+
+Motivation: This work is mainly motivated by the challenges arising in the design of eficient active queue management (AQM) schemes. There have been many results in the past few years on the synthesis of AQMs rendering the TCP/AQM closed-loop system stable and performing, see for instance Belamfedel Alaoui et al. (2019, 2020); Kar et al. (2022), and references therein. All previous approaches explored in the literature have considered the TCP/AQM system from a one-dimensional time base, Misra et al. (2000); Xu et al. (2015); Belamfedel Alaoui et al. (2018); Vardoyan et al. (2018); Doma´nski et al. (2020); Jing and Chen (2022), which is limited since it does not respect the temporal sequential events that occur in the network.
+
+To overcome this limitation, we introduce a novel accurate two-dimensional (2D) fluid model for TCP/AQM analysis. The model is designed from two temporal basis points of view, one at the router level and the other at the server level. From an accurate temporal sequence of data transfer (see Fig. 1), we derive two dimensional diferential equations. The resultant framework ofers opportunities to analyze the stability of a diverse set of controllers that could be linear or nonlinear in one or two dimensional spaces. First, we show that the new model is more general and can be reduced to the one dimensional model in Xu et al. (2015). We then analyze the proposed 2D fluid model and find the system’s unique equilibrium point, for which we deduce a linear approximation of the model using the first order Taylor expansion around it. Since all the resultant partial derivatives that comprise the linear process are continuous Lipschitz functions, the linear process’s stability analysis implies the nonlinear process’s local stability Gu et al. (2003). At this stage, we construct for the first time a two dimensional second order Bessel Legendre Lyapunov functional. This latter permits to derive first a less conservative LMI condition for stability assessment of 2D time delay systems, and second a result for feedback gain synthesis. Finally, some simulations using MATLAB shows that the feedback controller achieves a stabilisation to the solution of the 2D system.
+
+![](images/012d3468e0c18a2accfa77797f25360e0e1d6a04d574d2ea30ff37532308148b.jpg)  
+Fig. 1. Sequential events of data transfer in Internet
+
+Notation : Over this paper, $W ( t ) \in \left[ 0 , \bar { W } \right]$ is the average congestion window size in packets, $\dot { \tau } ( t ) \dot { = } q ( t ) / C ( t ) +$ $T p$ is the round trip time RTT and $p ( t ) \in [ 0 , 1 ]$ is the probability of dropping/marking packets. $q \in \bigl [ 0 , Q _ { m a x } \bigr ] .$ C and $T _ { p }$ denote the queue length (packet), link capacity (packet/s) and propagation delay (s), respectively. λ is the window distribution parameter. It is a function of $N$ and the congestion window (cwnd) and it satisfies $1 \leq \lambda \leq N$ . For large N, the extreme cases of $\lambda = 1$ and $\lambda = N$ are very rare, Xu et al. (2015). ssthresh denotes the Slow Start Threshold. ECN for Explicit Congestion Notification. $Z ~ \in ~ \mathbb { S } ^ { n }$ means that the matrix Z is a symmetric matrix with size $n \times n . \mathbb { R } ^ { n }$ denotes the ndimensional Euclidean space. The notations R<sup>n×m</sup> and $\mathbf { S } ^ { n }$ are the set of $n \times m$ real matrices and of $n \times r$ n real symmetric matrices, respectively. The notation $P \in \mathbb { S } _ { + } ^ { n } .$ means that $P \in \mathbb { S } ^ { n }$ and $P > 0 ,$ , which means that P is symmetric positive definite. The symmetric elements of a symmetric matrix will be denoted by ∗. For any matrices ${ \check { X } } , Y$ of appropriate dimension, the matrix diag(X, Y) stands for $\left\lceil \begin{array} { c c } { { X } } & { { 0 } } \\ { { 0 } } & { { Y } } \end{array} \right\rceil$ . The matrices $I _ { n }$ and $0 _ { n , m }$ represent the identity and null matrices of appropriate dimension and, when no confusion the subscript will be omitted. Moreover, for any square matrix $Z ,$ we define $H e ( Z ) = Z +$ $Z ^ { T } . x _ { t } ( r )$ and ${ \dot { x } } _ { t }$ denote x(t + r) and ${ \dot { x } } ( t + r )$ , respectively.
+
+## 2. TWO DIMENSIONAL FLUID MODEL FOR TCP/AQM ANALYSIS
+
+In Internet, routers must be able to bufer packets. Unfortunately, there is no guarantee that bufers are only used for bufer transients. In particular, TCP congestion control increases the amount of data on the network each round trip in order to maintain high link utilization, but once the path from source to destination is full, excess packets are queued at the upstream end of the slowest link in the path . Since today’s node interfaces can bufer hundreds or thousands of packets, long-lived connections can create many seconds of unnecessary delay. AQM within routers in Internet aims at reducing the queueing delay while maximizing the transmission rate of TCP sources. AQM describes methods for sending proactive feedback to TCP flow sources in order to regulate their throughput by dropping or marking packets.
+
+## 2.1 Limitation of the one dimensional model
+
+The main limitation behind the one dimensional TCP AQM model is that when TCP approximates the Quality of Service (QoS) of Internet it uses its own temporal basis. On the other hand, when the AQM acts on the queue it acts on another temporal basis which is diferent from the temporal basis of TCP. To precisely explain this understanding, let us consider the one-dimensional dynamic equation of TCP in Xu et al. (2015), scenario $\mathrm { A }$
+
+$$
+\dot {W} (t) = \frac {W (t - \tau)}{\tau (t - \tau)} (1 - p (t - \tau)) - \lambda \frac {W (t) W (t - \tau)}{2 N \tau (t - \tau)} p (t - \tau).\tag{1}
+$$
+
+Details on the name of each variable are given in the notation paragraph. Considering a single time base, the quantity $W ( t - \tau )$ , where t represents the time base at the TCP source, denotes the value of the congestion window, at the time the packets are sent $t - \tau ,$ , before the round trip time. The signal $p ( t - \tau )$ represents the associated probability of regulating the congestion window at time $t - \tau .$ . The problem here is that the packets have just been sent and so this drop or mark probability cannot be applied to packets sent at time $t - \tau$ . We emphasize here that this limitation refers not only to the Xu et al. (2015) model but also to other models in the literature, Misra et al. (2000); Belamfedel Alaoui et al. (2018); Vardoyan et al. (2018); Doma´nski et al. (2020); Jing and Chen (2022).
+
+## 2.2 Congestion window in two dimensional space
+
+Our approach to the TCP/AQM system overcome this problem in the modelling and consider two temporal basis. One at the TCP edge denoted $t _ { 1 }$ (called horizontal dimension), which is used to reflect the dynamic motion of TCP seen from the TCP temporal basis. The second at the router denoted $t _ { 2 }$ (called vertical dimension), which is used to reflect the dynamic motion of TCP seen from the router temporal basis. Since we have two time references $t _ { 1 }$ and $t _ { 2 } ,$ , the dynamic motion of the congestion window function is modelled on both temporal dimensions. Here, we define the following signals,
+
+$W ^ { h } ( t _ { 1 } , t _ { 2 } )$ : The efective released average congestion window (the real congestion window known by the TCP source) at the horizontal time $t _ { 1 }$ that will be subjected to drop/mark at the vertical time $t _ { 2 }$
+
+$W ^ { v } ( t _ { 1 } , t _ { 2 } )$ : The average congestion window measured on the queue side by the rate mismatch at time $t _ { 2 }$ corresponding to the efective average congestion window $\bar { W } ^ { h } ( t _ { 1 } , t _ { 2 } )$ released at time $t _ { 1 }$
+
+$p ^ { h } ( t _ { 1 } , t _ { 2 } )$ : the probability that, on the part of the TCP, has abandoned or marked its efective average congestion window $W ^ { h } ( t _ { 1 } , t _ { 2 } )$
+
+$p ^ { v } ( t _ { 1 } , t _ { 2 } )$ : The efective drop/mark probability at time $t _ { 2 }$ corresponding to the flow released at the horizontal time t .
+
+$q ^ { h } ( t _ { 1 } , t _ { 2 } )$ : The queue length obtained from the arrival $\ddot { \mathrm { H o w } } W ^ { \dot { h } } ( t _ { 1 } , t _ { 2 } )$
+
+$q ^ { v } ( t _ { 1 } , t _ { 2 } ) \colon$ : The efective queue length obtained from the arrival flow $W ^ { v } ( t _ { 1 } , t _ { 2 } )$
+
+Fig. 1 illustrates the TCP/AQM system cycle and indicates the temporal evolution with respect to the two temporal dimensions.
+
+Motion of the cwnd in the horizontal dimension: It is first worth noticing that the model in Xu et al. (2015) takes into account the three 3 modes of TCP,
+
+Slow Start: The Slow start gradually increases the amount of data transmitted until it finds the network’s maximum carrying capacity. Based on this value, it determines a certain threshold called Slow Start Threshold (ssthresh). After this mode, TCP switches to Congestion Avoidance mode.
+
+Congestion avoidance: This mode difers from a TCP variant to another. For the new reno variant considered in this paper, TCP follows the additive increase multiplicative decrease algorithm.
+
+Fast recovery: When an acknowledgment (ACK) is duplicated, rather than reverting to Slow Start mode (and after going through fast retransmit mode), TCP resend the lost segment and wait for an ACK for the entire previously transmitted window before returning to Congestion Avoidance mode.
+
+To derive the dynamic motion of TCP on horizontal dimension, we must place ourselves on the time axis of TCP at the time TCP updates its cwnd. On the horizontal time $t _ { 1 }$ the cwnd $W ^ { h } ( t _ { 1 } , t _ { 2 } )$ is updated based on the cwnd at $( t _ { 1 } - \tau _ { 1 } ( t _ { 1 } ) , t _ { 2 } )$ and the drop mark action performed at $( t _ { 1 } , t _ { 2 } - \tau _ { 2 } )$
+
+Scenario A: All the TCP sessions $W ^ { h } ( t _ { 1 } , t _ { 2 } ) <$ ssthresh, so they are either in slow start, or in fast recovery.
+
+$$
+\begin{array}{l} \frac {\partial W ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} = \frac {W ^ {h} (t _ {1} - \tau_ {1} , t _ {2})}{\tau_ {1} (t _ {1} - \tau_ {1})} (1 - p ^ {v} (t _ {1}, t _ {2} - \tau_ {2})) \\ \qquad - \lambda \frac {W ^ {h} (t _ {1} , t _ {2}) W ^ {h} (t _ {1} - \tau_ {1} , t _ {2})}{2 N \tau_ {1} (t _ {1} - \tau_ {1})} p ^ {v} (t _ {1}, t _ {2} - \tau_ {2}), \end{array}\tag{2}
+$$
+
+Scenario B: All the TCP sessions $W ^ { h } ( t _ { 1 } , t _ { 2 } ) \geq s s t h r e s h .$ so they are either in congestion avoidance, or in fast recovery.
+
+$$
+\begin{array}{l} \frac {\partial W ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} = \frac {N W ^ {h} (t _ {1} - \tau_ {1} , t _ {2})}{\tau_ {1} (t _ {1} - \tau_ {1}) W ^ {h} (t _ {1} , t _ {2})} (1 - p ^ {v} (t _ {1}, t _ {2} - \tau_ {2})) \\ \qquad - \lambda \frac {W ^ {h} (t _ {1} , t _ {2}) W ^ {h} (t _ {1} - \tau_ {1} , t _ {2})}{2 N \tau_ {1} (t _ {1} - \tau_ {1})} p ^ {v} (t _ {1}, t _ {2} - \tau_ {2}), \end{array}\tag{3}
+$$
+
+Motion of the cwnd in the vertical dimension: To derive the dynamic motion of TCP on vertical dimension, we must place ourselves on the AQM temporal basis at the time the AQM performs its action.
+
+Scenario A: All the TCP sessions $W ^ { h } ( t _ { 1 } , t _ { 2 } ) <$ ssthresh, so they are either in slow start, or in fast recovery.
+
+$$
+\begin{array}{r} \frac {\partial W ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} = \frac {W ^ {h} (t _ {1} , t _ {2})}{\tau_ {2}} (1 - p ^ {v} (t _ {1}, t _ {2}) \\ - \lambda \frac {(W ^ {h} (t _ {1} , t _ {2})) ^ {2}}{2 N \tau_ {2}} p ^ {v} (t _ {1}, t _ {2}), \end{array}\tag{4}
+$$
+
+Scenario B: All the TCP sessions $W ^ { h } ( t _ { 1 } , t _ { 2 } ) \geq$ ssthresh, so they are either in congestion avoidance, or in fast recovery.
+
+$$
+\begin{array}{c} \frac {\partial W ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} = \frac {N W ^ {h} (t _ {1} , t _ {2})}{\tau_ {2}} (1 - p ^ {v} (t _ {1}, t _ {2})) \\ - \lambda \frac {(W ^ {h} (t _ {1} , t _ {2})) ^ {2}}{2 N \tau_ {2}} p ^ {v} (t _ {1}, t _ {2}). \end{array}\tag{5}
+$$
+
+Remark 1. Note that if we set $t = t _ { 1 } - \tau = t _ { 2 } + \tau$ , where τ is the round trip time in the 1D model and satisfies the relation $\begin{array} { r } { \tau = \frac { \tau _ { 1 } + \tau _ { 2 } ^ { * } } { 2 } } \end{array}$ , we recover the 1D system.
+
+## 2.3 Queue dynamic in two dimensional space
+
+The queue dynamic relays on the motion of the arrival flow and on the kind of action taken by the AQM (drop or mark). Thus, we provide dynamical equations for each dimension and we separate the cases where ECN is ON or OFF.
+
+Case 1: ECN ON,
+
+$$
+\frac {\partial q ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} = \frac {N}{\tau_ {1} (t _ {1})} W ^ {h} (t _ {1}, t _ {2}) - C,\tag{6}
+$$
+
+$$
+\frac {\partial q ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} = \frac {N}{\tau_ {1} (t _ {1})} W ^ {v} (t _ {1}, t _ {2}) - C.\tag{7}
+$$
+
+Case 2: ECN OFF,
+
+$$
+\frac {\partial q ^ {h} \left(t _ {1} , t _ {2}\right)}{\partial t _ {1}} = \frac {N}{\tau_ {1}} W ^ {h} (t _ {1}, t _ {2}) (1 - p ^ {v} (t _ {1}, t _ {2} - \tau_ {2}) - C,\tag{8}
+$$
+
+$$
+\frac {\partial q ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} = \frac {N}{\tau_ {2}} W ^ {v} (t _ {1}, t _ {2}) (1 - p ^ {v} (t _ {1}, t _ {2})) - C.\tag{9}
+$$
+
+Remark 2. The idea of modelling the TCP/AQM model in two-dimensional space can be generalized to establish accurate models for interconnected systems, where each subsystem has its own time base and the overall system can be described by means of each dimension.
+
+Remark 3. To perform a stability analysis of the 2D TCP AQM system, we need to solve the 2D diferential equations (2)–(5). Since analyzing stability of these nonlinear 2D diferential equations is a dificult, if not impossible, task (see the paper Li and Peng (2022) for uniform stability of 1D nonlinear TCP/AQM model), we are interested in performing a local stability analysis. In this perspective, we look for a tangent system around the equilibrium state. This tangent system, obtained by the first order Taylor expansion, approaches the nonlinear solution under a closed set of initial conditions around the equilibrium point.
+
+## 2.4 Steady state
+
+The 2D nonlinear dynamic model of the TCP/AQM system, (2)–(9), undergoes approximate linearization around the steady state $( \hat { W } ^ { h } , \hat { W } ^ { v } , \hat { p } , \hat { q } ^ { h } , \hat { q } ^ { v } )$ . The steady state is obtained by solving the equations $\begin{array} { r l r } { \frac { \partial W ^ { h } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 1 } } } & { = } & { 0 } \end{array}$ $\begin{array} { r } { \frac { \partial W ^ { v } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 2 } } = 0 , \frac { \partial q ^ { h } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 1 } } } \end{array}$ = 0 and $\begin{array} { r } { \frac { \partial q ^ { v } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 2 } } = 0 } \end{array}$ . We obtain,
+
+ECN ON
+
+$$
+\begin{array}{l} \hat {p} ^ {v} = \left\{ \begin{array}{l l} S c e n a r i o A & \frac {2 N}{2 N + \lambda \hat {W} ^ {h}} \\ S c e n a r i o B & \frac {2 N ^ {2}}{2 N ^ {2} + \lambda (\hat {W} ^ {h}) ^ {2}} \end{array} \right., \\ \hat {W} ^ {h} = \hat {\tau} _ {1} \hat {C}, \quad w i t h \quad \hat {\tau} _ {1} = \frac {\hat {q} ^ {h}}{\hat {C}} + T _ {p} \\ \hat {W} ^ {v} = \hat {\tau} _ {2} \hat {C}, \quad \hat {\tau} _ {2} = \frac {\hat {q} ^ {v}}{\hat {C}} + T _ {p} \end{array}
+$$
+
+ECN OFF
+
+$$
+\hat {p} ^ {v} = \left\{ \begin{array}{l l} S c e n a r i o A & \frac {2 N}{2 N + \lambda \hat {W} ^ {h}} \\ S c e n a r i o B & \frac {2 N ^ {2}}{2 N ^ {2} + \lambda (\hat {W} ^ {h}) ^ {2}} \end{array} \right.,
+$$
+
+$$
+\begin{array}{l} \hat {W} ^ {h} = \frac {\hat {\tau} _ {1} \hat {C}}{1 - \hat {p} ^ {v}}, \\ \hat {W} ^ {v} = \frac {\hat {\tau} _ {2} \hat {C}}{1 - \hat {p} ^ {v}}, \end{array} \text {with} \begin{array}{l} \hat {\tau} _ {1} = \frac {\hat {q} ^ {h}}{\hat {C}} + T _ {p} \\ \hat {\tau} _ {2} = \frac {\hat {q} ^ {v}}{\hat {C}} + T _ {p} \end{array} .
+$$
+
+It is worth noted that in steady state $p ^ { h } = p ^ { v }$
+
+## 2.5 Approximately linearized model
+
+The linearization process relies on first-order Taylor series expansion Folland (2005) and on the related Jacobian matrices. The approximately linearized model of the $2 D$ linear model is written as a Roesser model (10), with the initial conditions,
+
+$$
+\begin{array}{l l} x ^ {h} \left(\theta , t _ {2}\right) = \phi^ {h} \left(\theta , t _ {2}\right), & \forall t _ {2} \in \mathbb {R} _ {+} \text { and } - \tau_ {1} \leqslant \theta \leqslant 0, \\ x ^ {v} \left(t _ {1}, \theta\right) = \phi^ {v} \left(t _ {1}, \theta\right), & \forall t _ {1} \in \mathbb {R} _ {+} \text { and } - \tau_ {2} \leqslant \theta \leqslant 0, \end{array}
+$$
+
+where $\phi ^ { h }$ and $\phi ^ { v }$ are bounded and have compact support, that is, there exist $L _ { 1 } , L _ { 2 } , T _ { 1 }$ and $T _ { 2 }$ such that,
+
+$$
+\left\{ \begin{array}{l l} \left\| \phi^ {h} (\cdot , t) \right\| _ {c l} \leqslant L _ {1} & \text { if } 0 \leqslant t \leqslant T _ {2} \\ \left\| \phi^ {h} (\cdot , t) \right\| _ {c l} = 0 & \text { if } t > T _ {2} \end{array} \right.\tag{11}
+$$
+
+$$
+\int \left\| \phi^ {v} (t, \cdot) \right\| _ {c l} \leqslant L _ {2} \text {   if   } 0 \leqslant t \leqslant T _ {1}
+$$
+
+$$
+\left\{ \begin{array}{l l} \| \phi^ {v} (t, \cdot) \| _ {c l} = 0 \mathrm{if} t > T _ {1} \end{array} \right.\tag{12}
+$$
+
+where,
+
+$$
+\begin{array}{c} x \left(t _ {1}, t _ {2}\right) = \left[ \begin{array}{c} x ^ {h} \left(t _ {1}, t _ {2}\right) \\ x ^ {v} \left(t _ {1}, t _ {2}\right) \end{array} \right], \\ x \left(t _ {1} - \tau_ {1} (t _ {1}), t _ {2} - \tau_ {2}\right) = \left[ \begin{array}{c} x ^ {h} \left(t _ {1} - \tau_ {1} (t _ {1}), t _ {2}\right) \\ x ^ {v} \left(t _ {1}, t _ {2} - \tau_ {2}\right) \end{array} \right], \\ x ^ {h} (t _ {1}, t _ {2}) = \left[ \begin{array}{c} \delta W ^ {h} (t _ {1}, t _ {2}) \\ \delta q ^ {h} (t _ {1}, t _ {2}) \end{array} \right], \quad x ^ {v} (t _ {1}, t _ {2}) = \left[ \begin{array}{c} \delta W ^ {v} (t _ {1}, t _ {2}) \\ \delta q ^ {v} (t _ {1}, t _ {2}) \end{array} \right], \\ u (t _ {1}, t _ {2}) = \left[ \begin{array}{c} \delta p ^ {h} (t _ {1}, t _ {2}) \\ \delta p ^ {v} (t _ {1}, t _ {2}) \end{array} \right]. \end{array}
+$$
+
+## 2.6 Problem definition
+
+In this paper, we are interested in designing a stabilizing feedback controller described by,
+
+$$
+u (t _ {1}, t _ {2}) = K x (t _ {1}, t _ {2}).\tag{13}
+$$
+
+Thus, the 2D continuous system (S) with time delays is expressed by,
+
+$$
+\begin{array}{r l} \vdots & \left[ \frac {\partial x ^ {h} \left(t _ {1} , t _ {2}\right)}{\partial t _ {1}} \right] = & \mathbb {A} x \left(t _ {1}, t _ {2}\right) \\ & + \mathbb {A} _ {\tau} x \left(t _ {1} - \tau_ {1}, t _ {2} - \tau_ {2}\right), \end{array}\tag{S) :}
+$$
+
+where,
+
+$$
+\mathbb {A} = A + B K, \quad \mathbb {A} _ {\tau} = A _ {\tau} + B _ {\tau} K,\tag{14}
+$$
+
+and,
+
+$$
+x \left(t _ {1}, t _ {2}\right) = \left[ \begin{array}{c} x ^ {h} \left(t _ {1}, t _ {2}\right) \\ x ^ {v} \left(t _ {1}, t _ {2}\right) \end{array} \right], \quad x \left(t _ {1} - \tau_ {1}, t _ {2} - \tau_ {2}\right) = \left[ \begin{array}{c} x ^ {h} \left(t _ {1} - \tau_ {1}, t _ {2}\right) \\ x ^ {v} \left(t _ {1}, t _ {2} - \tau_ {2}\right) \end{array} \right],
+$$
+
+$x ^ { h } \left( t _ { 1 } , t _ { 2 } \right) \in \mathbb { R } ^ { n _ { h } }$ is the horizontal state, $x ^ { v } \left( t _ { 1 } , t _ { 2 } \right) \in \mathbb { R } ^ { n _ { \tau } }$ v is the vertical state, τ and $\tau _ { 2 }$ are known constants delays along with horizontal and vertical directions, respectively.
+
+The main problems considered by this work are defined next,
+
+Problem 1: Given positive scalars $\tau _ { 1 }$ and $\tau _ { 2 }$ , determine analytical conditions for stability assessments of the 0- input 2D system in (10).
+
+Problem 2: Given positive scalars $\tau _ { 1 }$ and $\tau _ { 2 } .$ , design feedback gain for stabilizing the 2D system in (10).
+
+The following lemma from Seuret and Gouaisbaut (2015) will be used in the sequel.
+
+Lemma $\it 4 .$ (see Seuret and Gouaisbaut (2015)) Let $x$ be such that $\dot { x } \in \mathcal { C } , Z \in \mathbb { S } _ { n } ^ { + }$ and $h > 0$ . Then, the inequality
+
+$$
+\int_ {s} ^ {b} \dot {x} ^ {T} (r) Z \dot {x} (r) d r \geq \frac {1}{b - s} \Gamma_ {N} ^ {T} \left[ \sum_ {k = 0} ^ {N} (2 k + 1) \pi_ {N} ^ {T} (k) Z \Gamma_ {N} (k) \right] \zeta_ {N},
+$$
+
+holds, for all integer $N \in \mathbb N$ , where,
+
+$$
+\Gamma_ {N} = \left\{ \begin{array}{c c} {\left[ x ^ {T} (b) x ^ {T} (s) \right] ^ {T}} & N = 0 \\ {\left[ x ^ {T} (b) x ^ {T} (s) \frac {1}{\tau} \chi_ {0} ^ {T} \dots \frac {1}{\tau} \chi_ {N - 1} ^ {T} \right] ^ {T}} & N > 0 \end{array} \right.\tag{15}
+$$
+
+$$
+\pi_ {N} (k) = \left\{ \begin{array}{c c} [ I - I ] & N = 0 \\ \left[ I (- 1) ^ {k + 1} I \theta_ {N k} ^ {0} I \dots \theta_ {N k} ^ {N - 1} I \right] & N > 0 \end{array} \right.
+$$
+
+$$
+\theta_ {N k} ^ {j} = \left\{ \begin{array}{c c} - (2 j + 1) (1 - (- 1) ^ {k + j}) & j \leqslant k \\ 0 & j \geq k \end{array} \right.,   \tau = b - s
+$$
+
+with,
+
+$$
+\chi_ {i} = \int_ {b} ^ {s} F _ {i} (u) x _ {t} (u) d u, \quad F _ {i} (u) = (- 1) ^ {k} \sum_ {l = 0} ^ {k} \delta_ {l} ^ {k} \left(\frac {u + h}{h}\right) ^ {l},
+$$
+
+and $\delta _ { i , l } \ = \ ( - 1 ) ^ { l } \left( { { i \atop l } } \right) \left( { { i + l \atop l } } \right) \mathrm { ~ a n d ~ } \left( { { k \atop l } } \right)$ refers to the binomial coeficients given by ${ \frac { k ! } { ( k - l ) ! l ! } } .$
+
+3. NOVEL LMI FRAMEWORKS FOR STABILITY ANALYSIS AND FEEDBACK GAIN SYNTHESIS OF 2D TIME DELAY SYSTEMS
+
+The following section presents two main results. The first result permits to asses the stability of the 0-input system (10), whereas the second permits to synthesize a stabilizing feedback gain.
+
+$$
+(\mathcal {S}): \quad \left\{\left[ \begin{array}{c} \frac {\partial x ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} \\ \frac {\partial x ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} \end{array} \right] = A x (t _ {1}, t _ {2}) + A _ {\tau} x (t _ {1} - \tau_ {1}, t _ {2} - \tau_ {2}) + B u (t _ {1}, t _ {2}) + B _ {\tau} u (t _ {1} - \tau_ {1}, t _ {2} - \tau_ {2}), \right.
+$$
+
+with,
+
+$$
+A = \left[ \begin{array}{c c c c} \frac {\delta f _ {W} ^ {h}}{\delta W ^ {h}} & \frac {\delta f _ {W} ^ {h}}{\delta q ^ {h}} & \frac {\delta f _ {W} ^ {h}}{\delta W ^ {v}} & \frac {\delta f _ {W} ^ {h}}{\delta q ^ {v}} \\ \frac {\delta f _ {q} ^ {h}}{\delta W ^ {h}} & \frac {\delta f _ {q} ^ {h}}{\delta q ^ {h}} & \frac {\delta f _ {q} ^ {h}}{\delta W ^ {v}} & \frac {\delta f _ {q} ^ {h}}{\delta q ^ {v}} \\ \hline \frac {\delta f _ {W} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {W} ^ {v}}{\delta q ^ {h}} & \frac {\delta f _ {W} ^ {v}}{\delta W ^ {v}} & \frac {\delta f _ {W} ^ {v}}{\delta q ^ {v}} \\ \frac {\delta f _ {q} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {q} ^ {v}}{\delta q ^ {h}} & \frac {\delta f _ {q} ^ {v}}{\delta W ^ {v}} & \frac {\delta f _ {q} ^ {v}}{\delta q ^ {v}} \end{array} \right], A _ {\tau} = \left[ \begin{array}{c c c c} \frac {\delta f _ {W} ^ {h}}{\delta W ^ {h}} & \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {h}} & \frac {\delta f _ {W} ^ {h}}{\delta W _ {\tau} ^ {v}} & \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {v}} \\ \frac {\delta f _ {q} ^ {h}}{\delta W ^ {h}} & \frac {\delta f _ {q} ^ {h}}{\delta q _ {\tau} ^ {h}} & \frac {\delta f _ {q} ^ {h}}{\delta W _ {\tau} ^ {v}} & \frac {\delta f _ {q} ^ {h}}{\delta q _ {\tau} ^ {v}} \\ \hline \frac {\delta f _ {W} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {W} ^ {v}}{\delta q _ {\tau} ^ {h}} & \frac {\delta f _ {W} ^ {v}}{\delta W _ {\tau} ^ {v}} & \frac {\delta f _ {W} ^ {v}}{\delta q _ {\tau} ^ {v}} \\ \frac {\delta f _ {q} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {q} ^ {v}}{\delta q _ {\tau} ^ {h}} & \frac {\delta f _ {q} ^ {v}}{\delta W _ {\tau} ^ {v}} & \frac {\delta f _ {q} ^ {v}}{\delta q _ {\tau} ^ {v}} \\ \hline \frac {\delta f _ {\tau} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {\tau} ^ {v}}{\delta q _ {\tau} ^ {h}} & \frac {\delta f _ {\tau} ^ {v}}{\delta W _ {\tau} ^ {v}} & \frac {\delta f _ {\tau} ^ {v}}{\delta q _ {\tau} ^ {v}} \\ \frac {\delta f _ {\tau} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {\tau} ^ {v}}{\delta q _ {\tau} ^ {h}} & \frac {\delta f _ {\tau} ^ {v}}{\delta W _ {\tau} ^ {v}} & \frac {\delta f _ {\tau} ^ {v}}{\delta q _ {\tau} ^ {v}} \\ \hline \frac {\delta f _ {\tau} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {\tau} ^ {v}}{\delta q _ {\tau} ^ {h}} & \frac {\delta f _ {\tau} ^ {v}}{\delta W _ {\tau} ^ {v}} & \frac {\delta f _ {\tau  v}}{\delta p ^ {v}} \\ \hline \frac {\delta f _ {\tau} ^ {v}}{\delta W ^ {h}} & \frac {\delta f _ {\tau} ^ {v}}{\delta p ^ {h}} & \frac {\delta f _ {\tau  v}}{\delta p ^ {v}} \\ \frac {\delta f _ {\tau} ^ {v}}{\delta p ^ {h}} & \frac {\delta f _ {\tau  v}}{\delta p ^ {v}} \\ \hline \frac {\delta f _ {\tau} ^ {v}}{\delta p ^ {h}} & \frac {\delta f _ {\tau  v}}{\delta p ^ {v}} \\ \end{array} \right], B = \left[ \begin{array}{c c c c} \frac {\delta f _ {W} ^ {h}}{\delta p ^ {h}} & \frac {\delta f _ {W} ^ {h}}{\delta p ^ {v}} \\ \frac {\delta f _ {{q} , h}}{{\delta p _ {{\tau}}} - \frac {{\delta p _ {{\tau}}} {{\bar {{p}}} , h}}{{\bar {{p}}} , t}}, & \frac {{\bar {{p}}} , t}{\bar {{p}}} \\ \frac {{\bar {{p}}} , t}{\bar {{p}}} & \frac {{\bar {{p}}} , t}{\bar {{p}}} \\ \frac {{\bar {{p}}} , t}{\bar {{p}}} & \frac {{\bar {{p}}} , t}{\bar {{p}}} \\ \frac {{\bar {{p}}} , t}{\bar {{p}}} & \frac {{\bar {{p}}} , t}{\bar {{p}}} \\ \end{array} \right], B _ {\tau} = \left[ \begin{array}{c c c c} \frac {\delta f _ {{W} ^ {- h}}}{{\bar {{p}}} , t}, & \frac {{\bar {{p}}} , t}{\bar {{p}}} \\ \frac {{\bar {{p}}} , t}{\bar {{p}}} & \frac {{\bar {{p}}} , t}{\bar {{p}}} \\ \frac {{\bar {{p}}} , t}{\bar {{p}}} & \frac {{\bar {{p}}} , t}{\bar {{p}}} \\ \frac {{\bar {{p}}} , t}{\bar {} , t}, & \frac {{\bar {{p}}} , t}{\bar {} , t}. \\ \end{array} \right].\tag{10}
+$$
+
+## 3.1 Stability analysis of 2D dynamical systems
+
+The result bellow permits to evaluate the stability of the 2D Roesser models in terms of LMI.
+
+Theorem 5. Given positive scalars $\tau _ { 1 }$ and $\tau _ { 2 }$ . If there exist positive definite matrices $P ^ { v } , \bar { P } ^ { h } , Q , \bar { R } .$ , and any invertible matrix $H ~ = ~ d i a g \left\{ H ^ { h } , H ^ { v } \right\}$ such that the following inequality holds,
+
+$$
+\Pi - \Gamma^ {T} \left[ \begin{array}{c c} \mathcal {R} _ {1} & 0 \\ 0 & \mathcal {R} _ {2} \end{array} \right] \Gamma + 2 M ^ {T} H g _ {0} \leqslant 0\tag{16}
+$$
+
+then, the system (10) with a 0-input is asymptotically stable, where,
+
+$$
+\begin{array}{r l r} & & 1 \quad \ldots \quad i - 1 \quad i \quad i + 1 \quad \ldots \quad 5 \\ e _ {i} = \left[ \begin{array}{c} e _ {i} ^ {h} \\ e _ {i} ^ {v} \end{array} \right] = \left( \begin{array}{c c c c c c c} 0 & \ldots & 0 & I _ {n _ {h}} & 0 & \ldots & 0 \\ 0 & \ldots & 0 & I _ {n _ {v}} & 0 & \ldots & 0 \end{array} \right) \\ & 1 & \ldots \quad i - 1 \quad i \quad i + 1 \quad \ldots \quad 5 \\ = & (0 & \ldots \quad 0 \quad I _ {n} \quad 0 \quad \ldots \quad 0), \end{array}
+$$
+
+$$
+\Pi = 2 \mathcal {E} ^ {h T} \mathcal {A} ^ {h} + 2 \mathcal {E} ^ {v T} P ^ {v} \mathcal {A} ^ {v} + e _ {1} ^ {T} Q e _ {1} - e _ {2} ^ {T} Q e _ {2}
+$$
+
+$$
++ e _ {5} ^ {T} \left[ \begin{array}{c c} \tau_ {1} ^ {2} R ^ {h} & 0 \\ 0 & \tau_ {2} ^ {2} R ^ {v} \end{array} \right] e _ {5},\tag{17}
+$$
+
+$$
+g _ {0} = A e _ {1} + A _ {\tau} e _ {2} - e _ {5},
+$$
+
+$$
+\mathcal {E} ^ {h} = \operatorname{col} \left\{e _ {1} ^ {h}, \tau_ {1} e _ {3} ^ {h}, \tau_ {1} e _ {4} ^ {h} \right\},\tag{18}
+$$
+
+$$
+\mathcal {E} ^ {v} = c o l \left\{e _ {1} ^ {v}, \tau_ {2} e _ {3} ^ {v}, \tau_ {2} e _ {4} ^ {v} \right\},\tag{19}
+$$
+
+$$
+\mathcal {A} ^ {h} = \operatorname{col} \left\{e _ {5} ^ {h}, \left(e _ {1} ^ {h} - e _ {2} ^ {h}\right), \left(e _ {1} ^ {h} + e _ {2} ^ {h} - 2 e _ {3} ^ {h}\right) \right\},\tag{20}
+$$
+
+$$
+\mathcal {A} ^ {v} = c o l \left\{e _ {5} ^ {v}, (e _ {1} ^ {v} - e _ {2} ^ {v}), (e _ {1} ^ {v} + e _ {2} ^ {v} - 2 e _ {3} ^ {v}) \right\},\tag{21}
+$$
+
+$$
+\Gamma = c o l \left\{e _ {1} - e _ {2}, e _ {1} + e _ {2} - 2 e _ {4}, e _ {1} - e _ {2} - 6 e _ {5} \right\},\tag{22}
+$$
+
+$$
+M = e _ {1} + e _ {2} + e _ {5},\tag{23}
+$$
+
+$$
+\mathcal {R} = \operatorname{diag} \left(\mathcal {R} ^ {h}, \mathcal {R} ^ {v}\right), \quad \mathcal {R} ^ {j} = \operatorname{diag} \left(R ^ {j}, 3 R ^ {j}, 5 R ^ {j}\right), \quad j = h, v\tag{24}
+$$
+
+Proof. Define the augmented vectors,
+
+$$
+\eta^ {h} (t _ {1}, t _ {2}) = c o l \left\{x ^ {h} (t _ {1}, t _ {2}), \tau_ {1} \varphi_ {1} ^ {h} (t _ {1}, t _ {2}) \right\},
+$$
+
+$$
+\varphi_ {1} ^ {h} (t _ {1}, t _ {2}) = \frac {1}{\tau_ {1}} c o l \left\{\int_ {t _ {1} - \tau_ {1}} ^ {t _ {1}} x (\alpha , t _ {2}) d \alpha , \int_ {t _ {1} - \tau_ {1}} ^ {t _ {1}} \left\{2 \frac {\alpha - t _ {1} + \tau_ {1}}{\tau_ {1}} - 1 \right\} x (\alpha , t _ {2}) d \alpha \right\},
+$$
+
+and,
+
+$$
+\eta^ {v} (t _ {1}, t _ {2}) = c o l \left\{x ^ {v} (t _ {1}, t _ {2}), \tau_ {2} \varphi_ {1} ^ {v} (t _ {1}, t _ {2}), \tau_ {2} \varphi_ {2} ^ {v} (t _ {1}, t _ {2}) \right\},
+$$
+
+$$
+\varphi_ {1} ^ {v} (t _ {1}, t _ {2}) = \frac {1}{\tau_ {2}} c o l \left\{\int_ {t _ {2} - \tau_ {2}} ^ {t _ {2}} x (t _ {1}, \alpha) d \alpha , \int_ {t _ {2} - \tau_ {2}} ^ {t _ {2}} \left\{2 \frac {\alpha - t _ {2} + \tau_ {2}}{\tau_ {2}} - 1 \right\} x (\alpha , t _ {2}) d \alpha \right\},
+$$
+
+with,
+
+$$
+\left[ \begin{array}{c} \varphi_ {1} ^ {h} (t _ {1}, t _ {2}) \\ \varphi_ {1} ^ {v} (t _ {1}, t _ {2}) \end{array} \right] = c o l \left\{\left[ \begin{array}{c} \frac {1}{\tau_ {1}} \int_ {t _ {1} - \tau_ {1}} ^ {t _ {1}} x (\alpha , t _ {2}) d \alpha \\ \frac {1}{\tau_ {2}} \int_ {t _ {2} - \tau_ {2}} ^ {t _ {2}} x (t _ {1}, \alpha) d \alpha \end{array} \right], \left[ \begin{array}{c} \frac {1}{\tau_ {1}} \int_ {t _ {1} - \tau_ {1}} ^ {t _ {1}} \left\{2 \frac {\alpha - t _ {1} + \tau_ {1}}{\tau_ {1}} - 1 \right\} x (\alpha , t _ {2}) d \alpha \\ \frac {1}{\tau_ {2}} \int_ {t _ {2} - \tau_ {2}} ^ {t _ {2}} \left\{2 \frac {\alpha - t _ {2} + \tau_ {2}}{\tau_ {2}} - 1 \right\} x (\alpha , t _ {2}) d \alpha \end{array} \right] \right\},
+$$
+
+$$
+\xi^ {T} (t _ {1}, t _ {2}) = \left[ x (t _ {1}, t _ {2}) ^ {T} x (t _ {1} - \tau_ {1}, t _ {2} - \tau_ {2}) ^ {T} \right.
+$$
+
+$$
+\left[\begin{array}{c}\varphi_ {1} ^ {h} (t _ {1}, t _ {2})\\\varphi_ {1} ^ {v} (t _ {1}, t _ {2})\end{array}\right] ^ {T} \left[\begin{array}{c}\left(\frac {\partial x ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}}\right)\\\left(\frac {\partial x ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}}\right)\end{array}\right] ^ {T} \left. \right].
+$$
+
+Now we write, $\left[ \begin{array} { c } { \eta ^ { h } ( t _ { 1 } , t _ { 2 } ) } \\ { \eta ^ { v } ( t _ { 1 } , t _ { 2 } ) } \end{array} \right]$ and $\left[ \frac { \partial \eta ^ { h } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 1 } } \right]$ in term of $\xi ( t _ { 1 } , t _ { 2 } )$ , we got, $\left[ \begin{array} { l } { \eta ^ { h } ( t _ { 1 } , t _ { 2 } ) } \\ { \eta ^ { v } ( t _ { 1 } , t _ { 2 } ) } \end{array} \right] ~ = ~ \left[ \begin{array} { l } { \xi ^ { h } } \\ { \xi ^ { v } } \end{array} \right] \xi ( t _ { 1 } , t _ { 2 } )$ , and $\left[ \begin{array} { c } { \frac { \partial \eta ^ { h } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 1 } } } \\ { \frac { \partial \eta ^ { v } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 2 } } } \end{array} \right] = \left[ \begin{array} { c } { \boldsymbol { A } ^ { h } } \\ { \boldsymbol { A } ^ { v } } \end{array} \right] \xi ( t _ { 1 } , t _ { 2 } )$ , where $\mathcal { E } ^ { h } , \mathcal { E } ^ { v } , \mathcal { A } ^ { h }$ and A<sup>v</sup> are defined in (18) – (21).
+
+Guided by the results in Seuret and Gouaisbaut (2015), we first construct a new Lyapunov–Krasovskii functional for the two dimensional time delay systems, as $V ( x ( t _ { 1 } , t _ { 2 } ) ) =$ V (x(t, ta)) + Ve(x(t, tc)) + Ve(x(t, te)) whore
+
+$$
+V _ {1} (x (t _ {1}, t _ {2})) + V _ {2} (x (t _ {1}, t _ {2})) + \bar {V} _ {3} (x (t _ {1}, t _ {2}))
+$$
+
+$$
+V _ {1} (x (t _ {1}, t _ {2})) = \left[ \begin{array}{c} \eta^ {h} (t _ {1}, t _ {2}) \\ \eta^ {v} (t _ {1}, t _ {2}) \end{array} \right] ^ {T} P \left[ \begin{array}{c} \eta^ {h} (t _ {1}, t _ {2}) \\ \eta^ {v} (t _ {1}, t _ {2}) \end{array} \right],\tag{25}
+$$
+
+$$
+V _ {2} (x (t _ {1}, t _ {2})) = \int_ {t _ {1} - \tau_ {1}} ^ {t _ {1}} x ^ {h T} (\theta , t _ {2}) Q ^ {h} x ^ {h} (\theta , t _ {2}) d \theta
+$$
+
+$$
+\int_ {t _ {2} - \tau_ {2}} ^ {t _ {2}} x ^ {v T} (t _ {1}, \theta) Q ^ {v} x ^ {v} (t _ {1}, \theta) d \theta ,\tag{26}
+$$
+
+$$
+\begin{array}{c} V _ {3} (x (t _ {1}, t _ {2})) = \tau_ {1} \int_ {- \tau_ {1}} ^ {0} \int_ {s} ^ {t _ {1}} \big (\frac {\partial x ^ {h} (\theta , t _ {2})}{\partial t _ {1}} \big) ^ {T} R ^ {h} \big (\frac {\partial x ^ {h} (\theta , t _ {2})}{\partial t _ {1}} \big) d \theta d s \\ + \tau_ {2} \int_ {- \tau_ {2}} ^ {0} \int_ {s} ^ {t _ {2}} \big (\frac {\partial x ^ {v} (t _ {1} , \theta)}{\partial t _ {2}} \big) ^ {T} R ^ {v} \big (\frac {\partial x ^ {v} (t _ {1} , \theta)}{\partial t _ {2}} \big) d \theta d s, \end{array}\tag{27}
+$$
+
+with,
+
+$$
+P = \operatorname{diag} \left\{P ^ {h}, P ^ {v} \right\}, \quad Q = \operatorname{diag} \left\{Q ^ {h}, Q ^ {v} \right\}, \quad R = \operatorname{diag} \left\{R ^ {h}, R ^ {v} \right\}.
+$$
+
+Note that the conditions $P > 0 , \ Q > 0 , \ R > 0$ , guarantee the positive definiteness of the Lyapunov–Krasovskii functional.
+
+Take the divergence operator of the LKF $V ( x ( t _ { 1 } , t _ { 2 } ) )$ ) along the trajectories of system (S), yields,
+
+$$
+\operatorname{div} V \left(t _ {1}, t _ {2}\right) = \frac {\partial V \left(x \left(t _ {1} , t _ {2}\right)\right)}{\partial t _ {1}} + \frac {\partial V \left(x \left(t _ {1} , t _ {2}\right)\right)}{\partial t _ {2}},
+$$
+
+with,
+
+$$
+\begin{array}{l} \frac {\partial V (x (t _ {1} , t _ {2}))}{\partial t _ {1}} = 2 \xi^ {T} (t _ {1}, t _ {2}) \mathcal {E} ^ {h T} P ^ {h} \mathcal {A} ^ {h} \xi (t _ {1}, t _ {2}) \\ \qquad + x ^ {h T} (t _ {1}, t _ {2}) Q ^ {h} x ^ {h} (t _ {1}, t _ {2}) \\ \qquad - x ^ {h T} (t _ {1} - \tau_ {1}, t _ {2}) Q ^ {h} x ^ {h} (t _ {1} - \tau_ {1}, t _ {2}) \\ \qquad + \big (\frac {\partial x ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} \big) ^ {T} (\tau_ {1} ^ {2} R ^ {h}) \big (\frac {\partial x ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} \big) \\ \qquad - \tau_ {1} \int_ {t _ {1} - \tau_ {1}} ^ {t _ {1}} \big (\frac {\partial x ^ {h} (\theta , t _ {2})}{\partial t _ {1}} \big) ^ {T} R ^ {h} \big (\frac {\partial x ^ {h} (\theta , t _ {2})}{\partial t _ {1}} \big) d \theta , \end{array}\tag{28}
+$$
+
+and,
+
+(29)
+
+$$
+\begin{array}{l} \frac {\partial V (x (t _ {1} , t _ {2}))}{\partial t _ {2}} = 2 \xi^ {T} (t _ {1}, t _ {2}) \mathcal {E} ^ {v T} P ^ {v} \mathcal {A} ^ {v} \xi (t _ {1}, t _ {2}) \\ \qquad + x ^ {v T} (t _ {1}, t _ {2}) Q ^ {v} x ^ {v} (t _ {1}, t _ {2}) \\ \qquad + x ^ {v T} (t _ {1}, t _ {2} - \tau_ {2}) - Q ^ {v} x ^ {v} (t _ {1}, t _ {2} - \tau_ {2}) \\ \qquad + \big (\frac {\partial x ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} \big) ^ {T} (\tau_ {2} ^ {2} R ^ {v}) \big (\frac {\partial x ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} \big) \\ \qquad - \tau_ {2} \int_ {t _ {2} - \tau_ {2}} ^ {t _ {2}} \big (\frac {\partial x ^ {v} (t _ {1} , \theta)}{\partial t _ {2}} \big) ^ {T} R ^ {v} \big (\frac {\partial x ^ {v} (t _ {1} , \theta)}{\partial t _ {2}} \big) d \theta . \end{array}\tag{30}
+$$
+
+Define the non-integral terms of   div $V ( x ( t _ { 1 } , t _ { 2 } ) ) )$ as $\xi ( t _ { 1 } , t _ { 2 } ) \Pi \xi ( t _ { 1 } , t _ { 2 } )$ where Π is the matrix given in (17). Then, apply lemma 2 on the integral terms in (29) and (30), by setting $N = 2 .$ , respectively, will supply,
+
+$$
+\begin{array}{c} - \tau_ {1} \int_ {t - \tau_ {1}} ^ {t} \big (\frac {\partial x ^ {h} (\theta , t _ {2})}{\partial t _ {1}} \big) ^ {T} R \big (\frac {\partial x ^ {h} (\theta , t _ {2})}{\partial t _ {1}} \big) d \theta \leqslant \\ - \xi^ {T} (t _ {1}, t _ {2}) \Gamma^ {h T} \mathcal {R} ^ {h} \Gamma^ {h} \xi (t _ {1}, t _ {2}), \end{array}\tag{31}
+$$
+
+and,
+
+$$
+\begin{array}{c} - \tau_ {2} \int_ {t - \tau_ {2}} ^ {t} \big (\frac {\partial x ^ {v} (\theta , t _ {2})}{\partial t _ {1}} \big) ^ {T} R \big (\frac {\partial x ^ {v} (\theta , t _ {2})}{\partial t _ {1}} \big) d \theta \leqslant \\ - \xi^ {T} (t _ {1}, t _ {2}) \Gamma^ {v T} \mathcal {R} ^ {v} \Gamma^ {v} \xi (t _ {1}, t _ {2}), \end{array}\tag{32}
+$$
+
+where $\mathcal { R } ^ { j } , ~ j = h , v$ is defined in (24). Note that for given any block diagonal invertible matrix H, we have,
+
+$$
+2 \xi^ {T} (t _ {1}, t _ {2}) \bigg (M ^ {T} H g _ {0} \bigg) \xi (t _ {1}, t _ {2}) = 0.
+$$
+
+Substitute $\xi ^ { T } ( t _ { 1 } , t _ { 2 } ) \Pi \xi ( t _ { 1 } , t _ { 2 } )$ , (31) and (32) into (28) and summing the results with the above zero equation, supplies,
+
+$$
+\begin{array}{l} \operatorname{div} V (x (t _ {1}, t _ {2})) \leqslant \xi^ {T} (t _ {1}, t _ {2}) \bigg (\Pi - \left[ \underbrace {\left[ \Gamma^ {h} \Gamma^ {v} \right] ^ {T}} _ {\Gamma} \right] ^ {T} \left[ \begin{array}{c c} \mathcal {R} _ {1} & 0 \\ 0 & \mathcal {R} _ {2} \end{array} \right] \left[ \begin{array}{c} \Gamma^ {h} \\ \Gamma^ {v} \end{array} \right] \bigg) \xi (t _ {1}, t _ {2}) \\ + 2 \xi^ {T} (t _ {1}, t _ {2}) \bigg (M ^ {T} H g _ {0} \bigg) \xi (t _ {1}, t _ {2}). \end{array}\tag{33}
+$$
+
+If the linear matrix inequalities (16) is satisfied, then, the Lyapunov–Krasovskii functional is decreasing along the two dimensions. 
+
+Remark 6. It is worth noticing that the LKF in (25)–(27) is a new extension of the LKF Seuret and Gouaisbaut (2015) for 2D time delay systems. To the best of our knowledge, stability analysis of 2D time delay systems has not been addressed with second order Bessel Legendre LKF.
+
+Note that if we apply LMI in the Theorem 5 to synthesize the feedback gain, the LMI problem solver will not work because it contains the bilineair terms HBK and $H B _ { \tau }$ K. The result bellow establishes an equivalent linear form of the result in Theorem 5.
+
+## 3.2 Feedback control synthesis
+
+The result below permits to synthesis feedback gain matrices to stabilize the control system (10).
+
+Theorem 7. Given positive scalars $\tau _ { 2 }$ and $\tau _ { 1 }$ . If there exist positive definite matrices $P _ { 1 } ^ { v } , P _ { 1 } ^ { h } , Q , Q _ { 2 } , R _ { 1 } , R _ { 2 } , X _ { 1 } , X _ { 2 } .$ a matrix gain V and invertible matrices $H ^ { h }$ and $H ^ { v }$ such that the following inequality,
+
+$$
+\Pi - \Gamma^ {T} \left[ \begin{array}{c c} \mathcal {R} _ {1} & 0 \\ 0 & \mathcal {R} _ {2} \end{array} \right] \Gamma + 2 M ^ {T} g _ {1} \leqslant 0\tag{34}
+$$
+
+holds, then, the closed-loop system (10) is asymptotically stable where the controller gain is given by $\mathbf { \dot {  { K } } } = \mathbf { \nabla } V H ^ { - 1 }$ and,
+
+$$
+g _ {1} = (A H + B V) e _ {1} + (A _ {\tau} H + B _ {\tau} V) e _ {2} - e _ {8}.\tag{35}
+$$
+
+Proof. Consider the closed-loop system (10). Apply the change of coordinate $L ( t _ { 1 } , t _ { 2 } ) \stackrel { \cdot } { = } \tilde { H } ^ { - 1 } x ( t _ { 1 } , t _ { 2 } )$ hence we have $x ( t _ { 1 } , t _ { 2 } ) ~ = ~ H L ( t _ { 1 } , t _ { 2 } )$ . The partial derivatives of $L ( t _ { 1 } , t _ { 2 } )$ along the horizontal and vertical dimensions leads to,
+
+$$
+\begin{array}{c} \left[ \frac {\partial L ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} \right] = H ^ {- 1} \left[ \frac {\partial x ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} \right] \\ = H ^ {- 1} (A + B K) H L (t _ {1}, t _ {2}) \\ + H ^ {- 1} (A _ {\tau} + B _ {\tau} K) H L (t _ {1} - \tau_ {1}, t _ {2} - \tau_ {2}). \end{array} \tag {36}
+$$
+
+It is clear that the stability of the above dynamical system is equivalent to the stability of (10). Consider the variable change $V ~ = ~ K H$ in (36). Then, replace $\mathbb { A } , \ \mathbb { A } _ { d }$ in the inequality (16) with $H ^ { \setminus 1 } ( A H + B V ) , \stackrel { \cdot } { H } ^ { - 1 } ( A _ { \tau } H + B _ { \tau } V )$ respectively. We get (34). That completes the proof. 
+
+Remark 8. It is interesting to note that the LMI in (34) is equivalent to the LMI in (16) by using a congruence transformation. For 2-D systems, if the congruence transformation is needed for an LMI linearisation, it is mandatory to apply it with block diagonal matrices characterizing the horizontal and vertical dimensions, see e.g. El-Kasri et al. (2013). In a similar way, when the change of coordinates is used, it is mandatory to consider a block diagonal matrix like in our case the matrix H is set $d i a g \{ H ^ { h } , H ^ { v } \}$
+
+## 4. SIMULATIONS
+
+The present section gives the simulation results for some diferent scenarios and concludes based on detailed comparison on the performance of the proposed protocol in Internet.
+
+![](images/2f1d160488c316bfe355995597aa968ec5671371f707d2504cf859081e40270e.jpg)  
+Fig. 2. Dumbbell topology.
+
+Consider the topology of the network depicted in ${ \mathrm { F i g . ~ 2 , ~ } }$ governed by 200 loads for scenario B, and 800 loads for scenario $\mathrm { A } ,$ , and the link bandwidth $C _ { 0 } = 1 0 M b i t / s$ . The queue reference $Q _ { r e f } = 2 0 0 0$ packets, and a propagation delay $T _ { p } = 0 . 0 0 1$ . For scenario A, the average congestion window in the horizontal and vertical dimensions are $\hat { W } ^ { v } = \hat { W } ^ { h } = 1 . 3 2 8 2$ with 800 loads, $\hat { p } ^ { v } = \hat { p } ^ { h } = 0 . 6 0 0 1$ and $\lambda = 1$ . For scenario B, the average congestion window in the horizontal and vertical dimensions are $\hat { W } ^ { v } = \hat { W } ^ { h } =$ 5.3128, with 200 loads, $\hat { p } ^ { v } = \hat { p } ^ { h } = 0 . 0 6 6 2$ and $\lambda = 2 . 9 4 5 0$
+
+For the 0-input system, we find that the inequality (16) is infeasible. We checked if the system was stable by simulation and found it unstable (figures for this simulation are not provided). Thus, we go into our analysis and solve (34) with the feedback controller. We find the inequality (34) feasible. For replicability, the state space matrices and the gain matrices $\bar { K } _ { j }$ , with the j = A, B denotes the scenario, are given by,
+
+• Scenario A, we obtain:
+
+$$
+A = \left[ \begin{array}{c c c c} - 0. 0 0 2 4 9 4 1 & - 1. 6 5 6 3 e - 0 6 & 0 & 0 \\ 1 5 9 6. 4 & 1. 0 6 0 2 & 0 & 0 \\ 1. 9 8 3 1 & 0 & 0 & 0 \\ 0 & 0 & 1 5 8 8. 5 & 1. 0 4 9 6 \end{array} \right], B = \left[ \begin{array}{c c} 0 & 0 \\ - 5 3 1 2. 8 & 0 \\ 0 & - 6. 6 4 6 5 \\ 0 & - 5 2 8 6. 4 \end{array} \right]
+$$
+
+$$
+A _ {\tau} = \left[ \begin{array}{c c c c} 1. 9 9 3 & 0. 0 0 1 3 2 5 2 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0. 0 0 1 3 1 0 4 \\ 0 & 0 & 0 & 0 \end{array} \right], B _ {\tau} = \left[ \begin{array}{c c} 0 & - 6. 6 4 6 5 \\ 0 & 0 \\ 0 & 0 \\ 0 & 0 \end{array} \right]
+$$
+
+$$
+\begin{array}{c} K _ {A} = \left[ \begin{array}{c c} 1. 4 0 9 0 4 0 1 4 5 8 6 7 0 3 3 & 0. 0 0 1 0 5 0 3 0 2 0 8 5 2 1 2 \\ 0. 2 6 1 0 5 0 1 1 9 7 4 7 9 0 4 & 0. 0 0 0 1 0 6 6 4 2 5 9 7 1 0 2 \end{array} \right. \\ - 0. 4 4 2 6 5 9 4 9 5 0 0 7 9 3 1 & - 0. 0 0 0 6 6 5 1 8 2 2 7 8 2 3 9 \\ \left. \begin{array}{c c} 0. 3 7 7 2 6 9 7 9 9 5 1 3 5 8 0 & \text {0.000536355427763} \end{array} \right] \end{array}
+$$
+
+• Scenario B, we obtain:
+
+$$
+A = \left[ \begin{array}{c c c c} - 1 7 5. 8 3 3 0 & 0 & 0 & 0 \\ 9 3 3. 8 0 0 0 & 2. 4 8 0 5 & 0 & 0 \\ 9 2 9. 1 2 8 5 & - 2. 4 5 6 4 & 0 & 2. 4 5 5 4 \\ 0 & 0 & 9 2 9. 1 5 4 2 & 2. 4 5 5 9 \end{array} \right], B = 1 0 ^ {3} \times \left[ \begin{array}{c c} 0 & 0 \\ - 5. 3 1 2 8 & 0 \\ 0 & - 5. 2 8 7 4 \\ 0 & - 5. 2 8 6 4 \end{array} \right]
+$$
+
+$$
+A _ {\tau} = \left[ \begin{array}{c c c c} 1 7 5. 7 5 1 2 & 0. 4 6 6 9 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0. 0 1 2 2 \\ 0 & 0 & 0 & 0 \end{array} \right], B _ {\tau} = 1 0 ^ {3} \times \left[ \begin{array}{c c} 0 & - 1. 0 0 1 0 \\ 0 & 0 \\ 0 & 0 \\ 0 & 0 \end{array} \right]
+$$
+
+$$
+\begin{array}{r} K _ {B} = \left[ \begin{array}{l l} 0. 1 9 4 8 0 0 8 0 5 2 1 1 7 4 6 & 0. 0 6 7 1 2 7 4 7 9 8 3 5 2 0 9 \\ 0. 1 6 7 3 0 3 8 0 0 5 1 1 3 5 8 & - 0. 0 0 0 4 3 7 2 7 0 5 8 7 7 7 0 \end{array} \right. \\ \left. \begin{array}{c c} - 0. 0 0 0 6 5 7 9 5 6 3 2 0 6 5 9 & - 0. 0 0 0 0 3 3 5 5 5 8 6 5 3 1 2 \\ 0. 0 1 7 4 2 2 4 6 1 1 3 8 8 7 3 & 0. 0 0 0 8 8 0 3 5 2 8 0 1 9 7 7 \end{array} \right] \end{array}
+$$
+
+The initial condition is set,
+
+$$
+x _ {0} ^ {T} = \left[ - 1 - 2 0 - 1 - 2 0 \right],\tag{37}
+$$
+
+Figs. 3 – 6 show the dynamic evolution of the TCP and router queue for scenarios A and B along both dimensions. The stability of the queue is marked in yellow while that of the congestion window is marked in blue. From the queue responses, we can see, especially for the vertical dynamics, that it is first stabilized at horizontal time and then at vertical time, with a small latency in between. This leads to the conclusion that, although the AQM acts on the vertical dimension, it first afects the horizontal dimension, which is the time base with respect to the sender. On the side of figures 4 and 6, they show that the stabilization of the congestion window takes place on the vertical dimension and then on the horizontal dimension. This view from the two sides will allow to make new remarks about the operation of TCP in response to an AQM, which was previously limited to a single time base. Second, it is now clearer how the actions of an AQM afect the quality of service of the Internet with respect to what happens at the router and what happens at the sender’s congestion window in the same time.
+
+![](images/a17ab5014b73bef0d8f7c7d8893521f59bcbd4894cb1e7276a67a0c651882d43.jpg)
+
+![](images/8b9b29943621c66264a7b2f286f0ee14b601eb1aaf2a81e1ca0abef57dd1e2ff.jpg)
+
+Fig. 3. Scenario A, horizontal state  
+![](images/566adcc49015a32d538361d75fe48d368a1153bdf9e0b7bc9937965948c92e77.jpg)
+
+![](images/01211a3a806f8ce95b231e6cd01c8d728e5ac9dacadaa9072f27bb8dc5e69199.jpg)
+
+Fig. 4. Scenario A, vertical state.  
+![](images/8daf828b168670e69194f33872c2912979e069aa18724709541628e49e31dddc.jpg)
+
+![](images/e5eaa320d397ac2d8e749f3235ae2b9953279a73d5cc30906a32a5ce62ac9288.jpg)
+
+Fig. 5. Scenario B, horizontal state  
+![](images/3e4e2ec57f44e03bb6336207b60a12fd78430a54fa725ad0f0a8026f7266c1d8.jpg)
+
+![](images/bb7d85f992eb78b3ed789f7fbbe16184aedd13ec6779be0bdff351e8ccddee28.jpg)  
+Fig. 6. Scenario B, vertical state.
+
+## 5. CONCLUSION
+
+The main contribution of this work is a novel and versatile fluid model for TCP/AQM analysis. The model is designed from two temporal basis points of view, resulting into two dimensional diferential equations. This framework ofers opportunities to analyze the stability of a diverse set of controllers that could be linear or nonlinear in one dimensional or two dimensional spaces. First, we show that the new model is more general and can be reduced to the one dimensional model in Xu et al. (2015), (see remark 1). We go on to analyze our 2D fluid model and found that the system has a unique equilibrium point. We then deduce a linear approximation of the model using the first order Taylor expansion. At this stage, for the first time a two dimensional second order Bessel Legendre Lyapunov functional is constructed. This latter permits to derive one LMI condition for stability assessment of 2D time delay systems and a second one for feedback gain synthesis. Finally, some simulations using MATLAB show that the feedback controller achieves a stabilisation of the 2D system’s solution.
+
+In conclusion, according to the resulting analytical LMI condition, the considered two trafic scenarios with a 0- input are unstable. Our second conclusion is that the coordinate change, or any equivalent transformation such as the congruence transformation, used for 2D systems requires a diagonal block matrix where the first block is characterized by the horizontal dimension and the second by the vertical dimension.
+
+As a future research line, we are planning to discuss the feedback implementation constraint of the 2D controller and validate the controlled model using network simulator 3 (NS3).
+
+## REFERENCES
+
+Belamfedel Alaoui, S., Tissir, E.H., and Chaibi, N. (2018). Active queue management based feedback control for TCP with successive delays in single and multiple bottleneck topology. Computer Communications, 117, 58– 70. doi:https://doi.org/10.1016/j.comcom.2018.01.003.
+
+Belamfedel Alaoui, S., Tissir, E.H., and Chaibi, N. (2019). Modelling, analysis and design of active queue management to mitigate the efect of denial of service attack in wired/wireless network. In 2019 international conference on wireless networks and mobile communications (WINCOM), 1–7. IEEE.
+
+Belamfedel Alaoui, S., Tissir, E.H., and Chaibi, N. (2019). Small-gain theorem and finite-frequency analysis of tcp/aqm system with time varying delay. IET Control Theory & Applications, 13(13), 1971–1982.
+
+Belamfedel Alaoui, S., Tissir, E.H., and Chaibi, N. (2020). Congestion control with aqm and dynamic quantisers. IET Control Theory & Applications.
+
+Belamfedel Alaoui, S., Tissir, E.H., and Chaibi, N. (2021). New design of anti-windup and dynamic output feedback control for tcp/aqm system with asymmetrical input constraints. International Journal of Systems Science, 52(9), 1822–1834.
+
+Doma´nski, A., Doma´nska, J., Czach´orski, T., Klamka, J., Szygu la, J., and Marek, D. (2020). Difusion approximation model of tcp newreno congestion control mechanism. SN Computer Science, 1(1), 1–8.
+
+El-Kasri, C., Hmamed, A., Tissir, E.H., and Tadeo, F. (2013). Robust h filtering for uncertain twodimensional continuous systems with time-varying de-
+
+lays. Multidimensional Systems and Signal Processing, 24(4), 685–706.
+
+Folland, G. (2005). Higher-order derivatives and taylor’s formula in several variables. Preprint, 1–4.
+
+Gu, K., Chen, J., and Kharitonov, V.L. (2003). Stability of time-delay systems. Springer Science & Business Media.
+
+Hollot, C., Misra, V., Towsley, D., and Gong, W.B. (2001). A control theoretic analysis of red. In INFOCOM 2001. Twentieth Annual Joint Conference of the IEEE Computer and Communications Societies. Proceedings., volume 3, 1510–1519. IEEE.
+
+Jing, Y. and Chen, J. (2022). Multiple bottleneck topology tcp/aqm switching network congestion control with input saturation and prescribed performance. ISA Transactions.
+
+Kar, S., Alt, B., Koeppl, H., and Rizk, A. (2022). Paqman: A principled approach to active queue management. arXiv preprint arXiv:2202.10352.
+
+Kelly, F.P., Maulloo, A.K., and Tan, D.K. (1998). Rate control for communication networks: shadow prices, proportional fairness and stability. Journal of the Operational Research society, 49(3), 237–252.
+
+Li, X. and Peng, D. (2022). Uniform stability of nonlinear systems with state-dependent delay. Automatica, 137, 110098.
+
+Low, S.H. (2003). A duality model of tcp and queue management algorithms. IEEE/ACM Transactions On Networking, 11(4), 525–536.
+
+Mathis, M., Semke, J., Mahdavi, J., and Ott, T. (1997). The macroscopic behavior of the tcp congestion avoidance algorithm. ACM SIGCOMM Computer Communication Review, 27(3), 67–82.
+
+Misra, V., Gong, W.B., and Towsley, D.T. (2000). Fluidbased analysis of a network of aqm routers supporting tcp flows with an application to red. In ACM SIG-COMM Computer Communication Review, volume 30, 151–160.
+
+Nichols, K. and Jacobson, V. (2012). Controlling queue delay. Communications of the ACM, 55(7), 42–50.
+
+Pan, R., Natarajan, P., Piglione, C., Prabhu, M.S., Subramanian, V., Baker, F., and VerSteeg, B. (2013). Pie: A lightweight control scheme to address the buferbloat problem. In High Performance Switching and Routing (HPSR), 14th International Conference on, 148–155. IEEE.
+
+Seuret, A. and Gouaisbaut, F. (2015). Hierarchy of lmi conditions for the stability analysis of time-delay systems. Systems & Control Letters, 81, 1–7.
+
+Staf, C. (2012). Buferbloat: What’s wrong with the internet? Communications of the ACM, 55(2), 40–47.
+
+Vardoyan, G., Hollot, C., and Towsley, D. (2018). Towards stability analysis of data transport mechanisms: a fluid model and an application. In IEEE INFOCOM 2018- IEEE Conference on Computer Communications, 666– 674. IEEE.
+
+Xu, Q., Li, F., Sun, J., and Zukerman, M. (2015). A new tcp/aqm system analysis. Journal of Network and Computer Applications, 57, 43–60.
+
+## APPENDIX A. LINEARISATION
+
+The First-order Taylor Series expansion, Folland (2005), of the non-linear delay diferential equations (2)–(9) are as follows,
+
+$$
+\begin{array}{l} \frac {\partial \delta W ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} = \frac {\delta f _ {W} ^ {h}}{\delta W ^ {h}} \delta W ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {h}}{\delta W _ {\tau} ^ {h}} \delta W ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {W} ^ {h}}{\delta W ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {h}}{\delta W _ {\tau} ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \qquad + \frac {\delta f _ {W} ^ {h}}{\delta p} \delta p ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {h}}{\delta p _ {\tau}} \delta p ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {W} ^ {h}}{\delta p} \delta p ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {h}}{\delta p _ {\tau}} \delta p ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \qquad + \frac {\delta f _ {W} ^ {h}}{\delta q ^ {h}} \delta q ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {h}} \delta q ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {W} ^ {h}}{\delta q ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \qquad + h. o. t, \end{array}
+$$
+
+$$
+\begin{array}{l} \frac {\partial \delta W ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} = \frac {\delta f _ {W} ^ {v}}{\delta W ^ {h}} \delta W ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {v}}{\delta W _ {\tau} ^ {h}} \delta W ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \quad + \frac {\delta f _ {W} ^ {v}}{\delta W ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {v}}{\delta W _ {\tau} ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \quad + \frac {\delta f _ {W} ^ {v}}{\delta p} \delta p ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {v}}{\delta p _ {\tau}} \delta p ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \quad + \frac {\delta f _ {W} ^ {v}}{\delta p} \delta p ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {v}}{\delta p _ {\tau}} \delta p ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \quad + \frac {\delta f _ {W} ^ {v}}{\delta q ^ {h}} \delta q ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {W} ^ {v}}{\delta q _ {\tau} ^ {h}} \delta q ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \quad + \frac {\delta f _ {W} ^ {v}}{\delta q ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f ^ {v}}{\delta q _ {\tau} ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \quad + b, a, t. \end{array}\tag{.1}
+$$
+
+where h.o.t. denotes higher-order terms, and other notations are as follow, $\begin{array} { r } { f _ { W } ^ { h } : = \frac { \partial W ^ { h } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 1 } } , ~ f _ { W } ^ { v } : = \frac { \partial W ^ { v } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 2 } } } \end{array}$ , $W _ { \tau } ^ { h } ( t _ { 1 } , t _ { 2 } ) { } ~ = { } ~ W ^ { h } ( t _ { 1 } - \tau ( t _ { 1 } ) , t _ { 2 } ) , q _ { \tau } ^ { h } ( t _ { 1 } , t _ { 2 } ) { } ~ = { } ~ q ^ { h } ( t _ { 1 } - \tau ( t _ { 1 } ) , t _ { 2 } )$ $\begin{array} { r l r } { \tau ( \dot { t } _ { 1 } ) , t _ { 2 } ) , p _ { \tau } ^ { h } ( t _ { 1 } , t _ { 2 } ) } & { { } = } & { p ^ { h } ( \dot { t } _ { 1 } - \dot { \tau } ( \dot { t } _ { 1 } ) , t _ { 2 } ) , W _ { \tau } ^ { v } ( t _ { 1 } , t _ { 2 } ) = } \end{array}$ $W ^ { v } ( t _ { 1 } ) , t _ { 2 } - \tau ( t _ { 2 } ) , q _ { \tau } ^ { v } ( t _ { 1 } , t _ { 2 } ) = q ^ { v } ( t _ { 1 } , t _ { 2 } - \tau ( t _ { 2 } ) , p _ { \tau } ^ { v } ( t _ { 1 } , t _ { 2 } ) =$ $p ^ { v } ( t _ { 1 } , t _ { 2 } \ - \tau ( t _ { 2 } ) )$ ) and $\delta W ^ { j } ( t _ { 1 } , t _ { 2 } ) ~ = ~ W ^ { j } ( t _ { 1 } , t _ { 2 } ) ~ - ~ W _ { 0 } ^ { j }$ $\delta q ( t _ { 1 } , t _ { 2 } ) = q ^ { j } ( t _ { 1 } , t _ { 2 } ) - q _ { 0 } ^ { j } , \delta p ^ { j } ( t _ { 1 } , t _ { 2 } ) = p ^ { j } ( t _ { 1 } , t _ { 2 } ) - p _ { 0 } ^ { j } ,$ $j ~ = h , v .$ . The partial derivatives for scenarios A and B respectively are given by,
+
+Scenario A: Horizontal dimension
+
+$$
+\frac {\delta f _ {W} ^ {h}}{\delta W ^ {h}} = - \frac {\lambda \hat {W} ^ {h} \hat {p} ^ {v}}{2 N \hat {\tau} _ {1}}, \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {h}} = \frac {\hat {W} ^ {h} (1 - \hat {p} ^ {v})}{\hat {\tau} _ {1} ^ {2} C}, \frac {\delta f _ {W} ^ {h}}{\delta W _ {\tau} ^ {h}} = \frac {1 - \hat {p} ^ {v}}{\tau_ {1}} - \frac {\lambda \hat {W} \hat {p} ^ {v}}{2 N \hat {\tau} _ {1}},
+$$
+
+$$
+\frac {\delta f _ {W} ^ {h}}{\delta W ^ {v}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta W _ {\tau} ^ {v}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta p ^ {h}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta p _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta p ^ {v}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta q ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {W} ^ {h}}{\delta p _ {\tau} ^ {v}} = - \frac {\hat {W} ^ {h}}{\hat {\tau} _ {1}} - \frac {\lambda (\hat {W} ^ {h}) ^ {2}}{2 N \hat {\tau} _ {1}}, \frac {\delta f _ {W} ^ {h}}{\delta q ^ {h}} = - \frac {\lambda (\hat {W} ^ {h}) ^ {2} \hat {p} ^ {v}}{2 N \hat {\tau} _ {1} ^ {2} C}, \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {v}} = 0,
+$$
+
+Scenario A: Vertical dimension
+
+$$
+\frac {\delta f _ {W} ^ {v}}{\delta W ^ {h}} = \frac {(1 - \hat {p} ^ {v})}{\hat {\tau} _ {2}} - \frac {\lambda \hat {W} ^ {h} \hat {p} ^ {v}}{N \hat {\tau} _ {2}}, \frac {\delta f _ {W} ^ {v}}{\delta W _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta W ^ {v}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta W _ {\tau} ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {W} ^ {v}}{\delta p ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta p _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta p ^ {v}} = \frac {- \hat {W} ^ {h}}{\hat {\tau_ {2}}} - \frac {\lambda (\hat {W} ^ {h}) ^ {2}}{2 N \hat {\tau_ {2}}}, \frac {\delta f _ {W} ^ {v}}{\delta p _ {\tau} ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {W} ^ {v}}{\delta q ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta q _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta q ^ {v}} = \frac {\hat {W} ^ {h} (1 - p ^ {v})}{\hat {\tau} _ {2} ^ {2} C} - \frac {\lambda (\hat {W} ^ {h}) ^ {2} \hat {p} ^ {v}}{2 N \hat {\tau} _ {2} ^ {2} C}, \frac {\delta f _ {W} ^ {v}}{\delta q _ {\tau} ^ {v}} = 0.
+$$
+
+Scenario B: Horizontal dimension
+
+$$
+\frac {\delta f _ {W} ^ {h}}{\delta W ^ {h}} = - \frac {N (1 - p ^ {v})}{\hat {\tau} _ {1} \hat {W} ^ {h}} - \frac {\lambda (\hat {W} ^ {h}) ^ {2} \hat {p} ^ {v}}{2 N \hat {\tau} _ {1}}, \frac {\delta f _ {W} ^ {h}}{\delta W _ {\tau} ^ {h}} = \frac {N (1 - \hat {p} ^ {v})}{\tau_ {1} \hat {W} ^ {h}} - \frac {\lambda \hat {W} ^ {h} \hat {p} ^ {v}}{2 N \hat {\tau} _ {1}},
+$$
+
+$$
+\frac {\delta f _ {W} ^ {h}}{\delta p ^ {h}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta p _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta p ^ {v}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta p _ {\tau} ^ {v}} = - \frac {N}{\hat {\tau} _ {1}} - \frac {\lambda (\hat {W} ^ {h}) ^ {2}}{2 N \hat {\tau} _ {1}}, \frac {\delta f _ {W} ^ {h}}{\delta W _ {\tau} ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {W} ^ {h}}{\delta q ^ {h}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {h}} = \frac {N (1 - \hat {p} ^ {v})}{\hat {\tau} _ {1} ^ {2} C}, \frac {\delta f _ {W} ^ {h}}{\delta q ^ {v}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta q _ {\tau} ^ {v}} = 0, \frac {\delta f _ {W} ^ {h}}{\delta W ^ {v}} = 0,
+$$
+
+Scenario B: Vertical dimension
+
+$$
+\frac {\delta f _ {W} ^ {v}}{\delta W ^ {h}} = \frac {N (1 - \hat {p} ^ {v})}{\hat {\tau} _ {2}} - \frac {\lambda \hat {W} ^ {h} \hat {p} ^ {v}}{N \hat {\tau} _ {2}}, \frac {\delta f _ {W} ^ {v}}{\delta W _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta W ^ {v}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta W _ {\tau} ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {W} ^ {v}}{\delta p ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta p _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta p ^ {v}} = \frac {- N \hat {W} ^ {h}}{\hat {\tau_ {2}}} - \frac {\lambda (\hat {W} ^ {h}) ^ {2}}{2 N \hat {\tau_ {2}}}, \frac {\delta f _ {W} ^ {v}}{\delta p _ {\tau} ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {W} ^ {v}}{\delta q ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta q _ {\tau} ^ {h}} = 0, \frac {\delta f _ {W} ^ {v}}{\delta q ^ {v}} = - \frac {N \hat {W} ^ {h} (1 - p ^ {v})}{\tau_ {2} ^ {2} C} - \frac {\lambda (\hat {W} ^ {h}) ^ {2}}{2 N \tau_ {2} ^ {2} C}, \frac {\delta f _ {W} ^ {v}}{\delta q _ {\tau} ^ {v}} = 0.
+$$
+
+The linearised queue dynamic can be written in the form,
+
+$$
+\begin{array}{l} \frac {\partial \delta q ^ {h} (t _ {1} , t _ {2})}{\partial t _ {1}} = \frac {\delta f _ {q} ^ {h}}{\delta W ^ {h}} \delta W ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {h}}{\delta W _ {\tau} ^ {h}} \delta W ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {q} ^ {h}}{\delta W ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {h}}{\delta W _ {\tau} ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \qquad + \frac {\delta f _ {q} ^ {h}}{\delta p} \delta p ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {h}}{\delta p _ {\tau}} \delta p ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {q} ^ {h}}{\delta p} \delta p ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {h}}{\delta p _ {\tau}} \delta p ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \qquad + \frac {\delta f _ {q} ^ {h}}{\delta q ^ {h}} \delta q ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {h}}{\delta q _ {\tau} ^ {h}} \delta q ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {q} ^ {h}}{\delta q ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {h}}{\delta q _ {\tau} ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) + h. o. t, \end{array}
+$$
+
+$$
+\begin{array}{l} \frac {\partial \delta q ^ {v} (t _ {1} , t _ {2})}{\partial t _ {2}} = \frac {\delta f _ {q} ^ {v}}{\delta W ^ {h}} \delta W ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {v}}{\delta W _ {\tau} ^ {h}} \delta W ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {q} ^ {v}}{\delta W ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {v}}{\delta W _ {\tau} ^ {v}} \delta W ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \qquad + \frac {\delta f _ {q} ^ {v}}{\delta p} \delta p ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {v}}{\delta p _ {\tau}} \delta p ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {q} ^ {v}}{\delta p} \delta p ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {v}}{\delta p _ {\tau}} \delta p ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) \\ \qquad + \frac {\delta f _ {q} ^ {v}}{\delta q ^ {h}} \delta q ^ {h} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {v}}{\delta q _ {\tau} ^ {h}} \delta q ^ {h} (t _ {1} - \tau (t _ {1}), t _ {2}) \\ \qquad + \frac {\delta f _ {q} ^ {v}}{\delta q ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2}) + \frac {\delta f _ {q} ^ {v}}{\delta q _ {\tau} ^ {v}} \delta q ^ {v} (t _ {1}, t _ {2} - \tau (t _ {2})) + h. o. t (. 2) \end{array}
+$$
+
+where $\begin{array} { r } { f _ { q } ^ { h } : = \frac { \partial q ^ { h } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 1 } } } \end{array}$ and $\begin{array} { r } { f _ { q } ^ { v } : = \frac { \partial q ^ { v } ( t _ { 1 } , t _ { 2 } ) } { \partial t _ { 2 } } } \end{array}$ . The partial derivatives that describes the queue dynamic are as,
+
+ECN OFF: Horizontal dimension
+
+$$
+\frac {\delta f _ {q} ^ {h}}{\delta W ^ {h}} = \frac {N (1 - \hat {p} ^ {v})}{\hat {\tau} _ {1}}, \frac {\delta f _ {q} ^ {h}}{\delta W _ {\tau} ^ {h}} = 0, \frac {\delta f _ {q} ^ {h}}{\delta W ^ {v}} = 0, \frac {\delta f _ {q} ^ {h}}{\delta q _ {\tau} ^ {h}} = 0,
+$$
+
+$$
+\frac {\delta f _ {q} ^ {h}}{\delta W _ {\tau} ^ {v}} = 0, \frac {\delta f _ {q} ^ {h}}{\delta p ^ {h}} = 0, \frac {\delta f _ {q} ^ {h}}{\delta p _ {\tau} ^ {h}} = 0, \frac {\delta f _ {q} ^ {h}}{\delta p ^ {v}} = 0, \frac {\delta f _ {q} ^ {h}}{\delta q ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {q} ^ {h}}{\delta p _ {\tau} ^ {v}} = - \frac {N \hat {W} ^ {h}}{\hat {\tau} _ {1}}, \frac {\delta f _ {q} ^ {h}}{\delta q ^ {h}} = \frac {N \hat {W} ^ {h}}{\tau_ {1} ^ {2} C} (1 - \hat {p} ^ {v}), \frac {\delta f _ {q} ^ {h}}{\delta q _ {\tau} ^ {v}} = 0,
+$$
+
+ECN OFF: Vertical dimension:
+
+$$
+\frac {\delta f _ {q} ^ {v}}{\delta W ^ {h}} = 0, \frac {\delta f _ {q} ^ {v}}{\delta W _ {\tau} ^ {h}} = 0, \frac {\delta f _ {q} ^ {v}}{\delta W ^ {v}} = \frac {N (1 - p ^ {v})}{\hat {\tau} _ {2}}, \frac {\delta f _ {q} ^ {v}}{\delta W _ {\tau} ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {q} ^ {v}}{\delta p ^ {h}} = 0, \frac {\delta f _ {q} ^ {v}}{\delta p _ {\tau} ^ {h}} = 0, \frac {\delta f _ {q} ^ {v}}{\delta p ^ {v}} = - \frac {N \hat {W} ^ {v}}{\hat {\tau} _ {2}}, \frac {\delta f _ {q} ^ {v}}{\delta p _ {\tau} ^ {v}} = 0,
+$$
+
+$$
+\frac {\delta f _ {q} ^ {v}}{\delta q ^ {h}} = 0, \frac {\delta f _ {q} ^ {v}}{\delta q _ {\tau} ^ {h}} = 0, \frac {\delta f _ {q} ^ {v}}{\delta q ^ {v}} = \frac {N \hat {W} ^ {v}}{\tau_ {2} ^ {2} C} (1 - \hat {p} ^ {v}), \frac {\delta f _ {q} ^ {v}}{\delta q _ {\tau} ^ {v}} = 0.
+$$

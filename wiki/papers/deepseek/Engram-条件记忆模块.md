@@ -11,7 +11,7 @@ year: 2026
 date: 2026-07-14
 journal: arXiv preprint
 doi: "arXiv:2601.07372"
-source_pdf: "[[raw/papers/2601.07372_Engram-DeepSeek.pdf]]"
+source_pdf: "[[raw/papers/deepseek/2601.07372_Engram-DeepSeek.pdf]]"
 tags:
   - LLM
   - 记忆
@@ -24,7 +24,7 @@ aliases:
   - 条件记忆
   - n-gram 哈希记忆
   - Zheng2026-Engram
-key_finding: "提出 O(1) n-gram 哈希查表的条件记忆模块 Engram，作为 MoE 之外的第二条稀疏化轴线——Expert 挑 token，Engram 每个 token 选相关 n-gram 记忆。27B 模型上 MMLU +3.4、BBH +5.0、HumanEval +3.0、MATH +2.4，长文本检索从 84.2 跳至 97.0。与 mHC 出自同一团队，已在 DeepSeek 生产模型中使用"
+key_finding: "提出 O(1) n-gram 哈希查表的条件记忆模块 Engram，作为 MoE 之外的第二条稀疏化轴线；27B 论文实验在 MMLU、BBH、HumanEval、MATH 和长文本检索上优于等参数等 FLOPs 的 MoE 对照，但官方仓库只提供数据流演示代码，论文不证明其适用于 DGA 漂移。"
 method: "O(1) n-gram 哈希查表（N-gram Hashing）+ Sparse Memory Lookup（只激活 k 条最相关记忆）"
 baseline: "Dense Transformer（无 Engram）、MoE（单独使用）"
 ---
