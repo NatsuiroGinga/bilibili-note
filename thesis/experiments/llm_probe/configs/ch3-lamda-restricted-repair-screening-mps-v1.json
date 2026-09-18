@@ -1,0 +1,84 @@
+{
+  "schema_version": "ch3-lamda-restricted-repair-screening-config-v1",
+  "identity": {
+    "run_id": "ch3-lamda-restricted-repair-screening-mps-seed42-v1",
+    "display_name": "LAMDA 本机 MPS 受限参数修复回放预筛",
+    "run_tier": "screening_only",
+    "independent_final_test": false,
+    "published_feature_space_uses_future_covariates": true,
+    "screening_only_reason": "本机 MPS 仅用于来源／开发期候选筛选，不作为 CUDA 正式结果或封印年评价。"
+  },
+  "paths": {
+    "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "output_root": "/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-restricted-repair-screening-mps-seed42-v1"
+  },
+  "data": {
+    "dataset_revision": "ad9614bdd5556767f97ced2fce797c2f06408ebf",
+    "protocol": "Domain-IL",
+    "published_feature_count": 4561,
+    "metadata_columns": ["hash", "label", "family", "vt_count", "year_month"],
+    "run_years": [2013, 2014, 2016, 2017, 2018],
+    "source_years": [2013, 2014],
+    "development_years": [2016, 2017, 2018],
+    "sealed_final_years": [2019, 2020, 2021, 2022, 2023],
+    "additional_unread_years": [2024, 2025],
+    "label_arrival": "每个运行年度 train 标签只在该年度更新阶段到达；2018 train 标签按到达使用、2018 test 只在训练后评价，与 2016/2017 同一到达语义。2019-2023 封印与 2024/2025 探索年一律不读取。"
+  },
+  "arms": ["experience_replay", "gap_repair", "restricted_repair", "restricted_repair_curriculum"],
+  "runtime": {"required_device": "mps"},
+  "model": {
+    "backbone": [512, 384, 256, 128],
+    "head": [100, 100, 1],
+    "activation": "ReLU",
+    "head_dropout": 0.2,
+    "output": "Sigmoid",
+    "loss": "BCELoss"
+  },
+  "training": {
+    "seed": 42,
+    "epochs_per_year": 10,
+    "batch_size": 1024,
+    "optimizer": {"name": "SGD", "lr": 0.01, "momentum": 0.9, "weight_decay": 1e-6},
+    "float32_matmul_precision": "high",
+    "precision_profile": "fp32-screening-inherited",
+    "precision_basis": "与既有公平合同一致；设备差异只用于本机候选预筛"
+  },
+  "replay": {"algorithm": "standard_single_example_reservoir", "capacity": 200, "update_timing": "当前年份训练和评价完成后更新"},
+  "mechanism": {
+    "repair_weight": "margin_deficit",
+    "repair_definition": "当前年度真实恶意且上一冻结模型 score<0.5",
+    "repair_weight_formula": "max(0.5-old_score,0)，按当前批次权重归一化",
+    "repair_scope": {
+      "experience_replay": "no_repair",
+      "gap_repair": "full",
+      "restricted_repair": "head_only",
+      "restricted_repair_curriculum": "head_only"
+    },
+    "restricted_repair": {
+      "frozen_parameters": ["backbone"],
+      "trainable_parameters": ["head_classifier"],
+      "optimizer_scope": "head_parameters_only",
+      "requires_grad_policy": "backbone.requires_grad=False，逐年保持冻结，不回拷上年头权重"
+    },
+    "curriculum": {
+      "arm": "restricted_repair_curriculum",
+      "exposure": "shallow_gap_first_decile_epochs",
+      "margin_gap_definition": "d = 0.5 - old_score（上一冻结模型概率分）",
+      "exposure_rule": "epoch e in 1..10 把 d <= 当年修复候选 d 的 e/10 分位的样本计入 repair_mask；由浅到深累计暴露"
+    }
+  },
+  "evaluation": {
+    "development_current_years": [2016, 2017, 2018],
+    "threshold": 0.5,
+    "surfaces": ["current_year", "next_year", "backward", "historical_benign_gate"],
+    "metrics": ["AP", "AUROC", "F1", "FPR", "FNR", "Brier", "old_malicious_negative_flip_rate", "current_malicious_positive_repair_rate", "benign_new_false_positive_rate"]
+  },
+  "qualification_gate": {
+    "config_record_only": true,
+    "note": "下列锚点照抄 v2 配置仅作配置记录；本预筛不自动裁决，qualification 由主代理用同流 ER2018 锚执行。",
+    "fpr_anchor": 0.0131481546758786,
+    "fnr_anchor": 0.0594781562523498,
+    "old_malicious_negative_flip_anchor": 0.052107226
+  },
+  "interpretation_boundary": "本机 MPS 结果只作接口和方向预筛，不构成无泄漏正式基线、封印期评价或第三章创新有效性结论。"
+}
