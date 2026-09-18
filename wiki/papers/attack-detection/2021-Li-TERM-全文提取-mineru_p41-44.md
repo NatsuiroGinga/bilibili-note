@@ -1,0 +1,56 @@
+by (Namkoong & Duchi, 2017). We examine the accuracy on the rare class (Y “ 0), the common class (Y “ 1), and overall accuracy.
+
+The mean and standard error of accuracies are reported in Table 8. RobustRegRisk and TERM offer similar performance improvements compared with other baselines, such as linear SVM, Learn-Rewight (Ren et al., 2018), FocalLoss (Lin et al., 2017), and HRM (Leqi et al., 2019). For larger t, TERM achieves similar accuracy in both classes, while RobustRegRisk does not show similar trends by sweeping its hyperparameters. It is common to adjust the decision threshold to boost the accuracy on the rare class. We do this for ERM and RobustRegRisk and optimize the threshold so that ERM\` and RobustRegRisk\` result in the same validation accuracy on the rare class as TERM (t “ 50). TERM achieves similar performance to RobustRegRisk\`, without the need for an extra tuned hyperparameter.
+
+Table 8: TERM (t “ 0.1) is competitive with strong baselines in generalization. TERM (t “ 50) outperforms ERM\` (with decision threshold changed for providing fairness) and is competitive with RobustRegRisk\` with no need for extra hyperparameter tuning.
+<table><tr><td rowspan="2">objectives</td><td colspan="2">accuracy (Y = 0)</td><td colspan="2">accuracy (Y = 1)</td><td colspan="2">overall accuracy (%)</td></tr><tr><td>train</td><td>test</td><td>train</td><td>test</td><td>train</td><td>test</td></tr><tr><td>ERM</td><td>0.841 (.005)</td><td>0.822 (.009)</td><td>0.971 (.000)</td><td>0.966 (.002)</td><td>0.944 (.000)</td><td>0.934 (.003)</td></tr><tr><td>Linear SVM</td><td>0.873 (.003)</td><td>0.838 (.013)</td><td>0.965 (.000)</td><td>0.964 (.002)</td><td>0.951 (.001)</td><td>0.937(.004)</td></tr><tr><td>LearnReweight (Ren et al., 2018)</td><td>0.860(004)</td><td>0.841(.014)</td><td>0.960 (.002)</td><td>0.961 (.004)</td><td>0.940 (.001)</td><td>0.934 (.004)</td></tr><tr><td>FocalLoss (Lin et al., 2017)</td><td>0.871 (.003)</td><td>0.834 (.013)</td><td>0.970 (.000)</td><td>0.966 (.003)</td><td>0.949 (.001)</td><td>0.937(.004)</td></tr><tr><td>HRM (Leqi et al., 2019)</td><td>0.875(003)</td><td>0.839(.012)</td><td>0.972 (.000)</td><td>0.965 (.003)</td><td>0.952 (.001)</td><td>0.937 (.003)</td></tr><tr><td>RobustRegRisk (Namkoong &amp; Duchi, 2017)0.875(.003)</td><td></td><td>0.844(.010)</td><td>0.971 (.000)</td><td>0.966 (.003)</td><td>0.951 (.001)</td><td>0.939 (.004)</td></tr><tr><td>TERM (t = 0.1)</td><td>0.864 (.003)</td><td></td><td></td><td></td><td></td><td>0.840 (011) 0.970 (00) 0.964 (.003) 0.949 (.001)0.937 (004)</td></tr><tr><td>ERM+ (thresh = 0.26)</td><td>0.943 (.001)</td><td>0.916 (.008)</td><td>0.919 (.001)</td><td>0.917 (.003)</td><td>0.924 (.001)</td><td>0.917 (002)</td></tr><tr><td>RobustRegRisk+ (thresh=0.49)</td><td>0.943 (.000)</td><td></td><td></td><td></td><td></td><td>0.917 (005)0.928 (.001)0.928 (.002) 0.931 (.001)0.924 (.001)</td></tr><tr><td>TERM (t = 50)</td><td></td><td></td><td></td><td></td><td></td><td>0.942 (001) 0.917 (.005) 0.926 (001)0.925 (.002) 0.929 (.001) 0.924 (001)</td></tr></table>
+
+## J EXPERIMENTAL DETAILS
+
+We first describe the datasets and models used in each experiment presented in Section 5, and then provide a detailed setup including the choices of hyperparameters. All code and datasets are publicly available at github.com/litian96/TERM.
+
+## J.1 DATASETS AND MODELS
+
+We apply TERM to a diverse set of real-world applications, datasets, and models.
+
+In Section 5.1, for regression tasks, we use the drug discovery data extracted from (Diakonikolas et al., 2019) which is originally curated from (Olier et al., 2018) and train linear regression models with different losses. There are 4,085 samples in total with each having 411 features. We randomly split the dataset into 80% training set, 10% validation set, and 10% testing set. For mitigating noise on classification tasks, we use the standard CIFAR-10 data and their standard train/val/test partitions along with a standard inception network (Szegedy et al., 2016). For experiments regarding mitigating noisy annotators, we again use the CIFAR-10 data and their standard partitions with a ResNet20 model. The noise generation procedure is described in Section 5.1.
+
+In Section 5.2, for fair PCA experiments, we use the complete Default Credit data to learn lowdimensional approximations and the loss is computed on the full training set. We follow the exact data processing steps described in the work (Samadi et al., 2018) we compare with. There are 30,000 total data points with 21-dimensional features (after preprocessing). Among them, the high education group has 24,629 samples and the low education group has 5,371 samples. For class imbalance experiments, we directly take the unbalanced data extracted from MNIST (LeCun et al., 1998) used in (Ren et al., 2018). When demonstrating the variance reduction of TERM, we use the HIV-1 dataset (Rögnvaldsson, 2013) as in (Namkoong & Duchi, 2017) and randomly split it into 80% train, 10% validation, and 10% test set. There are 6,590 total samples and each has 160 features. We report results based on five such random partitions of the data. We train logistic regression models (without any regularization) for this binary classification task for TERM and the baseline methods. We also investigate the performance of a linear SVM.
+
+In Section 5.3, the HIV-1 data are the same as that in Section 5.2. We also manually subsample the data to make it more imbalanced, or inject random noise, as described in Section 5.3.
+
+## J.2 HYPERPARAMETERS
+
+Selecting t. In Section 5.2 where we consider positive t’s, we select t from a limited candidate set of t0.1, 0.5, 1, 5, 10, 50, 100, 200u on the held-out validation set. For initial robust regression experiments, RMSE changed by only 0.08 on average across t; we thus used t “ ´2 for all experiments involving noisy training samples (Section 5.1 and Section 5.3).
+
+Other parameters. For all experiments, we tune all other hyperparameters (the learning rates, the regularization parameters, the decision threshold for ERM\`, ρ for (Namkoong & Duchi, 2017), α and γ for focal loss (Lin et al., 2017)) based on a validation set, and select the best one. For experiments regarding focal loss (Lin et al., 2017), we select the class balancing parameter (α in the original focal loss paper) from rangep0.05, 0.95, 0.05q and select the main parameter γ from t0.5, 1, 2, 3, 4, 5u. We tune ρ in (Namkoong & Duchi, 2017) such that $\frac { \rho } { n }$ is selected from t0.5, 1, 2, 3, 4, 5, 10u where n is the training set size. All regularization parameters including regularization for linear SVM are selected from t0.0001, 0.01, 0.1, 1, 2u. For all experiments on the baseline methods, we use the default hyperparameters in the original paper (or the open-sourced code).
+
+We summarize a complete list of main hyperparameter values as follows.
+
+## Section 5.1:
+
+• Robust regression. The threshold parameter δ for Huber loss for all noisy levels is 1, the corruption parameter k for CRR is: 500 (20% noise), 1000 (40% noise), and 3000 (80% noise); and TERM uses t “ ´2.
+
+• Robust classification. The results are all based on the default hyperparameters provided by the open-sourced code of MentorNet (Jiang et al., 2018), if applicable. We tune the q parameter for
+
+generalized cross entropy (GCE) from t0.4, 0.8, 1.0u and select a best one for each noise level. For TERM, we scale t linearly as the number of iterations from 0 to -2 for all noise levels.
+
+• Low-quality annotators. For all methods, we use the same set of hyperparameters. The initial step-size is set to 0.1 and decayed to 0.01 at epoch 50. The batch size is 100.
+
+## Section 5.2:
+
+• Fair PCA. We use the default hyperparameters and directly run the public code of (Samadi et al., 2018) to get the results on the min-max fairness baseline. We use a learning rate of 0.001 for our gradient-based solver for all target dimensions.
+
+• Handling class imbalance. We take the open-sourced code of LearnReweight (Ren et al., 2018) and use the default hyperparameters for the baselines of LearnReweight, HardMine, and ERM. We implement focal loss, and select $\alpha = 0 . 0 5 , \gamma = 2$
+
+• Variance reduction. The regularization parameter for linear SVM is 1. γ for focal loss is 2. We perform binary search on the decision thresholds for ERM\` and RobustRegRisk\`, and choose 0.26 and 0.49, respectively.
+
+## Section 5.3:
+
+• We tune the q parameter for GCE based on validation data. We use $q = 0 , 0 , 0 . 7 , 0 . 3$ respectively for the four scenarios we consider. For RobustlyRegRisk, we use $\begin{array} { r } { \frac { \rho } { n } = 1 0 } \end{array}$ (where n is the training sample size) and we find that the performance is not sensitive to the choice of $\rho .$ For focal loss, we tune the hyperparameters for best performance and select $\gamma = 2 , \alpha = 0 . 5 , 0 . 1 , 0 . 5 .$ , and 0.2 for four scenarios. We use t “ ´2 for TERM in the presence of noise, and tune the positive t’s based on the validation data. In particular, the values of tilts under four cases are: (0, 0.1), (0, 50), (-2, 5), and (-2, 10) for $\mathrm { T E R M } _ { s c }$ and (0.1, 0), (50, 0), (1, -2) and (50, -2) for $\mathrm { T E R M } _ { c a }$ •
+
+## K DISCUSSION
+
+Our proposed work provides an alternative to empirical risk minimization (ERM), which is ubiquitous throughout machine learning. As such, our framework (TERM) could be widely used for applications both positive and negative. However, our hope is that the TERM framework will allow machine learning practitioners to easily modify the ERM objective to handle practical concerns such as enforcing fairness amongst subgroups, mitigating the effect of outliers, and ensuring robust performance on new, unseen data. One potential downside of the TERM objective is that if the underlying dataset is not well-understood, incorrectly tuning t could have the unintended consequence of magnifying the impact of biased/corrupted data in comparison to traditional ERM. Indeed, critical to the success of such a framework is understanding the implications of the modified objective, both theoretically and empirically. The goal of this work is therefore to explore these implications so that it is clear when such a modified objective would be appropriate.
+
+In terms of the use-cases explored with the TERM framework, we relied on benchmark datasets that have been commonly explored in prior work (e.g., Samadi et al., 2018; Tantipongpipat et al., 2019; Yang et al., 2010; Yu et al., 2012). However, we note that some of these common benchmarks, such as cal-housing (Pace & Barry, 1997) and Credit (Yeh & Lien, 2009), contain potentially sensitive information. While the goal of our experiments was to showcase that the TERM framework could be useful in learning fair representations that suppress membership bias and hence promote fairer performance, developing an understanding for—and removing—such membership biases requires a more comprehensive treatment of the problem that is outside the scope of this work.
