@@ -25,12 +25,17 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/prettier_guard.py\"",
+                        "command": "P=\"\"; for C in \"$(git rev-parse --show-toplevel 2>/dev/null)\" \"$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/..\" \"/Users/bilibili/personal/note\"; do if [ -n \"$C\" ] && [ -f \"$C/.Codex/hooks/prettier_guard.py\" ]; then P=\"$C/.Codex/hooks/prettier_guard.py\"; break; fi; done; if [ -n \"$P\" ]; then exec python3 \"$P\"; fi; exit 0",
                         "timeout": 5000
                     },
                     {
                         "type": "command",
-                        "command": "H=\"$(git rev-parse --show-toplevel)/.Codex/hooks/sleep_guard.py\"; [ -f \"$H\" ] || H=\"$(git rev-parse --path-format=absolute --git-common-dir)/../.Codex/hooks/sleep_guard.py\"; [ -f \"$H\" ] && python3 \"$H\" || true",
+                        "command": "P=\"\"; for C in \"$(git rev-parse --show-toplevel 2>/dev/null)\" \"$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/..\" \"/Users/bilibili/personal/note\"; do if [ -n \"$C\" ] && [ -f \"$C/.Codex/hooks/sleep_guard.py\" ]; then P=\"$C/.Codex/hooks/sleep_guard.py\"; break; fi; done; if [ -n \"$P\" ]; then exec python3 \"$P\"; fi; exit 0",
+                        "timeout": 5000
+                    },
+                    {
+                        "type": "command",
+                        "command": "P=\"\"; for C in \"$(git rev-parse --show-toplevel 2>/dev/null)\" \"$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/..\" \"/Users/bilibili/personal/note\"; do if [ -n \"$C\" ] && [ -f \"$C/.Codex/hooks/pgrep_guard.py\" ]; then P=\"$C/.Codex/hooks/pgrep_guard.py\"; break; fi; done; if [ -n \"$P\" ]; then exec python3 \"$P\"; fi; exit 0",
                         "timeout": 5000
                     }
                 ]
@@ -42,7 +47,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "python3 \"$(git rev-parse --show-toplevel)/.Codex/hooks/precompact_snapshot.py\"",
+                        "command": "P=\"\"; for C in \"$(git rev-parse --show-toplevel 2>/dev/null)\" \"$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/..\" \"/Users/bilibili/personal/note\"; do if [ -n \"$C\" ] && [ -f \"$C/.Codex/hooks/precompact_snapshot.py\" ]; then P=\"$C/.Codex/hooks/precompact_snapshot.py\"; break; fi; done; if [ -n \"$P\" ]; then exec python3 \"$P\"; fi; exit 0",
                         "timeout": 8000
                     }
                 ]
