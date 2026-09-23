@@ -1,30 +1,27 @@
 #!/usr/bin/env python3
-"""官方 24.2M DRIFT 模型的 P2/P3 三臂（用户裁决：官方模型为准，本机 MPS 可跑）。
+"""DRIFT 官方双分支骨干的源期共同成员 A/B/D/G/F 筛选运行器。
 
-判据（冻结 v2，同 proxy 版）：
-  P2：臂 B（干净+CharBot 2 位替换增广）相对臂 A（干净训练）——T18 val 对抗变体检出率改善
-      且 干净 FPR 不增 → 对抗训练有效；
-  P3：臂 C（组相对加权：K=4 变体组，组内"当前模型判良性"优势，正优势变体主导梯度）
-      相对臂 B 进一步改善 且 干净 FPR 不增 → GRPO 家族机制层增量成立；
-  失败形态：干净 FPR 恶化（以干净性能换鲁棒）或对抗检出无改善。
-  报告补充列：adv FNR 对照（AP 接近 1.0 封顶时提供区分度，不替代冻结判据）。
-规格：T17 train 固定取各 Parquet 当前行序前 3 万（良性/DGA 各 3 万）训练、3 epochs、batch 128、
-  Adam 分层 lr（骨干 1e-6/头 1e-4）、全参数训练、
-  评价 = T18 val 干净 1.5 万 + CharBot 变体 1.5 万（k=2 对齐 P0）+ k∈U{1..4} 变体 1.5 万（预算泛化组），
-  阈值 0.5、种子 42。逐 epoch 干净 FPR 曲线（文献代理 Q1 裁决：识别验证损失上升段，防瞬态误判）。
-埋点三类；断点：每臂完成原子落盘 state_dict 与指标；--dry-run 同路径。
+固定哈希源训练与源验证成员从现有 Parquet 按需读取；本入口是源期筛选，
+指标仍使用历史 0.5 阈值与筛选攻击面板，不代表正式低误报评价。
+每臂每轮保存完整训练断点，运行状态和单臂结果保存在独占运行目录。
 """
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import math
 import os
 import random
 import re
+import resource
 import sys
 import time
 from contextlib import nullcontext
+from datetime import datetime, timezone
 from pathlib import Path
+
+import fcntl
 
 import numpy as np
 import pyarrow.parquet as pq
@@ -35,9 +32,12 @@ ROOT = Path(os.environ.get(
     "LLM_PROBE_ROOT",
     "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe",
 ))
+REPO_ROOT = ROOT.parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import ch3_drift_official_branch_conflict_diagnostic as diag
 import ch3_drift_official_checkpoint_t17_eval as official
+import ch3_drift_f_source_eligibility as eligibility
+import ch3_drift_formal_contract as formal_contract
 
 REF = ROOT / "runs/source-snapshots/2026-DSN-DRIFT-e20d1fdf56c623993966c6786f61c01f91dec6d2"
 CKPT = ROOT / "runs/models/drift-official-dsn2026/finetuning.pt"
@@ -63,8 +63,50 @@ ALPHA_CVAR = 0.05   # J 臂 CVaR 尾部质量（任务化设定）
 LAMBDA_CVAR = 0.1   # J 臂 CVaR 项权重：量级对齐恶意 CE 项，避免 I 型尾部劫持（任务化设定）
 TAU_LR = 0.01       # J 臂对偶变量 τ 的解析下降步长
 ALPHA = "abcdefghijklmnopqrstuvwxyz0123456789-"
-ARM_DISPLAY_NAMES = {"MP": "混合曝光＋误报保护"}
+ARM_DISPLAY_NAMES = {
+    "A": "干净微调",
+    "B": "朴素字符增广",
+    "D": "组中心跨组选择",
+    "G": "良性条件误报补偿",
+    "F": "组中心选择＋良性补偿",
+    "MP": "混合曝光＋误报保护",
+}
 SAFE_RESULT_NAME = re.compile(r"[A-Za-z0-9._-]+\Z")
+
+
+def now_utc() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_json_atomic(path: Path, payload: dict) -> None:
+    partial = path.with_name(path.name + ".partial")
+    with partial.open("w", encoding="utf-8") as stream:
+        json.dump(payload, stream, ensure_ascii=False, indent=2)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(partial, path)
+
+
+def write_checkpoint_atomic(path: Path, payload: dict) -> None:
+    partial = path.with_name(path.name + ".partial")
+    with partial.open("wb") as stream:
+        torch.save(payload, stream)
+        stream.flush()
+        os.fsync(stream.fileno())
+    os.replace(partial, path)
+
+
+def rss_mib() -> float:
+    # macOS 的 ru_maxrss 单位为字节；该值是进程历史峰值。
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / (1024 * 1024)
 
 
 def arm_label(arm: str) -> str:
@@ -145,6 +187,94 @@ def load_split(limit: int) -> tuple[list[str], np.ndarray]:
     return domains, labels
 
 
+def disable_nested_tensor(model) -> None:
+    encoders = [module for module in model.modules() if isinstance(module, torch.nn.TransformerEncoder)]
+    if len(encoders) != 2:
+        raise RuntimeError(f"预期两个TransformerEncoder，实际为{len(encoders)}")
+    for encoder in encoders:
+        encoder.enable_nested_tensor = False
+        encoder.use_nested_tensor = False
+
+
+def load_mps_model():
+    model = official.load_model(REF, CKPT, DEVICE)
+    disable_nested_tensor(model)
+    return model
+
+
+def load_fixed_source_members(candidate_spec_value: str, purpose: str) -> tuple[list[str], np.ndarray, list[dict]]:
+    if purpose not in {"source_train", "source_validation"}:
+        raise ValueError("共同成员入口只允许源训练或源验证用途")
+    config, _ = formal_contract.load_config("configs/ch3-drift-formal-evaluation-v1.json")
+    spec_path = formal_contract.resolve_repo_relative(candidate_spec_value, must_exist=True)
+    spec = eligibility.load_spec(spec_path)
+    role_map = {role["role"]: role for role in config["input_roles"]}
+    try:
+        import pyarrow.parquet as parquet
+    except ImportError as exc:
+        raise RuntimeError("共同成员入口需要PyArrow") from exc
+    domains: list[str] = []
+    labels: list[int] = []
+    receipts: list[dict] = []
+    for entry in spec["roles"][purpose]:
+        role_started = time.time()
+        print(
+            f"[源成员选择] 开始 purpose={purpose} role={entry['role']} count={entry['count']}",
+            file=sys.stderr,
+            flush=True,
+        )
+        role = role_map.get(entry["role"])
+        if role is None:
+            raise ValueError(f"成员角色不在正式配置中：{entry['role']}")
+        valid = role["scope"] == "source" and (
+            role["split"] in {"train", "test"} if purpose == "source_train" else role["split"] == "val"
+        )
+        if not valid:
+            raise ValueError(f"成员角色用途不符：{entry['role']}")
+        path = formal_contract.resolve_repo_relative(role["path"], must_exist=True)
+        selected, receipt = eligibility.select_role(
+            parquet=parquet,
+            path=path,
+            role=role,
+            count=entry["count"],
+            revision=config["data_revision"],
+            namespace=spec["corpus_namespace"],
+        )
+        domains.extend(selected)
+        labels.extend([0 if role["class"] == "benign" else 1] * len(selected))
+        receipts.append(receipt)
+        print(
+            f"[源成员选择] 完成 role={entry['role']} raw_rows={receipt['raw_rows']} "
+            f"selected={len(selected)} elapsed={time.time() - role_started:.1f}s",
+            file=sys.stderr,
+            flush=True,
+        )
+    if not domains or len(domains) != len(labels):
+        raise RuntimeError(f"{purpose} 共同成员为空或标签错位")
+    return domains, np.asarray(labels, dtype=np.int64), receipts
+
+
+def source_feature_means(model, tokenizer, domains: list[str]) -> tuple[np.ndarray, np.ndarray]:
+    token_sum = None
+    char_sum = None
+    count = 0
+    model.eval()
+    with torch.inference_mode():
+        for offset in range(0, len(domains), EVAL_BATCH):
+            chunk = domains[offset:offset + EVAL_BATCH]
+            token_ids = official.encode_subword(chunk, tokenizer).to(DEVICE)
+            char_ids = official.encode_char(chunk).to(DEVICE)
+            token_feature, char_feature = diag.branch_features(model, token_ids, char_ids)
+            token_value = token_feature.detach().cpu().numpy().sum(axis=0, dtype=np.float64)
+            char_value = char_feature.detach().cpu().numpy().sum(axis=0, dtype=np.float64)
+            token_sum = token_value if token_sum is None else token_sum + token_value
+            char_sum = char_value if char_sum is None else char_sum + char_value
+            count += len(chunk)
+    if count != len(domains) or token_sum is None or char_sum is None:
+        raise RuntimeError("源特征均值计算未覆盖全部共同成员")
+    return (token_sum / count).astype(np.float32), (char_sum / count).astype(np.float32)
+
+
 def metrics(model, tokenizer, domains: list[str], labels01: np.ndarray, tok_mean, char_mean) -> dict:
     model.eval()
     scores = []
@@ -172,8 +302,11 @@ def metrics(model, tokenizer, domains: list[str], labels01: np.ndarray, tok_mean
 def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
               tokenizer, tok_mean, char_mean,
               eval_clean: tuple[list[str], np.ndarray], eval_adv: tuple[list[str], np.ndarray],
-              epochs: int, ref_model=None) -> dict:
-    model = official.load_model(REF, CKPT, DEVICE)
+              epochs: int, ref_model=None, checkpoint_path: Path | None = None,
+              run_identity: dict | None = None, progress=None) -> dict:
+    # 每臂使用相同的模型随机轨迹起点；断点恢复随后覆盖为保存的状态。
+    torch.manual_seed(SEED)
+    model = load_mps_model()
     n_params = sum(p.numel() for p in model.parameters())
     # 分层 lr：官方模型参数名无 "backbone"，按分类头匹配（classifier_head=1e-4，骨干=1e-6）
     opt = torch.optim.Adam([
@@ -195,8 +328,36 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     benign_cache: dict[int, list[str]] = {}
     benign_rng = random.Random(SEED + 7)  # 良性变体独立种子，不与恶意变体序列耦合
     tau_val = torch.tensor(0.5, device=DEVICE)  # J 臂对偶变量 τ（RU 形式 min_τ）
+    first_epoch = 1
+    if checkpoint_path is not None and checkpoint_path.exists():
+        checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+        if checkpoint["identity"] != run_identity or checkpoint["arm"] != arm:
+            raise RuntimeError(f"{label} 断点身份与当前运行不一致")
+        completed_epoch = int(checkpoint["completed_epoch"])
+        if not 0 <= completed_epoch <= epochs:
+            raise RuntimeError(f"{label} 断点轮次越界：{completed_epoch}")
+        model.load_state_dict(checkpoint["model"])
+        opt.load_state_dict(checkpoint["optimizer"])
+        rng.setstate(checkpoint["attack_rng"])
+        benign_rng.setstate(checkpoint["benign_rng"])
+        torch.set_rng_state(checkpoint["cpu_rng"])
+        if DEVICE.type == "mps":
+            torch.mps.set_rng_state(checkpoint["mps_rng"])
+        elif DEVICE.type == "cuda":
+            torch.cuda.set_rng_state(checkpoint["cuda_rng"])
+        adv_cache = checkpoint["adv_cache"]
+        adv_cache_p = checkpoint["adv_cache_p"]
+        adv_cache_l = checkpoint["adv_cache_l"]
+        adv_cache_m = checkpoint["adv_cache_m"]
+        benign_cache = checkpoint["benign_cache"]
+        tau_val = checkpoint["tau_val"].to(DEVICE)
+        fpr_curve = checkpoint["fpr_curve"]
+        first_epoch = completed_epoch + 1
+        print(f"[{label} 恢复] 已完成 {completed_epoch}/{epochs} 轮，从第 {first_epoch} 轮继续", file=sys.stderr, flush=True)
+    if progress is not None:
+        progress(arm, "running", first_epoch - 1, 0, 0, None, None)
     n = len(train_d)
-    for ep in range(1, epochs + 1):
+    for ep in range(first_epoch, epochs + 1):
         model.train()
         order = list(range(n)); random.Random(SEED + ep).shuffle(order)
         t0 = time.time()
@@ -574,71 +735,134 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 loss_s.backward()
                 loss_log += loss_s.item()
             opt.step()
-            if bi % 20 == 0:
-                eta = (time.time() - t0) / (bi + 1) * (nb - bi - 1)
-                print(f"[{label} 心跳] epoch {ep} 批 {bi+1}/{nb} loss={loss_log:.4f} ETA {eta/60:.1f} min", file=sys.stderr, flush=True)
+            if not math.isfinite(loss_log):
+                raise RuntimeError(f"{label} 第 {ep} 轮第 {bi + 1} 批损失非有限值")
+            if bi == 0 or (bi + 1) % 20 == 0 or bi + 1 == nb:
+                elapsed = time.time() - t0
+                rate = (bi + 1) / max(elapsed, 1e-9)
+                eta = (nb - bi - 1) / max(rate, 1e-9)
+                print(
+                    f"[{label} 心跳] epoch={ep}/{epochs} batch={bi + 1}/{nb} "
+                    f"loss={loss_log:.6f} elapsed={elapsed:.1f}s "
+                    f"rate={rate:.3f}批/s eta={eta / 60:.1f}min rss_peak={rss_mib():.1f}MiB",
+                    file=sys.stderr,
+                    flush=True,
+                )
+                if progress is not None:
+                    progress(arm, "running", ep, bi + 1, nb, loss_log, None)
         # 逐 epoch 干净 FPR 曲线（文献代理 Q1 裁决：识别"验证损失上升段"，防瞬态误判）
         model.eval()
-        fpr_now = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)["FPR"]
-        fpr_curve.append({"epoch": ep, "clean_FPR": fpr_now})
-        print(f"[{label} 里程碑] epoch {ep}/{epochs} 完成，干净 FPR={fpr_now:.4f}（{time.time()-t0:.1f}s）", file=sys.stderr, flush=True)
+        clean_now = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)
+        adv_now = metrics(model, tokenizer, ea, eay, tok_mean, char_mean)
+        fpr_curve.append({"epoch": ep, "clean_FPR": clean_now["FPR"], "attack_FNR": adv_now["FNR"], "attack_AP": adv_now["AP"]})
+        print(
+            f"[{label} 里程碑] epoch {ep}/{epochs} 完成，"
+            f"干净FPR={clean_now['FPR']:.4f} 攻击FNR={adv_now['FNR']:.4f} "
+            f"攻击AP={adv_now['AP']:.4f} 耗时={time.time()-t0:.1f}s",
+            file=sys.stderr,
+            flush=True,
+        )
+        if checkpoint_path is not None:
+            state = {
+                "identity": run_identity,
+                "arm": arm,
+                "completed_epoch": ep,
+                "model": model.state_dict(),
+                "optimizer": opt.state_dict(),
+                "attack_rng": rng.getstate(),
+                "benign_rng": benign_rng.getstate(),
+                "cpu_rng": torch.get_rng_state(),
+                "mps_rng": torch.mps.get_rng_state() if DEVICE.type == "mps" else None,
+                "cuda_rng": torch.cuda.get_rng_state() if DEVICE.type == "cuda" else None,
+                "adv_cache": adv_cache,
+                "adv_cache_p": adv_cache_p,
+                "adv_cache_l": adv_cache_l,
+                "adv_cache_m": adv_cache_m,
+                "benign_cache": benign_cache,
+                "tau_val": tau_val.detach().cpu(),
+                "fpr_curve": fpr_curve,
+            }
+            write_checkpoint_atomic(checkpoint_path, state)
+        if progress is not None:
+            progress(arm, "checkpointed", ep, nb, nb, None, fpr_curve[-1])
     model.eval()
     clean = metrics(model, tokenizer, ec, ey, tok_mean, char_mean)
     adv = metrics(model, tokenizer, ea, eay, tok_mean, char_mean)
     return {"clean": clean, "adv": adv, "n_params": n_params, "fpr_curve": fpr_curve, "_model": model}
 
 
-def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = None) -> None:
-    if result_name is not None:
-        result_name = result_name_arg(result_name)
+def run_pipeline(dry: int, arms: tuple[str, ...], epochs: int, out_name: str,
+                 candidate_spec: str, identity: dict, status: dict, status_path: Path) -> None:
     torch.manual_seed(SEED); np.random.seed(SEED); random.seed(SEED)
     tokenizer = official.PreTrainedTokenizerFast(
         tokenizer_file=str(REF / "artifacts/tokenizer/tokenizer-0-30522-both.json")
     )
-    tr_d, tr_y = load_split(dry if dry else 30000)
-    tb = pq.read_table(DATA / "DRIFT_input_eSLD" / "T18_benign_val.parquet").to_pylist()[:(dry or 7500)]
-    td = pq.read_table(DATA / "DRIFT_input_eSLD" / "T18_dga_val.parquet").to_pylist()[:(dry or 7500)]
-    ec = [str(r["domain"]) for r in tb] + [str(r["domain"]) for r in td]
-    ey = np.asarray([0] * len(tb) + [1] * len(td), dtype=bool)
+    tr_d, tr_y, train_receipts = load_fixed_source_members(candidate_spec, "source_train")
+    ec, ey, validation_receipts = load_fixed_source_members(candidate_spec, "source_validation")
+    if dry:
+        tr_d, tr_y = tr_d[:dry], tr_y[:dry]
+        ec, ey = ec[:dry], ey[:dry]
+    td = [domain for domain, label in zip(ec, ey, strict=True) if label == 1]
+    ey = ey.astype(bool)
     rng = random.Random(SEED)
-    ea_k2 = [perturb2(str(r["domain"]), rng) for r in td[:(dry or 7500)]]
-    ea_krand = [perturb2(str(r["domain"]), rng) for r in td[:(dry or 7500)]]  # k∈U{1..4} 预算随机化组
-    ea_mask = [perturb_half(str(r["domain"]), rng) for r in td[:(dry or 7500)]]  # MaskDGA 半替换强攻击面板
+    ea_k2 = [perturb2(domain, rng) for domain in td]
+    ea_krand = [perturb2(domain, rng) for domain in td]  # k∈U{1..4} 预算随机化组
+    ea_mask = [perturb_half(domain, rng) for domain in td]  # MaskDGA 半替换强攻击面板
     eval_clean = (ec, ey)
     eval_adv_k2 = (ea_k2, np.ones(len(ea_k2), dtype=bool))
     eval_adv_krand = (ea_krand, np.ones(len(ea_krand), dtype=bool))
     eval_adv_mask = (ea_mask, np.ones(len(ea_mask), dtype=bool))
     print(f"[官方 P2/P3] 训练 {len(tr_d)}、评价干净 {len(ec)}、对抗 k2 {len(ea_k2)}/krand {len(ea_krand)}/maskdga {len(ea_mask)}", file=sys.stderr, flush=True)
 
-    # 中和均值：优先 T17 val 全量缓存（本机，与正锚点核查同源）；缺缓存时现场重算
-    cache = Path("/tmp/drift-anchor-t17-features-300000.npz")
-    if cache.exists():
-        z = np.load(cache)
-        tok_mean = z["tok"].mean(axis=0, dtype=np.float64).astype(np.float32)
-        char_mean = z["char"].mean(axis=0, dtype=np.float64).astype(np.float32)
-    else:
-        model0 = official.load_model(REF, CKPT, DEVICE)
-        _tb = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_benign_val.parquet").to_pylist()
-        _td = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_dga_val.parquet").to_pylist()
-        _dom = [str(r["domain"]) for r in _tb] + [str(r["domain"]) for r in _td]
-        _tok, _char = diag.extract_features(model0, tokenizer, _dom, DEVICE, EVAL_BATCH)
-        tok_mean = _tok.mean(axis=0, dtype=np.float64).astype(np.float32)
-        char_mean = _char.mean(axis=0, dtype=np.float64).astype(np.float32)
-        print(f"[均值] 缓存缺失，现场重算：{len(_dom)} 域", file=sys.stderr, flush=True)
-        del model0, _tok, _char
+    model0 = load_mps_model()
+    tok_mean, char_mean = source_feature_means(model0, tokenizer, tr_d)
+    del model0
 
-    arms = tuple(arms_arg.split(",")) if arms_arg else (("A", "B", "C") if not dry else ("A",))
-    epochs = 1 if dry else EPOCHS
     results: dict = {}
     adv_panels = {"k2": eval_adv_k2, "krand": eval_adv_krand, "maskdga": eval_adv_mask}
     ref_model = None
     if any(a_ == "E" for a_ in arms):
-        ref_model = official.load_model(REF, CKPT, DEVICE)
+        ref_model = load_mps_model()
         ref_model.eval()
         print("[E 臂] 参考模型已加载（冻结初始判别器，KL 锚定用）", file=sys.stderr, flush=True)
+
+    def progress(arm: str, phase: str, epoch: int, batch: int, total: int,
+                 loss: float | None, metrics_now: dict | None) -> None:
+        arm_status = status["arms"].setdefault(arm, {})
+        arm_status.update({
+            "phase": phase,
+            "epoch": epoch,
+            "batch": batch,
+            "total_batches": total,
+            "last_heartbeat": now_utc(),
+            "rss_peak_mib": round(rss_mib(), 1),
+        })
+        if loss is not None:
+            arm_status["last_loss"] = loss
+        if metrics_now is not None:
+            arm_status["last_epoch_metrics"] = metrics_now
+        status["phase"] = phase
+        status["current_arm"] = arm
+        write_json_atomic(status_path, status)
+
     for arm in arms:
+        arm_result_path = OUT / f"arm-{arm}-result.json"
+        if arm_result_path.exists():
+            saved = json.loads(arm_result_path.read_text(encoding="utf-8"))
+            if saved["identity"] != identity or saved["arm"] != arm:
+                raise RuntimeError(f"{arm_label(arm)} 已完成结果身份不一致")
+            results[arm] = saved["result"]
+            progress(arm, "completed", epochs, 0, 0, None, None)
+            print(f"[{arm_label(arm)} 恢复] 已完成单臂结果，跳过重复训练", file=sys.stderr, flush=True)
+            continue
         t0 = time.time()
-        r = train_arm(arm, tr_d, tr_y, tokenizer, tok_mean, char_mean, eval_clean, eval_adv_k2, epochs, ref_model=ref_model)
+        r = train_arm(
+            arm, tr_d, tr_y, tokenizer, tok_mean, char_mean,
+            eval_clean, eval_adv_k2, epochs, ref_model=ref_model,
+            checkpoint_path=OUT / f"arm-{arm}-checkpoint.pt",
+            run_identity=identity,
+            progress=progress,
+        )
         r["wall_seconds"] = round(time.time() - t0, 1)
         arm_model = r.pop("_model")
         if arm in ARM_DISPLAY_NAMES:
@@ -647,7 +871,10 @@ def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = No
         # 双分组评价（该臂模型）：k=2 与 k∈U{1..4}
         for pname, (pa, pay) in adv_panels.items():
             results[arm][f"adv_{pname}"] = metrics(arm_model, tokenizer, pa, pay, tok_mean, char_mean)
+        write_json_atomic(arm_result_path, {"identity": identity, "arm": arm, "result": results[arm]})
+        progress(arm, "completed", epochs, 0, 0, None, None)
         print(f"[里程碑] {arm_label(arm)}: clean={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['clean'].items()})} adv={json.dumps({k: round(v, 5) if isinstance(v, float) else v for k, v in r['adv'].items()})}", file=sys.stderr, flush=True)
+        del arm_model
 
     if "A" in results and "B" in results and "C" in results and len(results) == 3:
         a, b, c = results["A"], results["B"], results["C"]
@@ -664,15 +891,97 @@ def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = No
     else:
         # 非 A/B/C 组合（如 L/M/D、单臂）：verdict 由主代理按冻结判据从 results 手工裁决
         verdict = {"note": f"custom arms {sorted(results)} — manual adjudication per frozen criteria"}
-    out_name = result_name or ("official-p2p3-DRYRUN.json" if dry else "official-p2p3-result.json")
-    (OUT / out_name).write_text(json.dumps({"results": results, "verdict": verdict}, ensure_ascii=False, indent=2), encoding="utf-8")
+    payload = {"source_members": {"train": train_receipts, "validation": validation_receipts}, "results": results, "verdict": verdict}
+    write_json_atomic(OUT / out_name, payload)
+    status["phase"] = "completed"
+    status["completed_at"] = now_utc()
+    status["current_arm"] = None
+    write_json_atomic(status_path, status)
     print(f"[里程碑] {json.dumps(verdict, ensure_ascii=False)} -> {out_name}", file=sys.stderr, flush=True)
+
+
+def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = None,
+         candidate_spec: str | None = None) -> None:
+    if candidate_spec is None:
+        raise ValueError("共同预算训练必须显式提供 candidate-spec")
+    if dry < 0:
+        raise ValueError("dry-run 不能为负数")
+    arms = tuple(arms_arg.split(",")) if arms_arg else (("A",) if dry else ("A", "B", "D", "G", "F"))
+    if not arms or any(not re.fullmatch(r"[A-Z][A-Z0-9]*", arm) for arm in arms):
+        raise ValueError("训练臂列表不合法")
+    if len(set(arms)) != len(arms):
+        raise ValueError("训练臂不能重复")
+    epochs = 1 if dry else EPOCHS
+    out_name = result_name_arg(result_name) if result_name else (
+        "official-p2p3-DRYRUN.json" if dry else "official-p2p3-result.json"
+    )
+    spec_path = formal_contract.resolve_repo_relative(candidate_spec, must_exist=True)
+    identity = {
+        "code_sha256": sha256_file(Path(__file__).resolve()),
+        "member_selector_sha256": sha256_file(Path(eligibility.__file__).resolve()),
+        "model_loader_sha256": sha256_file(Path(official.__file__).resolve()),
+        "feature_adapter_sha256": sha256_file(Path(diag.__file__).resolve()),
+        "candidate_spec_sha256": sha256_file(spec_path),
+        "checkpoint_sha256": sha256_file(CKPT),
+        "source_revision": DATA.name,
+        "arms": list(arms),
+        "epochs": epochs,
+        "batch": BATCH,
+        "seed": SEED,
+        "device": str(DEVICE),
+        "precision": "bf16" if USE_BF16 else "fp32",
+        "result_name": out_name,
+        "dry_run": dry,
+    }
+    OUT.mkdir(parents=True, exist_ok=True)
+    status_path = OUT / "run-status.json"
+    with (OUT / "run.lock").open("w") as lock_stream:
+        try:
+            fcntl.flock(lock_stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as exc:
+            raise RuntimeError(f"运行目录已有活动进程：{OUT}") from exc
+        if status_path.exists():
+            status = json.loads(status_path.read_text(encoding="utf-8"))
+            if status["identity"] != identity:
+                raise RuntimeError("运行目录身份不一致，拒绝覆盖既有制品")
+            if status["phase"] == "completed":
+                if not (OUT / out_name).is_file():
+                    raise RuntimeError("状态为已完成但总结果文件缺失")
+                print(f"[恢复] 运行已完成：{OUT / out_name}", file=sys.stderr, flush=True)
+                return
+        else:
+            allowed = {"run.lock", "console.log"}
+            unexpected = sorted(path.name for path in OUT.iterdir() if path.name not in allowed)
+            if unexpected:
+                raise RuntimeError(f"新运行目录含既有制品，拒绝覆盖：{unexpected}")
+            status = {
+                "schema": "drift-source-screen-v1",
+                "identity": identity,
+                "phase": "loading_source",
+                "started_at": now_utc(),
+                "pid": os.getpid(),
+                "current_arm": None,
+                "arms": {},
+            }
+            write_json_atomic(status_path, status)
+        status["pid"] = os.getpid()
+        status["resumed_at"] = now_utc()
+        write_json_atomic(status_path, status)
+        try:
+            run_pipeline(dry, arms, epochs, out_name, candidate_spec, identity, status, status_path)
+        except BaseException as exc:
+            status["phase"] = "interrupted" if isinstance(exc, KeyboardInterrupt) else "failed"
+            status["failed_at"] = now_utc()
+            status["last_error"] = f"{type(exc).__name__}: {exc}"
+            write_json_atomic(status_path, status)
+            raise
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", type=int, default=0)
-    ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,B,C 或 MP（默认全量三臂/干跑 A）")
+    ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,B,D,F,G（默认五臂/干跑 A）")
     ap.add_argument("--result-name", type=result_name_arg, default=None, help="结果文件名，不得含路径或特殊字符")
+    ap.add_argument("--candidate-spec", required=True, help="仓库相对固定哈希源成员规格")
     a = ap.parse_args()
-    main(dry=a.dry_run, arms_arg=a.arms, result_name=a.result_name)
+    main(dry=a.dry_run, arms_arg=a.arms, result_name=a.result_name, candidate_spec=a.candidate_spec)
