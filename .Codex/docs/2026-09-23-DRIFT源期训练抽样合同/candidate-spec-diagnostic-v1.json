@@ -1,0 +1,41 @@
+{
+  "corpus_namespace": "ch3-drift-paper-corpus-diagnostic-v1",
+  "roles": {
+    "source_train": [
+      {"role": "T17_benign_train", "count": 5000},
+      {"role": "T17_benign_test", "count": 5000},
+      {"role": "T17_dga_train", "count": 5000},
+      {"role": "T17_dga_test", "count": 5000},
+      {"role": "T18_benign_train", "count": 5000},
+      {"role": "T18_benign_test", "count": 5000},
+      {"role": "T18_dga_train", "count": 5000},
+      {"role": "T18_dga_test", "count": 5000},
+      {"role": "T19_benign_train", "count": 5000},
+      {"role": "T19_benign_test", "count": 5000},
+      {"role": "T19_dga_train", "count": 5000},
+      {"role": "T19_dga_test", "count": 5000}
+    ],
+    "source_validation": [
+      {"role": "T17_benign_val", "count": 10000},
+      {"role": "T17_dga_val", "count": 10000},
+      {"role": "T18_benign_val", "count": 10000},
+      {"role": "T18_dga_val", "count": 10000},
+      {"role": "T19_benign_val", "count": 10000},
+      {"role": "T19_dga_val", "count": 10000}
+    ],
+    "target_test": [
+      {"role": "T20_benign", "count": 10000},
+      {"role": "T20_dga", "count": 10000},
+      {"role": "T21_benign", "count": 10000},
+      {"role": "T21_dga", "count": 10000},
+      {"role": "T22_benign", "count": 10000},
+      {"role": "T22_dga", "count": 10000},
+      {"role": "T23_benign", "count": 10000},
+      {"role": "T23_dga", "count": 10000},
+      {"role": "T24_benign", "count": 10000},
+      {"role": "T24_dga", "count": 10000},
+      {"role": "T25_benign", "count": 10000},
+      {"role": "T25_dga", "count": 10000}
+    ]
+  }
+}

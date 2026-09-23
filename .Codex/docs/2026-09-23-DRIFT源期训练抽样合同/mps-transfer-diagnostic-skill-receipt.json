@@ -1,0 +1,59 @@
+{
+  "schema_version": "ch3-drift-mps-transfer-diagnostic-skill-receipt-v3",
+  "task": "DRIFT 官方检查点最小 MPS 权重迁移阶段诊断",
+  "agent": "mps_transfer_luna_medium",
+  "model": "gpt-5.6-luna",
+  "effort": "medium",
+  "status": "complete",
+  "required_skills": [
+    {
+      "name": "daily-coding",
+      "path": "/Users/bilibili/.codex/skills/daily-coding/SKILL.md",
+      "sha256": "c550a289d2993a9d9c1e17fe2661cff3bc4022d8ed977a0bf8fea9e1ef485f01",
+      "read_at": "2026-09-23T07:09:32Z",
+      "checklist": [
+        {"item": "先读后改", "evidence": "已读取现有 load_model 函数、MPS 迁移分段诊断实施计划和近层规则"},
+        {"item": "最小变更", "evidence": "仅新增本收据列出的三个所属文件，未修改既有训练脚本、模型源码、配置或计划"},
+        {"item": "类型安全", "evidence": "诊断阶段函数、资源收据和状态结构使用 Python 类型标注"},
+        {"item": "安全检查", "evidence": "仅接受 --run-dir，复用路径边界和原子 JSON 写入，不复制模型、检查点或数据"},
+        {"item": "执行验证", "evidence": "已完成 py_compile、CLI 帮助、隔离导入和差异检查"}
+      ]
+    },
+    {
+      "name": "pytorch-patterns",
+      "path": "/Users/bilibili/.codex/skills/pytorch-patterns/SKILL.md",
+      "sha256": "22b76f559f17d4b0e44eda71d353065e5da181203d165546edb08c16cc362d85",
+      "read_at": "2026-09-23T07:09:32Z",
+      "checklist": [
+        {"item": "设备无关", "evidence": "使用显式 torch.device(\"mps\")，并在运行前检查 MPS 可用性"},
+        {"item": "检查点加载", "evidence": "复用官方 torch.load(checkpoint, map_location=\"cpu\", weights_only=True) 与 strict=True"},
+        {"item": "迁移同步", "evidence": "仅在 move_model_to_mps 阶段完成后调用无参数 torch.mps.synchronize()，不执行前向或反向"}
+      ]
+    }
+  ],
+  "owned_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_mps_transfer_diagnostic.py",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-report.md",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-skill-receipt.json"
+  ],
+  "actual_changed_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_mps_transfer_diagnostic.py",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-report.md",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-skill-receipt.json"
+  ],
+  "verification": [
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_mps_transfer_diagnostic.py", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_mps_transfer_diagnostic.py --help", "exit_code": 0},
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /opt/miniconda3/envs/rwkv/bin/python -c 'import importlib.util; p=\"thesis/experiments/llm_probe/tools/ch3_drift_mps_transfer_diagnostic.py\"; s=importlib.util.spec_from_file_location(\"mps_transfer_diagnostic\", p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); assert m.STAGES == (\"construct_model\", \"load_state_dict_file\", \"apply_state_dict\", \"move_model_to_mps\"); print(\"isolated-import-ok\")'", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -c 'import inspect, torch; print(torch.__version__); print(inspect.signature(torch.mps.synchronize))'", "exit_code": 0, "observed": ["2.12.0", "() -> None"]},
+    {"command": "git diff --check -- thesis/experiments/llm_probe/tools/ch3_drift_mps_transfer_diagnostic.py .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-report.md .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-skill-receipt.json", "exit_code": 0},
+    {"command": "git diff --check -- thesis/experiments/llm_probe/tools/ch3_drift_mps_transfer_diagnostic.py .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-report.md .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-transfer-diagnostic-skill-receipt.json", "exit_code": 0}
+  ],
+  "real_run": {
+    "applicable": false,
+    "reason": "首次启动因预创建 console.log 被旧目录门禁拒绝；修复后本轮仍禁止运行真实 MPS，真实运行由主代理负责",
+    "evidence": "失败发生在进入四个阶段之前；未读取 Parquet 或域名，未执行前向、反向、训练或优化",
+    "status": "not_run",
+    "failure_cause": "run_dir 仅含启动器预创建的 console.log，但旧逻辑以 any(run_dir.iterdir()) 拒绝所有非空目录"
+  }
+}

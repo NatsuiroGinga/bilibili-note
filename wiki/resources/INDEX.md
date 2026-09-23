@@ -38,6 +38,7 @@ tags:
 | IDP-code/TrafficFormer | MIT | 2025-01-18 | 108 | torch==2.0.1 | Google Drive | [[TrafficFormer-代码仓库]] |
 | NSSL-SJTU/YaTC | 无 | 2024-04-29 | 156 | torch=1.9.0 | Google Drive | [[YaTC-代码仓库]] |
 | ZGC-LLM-Safety/TrafficLLM | 无 | 2025-11-05 | 453 | transformers==4.30.2、torch>=2.0 | Google Drive（基座走 HF） | [[TrafficLLM-代码仓库]] |
+| snsec-net/2026-DSN-DRIFT | 许可证待核 | `e20d1f`（固定证据提交） | 未登记 | Polars + PyTorch；整行 `unique()` | Hugging Face 数据集 | [[DRIFT官方源码]] |
 
 ### RTX 5090（Blackwell，需 CUDA 12.8+）兼容性汇总
 

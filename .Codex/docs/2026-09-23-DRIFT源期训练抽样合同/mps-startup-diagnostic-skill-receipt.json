@@ -1,0 +1,58 @@
+{
+  "schema_version": "mps-startup-diagnostic-skill-receipt-v2",
+  "task": "DRIFT 官方双分支模型七阶段 MPS 启动资源诊断",
+  "agent": "mps_startup_luna_medium",
+  "model": "gpt-5.6-luna",
+  "effort": "medium",
+  "status": "complete",
+  "required_skills": [
+    {
+      "name": "daily-coding",
+      "path": "/Users/bilibili/.codex/skills/daily-coding/SKILL.md",
+      "sha256": "c550a289d2993a9d9c1e17fe2661cff3bc4022d8ed977a0bf8fea9e1ef485f01",
+      "read_at": "2026-09-23T07:09:32Z",
+      "checklist": [
+        {"item": "先读后改", "evidence": "已读取七阶段诊断工具、实施计划和近层规则"},
+        {"item": "最小变更", "evidence": "仅修改本收据列出的三个所属文件，保留全部七阶段逻辑"},
+        {"item": "类型安全", "evidence": "保留既有 Python 类型标注和阶段收据结构"},
+        {"item": "安全检查", "evidence": "仅允许普通 console.log 预存文件，拒绝其他文件、目录、符号链接和 partial"},
+        {"item": "执行验证", "evidence": "已执行 py_compile、CLI 帮助、隔离导入、既有入口检查和差异检查"}
+      ]
+    },
+    {
+      "name": "pytorch-patterns",
+      "path": "/Users/bilibili/.codex/skills/pytorch-patterns/SKILL.md",
+      "sha256": "22b76f559f17d4b0e44eda71d353065e5da181203d165546edb08c16cc362d85",
+      "read_at": "2026-09-23T07:09:32Z",
+      "checklist": [
+        {"item": "设备迁移", "evidence": "保留显式 MPS 设备检查和模型迁移阶段"},
+        {"item": "检查点加载", "evidence": "保留 map_location=\"cpu\"、weights_only=True 和 strict=True"},
+        {"item": "同步与阶段", "evidence": "保留所有 MPS 阶段完成后的 torch.mps.synchronize() 及 running 状态语义"},
+        {"item": "批形状", "evidence": "保留真实总批 128，即良性和 DGA 各 64 条"}
+      ]
+    }
+  ],
+  "owned_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_mps_startup_diagnostic.py",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-startup-diagnostic-report.md",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-startup-diagnostic-skill-receipt.json"
+  ],
+  "actual_changed_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_mps_startup_diagnostic.py",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-startup-diagnostic-report.md",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-startup-diagnostic-skill-receipt.json"
+  ],
+  "verification": [
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_mps_startup_diagnostic.py", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_mps_startup_diagnostic.py --help", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -c 'import sys; sys.path.insert(0, \"thesis/experiments/llm_probe/tools\"); import ch3_drift_mps_startup_diagnostic'", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -c 'import sys; sys.path.insert(0, \"thesis/experiments/llm_probe/tools\"); import ch3_drift_official_checkpoint_t17_eval as m; assert all(hasattr(m, n) for n in (\"encode_char\", \"encode_subword\", \"iter_domains\"))'", "exit_code": 0},
+    {"command": "git diff --check -- thesis/experiments/llm_probe/tools/ch3_drift_mps_startup_diagnostic.py .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-startup-diagnostic-report.md .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/mps-startup-diagnostic-skill-receipt.json", "exit_code": 0}
+  ],
+  "real_run": {
+    "applicable": false,
+    "reason": "本轮任务禁止运行 MPS、训练或数据诊断；真实运行由主代理负责",
+    "evidence": "仅执行静态语法、帮助、导入隔离、既有入口和差异检查；未读取 Parquet、加载权重或连接服务器",
+    "status": "not_run"
+  }
+}

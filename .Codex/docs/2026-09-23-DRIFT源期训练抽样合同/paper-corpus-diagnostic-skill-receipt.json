@@ -1,0 +1,29 @@
+{
+  "schema_version": "paper-corpus-diagnostic-skill-receipt-v3",
+  "task": "DRIFT 论文语料候选全量流式审计最小实现",
+  "agent": "paper_corpus_tool_luna_high",
+  "model": "gpt-5.6-luna",
+  "effort": "high",
+  "status": "complete",
+  "required_skills": [
+    {"name": "daily-coding", "path": "/Users/bilibili/.codex/skills/daily-coding/SKILL.md", "sha256": "c550a289d2993a9d9c1e17fe2661cff3bc4022d8ed977a0bf8fea9e1ef485f01", "read_at": "2026-09-23T08:00:00Z", "checklist": [{"item": "先读后改", "evidence": "已完整读取根、thesis、llm_probe 规则、实施简报、候选规格、目标工具和本技能"}, {"item": "最小变更", "evidence": "只收敛目标工具和绑定收据；未修改文档、配置、候选数量、训练合同或运行制品"}, {"item": "执行验证", "evidence": "已执行语法、帮助、隔离导入、AST/rg 旧位置语义清理和差异检查"}]},
+    {"name": "pytorch-patterns", "path": "/Users/bilibili/.codex/skills/pytorch-patterns/SKILL.md", "sha256": "22b76f559f17d4b0e44eda71d353065e5da181203d165546edb08c16cc362d85", "read_at": "2026-09-23T08:00:00Z", "checklist": [{"item": "设备隔离", "evidence": "本工具不导入 torch、不启动 MPS 或训练；本轮未执行真实审计"}, {"item": "数据接口", "evidence": "保持元数据行数审计，并对每个角色两遍按批仅读取 domain,label；候选键使用 data_revision、corpus_namespace、exact_esld"}, {"item": "内存边界", "evidence": "每角色仅保留当前批、容量为 count 的最大堆及 O(count) 候选/重复计数字典；不写出成员"}]}
+  ],
+  "owned_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_paper_corpus_diagnostic.py",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/paper-corpus-diagnostic-report.md",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/paper-corpus-diagnostic-skill-receipt.json"
+  ],
+  "actual_changed_files": [
+    "thesis/experiments/llm_probe/tools/ch3_drift_paper_corpus_diagnostic.py",
+    ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/paper-corpus-diagnostic-skill-receipt.json"
+  ],
+  "verification": [
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_paper_corpus_diagnostic.py", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_paper_corpus_diagnostic.py --help", "exit_code": 0},
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /opt/miniconda3/envs/rwkv/bin/python -c 'import importlib.util, sys; p=\"thesis/experiments/llm_probe/tools/ch3_drift_paper_corpus_diagnostic.py\"; s=importlib.util.spec_from_file_location(\"paper_corpus_diagnostic\", p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); assert \"torch\" not in sys.modules and \"pyarrow\" not in sys.modules; assert m.PURPOSES == (\"source_train\", \"source_validation\", \"target_test\"); print(\"isolated-import-ok\")'", "exit_code": 0},
+    {"command": "PYTHONDONTWRITEBYTECODE=1 /opt/miniconda3/envs/rwkv/bin/python -c 'import importlib.util, json, pathlib, sys; sys.path.insert(0, \"thesis/experiments/llm_probe/tools\"); import ch3_drift_formal_contract as c; p=pathlib.Path(\"thesis/experiments/llm_probe/configs/ch3-drift-formal-evaluation-v1.json\"); s=importlib.util.spec_from_file_location(\"paper_corpus_diagnostic\", \"thesis/experiments/llm_probe/tools/ch3_drift_paper_corpus_diagnostic.py\"); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); original=pathlib.Path.read_text; payload={\"corpus_namespace\":\"static-check\",\"roles\":{\"source_train\":[{\"role\":\"T17_benign_train\",\"count\":1}],\"source_validation\":[{\"role\":\"T17_benign_val\",\"count\":1}],\"target_test\":[{\"role\":\"T20_benign\",\"count\":1}]}}; pathlib.Path.read_text=lambda self, **kwargs: json.dumps(payload) if self == c.resolve_repo_relative(\"configs/ch3-drift-formal-evaluation-v1.json\") else original(self, **kwargs); assert m.load_candidate_spec(c.resolve_repo_relative(\"configs/ch3-drift-formal-evaluation-v1.json\"))[\"corpus_namespace\"] == \"static-check\"'", "exit_code": 0},
+    {"command": "git diff --check -- thesis/experiments/llm_probe/tools/ch3_drift_paper_corpus_diagnostic.py .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/paper-corpus-diagnostic-report.md .Codex/docs/2026-09-23-DRIFT源期训练抽样合同/paper-corpus-diagnostic-skill-receipt.json", "exit_code": 0}
+  ],
+  "real_run": {"applicable": false, "reason": "本轮实现全量流式审计但禁止启动真实扫描；由主代理随后负责真实读取", "evidence": "仅执行静态验证；未调用 --audit，不创建域名或成员清单，不启动 MPS/训练/Git", "status": "not_run"}
+}
