@@ -12,13 +12,23 @@ Codex、ChatGPT Work、Workspace Agents 在可用套餐上共享使用额度；�
 
 ## 固定流程
 
-1. Codex 用 `tools/chatgpt_handoff.py create` 生成出站 Markdown；该命令对路径和出站文本执行唯一一次机械敏感信息与越界路径预检。只列私有仓库、远端分支、提交、目标路径、任务类别、任务范围、证据状态、期望格式和禁用操作。脱敏实验二次分析使用 `--task-type experiment-analysis --sanitized-summary`，不得以文件、路径或日志替代摘要。
-2. 预检通过且出站包内容未变时，安全提交并推送后由用户或获授权桌面操作直接把提示发到普通 ChatGPT 对话；不重复计算哈希、人工审查或运行第二次预检。只有出站包内容变化，或首次预检失败后修改内容，才重新执行 `create`。
+1. Codex 按全局 `chatgpt-handoff` 技能执行 `init` 和 `create` 生成出站 Markdown；`create` 对路径和出站文本执行唯一一次机械敏感信息与越界路径预检。只列私有仓库、远端分支、提交、目标路径、任务类别、任务范围、证据状态、期望格式和禁用操作。脱敏实验二次分析使用 `--task-type experiment-analysis --sanitized-summary`，不得以文件、路径或日志替代摘要。
+2. 预检通过且出站包内容未变时，走 GitHub 读取的材料先安全提交并推送，再由用户或获授权桌面操作把提示发到普通 ChatGPT 对话；不重复计算哈希、人工审查或运行第二次预检。GitHub 读取失败时，可按全局技能的逐按钮说明上传 `allowed_paths` 中经预检的脱敏 Markdown，任务文字仍从出站包复制到聊天输入框；未列入白名单的出站包本身不得作为附件。只有包内容变化，或首次预检失败后修改内容，才重新执行 `create`。
 3. 用户确认 GitHub 应用仅授权该私有仓库；ChatGPT 仅按提示检索已授权路径，不能写 Git、运行服务器/GPU、编辑仓库或访问未列路径。
 4. 用户把 ChatGPT 输出原样复制到受管 inbox：`.Codex/docs/chatgpt-handoffs/inbox/`，附上出站包名与时间。
 5. 回收输出原样保留为“外部候选，待本地全文和实验复核”，不得自动进入实验、恢复卡、论文或 Git 提交。该状态标记不触发额外的交接复审；只有后续实际引用该候选时，才按该产物所属的既有研究或写作规则处理。
 
 本机 MCP 原型位于 `scripts/chatgpt_handoff_mcp/`，只提供 `list_handoffs`、`get_handoff`、`get_snapshot_manifest` 和受限 Markdown 搜索。它不能调用 ChatGPT；ChatGPT 只能通过远程端点或 Secure MCP Tunnel 连接，具体限制见 [MCP 原型报告](2026-09-07-ChatGPT-GitHub半自动交接/MCP原型报告.md)。
+
+## DRIFT 路线出站必带的官方来源
+
+凡交接任务属于 DRIFT 第三章、DRIFT 数据集、DGA 攻击鲁棒训练或其直接近邻，发送前在出站任务正文中列出以下**公开原件入口**，并确认五项均实际出现在待发送文本；缺项先补包再发送。链接只为网页定位权威材料，网页仍须核对题录、版本和原文，不能把链接存在当作已读全文。
+
+- 官方代码：[snsec-net/2026-DSN-DRIFT](https://github.com/snsec-net/2026-DSN-DRIFT)；本地已核固定提交 `e20d1fdf56c623993966c6786f61c01f91dec6d2`。
+- 官方数据：[Hugging Face 数据集](https://huggingface.co/datasets/snsec-net/dga-detection-drift26dsn)；本地当前固定 revision `3b31077020cd1c013d0a75cad51042a2327c4521`。
+- 官方模型：[Hugging Face 模型](https://huggingface.co/snsec-net/dga-detector-drift26dsn)。
+- 论文公开全文入口：[arXiv:2605.10436](https://arxiv.org/abs/2605.10436)。
+- 正式论文标识：[DSN 2026 DOI](https://doi.org/10.1109/DSN69566.2026.00077)。
 
 ## 禁止内容
 
