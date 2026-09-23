@@ -86,16 +86,21 @@ count_target_unique_in_memory(
 
 收据只含路径、哈希、计数、根摘要、算法和未验证项，没有原始域名、成员清单、攻击字符串、数据库、缓存或 Parquet 副本。
 
+技能收据已改用当前可读文件 `/Users/bilibili/.codex/skills/daily-coding/SKILL.md`，读取时间为 `2026-09-23T06:16:25Z`，SHA-256 为 `c550a289d2993a9d9c1e17fe2661cff3bc4022d8ed977a0bf8fea9e1ef485f01`。此前不可读的归档路径不再作为技能来源。
+
 ## 未覆盖项
 
 本轮没有读取 T20–T25，也没有执行全源训练／验证角色、全量目标选择、服务器容量前检、源训练—验证交集政策或 family 资格审计。故 `engineering_only=true`、`target_full_scope_not_covered=true`，后续服务器入口必须重新生成完整输入和容量收据；不能把本轮 T17 结果升级为正式目标面板或方法效果结论。
 
 ## 验证命令
 
-- `python -m py_compile` 合同和直读模块：退出码 0。
-- 导入两个模块后检查 `torch`、`numpy`、`pyarrow` 未加载：退出码 0。
-- 两个模块 `--help`：退出码 0。
-- 三份真实配置 `load_config` 严格加载：退出码 0。
-- 合同 `--gate inputs --audit`：退出码 0，30/30 文件存在性通过。
-- 合同 `--materialize`：退出码 2，中文说明已废止。
-- 直读模块两次真实 T17 development 审计：退出码均为 0。
+以下记录均为可直接执行的完整命令及实际退出码：
+
+- `/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py`：`exit_code=0`。
+- `/opt/miniconda3/envs/rwkv/bin/python -c 'import sys; sys.path.insert(0, "thesis/experiments/llm_probe/tools"); import ch3_drift_formal_contract, ch3_drift_formal_data; assert not any(name in sys.modules for name in ("torch", "numpy", "pyarrow"))'`：`exit_code=0`。
+- `/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py --help && /opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py --help`：`exit_code=0`。
+- `/opt/miniconda3/envs/rwkv/bin/python -c 'import sys; sys.path.insert(0, "thesis/experiments/llm_probe/tools"); from ch3_drift_formal_contract import load_config; [load_config(path) for path in ("configs/ch3-drift-formal-evaluation-v1.json", "configs/ch3-drift-official-p2p3-formal-v3.json", "configs/ch3-drift-bresnet-p2p3-formal-v1.json")]'`：`exit_code=0`。
+- `/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py --gate inputs --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-development-v1 --audit`：`exit_code=0`。
+- `/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py --gate inputs --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-materialize-reject --materialize`：`exit_code=2`，中文拒绝说明。
+- `/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-development-v1 --audit --scope development --batch-size 8192`：`exit_code=0`。
+- `/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-development-v1-batch16384 --audit --scope development --batch-size 16384`：`exit_code=0`。

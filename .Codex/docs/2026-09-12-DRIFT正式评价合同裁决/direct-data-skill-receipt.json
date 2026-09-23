@@ -6,9 +6,9 @@
   "required_skills": [
     {
       "name": "daily-coding",
-      "path": "/Users/bilibili/.codex/skills/backup/daily-coding-20260811-112930/SKILL.md",
-      "sha256": "da2399b50859b9d57281b9bc0dc456082db93d47486ae22967ebf3f17d354ae3",
-      "read_at": "2026-09-13T07:08:16Z",
+      "path": "/Users/bilibili/.codex/skills/daily-coding/SKILL.md",
+      "sha256": "c550a289d2993a9d9c1e17fe2661cff3bc4022d8ed977a0bf8fea9e1ef485f01",
+      "read_at": "2026-09-23T06:16:25Z",
       "checklist": [
         {"item": "先读后改", "evidence": "已完整读取直读简报、实现计划§3.1–3.2、近层规则、合同模块、三份配置和已验收编辑报告"},
         {"item": "最小变更", "evidence": "仅修改简报限定的合同模块和三份配置，新建直读模块、报告与本收据；未修改编辑算子、训练脚本、启动器或恢复卡"},
@@ -41,13 +41,13 @@
   ],
   "verification": [
     {"command": "/opt/miniconda3/envs/rwkv/bin/python -m py_compile thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py", "exit_code": 0},
-    {"command": "导入两个模块并检查 torch、numpy、pyarrow 未加载", "exit_code": 0},
-    {"command": "两个模块 --help", "exit_code": 0},
-    {"command": "三份配置 load_config 严格加载", "exit_code": 0},
-    {"command": "合同 inputs --audit 真实角色存在性门禁", "exit_code": 0},
-    {"command": "合同 --materialize 明确拒绝", "exit_code": 2},
-    {"command": "真实 T17 两文件 development CPU 审计，批大小 8192", "exit_code": 0},
-    {"command": "真实 T17 两文件 development CPU 审计，批大小 16384", "exit_code": 0}
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -c 'import sys; sys.path.insert(0, \"thesis/experiments/llm_probe/tools\"); import ch3_drift_formal_contract, ch3_drift_formal_data; assert not any(name in sys.modules for name in (\"torch\", \"numpy\", \"pyarrow\"))'", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py --help && /opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py --help", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python -c 'import sys; sys.path.insert(0, \"thesis/experiments/llm_probe/tools\"); from ch3_drift_formal_contract import load_config; [load_config(path) for path in (\"configs/ch3-drift-formal-evaluation-v1.json\", \"configs/ch3-drift-official-p2p3-formal-v3.json\", \"configs/ch3-drift-bresnet-p2p3-formal-v1.json\")]'", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py --gate inputs --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-development-v1 --audit", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_contract.py --gate inputs --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-materialize-reject --materialize", "exit_code": 2},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-development-v1 --audit --scope development --batch-size 8192", "exit_code": 0},
+    {"command": "/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_drift_formal_data.py --config configs/ch3-drift-formal-evaluation-v1.json --run-dir runs/diagnostics/ch3-drift-formal-direct-read-development-v1-batch16384 --audit --scope development --batch-size 16384", "exit_code": 0}
   ],
   "real_run": {
     "applicable": true,
