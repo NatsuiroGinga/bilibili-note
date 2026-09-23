@@ -11,16 +11,16 @@ from dataclasses import dataclass
 from typing import Mapping, TextIO
 
 AGENT_TOOL_NAMES = frozenset({"Agent", "spawn_agent", "collaboration.spawn_agent"})
-MODEL_BY_TASK_SUFFIX = {
-    "sol": "gpt-5.6-sol",
-    "terra": "gpt-5.6-terra",
-    "luna": "gpt-5.6-luna",
-    "astra": "gpt-6-astra",
+MODEL_BY_TASK_TAG = {
+    "gpt6_sol": "gpt-6-sol",
+    "gpt6_luna": "gpt-6-luna",
+    "gpt6_astra": "gpt-6-astra",
+    "gpt5_6_terra": "gpt-5.6-terra",
 }
 TASK_NAME_PATTERN = re.compile(
     r"^(?P<domain>[a-z0-9]+)_"
     r"(?P<duty>[a-z0-9_]+)_"
-    r"(?P<model>sol|terra|luna|astra)_"
+    r"(?P<model>gpt6_(?:sol|luna|astra)|gpt5_6_terra)_"
     r"(?P<effort>[a-z0-9]+)$"
 )
 PATH_PATTERN = re.compile(
@@ -71,12 +71,12 @@ def _validate_task_name(tool_input: Mapping[str, object]) -> list[Violation]:
             Violation(
                 "ADG-NAME",
                 "task_name 必须为 <domain>_<specific_duty>_<model>_<effort>，"
-                "模型后缀只能是 sol、terra、luna 或 astra。",
+                "模型标识必须是 gpt6_sol、gpt6_luna、gpt6_astra 或 gpt5_6_terra。",
             )
         ]
 
     violations: list[Violation] = []
-    expected_model = MODEL_BY_TASK_SUFFIX[match.group("model")]
+    expected_model = MODEL_BY_TASK_TAG[match.group("model")]
     if tool_input.get("model") != expected_model:
         violations.append(
             Violation(
