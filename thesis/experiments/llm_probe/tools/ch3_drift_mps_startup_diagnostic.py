@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""分段记录 DRIFT 官方双分支模型在本机 MPS 的启动耗时与资源状态。"""
+"""分段记录 DRIFT 官方双分支模型在本机 MPS 的启动与稳态训练耗时。"""
 
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ SCHEMA_VERSION = "ch3-drift-mps-startup-diagnostic-v1"
 RUN_IDENTITY = "ch3-drift-mps-startup-diagnostic-v1"
 BATCH_SIZE = 128
 CLASS_SIZE = BATCH_SIZE // 2
+MAX_STEADY_STEPS = 32
 STAGES = (
     "construct_model",
     "load_state_dict_file",
@@ -30,7 +31,7 @@ STAGES = (
     "first_forward",
     "first_backward",
 )
-MPS_STAGES = frozenset(STAGES[3:])
+MPS_STAGES = frozenset((*STAGES[3:], "steady_training"))
 
 
 def sha256_file(path: Path) -> str:
@@ -93,6 +94,17 @@ def parse_args() -> argparse.Namespace:
         help="位于 thesis/experiments/llm_probe/runs 下的仓库相对运行目录",
     )
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE)
+    parser.add_argument(
+        "--steady-steps",
+        type=int,
+        default=0,
+        help="预热后计时的连续优化步数；0表示只执行既有启动诊断",
+    )
+    parser.add_argument(
+        "--disable-nested-tensor",
+        action="store_true",
+        help="仅为MPS兼容性诊断关闭TransformerEncoder嵌套张量快路径",
+    )
     return parser.parse_args()
 
 
@@ -102,6 +114,8 @@ def main() -> int:
         raise ValueError("batch-size 必须为正数")
     if args.batch_size != BATCH_SIZE:
         raise ValueError(f"batch-size 必须固定为 {BATCH_SIZE}")
+    if args.steady_steps < 0 or args.steady_steps > MAX_STEADY_STEPS:
+        raise ValueError(f"steady-steps 必须在 0 到 {MAX_STEADY_STEPS} 之间")
 
     contract = importlib.import_module("ch3_drift_formal_contract")
     run_dir = contract.resolve_run_dir(args.run_dir)
@@ -147,6 +161,8 @@ def main() -> int:
         "status": "running",
         "run_identity": RUN_IDENTITY,
         "batch_size": BATCH_SIZE,
+        "steady_steps": args.steady_steps,
+        "disable_nested_tensor": args.disable_nested_tensor,
         "class_counts": {"benign": CLASS_SIZE, "dga": CLASS_SIZE},
         "data_role": "T17 训练开发批资源诊断；不产生训练或方法效果证据",
         "device": str(device),
@@ -165,6 +181,7 @@ def main() -> int:
             "phase_status": stable_path(run_dir / "phase-status.json"),
             "timing": stable_path(run_dir / "timing.json"),
             "resource": stable_path(run_dir / "resource.jsonl"),
+            "steady_steps": stable_path(run_dir / "steady-steps.jsonl"),
         },
     }
     atomic_json(run_dir / "metadata.json", metadata)
@@ -192,7 +209,7 @@ def main() -> int:
     logits: Any = None
 
     def execute_stage(stage: str, action: Callable[[], Any]) -> Any:
-        if stage not in STAGES:
+        if stage not in (*STAGES, "steady_training"):
             raise ValueError(f"未知诊断阶段：{stage}")
         started_ns = time.monotonic_ns()
         phase_status.update(
@@ -278,7 +295,22 @@ def main() -> int:
         token_backbone = model_module.PretrainedModel(30522, 256, 8, 768, 12, 30)
         char_backbone = model_module.PretrainedModel(43, 256, 8, 768, 12, 77)
         model = model_module.FineTuningModel(token_backbone, char_backbone, clf_norm="pool")
-        return {"parameters": sum(parameter.numel() for parameter in model.parameters())}
+        encoders = [
+            module
+            for module in model.modules()
+            if isinstance(module, torch.nn.TransformerEncoder)
+        ]
+        if len(encoders) != 2:
+            raise ValueError(f"预期两个TransformerEncoder，实际为{len(encoders)}")
+        if args.disable_nested_tensor:
+            for encoder in encoders:
+                encoder.enable_nested_tensor = False
+                encoder.use_nested_tensor = False
+        return {
+            "parameters": sum(parameter.numel() for parameter in model.parameters()),
+            "transformer_encoder_count": len(encoders),
+            "nested_tensor_enabled": [encoder.use_nested_tensor for encoder in encoders],
+        }
 
     def load_state_dict_file() -> Any:
         nonlocal checkpoint_state
@@ -317,13 +349,75 @@ def main() -> int:
         nonlocal logits
         assert model is not None and token_ids is not None and char_ids is not None
         logits = model(token_ids, char_ids)
-        return {"logits_shape": list(logits.shape), "logits_device": str(logits.device)}
+        logits_bytes = logits.detach().cpu().contiguous().numpy().tobytes()
+        return {
+            "logits_shape": list(logits.shape),
+            "logits_device": str(logits.device),
+            "logits_sha256": hashlib.sha256(logits_bytes).hexdigest(),
+        }
 
     def first_backward() -> Any:
         assert logits is not None and labels is not None
         loss = torch.nn.functional.cross_entropy(logits, labels)
         loss.backward()
         return {"loss_finite": bool(torch.isfinite(loss).item()), "loss_device": str(loss.device)}
+
+    def steady_training() -> Any:
+        """以有限真实批测量按需读取后的连续优化步，不保存权重或指标。"""
+        assert model is not None and tokenizer is not None
+        benign_batches = official.iter_domains(benign_path, CLASS_SIZE, None)
+        dga_batches = official.iter_domains(dga_path, CLASS_SIZE, None)
+        optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+        model.train()
+        records: list[dict[str, Any]] = []
+        total_steps = args.steady_steps + 1
+        for step_index in range(total_steps):
+            step_started = time.monotonic_ns()
+            benign = next(benign_batches, [])
+            dga = next(dga_batches, [])
+            if len(benign) != CLASS_SIZE or len(dga) != CLASS_SIZE:
+                raise ValueError("T17 两类训练文件无法继续提供各64条真实样本")
+            domains = benign + dga
+            current_token_ids = official.encode_subword(domains, tokenizer).to(device)
+            current_char_ids = official.encode_char(domains).to(device)
+            current_labels = torch.tensor(
+                [0] * CLASS_SIZE + [1] * CLASS_SIZE,
+                dtype=torch.long,
+                device=device,
+            )
+            sync_mps(torch)
+            data_ready = time.monotonic_ns()
+            optimizer.zero_grad(set_to_none=True)
+            current_logits = model(current_token_ids, current_char_ids)
+            loss = torch.nn.functional.cross_entropy(current_logits, current_labels)
+            loss.backward()
+            optimizer.step()
+            sync_mps(torch)
+            finished = time.monotonic_ns()
+            record = {
+                "step_index": step_index,
+                "warmup": step_index == 0,
+                "rows": BATCH_SIZE,
+                "loss_finite": bool(torch.isfinite(loss).item()),
+                "read_encode_transfer_seconds": (data_ready - step_started) / 1_000_000_000,
+                "forward_backward_update_seconds": (finished - data_ready) / 1_000_000_000,
+                "total_seconds": (finished - step_started) / 1_000_000_000,
+                "rss_max_bytes": rss_max_bytes(),
+                "disk_free_bytes": shutil.disk_usage(run_dir).free,
+            }
+            append_jsonl(run_dir / "steady-steps.jsonl", record)
+            print(json.dumps({"stage": "steady_training", **record}, ensure_ascii=False), flush=True)
+            if step_index:
+                records.append(record)
+        if not all(record["loss_finite"] for record in records):
+            raise ValueError("稳态训练步出现非有限损失")
+        return {
+            "warmup_steps": 1,
+            "measured_steps": len(records),
+            "mean_total_seconds": sum(record["total_seconds"] for record in records) / len(records),
+            "mean_read_encode_transfer_seconds": sum(record["read_encode_transfer_seconds"] for record in records) / len(records),
+            "mean_forward_backward_update_seconds": sum(record["forward_backward_update_seconds"] for record in records) / len(records),
+        }
 
     actions: dict[str, Callable[[], Any]] = {
         "construct_model": construct_model,
@@ -333,11 +427,14 @@ def main() -> int:
         "load_real_batch": load_real_batch,
         "first_forward": first_forward,
         "first_backward": first_backward,
+        "steady_training": steady_training,
     }
     stage_results: dict[str, Any] = {}
     try:
         for stage in STAGES:
             stage_results[stage] = execute_stage(stage, actions[stage])
+        if args.steady_steps:
+            stage_results["steady_training"] = execute_stage("steady_training", actions["steady_training"])
     except BaseException:
         metadata["status"] = "failed"
         metadata["stage_results"] = stage_results
