@@ -67,6 +67,7 @@ ALPHA_CVAR = 0.05   # J 臂 CVaR 尾部质量（任务化设定）
 LAMBDA_CVAR = 0.1   # J 臂 CVaR 项权重：量级对齐恶意 CE 项，避免 I 型尾部劫持（任务化设定）
 TAU_LR = 0.01       # J 臂对偶变量 τ 的解析下降步长
 ALPHA = "abcdefghijklmnopqrstuvwxyz0123456789-"
+ALPHA_REVERSE = {official.CHAR_TO_ID[c]: c for c in ALPHA}
 ARM_DISPLAY_NAMES = {
     "A": "干净微调",
     "B": "朴素字符增广",
@@ -78,6 +79,11 @@ ARM_DISPLAY_NAMES = {
     "CAND4": "四候选二位核（隔离候选数 1→4，编辑位数固定 2）",
     "EDIT4": "单位编辑四位累积核（隔离编辑位数 2→4，候选数固定 1）",
     "CURRICULUM": "编辑预算课程（参数化核 q_t 1→2→4：2 位 → 累积 4 位 → 4 候选累积 4 位）",
+    "C1R": "恒定一比一随机离散增广（隔离增广配比）",
+    "ESAT": "ESAT 式固定子集对抗训练（任务化迁移）",
+    "DRICHEL": "Drichel 式离散域对抗训练（任务化迁移）",
+    "CEQ": "全局交叉熵难例 top-q 选择（同候选池同配额）",
+    "CBN": "固定良性类权重（隔离良性侧代价重加权）",
 }
 SAFE_RESULT_NAME = re.compile(r"[A-Za-z0-9._-]+\Z")
 CACHE_SCHEMA_VERSION = "drift-source-screen-cache-v1"
@@ -91,6 +97,11 @@ CACHE_POLICY_BY_ARM = {
     "CAND4": "source_screen_cand4_if_missing_v1",
     "EDIT4": "source_screen_edit4_if_missing_v1",
     "CURRICULUM": "source_screen_curriculum_if_missing_v1",
+    "C1R": "source_screen_c1r_if_missing_v1",
+    "ESAT": "source_screen_esat_if_missing_v1",
+    "DRICHEL": "source_screen_drichel_if_missing_v1",
+    "CEQ": "source_screen_ceq_base4_if_missing_v1",
+    "CBN": "none_v1",
 }
 # CAND4/EDIT4/CURRICULUM（2026-10-13 追加，D-6/D-7）：
 # 候选核成分分解与编辑预算课程。三臂的选择规则、配额、损失加权、超参与 D 逐项相同，
@@ -104,6 +115,27 @@ CACHE_POLICY_BY_ARM = {
 # UQ（Uniform-q）候选核与 D/F 完全相同（共享 base 上的两阶段复合四候选），
 # 唯一差量为选择规则：从同一候选池均匀随机取同配额 64，不做组内中心化、
 # 不做跨组配额竞争。选择使用独立 uniform_rng 流，避免扰动攻击 RNG 使候选池偏离 D/F。
+# P1 近邻/内部对照五臂（2026-10-13 追加，实施计划 .Codex/docs/2026-10-13-外部基准与第二骨干/）：
+#   C1R（Drichel 2024 §4.4 配比迁移）：每批恶意侧恒定 1:1 —— 批内恶意样本的前 ceil(m/2) 个
+#     （idx 顺序，批序已由 SEED+ep shuffle 随机化）原串被替换为其 perturb2 变体，其余保留。
+#     与 B 差别只在配比（B 每恶意样本追加 1 变体；C1R 恶意侧原串:变体 ≈ 1:1），核与
+#     变体生成流（主 rng、遇序逐样本生成、缓存同键）与 B 逐字一致。
+#   ESAT（Losch et al. ICLR 2024 式(2)(3) 任务化迁移）：训练前用独立非鲁棒参照模型
+#     （A 臂逐 epoch 快照）的跨快照平均预测熵在全源训练集排序，取熵最高固定比例子集 A
+#     （ρ=0.5，|A|=7500/30000；ESAT 原文 CIFAR 中点配置 25000/50000 的同比例映射，
+#     待主代理确认）。训练时只对属于 A 的恶意样本生成 1 个 perturb2 变体（B 核），
+#     其余恶意样本按原样入批；熵计算与排序独立于训练（ESAT §4.2）。
+#   DRICHEL（Drichel et al. ASIA CCS 2024 §4.3 HotFlip 任务化迁移）：对每批恶意样本用
+#     HotFlip 式一阶贪心在固定预算 2（与 perturb2 同名义）内生成离散白盒攻击：每步对每个
+#     可编辑位置枚举 ALPHA 37 字符，一阶近似 ΔL ≈ (E_c − E_x)·∂L/∂E_x 取最大者应用，
+#     重新前向后迭代至预算用尽（greedy，beam=1；原论文为 beam-search，计划冻结为贪心）。
+#     每恶意样本 1 个攻击变体，按 UQ 同构的独立均匀流取 min(64, m) 入批（无组内中心化）。
+#     变体跨轮重新生成（白盒攻击随模型演化），缓存键 (样本, epoch)。
+#   CEQ（Average Top-k Loss，Fan et al. §2 式(1) 任务化迁移）：与 D/F 同候选池、同入批
+#     配额，按未中心化交叉熵 ce = −log p 全局降序取 top-64（并列按候选池顺序）；
+#     不做组内中心化、不做跨组配额竞争。
+#   CBN（ConstBenign 反事实）：对所有真良性样本施加固定类权重 3.0（沿用组件 2 已登记
+#     系数，清单 §3.1），不依赖当前误报；无对抗增广，其余同 A。
 
 
 def now_utc() -> str:
@@ -205,9 +237,11 @@ def rebuild_first_epoch_cache(arm: str, domains: list[str], labels: np.ndarray,
                               completed_epoch: int) -> dict[int, list[str]]:
     """用隔离的局部 RNG 重放完整首轮缓存，不污染训练随机状态。"""
     cache: dict[int, list[str]] = {}
-    # CURRICULUM 的缓存按 (样本, epoch) 建键、跨轮不同，无法在恢复时仅靠首轮重放重建，
-    # 故不进入本函数（与 L 臂同样不支持中断恢复，失败时保留原断点）。
-    if arm not in {"B", "D", "F", "UQ", "CAND4", "EDIT4", "CURRICULUM"} or completed_epoch == 0:
+    # CURRICULUM 的缓存按 (样本, epoch) 键、跨轮不同，无法在恢复时仅靠首轮重放重建；
+    # ESAT 的重放需要熵子集（选择器快照集合）作为外部输入，DRICHEL 的变体是白盒攻击
+    # （随当前模型演化、跨轮重新生成）。三者均不进入本函数（与 L 臂同样不支持中断恢复，
+    # 失败时保留原断点）。
+    if arm not in {"B", "D", "F", "UQ", "CAND4", "EDIT4", "C1R", "CEQ"} or completed_epoch == 0:
         return cache
     order = list(range(len(domains)))
     random.Random(SEED + 1).shuffle(order)
@@ -217,6 +251,9 @@ def rebuild_first_epoch_cache(arm: str, domains: list[str], labels: np.ndarray,
             continue
         original = domains[source_index]
         if arm == "B":
+            cache[source_index] = [perturb2(original, replay_rng)]
+        elif arm == "C1R":
+            # C1R 与 B 同核同流：每恶意样本 1 个 perturb2 变体，键与值结构逐字一致。
             cache[source_index] = [perturb2(original, replay_rng)]
         elif arm == "CAND4":
             cache[source_index] = [perturb2(original, replay_rng) for _ in range(4)]
@@ -320,7 +357,83 @@ def make_candidates_course(domain: str, q_t: int, rng: random.Random) -> list:
     return [perturb2(base, rng) for _ in range(count)]
 
 
-def load_split(limit: int) -> tuple[list[str], np.ndarray]:
+def hotflip_variants(domains: list[str], model, tokenizer) -> list[str]:
+    """HotFlip 式一阶贪心离散白盒攻击（Drichel 2024 §4.3 任务化迁移，D-8）。
+
+    每步对每个可编辑位置枚举 ALPHA 37 字符，一阶近似 ΔL ≈ (E_c − E_x)·∂L/∂E_x 取
+    最大者应用，应用后重新前向迭代至预算用尽（greedy，beam=1；原论文为 beam-search，
+    实施计划冻结为贪心一阶）。可编辑位置 = SLD body 字符位置（与 perturb2 同界），
+    可编辑字符集 = ALPHA 37 项（与 perturb2 同集）。攻击目标 = 增大恶意类 CE。
+    返回与输入同序的攻击变体列表。
+    """
+    budget = 2  # 固定编辑预算：与 perturb2 同名义 2 位（实施计划「固定编辑预算内」）
+    chars = list(domains)  # 工作副本（逐步施加替换）
+    b_chars = [d.rsplit(".", 1)[0] if "." in d else d for d in chars]
+    b_lens = [len(s) for s in b_chars]
+    char_ids = official.encode_char(chars).to(DEVICE)
+    for _ in range(budget):
+        token_ids = official.encode_subword(chars, tokenizer).to(DEVICE)
+        # 子词分支无梯度（HotFlip 打分只需要 ∂L/∂(char 嵌入)）
+        with torch.no_grad():
+            token_embedding = model.embedding_t(token_ids)
+            token_values = model.positional_encoding_t(token_embedding)
+            token_mask = model.create_padding_mask(token_ids)
+            token_output = model.transformer_encoder_t(token_values, mask=token_mask)
+            token_valid = (~token_mask).float().unsqueeze(-1)
+            token_mean = (token_output * token_valid).sum(dim=1) / token_valid.sum(dim=1).clamp(min=1)
+            token_max = token_output.masked_fill(token_valid == 0, -1e9).max(dim=1).values
+            token_feature = torch.cat([token_max, token_mean], dim=1)
+        # 字符分支带梯度：输入嵌入设为叶变量，反传得 ∂L/∂E_x（对输入的梯度，非参数梯度）
+        char_emb = model.embedding_c(char_ids).detach().requires_grad_(True)
+        char_values = model.positional_encoding_c(char_emb)
+        char_mask = model.create_padding_mask(char_ids)
+        char_output = model.transformer_encoder_c(char_values, mask=char_mask)
+        char_valid = (~char_mask).float().unsqueeze(-1)
+        char_mean = (char_output * char_valid).sum(dim=1) / char_valid.sum(dim=1).clamp(min=1)
+        char_max = char_output.masked_fill(char_valid == 0, -1e9).max(dim=1).values
+        char_feature = torch.cat([char_max, char_mean], dim=1)
+        logits = model.classifier_head(torch.cat([token_feature, char_feature], dim=1))
+        loss = torch.nn.functional.cross_entropy(
+            logits.float(), torch.ones(len(chars), dtype=torch.long, device=DEVICE)
+        )
+        loss.backward()
+        g = char_emb.grad  # [B, 77, 256]
+        if g is None:
+            raise RuntimeError("HotFlip 一阶打分未获得输入梯度")
+        emb_table = model.embedding_c.embedding.weight.detach()  # [43, 256]（TokenEmbedding 内部 nn.Embedding）
+        # S[b,i,c] = g[b,i]·(E[c] − E[x_bi])：替换位置 i 的字符为 c 的一阶近似损失增量
+        dot_table = torch.einsum("bid,vd->biv", g, emb_table)
+        dot_self = (g * char_emb).sum(dim=-1, keepdim=True)
+        scores = dot_table - dot_self  # [B, 77, 43]
+        # 合法位置掩码：char 序列位置 1..len(body)（BOS 占 0；encode_char 截断 domain[:75]）
+        position_ids = torch.arange(77, device=DEVICE)
+        body_len_t = torch.tensor(b_lens, device=DEVICE)
+        valid_pos = (position_ids[None, :] >= 1) & (position_ids[None, :] <= body_len_t[:, None])
+        # 合法字符掩码：c ∈ ALPHA（id 5..41）且 ≠ 当前字符（替换必须改变字符）
+        alpha_ids = torch.tensor([official.CHAR_TO_ID[c] for c in ALPHA], device=DEVICE)
+        alpha_mask = torch.zeros(43, dtype=torch.bool, device=DEVICE)
+        alpha_mask[alpha_ids] = True
+        alpha_ids_full = torch.full((43,), -1, dtype=torch.long, device=DEVICE)
+        alpha_ids_full[alpha_ids] = alpha_ids
+        cur_char = char_ids.unsqueeze(-1)  # [B, 77, 1]
+        valid_char = alpha_mask[None, None, :] & (alpha_ids_full[None, None, :] != cur_char)
+        scores = scores.masked_fill(
+            ~(valid_pos.unsqueeze(-1) & valid_char), float("-inf")
+        )
+        best_flat = scores.view(len(chars), -1).argmax(dim=1)  # [B]
+        best_pos = (best_flat // 43).tolist()
+        best_ch = (best_flat % 43).tolist()
+        for b in range(len(chars)):
+            i = best_pos[b]
+            if scores[b, i, best_ch[b]].item() == float("-inf"):
+                continue  # 无合法替换（body<1 等极端情形）——保持原样
+            c_id = best_ch[b]
+            s_pos = i - 1  # 字符串位置 = char 序列位置 − 1（BOS 占 0）
+            s = list(chars[b])
+            s[s_pos] = ALPHA_REVERSE[c_id]
+            chars[b] = "".join(s)
+            char_ids[b, i] = int(c_id)
+    return chars
     tb = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_benign_train.parquet").to_pylist()[:limit]
     td = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_dga_train.parquet").to_pylist()[:limit]
     domains = [str(r["domain"]) for r in tb] + [str(r["domain"]) for r in td]
@@ -444,7 +557,9 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
               tokenizer, tok_mean, char_mean,
               eval_clean: tuple[list[str], np.ndarray], eval_adv: tuple[list[str], np.ndarray],
               epochs: int, ref_model=None, checkpoint_path: Path | None = None,
-              run_identity: dict | None = None, progress=None) -> dict:
+              run_identity: dict | None = None, progress=None,
+              esat_subset: set[int] | None = None,
+              selector_snapshot_dir: Path | None = None) -> dict:
     if arm not in CACHE_POLICY_BY_ARM:
         raise ValueError(f"本筛选入口不再接受未验收历史臂：{arm}")
     # 每臂使用相同的模型随机轨迹起点；断点恢复随后覆盖为保存的状态。
@@ -467,6 +582,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     adv_cache: dict[int, list[str]] = {}
     adv_cache_p: dict[int, list] = {}  # P 臂 K=8 扩展缓存
     adv_cache_l: dict[tuple, list] = {}  # L 臂课程缓存（键含 epoch）
+    adv_cache_drichel: dict[tuple, list] = {}  # DRICHEL 白盒攻击缓存（键=(样本, epoch)）
     adv_cache_m: dict[tuple, list] = {}  # M 臂 Mix 缓存（键=(样本, 档位)）
     benign_cache: dict[int, list[str]] = {}
     benign_rng = random.Random(SEED + 7)  # 良性变体独立种子，不与恶意变体序列耦合
@@ -480,6 +596,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
         checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
         forbidden_cache_keys = {
             "adv_cache", "adv_cache_p", "adv_cache_l", "adv_cache_m", "benign_cache",
+            "adv_cache_drichel",
         }
         if forbidden_cache_keys.intersection(checkpoint):
             raise RuntimeError(f"{label} 断点含旧明文缓存字段，拒绝迁移并保留原断点")
@@ -551,6 +668,59 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                             adv_batch.append(adv_cache[i][0])
                         else:
                             adv_batch.extend(adv_cache[i])  # C 臂：K=4 变体全部入批，组相对加权才作用在变体上
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "C1R":
+                # C1R（恒定 1:1 随机离散增广，Drichel 2024 §4.4 配比迁移）：每批恶意样本
+                # 的前 ceil(m/2) 个（idx 顺序，批序已由 SEED+ep shuffle 随机化）原串被
+                # **替换**为其 perturb2 变体，其余恶意原串保留；批大小不变（128）。
+                # 与 B 的差别只在配比（B 每恶意样本追加 1 变体；C1R 恶意侧原串:变体 =
+                # floor(m/2):ceil(m/2) ≈ 1:1）；核（perturb2）、变体生成流（主 rng 遇序
+                # 逐样本生成、缓存同键同结构）与 B 逐字一致。
+                mal_seq = [i for i in idx if train_y[i] == 1]
+                n_rep = (len(mal_seq) + 1) // 2  # ceil(m/2)
+                replacements: dict[int, str] = {}
+                for k, i in enumerate(mal_seq):
+                    if k < n_rep:
+                        if i not in adv_cache:
+                            adv_cache[i] = [perturb2(train_d[i], rng)]
+                        replacements[i] = adv_cache[i][0]
+                if replacements:
+                    batch_d = [replacements.get(i, train_d[i]) for i in idx]
+            elif arm == "ESAT":
+                # ESAT（Losch et al. ICLR 2024 式(2)(3) 任务化迁移）：训练前已用独立非鲁棒
+                # 参照模型（A 臂逐 epoch 快照）的跨快照平均预测熵在全源训练集排序并冻结子集
+                # esat_subset（训练前一次性，ESAT §4.2）。训练时只对属于 A 的恶意样本生成
+                # 1 个 perturb2 变体（B 核），其余恶意样本按原样入批（干净 CE 项）。
+                adv_batch = []
+                for i in idx:
+                    if train_y[i] == 1 and esat_subset is not None and i in esat_subset:
+                        if i not in adv_cache:
+                            adv_cache[i] = [perturb2(train_d[i], rng)]
+                        adv_batch.append(adv_cache[i][0])
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "DRICHEL":
+                # Drichel 式离散域对抗训练（ASIA CCS 2024 §4.3 HotFlip 任务化迁移）：
+                # 对每批恶意样本用 HotFlip 式一阶贪心在固定预算 2（与 perturb2 同名义）
+                # 内生成离散白盒攻击，每恶意样本 1 个攻击变体；按 UQ 同构的独立均匀流
+                # 取 min(64, m) 入批（无组内中心化、无跨组竞争）。变体跨轮重新生成
+                # （白盒攻击随当前模型演化），缓存键 (样本, epoch)。
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                variants = []
+                if mal_idx:
+                    model.eval()
+                    variants = hotflip_variants(
+                        [train_d[i] for i in mal_idx], model, tokenizer
+                    )
+                    model.train()
+                for i, v in zip(mal_idx, variants, strict=True):
+                    adv_cache_drichel[(i, ep)] = [v]
+                sel_order = list(range(len(mal_idx)))
+                uniform_rng.shuffle(sel_order)
+                adv_batch = [adv_cache_drichel[(mal_idx[j], ep)][0] for j in sel_order[:64]]
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
@@ -731,7 +901,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm in ("D", "E", "F", "H", "UQ", "CAND4", "EDIT4", "CURRICULUM"):
+            elif arm in ("D", "E", "F", "H", "UQ", "CAND4", "EDIT4", "CURRICULUM", "CEQ"):
                 # CAND4/EDIT4/CURRICULUM（2026-10-13 追加，D-6/D-7）：下游选择（组内中心化
                 # top-64 跨组竞争）、配额、损失加权与 D 逐行相同，唯一差量在候选生成：
                 # CAND4 四候选二位、EDIT4 单位编辑四位累积、CURRICULUM 弱核→强核按轮切换。
@@ -803,6 +973,15 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                         sel_order = list(range(len(cands)))
                         uniform_rng.shuffle(sel_order)
                         adv_batch = [cands[j] for j in sel_order[:64]]
+                    elif arm == "CEQ":
+                        # CEQ（Average Top-k Loss，Fan et al. §2 式(1) 任务化迁移）：
+                        # 与 D/F 同候选池、同入批配额，按未中心化交叉熵 ce = −log p_mal
+                        # 全局降序取 top-64（并列按候选池顺序，np.argsort stable）；
+                        # 不做组内中心化、不做跨组配额竞争。ce 从候选评分前向的 p_cand
+                        # 计算（clip 1e-12 防数值下溢；CE 与 p 单调等价，clip 不改变排序）。
+                        ce_cand = -np.log(np.clip(p_cand, 1e-12, None))
+                        ce_order = np.argsort(-ce_cand, kind="stable")[:64]
+                        adv_batch = [cands[j] for j in ce_order]
                     else:
                         adv_batch = [cands[j] for _, j in scored[:64]]
                     model.train()
@@ -913,6 +1092,14 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                     w = torch.ones(len(sub_y), device=DEVICE)
                     w[fooled_b] = 3.0
                     loss_s = (ce * w).sum() / n_tot
+                elif arm == "CBN":
+                    # CBN（ConstBenign 反事实，清单 §3.1）：对**所有**真良性样本施加固定
+                    # 类权重 3.0（沿用组件 2 已登记系数，不依赖当前误报、不新选数值）；
+                    # 无对抗增广（走 A 的路径），其余同 A。与 F/G 的差量 = 条件误报门 vs
+                    # 静态类代价。
+                    w = torch.ones(len(sub_y), device=DEVICE)
+                    w[sub_y == 0] = 3.0
+                    loss_s = (ce * w).sum() / n_tot
                 elif arm == "C":
                     # 组相对加权：同一恶意样本的 4 变体一组，组内"当前模型判良性(骗过)"为优势，
                     # 正优势变体权重 2.0、未骗过变体 0.5、干净样本 1.0（组相对优势的任务化，
@@ -990,6 +1177,22 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 "fpr_curve": fpr_curve,
             }
             write_checkpoint_atomic(checkpoint_path, state)
+            # ESAT 选择器快照（A 臂重跑专用）：每轮末把模型权重存为选择器快照。
+            # 快照是独立制品（不改既有 A 臂运行目录），由 ESAT 子集计算脚本消费。
+            if selector_snapshot_dir is not None and arm == "A":
+                snapshot_path = selector_snapshot_dir / f"selector-snapshot-ep{ep}.pt"
+                partial = snapshot_path.with_name(snapshot_path.name + ".partial")
+                with partial.open("wb") as stream:
+                    torch.save({
+                        "epoch": ep,
+                        "model": {k: v.detach().cpu() for k, v in model.state_dict().items()},
+                        "arm": arm,
+                        "identity": run_identity,
+                    }, stream)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.replace(partial, snapshot_path)
+                print(f"[{label} 选择器快照] epoch {ep} -> {snapshot_path.name}", file=sys.stderr, flush=True)
         if progress is not None:
             progress(arm, "checkpointed", ep, nb, nb, None, fpr_curve[-1])
     model.eval()
@@ -999,7 +1202,9 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
 
 
 def run_pipeline(dry: int, arms: tuple[str, ...], epochs: int, out_name: str,
-                 candidate_spec: str, identity: dict, status: dict, status_path: Path) -> None:
+                 candidate_spec: str, identity: dict, status: dict, status_path: Path,
+                 esat_subset: set[int] | None = None,
+                 selector_snapshot_dir: Path | None = None) -> None:
     torch.manual_seed(SEED); np.random.seed(SEED); random.seed(SEED)
     tokenizer = official.PreTrainedTokenizerFast(
         tokenizer_file=str(REF / "artifacts/tokenizer/tokenizer-0-30522-both.json")
@@ -1069,6 +1274,8 @@ def run_pipeline(dry: int, arms: tuple[str, ...], epochs: int, out_name: str,
             checkpoint_path=OUT / f"arm-{arm}-checkpoint.pt",
             run_identity=identity,
             progress=progress,
+            esat_subset=esat_subset,
+            selector_snapshot_dir=selector_snapshot_dir,
         )
         r["wall_seconds"] = round(time.time() - t0, 1)
         arm_model = r.pop("_model")
@@ -1108,7 +1315,8 @@ def run_pipeline(dry: int, arms: tuple[str, ...], epochs: int, out_name: str,
 
 
 def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = None,
-         candidate_spec: str | None = None) -> None:
+         candidate_spec: str | None = None, esat_subset_arg: str | None = None,
+         selector_snapshot_dir_arg: str | None = None) -> None:
     if candidate_spec is None:
         raise ValueError("共同预算训练必须显式提供 candidate-spec")
     if dry < 0:
@@ -1126,6 +1334,20 @@ def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = No
         "official-p2p3-DRYRUN.json" if dry else "official-p2p3-result.json"
     )
     spec_path = formal_contract.resolve_repo_relative(candidate_spec, must_exist=True)
+    selector_snapshot_dir: Path | None = (
+        Path(selector_snapshot_dir_arg) if selector_snapshot_dir_arg else None
+    )
+    esat_subset: set[int] | None = None
+    if esat_subset_arg:
+        subset_path = formal_contract.resolve_repo_relative(esat_subset_arg, must_exist=True)
+        subset_payload = json.loads(Path(subset_path).read_text(encoding="utf-8"))
+        if subset_payload.get("schema_version") != "drift-esat-subset-v1":
+            raise ValueError(f"ESAT 子集清单 schema 不符：{subset_path}")
+        if subset_payload.get("candidate_spec_sha256") != sha256_file(spec_path):
+            raise ValueError("ESAT 子集清单与当前 candidate-spec 不匹配")
+        if len(subset_payload.get("subset_indices", [])) == 0:
+            raise ValueError("ESAT 子集清单为空")
+        esat_subset = set(subset_payload["subset_indices"])
     identity = {
         "code_sha256": sha256_file(Path(__file__).resolve()),
         "member_selector_sha256": sha256_file(Path(eligibility.__file__).resolve()),
@@ -1142,6 +1364,10 @@ def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = No
         "precision": "bf16" if USE_BF16 else "fp32",
         "result_name": out_name,
         "dry_run": dry,
+        "esat_subset_sha256": (
+            sha256_file(Path(esat_subset_arg).resolve()) if esat_subset_arg else None
+        ),
+        "selector_snapshot_dir": selector_snapshot_dir_arg,
     }
     OUT.mkdir(parents=True, exist_ok=True)
     status_path = OUT / "run-status.json"
@@ -1178,7 +1404,8 @@ def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = No
         status["resumed_at"] = now_utc()
         write_json_atomic(status_path, status)
         try:
-            run_pipeline(dry, arms, epochs, out_name, candidate_spec, identity, status, status_path)
+            run_pipeline(dry, arms, epochs, out_name, candidate_spec, identity, status, status_path,
+                         esat_subset=esat_subset, selector_snapshot_dir=selector_snapshot_dir)
         except BaseException as exc:
             status["phase"] = "interrupted" if isinstance(exc, KeyboardInterrupt) else "failed"
             status["failed_at"] = now_utc()
@@ -1193,5 +1420,10 @@ if __name__ == "__main__":
     ap.add_argument("--arms", default=None, help="逗号分隔臂列表，如 A,B,D,F,G（默认五臂/干跑 A）")
     ap.add_argument("--result-name", type=result_name_arg, default=None, help="结果文件名，不得含路径或特殊字符")
     ap.add_argument("--candidate-spec", required=True, help="仓库相对固定哈希源成员规格")
+    ap.add_argument("--esat-subset", default=None,
+                    help="ESAT 臂专用：熵排序固定子集清单 JSON（schema drift-esat-subset-v1）")
+    ap.add_argument("--selector-snapshot-dir", default=None,
+                    help="A 臂重跑专用：每轮末保存选择器快照的目录")
     a = ap.parse_args()
-    main(dry=a.dry_run, arms_arg=a.arms, result_name=a.result_name, candidate_spec=a.candidate_spec)
+    main(dry=a.dry_run, arms_arg=a.arms, result_name=a.result_name, candidate_spec=a.candidate_spec,
+         esat_subset_arg=a.esat_subset, selector_snapshot_dir_arg=a.selector_snapshot_dir)
