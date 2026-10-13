@@ -1183,6 +1183,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
             # ESAT 选择器快照（A 臂重跑专用）：每轮末把模型权重存为选择器快照。
             # 快照是独立制品（不改既有 A 臂运行目录），由 ESAT 子集计算脚本消费。
             if selector_snapshot_dir is not None and arm == "A":
+                selector_snapshot_dir.mkdir(parents=True, exist_ok=True)
                 snapshot_path = selector_snapshot_dir / f"selector-snapshot-ep{ep}.pt"
                 partial = snapshot_path.with_name(snapshot_path.name + ".partial")
                 with partial.open("wb") as stream:
