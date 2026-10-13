@@ -1,0 +1,458 @@
+{
+  "code": {
+    "path": "thesis/experiments/llm_probe/tools/ch3_drift_formal_edit_v2.py",
+    "sha256": "fb6f54294cd5795df3fd92076bce9cc30f918cb32e02c69971687765db77927e"
+  },
+  "data_dir": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD",
+  "files": [
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 200000,
+        "no_editable_position": 0,
+        "total": 200000,
+        "valid_input": 200000
+      },
+      "data_sha256": "e41a357fbcccd26ba5b853b0af0ce6c7b233256a4cc4bad969de2514aa6aa22d",
+      "elapsed_seconds": 28.710236417129636,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_train.parquet",
+      "sample": {
+        "fully_sampled": false,
+        "rows_sampled": 200000,
+        "rows_total": 1500000,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T17_dga_train.parquet",
+        "sample_sha256": "2e547d453a1df48a8713fa6ab4b7c47ef28a11034bea71dc2897217c1fcb2412"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 200000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 400000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 1567847,
+          "q_max": 22,
+          "q_min": 2
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 200000,
+        "no_editable_position": 0,
+        "total": 200000,
+        "valid_input": 200000
+      },
+      "data_sha256": "380ce6d6c40be760decb0a893692ab7fbec67484ef964272f30e0b0de3975971",
+      "elapsed_seconds": 26.050990000134334,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_test.parquet",
+      "sample": {
+        "fully_sampled": false,
+        "rows_sampled": 200000,
+        "rows_total": 13238780,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T17_dga_test.parquet",
+        "sample_sha256": "e7dee0c747d929432671398bea8dcfc25d0840ea243154050d906caaead4f7c4"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 200000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 400000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 1570841,
+          "q_max": 22,
+          "q_min": 2
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 150000,
+        "no_editable_position": 0,
+        "total": 150000,
+        "valid_input": 150000
+      },
+      "data_sha256": "dfd47b8e99837c0567b4da81595a55fe12aa0a452372694e552656454a14a0a4",
+      "elapsed_seconds": 19.233900374965742,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_val.parquet",
+      "sample": {
+        "fully_sampled": true,
+        "rows_sampled": 150000,
+        "rows_total": 150000,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T17_dga_val.parquet",
+        "sample_sha256": "23f18bfa6e14085bd28b36bee75f69fefd016044e9a3611a735f815761aeb4e4"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 150000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 300000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 1177002,
+          "q_max": 22,
+          "q_min": 2
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 200000,
+        "no_editable_position": 0,
+        "total": 200000,
+        "valid_input": 200000
+      },
+      "data_sha256": "c41d16ef43b65acbd89760cd2a6360f10a357327b938ae8a1feec086f741f0f2",
+      "elapsed_seconds": 22.57821066607721,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_train.parquet",
+      "sample": {
+        "fully_sampled": false,
+        "rows_sampled": 200000,
+        "rows_total": 1500000,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T18_dga_train.parquet",
+        "sample_sha256": "cf1ba8b4c6c49324b637569c4208945113f022f72daf3c85f69a965d58131c3a"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 200000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 400000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 1567224,
+          "q_max": 22,
+          "q_min": 2
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 200000,
+        "no_editable_position": 0,
+        "total": 200000,
+        "valid_input": 200000
+      },
+      "data_sha256": "c14106545fa18f8562b87fe60b2beef3db3cadc456c1b705cfac1208bc16247b",
+      "elapsed_seconds": 22.713244874961674,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_test.parquet",
+      "sample": {
+        "fully_sampled": false,
+        "rows_sampled": 200000,
+        "rows_total": 13465679,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T18_dga_test.parquet",
+        "sample_sha256": "d789112dc339a783015772631af9d8b4987de5ef2030c538b59815ea0697f787"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 200000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 400000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 1564133,
+          "q_max": 21,
+          "q_min": 2
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 150000,
+        "no_editable_position": 0,
+        "total": 150000,
+        "valid_input": 150000
+      },
+      "data_sha256": "2da2aa4e80335a8b1ef569fde4540547aac08845f68aae99218a802205780b12",
+      "elapsed_seconds": 17.0899498751387,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_val.parquet",
+      "sample": {
+        "fully_sampled": true,
+        "rows_sampled": 150000,
+        "rows_total": 150000,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T18_dga_val.parquet",
+        "sample_sha256": "3462428745130a9c01b4faaa8463b6e4ded2e7a4f9229f41794d6b96119e3d9d"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 150000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 300000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 1178936,
+          "q_max": 22,
+          "q_min": 2
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 200000,
+        "no_editable_position": 0,
+        "total": 200000,
+        "valid_input": 200000
+      },
+      "data_sha256": "6bb17329e752cc946f989a2196f147145d64e703dc8e6128b0d0e756b8c8d454",
+      "elapsed_seconds": 26.354020416969433,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_train.parquet",
+      "sample": {
+        "fully_sampled": false,
+        "rows_sampled": 200000,
+        "rows_total": 1500000,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T19_dga_train.parquet",
+        "sample_sha256": "20fd69a820f99ab5a213471f59a9090b8be8d31790a9f04b91509fe5644375ab"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 200000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 400000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 1473460,
+          "q_max": 22,
+          "q_min": 1
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 200000,
+        "no_editable_position": 0,
+        "total": 200000,
+        "valid_input": 200000
+      },
+      "data_sha256": "0116d502d0552cfc0ca337394ba18cd98f1a3d562cfe933e99eba852ce100db6",
+      "elapsed_seconds": 24.412785457912832,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_test.parquet",
+      "sample": {
+        "fully_sampled": false,
+        "rows_sampled": 200000,
+        "rows_total": 14768573,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T19_dga_test.parquet",
+        "sample_sha256": "4ae7417e04e9ff617ebc0ed401452e9bcc5a17e683881f830473b793a58cb400"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 200000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 400000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 200000,
+          "hamming_sum": 1476324,
+          "q_max": 22,
+          "q_min": 1
+        }
+      }
+    },
+    {
+      "counts": {
+        "error": 0,
+        "illegal_output": 0,
+        "invalid_syntax": 0,
+        "legal": 150000,
+        "no_editable_position": 0,
+        "total": 150000,
+        "valid_input": 150000
+      },
+      "data_sha256": "b6fe2d99bf71e4701d0e08d5a54d468ffb04c89019477f496e87c84cf25be764",
+      "elapsed_seconds": 25.16395395901054,
+      "failures": [],
+      "invalid_syntax_reasons": {},
+      "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_val.parquet",
+      "sample": {
+        "fully_sampled": true,
+        "rows_sampled": 150000,
+        "rows_total": 150000,
+        "sample_salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1|T19_dga_val.parquet",
+        "sample_sha256": "a53f88224c92da60344c30e68d79ff811623ecd16fcd9c59e9395bbebd735099"
+      },
+      "tier_stats": {
+        "k1": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 150000,
+          "q_max": 1,
+          "q_min": 1
+        },
+        "k2": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 300000,
+          "q_max": 2,
+          "q_min": 2
+        },
+        "random_half": {
+          "budget_truncated": 0,
+          "generated": 150000,
+          "hamming_sum": 1105381,
+          "q_max": 22,
+          "q_min": 1
+        }
+      }
+    }
+  ],
+  "illegal_output_total": 0,
+  "namespace": "shared_prefix_edit_v2",
+  "prefix_nesting_sample": {
+    "checked": 1000,
+    "deterministic_checked": 1000,
+    "deterministic_failed": [],
+    "deterministic_passed": 1000,
+    "failed": 0,
+    "failures": [],
+    "passed": 1000,
+    "skipped": 0
+  },
+  "runtime": {
+    "elapsed_seconds": 285.6215625000186,
+    "python_executable": "/opt/miniconda3/envs/rwkv/bin/python",
+    "python_version": "3.14.5 | packaged by conda-forge | (main, May 20 2026, 00:45:47) [Clang 20.1.8 ]"
+  },
+  "sampling": {
+    "batch_size": 65536,
+    "max_rows_per_file": 200000,
+    "method": "sha256-rank-deterministic-subset",
+    "salt": "ch3-drift-formal-edit-v2|deterministic-subset-v1"
+  },
+  "schema_version": "ch3-drift-formal-edit-v2",
+  "status": "complete",
+  "stream_id": "audit|shared_prefix_edit_v2|3b31077020cd1c013d0a75cad51042a2327c4521",
+  "totals": {
+    "error": 0,
+    "illegal_output": 0,
+    "invalid_syntax": 0,
+    "legal": 1650000,
+    "no_editable_position": 0,
+    "total": 1650000,
+    "valid_input": 1650000
+  }
+}

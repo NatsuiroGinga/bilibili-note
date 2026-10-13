@@ -1,0 +1,23 @@
+[edit-v2-audit] start schema=ch3-drift-formal-edit-v2 namespace=shared_prefix_edit_v2 stream_id=audit|shared_prefix_edit_v2|3b31077020cd1c013d0a75cad51042a2327c4521 max_rows_per_file=200000
+[edit-v2-audit] code=ch3_drift_formal_edit_v2.py sha256=fb6f54294cd5795df3fd92076bce9cc30f918cb32e02c69971687765db77927e
+[edit-v2-audit] file-start file=T17_dga_train.parquet
+[edit-v2-audit] file-done file=T17_dga_train.parquet rows_total=1500000 sampled=200000 legal=200000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=32.4s
+[edit-v2-audit] file-start file=T17_dga_test.parquet
+[edit-v2-audit] file-done file=T17_dga_test.parquet rows_total=13238780 sampled=200000 legal=200000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=47.3s
+[edit-v2-audit] file-start file=T17_dga_val.parquet
+[edit-v2-audit] file-done file=T17_dga_val.parquet rows_total=150000 sampled=150000 legal=150000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=19.7s
+[edit-v2-audit] file-start file=T18_dga_train.parquet
+[edit-v2-audit] file-done file=T18_dga_train.parquet rows_total=1500000 sampled=200000 legal=200000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=27.6s
+[edit-v2-audit] file-start file=T18_dga_test.parquet
+[edit-v2-audit] file-done file=T18_dga_test.parquet rows_total=13465679 sampled=200000 legal=200000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=40.5s
+[edit-v2-audit] file-start file=T18_dga_val.parquet
+[edit-v2-audit] file-done file=T18_dga_val.parquet rows_total=150000 sampled=150000 legal=150000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=17.5s
+[edit-v2-audit] file-start file=T19_dga_train.parquet
+[edit-v2-audit] file-done file=T19_dga_train.parquet rows_total=1500000 sampled=200000 legal=200000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=30.2s
+[edit-v2-audit] file-start file=T19_dga_test.parquet
+[edit-v2-audit] file-done file=T19_dga_test.parquet rows_total=14768573 sampled=200000 legal=200000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=44.1s
+[edit-v2-audit] file-start file=T19_dga_val.parquet
+[edit-v2-audit] file-done file=T19_dga_val.parquet rows_total=150000 sampled=150000 legal=150000 invalid_syntax=0 no_editable_position=0 illegal_output=0 error=0 elapsed=25.5s
+[edit-v2-audit] prefix-sample-check n=1000 source=T17_dga_train.parquet
+[edit-v2-audit] prefix-sample-done checked=1000 passed=1000 failed=0 deterministic_passed=1000
+[edit-v2-audit] done status=complete illegal_output_total=0 receipt=.Codex/docs/2026-10-13-正式编辑预算科学筛选/edit-v2-audit-receipt.json receipt_sha256=e4df5437c8e68859719af3cf11750033bfbf2d6fdfaa12750a0de44647b20b12
