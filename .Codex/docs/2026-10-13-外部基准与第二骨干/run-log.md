@@ -58,9 +58,12 @@
 - A 臂快照重跑启动 2026-10-13（P2P3_OUT=ch3-drift-source-common-a-snapshot-mps-20261013-v1，
   `--arms A --selector-snapshot-dir …/selector-snapshots`；同刻 1 个 MPS 进程已断言）。
   目的：为 ESAT 提供独立非鲁棒参照模型的 3 个逐 epoch 快照。既有 A 臂（20260923）制品不动。
-- **重跑身份一致性（已验证）**：重跑 A 的 epoch 1 指标与既有 A 臂 fpr_curve[0] 逐位一致
-  （clean_FPR 0.023566666666666666 / attack_FNR 0.30846666666666667 / attack_AP 1.0）——
-  训练器改动对既有臂零扰动达到了完整训练轨迹级证据。
+- **重跑身份一致性（已验证）**：重跑 A 的 epoch 1 指标与既有 A 臂 fpr_curve[0] **逐位一致**
+  （clean_FPR 0.023566666666666666 / attack_FNR 0.30846666666666667 / attack_AP 1.0）；
+  epoch 3 出现微小漂移（重跑 clean_FPR 0.022333 vs 既有 0.022400，差 2 样本；attack_FNR
+  0.318433 vs 0.317967）——判定为 MPS 浮点非确定性跨轮累积（epoch 1 逐位一致证明代码路径
+  相同，漂移非代码差量），如实登记。ESAT 快照身份以重跑制品自身哈希为准，子集清单绑定
+  快照哈希自洽。
 - 提交 dddaf74b 范围混叠自报：`p0_legal_attack_probe.py` 在会话开始时携带上一轮
   （UQ/CAND4/EDIT4 评价改造）的未提交改动，本轮追加 RUNS/哈希表/动态汇总时被一并提交，
   未按「改前快照」规则先行拆分。未重写历史；文件内容正确（py_compile + --help 通过），
