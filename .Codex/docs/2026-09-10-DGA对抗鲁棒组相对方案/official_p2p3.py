@@ -434,6 +434,9 @@ def hotflip_variants(domains: list[str], model, tokenizer) -> list[str]:
             chars[b] = "".join(s)
             char_ids[b, i] = int(c_id)
     return chars
+
+
+def load_split(limit: int) -> tuple[list[str], np.ndarray]:
     tb = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_benign_train.parquet").to_pylist()[:limit]
     td = pq.read_table(DATA / "DRIFT_input_eSLD" / "T17_dga_train.parquet").to_pylist()[:limit]
     domains = [str(r["domain"]) for r in tb] + [str(r["domain"]) for r in td]
