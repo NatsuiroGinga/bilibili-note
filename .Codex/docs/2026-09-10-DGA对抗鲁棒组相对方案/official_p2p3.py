@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""DRIFT 官方双分支骨干的源期共同成员 A/B/D/G/F 筛选运行器。
+"""DRIFT 官方双分支骨干的源期共同成员 A/B/D/G/F/UQ 筛选运行器。
+
+UQ（Uniform-q 对照，2026-10-13）：候选核与 D/F 完全相同，唯一差量为选择规则
+（同池均匀随机取同配额 64，无组内中心化、无跨组配额竞争），用于隔离「候选核」
+与「组中心化选择规则」两个混杂因素。
 
 固定哈希源训练与源验证成员从现有 Parquet 按需读取；本入口是源期筛选，
 指标仍使用历史 0.5 阈值与筛选攻击面板，不代表正式低误报评价。
@@ -70,8 +74,21 @@ ARM_DISPLAY_NAMES = {
     "G": "良性条件误报补偿",
     "F": "组中心选择＋良性补偿",
     "MP": "混合曝光＋误报保护",
+    "UQ": "均匀同配额选择（同 D/F 候选核，隔离选择规则）",
 }
 SAFE_RESULT_NAME = re.compile(r"[A-Za-z0-9._-]+\Z")
+CACHE_SCHEMA_VERSION = "drift-source-screen-cache-v1"
+CACHE_POLICY_BY_ARM = {
+    "A": "none_v1",
+    "B": "source_screen_b_if_missing_v1",
+    "D": "source_screen_d_base4_if_missing_v1",
+    "G": "none_v1",
+    "F": "source_screen_f_base4_if_missing_v1",
+    "UQ": "source_screen_uq_base4_if_missing_v1",
+}
+# UQ（Uniform-q）候选核与 D/F 完全相同（共享 base 上的两阶段复合四候选），
+# 唯一差量为选择规则：从同一候选池均匀随机取同配额 64，不做组内中心化、
+# 不做跨组配额竞争。选择使用独立 uniform_rng 流，避免扰动攻击 RNG 使候选池偏离 D/F。
 
 
 def now_utc() -> str:
@@ -122,6 +139,72 @@ def result_name_arg(value: str) -> str:
             "结果文件名只能包含 ASCII 字母、数字、点、下划线和连字符，且不能是 . 或 .."
         )
     return value
+
+
+def source_roots(domains: list[str], labels: np.ndarray) -> tuple[str, str]:
+    """计算源顺序根和标签根；仅返回摘要，不保留逐实体身份材料。"""
+    if len(domains) != len(labels):
+        raise ValueError("源域名与标签长度不一致，不能建立缓存身份")
+    order_digest = hashlib.sha256()
+    label_digest = hashlib.sha256()
+    for index, (domain, label) in enumerate(zip(domains, labels, strict=True)):
+        order_digest.update(formal_contract.length_prefix_encode(str(index), domain))
+        label_digest.update(formal_contract.length_prefix_encode(str(index), str(int(label))))
+    return order_digest.hexdigest(), label_digest.hexdigest()
+
+
+def cache_summary(cache: dict[int, list[str]], policy_id: str,
+                  source_order_sha256: str) -> dict[str, int | str]:
+    """生成不含缓存明文、逐索引摘要或索引清单的缓存收据。"""
+    root = hashlib.sha256()
+    root.update(formal_contract.length_prefix_encode(
+        CACHE_SCHEMA_VERSION, policy_id, source_order_sha256,
+    ))
+    value_count = 0
+    for source_index in sorted(cache):
+        values = cache[source_index]
+        value_count += len(values)
+        value_hashes = [
+            formal_contract.sha256_bytes(value.encode("utf-8"))
+            for value in values
+        ]
+        entry_digest = formal_contract.sha256_bytes(
+            formal_contract.length_prefix_encode(
+                policy_id,
+                str(source_index),
+                str(len(values)),
+                *value_hashes,
+            )
+        )
+        root.update(formal_contract.length_prefix_encode(entry_digest))
+    return {
+        "cache_schema_version": CACHE_SCHEMA_VERSION,
+        "cache_policy_id": policy_id,
+        "cache_entry_count": len(cache),
+        "cache_value_count": value_count,
+        "cache_root_sha256": root.hexdigest(),
+    }
+
+
+def rebuild_first_epoch_cache(arm: str, domains: list[str], labels: np.ndarray,
+                              completed_epoch: int) -> dict[int, list[str]]:
+    """用隔离的局部 RNG 重放完整首轮缓存，不污染训练随机状态。"""
+    cache: dict[int, list[str]] = {}
+    if arm not in {"B", "D", "F", "UQ"} or completed_epoch == 0:
+        return cache
+    order = list(range(len(domains)))
+    random.Random(SEED + 1).shuffle(order)
+    replay_rng = random.Random(SEED)
+    for source_index in order:
+        if labels[source_index] != 1:
+            continue
+        original = domains[source_index]
+        if arm == "B":
+            cache[source_index] = [perturb2(original, replay_rng)]
+        else:
+            base = perturb2(original, replay_rng)
+            cache[source_index] = [perturb2(base, replay_rng) for _ in range(4)]
+    return cache
 
 
 def perturb2(domain: str, rng: random.Random) -> str:
@@ -304,6 +387,8 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
               eval_clean: tuple[list[str], np.ndarray], eval_adv: tuple[list[str], np.ndarray],
               epochs: int, ref_model=None, checkpoint_path: Path | None = None,
               run_identity: dict | None = None, progress=None) -> dict:
+    if arm not in CACHE_POLICY_BY_ARM:
+        raise ValueError(f"本筛选入口不再接受未验收历史臂：{arm}")
     # 每臂使用相同的模型随机轨迹起点；断点恢复随后覆盖为保存的状态。
     torch.manual_seed(SEED)
     model = load_mps_model()
@@ -327,29 +412,59 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     adv_cache_m: dict[tuple, list] = {}  # M 臂 Mix 缓存（键=(样本, 档位)）
     benign_cache: dict[int, list[str]] = {}
     benign_rng = random.Random(SEED + 7)  # 良性变体独立种子，不与恶意变体序列耦合
+    # UQ 臂均匀选择专用独立流：使攻击 RNG（候选生成）与 D/F 保持同一序列，
+    # 候选池逐条相同；只有选择规则不同。
+    uniform_rng = random.Random(SEED + 13)
     tau_val = torch.tensor(0.5, device=DEVICE)  # J 臂对偶变量 τ（RU 形式 min_τ）
     first_epoch = 1
+    source_order_sha256, source_label_sha256 = source_roots(train_d, train_y)
     if checkpoint_path is not None and checkpoint_path.exists():
         checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+        forbidden_cache_keys = {
+            "adv_cache", "adv_cache_p", "adv_cache_l", "adv_cache_m", "benign_cache",
+        }
+        if forbidden_cache_keys.intersection(checkpoint):
+            raise RuntimeError(f"{label} 断点含旧明文缓存字段，拒绝迁移并保留原断点")
         if checkpoint["identity"] != run_identity or checkpoint["arm"] != arm:
             raise RuntimeError(f"{label} 断点身份与当前运行不一致")
         completed_epoch = int(checkpoint["completed_epoch"])
         if not 0 <= completed_epoch <= epochs:
             raise RuntimeError(f"{label} 断点轮次越界：{completed_epoch}")
+        if checkpoint.get("cache_schema_version") != CACHE_SCHEMA_VERSION:
+            raise RuntimeError(f"{label} 断点缓存模式缺失或过期，拒绝恢复并保留原断点")
+        if checkpoint.get("source_order_sha256") != source_order_sha256:
+            raise RuntimeError(f"{label} 断点源顺序根不一致，拒绝恢复并保留原断点")
+        if checkpoint.get("source_label_sha256") != source_label_sha256:
+            raise RuntimeError(f"{label} 断点源标签根不一致，拒绝恢复并保留原断点")
+        policy_id = CACHE_POLICY_BY_ARM[arm]
+        if checkpoint.get("cache_policy_id") != policy_id:
+            raise RuntimeError(f"{label} 断点缓存策略不一致，拒绝恢复并保留原断点")
+        adv_cache = rebuild_first_epoch_cache(arm, train_d, train_y, completed_epoch)
+        rebuilt_summary = cache_summary(adv_cache, policy_id, source_order_sha256)
+        saved_summary = {
+            key: checkpoint.get(key)
+            for key in (
+                "cache_schema_version", "cache_policy_id", "cache_entry_count",
+                "cache_value_count", "cache_root_sha256",
+            )
+        }
+        if rebuilt_summary != saved_summary:
+            raise RuntimeError(f"{label} 缓存重放摘要不一致，拒绝恢复并保留原断点")
+
+        # 只有源身份与缓存重放均核对通过后，才恢复训练状态和 RNG。
         model.load_state_dict(checkpoint["model"])
         opt.load_state_dict(checkpoint["optimizer"])
         rng.setstate(checkpoint["attack_rng"])
         benign_rng.setstate(checkpoint["benign_rng"])
+        if arm == "UQ":
+            if "uniform_rng" not in checkpoint:
+                raise RuntimeError(f"{label} 断点缺 UQ 选择 RNG 状态，拒绝恢复并保留原断点")
+            uniform_rng.setstate(checkpoint["uniform_rng"])
         torch.set_rng_state(checkpoint["cpu_rng"])
         if DEVICE.type == "mps":
             torch.mps.set_rng_state(checkpoint["mps_rng"])
         elif DEVICE.type == "cuda":
             torch.cuda.set_rng_state(checkpoint["cuda_rng"])
-        adv_cache = checkpoint["adv_cache"]
-        adv_cache_p = checkpoint["adv_cache_p"]
-        adv_cache_l = checkpoint["adv_cache_l"]
-        adv_cache_m = checkpoint["adv_cache_m"]
-        benign_cache = checkpoint["benign_cache"]
         tau_val = checkpoint["tau_val"].to(DEVICE)
         fpr_curve = checkpoint["fpr_curve"]
         first_epoch = completed_epoch + 1
@@ -558,7 +673,12 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm in ("D", "E", "F", "H"):
+            elif arm in ("D", "E", "F", "H", "UQ"):
+                # UQ 臂（Uniform-q 对照，2026-10-13）：候选核与 D/F 逐行相同
+                # （共享 base 的两阶段复合四候选，每组 K=4），候选评分前向同样保留，
+                # 唯一差量 = 入损失的 64 个变体由「组内中心化优势 top-64 跨组竞争」
+                # 换为「同一候选池上均匀随机取 64」，无组内中心化、无跨组配额竞争。
+                # 用途：与 D/F 同核同配额 ⇒ 隔离选择规则；与 B 同均匀配额 ⇒ 隔离候选核。
                 # D/E 臂（GFPO 组相对过滤，2508.09726 §3 式(2) + Drichel 2024 §4.4.2 配比锚点）：
                 # 与 B 同为 64 变体配额（批次规模 192、恶意:良性倾斜度相同），唯一差量 =
                 # 变体选择机制：每恶意样本 K=4 变体为组，组内 fooled（当前模型判良性）为优势，
@@ -599,7 +719,15 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                         adv_g = f - f.mean()
                         scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
                     scored.sort(key=lambda t: -t[0])
-                    adv_batch = [cands[j] for _, j in scored[:64]]
+                    if arm == "UQ":
+                        # 唯一差量：在同一候选池上均匀随机取同配额 64（min(64, |池|)）；
+                        # group/fooled/scored 的计算保留以维持与 D/F 逐行相同的路径，
+                        # 但不参与选择。组内中心化与跨组配额竞争均不生效。
+                        sel_order = list(range(len(cands)))
+                        uniform_rng.shuffle(sel_order)
+                        adv_batch = [cands[j] for j in sel_order[:64]]
+                    else:
+                        adv_batch = [cands[j] for _, j in scored[:64]]
                     model.train()
                 if adv_batch:
                     batch_d = batch_d + adv_batch
@@ -763,6 +891,9 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
             flush=True,
         )
         if checkpoint_path is not None:
+            cache_metadata = cache_summary(
+                adv_cache, CACHE_POLICY_BY_ARM[arm], source_order_sha256,
+            )
             state = {
                 "identity": run_identity,
                 "arm": arm,
@@ -771,14 +902,13 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 "optimizer": opt.state_dict(),
                 "attack_rng": rng.getstate(),
                 "benign_rng": benign_rng.getstate(),
+                "uniform_rng": uniform_rng.getstate(),
                 "cpu_rng": torch.get_rng_state(),
                 "mps_rng": torch.mps.get_rng_state() if DEVICE.type == "mps" else None,
                 "cuda_rng": torch.cuda.get_rng_state() if DEVICE.type == "cuda" else None,
-                "adv_cache": adv_cache,
-                "adv_cache_p": adv_cache_p,
-                "adv_cache_l": adv_cache_l,
-                "adv_cache_m": adv_cache_m,
-                "benign_cache": benign_cache,
+                "source_order_sha256": source_order_sha256,
+                "source_label_sha256": source_label_sha256,
+                **cache_metadata,
                 "tau_val": tau_val.detach().cpu(),
                 "fpr_curve": fpr_curve,
             }
@@ -909,6 +1039,9 @@ def main(dry: int = 0, arms_arg: str | None = None, result_name: str | None = No
     arms = tuple(arms_arg.split(",")) if arms_arg else (("A",) if dry else ("A", "B", "D", "G", "F"))
     if not arms or any(not re.fullmatch(r"[A-Z][A-Z0-9]*", arm) for arm in arms):
         raise ValueError("训练臂列表不合法")
+    unsupported_arms = sorted(set(arms) - set(CACHE_POLICY_BY_ARM))
+    if unsupported_arms:
+        raise ValueError(f"本筛选入口仅接受已验收臂 A/B/D/G/F/UQ：{unsupported_arms}")
     if len(set(arms)) != len(arms):
         raise ValueError("训练臂不能重复")
     epochs = 1 if dry else EPOCHS
