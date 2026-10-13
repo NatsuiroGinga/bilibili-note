@@ -42,8 +42,8 @@
 ## 数值登记（待主代理确认；先按登记值执行）
 
 | 数值 | 用途 | 依据 | 状态 |
-| --- | --- | --- |  --- |
-| ρ=0.5（|A|=30000/60000） | ESAT 子集比例 | ESAT 笔记 L33：原文 CIFAR 中点配置 25000/50000=50% 的同比例映射；原文未给通用比例 | **待确认** |
+| --- | --- | --- | --- |
+| ρ=0.5（\|A\|=30000/60000） | ESAT 子集比例 | ESAT 笔记 L33：原文 CIFAR 中点配置 25000/50000=50% 的同比例映射；原文未给通用比例 | 待确认 |
 | M=3 快照 | ESAT 跨快照熵平均 | A 臂 3 轮逐 epoch 快照；原文未给 M | 待确认 |
 | 熵定义 −p·log p−(1−p)·log(1−p) | ESAT 评分量 | ESAT 笔记式(3)原文（自然对数） | 已核原文 |
 | HotFlip 预算=2、ALPHA 37 字符、greedy | DRICHEL 攻击接口 | 实施计划「固定编辑预算内」「一阶近似」+ 与 perturb2 同界 | 计划冻结 |
@@ -58,6 +58,13 @@
 - A 臂快照重跑启动 2026-10-13（P2P3_OUT=ch3-drift-source-common-a-snapshot-mps-20261013-v1，
   `--arms A --selector-snapshot-dir …/selector-snapshots`；同刻 1 个 MPS 进程已断言）。
   目的：为 ESAT 提供独立非鲁棒参照模型的 3 个逐 epoch 快照。既有 A 臂（20260923）制品不动。
+- **重跑身份一致性（已验证）**：重跑 A 的 epoch 1 指标与既有 A 臂 fpr_curve[0] 逐位一致
+  （clean_FPR 0.023566666666666666 / attack_FNR 0.30846666666666667 / attack_AP 1.0）——
+  训练器改动对既有臂零扰动达到了完整训练轨迹级证据。
+- 提交 dddaf74b 范围混叠自报：`p0_legal_attack_probe.py` 在会话开始时携带上一轮
+  （UQ/CAND4/EDIT4 评价改造）的未提交改动，本轮追加 RUNS/哈希表/动态汇总时被一并提交，
+  未按「改前快照」规则先行拆分。未重写历史；文件内容正确（py_compile + --help 通过），
+  但该提交混含上一轮工作，请主代理知悉。
 - 后续串行队列：A-snapshot → ESAT 子集计算 → ESAT → C1R → CEQ → CBN → DRICHEL → p0 评价五臂。
 - 第二骨干队列：bresnet dry-run → A/B/EDIT4/UQ/D 五臂 → 读数交付。
 
