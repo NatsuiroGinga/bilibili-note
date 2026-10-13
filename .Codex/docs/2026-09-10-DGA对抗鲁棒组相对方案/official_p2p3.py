@@ -75,6 +75,9 @@ ARM_DISPLAY_NAMES = {
     "F": "组中心选择＋良性补偿",
     "MP": "混合曝光＋误报保护",
     "UQ": "均匀同配额选择（同 D/F 候选核，隔离选择规则）",
+    "CAND4": "四候选二位核（隔离候选数 1→4，编辑位数固定 2）",
+    "EDIT4": "单位编辑四位累积核（隔离编辑位数 2→4，候选数固定 1）",
+    "CURRICULUM": "编辑预算课程（参数化核 q_t 1→2→4：2 位 → 累积 4 位 → 4 候选累积 4 位）",
 }
 SAFE_RESULT_NAME = re.compile(r"[A-Za-z0-9._-]+\Z")
 CACHE_SCHEMA_VERSION = "drift-source-screen-cache-v1"
@@ -85,7 +88,19 @@ CACHE_POLICY_BY_ARM = {
     "G": "none_v1",
     "F": "source_screen_f_base4_if_missing_v1",
     "UQ": "source_screen_uq_base4_if_missing_v1",
+    "CAND4": "source_screen_cand4_if_missing_v1",
+    "EDIT4": "source_screen_edit4_if_missing_v1",
+    "CURRICULUM": "source_screen_curriculum_if_missing_v1",
 }
+# CAND4/EDIT4/CURRICULUM（2026-10-13 追加，D-6/D-7）：
+# 候选核成分分解与编辑预算课程。三臂的选择规则、配额、损失加权、超参与 D 逐项相同，
+# 唯一差量 = 候选生成：
+#   CAND4：4 个候选，每个均由原串各做一次 perturb2（2 位）——隔离「候选数 1→4」；
+#   EDIT4：1 个候选，在原串上连续两次 perturb2（累积 4 位）——隔离「编辑位数 2→4」；
+#   CURRICULUM：epoch 1 用 B 的弱核（1 个候选 × 2 位），epoch 2–3 用 D/F 的强核
+#     （共享 base 的 4 候选 × 累积 4 位）——隔离「弱→强课程调度」。
+# 注意：EDIT4 与 CURRICULUM 的 epoch 1 候选池 = 每批恶意样本数（约 64，随机波动），
+# 当池 < 64 时 selection 取 min(64, |池|)，入批变体数无法恒定 64；该偏差已实测登记。
 # UQ（Uniform-q）候选核与 D/F 完全相同（共享 base 上的两阶段复合四候选），
 # 唯一差量为选择规则：从同一候选池均匀随机取同配额 64，不做组内中心化、
 # 不做跨组配额竞争。选择使用独立 uniform_rng 流，避免扰动攻击 RNG 使候选池偏离 D/F。
@@ -190,7 +205,9 @@ def rebuild_first_epoch_cache(arm: str, domains: list[str], labels: np.ndarray,
                               completed_epoch: int) -> dict[int, list[str]]:
     """用隔离的局部 RNG 重放完整首轮缓存，不污染训练随机状态。"""
     cache: dict[int, list[str]] = {}
-    if arm not in {"B", "D", "F", "UQ"} or completed_epoch == 0:
+    # CURRICULUM 的缓存按 (样本, epoch) 建键、跨轮不同，无法在恢复时仅靠首轮重放重建，
+    # 故不进入本函数（与 L 臂同样不支持中断恢复，失败时保留原断点）。
+    if arm not in {"B", "D", "F", "UQ", "CAND4", "EDIT4", "CURRICULUM"} or completed_epoch == 0:
         return cache
     order = list(range(len(domains)))
     random.Random(SEED + 1).shuffle(order)
@@ -201,6 +218,14 @@ def rebuild_first_epoch_cache(arm: str, domains: list[str], labels: np.ndarray,
         original = domains[source_index]
         if arm == "B":
             cache[source_index] = [perturb2(original, replay_rng)]
+        elif arm == "CAND4":
+            cache[source_index] = [perturb2(original, replay_rng) for _ in range(4)]
+        elif arm == "EDIT4":
+            cache[source_index] = [perturb2(perturb2(original, replay_rng), replay_rng)]
+        elif arm == "CURRICULUM":
+            cache[(source_index, 1)] = make_candidates_course(
+                original, COURSE_BUDGET_BY_EPOCH[1], replay_rng
+            )
         else:
             base = perturb2(original, replay_rng)
             cache[source_index] = [perturb2(base, replay_rng) for _ in range(4)]
@@ -260,6 +285,39 @@ def gen_variants_L(domain: str, ep: int, rng: random.Random) -> list:
     elif ep == 2:
         return [perturb2(domain, rng) for _ in range(4)]
     return [perturb_half(domain, rng) for _ in range(4)]
+
+
+# CURRICULUM（D-7，2026-10-13 改为参数化课程核）：核是**同一个函数**，课程只把预算
+# 参数 q_t 按轮次取值 —— 不是「弱核/强核」两个常量分支。
+# 退化等式（共享底座上的可分组件，机制方案的机械证据）：
+#   q_t=1 -> (base 链步数 0, 候选链步数 1, 候选数 1) = 1 候选 × 2 位       = B 核
+#   q_t=2 -> (0, 2, 1)                              = 1 候选 × 累积 4 位  = EDIT4 核
+#   q_t=4 -> (1, 1, 4)                              = 4 候选 × 累积 4 位  = D/F 核
+# 主代理 2026-10-13 裁决：q_t 取值域冻结为 {1,2,4}，本轮**不实现** q_t=8 分支
+# （理由：预算公平——静态臂均为 3 轮同预算；退化等式——末轮换 8 会破坏与既有臂的逐项对应）。
+COURSE_CORE_BY_QT = {1: (0, 1, 1), 2: (0, 2, 1), 4: (1, 1, 4)}
+COURSE_BUDGET_BY_EPOCH = {1: 1, 2: 2, 3: 4}
+
+
+def make_candidates_course(domain: str, q_t: int, rng: random.Random) -> list:
+    """课程核：单一函数，候选由预算参数 q_t 决定。
+
+    `COURSE_CORE_BY_QT[q_t] = (base 链步数, 候选链步数, 候选数)`；base 先按 base 链步数
+    链式 `perturb2`，多候选共享同一 base。实际编辑位数会因跨步位置碰撞而低于名义值
+    （实测见 `.Codex/docs/2026-10-13-正式编辑预算科学筛选/训练核名义位数的碰撞饱和实测.md`）。
+    """
+    if q_t not in COURSE_CORE_BY_QT:
+        raise ValueError(f"CURRICULUM 的 q_t 冻结为 {sorted(COURSE_CORE_BY_QT)}，收到 {q_t}")
+    base_steps, cand_steps, count = COURSE_CORE_BY_QT[q_t]
+    base = domain
+    for _ in range(base_steps):
+        base = perturb2(base, rng)
+    if count == 1:
+        candidate = base
+        for _ in range(cand_steps):
+            candidate = perturb2(candidate, rng)
+        return [candidate]
+    return [perturb2(base, rng) for _ in range(count)]
 
 
 def load_split(limit: int) -> tuple[list[str], np.ndarray]:
@@ -673,7 +731,11 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
-            elif arm in ("D", "E", "F", "H", "UQ"):
+            elif arm in ("D", "E", "F", "H", "UQ", "CAND4", "EDIT4", "CURRICULUM"):
+                # CAND4/EDIT4/CURRICULUM（2026-10-13 追加，D-6/D-7）：下游选择（组内中心化
+                # top-64 跨组竞争）、配额、损失加权与 D 逐行相同，唯一差量在候选生成：
+                # CAND4 四候选二位、EDIT4 单位编辑四位累积、CURRICULUM 弱核→强核按轮切换。
+                # 既有 D/E/F/H/UQ 的 RNG 调用顺序保持不变（base 只在原分支生成）。
                 # UQ 臂（Uniform-q 对照，2026-10-13）：候选核与 D/F 逐行相同
                 # （共享 base 的两阶段复合四候选，每组 K=4），候选评分前向同样保留，
                 # 唯一差量 = 入损失的 64 个变体由「组内中心化优势 top-64 跨组竞争」
@@ -690,10 +752,25 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                 cands: list[str] = []
                 cand_owner: list[int] = []
                 for i in mal_idx:
-                    if i not in adv_cache:
-                        base = perturb2(train_d[i], rng)
-                        adv_cache[i] = [perturb2(base, rng) for _ in range(4)]
-                    for v in adv_cache[i]:
+                    if arm == "CURRICULUM":
+                        q_t = COURSE_BUDGET_BY_EPOCH.get(ep)
+                        if q_t is None:
+                            raise ValueError(f"CURRICULUM 未冻结 epoch {ep} 的 q_t（仅 {sorted(COURSE_BUDGET_BY_EPOCH)}）")
+                        key = (i, ep)
+                        if key not in adv_cache:
+                            adv_cache[key] = make_candidates_course(train_d[i], q_t, rng)
+                        variants = adv_cache[key]
+                    else:
+                        if i not in adv_cache:
+                            if arm == "CAND4":
+                                adv_cache[i] = [perturb2(train_d[i], rng) for _ in range(4)]
+                            elif arm == "EDIT4":
+                                adv_cache[i] = [perturb2(perturb2(train_d[i], rng), rng)]
+                            else:
+                                base = perturb2(train_d[i], rng)
+                                adv_cache[i] = [perturb2(base, rng) for _ in range(4)]
+                        variants = adv_cache[i]
+                    for v in variants:
                         cands.append(v)
                         cand_owner.append(i)
                 adv_batch = []
