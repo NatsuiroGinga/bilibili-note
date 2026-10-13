@@ -1,0 +1,70 @@
+# run-log：P1 外部近邻与第二骨干复现（2026-10-13 启动）
+
+> 实现代理：`实现-外部近邻与第二骨干`（模型 opus，effort high）。
+> 冻结计划：本目录 `implementation_plan.md`。上游依据：`thesis/methods/第三章-基线与消融比较清单.md` §3.1–§3.2、§四。
+> **本日志只记机械事实与缺口，不下候选存废裁决。**
+
+## 阶段 0：前置核查（完成）
+
+- **第二骨干 B 分支缺陷核查**：`bresnet_p2p3.py`（`IMPLEMENTATION_VERSION = bresnet_p2p3_b_fix_v1`）
+  的 B 分支**已真实存在**（显式 `if arm == "B"` 路径：每恶意样本 1 个 `perturb2` 变体追加入批；
+  `normalize_arms` 校验臂名）。清单 §1.3 记录的「B 落入 A 路径」历史缺陷此前已修复。
+  本轮追加运行时断言：批内含恶意样本时 `adv_batch` 必非空，否则 `assert` 失败——B 不可能再静默退化为 A。
+- **既有臂零扰动断言（通过）**：`verify_zero_disturbance.py` → `zero-disturbance-audit.json`。
+  D/F/UQ/CAND4/EDIT4 五臂与断点保存收据**逐字段一致**；B 臂（2026-09-23 旧 schema checkpoint）
+  无缓存收据字段（缓存收据机制 2026-10-13 才引入），降级为「重放确定性」断言（两次 rebuild 一致）+ 
+  git diff 复核 rebuild 代码路径未改动。**该降级如实登记，不视为通过**——主代理可决定是否补齐 B 的收据可比性。
+- 评价算子 `ch3_drift_formal_edit_v2.py` 哈希核验：`fb6f5429…` 不变 ✓。
+- 训练器五臂实现提交于 3a786907 + load_split 修复 5ac814fb（sha256 `804dfe82…`）；
+  bresnet EDIT4/UQ 于 20426243（sha256 `51ba661c…`）。
+
+## 阶段 1：实现缺陷自报（2026-10-13 当轮）
+
+1. **误删 load_split 签名**：插入 `hotflip_variants` 时把 `def load_split(...)` 行当锚点替换未补回，
+   函数体变成不可达代码。`py_compile` 通过（不可达代码合法），由零扰动断言的真实运行暴露。
+   已修复（5ac814fb）并验证导入可用。教训：插入函数时锚点行必须包含在 new_string 中。
+2. **多次 Edit/Write 输出损坏**（约 8 处占位符/语法损坏，全部当场发现修复）：
+   长文本编辑中出现 `占位`/`placeholder` 类伪代码混入。对策已固化为「编辑后立即 py_compile + rg 扫描占位符」。
+3. **凭记忆 API 错误两处**（真实探针暴露）：`model.embedding_c.weight`（实为
+   `TokenEmbedding.embedding.weight`）；`alpha_ids` 广播形状错误（37 vs 43 维）。均由探针实测修复。
+4. **dry-run 既有边界**：`--dry-run N`（N<10001）时评价面无恶意样本会崩——**既有入口问题**，
+   非本次改动引入，未修复（不在授权范围）。本轮 dry-run 用 10002。
+
+## 阶段 2：dry-run 入口检查（完成，2026-10-13）
+
+- 四新臂 `--dry-run 10002`（1 epoch）全部通过：C1R / CEQ / CBN / DRICHEL 均完成训练+评价里程碑。
+- HotFlip 真实模型探针（8 个真实 T17 DGA 域名，预算 2）：平均 p_mal 下降 0.44，4/8 被骗到 p<0.5，
+  攻击方向正确（最大化恶意类 CE）。
+- **登记接口偏差**：HotFlip 贪心允许两步命中同一位置（净编辑 1 位，如 `google-vorify.org`），
+  实际编辑位数 ≤ 名义预算 2——与 EDIT4/CURRICULUM 的「名义位数因位置碰撞饱和」同类现象，如实登记。
+- 干跑制品在 /tmp/p2p3-dryrun-newarms（可丢弃）。
+
+## 数值登记（待主代理确认；先按登记值执行）
+
+| 数值 | 用途 | 依据 | 状态 |
+| --- | --- | --- |  --- |
+| ρ=0.5（|A|=30000/60000） | ESAT 子集比例 | ESAT 笔记 L33：原文 CIFAR 中点配置 25000/50000=50% 的同比例映射；原文未给通用比例 | **待确认** |
+| M=3 快照 | ESAT 跨快照熵平均 | A 臂 3 轮逐 epoch 快照；原文未给 M | 待确认 |
+| 熵定义 −p·log p−(1−p)·log(1−p) | ESAT 评分量 | ESAT 笔记式(3)原文（自然对数） | 已核原文 |
+| HotFlip 预算=2、ALPHA 37 字符、greedy | DRICHEL 攻击接口 | 实施计划「固定编辑预算内」「一阶近似」+ 与 perturb2 同界 | 计划冻结 |
+| C1R 替换语义（前 ceil(m/2) 个恶意替换） | C1R 批组装 | 实施计划「以 1:1 比例被替换」（恶意侧内部 1:1 的唯一自洽读法） | 待确认 |
+| C1R/CEQ 缓存键 | 缓存身份 | 沿用样本索引键 + cache_policy_id 含臂名 + 断点含轮次（与既有臂同构优先于字面「键含臂名轮次」） | 待确认 |
+| CBN 权重 3.0 | 良性类权重 | 清单 §3.1「沿用组件 2 已登记系数」 | 计划冻结 |
+| CEQ ce=−log(clip(p,1e-12,1)) | 排序量 | 数值防御；CE 与 p 单调等价不改变排序 | 任务化设定 |
+| DRICHEL 入批 min(64,m) | 恶意侧暴露 | UQ 同构均匀流（种子 42+13）；池=m（每恶意 1 变体），与 UQ 的池 4m 不同，暴露如实单列 | 待确认 |
+
+## 阶段 3：DRIFT 侧训练（进行中）
+
+- A 臂快照重跑启动 2026-10-13（P2P3_OUT=ch3-drift-source-common-a-snapshot-mps-20261013-v1，
+  `--arms A --selector-snapshot-dir …/selector-snapshots`；同刻 1 个 MPS 进程已断言）。
+  目的：为 ESAT 提供独立非鲁棒参照模型的 3 个逐 epoch 快照。既有 A 臂（20260923）制品不动。
+- 后续串行队列：A-snapshot → ESAT 子集计算 → ESAT → C1R → CEQ → CBN → DRICHEL → p0 评价五臂。
+- 第二骨干队列：bresnet dry-run → A/B/EDIT4/UQ/D 五臂 → 读数交付。
+
+## 待办与缺口
+
+- p0 评价端 `p0_legal_attack_probe.py` 需追加 5 臂到 RUNS / EXPECTED_CODE_SHA256，并把
+  `gate_mechanical` 汇总分支对缺臂动态化（陷阱 4）。评价前完成。
+- 第二骨干五臂的读数口径 = bresnet 内置四面板（T18 val 7500/类 + k2/krand/maskdga），
+  与 DRIFT 侧 p0 正式口径（30000 源验证、0.1% 预算）**不同层**，交付时如实标注。
+- B 臂缓存收据缺口（阶段 0）待主代理裁决是否接受降级断言。
