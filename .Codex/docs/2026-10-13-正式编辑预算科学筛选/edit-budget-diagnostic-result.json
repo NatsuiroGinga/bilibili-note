@@ -1,0 +1,486 @@
+{
+  "schema_version": "edit-budget-diagnostic-v1",
+  "groups": {
+    "source": {
+      "missing_files": [],
+      "files": {
+        "T17_benign_train": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_train.parquet",
+          "rows": 1500000,
+          "rows_with_dot": 64957,
+          "dot_rate": 0.043305,
+          "mean_len": 11.0094,
+          "dot_count_hist": {
+            "1": 64535,
+            "2": 399,
+            "3": 23
+          },
+          "budget_diff_rows": 32898,
+          "budget_diff_rate_of_all": 0.021932,
+          "budget_diff_rate_of_dotted": 0.506458,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 32898
+        },
+        "T17_benign_test": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_test.parquet",
+          "rows": 263418,
+          "rows_with_dot": 11516,
+          "dot_rate": 0.043718,
+          "mean_len": 11.0094,
+          "dot_count_hist": {
+            "1": 11453,
+            "2": 60,
+            "3": 3
+          },
+          "budget_diff_rows": 5668,
+          "budget_diff_rate_of_all": 0.021517,
+          "budget_diff_rate_of_dotted": 0.492185,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 5668
+        },
+        "T17_benign_val": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_benign_val.parquet",
+          "rows": 150000,
+          "rows_with_dot": 6519,
+          "dot_rate": 0.04346,
+          "mean_len": 11.0002,
+          "dot_count_hist": {
+            "1": 6468,
+            "2": 50,
+            "3": 1
+          },
+          "budget_diff_rows": 3252,
+          "budget_diff_rate_of_all": 0.02168,
+          "budget_diff_rate_of_dotted": 0.49885,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 3252
+        },
+        "T17_dga_train": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_train.parquet",
+          "rows": 1500000,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 16.0572,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T17_dga_test": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_test.parquet",
+          "rows": 13238780,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 16.055,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T17_dga_val": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T17_dga_val.parquet",
+          "rows": 150000,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 16.0341,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T18_benign_train": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_benign_train.parquet",
+          "rows": 1500000,
+          "rows_with_dot": 221288,
+          "dot_rate": 0.147525,
+          "mean_len": 13.7362,
+          "dot_count_hist": {
+            "1": 220828,
+            "2": 435,
+            "3": 25
+          },
+          "budget_diff_rows": 110635,
+          "budget_diff_rate_of_all": 0.073757,
+          "budget_diff_rate_of_dotted": 0.499959,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 110635
+        },
+        "T18_benign_test": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_benign_test.parquet",
+          "rows": 15166488,
+          "rows_with_dot": 2237686,
+          "dot_rate": 0.147541,
+          "mean_len": 13.7399,
+          "dot_count_hist": {
+            "1": 2233256,
+            "2": 4161,
+            "3": 269
+          },
+          "budget_diff_rows": 1120968,
+          "budget_diff_rate_of_all": 0.073911,
+          "budget_diff_rate_of_dotted": 0.50095,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 1120968
+        },
+        "T18_benign_val": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_benign_val.parquet",
+          "rows": 150000,
+          "rows_with_dot": 22171,
+          "dot_rate": 0.147807,
+          "mean_len": 13.7266,
+          "dot_count_hist": {
+            "1": 22123,
+            "2": 45,
+            "3": 3
+          },
+          "budget_diff_rows": 11188,
+          "budget_diff_rate_of_all": 0.074587,
+          "budget_diff_rate_of_dotted": 0.504623,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 11188
+        },
+        "T18_dga_train": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_train.parquet",
+          "rows": 1500000,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 16.0385,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T18_dga_test": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_test.parquet",
+          "rows": 13465679,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 16.0329,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T18_dga_val": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T18_dga_val.parquet",
+          "rows": 150000,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 16.0684,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T19_benign_train": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_benign_train.parquet",
+          "rows": 1500000,
+          "rows_with_dot": 229125,
+          "dot_rate": 0.15275,
+          "mean_len": 13.8284,
+          "dot_count_hist": {
+            "1": 228888,
+            "2": 213,
+            "3": 24
+          },
+          "budget_diff_rows": 114848,
+          "budget_diff_rate_of_all": 0.076565,
+          "budget_diff_rate_of_dotted": 0.501246,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 114848
+        },
+        "T19_benign_test": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_benign_test.parquet",
+          "rows": 20128914,
+          "rows_with_dot": 3070343,
+          "dot_rate": 0.152534,
+          "mean_len": 13.826,
+          "dot_count_hist": {
+            "1": 3067336,
+            "2": 2655,
+            "3": 352
+          },
+          "budget_diff_rows": 1536317,
+          "budget_diff_rate_of_all": 0.076324,
+          "budget_diff_rate_of_dotted": 0.500373,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 1536317
+        },
+        "T19_benign_val": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_benign_val.parquet",
+          "rows": 150000,
+          "rows_with_dot": 22670,
+          "dot_rate": 0.151133,
+          "mean_len": 13.8263,
+          "dot_count_hist": {
+            "1": 22648,
+            "2": 18,
+            "3": 4
+          },
+          "budget_diff_rows": 11365,
+          "budget_diff_rate_of_all": 0.075767,
+          "budget_diff_rate_of_dotted": 0.501323,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 11365
+        },
+        "T19_dga_train": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_train.parquet",
+          "rows": 1500000,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 15.1189,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T19_dga_test": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_test.parquet",
+          "rows": 14768573,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 15.121,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T19_dga_val": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T19_dga_val.parquet",
+          "rows": 150000,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 15.1037,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        }
+      },
+      "summary": {
+        "rows": 86931852,
+        "rows_with_dot": 5886275,
+        "dot_rate": 0.067711,
+        "budget_diff_rows": 2947139,
+        "budget_diff_rate_of_all": 0.033902,
+        "budget_diff_rate_of_dotted": 0.50068
+      }
+    },
+    "target": {
+      "missing_files": [],
+      "files": {
+        "T20_benign": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T20_benign.parquet",
+          "rows": 17641109,
+          "rows_with_dot": 2475317,
+          "dot_rate": 0.140315,
+          "mean_len": 13.5141,
+          "dot_count_hist": {
+            "1": 2471626,
+            "2": 2515,
+            "3": 1176
+          },
+          "budget_diff_rows": 1240971,
+          "budget_diff_rate_of_all": 0.070345,
+          "budget_diff_rate_of_dotted": 0.501338,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 1240971
+        },
+        "T20_dga": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T20_dga.parquet",
+          "rows": 18693748,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 14.0554,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T21_benign": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T21_benign.parquet",
+          "rows": 14529793,
+          "rows_with_dot": 1626243,
+          "dot_rate": 0.111925,
+          "mean_len": 13.2617,
+          "dot_count_hist": {
+            "1": 1621981,
+            "2": 2740,
+            "3": 1519,
+            "4": 3
+          },
+          "budget_diff_rows": 815868,
+          "budget_diff_rate_of_all": 0.056151,
+          "budget_diff_rate_of_dotted": 0.501689,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 815868
+        },
+        "T21_dga": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T21_dga.parquet",
+          "rows": 19544570,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 13.9644,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T22_benign": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T22_benign.parquet",
+          "rows": 15582922,
+          "rows_with_dot": 1500641,
+          "dot_rate": 0.0963,
+          "mean_len": 13.248,
+          "dot_count_hist": {
+            "1": 1486413,
+            "2": 12939,
+            "3": 1289
+          },
+          "budget_diff_rows": 760303,
+          "budget_diff_rate_of_all": 0.048791,
+          "budget_diff_rate_of_dotted": 0.506652,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 760303
+        },
+        "T22_dga": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T22_dga.parquet",
+          "rows": 19763134,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 13.8985,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T23_benign": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T23_benign.parquet",
+          "rows": 4699668,
+          "rows_with_dot": 248044,
+          "dot_rate": 0.052779,
+          "mean_len": 12.2007,
+          "dot_count_hist": {
+            "1": 246654,
+            "2": 1170,
+            "3": 220
+          },
+          "budget_diff_rows": 125867,
+          "budget_diff_rate_of_all": 0.026782,
+          "budget_diff_rate_of_dotted": 0.507438,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 125867
+        },
+        "T23_dga": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T23_dga.parquet",
+          "rows": 19761563,
+          "rows_with_dot": 0,
+          "dot_rate": 0.0,
+          "mean_len": 13.903,
+          "dot_count_hist": {},
+          "budget_diff_rows": 0,
+          "budget_diff_rate_of_all": 0.0,
+          "budget_diff_rate_of_dotted": null,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 0
+        },
+        "T24_benign": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T24_benign.parquet",
+          "rows": 1871063,
+          "rows_with_dot": 2775,
+          "dot_rate": 0.001483,
+          "mean_len": 10.4466,
+          "dot_count_hist": {
+            "1": 2773,
+            "2": 2
+          },
+          "budget_diff_rows": 1431,
+          "budget_diff_rate_of_all": 0.000765,
+          "budget_diff_rate_of_dotted": 0.515676,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 1431
+        },
+        "T24_dga": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T24_dga.parquet",
+          "rows": 20795174,
+          "rows_with_dot": 301754,
+          "dot_rate": 0.014511,
+          "mean_len": 13.9478,
+          "dot_count_hist": {
+            "1": 289661,
+            "3": 12093
+          },
+          "budget_diff_rows": 201236,
+          "budget_diff_rate_of_all": 0.009677,
+          "budget_diff_rate_of_dotted": 0.666888,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 201236
+        },
+        "T25_benign": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T25_benign.parquet",
+          "rows": 2016200,
+          "rows_with_dot": 2804,
+          "dot_rate": 0.001391,
+          "mean_len": 10.283,
+          "dot_count_hist": {
+            "1": 2804
+          },
+          "budget_diff_rows": 1482,
+          "budget_diff_rate_of_all": 0.000735,
+          "budget_diff_rate_of_dotted": 0.528531,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 1482
+        },
+        "T25_dga": {
+          "path": "thesis/experiments/llm_probe/runs/data-raw/drift-dga-2026-rev-3b31077020cd1c013d0a75cad51042a2327c4521/DRIFT_input_eSLD/T25_dga.parquet",
+          "rows": 20843220,
+          "rows_with_dot": 324090,
+          "dot_rate": 0.015549,
+          "mean_len": 13.9684,
+          "dot_count_hist": {
+            "1": 310452,
+            "3": 13638
+          },
+          "budget_diff_rows": 223602,
+          "budget_diff_rate_of_all": 0.010728,
+          "budget_diff_rate_of_dotted": 0.689938,
+          "budget_L_lt_E": 0,
+          "budget_L_gt_E": 223602
+        }
+      },
+      "summary": {
+        "rows": 175742164,
+        "rows_with_dot": 6481668,
+        "dot_rate": 0.036882,
+        "budget_diff_rows": 3370760,
+        "budget_diff_rate_of_all": 0.01918,
+        "budget_diff_rate_of_dotted": 0.520045
+      }
+    }
+  },
+  "runtime_seconds": 60.0
+}
