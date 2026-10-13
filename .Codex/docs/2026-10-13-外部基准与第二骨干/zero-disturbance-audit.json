@@ -1,0 +1,143 @@
+{
+  "schema_version": "drift-zero-disturbance-audit-v1",
+  "trainer_sha256": "804dfe824a873becfd1efffc76bd2e585f42c381a53573f785f338709ff467ab",
+  "candidate_spec_sha256": "5e46e4ce804a2b4eff5d910513f02642e0aa651a3ff04152d3fe1fce9139cea7",
+  "completed_at": "2026-10-13T23:10:49+08:00",
+  "arms_checked": [
+    "B",
+    "D",
+    "F",
+    "UQ",
+    "CAND4",
+    "EDIT4"
+  ],
+  "results": {
+    "B": {
+      "run_dir": "ch3-drift-source-common-b-mps-20260923-v1",
+      "checkpoint_sha256": "2f3e1a268502c95e94f1e30f5a5f3d027e7194ee25dd07c5344b0d6959784a7a",
+      "match": true,
+      "assertion_mode": "replay_determinism_only_no_saved_receipt",
+      "rebuilt_cache_root_sha256": "209d01f53d24dfc5097b30a5ef16495c237393d7b255805c170e7b2f7a671daa",
+      "rebuilt_cache_value_count": 30000,
+      "note": "旧 schema checkpoint 无缓存收据字段；仅能断言重放确定性与代码路径未改动"
+    },
+    "D": {
+      "run_dir": "ch3-drift-source-common-d-cacheless-mps-20260924-v1",
+      "checkpoint_sha256": "bfaed8f1e93ea76f1bdd1d2775e214843accf51e6064ff7ec5ecd78ec59b0286",
+      "match": true,
+      "saved": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_d_base4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "7d543243b91dc6b27a47606f723dba468984ce346c0aa10e527dc359d84b366c",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      },
+      "rebuilt": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_d_base4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "7d543243b91dc6b27a47606f723dba468984ce346c0aa10e527dc359d84b366c",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      }
+    },
+    "F": {
+      "run_dir": "ch3-drift-source-common-f-cacheless-mps-20260924-v1",
+      "checkpoint_sha256": "15317a8cd24c0dae71df1addeda07c23614b8360fb3d494988ed9fb41a7308e3",
+      "match": true,
+      "saved": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_f_base4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "cb6844c30a8ef76dcf1ab4e2985fa34300ab8d9bd61b8f76f5992725a4583856",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      },
+      "rebuilt": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_f_base4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "cb6844c30a8ef76dcf1ab4e2985fa34300ab8d9bd61b8f76f5992725a4583856",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      }
+    },
+    "UQ": {
+      "run_dir": "ch3-drift-source-common-uniformq-mps-20261013-v1",
+      "checkpoint_sha256": "63a168864bba57ff61bfd5a570cb5b6ca4a9f28e628763a00fe2e7111e76f2e8",
+      "match": true,
+      "saved": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_uq_base4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "a748ac9c2de48d7488ccb2f1fee01b813fd1d34d16cb602f34f27e7489123f09",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      },
+      "rebuilt": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_uq_base4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "a748ac9c2de48d7488ccb2f1fee01b813fd1d34d16cb602f34f27e7489123f09",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      }
+    },
+    "CAND4": {
+      "run_dir": "ch3-drift-source-common-cand4-mps-20261013-v1",
+      "checkpoint_sha256": "a751cbf4ab8beba7aecfc37db2a5e337a1a27ebca1931134461adf963315cc5a",
+      "match": true,
+      "saved": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_cand4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "3445e07931aaa8ddb24105e1832170bf75cbab855be78ff7759cdb6827997214",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      },
+      "rebuilt": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_cand4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 120000,
+        "cache_root_sha256": "3445e07931aaa8ddb24105e1832170bf75cbab855be78ff7759cdb6827997214",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      }
+    },
+    "EDIT4": {
+      "run_dir": "ch3-drift-source-common-edit4-mps-20261013-v1",
+      "checkpoint_sha256": "9f32a4613d53597f667b50b47620cf34f833e1f3ecc2d2bf7b5b060e4d5a725d",
+      "match": true,
+      "saved": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_edit4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 30000,
+        "cache_root_sha256": "0af76144dfca1d5449556bfa7c999566ed4278df605eb238fd04902c4afd336a",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      },
+      "rebuilt": {
+        "cache_schema_version": "drift-source-screen-cache-v1",
+        "cache_policy_id": "source_screen_edit4_if_missing_v1",
+        "cache_entry_count": 30000,
+        "cache_value_count": 30000,
+        "cache_root_sha256": "0af76144dfca1d5449556bfa7c999566ed4278df605eb238fd04902c4afd336a",
+        "source_order_sha256": "268700dda2bef24f9a707c061d4f839cad811fa98e9869cfe35a2d4f75662852",
+        "source_label_sha256": "3a1175cd891059f91d5b14bcb5ecc20faeb231496700a08c91d16e45aa6de835"
+      }
+    }
+  },
+  "failures": [],
+  "verdict": "pass",
+  "verdict_scope": "只断言改动后代码对既有臂的缓存重放与断点保存收据逐字段一致；CURRICULUM 不在点名集合。"
+}
