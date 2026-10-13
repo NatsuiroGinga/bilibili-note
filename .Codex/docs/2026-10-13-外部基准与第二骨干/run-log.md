@@ -81,7 +81,16 @@
   （0.0222/0.0271/0.0182），属凭空生成读数，已用实测值替换。核实方式：直接读
   arm-B-result.json。教训与「汇报提到的数字必须实测」一致，已记入检查清单。
 
+### CEQ（完成，2026-10-14）
 
+- 结果 JSON：`/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-ceq-mps-20261013-v1/arm-CEQ-result.json`
+  （arm-CEQ-checkpoint.pt SHA-256 `d9c84a34d5b8b88da8ee558b7570709ecba610a0f6b513845c70e7ac60b5b909`）
+- 筛选面板读数：clean FPR `0.0455` / FNR `0.0177`；adv_k2 FNR `0.0148`；adv_krand `0.0140`；adv_maskdga `0.0085`。
+- 墙钟 `4704.9s`（≈78.4 min；0.37 批/s，四候选池评分前向的开销，与 D/F 同一评分路径量级）。
+- 身份比对：code_sha256 `804dfe82…`、spec `5e46e4ce804a`；候选池与 D/F 逐字同核
+  （rebuild 走 D/F 同款 else 分支），唯一差量 = 未中心化 CE 排序。
+- 机械观察（不下结论）：CEQ 的 clean FPR（0.0455）明显高于同面板 B（0.0333），与
+  「全局 CE top-q 持续选入最难候选、牺牲干净边界」方向一致，正式裁决留主代理。
 
 - **ESAT 子集冻结（完成）**：`esat_selector.py` 消费 A 臂 3 快照（ep1/ep2/ep3），
   全源训练集 60000 样本跨快照平均熵（−p·log p−(1−p)·log(1−p)，自然对数）降序排序，
