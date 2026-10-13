@@ -131,7 +131,7 @@ TOP_Q = 64                         # 组件 1：跨组 top-64 入批
 W_BENIGN_FP = 3.0                  # 组件 2：被判恶意的真良性样本 CE 权重
 BRESNET_N_PARAMS_EXPECTED = 155_009   # 台账 §五登记值
 BRESNET_N_PARAMS_MAX = 200_000        # 简报冻结上限
-ALLOWED_ARMS = ("A", "B", "D", "F", "G")
+ALLOWED_ARMS = ("A", "B", "D", "F", "G", "EDIT4", "UQ")
 IMPLEMENTATION_VERSION = "bresnet_p2p3_b_fix_v1"
 ARM_DISPLAY_NAMES = {
     "A": "干净训练（A）",
@@ -139,6 +139,8 @@ ARM_DISPLAY_NAMES = {
     "D": "组相对过滤（D）",
     "F": "组过滤加良性误报加权（F）",
     "G": "只良性误报加权（G）",
+    "EDIT4": "单位编辑四位累积核（隔离编辑位数 2→4，候选数固定 1）",
+    "UQ": "均匀同配额选择（同 D/F 候选核，隔离选择规则）",
 }
 
 # 字符表（40 项）：小写字母 26 ＋ 数字 10 ＋ `-` `_` `.` `~`。§7.2／台账 §五登记为 40 项。
@@ -297,6 +299,7 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
     ec, ey = eval_clean
     ea, eay = eval_adv
     rng = random.Random(SEED)          # 与 official 同种子：变体字符串逐字一致
+    uniform_rng = random.Random(SEED + 13)  # UQ 独立选择流（与 DRIFT 侧同种子约定）
     adv_cache: dict[int, list[str]] = {}
     n = len(train_d)
     for ep in range(1, epochs + 1):
@@ -317,6 +320,78 @@ def train_arm(arm: str, train_d: list[str], train_y: np.ndarray,
                         if i not in adv_cache:
                             adv_cache[i] = [off.perturb2(train_d[i], rng)]
                         adv_batch.append(adv_cache[i][0])
+                n_mal_batch = int(train_y[idx].sum())
+                if n_mal_batch > 0:
+                    # B 分支真实性断言（2026-10-13 复核清单 §1.3 历史缺陷）：批内含恶意
+                    # 样本时 B 必须产出变体；否则 B 静默退化为 A 路径（历史事故）。
+                    assert adv_batch, "B 臂批内含恶意样本但未产出任何变体（退化为 A 路径）"
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "EDIT4":
+                # EDIT4（与 DRIFT 侧逐字一致）：1 个候选 = 连续两次 perturb2（累积 4 位名义），
+                # 下游组中心化 top-64 选择与 D 逐行同构，池 = m 取 min(64, m)。
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                cands: list[str] = []
+                cand_owner: list[int] = []
+                for i in mal_idx:
+                    if i not in adv_cache:
+                        adv_cache[i] = [off.perturb2(off.perturb2(train_d[i], rng), rng)]
+                    for v in adv_cache[i]:
+                        cands.append(v)
+                        cand_owner.append(i)
+                adv_batch: list[str] = []
+                if cands:
+                    model.eval()
+                    p_cand = score(model, cands)
+                    model.train()
+                    fooled = (p_cand < 0.5).astype(np.float64)
+                    groups: dict[int, list[int]] = {}
+                    for j, o in enumerate(cand_owner):
+                        groups.setdefault(o, []).append(j)
+                    scored: list[tuple[float, int]] = []
+                    for js in groups.values():
+                        f = fooled[js]
+                        adv_g = f - f.mean()
+                        scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
+                    scored.sort(key=lambda t: -t[0])
+                    adv_batch = [cands[j] for _, j in scored[:TOP_Q]]
+                if adv_batch:
+                    batch_d = batch_d + adv_batch
+                    batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
+            elif arm == "UQ":
+                # UQ（与 DRIFT 侧逐字一致）：候选核与 D/F 相同（共享 base 四候选），
+                # 唯一差量 = 同池均匀随机取同配额 64（独立 uniform 流，种子 42+13，
+                # 与 DRIFT 侧一致）；组内中心化与跨组竞争不生效，评分前向保留以维持
+                # 与 D 逐行同构的路径。
+                mal_idx = [i for i in idx if train_y[i] == 1]
+                cands: list[str] = []
+                cand_owner: list[int] = []
+                for i in mal_idx:
+                    if i not in adv_cache:
+                        base = off.perturb2(train_d[i], rng)
+                        adv_cache[i] = [off.perturb2(base, rng) for _ in range(N_CAND)]
+                    for v in adv_cache[i]:
+                        cands.append(v)
+                        cand_owner.append(i)
+                adv_batch: list[str] = []
+                if cands:
+                    model.eval()
+                    p_cand = score(model, cands)
+                    model.train()
+                    fooled = (p_cand < 0.5).astype(np.float64)
+                    groups: dict[int, list[int]] = {}
+                    for j, o in enumerate(cand_owner):
+                        groups.setdefault(o, []).append(j)
+                    scored: list[tuple[float, int]] = []
+                    for js in groups.values():
+                        f = fooled[js]
+                        adv_g = f - f.mean()
+                        scored.extend((float(adv_g[k]), j) for k, j in enumerate(js))
+                    scored.sort(key=lambda t: -t[0])
+                    sel_order = list(range(len(cands)))
+                    uniform_rng.shuffle(sel_order)
+                    adv_batch = [cands[j] for j in sel_order[:TOP_Q]]
                 if adv_batch:
                     batch_d = batch_d + adv_batch
                     batch_y = np.concatenate([batch_y, np.ones(len(adv_batch), dtype=np.int64)])
