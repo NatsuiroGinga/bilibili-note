@@ -53,7 +53,20 @@
 | CEQ ce=−log(clip(p,1e-12,1)) | 排序量 | 数值防御；CE 与 p 单调等价不改变排序 | 任务化设定 |
 | DRICHEL 入批 min(64,m) | 恶意侧暴露 | UQ 同构均匀流（种子 42+13）；池=m（每恶意 1 变体），与 UQ 的池 4m 不同，暴露如实单列 | 待确认 |
 
-## 阶段 3：DRIFT 侧训练（进行中）
+## 阶段 4：DRIFT 侧五臂逐臂读数（正式训练，diagnostic spec 全量 60000，3 轮 × batch 128 × seed 42）
+
+### ESAT（完成，2026-10-14）
+
+- 结果 JSON：`/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-esat-mps-20261013-v1/arm-ESAT-result.json`
+  （SHA-256 `290cb1522330a0eb0d13913921cc6e733cefc3925814c351806487f249419497` 为同目录 arm-ESAT-checkpoint.pt）
+- 筛选面板读数（历史 0.5 阈值，非正式低误报口径）：clean FPR `0.0336` / FNR `0.0211`；
+  adv_k2 FNR `0.0218`；adv_krand FNR `0.0215`；adv_maskdga FNR `0.0184`（每面板 n=30000 恶意）。
+- 墙钟 `3395.7s`（≈56.6 min；0.56 批/s，慢于 A 臂 0.72 批/s 的差量 = 子集过滤与变体生成）。
+- 身份比对：code_sha256 `804dfe82…`（新训练器）、spec `5e46e4ce804a`（与既有八臂同一份）、
+  esat_subset_sha256 已入 identity（绑定 3 快照哈希）；MPS 单进程约束全程满足。
+- 正式 p0 读数待五臂齐后统一评价。
+
+
 
 - **ESAT 子集冻结（完成）**：`esat_selector.py` 消费 A 臂 3 快照（ep1/ep2/ep3），
   全源训练集 60000 样本跨快照平均熵（−p·log p−(1−p)·log(1−p)，自然对数）降序排序，
