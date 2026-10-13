@@ -55,6 +55,14 @@
 
 ## 阶段 3：DRIFT 侧训练（进行中）
 
+- **ESAT 子集冻结（完成）**：`esat_selector.py` 消费 A 臂 3 快照（ep1/ep2/ep3），
+  全源训练集 60000 样本跨快照平均熵（−p·log p−(1−p)·log(1−p)，自然对数）降序排序，
+  ρ=0.5 → |A|=30000（恶意 14852 / 良性 15148；熵排序未强烈偏向恶意——A 臂模型对两类
+  都高置信，属机制本身特性，如实登记）。子集清单：`…/ch3-drift-source-common-a-snapshot-mps-20261013-v1/esat-subset-rho0.5-v1.json`
+  （绑定 3 快照哈希 + spec sha 5e46e4ce804a；子集写入 ESAT 运行目录曾被 main 的空目录
+  检查拒绝，已移至选择器产物目录）。ESAT 对抗暴露 ≈ B 的 49.5%（14852/30000 恶意样本
+  各 1 个变体）。
+
 - A 臂快照重跑启动 2026-10-13（P2P3_OUT=ch3-drift-source-common-a-snapshot-mps-20261013-v1，
   `--arms A --selector-snapshot-dir …/selector-snapshots`；同刻 1 个 MPS 进程已断言）。
   目的：为 ESAT 提供独立非鲁棒参照模型的 3 个逐 epoch 快照。既有 A 臂（20260923）制品不动。

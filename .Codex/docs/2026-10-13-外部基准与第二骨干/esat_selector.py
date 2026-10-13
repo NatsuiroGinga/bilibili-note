@@ -30,7 +30,7 @@ import numpy as np
 import torch
 
 ROOT = Path(os.environ["LLM_PROBE_ROOT"]).parents[2]
-SNAPSHOT_DIR = ROOT / "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-a-snapshot-mps-20261013-v1"
+SNAPSHOT_DIR = ROOT / "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-a-snapshot-mps-20261013-v1/selector-snapshots"
 SPEC = ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/candidate-spec-diagnostic-v1.json"
 RHO = 0.5  # ESAT 子集比例：原文 CIFAR 中点配置（25000/50000）的同比例映射；登记待主代理确认
 OUT_PATH = ROOT / "thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-esat-mps-20261013-v1/esat-subset-rho0.5-v1.json"
