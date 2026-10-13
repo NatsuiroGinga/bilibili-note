@@ -739,7 +739,7 @@ def main() -> int:
                     "code_sha256": identities[arm]["code_sha256"],
                     "official_checkpoint_sha256": identities[arm]["checkpoint_sha256"],
                 }
-                for arm in RUNS
+                for arm in selected_arms
             },
         },
         "started_at": started,
