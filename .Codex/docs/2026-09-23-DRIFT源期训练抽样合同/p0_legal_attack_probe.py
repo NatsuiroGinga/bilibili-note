@@ -27,19 +27,28 @@ import torch
 
 SCHEMA_VERSION = "ch3-drift-source-p0-legal-attack-v1"
 RUN_NAME = "ch3-drift-source-p0-legal-attack-bdf-mps-20261013-v1"
+# 攻击流锚点：D-4 已产出的流身份。D-5 追加 UQ 臂时必须复用同一 stream_id，
+# 否则攻击串改变、A/B/D/F 读数无法逐位复现。
+STREAM_ANCHOR = RUN_NAME
 RUNS = {
     "A": "ch3-drift-source-common-a-mps-20260923-v1",
     "B": "ch3-drift-source-common-b-mps-20260923-v1",
     "D": "ch3-drift-source-common-d-cacheless-mps-20260924-v1",
     "F": "ch3-drift-source-common-f-cacheless-mps-20260924-v1",
+    "UQ": "ch3-drift-source-common-uniformq-mps-20261013-v1",
 }
+# 既有语义保持不变：主判据臂仍是 B/D/F。
 PRIMARY_ARMS = ("B", "D", "F")
-PAIRED_ARMS = (("B", "D"), ("B", "F"), ("B", "A"))
+# 追加臂：仅作归因参照，不进 P0 支持门。
+ATTRIBUTION_ARMS = ("UQ",)
+PAIRED_ARMS = (("B", "D"), ("B", "F"), ("B", "A"), ("B", "UQ"), ("D", "UQ"), ("F", "UQ"))
 EXPECTED_CODE_SHA256 = {
     "A": "8ab6307f18142aae829a96565c46206f6ca8a70cfef09804b1e9e21411c5b44b",
     "B": "8ab6307f18142aae829a96565c46206f6ca8a70cfef09804b1e9e21411c5b44b",
     "D": "0705c24be7e5cbc0716a99f360781bb9394378d34e2ed96103077961d4bbacef",
     "F": "0705c24be7e5cbc0716a99f360781bb9394378d34e2ed96103077961d4bbacef",
+    # UQ 只改选择规则，代码哈希与 D/F 必然不同（已知项，不视为阻塞）。
+    "UQ": "59d50aaf71d19b9ff796b1785b5f053d0b1bf68da49e6f226201d0666903155b",
 }
 COMMON_IDENTITY_FIELDS = (
     "batch",
@@ -436,7 +445,12 @@ def parse_args() -> argparse.Namespace:
     default_root = Path(__file__).resolve().parents[3]
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, default=default_root)
-    parser.add_argument("--stream-id", default=f"p0-legal-attack|shared_prefix_edit_v2|{RUN_NAME}")
+    parser.add_argument(
+        "--stream-id",
+        default=f"p0-legal-attack|shared_prefix_edit_v2|{STREAM_ANCHOR}",
+        help="攻击流身份；追加臂必须复用 D-4 的同一值",
+    )
+    parser.add_argument("--run-name", default=RUN_NAME, help="本次运行的可读身份名")
     parser.add_argument(
         "--run-dir",
         type=Path,
@@ -491,7 +505,10 @@ def main() -> int:
         raise RuntimeError("本诊断固定使用 MPS；当前环境未提供 MPS")
     official.DEVICE = torch.device("mps")
     official.EVAL_BATCH = 128
-    log(f"[P0] 启动 run={RUN_NAME} 算子={operator_sha[:12]} stream_id={args.stream_id}")
+    log(
+        f"[P0] 启动 run={args.run_name} 臂={','.join(RUNS)} 算子={operator_sha[:12]} "
+        f"stream_id={args.stream_id}"
+    )
 
     candidate_spec = root / CANDIDATE_SPEC_RELATIVE
     candidate_spec_relative = candidate_spec.relative_to(root)
@@ -512,7 +529,13 @@ def main() -> int:
 
     status: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
-        "run_name": RUN_NAME,
+        "run_name": args.run_name,
+        "arm_set": list(RUNS),
+        "stream_anchor_note": (
+            "攻击流身份复用 D-4 锚点，保证追加臂与既有臂使用逐字节相同的攻击串"
+            if args.stream_id == f"p0-legal-attack|shared_prefix_edit_v2|{STREAM_ANCHOR}"
+            else "攻击流身份与 D-4 锚点不同，既有臂读数不可直接逐位比较"
+        ),
         "phase": "running",
         "purpose": "P0 零训练合法共享编辑攻击复评（B/D/F；A 为附加参照臂）",
         "data_role": "仅 T17-T19 源训练与源验证；不访问 T20-T25",
@@ -705,6 +728,8 @@ def main() -> int:
                 "D_strictly_lower_misses_than_B": metrics["D"][key][tier]["dga_fn"] < baseline_fn,
                 "F_strictly_lower_misses_than_B": metrics["F"][key][tier]["dga_fn"] < baseline_fn,
                 "A_strictly_lower_misses_than_B": metrics["A"][key][tier]["dga_fn"] < baseline_fn,
+                "UQ_dga_fn": metrics["UQ"][key][tier]["dga_fn"],
+                "UQ_strictly_lower_misses_than_B": metrics["UQ"][key][tier]["dga_fn"] < baseline_fn,
             }
     primary_key = f"{PRIMARY_ALPHA}|{PRIMARY_TIER}"
     gate["primary_reading"] = {
@@ -723,9 +748,49 @@ def main() -> int:
         },
     }
 
+    # D-5 归因：UQ（D/F 同候选核 ＋ 均匀同配额选择）相对 B／D／F 的机械对照。
+    # 只报方向与量级；「最近簇」按绝对差量判定，属本任务新增的操作化定义，
+    # 不是预注册判据，也不构成晋级／淘汰结论。
+    attribution_rows: dict[str, Any] = {}
+    for key, _ in ALPHAS:
+        for tier in operator.TIERS:
+            baseline_fn = metrics["B"][key][tier]["dga_fn"]
+            d_fn = metrics["D"][key][tier]["dga_fn"]
+            f_fn = metrics["F"][key][tier]["dga_fn"]
+            uq_fn = metrics["UQ"][key][tier]["dga_fn"]
+            attribution_rows[f"{key}|{tier}"] = {
+                "UQ_dga_fn": uq_fn,
+                "B_dga_fn": baseline_fn,
+                "D_dga_fn": d_fn,
+                "F_dga_fn": f_fn,
+                "delta_UQ_minus_B": uq_fn - baseline_fn,
+                "delta_UQ_minus_D": uq_fn - d_fn,
+                "delta_UQ_minus_F": uq_fn - f_fn,
+                "UQ_strictly_lower_misses_than_B": uq_fn < baseline_fn,
+            }
+    primary_row = attribution_rows[primary_key]
+    gate["uq_attribution"] = {
+        "note": "只报方向与量级；最近簇按绝对差量判定，为 D-5 新增操作化定义，非预注册判据",
+        "tier": PRIMARY_TIER,
+        "alpha_key": PRIMARY_ALPHA,
+        "primary_deltas": {
+            key: primary_row[key]
+            for key in ("UQ_dga_fn", "B_dga_fn", "D_dga_fn", "F_dga_fn",
+                        "delta_UQ_minus_B", "delta_UQ_minus_D", "delta_UQ_minus_F",
+                        "UQ_strictly_lower_misses_than_B")
+        },
+        "nearest_cluster_by_absolute_delta": min(
+            ("B", "D", "F"),
+            key=lambda arm: abs(primary_row["UQ_dga_fn"] - primary_row[f"{arm}_dga_fn"]),
+        ),
+        "all_budget_tier_rows": attribution_rows,
+    }
+
     result = {
         "schema_version": SCHEMA_VERSION,
-        "run_name": RUN_NAME,
+        "run_name": args.run_name,
+        "arm_set": list(RUNS),
+        "stream_anchor": STREAM_ANCHOR,
         "status": "completed",
         "screening_only": True,
         "zero_training": True,
