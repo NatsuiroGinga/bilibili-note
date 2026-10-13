@@ -1,0 +1,100 @@
+{
+ "schema": "qstar-recompute-v1",
+ "protocol": {
+  "member_roots_match": {
+   "T17_dga_train": true,
+   "T17_dga_test": true,
+   "T18_dga_train": true,
+   "T18_dga_test": true,
+   "T19_dga_train": true,
+   "T19_dga_test": true
+  },
+  "member_count": 30000
+ },
+ "length_dist_top": [
+  {
+   "L": 6,
+   "count": 7254,
+   "share": 0.2418
+  },
+  {
+   "L": 26,
+   "count": 2880,
+   "share": 0.096
+  },
+  {
+   "L": 16,
+   "count": 2636,
+   "share": 0.0879
+  },
+  {
+   "L": 25,
+   "count": 2178,
+   "share": 0.0726
+  },
+  {
+   "L": 27,
+   "count": 1902,
+   "share": 0.0634
+  },
+  {
+   "L": 15,
+   "count": 1675,
+   "share": 0.0558
+  }
+ ],
+ "length_6_share": 0.2418,
+ "length_lt4_body_share": 0.0009,
+ "same_len_pairs": {
+  "protocol": "每长度组内洗牌后相邻两两配对（无放回），random.Random(42)；与主代理 7,600 对口径不同，分布统计可比",
+  "n_pairs": 14990,
+  "min": 0,
+  "p05": 5.0,
+  "median": 14.0,
+  "mean": 14.912,
+  "max": 41,
+  "p_lt_2q_16": 0.5696,
+  "p_lt_2q_8": 0.2923
+ },
+ "train_kernel": {
+  "B_single": {
+   "mean": 1.9982,
+   "hist": {
+    "0": 27,
+    "2": 29973
+   },
+   "p_layer0": 0.0009
+  },
+  "DF_compound_per_candidate": {
+   "mean": 3.628,
+   "hist": {
+    "0": 30,
+    "1": 168,
+    "2": 4011,
+    "3": 35966,
+    "4": 79744
+   },
+   "p_layer0": 0.00025
+  },
+  "n_candidates": 119892
+ },
+ "eval_side": {
+  "n_e_mean": 15.733,
+  "n_e_min": 3,
+  "n_e_max": 42,
+  "q_actual_mean": 7.6925,
+  "q_actual_min": 1,
+  "q_actual_max": 21,
+  "q_actual_hist_top": {
+   "3": 7694,
+   "13": 4782,
+   "8": 3217,
+   "7": 2960,
+   "12": 2957,
+   "6": 1915,
+   "4": 1294,
+   "5": 1165
+  },
+  "q_actual_le3_share": 0.2853
+ }
+}

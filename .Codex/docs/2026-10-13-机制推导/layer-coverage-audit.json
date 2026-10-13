@@ -1,0 +1,87 @@
+{
+ "schema": "layer-coverage-audit-v1",
+ "purpose": "训练核可达层与评价预算层的覆盖量化（正文 §3.4.3/§3.5.1、论断 A39）",
+ "zero_training": true,
+ "member_count": 30000,
+ "errors": 0,
+ "member_receipt_sha256": null,
+ "receipts_roles": [
+  "T17_benign_train",
+  "T17_benign_test",
+  "T17_dga_train",
+  "T17_dga_test",
+  "T18_benign_train",
+  "T18_benign_test",
+  "T18_dga_train",
+  "T18_dga_test",
+  "T19_benign_train",
+  "T19_benign_test",
+  "T19_dga_train",
+  "T19_dga_test"
+ ],
+ "operator": {
+  "module": "thesis/experiments/llm_probe/tools/ch3_drift_formal_edit_v2.py",
+  "tier": "random_half",
+  "tier_rule": "b_nominal = max(1, n_e // 2)（共享前缀编辑，n_e 为可编辑位数）",
+  "stream_id": "p0-legal-attack|shared_prefix_edit_v2|ch3-drift-source-p0-legal-attack-bdf-mps-20261013-v1",
+  "q_actual_definition": "输出与输入的汉明距离（脚本内以 result['hamming'] 逐条断言相等）"
+ },
+ "member_source": {
+  "candidate_spec": ".Codex/docs/2026-09-23-DRIFT源期训练抽样合同/candidate-spec-diagnostic-v1.json",
+  "entry": "official_p2p3.load_fixed_source_members(..., purpose='source_train')",
+  "purpose": "source_train"
+ },
+ "train_kernel": {
+  "q_train_cap": 4,
+  "support": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "source": ".Codex/docs/2026-10-13-机制推导/measurements.json 的 train_kernel 直方图",
+  "note": "支持集含 1 层，来自第二阶段把 base 已改位改回原字符的字符回弹"
+ },
+ "eval_layer_histogram": {
+  "1": 27,
+  "2": 839,
+  "3": 7694,
+  "4": 1294,
+  "5": 1165,
+  "6": 1915,
+  "7": 2960,
+  "8": 3217,
+  "9": 724,
+  "10": 652,
+  "11": 394,
+  "12": 2957,
+  "13": 4782,
+  "14": 511,
+  "15": 4,
+  "16": 54,
+  "17": 729,
+  "18": 29,
+  "19": 33,
+  "20": 18,
+  "21": 2
+ },
+ "metrics": {
+  "q_actual_mean": 7.6925333333333334,
+  "q_actual_min": 1,
+  "q_actual_max": 21,
+  "coverage_train": 0.3284666666666667,
+  "coverage_eval8": 0.6370333333333333,
+  "exact_hit_rate": {
+   "2": 0.027966666666666667,
+   "3": 0.2564666666666667,
+   "4": 0.043133333333333336,
+   "8": 0.10723333333333333
+  }
+ },
+ "boundary": [
+  "覆盖率只界定训练层与评价层的重叠范围，不构成方法优劣证据。",
+  "q_actual 由算子在该成员上的确定流给出，与模型的预测分数无关。",
+  "本轮训练预算冻结为 q_t ∈ {1,2,4}；coverage_eval8 只作参照，不对应本轮任何训练臂。"
+ ]
+}
