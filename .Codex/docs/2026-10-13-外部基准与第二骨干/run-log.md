@@ -66,6 +66,21 @@
   esat_subset_sha256 已入 identity（绑定 3 快照哈希）；MPS 单进程约束全程满足。
 - 正式 p0 读数待五臂齐后统一评价。
 
+### C1R（完成，2026-10-14）
+
+- 结果 JSON：`/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-c1r-mps-20261013-v1/arm-C1R-result.json`
+  （arm-C1R-checkpoint.pt SHA-256 `db2fb8ec8df4b9dd40fe4873a7618eee45d804a1fa2ef9076c6fc2c2b0bc92ed`）
+- 筛选面板读数：clean FPR `0.0224` / FNR `0.0327`；adv_k2 FNR `0.0320`；adv_krand `0.0313`；adv_maskdga `0.0268`。
+- 墙钟 `2827.1s`（≈47.1 min；0.723 批/s，与 A 臂同速——替换语义无额外变体批量）。
+- 身份比对：code_sha256 `804dfe82…`、spec `5e46e4ce804a`；变体缓存与 B 同核同流（rebuild 路径共用 B 分支）。
+- 对照参照（既有 B 臂筛选面板，arm-B-result.json 实测：clean FPR `0.0333` / FNR `0.0215`；
+  adv_k2 FNR `0.0213`；adv_krand `0.0211`；adv_maskdga `0.0161`；wall 16391.6s 历史并发条件读数）——
+  C1R 的对抗暴露为 B 的一半（ceil(m/2)/批 vs m/批），其 maskdga FNR 高于 B（0.0268 vs 0.0161）
+  与该暴露差方向一致；机械读数仅供主代理裁决，不在此下结论。
+- **自报缺陷（2026-10-14）**：本日志初稿在此处写过一组未经核对的 B 臂「对照数字」
+  （0.0222/0.0271/0.0182），属凭空生成读数，已用实测值替换。核实方式：直接读
+  arm-B-result.json。教训与「汇报提到的数字必须实测」一致，已记入检查清单。
+
 
 
 - **ESAT 子集冻结（完成）**：`esat_selector.py` 消费 A 臂 3 快照（ep1/ep2/ep3），
