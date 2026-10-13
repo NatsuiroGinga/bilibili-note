@@ -36,12 +36,35 @@ RUNS = {
     "D": "ch3-drift-source-common-d-cacheless-mps-20260924-v1",
     "F": "ch3-drift-source-common-f-cacheless-mps-20260924-v1",
     "UQ": "ch3-drift-source-common-uniformq-mps-20261013-v1",
+    # D-6/D-7 追加臂（2026-10-13）
+    "CAND4": "ch3-drift-source-common-cand4-mps-20261013-v1",
+    "EDIT4": "ch3-drift-source-common-edit4-mps-20261013-v1",
+    "CURRICULUM": "ch3-drift-source-common-curriculum-mps-20261013-v1",
+    # P1 近邻/内部对照五臂（2026-10-13，实施计划 .Codex/docs/2026-10-13-外部基准与第二骨干/）
+    "C1R": "ch3-drift-source-common-c1r-mps-20261013-v1",
+    "ESAT": "ch3-drift-source-common-esat-mps-20261013-v1",
+    "DRICHEL": "ch3-drift-source-common-drichel-mps-20261013-v1",
+    "CEQ": "ch3-drift-source-common-ceq-mps-20261013-v1",
+    "CBN": "ch3-drift-source-common-cbn-mps-20261013-v1",
 }
 # 既有语义保持不变：主判据臂仍是 B/D/F。
 PRIMARY_ARMS = ("B", "D", "F")
 # 追加臂：仅作归因参照，不进 P0 支持门。
 ATTRIBUTION_ARMS = ("UQ",)
-PAIRED_ARMS = (("B", "D"), ("B", "F"), ("B", "A"), ("B", "UQ"), ("D", "UQ"), ("F", "UQ"))
+PAIRED_ARMS = (
+    ("B", "D"), ("B", "F"), ("B", "A"), ("B", "UQ"), ("D", "UQ"), ("F", "UQ"),
+    # D-6 单因素链：cand4 对照 D/F（同固定 64 入批），edit4 对照 B（同 n_mal 入批分布）
+    ("D", "CAND4"), ("F", "CAND4"), ("B", "CAND4"),
+    ("B", "EDIT4"), ("D", "EDIT4"), ("F", "EDIT4"),
+    # D-7 课程臂对照：恒定弱核 B、恒定中核 EDIT4、恒定强核 D/F
+    ("B", "CURRICULUM"), ("EDIT4", "CURRICULUM"), ("D", "CURRICULUM"), ("F", "CURRICULUM"),
+    # 两个新核之间的对照（候选数 vs 编辑位数）
+    ("CAND4", "EDIT4"),
+    # P1 近邻/内部对照五臂（2026-10-13）：配比、排序分数、静态权重、固定子集、白盒生成
+    ("B", "C1R"), ("D", "CEQ"), ("F", "CEQ"), ("F", "CBN"),
+    ("B", "ESAT"), ("F", "ESAT"), ("B", "DRICHEL"), ("F", "DRICHEL"),
+    ("C1R", "ESAT"), ("C1R", "DRICHEL"),
+)
 EXPECTED_CODE_SHA256 = {
     "A": "8ab6307f18142aae829a96565c46206f6ca8a70cfef09804b1e9e21411c5b44b",
     "B": "8ab6307f18142aae829a96565c46206f6ca8a70cfef09804b1e9e21411c5b44b",
@@ -49,6 +72,15 @@ EXPECTED_CODE_SHA256 = {
     "F": "0705c24be7e5cbc0716a99f360781bb9394378d34e2ed96103077961d4bbacef",
     # UQ 只改选择规则，代码哈希与 D/F 必然不同（已知项，不视为阻塞）。
     "UQ": "59d50aaf71d19b9ff796b1785b5f053d0b1bf68da49e6f226201d0666903155b",
+    # CAND4/EDIT4 用追加 D-6 两臂时的训练器代码（同一份），CURRICULUM 用 D-7 参数化课程核版本。
+    "CAND4": "123fd0638f290e8ed4b67040f41fe86832c6811134f0c8a89fd417cd5850d8b8",
+    "EDIT4": "123fd0638f290e8ed4b67040f41fe86832c6811134f0c8a89fd417cd5850d8b8",
+    "CURRICULUM": "1fdf6dda29e7c0559793253364bf75c7fa4d53fba7bab8269bb60aa6706e6174",
+    "C1R": "804dfe824a873becfd1efffc76bd2e585f42c381a53573f785f338709ff467ab",
+    "ESAT": "804dfe824a873becfd1efffc76bd2e585f42c381a53573f785f338709ff467ab",
+    "DRICHEL": "804dfe824a873becfd1efffc76bd2e585f42c381a53573f785f338709ff467ab",
+    "CEQ": "804dfe824a873becfd1efffc76bd2e585f42c381a53573f785f338709ff467ab",
+    "CBN": "804dfe824a873becfd1efffc76bd2e585f42c381a53573f785f338709ff467ab",
 }
 COMMON_IDENTITY_FIELDS = (
     "batch",
@@ -92,6 +124,13 @@ V3_FROZEN = {
 # §八 P0 只写「预先指定的主攻击档」未点名档位，故同时机械报告三档，主读数为 random_half。
 PRIMARY_TIER = "random_half"
 PRIMARY_ALPHA = "fpr_0_001"
+# 变更 B（D-6 追加）：固定预算梯度 q = 1/2/4/8/16（对应 Tramer 意义的威胁集梯度），
+# 用于「漏检率 vs 攻击预算」曲线；q=1/2 与既有 k1/k2 档逐位相同，评分直接复用不重算。
+LADDER_Q = (1, 2, 4, 8, 16)
+LADDER_REUSE = {1: "k1", 2: "k2"}
+# 长度分面（按 exact eSLD 长度分档；|E| 与长度同源，源年含点率为 0）
+LENGTH_BUCKETS = (("le8", 1, 8), ("9to20", 9, 20), ("gt20", 21, 10 ** 9))
+
 
 
 def sha256_file(path: Path) -> str:
@@ -190,6 +229,9 @@ def validate_arms(
     official: Any,
     diag: Any,
     eligibility: Any,
+    arms: Sequence[str] = tuple(RUNS),
+    run_map: dict[str, str] | None = None,
+    expected_code_by_arm: dict[str, str] | None = EXPECTED_CODE_SHA256,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]], str, dict[str, str]]:
     candidate_sha = sha256_file(candidate_spec)
     expected_artifact_hashes = {
@@ -203,8 +245,11 @@ def validate_arms(
     checkpoint_hashes: dict[str, str] = {}
     expected_members: Any = None
     expected_common: Any = None
+    observed_code_hashes: dict[str, list[str]] = {}
 
-    for arm, run_name in RUNS.items():
+    run_map = dict(RUNS) if run_map is None else dict(run_map)
+    for arm in arms:
+        run_name = run_map[arm]
         run_dir = root / "thesis/experiments/llm_probe/runs/diagnostics" / run_name
         status_path = run_dir / "run-status.json"
         checkpoint_path = run_dir / f"arm-{arm}-checkpoint.pt"
@@ -225,7 +270,10 @@ def validate_arms(
             raise ValueError(f"{arm} 臂未完成第三轮")
         if identity.get("arms") != [arm] or identity.get("epochs") != 3:
             raise ValueError(f"{arm} 运行身份的臂或轮次不符")
-        if identity.get("code_sha256") != EXPECTED_CODE_SHA256[arm]:
+        if expected_code_by_arm is None:
+            # 小规模复评：各臂由同一份训练器代码训练，要求四臂代码哈希完全一致。
+            observed_code_hashes.setdefault(str(identity.get("code_sha256")), []).append(arm)
+        elif identity.get("code_sha256") != expected_code_by_arm[arm]:
             raise ValueError(f"{arm} 运行代码哈希不属于已登记版本")
         if identity.get("candidate_spec_sha256") != candidate_sha:
             raise ValueError(f"{arm} 候选规格哈希不符")
@@ -268,10 +316,34 @@ def validate_arms(
             "source_members": source_members,
         }
 
+    if expected_code_by_arm is None and len(observed_code_hashes) != 1:
+        raise ValueError(f"小规模各臂训练器代码哈希不一致：{observed_code_hashes}")
     return identities, payloads, sha256_json(expected_members), checkpoint_hashes
 
 
 # ------------------------------------------------------------------ 攻击生成
+
+
+def ladder_outputs(operator: Any, domain: str, stream_id: str) -> tuple[dict[int, str], int]:
+    """固定预算梯度输出：用冻结 v2 算子的共享 plan 取前 min(q, |E|) 项。
+
+    只读取算子的原语（不修改算子），因此与 k1/k2/random_half 使用**同一条流**，
+    q=1/2 的输出与 k1/k2 逐位相同。
+    """
+    detail, _ = operator._editable_detail(domain)
+    plan, _ = operator._shared_edit_plan(domain, stream_id, detail)
+    outputs: dict[int, str] = {}
+    for q in LADDER_Q:
+        applied = plan[: min(q, len(plan))]
+        outputs[q] = operator._apply_plan(domain, applied) if applied else domain
+    return outputs, len(plan)
+
+
+def length_bucket(length: int) -> str:
+    for name, low, high in LENGTH_BUCKETS:
+        if low <= length <= high:
+            return name
+    raise ValueError(f"长度 {length} 不属于任何分面")
 
 
 def build_attacks(
@@ -280,6 +352,13 @@ def build_attacks(
     """用 v2 算子在源 DGA 成员上生成三档攻击，并机械核验合法性。"""
     syntax_pass = 0
     per_tier: dict[str, list[str]] = {tier: [] for tier in operator.TIERS}
+    per_ladder: dict[int, list[str]] = {q: [] for q in LADDER_Q}
+    ladder_hamming: dict[int, list[int]] = {q: [] for q in LADDER_Q}
+    ladder_q_actual: dict[int, list[int]] = {q: [] for q in LADDER_Q}
+    ladder_equal_to_tier = {q: 0 for q in LADDER_Q}
+    bucket_names = [name for name, _, _ in LENGTH_BUCKETS]
+    bucket_counts: dict[str, int] = {name: 0 for name in bucket_names}
+    bucket_ladder: dict[str, dict[int, int]] = {name: {q: 0 for q in LADDER_Q} for name in bucket_names}
     q_values: dict[str, list[int]] = {tier: [] for tier in operator.TIERS}
     n_e_values: list[int] = []
     lengths: list[int] = []
@@ -311,6 +390,23 @@ def build_attacks(
             output_syntax_pass[tier] += 1
             per_tier[tier].append(result["output"])
             q_values[tier].append(int(result["q_actual"]))
+        outputs, n_e = ladder_outputs(operator, domain, stream_id)
+        for q in LADDER_Q:
+            text = outputs[q]
+            per_ladder[q].append(text)
+            ladder_hamming[q].append(sum(1 for a, b in zip(domain, text) if a != b))
+            ladder_q_actual[q].append(min(q, n_e))
+            if not operator.validate_basic_syntax(text)["ok"]:
+                failures.append({"index": index, "domain": domain, "q": q,
+                                 "reason": "illegal_ladder_output"})
+            reuse = LADDER_REUSE.get(q)
+            if reuse is not None and text == per_tier[reuse][-1]:
+                ladder_equal_to_tier[q] += 1
+        name = length_bucket(len(domain))
+        bucket_counts[name] += 1
+        for q in LADDER_Q:
+            if ladder_hamming[q][-1] == min(q, n_e):
+                bucket_ladder[name][q] += 1
         if index and index % 10_000 == 0:
             log(f"攻击生成 {index}/{len(dga_domains)}")
 
@@ -334,10 +430,48 @@ def build_attacks(
             "generation_errors": error_counts[tier],
             "attacked_sha256": sha256_sequence(per_tier[tier]),
         }
+    ladder_summary: dict[str, Any] = {}
+    for q in LADDER_Q:
+        values = np.asarray(ladder_hamming[q], dtype=np.int64)
+        ladder_summary[str(q)] = {
+            "n_outputs": len(per_ladder[q]),
+            "nominal_q": q,
+            "hamming_mean": float(values.mean()) if len(values) else None,
+            "hamming_min": int(values.min()) if len(values) else None,
+            "hamming_max": int(values.max()) if len(values) else None,
+            "hamming_quantiles": {
+                key: float(np.quantile(values, value))
+                for key, value in (("p10", 0.10), ("p50", 0.50), ("p90", 0.90))
+            } if len(values) else {},
+            # 算子从不欠账：Hamming 恒等于 min(q, |E|)（下表应为 0）
+            "undershoot_share": (
+                float(np.mean(np.asarray(ladder_hamming[q]) < np.asarray(ladder_q_actual[q])))
+                if len(values) else None
+            ),
+            # |E| < q 的成员占比（名义预算不可行，实际被 min(q, |E|) 截断）
+            "capped_share": (
+                float(np.mean(np.asarray(ladder_q_actual[q]) < q)) if len(values) else None
+            ),
+            "q_actual_mean": (
+                float(np.mean(np.asarray(ladder_q_actual[q]))) if len(values) else None
+            ),
+            "q_actual_min": (
+                int(np.min(np.asarray(ladder_q_actual[q]))) if len(values) else None
+            ),
+            "equals_tier_outputs": (
+                ladder_equal_to_tier[q] / len(per_ladder[q]) if per_ladder[q] else None
+            ),
+            "attacked_sha256": sha256_sequence(per_ladder[q]),
+        }
     n_e_array = np.asarray(n_e_values, dtype=np.int64)
     length_array = np.asarray(lengths, dtype=np.int64)
     return {
         "attacked": per_tier,
+        "ladder": per_ladder,
+        "ladder_hamming": {q: list(map(int, ladder_hamming[q])) for q in LADDER_Q},
+        "ladder_bucket_counts": bucket_counts,
+        "ladder_bucket_saturated": bucket_ladder,
+        "ladder_summary": ladder_summary,
         "summary": {
             "source_members": len(dga_domains),
             "source_syntax_pass": syntax_pass,
@@ -420,11 +554,11 @@ def score_domains(
 
 
 def paired_error_counts(
-    predictions: dict[str, np.ndarray]
+    predictions: dict[str, np.ndarray], expected: int = EXPECTED_CLASS_COUNT
 ) -> dict[str, dict[str, int]]:
     lengths = {len(values) for values in predictions.values()}
-    if lengths != {EXPECTED_CLASS_COUNT}:
-        raise ValueError("配对计数输入长度必须同为 30,000")
+    if lengths != {expected}:
+        raise ValueError(f"配对计数输入长度必须同为 {expected}")
     output: dict[str, dict[str, int]] = {}
     for left, right in PAIRED_ARMS:
         if left not in predictions or right not in predictions:
@@ -451,6 +585,22 @@ def parse_args() -> argparse.Namespace:
         help="攻击流身份；追加臂必须复用 D-4 的同一值",
     )
     parser.add_argument("--run-name", default=RUN_NAME, help="本次运行的可读身份名")
+    parser.add_argument(
+        "--candidate-spec",
+        default=CANDIDATE_SPEC_RELATIVE,
+        help="仓库相对候选规格路径；小规模一致性验证改用 1/4 规格",
+    )
+    parser.add_argument(
+        "--arms",
+        default=",".join(RUNS),
+        help="逗号分隔的臂子集（默认全部）；小规模验证只需 B,D,F,UQ",
+    )
+    parser.add_argument(
+        "--run-map",
+        default=None,
+        help="可选：逗号分隔的 ARM=运行目录名 覆盖（默认用 RUNS 的全规模映射）；"
+             "缩样本验证时指向 1/4 规模运行目录",
+    )
     parser.add_argument(
         "--run-dir",
         type=Path,
@@ -505,32 +655,57 @@ def main() -> int:
         raise RuntimeError("本诊断固定使用 MPS；当前环境未提供 MPS")
     official.DEVICE = torch.device("mps")
     official.EVAL_BATCH = 128
+    candidate_spec = Path(args.candidate_spec)
+    if not candidate_spec.is_absolute():
+        candidate_spec = root / candidate_spec
+    candidate_spec = candidate_spec.resolve()
+    candidate_spec_relative = candidate_spec.relative_to(root)
+    if not candidate_spec.is_file():
+        raise EditContractError(f"候选规格不存在：{candidate_spec}")
+    run_map = dict(RUNS)
+    if args.run_map:
+        for item in args.run_map.split(","):
+            if "=" not in item:
+                raise EditContractError(f"--run-map 项必须形如 ARM=RUNDIR：{item}")
+            arm_key, run_value = item.split("=", 1)
+            if arm_key not in RUNS:
+                raise EditContractError(f"--run-map 含未知臂：{arm_key}")
+            run_map[arm_key] = run_value
+    selected_arms = tuple(part for part in args.arms.split(",") if part)
+    unknown_arms = sorted(set(selected_arms) - set(RUNS))
+    if unknown_arms:
+        raise EditContractError(f"未知臂：{unknown_arms}")
+    if len(set(selected_arms)) != len(selected_arms) or not selected_arms:
+        raise EditContractError("臂子集不得为空或重复")
+    is_full_scale = candidate_spec_relative.as_posix() == CANDIDATE_SPEC_RELATIVE
     log(
-        f"[P0] 启动 run={args.run_name} 臂={','.join(RUNS)} 算子={operator_sha[:12]} "
+        f"[P0] 启动 run={args.run_name} 臂={','.join(selected_arms)} 算子={operator_sha[:12]} "
         f"stream_id={args.stream_id}"
     )
-
-    candidate_spec = root / CANDIDATE_SPEC_RELATIVE
-    candidate_spec_relative = candidate_spec.relative_to(root)
     concurrent_tasks = detect_concurrent_tasks()
     if concurrent_tasks:
         log(f"[P0] 检测到并发任务 {len(concurrent_tasks)} 个："
             + "; ".join(task["command"] for task in concurrent_tasks))
     identities, payloads, member_sha, checkpoint_hashes = validate_arms(
-        root, candidate_spec, official, diag, eligibility
+        root, candidate_spec, official, diag, eligibility, arms=selected_arms,
+        run_map=run_map,
+        expected_code_by_arm=EXPECTED_CODE_SHA256 if is_full_scale else None,
     )
-    log_stage("冻结身份核验", len(RUNS), len(RUNS))
+    log_stage("冻结身份核验", len(selected_arms), len(selected_arms))
 
     v3_path = root / "thesis/experiments/llm_probe/runs/diagnostics" / V3_RUN_NAME / "source-low-fpr-probe.json"
     v3 = read_json(v3_path)
     reference_member_sha = v3["members"]["receipt_sha256"]
-    if member_sha != reference_member_sha:
+    member_receipt_matches_v3 = member_sha == reference_member_sha
+    if is_full_scale and not member_receipt_matches_v3:
         raise ValueError("本次源成员收据与 v3 已冻结收据不一致")
 
     status: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "run_name": args.run_name,
-        "arm_set": list(RUNS),
+        "arm_set": list(selected_arms),
+        "candidate_spec": str(candidate_spec_relative),
+        "is_full_scale": is_full_scale,
         "stream_anchor_note": (
             "攻击流身份复用 D-4 锚点，保证追加臂与既有臂使用逐字节相同的攻击串"
             if args.stream_id == f"p0-legal-attack|shared_prefix_edit_v2|{STREAM_ANCHOR}"
@@ -585,23 +760,27 @@ def main() -> int:
         raise ValueError("源训练成员与标签数量不符")
     if len(validation_domains) != len(labels) or not len(validation_domains):
         raise ValueError("源验证成员与标签数量不符")
-    if int(np.count_nonzero(labels == 0)) != EXPECTED_CLASS_COUNT:
-        raise ValueError("源验证良性成员数不等于冻结的 30,000")
-    if int(np.count_nonzero(labels == 1)) != EXPECTED_CLASS_COUNT:
-        raise ValueError("源验证 DGA 成员数不等于冻结的 30,000")
+    n_benign = int(np.count_nonzero(labels == 0))
+    n_dga = int(np.count_nonzero(labels == 1))
+    if n_benign != n_dga or n_benign == 0:
+        raise ValueError("源验证良性／DGA 成员数不相等或为空")
+    if is_full_scale and n_benign != EXPECTED_CLASS_COUNT:
+        raise ValueError("全规模源验证良性成员数不等于冻结的 30,000")
     if sha256_json({"train": train_receipts, "validation": validation_receipts}) != member_sha:
         raise ValueError("重新读取的源成员收据与各臂不一致")
     log_stage("源成员读取", len(validation_domains), len(validation_domains))
 
     benign_domains = [domain for domain, label in zip(validation_domains, labels) if label == 0]
     dga_domains = [domain for domain, label in zip(validation_domains, labels) if label == 1]
-    if len(benign_domains) != EXPECTED_CLASS_COUNT or len(dga_domains) != EXPECTED_CLASS_COUNT:
+    dga_buckets = np.asarray([length_bucket(len(domain)) for domain in dga_domains])
+    bucket_masks = {name: (dga_buckets == name) for name, _, _ in LENGTH_BUCKETS}
+    if len(benign_domains) != n_benign or len(dga_domains) != n_dga:
         raise ValueError("源验证良性／DGA 成员拆分数量不符")
 
     attacks = build_attacks(operator, dga_domains, args.stream_id, log)
     if attacks["summary"]["failure_count"]:
         raise RuntimeError(f"攻击生成失败 {attacks['summary']['failure_count']} 例，评价无效")
-    if attacks["summary"]["source_syntax_pass"] != EXPECTED_CLASS_COUNT:
+    if attacks["summary"]["source_syntax_pass"] != n_dga:
         raise RuntimeError("源 DGA 成员未全部通过基础语法，评价无效")
     log(f"[P0] 攻击生成完成 三档输出 {attacks['summary']['tiers']['random_half']['n_outputs']} 例")
 
@@ -617,7 +796,7 @@ def main() -> int:
     log_stage("初始模型源训练特征均值", len(train_domains), len(train_domains))
 
     scores_by_arm: dict[str, dict[str, np.ndarray]] = {}
-    for index, arm in enumerate(RUNS, start=1):
+    for index, arm in enumerate(selected_arms, start=1):
         checkpoint = torch.load(
             payloads[arm]["checkpoint_path"], map_location="cpu", weights_only=True
         )
@@ -639,16 +818,54 @@ def main() -> int:
                 f"{arm} 攻击{tier}", attacks["attacked"][tier], model, tokenizer,
                 tok_mean, char_mean, official, diag,
             )
+        for q in LADDER_Q:
+            reuse_tier = LADDER_REUSE.get(q)
+            if reuse_tier is not None:
+                # q=1/2 与 k1/k2 逐位相同（生成阶段已机械核对），直接复用同一预测
+                arm_scores[f"q{q}"] = arm_scores[reuse_tier]
+            else:
+                arm_scores[f"q{q}"] = score_domains(
+                    f"{arm} 预算梯度q{q}", attacks["ladder"][q], model, tokenizer,
+                    tok_mean, char_mean, official, diag,
+                )
         scores_by_arm[arm] = arm_scores
         del model
         gc.collect()
         torch.mps.empty_cache()
-        log_stage(f"{arm} 模型完成", index, len(RUNS))
+        log_stage(f"{arm} 模型完成", index, len(selected_arms))
+        # 逐臂增量落盘：长任务中途可核验，且前五臂完成即可核 A/B/D/F/UQ 身份旁证门
+        partial_metrics: dict[str, Any] = {}
+        for done_arm in scores_by_arm:
+            entry: dict[str, Any] = {}
+            for key, _ in ALPHAS:
+                threshold = freeze_group_threshold(
+                    scores_by_arm[done_arm]["benign"], dict(ALPHAS)[key]
+                )[0]
+                tier_entry: dict[str, Any] = {}
+                for tier in operator.TIERS:
+                    fn = int(np.count_nonzero(~(scores_by_arm[done_arm][tier] >= threshold)))
+                    tier_entry[tier] = {"dga_fn": fn, "dga_fnr": fn / n_dga}
+                ladder_entry: dict[str, Any] = {}
+                for q in LADDER_Q:
+                    fn = int(np.count_nonzero(~(scores_by_arm[done_arm][f"q{q}"] >= threshold)))
+                    ladder_entry[str(q)] = {"dga_fn": fn, "dga_fnr": fn / n_dga}
+                entry[key] = {"tiers": tier_entry, "ladder": ladder_entry}
+            partial_metrics[done_arm] = entry
+        atomic_json(run_dir / "p0-legal-attack-partial.json", {
+            "schema_version": SCHEMA_VERSION,
+            "run_name": args.run_name,
+            "status": "scoring_partial",
+            "arms_scored": sorted(scores_by_arm),
+            "identity": {"operator_sha256": operator_sha, "stream_id": args.stream_id,
+                         "member_receipt_sha256": member_sha},
+            "partial_metrics": partial_metrics,
+            "note": "增量落盘；阈值与最终口径同源（freeze_group_threshold），最终结果以完整收据为准",
+        })
 
     # 阈值重算（应与 v3 已冻结值逐位一致）
     thresholds: dict[str, dict[str, Any]] = {}
     threshold_match: dict[str, Any] = {}
-    for arm in RUNS:
+    for arm in selected_arms:
         benign_scores = scores_by_arm[arm]["benign"]
         arm_thresholds: dict[str, Any] = {}
         for key, alpha in ALPHAS:
@@ -658,7 +875,7 @@ def main() -> int:
                 "fpr": fp / len(benign_scores),
             }
         thresholds[arm] = arm_thresholds
-        if arm in V3_FROZEN:
+        if is_full_scale and arm in V3_FROZEN:
             threshold_match[arm] = {
                 key: {
                     "threshold_equal": arm_thresholds[key]["threshold"] == V3_FROZEN[arm][key]["threshold"],
@@ -669,9 +886,10 @@ def main() -> int:
 
     # 逐臂／逐档漏检与干净侧复核
     metrics: dict[str, Any] = {}
+    ladder_metrics: dict[str, Any] = {}
     predictions: dict[str, dict[str, np.ndarray]] = {}
     clean_check: dict[str, Any] = {}
-    for arm in RUNS:
+    for arm in selected_arms:
         arm_metrics: dict[str, Any] = {}
         arm_predictions: dict[str, np.ndarray] = {
             THRESHOLD_0_5: scores_by_arm[arm]["clean_dga"] >= 0.5
@@ -683,9 +901,9 @@ def main() -> int:
             clean_fn = int(np.count_nonzero(~clean_pred))
             clean_entry[key] = {
                 "dga_fn": clean_fn,
-                "dga_fnr": clean_fn / EXPECTED_CLASS_COUNT,
-                "v3_dga_fn": V3_FROZEN[arm][key]["dga_fn"] if arm in V3_FROZEN else None,
-                "matches_v3": (clean_fn == V3_FROZEN[arm][key]["dga_fn"]) if arm in V3_FROZEN else None,
+                "dga_fnr": clean_fn / n_dga,
+                "v3_dga_fn": V3_FROZEN[arm][key]["dga_fn"] if (is_full_scale and arm in V3_FROZEN) else None,
+                "matches_v3": (clean_fn == V3_FROZEN[arm][key]["dga_fn"]) if (is_full_scale and arm in V3_FROZEN) else None,
             }
             arm_predictions[key] = clean_pred
             tier_metrics: dict[str, Any] = {}
@@ -694,43 +912,70 @@ def main() -> int:
                 attacked_fn = int(np.count_nonzero(~attacked_pred))
                 tier_metrics[tier] = {
                     "dga_fn": attacked_fn,
-                    "dga_fnr": attacked_fn / EXPECTED_CLASS_COUNT,
-                    "dga_tp": EXPECTED_CLASS_COUNT - attacked_fn,
+                    "dga_fnr": attacked_fn / n_dga,
+                    "dga_tp": n_dga - attacked_fn,
                 }
                 arm_predictions[f"{key}|{tier}"] = attacked_pred
             arm_metrics[key] = tier_metrics
+            ladder_entry: dict[str, Any] = {}
+            for q in LADDER_Q:
+                pred = scores_by_arm[arm][f"q{q}"] >= threshold
+                fn = int(np.count_nonzero(~pred))
+                ladder_entry[str(q)] = {
+                    "nominal_q": q,
+                    "dga_fn": fn,
+                    "dga_fnr": fn / n_dga,
+                    "dga_tp": n_dga - fn,
+                    "by_length": {
+                        name: {
+                            "n": int(mask.sum()),
+                            "dga_fn": int(np.count_nonzero(~pred & mask)),
+                            "dga_fnr": (
+                                float(np.count_nonzero(~pred & mask) / mask.sum())
+                                if mask.sum() else None
+                            ),
+                        }
+                        for name, mask in bucket_masks.items()
+                    },
+                }
+                arm_predictions[f"{key}|q{q}"] = pred
+            ladder_metrics.setdefault(arm, {})[key] = ladder_entry
         clean_check[arm] = clean_entry
         metrics[arm] = arm_metrics
         predictions[arm] = arm_predictions
 
     paired: dict[str, Any] = {THRESHOLD_0_5: paired_error_counts(
-        {arm: predictions[arm][THRESHOLD_0_5] for arm in RUNS}
+        {arm: predictions[arm][THRESHOLD_0_5] for arm in selected_arms}, n_dga
     )}
     for key, _ in ALPHAS:
         paired[key] = paired_error_counts(
-            {arm: predictions[arm][key] for arm in RUNS}
+            {arm: predictions[arm][key] for arm in selected_arms}, n_dga
         )
         for tier in operator.TIERS:
             paired[f"{key}|{tier}"] = paired_error_counts(
-                {arm: predictions[arm][f"{key}|{tier}"] for arm in RUNS}
+                {arm: predictions[arm][f"{key}|{tier}"] for arm in selected_arms}, n_dga
+            )
+        for q in LADDER_Q:
+            paired[f"{key}|q{q}"] = paired_error_counts(
+                {arm: predictions[arm][f"{key}|q{q}"] for arm in selected_arms}, n_dga
             )
 
-    # 机械判据对照（只做事实比对，不下结论）
+    # 机械判据对照（只做事实比对，不下结论）；缺少的臂记 None，不越权比较。
+    def _fn(arm: str, key: str, tier: str) -> int | None:
+        return metrics[arm][key][tier]["dga_fn"] if arm in metrics else None
+
     gate: dict[str, Any] = {}
     for key, _ in ALPHAS:
         for tier in operator.TIERS:
-            baseline_fn = metrics["B"][key][tier]["dga_fn"]
-            gate[f"{key}|{tier}"] = {
-                "baseline_B_dga_fn": baseline_fn,
-                "D_dga_fn": metrics["D"][key][tier]["dga_fn"],
-                "F_dga_fn": metrics["F"][key][tier]["dga_fn"],
-                "A_dga_fn": metrics["A"][key][tier]["dga_fn"],
-                "D_strictly_lower_misses_than_B": metrics["D"][key][tier]["dga_fn"] < baseline_fn,
-                "F_strictly_lower_misses_than_B": metrics["F"][key][tier]["dga_fn"] < baseline_fn,
-                "A_strictly_lower_misses_than_B": metrics["A"][key][tier]["dga_fn"] < baseline_fn,
-                "UQ_dga_fn": metrics["UQ"][key][tier]["dga_fn"],
-                "UQ_strictly_lower_misses_than_B": metrics["UQ"][key][tier]["dga_fn"] < baseline_fn,
-            }
+            baseline_fn = _fn("B", key, tier)
+            row: dict[str, Any] = {"baseline_B_dga_fn": baseline_fn}
+            for arm in ("D", "F", "A", "UQ", "CAND4", "EDIT4", "CURRICULUM"):
+                value = _fn(arm, key, tier)
+                row[f"{arm}_dga_fn"] = value
+                row[f"{arm}_strictly_lower_misses_than_B"] = (
+                    None if value is None else value < baseline_fn
+                )
+            gate[f"{key}|{tier}"] = row
     primary_key = f"{PRIMARY_ALPHA}|{PRIMARY_TIER}"
     gate["primary_reading"] = {
         "tier": PRIMARY_TIER,
@@ -739,12 +984,12 @@ def main() -> int:
         "result": gate[primary_key],
         "one_percent_reporting": {
             "tiers": list(operator.TIERS),
-            "arms": list(RUNS),
+            "arms": list(selected_arms),
             "all_readings_present": all(
                 "fpr_0_01" in metrics[arm] and set(metrics[arm]["fpr_0_01"]) == set(operator.TIERS)
-                for arm in RUNS
+                for arm in selected_arms
             ),
-            "readings": {arm: metrics[arm]["fpr_0_01"] for arm in RUNS},
+            "readings": {arm: metrics[arm]["fpr_0_01"] for arm in selected_arms},
         },
     }
 
@@ -754,19 +999,22 @@ def main() -> int:
     attribution_rows: dict[str, Any] = {}
     for key, _ in ALPHAS:
         for tier in operator.TIERS:
-            baseline_fn = metrics["B"][key][tier]["dga_fn"]
-            d_fn = metrics["D"][key][tier]["dga_fn"]
-            f_fn = metrics["F"][key][tier]["dga_fn"]
-            uq_fn = metrics["UQ"][key][tier]["dga_fn"]
+            baseline_fn = _fn("B", key, tier)
+            d_fn = _fn("D", key, tier)
+            f_fn = _fn("F", key, tier)
+            uq_fn = _fn("UQ", key, tier)
+            have_all = None not in (baseline_fn, d_fn, f_fn, uq_fn)
             attribution_rows[f"{key}|{tier}"] = {
                 "UQ_dga_fn": uq_fn,
                 "B_dga_fn": baseline_fn,
                 "D_dga_fn": d_fn,
                 "F_dga_fn": f_fn,
-                "delta_UQ_minus_B": uq_fn - baseline_fn,
-                "delta_UQ_minus_D": uq_fn - d_fn,
-                "delta_UQ_minus_F": uq_fn - f_fn,
-                "UQ_strictly_lower_misses_than_B": uq_fn < baseline_fn,
+                "delta_UQ_minus_B": (uq_fn - baseline_fn) if have_all else None,
+                "delta_UQ_minus_D": (uq_fn - d_fn) if have_all else None,
+                "delta_UQ_minus_F": (uq_fn - f_fn) if have_all else None,
+                "UQ_strictly_lower_misses_than_B": (
+                    uq_fn < baseline_fn if have_all else None
+                ),
             }
     primary_row = attribution_rows[primary_key]
     gate["uq_attribution"] = {
@@ -780,17 +1028,60 @@ def main() -> int:
                         "UQ_strictly_lower_misses_than_B")
         },
         "nearest_cluster_by_absolute_delta": min(
-            ("B", "D", "F"),
+            (arm for arm in ("B", "D", "F") if primary_row[f"{arm}_dga_fn"] is not None),
             key=lambda arm: abs(primary_row["UQ_dga_fn"] - primary_row[f"{arm}_dga_fn"]),
         ),
         "all_budget_tier_rows": attribution_rows,
     }
 
+    # D-6/D-7 机械对照：新增三臂相对 B／D／F／EDIT4 的漏检差量。
+    # 入批预算口径（实测，见报告）：B 与 EDIT4 为 n_mal（min 37/max 82/mean 63.97），
+    # D/F/UQ/CAND4 为固定 64，CURRICULUM 第 1 轮随池（mean 61.75）、第 2–3 轮固定 64。
+    new_arm_rows: dict[str, Any] = {}
+    for key, _ in ALPHAS:
+        for tier in operator.TIERS:
+            row: dict[str, Any] = {}
+            for arm in ("B", "D", "F", "CAND4", "EDIT4", "CURRICULUM",
+                        "C1R", "ESAT", "DRICHEL", "CEQ", "CBN"):
+                value = _fn(arm, key, tier)
+                row[f"{arm}_dga_fn"] = value
+                b_fn = _fn("B", key, tier)
+                if value is not None and arm != "B" and b_fn is not None:
+                    row[f"{arm}_minus_B"] = value - b_fn
+            new_arm_rows[f"{key}|{tier}"] = row
+    for key, _ in ALPHAS:
+        for q in LADDER_Q:
+            row = {}
+            for arm in ("B", "D", "F", "CAND4", "EDIT4", "CURRICULUM",
+                        "C1R", "ESAT", "DRICHEL", "CEQ", "CBN"):
+                if arm not in ladder_metrics:
+                    row[f"{arm}_dga_fn"] = None
+                    continue
+                value = ladder_metrics[arm][key][str(q)]["dga_fn"]
+                row[f"{arm}_dga_fn"] = value
+                b_ladder = ladder_metrics.get("B", {}).get(key, {}).get(str(q), {}).get("dga_fn")
+                if arm != "B" and b_ladder is not None:
+                    row[f"{arm}_minus_B"] = value - b_ladder
+            new_arm_rows[f"{key}|q{q}"] = row
+    gate["new_arm_mechanical_comparison"] = {
+        "note": "只报差量，不下结论；训练层 vs 评价层的比较须按【实际 Hamming】口径"
+                "（评价算子 Hamming==min(q,|E|) 精确，训练核名义位数会因位置碰撞饱和）",
+        "probation_caliber": {
+            "B": "入批变体 = n_mal（mean 63.97，min 37，max 82）",
+            "EDIT4": "入批变体 = min(64, n_mal)（mean 61.72）",
+            "D/F/UQ/CAND4": "入批变体 = 固定 64",
+            "CURRICULUM": "第 1 轮随池（mean 61.75），第 2–3 轮固定 64",
+        },
+        "rows": new_arm_rows,
+    }
+
     result = {
         "schema_version": SCHEMA_VERSION,
         "run_name": args.run_name,
-        "arm_set": list(RUNS),
+        "arm_set": list(selected_arms),
         "stream_anchor": STREAM_ANCHOR,
+        "candidate_spec": str(candidate_spec_relative),
+        "is_full_scale": is_full_scale,
         "status": "completed",
         "screening_only": True,
         "zero_training": True,
@@ -805,24 +1096,32 @@ def main() -> int:
             "source_benign": len(benign_domains),
             "source_dga": len(dga_domains),
             "receipt_sha256": member_sha,
-            "matches_v3_receipt": member_sha == reference_member_sha,
+            "matches_v3_receipt": member_receipt_matches_v3,
             "benign_sha256": sha256_sequence(benign_domains),
             "dga_sha256": sha256_sequence(dga_domains),
         },
         "identities": {
             arm: {
-                "run_name": RUNS[arm],
+                "run_name": run_map[arm],
                 "arm_checkpoint_sha256": checkpoint_hashes[arm],
                 "code_sha256": identities[arm]["code_sha256"],
                 "official_checkpoint_sha256": identities[arm]["checkpoint_sha256"],
             }
-            for arm in RUNS
+            for arm in selected_arms
         },
         "attacks": attacks["summary"],
+        "ladder_attacks": attacks["ladder_summary"],
+        "ladder_buckets": {
+            "definition": {name: [low, high if high < 10 ** 9 else None]
+                           for name, low, high in LENGTH_BUCKETS},
+            "counts": attacks["ladder_bucket_counts"],
+            "exact_budget_share": attacks["ladder_bucket_saturated"],
+        },
         "thresholds": thresholds,
         "threshold_match_v3": threshold_match,
         "clean_side_recheck": clean_check,
         "attack_metrics": metrics,
+        "ladder_budget_metrics": ladder_metrics,
         "paired_dga_error_cross_counts": paired,
         "gate_mechanical": gate,
         "runtime": {
