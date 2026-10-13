@@ -103,6 +103,18 @@
 - 机械观察（不下结论）：固定权重把干净 FPR 从 A 的 0.0224 压到 0.0121，代价是三攻击面板
   FNR 大幅上升（maskdga 0.0182→0.6767）——静态类代价的机械后果，正式裁决留主代理。
 
+### DRICHEL（完成，2026-10-14）
+
+- 结果 JSON：`/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-drichel-mps-20261013-v1/arm-DRICHEL-result.json`
+  （arm-DRICHEL-checkpoint.pt SHA-256 `8beade37b3be086eecc53df0369c1f2b68da0357e1fbb9de7799aea400c909ca`）
+- 筛选面板读数：clean FPR `0.0767` / FNR `0.0066`；adv_k2 FNR `0.0203`；adv_krand `0.0208`；adv_maskdga `0.0197`。
+- 墙钟 `5195.6s`（≈86.6 min；0.33 批/s——HotFlip 每批 2 步带梯度前向反向的额外计算，
+  计划 §三 4 允许并要求如实单列）。
+- 身份比对：code_sha256 `e7fced23…`、spec `5e46e4ce804a`；攻击由当前模型白盒生成（缓存键
+  (样本, epoch)，跨轮重新生成），入批 min(64, m)（独立 uniform 流种子 42+13，与 UQ 同构）。
+- 机械观察（不下结论）：DRICHEL 的 clean FPR（0.0767）为五臂最高——白盒 HotFlip 攻击
+  难度高于随机编辑，把决策边界大幅推宽；三攻击面板 FNR 与 D/F 量级相当。
+
 - **ESAT 子集冻结（完成）**：`esat_selector.py` 消费 A 臂 3 快照（ep1/ep2/ep3），
   全源训练集 60000 样本跨快照平均熵（−p·log p−(1−p)·log(1−p)，自然对数）降序排序，
   ρ=0.5 → |A|=30000（恶意 14852 / 良性 15148；熵排序未强烈偏向恶意——A 臂模型对两类
