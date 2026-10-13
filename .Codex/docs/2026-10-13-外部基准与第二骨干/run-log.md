@@ -92,6 +92,17 @@
 - 机械观察（不下结论）：CEQ 的 clean FPR（0.0455）明显高于同面板 B（0.0333），与
   「全局 CE top-q 持续选入最难候选、牺牲干净边界」方向一致，正式裁决留主代理。
 
+### CBN（完成，2026-10-14）
+
+- 结果 JSON：`/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-common-cbn-mps-20261013-v1/arm-CBN-result.json`
+  （arm-CBN-checkpoint.pt SHA-256 `ab37ce6878eea8748bd4b1e29c965d9721dad9903f0f8557878b95f4a97be547`）
+- 筛选面板读数：clean FPR `0.0121` / FNR `0.0463`；adv_k2 FNR `0.3628`；adv_krand `0.3558`；adv_maskdga `0.6767`。
+- 墙钟 `~2830s`（≈47 min；0.72 批/s，无对抗增广路径，与 A 臂同速）。
+- 身份比对：code_sha256 `804dfe82…`、spec `5e46e4ce804a`；无对抗分支（走 A 路径）+ 损失分支
+  全体真良性 CE×3.0（权重沿用组件 2 冻结系数）。
+- 机械观察（不下结论）：固定权重把干净 FPR 从 A 的 0.0224 压到 0.0121，代价是三攻击面板
+  FNR 大幅上升（maskdga 0.0182→0.6767）——静态类代价的机械后果，正式裁决留主代理。
+
 - **ESAT 子集冻结（完成）**：`esat_selector.py` 消费 A 臂 3 快照（ep1/ep2/ep3），
   全源训练集 60000 样本跨快照平均熵（−p·log p−(1−p)·log(1−p)，自然对数）降序排序，
   ρ=0.5 → |A|=30000（恶意 14852 / 良性 15148；熵排序未强烈偏向恶意——A 臂模型对两类
