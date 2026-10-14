@@ -170,13 +170,41 @@ def iterate_batches(x: np.ndarray, y: np.ndarray, batch: int, rng: np.random.Gen
         yield x[sel], y[sel]
 
 
-def train_epochs(model, x, y, epochs, batch, lr, device, rng) -> None:
+def iterate_batches_parts(parts, batch: int, rng: np.random.Generator, shuffle: bool):
+    """**虚拟拼接**：对多个 (X_int8, y) 分片做全局洗牌与取批，但**不做物理拷贝**。
+
+    动机：`cumulative` 末年 12 年合计 806,700×4,561 int8 = 3.4 GiB；
+    官方语义是「先 `np.concatenate` 再全局 shuffle」，物理拼接会再要 3.4 GiB，
+    本机 16 GiB 会 OOM。本函数用全局排列 + `searchsorted` 映射回分片，**语义与物理拼接逐位一致**。
+    """
+    dim = parts[0][0].shape[1]
+    sizes = np.array([p[0].shape[0] for p in parts])
+    cum = np.concatenate([[0], np.cumsum(sizes)])
+    total = int(cum[-1])
+    idx = rng.permutation(total) if shuffle else np.arange(total)
+    for s in range(0, idx.size, batch):
+        sel = idx[s : s + batch]
+        if sel.size < 2:
+            continue
+        which = np.searchsorted(cum, sel, side="right") - 1
+        xs = np.empty((sel.size, dim), dtype=np.int8)
+        ys = np.empty(sel.size, dtype=np.float32)
+        for pi in np.unique(which):
+            m = which == pi
+            loc = sel[m] - cum[pi]
+            xs[m] = parts[pi][0][loc]
+            ys[m] = parts[pi][1][loc]
+        yield xs, ys
+
+
+def train_epochs(model, parts, epochs, batch, lr, device, rng) -> None:
+    """`parts` 为 [(X_int8, y_float32), ...]，按官方语义全局洗牌后取批（虚拟拼接，见上）。"""
     opt = torch.optim.SGD(model.parameters(), lr=lr, momentum=OFFICIAL_MOMENTUM,
                           weight_decay=OFFICIAL_WEIGHT_DECAY)
     criterion = nn.BCELoss()
     model.train()
     for _ in range(epochs):
-        for xb, yb in iterate_batches(x, y, batch, rng, True):
+        for xb, yb in iterate_batches_parts(parts, batch, rng, True):
             xt = torch.from_numpy(xb.astype(np.float32)).to(device)
             yt = torch.from_numpy(yb).to(device).unsqueeze(1)
             opt.zero_grad()
@@ -237,24 +265,22 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             print(f"[model] params={n_params:,}", flush=True)
 
         if strategy == "naive":
-            x_train, y_train = x_curr, y_curr
+            parts = [(x_curr, y_curr)]
         elif strategy == "cumulative":
-            xs = [store[y][0] for y in years[: idx + 1]]
-            ys = [store[y][1] for y in years[: idx + 1]]
-            x_train, y_train = np.concatenate(xs), np.concatenate(ys)
+            parts = [store[y] for y in years[: idx + 1]]
         elif strategy == "expreplay":
             if len(buffer):
                 xb, yb = buffer.sample()
-                x_train = np.concatenate([x_curr, xb.astype(np.int8)])
-                y_train = np.concatenate([y_curr, yb])
+                parts = [(x_curr, y_curr), (xb.astype(np.int8), yb.astype(np.float32))]
             else:
-                x_train, y_train = x_curr, y_curr
+                parts = [(x_curr, y_curr)]
         else:
             raise ValueError(strategy)
 
+        n_train = int(sum(p[0].shape[0] for p in parts))
         t0 = time.time()
-        train_epochs(model, x_train, y_train, epochs, batch, lr, device, rng)
-        print(f"[{year}] trained on {x_train.shape[0]:,} rows in {time.time()-t0:.1f}s", flush=True)
+        train_epochs(model, parts, epochs, batch, lr, device, rng)
+        print(f"[{year}] trained on {n_train:,} rows in {time.time()-t0:.1f}s", flush=True)
 
         for j, ty in enumerate(years[: idx + 1]):
             xt, yt = load_year(ty, "test")
