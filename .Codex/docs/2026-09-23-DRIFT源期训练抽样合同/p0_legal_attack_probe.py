@@ -969,7 +969,8 @@ def main() -> int:
         for tier in operator.TIERS:
             baseline_fn = _fn("B", key, tier)
             row: dict[str, Any] = {"baseline_B_dga_fn": baseline_fn}
-            for arm in ("D", "F", "A", "UQ", "CAND4", "EDIT4", "CURRICULUM"):
+            for arm in ("D", "F", "A", "UQ", "CAND4", "EDIT4", "CURRICULUM",
+                        "C1R", "ESAT", "DRICHEL", "CEQ", "CBN"):
                 value = _fn(arm, key, tier)
                 row[f"{arm}_dga_fn"] = value
                 row[f"{arm}_strictly_lower_misses_than_B"] = (
