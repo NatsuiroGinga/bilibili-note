@@ -505,6 +505,9 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         # （2026-10-14 实测事故：rho 臂覆盖了 metrics_expreplay_m200.json / status_*.json）。
         if reuse_schedule != "off":
             tag += f"_{reuse_schedule}"
+            # 上界偏离近乎不限的默认值时必须进 tag，否则判别实验会覆盖无上界的旧读数
+            if reuse_cap != 64:
+                tag += f"_cap{reuse_cap}"
     else:
         tag = strategy
     if seed != SEED:                      # 多种子复现：官方未设种子，本脚本默认 42
