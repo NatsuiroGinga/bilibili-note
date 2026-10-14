@@ -133,6 +133,39 @@ class ChenEncoderMLP(nn.Module):
         return self.classifier(self.encoder(x))
 
 
+def quota_buffer(store: dict, years_seen: list[int], capacity: int,
+                 rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
+    """**按年等额 + 年内正负各半**的配额缓冲（容量不变，只改构成）。
+
+    **设计已冻结（2026-10-14，跑前写死，禁止看结果再调）**：
+    1. 已见 `k` 年 ⇒ 每年配额 `capacity // k`（余数丢弃，不调剂）
+    2. 年内配额**正负各半**；某一年正例不足时，**不足部分用负例补齐**（不跨年调剂）
+    3. 年内的具体样本用**固定种子**随机抽取
+
+    动机（E5 实测，可复核）：官方均匀蓄水池的 200 槽位中，2023 只有 1 个正例、2024 与 2025 各 0 个，
+    而这三年的正例率分别是 `14.52% / 1.64% / 0.05%`。**本臂只改缓冲构成，其他一切不动。**
+    """
+    k = len(years_seen)
+    per = capacity // k
+    xs, ys = [], []
+    for year in years_seen:
+        X, Y = store[year]
+        pos = np.flatnonzero(Y == 1)
+        neg = np.flatnonzero(Y == 0)
+        want_pos = per // 2
+        n_pos = min(pos.size, want_pos)
+        n_neg = min(neg.size, per - n_pos)          # 正例不足时用负例补足本年的配额
+        if n_pos:
+            xs.append(X[rng.choice(pos, size=n_pos, replace=False)])
+            ys.append(np.ones(n_pos, dtype=np.float32))
+        if n_neg:
+            xs.append(X[rng.choice(neg, size=n_neg, replace=False)])
+            ys.append(np.zeros(n_neg, dtype=np.float32))
+    if not xs:
+        return np.zeros((0, next(iter(store.values()))[0].shape[1]), dtype=np.int8), np.zeros(0, dtype=np.float32)
+    return np.concatenate(xs), np.concatenate(ys)
+
+
 class ReplayBuffer:
     """官方第 61–88 行：容量 200 的蓄水池抽样，RNG 种子 42。"""
 
