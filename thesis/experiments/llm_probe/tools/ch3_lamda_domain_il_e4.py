@@ -145,6 +145,14 @@ LWF_LAMBDA = 1.0
 LWF_TEMPERATURE = 2.0
 FISHER_SAMPLE = 4096  # Fisher 对角线的子采样上限（控制成本；全量 8 万行不必要）
 
+# ⚠️ 模块二轮次调度的目标适应步长。**任务化设定，无直接文献依据**（魔法数字门禁要求登记）。
+#
+# 标定依据：轮次调度**只改暴露量的分布，不改其总量**——否则测出的是「总量变化」而非
+# 「再分配」的效果。标定方法是令调度臂的每轮倍数均值等于同一容量下常数臂的最优值
+# （N=200 上为 4），据此反推 a*。该值只决定 λ_r 的绝对高度，不决定其随 ρ 的走向。
+# 正式对比前须对 a* 做敏感性扫描。
+RHO_A_STAR = 0.9975
+
 
 def compute_fisher(model, parts, batch: int, device) -> list:
     """经验 Fisher 对角线的子采样估计（平方梯度期望）。"""
@@ -318,11 +326,49 @@ def iterate_batches_parts(parts, batch: int, rng: np.random.Generator, shuffle: 
         yield xs, ys
 
 
-def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None) -> None:
+def measure_rho(model, curr_part, mem_blk, batch, device, rng) -> float:
+    """当前年度批与历史批的梯度余弦相似度。
+
+    用两批各一次前向与反向取梯度。全程不改变参数（算完即 `zero_grad`），
+    因此对训练结果无影响，只作可观测量。
+    """
+    criterion = nn.BCELoss()
+    was_training = model.training
+    model.train()
+
+    def _grad(part):
+        x, y = part
+        n = min(batch, x.shape[0])
+        sel = rng.integers(0, x.shape[0], size=n)
+        xt = torch.from_numpy(x[sel].astype(np.float32)).to(device)
+        yt = torch.from_numpy(y[sel]).to(device).unsqueeze(1)
+        model.zero_grad()
+        criterion(model(xt), yt).backward()
+        g = torch.cat([p.grad.flatten() for p in model.parameters()
+                       if p.grad is not None]).detach().clone()
+        model.zero_grad()
+        return g
+
+    g_c = _grad(curr_part)
+    g_m = _grad(mem_blk)
+    denom = float(g_c.norm()) * float(g_m.norm()) + 1e-12
+    rho = float((g_c * g_m).sum()) / denom
+    if not was_training:
+        model.eval()
+    return rho
+
+
+def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
+                 rho_sched=None) -> None:
     """`parts` 为 [(X_int8, y_float32), ...]，按官方语义全局洗牌后取批（虚拟拼接，见上）。
 
     `penalty`（可选）＝`("ewc", fisher_list, anchor_list)` 或 `("lwf", prev_model)`，
     分别对应参数侧的两条经典保持路线；**默认 None ⇒ 行为与官方 naive 逐位一致**。
+
+    `rho_sched`（可选）＝`(mem_blk, curr_part, a_star)`：模块二的**轮次调度**形态。
+    每轮开始前实测历史梯度与当前梯度的余弦相似度 $\\rho_r$，由一阶条件反解该轮的
+    历史权重 $\\lambda_r = (1-a^{*})/(1-\\rho_r)$，再换算成该轮的记忆块重复份数。
+    默认 None ⇒ 与统一复用逐位一致。
     """
     opt = torch.optim.SGD(model.parameters(), lr=lr, momentum=OFFICIAL_MOMENTUM,
                           weight_decay=OFFICIAL_WEIGHT_DECAY)
@@ -331,7 +377,21 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None) -> 
         penalty[1].eval()
     model.train()
     for _ in range(epochs):
-        for xb, yb in iterate_batches_parts(parts, batch, rng, True):
+        epoch_parts = parts
+        if rho_sched is not None:
+            mem_blk, curr_part, a_star = rho_sched
+            rho = measure_rho(model, curr_part, mem_blk, batch, device, rng)
+            lam = (1.0 - a_star) / (1.0 - rho) if abs(1.0 - rho) > 1e-6 else 1.0
+            lam = min(max(lam, 0.0), 1.0)
+            n_c, n_m = int(curr_part[0].shape[0]), int(mem_blk[0].shape[0])
+            if lam >= 1.0:
+                m_r = max(1, n_c // n_m)
+            else:
+                m_r = int(round(lam * n_c / max((1.0 - lam) * n_m, 1e-9)))
+            m_r = min(max(m_r, 1), 64)
+            epoch_parts = [curr_part] + [mem_blk] * m_r
+            print(f"[sched] rho={rho:+.4f} lambda={lam:.4f} repeat={m_r}", flush=True)
+        for xb, yb in iterate_batches_parts(epoch_parts, batch, rng, True):
             xt = torch.from_numpy(xb.astype(np.float32)).to(device)
             yt = torch.from_numpy(yb).to(device).unsqueeze(1)
             opt.zero_grad()
@@ -422,7 +482,7 @@ def reuse_by_deficit(blocks: list[tuple[int, np.ndarray, np.ndarray]], m_max: in
 
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
          buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir",
-         reuse_scheme: str = "uniform") -> int:
+         reuse_scheme: str = "uniform", reuse_schedule: str = "off") -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -467,6 +527,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
     records: list[dict] = []
     ewc_state = None   # (fisher_list, anchor_list)，均为**上一任务**的量
     lwf_prev = None    # 上一任务模型副本
+    rho_sched = None   # 模块二的轮次调度模板，(mem_blk, curr_part)，每个年度重设
     t_start = time.time()
 
     for idx, year in enumerate(years):
@@ -508,6 +569,10 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
                 # `buffer_repeat` 次」——**不增加一个比特存储**，只增加计算量（每轮多
                 # `200*(r-1)` 行，占 `~0.3%`）。
                 parts = [(x_curr, y_curr)] + [blk] * buffer_repeat
+                if reuse_schedule == "rho":
+                    # 轮次调度由 train_epochs 自行决定每轮份数，此处只放一份作模板
+                    rho_sched = (blk, (x_curr, y_curr))
+                    parts = [(x_curr, y_curr), blk]
             else:
                 parts = [(x_curr, y_curr)]
         else:
@@ -525,7 +590,9 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         elif strategy == "lwf" and lwf_prev is not None:
             penalty = ("lwf", lwf_prev)
         t0 = time.time()
-        train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=penalty)
+        train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=penalty,
+                     rho_sched=(*rho_sched, RHO_A_STAR) if rho_sched else None)
+        rho_sched = None
         if prev_state is not None:
             freemoca_interpolate(prev_state, model)
             print(f"[{year}] FreeMOCA 逐参数插值完成（λ∈[{FREEMOCA_LAMBDA_MIN},{FREEMOCA_LAMBDA_MAX}]）", flush=True)
@@ -581,6 +648,10 @@ if __name__ == "__main__":
     p.add_argument("--batch", type=int, default=OFFICIAL_BATCH)
     p.add_argument("--lr", type=float, default=OFFICIAL_LR)
     p.add_argument("--memory", type=int, default=OFFICIAL_MEMORY)
+    p.add_argument("--reuse-schedule", choices=("off", "rho"), default="off",
+                   help="off = 各轮次复用倍数相同（默认）；rho = 每轮实测历史梯度与当前梯度的"
+                        "余弦相似度，由一阶条件反解该轮的历史权重（模块二的轮次调度形态）。"
+                        "仅对 --strategy expreplay 生效。")
     p.add_argument("--reuse-scheme", choices=("uniform", "deficit"), default="uniform",
                    help="uniform = 所有年度共用同一复用倍数（默认，文件名不变）；"
                         "deficit = 按各年度缓冲块的正例数分配复用次数，正例少的年度重复更多。"
@@ -599,4 +670,5 @@ if __name__ == "__main__":
                    help="只跑前 N 个 experience（调试用；正式复现不设）")
     a = p.parse_args()
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
-                          a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme))
+                          a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme,
+                          a.reuse_schedule))
