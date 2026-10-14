@@ -55,3 +55,29 @@
 ### 本地混合索引（ch3-drift-20260908 工作树，1,934 条笔记，stale=false）
 
 原始 JSON 落 `raw-queries/`。分块后台执行：
+
+已执行 16 个查询（4 块 × 4），原始 JSON 在 `raw-queries/chunk1..4-*.json`。
+关键命中（本地已有全文的结构化笔记，证据等级=本地全文）：
+
+| 方向 | 本地命中的全文笔记 |
+| --- | --- |
+| IRM/不变性 | `methodology/2021-Ahuja-不变性与信息瓶颈.md`、`2021-Krueger-REx风险外推.md`、`2024-Liu-FOIL时间序列OOD不变学习.md` |
+| 保形/风险控制 | `2024-Angelopoulos-保形风险控制.md`(CRC)、`2021-Bates-分布无关风险控制预测集.md`(RCPS)、`2019-Tibshirani-协变量移位加权保形.md`、`2012-Vovk-条件归纳保形预测.md`、`soc-alert-operations/2026-CALIBURN-区间依赖保形风险控制的告警预算.md`（流式 IDS+区间依赖 CRC！）、`2025-Almeida-协变量移位高概率风险控制.md` |
+| TTA | TENT/EATA/SAR/CoTTA 全齐＋`2026-Kim-CANDI精选测试时适应.md`、`2025-Roh-MADCAT自监督测试时适应.md`（恶意软件 TTA 先例） |
+| 持续学习 | `2023-Chen-Android恶意软件持续学习.md`、`2017-Shin-深度生成回放.md`、`2024-Botos-IWMS延迟标签持续学习.md` |
+| 课程 | `auxiliary-learning/2018-Cai-课程对抗训练.md`、`课程式对抗训练-在线视角.md`(2024)、`2026-Shin-课程学习与Wasserstein测地线.md` |
+| 博弈 | 朱焱雷全文、`game/stackelberg-vs-nash_2011_kiekintveld.md`、`game/Complexity of Computing Optimal Stackelberg Strategies in Security Resource Allocation Games.md`(2010)、`game/SCORER-表征与强化学习斯塔克尔伯格耦合.md`(2026)、`datasets/locked-shields-related/2021-SchroederdeWitt-AI-NIDS博弈不动点与规避攻击.md` |
+| 长尾/CVaR | `ranking/2019-Prashanth-CVaR估计的集中不等式.md`、`2025-Chen-BUOT双层非平衡传输.md` |
+| 重要性加权 | `2024-Joo-IW-GAE重要性加权组准确率.md`、Tibshirani、Almeida 2025 |
+| 开集/拒识 | `2022-Luxemburk-TLS细粒度服务分类与拒识.md`、`datasets/data-protocol/开放集入侵识别-未知攻击协议.md`(2017)、`Geifman2019-SelectiveNet选择性预测.md` |
+| 标签噪声 | `2022-Arp-安全机器学习十大陷阱.md` |
+| 主动学习 | `2025-Haque-CITADEL半监督主动漂移适应.md`（恶意软件 AL+漂移先例）、`2019-Pendlebury-TESSERACT时空实验偏置与AUT.md`、`2025-Gupta-NetGuard漂移与不均衡NIDS主动适应.md` |
+| 梯度手术 | `2020-Yu-PCGrad梯度手术.md`、`manifold/Recon从结构根源减少梯度冲突.md`、`2018-Chen-GradNorm梯度归一化.md`、`game/AuxiNash-辅助学习非对称议价训练.md`、`2025-Patapati-SON-GOKU图着色多任务调度.md` |
+| RL | `2018-Anderson-RL-Malware-Evasion.md`、`2020-Song-MAB-Malware学习型黑盒规避.md`（攻击侧）、`2026-Sabbah-自监督强化学习漂移维护.md`（Android+SSRL+RL+漂移！）、`PINN引文链与恶意流量检测理论映射.md` |
+| coreset | 朱焱雷 2.4.2 引 Toneva 遗忘样本、`2026-Park-COMET代码本在线适应异常检测.md`、SelectiveNet、`training-efficiency/2019-Jiang-选择性反传聚焦高损失样本.md`、`2020-Mialon-ERM椭球区域数据点筛除.md` |
+| RWKV/SSM | `rwkv/` 目录 5 篇：RWKV、RWKV-X、FRWKV、GoldFinch、RADLADS |
+| 排序/聚合 | `ranking/2019-Kawaguchi-OrderedSGD批内top-q选择.md`、`2021-Hu-SoRR-Sum-of-Ranked-Range.md` |
+
+未在本地命中的方向（需在线补）：类别条件 W-DRO 在恶意软件、保形在 Android 恶意软件、
+SAM 在恶意软件、长尾/平衡误差在 Android 家族分类、密度比重要性加权在 Android 漂移、
+课程在 Android 漂移、元学习/少样本在家族分类。
