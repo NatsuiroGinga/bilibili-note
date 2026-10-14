@@ -167,9 +167,14 @@ def build_sets():
         iid_parts.append((te["X"][iid_keep], te["y"][iid_keep]))
         print(f"[load] {year}: train_kept={int(keep.sum())} iid={int(iid_keep.sum())}", flush=True)
 
+    # 逐年切片：官方表 7 的 ± 是**跨年份散布**，pooled 值与之不可比，必须另报逐年。
+    far_slices: list[tuple[int, int, int]] = []
+    offset = 0
     for year in FAR_YEARS:
         te = read_shard(DATA_ROOT / f"Baseline/{year}/{year}_test.parquet", feature_names)
         far_parts.append((te["X"], te["y"]))
+        far_slices.append((year, offset, offset + te["rows"]))
+        offset += te["rows"]
         print(f"[load] {year}: far_test={te['rows']} pos={int((te['y'] == 1).sum())}", flush=True)
 
     Xtr = np.concatenate([p[0] for p in train_parts]); ytr = np.concatenate([p[1] for p in train_parts])
@@ -178,7 +183,12 @@ def build_sets():
     assert Xtr.shape[0] == EXPECTED_TRAIN_ROWS, f"train rows {Xtr.shape[0]}"
     assert Xiid.shape[0] == EXPECTED_IID_TEST_ROWS, f"iid rows {Xiid.shape[0]}"
     print(f"[sets] train={Xtr.shape} iid={Xiid.shape} far={Xfar.shape} far_pos={int((yfar==1).sum())}", flush=True)
-    return Xtr, ytr, Xiid, yiid, Xfar, yfar
+    return Xtr, ytr, Xiid, yiid, Xfar, yfar, far_slices
+
+
+def per_year_metrics(far_slices, yfar: np.ndarray, scores: np.ndarray) -> dict:
+    """逐年 FAR 指标——官方表 7 的 ± 是跨年份散布，pooled 不可与之直接比较。"""
+    return {str(year): metrics_at(yfar[a:b], scores[a:b]) for year, a, b in far_slices}
 
 
 def to_sparse(x: np.ndarray):
@@ -195,7 +205,7 @@ def to_sparse(x: np.ndarray):
 # ---------------------------------------------------------------- 相：MLP
 
 
-def run_mlp(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush) -> None:
+def run_mlp(Xtr, ytr, Xiid, yiid, Xfar, yfar, far_slices, flush) -> None:
     import torch  # noqa: PLC0415 —— 只在本相导入，见文件头故障说明
 
     set_status(RUN_DIR / "status.json", "running", phase="mlp")
@@ -225,9 +235,11 @@ def run_mlp(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush) -> None:
 
     with torch.inference_mode():
         mlp.eval()
+        far_scores = score_matrix(torch, mlp, Xfar, device)
         results = {"MLP": {
             "IID": metrics_at(yiid, score_matrix(torch, mlp, Xiid, device)),
-            "FAR": metrics_at(yfar, score_matrix(torch, mlp, Xfar, device)),
+            "FAR": metrics_at(yfar, far_scores),
+            "FAR_per_year": per_year_metrics(far_slices, yfar, far_scores),
         }}
     receipts = {"MLP": {"device": "mps", "params": n_params,
                        "wall_seconds": time.time() - t0, "torch": torch.__version__}}
@@ -270,7 +282,7 @@ def score_matrix(torch, model, features: np.ndarray, device) -> np.ndarray:
 # ---------------------------------------------------------------- 相：GBDT + SVM
 
 
-def run_gbdt(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush) -> None:
+def run_gbdt(Xtr, ytr, Xiid, yiid, Xfar, yfar, far_slices, flush) -> None:
     # 机械断言：本相进程内绝不能有 torch（否则 LightGBM 必 SIGSEGV）
     assert "torch" not in sys.modules, "GBDT 相混入了 torch，必然触发 OMP #179"
 
@@ -288,8 +300,10 @@ def run_gbdt(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush) -> None:
     print(f"[lgb] sparse built density={Xtr_sp.nnz / (Xtr_sp.shape[0] * Xtr_sp.shape[1]):.4f}", flush=True)
     gbm = lgb.LGBMClassifier(**LIGHTGBM_PARAMS)
     gbm.fit(Xtr_sp, ytr)
+    lgb_far = gbm.predict_proba(Xfar_sp)[:, 1]
     results["LightGBM"] = {"IID": metrics_at(yiid, gbm.predict_proba(Xiid_sp)[:, 1]),
-                           "FAR": metrics_at(yfar, gbm.predict_proba(Xfar_sp)[:, 1])}
+                           "FAR": metrics_at(yfar, lgb_far),
+                           "FAR_per_year": per_year_metrics(far_slices, yfar, lgb_far)}
     receipts["LightGBM"] = {"device": "cpu", "wall_seconds": time.time() - t0,
                             "version": lgb.__version__, "input": "csr_sparse_float32"}
     print(f"[lgb] done in {receipts['LightGBM']['wall_seconds']:.1f}s", flush=True)
@@ -301,8 +315,10 @@ def run_gbdt(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush) -> None:
     t0 = time.time()
     clf = xgb.XGBClassifier(**XGBOOST_PARAMS)
     clf.fit(Xtr_sp, ytr)
+    xgb_far = clf.predict_proba(Xfar_sp)[:, 1]
     results["XGBoost"] = {"IID": metrics_at(yiid, clf.predict_proba(Xiid_sp)[:, 1]),
-                          "FAR": metrics_at(yfar, clf.predict_proba(Xfar_sp)[:, 1])}
+                          "FAR": metrics_at(yfar, xgb_far),
+                          "FAR_per_year": per_year_metrics(far_slices, yfar, xgb_far)}
     receipts["XGBoost"] = {"device": "cpu", "wall_seconds": time.time() - t0,
                            "version": xgb.__version__, "input": "csr_sparse_float32"}
     print(f"[xgb] done in {receipts['XGBoost']['wall_seconds']:.1f}s", flush=True)
@@ -315,8 +331,10 @@ def run_gbdt(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush) -> None:
     t0 = time.time()
     svm = CalibratedClassifierCV(LinearSVC(max_iter=10000))
     svm.fit(Xtr_sp, ytr)
+    svm_far = svm.predict_proba(Xfar_sp)[:, 1]
     results["SVM"] = {"IID": metrics_at(yiid, svm.predict_proba(Xiid_sp)[:, 1]),
-                      "FAR": metrics_at(yfar, svm.predict_proba(Xfar_sp)[:, 1])}
+                      "FAR": metrics_at(yfar, svm_far),
+                      "FAR_per_year": per_year_metrics(far_slices, yfar, svm_far)}
     receipts["SVM"] = {"device": "cpu", "wall_seconds": time.time() - t0,
                        "input": "csr_sparse_float32"}
     print(f"[svm] done in {receipts['SVM']['wall_seconds']:.1f}s", flush=True)
@@ -350,13 +368,13 @@ def main(phase: str = "all") -> int:
             "wall_seconds_total": time.time() - t_start, "ts": now_utc(),
         })
 
-    Xtr, ytr, Xiid, yiid, Xfar, yfar = build_sets()
+    Xtr, ytr, Xiid, yiid, Xfar, yfar, far_slices = build_sets()
 
     if phase in ("all", "mlp"):
-        run_mlp(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush)
+        run_mlp(Xtr, ytr, Xiid, yiid, Xfar, yfar, far_slices, flush)
         del Xtr, ytr, Xiid, yiid, Xfar, yfar
     if phase in ("all", "gbdt"):
-        run_gbdt(Xtr, ytr, Xiid, yiid, Xfar, yfar, flush)
+        run_gbdt(Xtr, ytr, Xiid, yiid, Xfar, yfar, far_slices, flush)
 
     set_status(status_path, "completed", status="completed", phase=phase,
                completed_models=sorted(results))
