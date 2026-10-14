@@ -99,7 +99,7 @@ def sparse(x: np.ndarray):
     return csr_matrix(x.astype(np.float32))
 
 
-def main() -> int:
+def main(phase: str = "all") -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     status_path = RUN_DIR / "status.json"
     metrics_path = RUN_DIR / "metrics.json"
@@ -107,8 +107,13 @@ def main() -> int:
     t_start = time.time()
     Xtr, ytr, Xiid, yiid, Xfar, yfar = build_sets()
 
+    # 分相运行时合并已完成相的结果（两相各写一次 metrics.json）
     results: dict[str, dict] = {}
     receipts: dict[str, dict] = {}
+    if metrics_path.is_file():
+        prev = json.loads(metrics_path.read_text(encoding="utf-8"))
+        results.update(prev.get("results") or {})
+        receipts.update(prev.get("receipts") or {})
 
     def flush(phase: str) -> None:
         """每完成一个模型立即落盘，崩溃不丢已完成的结果。"""
