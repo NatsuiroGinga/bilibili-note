@@ -49,6 +49,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import sys
@@ -135,6 +136,34 @@ class ChenEncoderMLP(nn.Module):
 
 FREEMOCA_LAMBDA_MIN = 0.1  # 取自官方 main_domain.py 的 Domain-IL 调用（非本项目设定）
 FREEMOCA_LAMBDA_MAX = 0.9
+
+# ⚠️ 以下两个是**任务化设定，无文献依据**（本仓库「魔法数字门禁」要求显式登记）
+# EWC / LwF 的强度参数。对参数侧效率曲线的**形状**不敏感，但对**绝对高度**敏感；
+# 正式对比前须做敏感性（见 task_plan 的待办）。
+EWC_LAMBDA = 1000.0
+LWF_LAMBDA = 1.0
+LWF_TEMPERATURE = 2.0
+FISHER_SAMPLE = 4096  # Fisher 对角线的子采样上限（控制成本；全量 8 万行不必要）
+
+
+def compute_fisher(model, parts, batch: int, device) -> list:
+    """经验 Fisher 对角线的子采样估计（平方梯度期望）。"""
+    fisher = [torch.zeros_like(p) for p in model.parameters()]
+    model.eval()
+    criterion = nn.BCELoss()
+    n_seen = 0
+    for xb, yb in iterate_batches_parts(parts, batch, np.random.default_rng(0), False):
+        xt = torch.from_numpy(xb.astype(np.float32)).to(device)
+        yt = torch.from_numpy(yb).to(device).unsqueeze(1)
+        model.zero_grad()
+        criterion(model(xt), yt).backward()
+        for f, p in zip(fisher, model.parameters()):
+            if p.grad is not None:
+                f += p.grad.detach() ** 2 * xt.shape[0]
+        n_seen += xt.shape[0]
+        if n_seen >= FISHER_SAMPLE:
+            break
+    return [f / max(n_seen, 1) for f in fisher]
 
 
 def freemoca_interpolate(prev_state: dict, model, lmin: float = FREEMOCA_LAMBDA_MIN,
@@ -274,18 +303,37 @@ def iterate_batches_parts(parts, batch: int, rng: np.random.Generator, shuffle: 
         yield xs, ys
 
 
-def train_epochs(model, parts, epochs, batch, lr, device, rng) -> None:
-    """`parts` 为 [(X_int8, y_float32), ...]，按官方语义全局洗牌后取批（虚拟拼接，见上）。"""
+def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None) -> None:
+    """`parts` 为 [(X_int8, y_float32), ...]，按官方语义全局洗牌后取批（虚拟拼接，见上）。
+
+    `penalty`（可选）＝`("ewc", fisher_list, anchor_list)` 或 `("lwf", prev_model)`，
+    分别对应参数侧的两条经典保持路线；**默认 None ⇒ 行为与官方 naive 逐位一致**。
+    """
     opt = torch.optim.SGD(model.parameters(), lr=lr, momentum=OFFICIAL_MOMENTUM,
                           weight_decay=OFFICIAL_WEIGHT_DECAY)
     criterion = nn.BCELoss()
+    if penalty and penalty[0] == "lwf":
+        penalty[1].eval()
     model.train()
     for _ in range(epochs):
         for xb, yb in iterate_batches_parts(parts, batch, rng, True):
             xt = torch.from_numpy(xb.astype(np.float32)).to(device)
             yt = torch.from_numpy(yb).to(device).unsqueeze(1)
             opt.zero_grad()
-            loss = criterion(model(xt), yt)
+            out = model(xt)
+            loss = criterion(out, yt)
+            if penalty and penalty[0] == "ewc":
+                _, fisher, anchor = penalty
+                pen = sum((f * (p - a) ** 2).sum()
+                          for f, p, a in zip(fisher, model.parameters(), anchor))
+                loss = loss + 0.5 * EWC_LAMBDA * pen
+            elif penalty and penalty[0] == "lwf":
+                _, prev_model = penalty
+                with torch.no_grad():
+                    tgt = torch.sigmoid(prev_model(xt) / LWF_TEMPERATURE)
+                pred = torch.sigmoid(out / LWF_TEMPERATURE)
+                loss = loss + LWF_LAMBDA * (LWF_TEMPERATURE ** 2) * \
+                    torch.nn.functional.binary_cross_entropy(pred, tgt)
             loss.backward()
             opt.step()
 
@@ -334,6 +382,8 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
 
     model = None
     records: list[dict] = []
+    ewc_state = None   # (fisher_list, anchor_list)，均为**上一任务**的量
+    lwf_prev = None    # 上一任务模型副本
     t_start = time.time()
 
     for idx, year in enumerate(years):
@@ -343,7 +393,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             n_params = sum(p.numel() for p in model.parameters())
             print(f"[model] params={n_params:,}", flush=True)
 
-        if strategy in ("naive", "freemoca"):
+        if strategy in ("naive", "freemoca", "ewc", "lwf"):
             parts = [(x_curr, y_curr)]
         elif strategy == "cumulative":
             parts = [store[y] for y in years[: idx + 1]]
@@ -360,11 +410,25 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         # FreeMOCA 需要 θ_prev（只看不存样本；t=1 不插值，对齐官方 Algorithm 1 第 5 行）
         prev_state = ({k: v.detach().clone() for k, v in model.state_dict().items()}
                       if (strategy == "freemoca" and idx > 0) else None)
+        # EWC / LwF 的参数侧惩罚（t=1 无历史 ⇒ 无惩罚）
+        # 注：EWC 用**上一任务的** Fisher 与锚点（不做多任务累加，简化版，已登记）
+        penalty = None
+        if strategy == "ewc" and ewc_state is not None:
+            penalty = ("ewc", ewc_state[0], ewc_state[1])
+        elif strategy == "lwf" and lwf_prev is not None:
+            penalty = ("lwf", lwf_prev)
         t0 = time.time()
-        train_epochs(model, parts, epochs, batch, lr, device, rng)
+        train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=penalty)
         if prev_state is not None:
             freemoca_interpolate(prev_state, model)
             print(f"[{year}] FreeMOCA 逐参数插值完成（λ∈[{FREEMOCA_LAMBDA_MIN},{FREEMOCA_LAMBDA_MAX}]）", flush=True)
+        # 任务结束后更新参数侧状态，供**下一任务**使用（EWC 用本任务 Fisher＋锚点；LwF 存本任务模型）
+        if strategy == "ewc":
+            ewc_state = (compute_fisher(model, parts, batch, device),
+                         [p.detach().clone() for p in model.parameters()])
+            print(f"[{year}] EWC Fisher 已更新（λ={EWC_LAMBDA}）", flush=True)
+        elif strategy == "lwf":
+            lwf_prev = copy.deepcopy(model)
         print(f"[{year}] trained on {n_train:,} rows in {time.time()-t0:.1f}s", flush=True)
 
         for j, ty in enumerate(years[: idx + 1]):
@@ -405,7 +469,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="LAMDA 官方 Domain-IL 复现")
-    p.add_argument("--strategy", choices=("naive", "cumulative", "expreplay", "freemoca"), required=True)
+    p.add_argument("--strategy", choices=("naive", "cumulative", "expreplay", "freemoca", "ewc", "lwf"), required=True)
     p.add_argument("--epochs", type=int, default=OFFICIAL_EPOCHS)
     p.add_argument("--batch", type=int, default=OFFICIAL_BATCH)
     p.add_argument("--lr", type=float, default=OFFICIAL_LR)
