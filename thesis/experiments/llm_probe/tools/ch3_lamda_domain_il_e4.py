@@ -373,6 +373,9 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         tag = strategy
     if seed != SEED:                      # 多种子复现：官方未设种子，本脚本默认 42
         tag += f"_s{seed}"
+    # 运行身份横幅：把真正生效的配置打进日志，使「参数忘了往下传」这类错误当场可见
+    print(f"[run] strategy={strategy} memory={memory} scheme={buffer_scheme} "
+          f"repeat={buffer_repeat} seed={seed} tag={tag}", flush=True)
     status = RUN_DIR / f"status_{tag}.json"
     metrics_path = RUN_DIR / f"metrics_{tag}.json"
     write_json(status, {"status": "running", "strategy": strategy, "ts": now_utc()})
@@ -516,4 +519,4 @@ if __name__ == "__main__":
                    help="只跑前 N 个 experience（调试用；正式复现不设）")
     a = p.parse_args()
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
-                          a.buffer_repeat, a.seed))
+                          a.buffer_repeat, a.seed, a.buffer_scheme))
