@@ -68,4 +68,51 @@
 
 **本地综述对 PAD 的声称位置**：`thesis/methods/第三章-LAMDA主任务与机制裁决.md` 行 48；`thesis/methods/第三章-LAMDA任务与方案筛选矩阵.md` 行 160。声称内容：「PAD 2023（TDSC）已占『恶意软件对抗训练的收敛保证』⇒ 对抗训练类不作主轴」。**本地综述未附原件路径，须在线核。**
 
+### S3 在线核验日志（2026-10-14 15:20 前后）
+
+#### Q2 PAD 2023 题录核验——目前**无法证实**，且发现多次搜索引擎拼编
+
+| 动作 | 结果 | 证据等级 |
+| --- | --- | --- |
+| arXiv API `all:"Convergence of Adversarial Training in Deep Learning Classifier for Malware Detection"` | 0 结果 | API 直核 |
+| WebSearch #1 给出题录：题名含 "Classifier"，作者 Damera/Maglaras/Venkatesan 等 6 人，DOI `10.1109/TDSC.2023.3271837`，IEEE doc 10133857 | Crossref `works/10.1109/TDSC.2023.3271837` → **404**；`doi.org` 同 DOI → **404** | 在线题录核验失败 |
+| WebSearch #2 给出另一题录：题名含 "Deep Neural Networks"，作者 V. Damera/Panigrahy/Ali/Gokhale/Srivastva，DOI `10.1109/TDSC.2022.3175541`，TDSC 20(5):4351–4364，doc 9757818 | Crossref `works/10.1109/TDSC.2022.3175541` → **404**（`/tmp/pad_cref3.json` 内容 "Resource not found."）；Crossref 标题检索无此题 | 在线题录核验失败 |
+| WebSearch 声称 arXiv:2509.25848 是「PAD: Protected Adversarial Detection for Malware Classifiers」 | **直接抓取 arxiv.org/abs/2509.25848 实为 VLM 推理论文**（"More Thought, Less Accuracy?"）——WebSearch 转述不可信 | API 直核（反例） |
+| Google Scholar 精确短语 `"Convergence of Adversarial Training in Deep Neural Networks for Malware Detection"` | **did not match any articles** | Scholar 直核 |
+| Google Scholar 精确短语 `"Provable Adversarial Detection"` + malware | **did not match any articles** | Scholar 直核 |
+| Google Scholar 短语 `"convergence of adversarial training"` + malware | **did not match any articles** | Scholar 直核 |
+| Google Scholar `PAD malware adversarial "Dependable and Secure Computing"` | 10 条命中均非 PAD 缩写论文；顶部命中 Zainab/Dyrmishi/Bostani/Cavallaro 2026（Windows 问题空间对抗鲁棒性系统评价，arXiv）——归 Q3 | Scholar 直核 |
+
+**Q2 中间结论（待最终定稿，不下裁决）**：
+1. 「PAD 2023（TDSC）」这一题录**尚未在任何权威索引（Crossref/Scholar/arXiv/S2）核到**；两次 WebSearch 给出的题录互相矛盾且 DOI 均未注册。
+2. 本地综述「PAD 2023（TDSC）已占恶意软件对抗训练的收敛保证」目前**查无实据**——该声称本身可能是未经核验的外部候选（早期网页综述残留）。
+3. IEEE Xplore 站内搜索被 bot 检查挡住（HTTP 202 空响应），`dblp` 同样；S2 API 429 限流。**未穷尽**：OpenAlex 未试直连（此前经代理 429）、S2 未重试、IEEE 站内未试 POST 搜索。
+4. **在核到原件前，任何关于 PAD 的威胁模型/保证类型/是否涉漂移的转述都不得使用**——包括 WebSearch 给出的「EMBER 数据集」「bounded adversarial budget」「closed-form convergence point」等描述（来源与不存在/错拼题录绑定，视为污染）。
+
+#### Q1 Sandor 线新证据
+
+- Google Scholar `convergence adversarial training malware detection` 命中 **`http://www.hit.bme.hu/~buttyan/publications/SandorKB2026cscs.pdf`**（J Sándor, B Kovács, L Buttyán，2026，CSCS 会议）——Sandor 团队在 2024 ICCP 之后有续作，摘要片段含「consistent and rapid convergence pattern (see Figure 1)」。**待抓全文核它与 ICCP 2024 的关系及是否涉漂移**。
+- ICCP 2024 原件（DOI 10.1109/ICCP63557.2024.10793037，出自 El-Hajj 参考文献行 1573）仍**未取得全文**；IEEE 被挡。BME Buttyán 主页可能有副本——待查 `hit.bme.hu`。
+
+#### Q3 新线索（Scholar 检索副产物）
+
+- **Ferdous, Islam, Mahboubi, Islam (2026, arXiv)**：「a systematic feature-space adversarial robustness evaluation with adversarial ...」——系统性的特征空间对抗鲁棒性评价，**待取全题录与全文**。
+- **Zainab, Dyrmishi, Bostani, Cavallaro (2026, arXiv)**：「Breaking Windows Malware Detection: A Comprehensive Evaluation of Problem-Space Adversarial Robustness」——Windows 恶意软件问题空间对抗鲁棒性系统评价。**待取全文**。
+- 以上两条都是「特征/问题空间攻击 + 真实约束评价」的**已发表（预印本）实践证据**，与 Cortellazzi 2019 一起支撑 Q3 的「可实施、且必须带约束」结论。
+
+#### 工具状态记录
+
+- `scholar` CLI 无认证 cookie（`scholar auth` 需 Chrome 调试端口，未启动）；改用 curl 抓 scholar.google.com HTML，可用。
+- WebFetch 对 researchgate.net 报「Unable to verify if domain is safe to fetch」；IEEE/SciSpace/dblp/DDG/Bing 经代理均被 bot 挑战（HTTP 202/挑战页）。
+- Semantic Scholar API 429（限流，无 key）；OpenAlex 经代理 429（共享 IP 日预算耗尽）——**待试 OpenAlex 直连**。
+- 可用通路：arXiv API（直连）、Google Scholar HTML（经代理）、Crossref API（经代理）、站点直抓。
+
+### 检查点 1（2026-10-14 ~15:25）
+
+- Q1：**部分完成**。已核本地侧全貌（漂移侧工作多、无一含主动对手）；A 类候选 Sandor ICCP 2024 已定位题录与二手转述，原件未取得；Sándor 2026 续作待抓。
+- Q2：**部分完成**。PAD 2023 题录核验全面失败（Crossref/Scholar/arXiv/di.org 均查无），WebSearch 两次给出矛盾题录且混编 arXiv 编号。结论方向：该「已占」声称查无实据；仍差 OpenAlex 直连与 S2 重试两步收尾。
+- Q3：**大部分完成**。Cortellazzi/Pierazzi 全文笔记已核页码（四约束 p.7–8、投影单调性 p.9、Android 可行性规则 p.15、硬化结果 p.21–22）；新增两条 2026 系统评价线索待取全文。**「改一个二值特征对应什么真实操作」的正面页码证据已在 Cortellazzi 笔记内（注入良性字节码切片+权限经验规则），待补一句「删除不存在的权限不可实现」的直接文献表述。**
+- Q4：**部分完成**。本地侧（LAMDA 原文笔记+14 条引用核验综述）无对抗评价；待在线 arXiv 引用面补查。
+
+
 
