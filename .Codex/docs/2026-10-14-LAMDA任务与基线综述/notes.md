@@ -50,15 +50,76 @@
 - H3：LAMDA 上引用者极少（2026-02 上线），任务设定（跨年泛化协议、家族迁移、漂移归因）仍有空位；
   需要实查确认。
 
+## 协调者更正（2026-10-14，已确认）
+
+1. **范围放宽**：不只找「用了 LAMDA 的论文」，检索主轴改为**任务**。LAMDA 数据卡自述可用于
+   概念漂移分析、时间泛化、家族分类、鲁棒长期恶意软件检测、持续学习。对每条任务轴分别综述
+   「已发表工作占到哪一步」：
+   - 轴 1：时间泛化／概念漂移适应（Android 或更广序列分类器）
+   - 轴 2：持续学习／域增量学习（允许新数据更新，区别于静态外推）
+   - 轴 3：家族分类／未见家族泛化
+   - 轴 4：鲁棒的长期恶意软件检测（含对抗与规避）
+   - 轴 5：低误报／固定告警预算下的检测（DRIFT 主线同款，Android 家族若有已发表工作须报——
+     它是潜在可迁移机制来源）
+2. **相近宿主数据集**：任何「Android 恶意软件／恶意软件序列分类」长期时间基准（McBndroid、
+   AndroZoo 派生基准、Drebin 时间重划等），每个给时间跨度、样本量、是否公开、正例率是否随时间
+   崩塌、是否有人报告过时间退化。
+3. **索引阻塞**：本工作树 literature_search 是旧版（`EmbeddingBackend.__init__() got an unexpected
+   keyword argument 'device'`），不得修它。**改用 drift 工作树索引**（exists=true、stale=false、
+   1,934 笔记／154,662 chunks）：
+   `cd /Users/bilibili/personal/note/.worktrees/ch3-drift-20260908 && uv run --project scripts/literature_search --locked python -m scripts.literature_search query "<查询式>" --scope local --mode hybrid --json`
+   只在该树跑查询命令，不在该树写文件。
+
 ## 查询式登记
 
 （每跑一组查询立即在此追加：日期、入口、查询式、命中数、关键命中路径）
 
-### S1（2026-10-14）本地混合索引 status
-- 待跑。
+### 第二轮更正（2026-10-14，用户）
 
-### S2（2026-10-14）本地混合索引 query
-- 待跑。
+「不要只盯时间泛化/概念漂移方法，看 HF 界面与数据集论文的介绍」。综述与候选改从
+**LAMDA 官方 8 条任务轴**出（协调者已从 HF 数据卡、原论文与 ICLR 演示版笔记核出，直接引用）：
+
+| # | 任务 | 已有官方/已发表读数 | 余量线索 |
+| --- | --- | --- | --- |
+| 1 | 二分类+时间泛化（IID/NEAR/FAR） | LightGBM F1 `47.24±27.33`／MLP `47.59±25.30`／SVM `41.86±22.55`／XGBoost `42.75±25.86`；CADE（APIGraph）F1 `0.4407`/FNR `0.4734`/FPR `0.1729` | FAR FNR `64–70%` |
+| 2 | Domain-IL 持续学习 | 2025 平均 F1：Joint `88.52±0.46` vs Naive `72.71±0.83` | **15.8 点间隙** |
+| 3 | Class-IL（154 家族，测试家族样本数>10） | 附录 J | 该定义让测试标签参与任务定义（缺陷已标注） |
+| 4 | Task-IL | 演示版 p.14–15 | 待查 |
+| 5 | 家族分类 | 全库 1,380 恶意家族、150,604 单例、2,985 未知家族 | 长尾极重 ⇒ 真余量 |
+| 6 | 主动学习/半监督适应 | 演示版展示 Chen-AL | 待查 |
+| 7 | 标签漂移/弱标签时间版本 | 附录 F 表 13：2017 年 5.19% 原恶意样本当前被判良性 | 标签本身随时间变 |
+| 8 | 表示学习对比（静态二值 vs 图/多模态） | CADE/APIGraph 对比 | 待查 |
+
+**优先深挖：轴⑤家族分类（150,604 单例长尾）与轴② Domain-IL（15.8 点间隙）**。
+轴①⑦次优先（FAR FNR 64–70%、2017 5.19% 标签翻转是可统计病灶）。
+宿主数据集综述改为回答「各轴在别的宿主上做到哪一步」。基线清单按轴分组。
+
+### S1–S2（2026-10-14）本地混合索引（drift 工作树，scope=local/paper，mode=hybrid）
+
+- 索引：ch3-drift-20260908 工作树，1,934 笔记，向量模型 intfloat/multilingual-e5-small。
+- 查询 1「Android malware concept drift temporal generalization」→ Top6：MADCAT-TTA 全文、
+  TRANSCENDENT、Berruz 漂移重训、El-Hajj 多尺度 LOEO、Chow 漂移取证。
+- 查询 2「Android malware family classification few-shot open set」→ Top6：**TRANSCENDENT**（保形评价）、
+  Lichy RF-Beats-CNN、El-Hajj LOEO、CBSeq、Berruz、Chow。
+- 查询 3「malware family classification long tail imbalanced」→ Lichy、CBSeq、MADCAT、TRANSCENDENT、
+  El-Hajj、Anderson。
+- 查询 4「continual learning Android malware detection replay」→ **Chen 2023 持续学习**、TRANSCENDENT、
+  MADCAT、CBSeq、**NetGuard 主动适应 NIDS**、**Nguyen 极端 FPR 恶意软件检测**。
+- 查询 5「active learning malware detection labeling budget」→ NetGuard、TRANSCENDENT、Nguyen 极端 FPR、
+  Inan 校准泄漏安全、El-Hajj、MADCAT。
+- 查询 6「malware detection label noise weak labels VirusTotal」→ **Nguyen 极端 FPR**、TRANSCENDENT、
+  El-Hajj、Prasse 加密流量 LSTM、Anderson、BAYWATCH。
+- 判读：本地库在轴①②⑥上已较厚（Chen/CITADEL/MADCAT/回放家族全有全文笔记）；
+  **轴⑤家族分类/少样本/开集是本地最薄的轴**，只有 TRANSCENDENT（保形/拒识）与若干间接命中；
+  轴⑤需要重点外部检索。
+- 既有领域综述（`wiki/papers/malware/LAMDA-2026-原论文与时间漂移相关工作综述.md`）已登记四个
+  研究空白任务（P0 无泄漏静态时间泛化基准、P1 源期多域静态稳健训练、P1 延迟标签主动/半监督维护、
+  P1 标签版本与家族不确定性），本任务综述须与它们对齐并检验外部占用情况。
+
+### S0（2026-10-14）本工作树索引状态
+- 入口：`uv run --project scripts/literature_search --locked ... status --json`（LAMDA 工作树）
+- 结果：`exists=false, stale_reasons=["missing_index"]`，当前笔记 1,770 篇未建索引。
+  → 证实阻塞，切换 drift 工作树索引。
 
 ## 待办
 
