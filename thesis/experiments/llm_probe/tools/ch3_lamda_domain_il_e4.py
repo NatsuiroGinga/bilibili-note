@@ -358,10 +358,15 @@ def evaluate(model, x, y, batch, device) -> dict:
     }
 
 
-def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None) -> int:
+def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
+         buffer_repeat: int = 1) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
-    # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖
-    tag = f"{strategy}_m{memory}" if strategy == "expreplay" else strategy
+    # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
+    # repeat==1 时**不加后缀**，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
+    if strategy == "expreplay":
+        tag = f"{strategy}_m{memory}" if buffer_repeat == 1 else f"{strategy}_m{memory}_r{buffer_repeat}"
+    else:
+        tag = strategy
     status = RUN_DIR / f"status_{tag}.json"
     metrics_path = RUN_DIR / f"metrics_{tag}.json"
     write_json(status, {"status": "running", "strategy": strategy, "ts": now_utc()})
@@ -400,7 +405,12 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         elif strategy == "expreplay":
             if len(buffer):
                 xb, yb = buffer.sample()
-                parts = [(x_curr, y_curr), (xb.astype(np.int8), yb.astype(np.float32))]
+                blk = (xb.astype(np.int8), yb.astype(np.float32))
+                # 模块二（$m$ 杠杆）：把**同一批**历史样本在拼接集中重复 `buffer_repeat` 次。
+                # 因 `iterate_batches_parts` 做全局洗牌，这等价于「每条历史样本每轮被看
+                # `buffer_repeat` 次」——**不增加一个比特存储**，只增加计算量（每轮多
+                # `200*(r-1)` 行，占 `~0.3%`）。
+                parts = [(x_curr, y_curr)] + [blk] * buffer_repeat
             else:
                 parts = [(x_curr, y_curr)]
         else:
@@ -474,7 +484,11 @@ if __name__ == "__main__":
     p.add_argument("--batch", type=int, default=OFFICIAL_BATCH)
     p.add_argument("--lr", type=float, default=OFFICIAL_LR)
     p.add_argument("--memory", type=int, default=OFFICIAL_MEMORY)
+    p.add_argument("--buffer-repeat", type=int, default=1,
+                   help="模块二（$m$ 杠杆）：历史样本块每轮重复次数。默认 1 = 官方语义，"
+                        "文件名与既有产物保持一致。仅对 --strategy expreplay 生效。")
     p.add_argument("--years-limit", type=int, default=None,
                    help="只跑前 N 个 experience（调试用；正式复现不设）")
     a = p.parse_args()
-    raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit))
+    raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
+                          a.buffer_repeat))
