@@ -81,3 +81,24 @@
 未在本地命中的方向（需在线补）：类别条件 W-DRO 在恶意软件、保形在 Android 恶意软件、
 SAM 在恶意软件、长尾/平衡误差在 Android 家族分类、密度比重要性加权在 Android 漂移、
 课程在 Android 漂移、元学习/少样本在家族分类。
+
+### Zotero 语义检索（5 个方向，题录级）
+
+命中：CRC/CALIBURN/非交换 CRC/Vovk；BBSE/Garg/Saerens；NP 分类（Tong 2018 Sci Adv）；
+DORO/Duchi-Namkoong/V-REx；MADCAT/Berruz/TESSERACT/Transcending 2022；AUPRC 可证收敛（Qi 2021）。
+关键发现：**NP 分类定理直接落在指标上**（`P(FNR(λ̂)≤α)≥1−δ`）——全表最罕见。
+
+### OpenAlex 三批（raw-queries/openalex/）
+
+- 第一批 32 个家族×先例查询 + 第二批 15 个定向查询 + 6 篇摘要抽取 + 第三批 28 个 canonical 存在性核验。
+- 重大发现：TIF 2026（TSE）＝不变性学习×Android 时间漂移直接先例；PAD 2023（TDSC）＝恶意软件
+  收敛保证先例；MalTutor 2025＝Android 家族不平衡课程先例；GameNP 2024（TIFS）＝NP×博弈先例；
+  Mamba+PE opcode 2026＝恶意软件 SSM 先例（Windows）；GroupDRO×恶意软件＝空白（总量 4 无相关）。
+- 网络通路实测：OpenAlex/Semantic Scholar/arXiv 直连；Semantic Scholar 限流 429 后弃用；
+  WebSearch 工具返回空结果弃用；WebFetch 按主代理指示换 curl。
+
+### 任务完成状态
+
+- [x] families.md：28 条家族（17 个超族），含分析套路、机制词汇、先例、成本、占据、空白类型
+- [x] ranked-shortlist.md：前 5 条（BBSE 标签转移修正、课程年序重排、SAM、NP 校准、GroupDRO）
+- [x] evidence-index.md：三批查询收据、canonical 核验、六条证据缺口披露

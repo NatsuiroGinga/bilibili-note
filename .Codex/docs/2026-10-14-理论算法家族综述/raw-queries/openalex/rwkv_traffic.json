@@ -1,0 +1,48 @@
+{
+ "query": "RWKV traffic detection",
+ "total": 100,
+ "rows": [
+  {
+   "year": 2025,
+   "cites": 1,
+   "venue": "International Conference on Computer and",
+   "title": "Enhanced Traffic Sign Recognition via RWKV with Deformable Attention",
+   "doi": "https://doi.org/10.1145/3757749.3757779"
+  },
+  {
+   "year": 2024,
+   "cites": 18,
+   "venue": "Conference on Empirical Methods in Natur",
+   "title": "RWKV-CLIP: A Robust Vision-Language Representation Learner",
+   "doi": "https://doi.org/10.18653/v1/2024.emnlp-main.276"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "HFRWKV: A High-Performance Fully On-Chip Hardware Accelerator for RWKV",
+   "doi": "https://doi.org/10.48550/arxiv.2601.02135"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "Scientific Reports",
+   "title": "Pre-trained multi-scale RWKV-GCN for multivariate time series forecasting",
+   "doi": "https://doi.org/10.1038/s41598-026-41091-4"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "IEEE Transactions on Geoscience and Remo",
+   "title": "C 2 F -VRWKV: A Lightweight Clustering-Aware and Cross-Frequency-Enhanced Vision-RWKV Network for Ship Detection in Remo",
+   "doi": "https://doi.org/10.1109/tgrs.2026.3693340"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "Proceedings - IEEE International Confere",
+   "title": "KAN We Flow? Advancing Robotic Manipulation with 3D Flow Matching via KAN & RWKV",
+   "doi": "https://doi.org/10.1109/icra57385.2026.11696270"
+  }
+ ]
+}

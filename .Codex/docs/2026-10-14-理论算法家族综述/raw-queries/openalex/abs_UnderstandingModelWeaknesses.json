@@ -1,0 +1,9 @@
+[
+ {
+  "title": "Understanding Model Weaknesses: A Path to Strengthening DNN-Based Android Malware Detection",
+  "year": 2025,
+  "venue": "Proceedings of the ACM on software engineering.",
+  "doi": "https://doi.org/10.1145/3728884",
+  "abstract": "Android malware detection remains a critical challenge in cybersecurity research. Recent advancements leverage AI techniques, particularly deep neural networks (DNNs), to train a detection model, but their effectiveness is often compromised by the pronounced imbalance among malware families in commonly used training datasets. This imbalance leads to overfitting in dominant categories and poor performance in underrepresented ones, increasing predictive uncertainty for less common malware families. To address the suboptimal performance of many DNN models, we introduce MalTutor , a novel framework that enhances model robustness through an optimized training process. Our primary insight lies in "
+ }
+]

@@ -1,0 +1,48 @@
+{
+ "query": "\"density ratio\" concept drift malware",
+ "total": 20,
+ "rows": [
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "Autonomous Drift Learning in Data Streams: A Unified Perspective",
+   "doi": "https://doi.org/10.48550/arxiv.2605.01295"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "Frontiers in Artificial Intelligence",
+   "title": "The dashboard says “perfect:” a systematic audit of label-free model monitoring and test-time adaptation under temporal ",
+   "doi": "https://doi.org/10.3389/frai.2026.1928858"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "DigitalCommons@UTEP (The University of T",
+   "title": "Learning To Unlearn: Unlearning And Meta-Unlearning For Continually Adapting Cybersecurity Threat Detectors",
+   "doi": null
+  },
+  {
+   "year": 2025,
+   "cites": 4,
+   "venue": "Big Data and Cognitive Computing",
+   "title": "Neural Network IDS/IPS Intrusion Detection and Prevention System with Adaptive Online Training to Improve Corporate Netw",
+   "doi": "https://doi.org/10.3390/bdcc9110267"
+  },
+  {
+   "year": 2023,
+   "cites": 29,
+   "venue": "Future Internet",
+   "title": "An Enhanced Minimax Loss Function Technique in Generative Adversarial Network for Ransomware Behavior Prediction",
+   "doi": "https://doi.org/10.3390/fi15100318"
+  },
+  {
+   "year": 2017,
+   "cites": 7,
+   "venue": "International Joint Conference on Artifi",
+   "title": "Learning Latest Classifiers without Additional Labeled Data",
+   "doi": "https://doi.org/10.24963/ijcai.2017/283"
+  }
+ ]
+}

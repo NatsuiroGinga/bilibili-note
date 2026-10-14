@@ -1,0 +1,27 @@
+{
+ "title_query": "Learning without Forgetting",
+ "total": 116,
+ "rows": [
+  {
+   "year": 2017,
+   "cites": 4009,
+   "venue": "IEEE Transactions on Pattern Analysi",
+   "title": "Learning without Forgetting",
+   "doi": "https://doi.org/10.1109/tpami.2017.2773081"
+  },
+  {
+   "year": 2016,
+   "cites": 652,
+   "venue": "Lecture notes in computer science",
+   "title": "Learning Without Forgetting",
+   "doi": "https://doi.org/10.1007/978-3-319-46493-0_37"
+  },
+  {
+   "year": 2018,
+   "cites": 1068,
+   "venue": "IEEE Computer Society Conference on ",
+   "title": "Dynamic Few-Shot Visual Learning Without Forgetting",
+   "doi": "https://doi.org/10.1109/cvpr.2018.00459"
+  }
+ ]
+}

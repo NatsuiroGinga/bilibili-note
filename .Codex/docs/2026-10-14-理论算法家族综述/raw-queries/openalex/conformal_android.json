@@ -1,0 +1,48 @@
+{
+ "query": "\"conformal prediction\" android",
+ "total": 98,
+ "rows": [
+  {
+   "year": 2016,
+   "cites": 173,
+   "venue": "IEEE Security and Privacy Workshops (SPW",
+   "title": "DroidScribe: Classifying Android Malware Based on Runtime Behavior",
+   "doi": "https://doi.org/10.1109/spw.2016.25"
+  },
+  {
+   "year": 2017,
+   "cites": 41,
+   "venue": "Neurocomputing",
+   "title": "Android malware detection with unbiased confidence guarantees",
+   "doi": "https://doi.org/10.1016/j.neucom.2017.08.072"
+  },
+  {
+   "year": 2017,
+   "cites": 14,
+   "venue": "Journal of Information and Telecommunica",
+   "title": "A performance guaranteed indoor positioning system using conformal prediction and the WiFi signal strength",
+   "doi": "https://doi.org/10.1080/24751839.2017.1295659"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "International Journal of Information Sec",
+   "title": "Reliable hierarchical operating system fingerprinting via conformal prediction",
+   "doi": "https://doi.org/10.1007/s10207-026-01293-3"
+  },
+  {
+   "year": 2016,
+   "cites": 3,
+   "venue": "IFIP advances in information and communi",
+   "title": "Malware Detection with Confidence Guarantees on Android Devices",
+   "doi": "https://doi.org/10.1007/978-3-319-44944-9_35"
+  },
+  {
+   "year": 2025,
+   "cites": 1,
+   "venue": "Journal of Information Security and Appl",
+   "title": "Conformal prediction for labelling and updating online models in the presence of concept drift in cybersecurity",
+   "doi": "https://doi.org/10.1016/j.jisa.2025.104120"
+  }
+ ]
+}

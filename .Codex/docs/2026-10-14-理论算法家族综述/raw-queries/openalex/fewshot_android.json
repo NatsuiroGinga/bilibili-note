@@ -1,0 +1,48 @@
+{
+ "query": "\"few-shot\" android malware family",
+ "total": 405,
+ "rows": [
+  {
+   "year": 2024,
+   "cites": 15,
+   "venue": "Computers & Security",
+   "title": "FAMCF: A few-shot Android malware family classification framework",
+   "doi": "https://doi.org/10.1016/j.cose.2024.104027"
+  },
+  {
+   "year": 2024,
+   "cites": 0,
+   "venue": "SSRN Electronic Journal",
+   "title": "Famd: A Few-Shot Android Malware Family Detection Framework",
+   "doi": "https://doi.org/10.2139/ssrn.4727003"
+  },
+  {
+   "year": 2025,
+   "cites": 3,
+   "venue": "Cybersecurity",
+   "title": "Androfim: few-shot android malware family detection based on image representation",
+   "doi": "https://doi.org/10.1186/s42400-025-00358-5"
+  },
+  {
+   "year": 2022,
+   "cites": 7,
+   "venue": "",
+   "title": "A Glimpse of the Whole: Detecting Few-shot Android Malware Encrypted Network Traffic",
+   "doi": "https://doi.org/10.1109/hpcc-dss-smartcity-dependsys57074.2022.00111"
+  },
+  {
+   "year": 2020,
+   "cites": 28,
+   "venue": "",
+   "title": "Unsuccessful story about few shot malware family classification and siamese network to the rescue",
+   "doi": "https://doi.org/10.1145/3377811.3380354"
+  },
+  {
+   "year": 2026,
+   "cites": 2,
+   "venue": "Scientific Reports",
+   "title": "Few-shot android malware classification with quantum-enhanced prototypical learning and drift detection",
+   "doi": "https://doi.org/10.1038/s41598-026-45738-0"
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+{
+ "query": "\"invariant learning\" android malware",
+ "total": 12,
+ "rows": [
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "IEEE Transactions on Software Engineerin",
+   "title": "TIF: Learning Temporal Invariance in Android Malware Detectors",
+   "doi": "https://doi.org/10.1109/tse.2026.3698484"
+  },
+  {
+   "year": 2025,
+   "cites": 2,
+   "venue": "Lecture notes in computer science",
+   "title": "Improving Adversarial Robustness in Android Malware Detection by Reducing the Impact of Spurious Correlations",
+   "doi": "https://doi.org/10.1007/978-3-031-82362-6_13"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "Research Square",
+   "title": "TAH-GAN: Time-Aware Hybrid Generative Adversarial Network for Robust Android Malware Evasion",
+   "doi": "https://doi.org/10.21203/rs.3.rs-10821022/v1"
+  },
+  {
+   "year": 2025,
+   "cites": 8,
+   "venue": "IEEE Conference on Secure and Trustworth",
+   "title": "ML-Based Behavioral Malware Detection Is Far From a Solved Problem",
+   "doi": "https://doi.org/10.1109/satml64287.2025.00056"
+  },
+  {
+   "year": 2025,
+   "cites": 7,
+   "venue": "IEEE European Symposium on Security and ",
+   "title": "MalMixer: Few-Shot Malware Classification with Retrieval-Augmented Semi-Supervised Learning",
+   "doi": "https://doi.org/10.1109/eurosp63326.2025.00024"
+  },
+  {
+   "year": 2022,
+   "cites": 1,
+   "venue": "Forensic Science International Digital I",
+   "title": "Neural AutoForensics: Comparing Neural Sample Search and Neural Architecture Search for malware detection and forensics",
+   "doi": "https://doi.org/10.1016/j.fsidi.2022.301444"
+  }
+ ]
+}

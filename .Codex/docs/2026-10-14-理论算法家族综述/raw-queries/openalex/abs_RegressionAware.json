@@ -1,0 +1,9 @@
+[
+ {
+  "title": "Regression-Aware Continual Learning for Android Malware Detection",
+  "year": 2026,
+  "venue": "IEEE Transactions on Information Forensics and Security",
+  "doi": "https://doi.org/10.1109/tifs.2026.3714132",
+  "abstract": "Malware evolves rapidly, forcing machine learning-based detectors to be continuously updated. With antivirus vendors processing hundreds of thousands of new samples daily, datasets can grow to billions of examples, making full retraining impractical. Continual learning (CL) has emerged as a scalable alternative, enabling incremental updates without full data access while mitigating catastrophic forgetting. In this work, we analyze a critical yet overlooked issue in this context: security regression. Unlike forgetting, which manifests as a drop in average performance on previously seen data, security regression captures harmful sample-level prediction changes, e.g., malware samples that were "
+ }
+]

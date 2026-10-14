@@ -1,0 +1,27 @@
+{
+ "title_query": "Curriculum Learning",
+ "total": 19581,
+ "rows": [
+  {
+   "year": 2009,
+   "cites": 4993,
+   "venue": "International Conference on Machine ",
+   "title": "Curriculum learning",
+   "doi": "https://doi.org/10.1145/1553374.1553380"
+  },
+  {
+   "year": 2021,
+   "cites": 674,
+   "venue": "IEEE Transactions on Pattern Analysi",
+   "title": "A Survey on Curriculum Learning",
+   "doi": "https://doi.org/10.1109/tpami.2021.3069908"
+  },
+  {
+   "year": 2022,
+   "cites": 431,
+   "venue": "International Journal of Computer Vi",
+   "title": "Curriculum Learning: A Survey",
+   "doi": "https://doi.org/10.1007/s11263-022-01611-x"
+  }
+ ]
+}

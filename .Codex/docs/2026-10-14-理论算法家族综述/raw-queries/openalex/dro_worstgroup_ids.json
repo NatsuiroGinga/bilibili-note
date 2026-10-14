@@ -1,0 +1,48 @@
+{
+ "query": "\"worst-group\" network intrusion detection",
+ "total": 26,
+ "rows": [
+  {
+   "year": 2023,
+   "cites": 11,
+   "venue": "International Conference on Agents and A",
+   "title": "A Clustering Strategy for Enhanced FL-Based Intrusion Detection in IoT Networks",
+   "doi": "https://doi.org/10.5220/0011627500003393"
+  },
+  {
+   "year": 2023,
+   "cites": 12,
+   "venue": "IEEE Access",
+   "title": "MAC Protocol Based IoT Network Intrusion Detection Using Improved Efficient Shuffle Bidirectional COOT Channel Attention",
+   "doi": "https://doi.org/10.1109/access.2023.3299031"
+  },
+  {
+   "year": 2020,
+   "cites": 39,
+   "venue": "Complexity",
+   "title": "Improved TLBO-JAYA Algorithm for Subset Feature Selection and Parameter Optimisation in Intrusion Detection System",
+   "doi": "https://doi.org/10.1155/2020/5287684"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "Artificial Intelligence and Applications",
+   "title": "Privacy Budgets That Work: Client-Level Differential Privacy with Robust Aggregation for IIoT Intrusion Detection",
+   "doi": "https://doi.org/10.47852/bonviewaia62028773"
+  },
+  {
+   "year": 2021,
+   "cites": 0,
+   "venue": "UEF eRepo (University of Eastern Finland",
+   "title": "Botnet Command & Control Detection in IoT Networks",
+   "doi": null
+  },
+  {
+   "year": 2023,
+   "cites": 33,
+   "venue": "FinTech",
+   "title": "An Efficient Optimization Approach for Designing Machine Models Based on Combined Algorithm",
+   "doi": "https://doi.org/10.3390/fintech3010003"
+  }
+ ]
+}

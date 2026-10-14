@@ -1,0 +1,48 @@
+{
+ "query": "\"curriculum learning\" \"long-tail\" imbalanced",
+ "total": 608,
+ "rows": [
+  {
+   "year": 2021,
+   "cites": 674,
+   "venue": "IEEE Transactions on Pattern Analysis an",
+   "title": "A Survey on Curriculum Learning",
+   "doi": "https://doi.org/10.1109/tpami.2021.3069908"
+  },
+  {
+   "year": 2020,
+   "cites": 268,
+   "venue": "Lecture notes in computer science",
+   "title": "Learning From Multiple Experts: Self-paced Knowledge Distillation for Long-Tailed Classification",
+   "doi": "https://doi.org/10.1007/978-3-030-58558-7_15"
+  },
+  {
+   "year": 2022,
+   "cites": 7,
+   "venue": "Proceedings - International Conference o",
+   "title": "CCL: Class-Wise Curriculum Learning for Class Imbalance Problems",
+   "doi": "https://doi.org/10.1109/icip46576.2022.9897273"
+  },
+  {
+   "year": 2023,
+   "cites": 11,
+   "venue": "Neurocomputing",
+   "title": "Curricular-balanced long-tailed learning",
+   "doi": "https://doi.org/10.1016/j.neucom.2023.127121"
+  },
+  {
+   "year": 2023,
+   "cites": 20,
+   "venue": "Lecture notes in computer science",
+   "title": "ECL: Class-Enhancement Contrastive Learning for Long-Tailed Skin Lesion Classification",
+   "doi": "https://doi.org/10.1007/978-3-031-43895-0_23"
+  },
+  {
+   "year": 2022,
+   "cites": 16,
+   "venue": "IEEE International Conference on Multime",
+   "title": "Feature-Balanced Loss for Long-Tailed Visual Recognition",
+   "doi": "https://doi.org/10.1109/icme52920.2022.9860003"
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+{
+ "query": "continual learning \"concept drift\" time malware year",
+ "total": 239,
+ "rows": [
+  {
+   "year": 2022,
+   "cites": 89,
+   "venue": "Proceedings - IEEE Symposium on Security",
+   "title": "Transcending TRANSCEND: Revisiting Malware Classification in the Presence of Concept Drift",
+   "doi": "https://doi.org/10.1109/sp46214.2022.9833659"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "SEED: Semi-supervised Continual MalwarE Detection for Tackling ConcEpt Drift on a BuDget",
+   "doi": "https://doi.org/10.48550/arxiv.2605.24903"
+  },
+  {
+   "year": 2026,
+   "cites": 2,
+   "venue": "Proceedings of the AAAI Conference on Ar",
+   "title": "DRMD: Deep Reinforcement Learning for Malware Detection Under Concept Drift",
+   "doi": "https://doi.org/10.1609/aaai.v40i2.37053"
+  },
+  {
+   "year": 2024,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "MORPH: Towards Automated Concept Drift Adaptation for Malware Detection",
+   "doi": "https://doi.org/10.48550/arxiv.2401.12790"
+  },
+  {
+   "year": 2025,
+   "cites": 10,
+   "venue": "ACM SIGSAC Conference on Computer and Co",
+   "title": "Combating Concept Drift with Explanatory Detection and Adaptation for Android Malware Classification",
+   "doi": "https://doi.org/10.1145/3719027.3744792"
+  },
+  {
+   "year": 2023,
+   "cites": 4,
+   "venue": "arXiv (Cornell University)",
+   "title": "Continuous Learning for Android Malware Detection",
+   "doi": "https://doi.org/10.48550/arxiv.2302.04332"
+  }
+ ]
+}

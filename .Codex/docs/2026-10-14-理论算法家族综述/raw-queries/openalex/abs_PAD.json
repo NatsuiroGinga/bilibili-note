@@ -1,0 +1,9 @@
+[
+ {
+  "title": "PAD: Towards Principled Adversarial Malware Detection Against Evasion Attacks",
+  "year": 2023,
+  "venue": "IEEE Transactions on Dependable and Secure Computing",
+  "doi": "https://doi.org/10.1109/tdsc.2023.3265665",
+  "abstract": "Machine Learning (ML) techniques can facilitate the automation ofmalicious software(malware for short) detection, but suffer from evasion attacks. Many studies counter such attacks in heuristic manners, lacking theoretical guarantees and defense effectiveness. In this article, we propose a new adversarial training framework, termedPrincipledAdversarial MalwareDetection (PAD), which offers convergence guarantees for robust optimization methods. PAD lays on a learnable convex measurement that quantifies distribution-wise discrete perturbations to protect malware detectors from adversaries, whereby for smooth detectors, adversarial training can be performed with theoretical treatments. To promo"
+ }
+]

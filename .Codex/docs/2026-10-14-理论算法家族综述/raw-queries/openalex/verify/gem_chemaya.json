@@ -1,0 +1,27 @@
+{
+ "title_query": "Gradient Episodic Memory for Continual Learning",
+ "total": 6,
+ "rows": [
+  {
+   "year": 2017,
+   "cites": 485,
+   "venue": "arXiv (Cornell University)",
+   "title": "Gradient Episodic Memory for Continual Learning",
+   "doi": "https://doi.org/10.48550/arxiv.1706.08840"
+  },
+  {
+   "year": 2019,
+   "cites": 2,
+   "venue": "",
+   "title": "Revisiting Gradient Episodic Memory for Continual Learning",
+   "doi": null
+  },
+  {
+   "year": 2020,
+   "cites": 8,
+   "venue": "arXiv (Cornell University)",
+   "title": "Gradient Episodic Memory with a Soft Constraint for Continual Learning",
+   "doi": "https://doi.org/10.48550/arxiv.2011.07801"
+  }
+ ]
+}

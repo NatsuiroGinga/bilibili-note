@@ -1,0 +1,13 @@
+{
+ "title_query": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+ "total": 1,
+ "rows": [
+  {
+   "year": 2023,
+   "cites": 1059,
+   "venue": "arXiv (Cornell University)",
+   "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+   "doi": "https://doi.org/10.48550/arxiv.2312.00752"
+  }
+ ]
+}

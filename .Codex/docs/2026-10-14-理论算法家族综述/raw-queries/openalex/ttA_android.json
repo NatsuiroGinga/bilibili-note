@@ -1,0 +1,48 @@
+{
+ "query": "\"test-time adaptation\" android",
+ "total": 53,
+ "rows": [
+  {
+   "year": 2023,
+   "cites": 18,
+   "venue": "Proceedings of the ACM on Interactive Mo",
+   "title": "Optimization-Free Test-Time Adaptation for Cross-Person Activity Recognition",
+   "doi": "https://doi.org/10.1145/3631450"
+  },
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "MADCAT: Combating Malware Detection Under Concept Drift with Test-Time Adaptation",
+   "doi": "https://doi.org/10.48550/arxiv.2505.18734"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "International Joint Conference on Artifi",
+   "title": "Test-Time Adaptation for Graph Learning: A Systematic Survey",
+   "doi": "https://doi.org/10.24963/ijcai.2026/866"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "One Rollout Is All You Get: Fully Test-Time Adaptation for GUI Agents",
+   "doi": "https://doi.org/10.48550/arxiv.2609.34321"
+  },
+  {
+   "year": 2026,
+   "cites": 1,
+   "venue": "Optoelectronic Information-Power Technol",
+   "title": "Resource-aware test-time adaptation for mobile face anti-spoofing under SWAP constraints",
+   "doi": "https://doi.org/10.31649/1681-7893-2026-51-1-79-89"
+  },
+  {
+   "year": 2025,
+   "cites": 2,
+   "venue": "Conference on Empirical Methods in Natur",
+   "title": "AdaRewriter: Unleashing the Power of Prompting-based Conversational Query Reformulation via Test-Time Adaptation",
+   "doi": "https://doi.org/10.18653/v1/2025.emnlp-main.193"
+  }
+ ]
+}

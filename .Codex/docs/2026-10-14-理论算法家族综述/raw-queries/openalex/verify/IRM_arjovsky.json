@@ -1,0 +1,27 @@
+{
+ "title_query": "Invariant Risk Minimization",
+ "total": 47,
+ "rows": [
+  {
+   "year": 2019,
+   "cites": 272,
+   "venue": "arXiv (Cornell University)",
+   "title": "Invariant Risk Minimization",
+   "doi": "https://doi.org/10.48550/arxiv.1907.02893"
+  },
+  {
+   "year": 2020,
+   "cites": 81,
+   "venue": "arXiv (Cornell University)",
+   "title": "The Risks of Invariant Risk Minimization",
+   "doi": "https://doi.org/10.48550/arxiv.2010.05761"
+  },
+  {
+   "year": 2022,
+   "cites": 52,
+   "venue": "IEEE Computer Society Conference on ",
+   "title": "Bayesian Invariant Risk Minimization",
+   "doi": "https://doi.org/10.1109/cvpr52688.2022.01555"
+  }
+ ]
+}

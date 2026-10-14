@@ -1,0 +1,9 @@
+[
+ {
+  "title": "Game-Theoretic Neyman-Pearson Detection to Combat Strategic Evasion",
+  "year": 2024,
+  "venue": "IEEE Transactions on Information Forensics and Security",
+  "doi": "https://doi.org/10.1109/tifs.2024.3515834",
+  "abstract": "The security in networked systems depends greatly on recognizing and identifying adversarial behaviors. Traditional detection methods target specific categories of attacks and have become inadequate against increasingly stealthy and deceptive attacks that are designed to bypass detection strategically. This work proposes game-theoretical frameworks to recognize and combat such evasive attacks. We focus on extending a fundamental class of statistical-based detection methods based on Neyman-Pearson’s (NP) hypothesis testing formulation. We capture the conflicting relationship between a strategic evasive attacker and an evasion-aware NP detector. By analyzing both the equilibrium behaviors of t"
+ }
+]

@@ -1,0 +1,27 @@
+{
+ "title_query": "Overcoming catastrophic forgetting in neural networks",
+ "total": 16,
+ "rows": [
+  {
+   "year": 2017,
+   "cites": 7650,
+   "venue": "Proceedings of the National Academy ",
+   "title": "Overcoming catastrophic forgetting in neural networks",
+   "doi": "https://doi.org/10.1073/pnas.1611835114"
+  },
+  {
+   "year": 2019,
+   "cites": 40,
+   "venue": "IEEE Journal on Exploratory Solid-St",
+   "title": "Unsupervised Learning to Overcome Catastrophic Forgetting in Neural Networks",
+   "doi": "https://doi.org/10.1109/jxcdc.2019.2911135"
+  },
+  {
+   "year": 2016,
+   "cites": 0,
+   "venue": "",
+   "title": "Overcoming catastrophic forgetting in neural networks",
+   "doi": null
+  }
+ ]
+}

@@ -1,0 +1,27 @@
+{
+ "title_query": "On Convergence of Adversarial Training",
+ "total": 10,
+ "rows": [
+  {
+   "year": 2019,
+   "cites": 52,
+   "venue": "arXiv (Cornell University)",
+   "title": "Convergence of Adversarial Training in Overparametrized Neural Networks",
+   "doi": "https://doi.org/10.48550/arxiv.1906.07916"
+  },
+  {
+   "year": 2018,
+   "cites": 3,
+   "venue": "arXiv (Cornell University)",
+   "title": "Gradient Layer: Enhancing the Convergence of Adversarial Training for Generative Models",
+   "doi": "https://doi.org/10.48550/arxiv.1801.02227"
+  },
+  {
+   "year": 2025,
+   "cites": 1,
+   "venue": "SIAM Journal on Mathematics of Data ",
+   "title": "On Neural Network Approximation of Ideal Adversarial Attack and Convergence of Adversarial Training",
+   "doi": "https://doi.org/10.1137/23m1590512"
+  }
+ ]
+}

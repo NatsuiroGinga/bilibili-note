@@ -1,0 +1,48 @@
+{
+ "query": "\"curriculum learning\" \"concept drift\"",
+ "total": 171,
+ "rows": [
+  {
+   "year": 2021,
+   "cites": 280,
+   "venue": "AAAI Publications (The Association for t",
+   "title": "Curriculum Labeling: Revisiting Pseudo-Labeling for Semi-Supervised Learning",
+   "doi": "https://doi.org/10.1609/aaai.v35i8.16852"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "Decision Support Systems",
+   "title": "Financial reinforcement learning under concept drift based on knowledge distillation and curriculum learning",
+   "doi": "https://doi.org/10.1016/j.dss.2026.114624"
+  },
+  {
+   "year": 2021,
+   "cites": 46,
+   "venue": "Proceedings of the AAAI Conference on Ar",
+   "title": "Curriculum Labeling: Revisiting Pseudo-Labeling for Semi-Supervised Learning",
+   "doi": "https://doi.org/10.1609/aaai.v35i8.16852"
+  },
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "IEEE International Conference on Sensors",
+   "title": "Design of Machine Learning-Based Credit Card Fraud Detection Model",
+   "doi": "https://doi.org/10.1109/icsece65727.2025.11256940"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "History Is Not Enough: An Adaptive Dataflow System for Financial Time-Series Synthesis",
+   "doi": "https://doi.org/10.48550/arxiv.2601.10143"
+  },
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "Institutional Repository of Leibniz Univ",
+   "title": "Learning in Non-Stationary Environments",
+   "doi": "https://doi.org/10.15488/20216"
+  }
+ ]
+}

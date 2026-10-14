@@ -1,0 +1,48 @@
+{
+ "query": "\"continual learning\" android malware",
+ "total": 251,
+ "rows": [
+  {
+   "year": 2026,
+   "cites": 1,
+   "venue": "IEEE Transactions on Information Forensi",
+   "title": "Regression-Aware Continual Learning for Android Malware Detection",
+   "doi": "https://doi.org/10.1109/tifs.2026.3714132"
+  },
+  {
+   "year": 2022,
+   "cites": 2,
+   "venue": "arXiv (Cornell University)",
+   "title": "On the Limitations of Continual Learning for Malware Classification",
+   "doi": "https://doi.org/10.48550/arxiv.2208.06568"
+  },
+  {
+   "year": 2026,
+   "cites": 1,
+   "venue": "Algorithms",
+   "title": "ProtoMal: Prototype-Guided Dual-Branch Continual Learning for Robust Android Malware Detection",
+   "doi": "https://doi.org/10.3390/a19060456"
+  },
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "MADAR: Efficient Continual Learning for Malware Analysis with Distribution-Aware Replay",
+   "doi": "https://doi.org/10.48550/arxiv.2502.05760"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "FreeMOCA: Memory-Free Continual Learning for Malicious Code Analysis",
+   "doi": "https://doi.org/10.48550/arxiv.2605.09664"
+  },
+  {
+   "year": 2023,
+   "cites": 4,
+   "venue": "Applied Sciences",
+   "title": "SSCL-TransMD: Semi-Supervised Continual Learning Transformer for Malicious Software Detection",
+   "doi": "https://doi.org/10.3390/app132212255"
+  }
+ ]
+}

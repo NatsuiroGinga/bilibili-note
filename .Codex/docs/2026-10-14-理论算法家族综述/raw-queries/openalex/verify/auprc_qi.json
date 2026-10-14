@@ -1,0 +1,20 @@
+{
+ "title_query": "Stochastic Optimization of Areas Under Precision-Recall Curves with Provable Convergence",
+ "total": 2,
+ "rows": [
+  {
+   "year": 2021,
+   "cites": 9,
+   "venue": "arXiv (Cornell University)",
+   "title": "Stochastic Optimization of Areas Under Precision-Recall Curves with Provable Convergence",
+   "doi": "https://doi.org/10.48550/arxiv.2104.08736"
+  },
+  {
+   "year": 2021,
+   "cites": 7,
+   "venue": "arXiv (Cornell University)",
+   "title": "Stochastic Optimization of Area Under Precision-Recall Curve for Deep Learning with Provable Converg",
+   "doi": null
+  }
+ ]
+}

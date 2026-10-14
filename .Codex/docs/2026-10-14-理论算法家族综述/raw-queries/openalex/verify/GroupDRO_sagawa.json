@@ -1,0 +1,13 @@
+{
+ "title_query": "Distributionally Robust Neural Networks for Group Shifts",
+ "total": 1,
+ "rows": [
+  {
+   "year": 2019,
+   "cites": 331,
+   "venue": "arXiv (Cornell University)",
+   "title": "Distributionally Robust Neural Networks for Group Shifts: On the Importance of Regularization for Wo",
+   "doi": "https://doi.org/10.48550/arxiv.1911.08731"
+  }
+ ]
+}

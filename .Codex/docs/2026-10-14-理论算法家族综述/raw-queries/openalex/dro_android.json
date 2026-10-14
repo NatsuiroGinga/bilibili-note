@@ -1,0 +1,48 @@
+{
+ "query": "\"distributionally robust\" android",
+ "total": 103,
+ "rows": [
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "Evaluating Out-of-Distribution Robustness in Graph-Based Android Malware Classification: A New Principled Benchmark",
+   "doi": "https://doi.org/10.48550/arxiv.2508.06734"
+  },
+  {
+   "year": 2023,
+   "cites": 3,
+   "venue": "Jurnal Ilmiah Teknik Elektro Komputer da",
+   "title": "Gazebo Semar: An Android-based Farmer Education Platform for Agricultural Waste Management",
+   "doi": "https://doi.org/10.26555/jiteki.v9i1.25757"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "International Journal of Electronics and",
+   "title": "Rapid degradation of linear Android Malware detection under white-box feature-space perturbations",
+   "doi": "https://doi.org/10.24425/ijet.2026.157962"
+  },
+  {
+   "year": 2024,
+   "cites": 12,
+   "venue": "neural information processing systems",
+   "title": "On the Effects of Data Scale on UI Control Agents",
+   "doi": "https://doi.org/10.52202/079017-2925"
+  },
+  {
+   "year": 2021,
+   "cites": 1,
+   "venue": "International Journal of Engineering App",
+   "title": "APPLICATION OF MACHINE LEARNING AND DEEP LEARNING IN SMART AGRICULTURE",
+   "doi": "https://doi.org/10.33564/ijeast.2021.v06i06.019"
+  },
+  {
+   "year": 2023,
+   "cites": 40,
+   "venue": "IEEE Transactions on Dependable and Secu",
+   "title": "PAD: Towards Principled Adversarial Malware Detection Against Evasion Attacks",
+   "doi": "https://doi.org/10.1109/tdsc.2023.3265665"
+  }
+ ]
+}

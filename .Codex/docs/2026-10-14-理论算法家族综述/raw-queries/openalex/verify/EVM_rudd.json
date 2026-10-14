@@ -1,0 +1,27 @@
+{
+ "title_query": "Extreme Value Machine",
+ "total": 107,
+ "rows": [
+  {
+   "year": 2017,
+   "cites": 327,
+   "venue": "IEEE Transactions on Pattern Analysi",
+   "title": "The Extreme Value Machine",
+   "doi": "https://doi.org/10.1109/tpami.2017.2707495"
+  },
+  {
+   "year": 2017,
+   "cites": 50,
+   "venue": "IEEE International Conference on Mac",
+   "title": "Incremental Open Set Intrusion Recognition Using Extreme Value Machine",
+   "doi": "https://doi.org/10.1109/icmla.2017.000-3"
+  },
+  {
+   "year": 2023,
+   "cites": 7,
+   "venue": "Biomedical Signal Processing and Con",
+   "title": "Raw EMG classification using extreme value machine",
+   "doi": "https://doi.org/10.1016/j.bspc.2023.105345"
+  }
+ ]
+}

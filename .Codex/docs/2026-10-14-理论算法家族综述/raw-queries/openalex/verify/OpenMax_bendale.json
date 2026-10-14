@@ -1,0 +1,27 @@
+{
+ "title_query": "Towards Open Set Deep Networks",
+ "total": 4,
+ "rows": [
+  {
+   "year": 2016,
+   "cites": 1653,
+   "venue": "IEEE Computer Society Conference on ",
+   "title": "Towards Open Set Deep Networks",
+   "doi": "https://doi.org/10.1109/cvpr.2016.173"
+  },
+  {
+   "year": 2020,
+   "cites": 23,
+   "venue": "International Journal of Remote Sens",
+   "title": "Hyperspectral open set classification with unknown classes rejection towards deep networks",
+   "doi": "https://doi.org/10.1080/01431161.2020.1754492"
+  },
+  {
+   "year": 2021,
+   "cites": 5,
+   "venue": "IOP Conference Series Earth and Envi",
+   "title": "Hyperspectral Open Set Classification towards Deep Networks Based on Boxplot",
+   "doi": "https://doi.org/10.1088/1755-1315/693/1/012085"
+  }
+ ]
+}

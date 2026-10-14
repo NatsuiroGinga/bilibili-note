@@ -1,0 +1,16 @@
+[
+ {
+  "title": "TIF: Learning Temporal Invariance in Android Malware Detectors",
+  "year": 2026,
+  "venue": "IEEE Transactions on Software Engineering",
+  "doi": "https://doi.org/10.1109/tse.2026.3698484",
+  "abstract": "Learning-based Android malware detectors degrade over time due to natural distribution drift caused by malware variants and new families. This paper systematically investigates the challenges classifiers trained with empirical risk minimization (ERM) face against such distribution shifts and attributes their shortcomings to their inability to learnstablediscriminative features. Invariant learning theory offers a promising solution by encouraging models to generate stable representations across environments that expose the instability of the training set. However, the lack of prior environment labels, the diversity of drift factors, and low-quality representations caused by diverse families m"
+ },
+ {
+  "title": "Dataset of TIF: Learning Temporal Invariance in Android Malware Detectors",
+  "year": 2026,
+  "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+  "doi": "https://doi.org/10.5281/zenodo.18156983",
+  "abstract": "(无摘要)"
+ }
+]

@@ -1,0 +1,48 @@
+{
+ "query": "\"open set\" android malware family",
+ "total": 82,
+ "rows": [
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "Malware families discovery via Open-Set Recognition on Android manifest permissions",
+   "doi": "https://doi.org/10.48550/arxiv.2505.12750"
+  },
+  {
+   "year": 2023,
+   "cites": 1,
+   "venue": "arXiv (Cornell University)",
+   "title": "MDENet: Multi-modal Dual-embedding Networks for Malware Open-set Recognition",
+   "doi": "https://doi.org/10.48550/arxiv.2305.01245"
+  },
+  {
+   "year": 2022,
+   "cites": 7,
+   "venue": "2022 International Joint Conference on N",
+   "title": "Representation Learning with Function Call Graph Transformations for Malware Open Set Recognition",
+   "doi": "https://doi.org/10.1109/ijcnn55064.2022.9892931"
+  },
+  {
+   "year": 2023,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "CNS-Net: Conservative Novelty Synthesizing Network for Malware Recognition in an Open-set Scenario",
+   "doi": "https://doi.org/10.48550/arxiv.2305.01236"
+  },
+  {
+   "year": 2023,
+   "cites": 4,
+   "venue": "arXiv (Cornell University)",
+   "title": "Continuous Learning for Android Malware Detection",
+   "doi": "https://doi.org/10.48550/arxiv.2302.04332"
+  },
+  {
+   "year": 2025,
+   "cites": 4,
+   "venue": "Computers",
+   "title": "Feature-Centric Approaches to Android Malware Analysis: A Survey",
+   "doi": "https://doi.org/10.3390/computers14110482"
+  }
+ ]
+}

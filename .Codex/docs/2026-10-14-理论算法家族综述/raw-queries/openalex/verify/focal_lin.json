@@ -1,0 +1,27 @@
+{
+ "title_query": "Focal Loss for Dense Object Detection",
+ "total": 10,
+ "rows": [
+  {
+   "year": 2017,
+   "cites": 27010,
+   "venue": "IEEE International Conference on Com",
+   "title": "Focal Loss for Dense Object Detection",
+   "doi": "https://doi.org/10.1109/iccv.2017.324"
+  },
+  {
+   "year": 2018,
+   "cites": 9490,
+   "venue": "IEEE Transactions on Pattern Analysi",
+   "title": "Focal Loss for Dense Object Detection",
+   "doi": "https://doi.org/10.1109/tpami.2018.2858826"
+  },
+  {
+   "year": 2017,
+   "cites": 1222,
+   "venue": "arXiv (Cornell University)",
+   "title": "Focal Loss for Dense Object Detection",
+   "doi": "https://doi.org/10.48550/arxiv.1708.02002"
+  }
+ ]
+}

@@ -1,0 +1,48 @@
+{
+ "query": "\"state space model\" tabular classification",
+ "total": 823,
+ "rows": [
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "Random Feature Representation Boosting",
+   "doi": "https://doi.org/10.48550/arxiv.2501.18283"
+  },
+  {
+   "year": 2025,
+   "cites": 1,
+   "venue": "Statistics and Computing",
+   "title": "Tree-based variational inference for Poisson log-normal models",
+   "doi": "https://doi.org/10.1007/s11222-025-10668-w"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "Robust Dual-Model Collaborative Random Vector Functional Link Network",
+   "doi": "https://doi.org/10.48550/arxiv.2608.13628"
+  },
+  {
+   "year": 2024,
+   "cites": 80,
+   "venue": "ACM SIGKDD Conference on Knowledge Disco",
+   "title": "Graph Mamba: Towards Learning on Graphs with State Space Models",
+   "doi": "https://doi.org/10.1145/3637528.3672044"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "The Atrium (University of Guelph)",
+   "title": "State-Space Models for Scalable and Hierarchical DNA Barcoding in Biodiversity Analysis",
+   "doi": null
+  },
+  {
+   "year": 2021,
+   "cites": 19,
+   "venue": "Structural Control and Health Monitoring",
+   "title": "Anomaly detection using state‐space models and reinforcement learning",
+   "doi": "https://doi.org/10.1002/stc.2720"
+  }
+ ]
+}

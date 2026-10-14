@@ -1,0 +1,34 @@
+{
+ "query": "\"extreme verification latency\" malware",
+ "total": 4,
+ "rows": [
+  {
+   "year": 2017,
+   "cites": 0,
+   "venue": "Rowan Digitals Works (Rowan University)",
+   "title": "Learning extreme verification latency quickly with importance weighting: FAST COMPOSE & LEVEL_IW",
+   "doi": null
+  },
+  {
+   "year": 2015,
+   "cites": 0,
+   "venue": "Rowan Digitals Works (Rowan University)",
+   "title": "COMPOSE: Compacted object sample extraction a framework for semi-supervised learning in nonstationary environments",
+   "doi": null
+  },
+  {
+   "year": 2017,
+   "cites": 2,
+   "venue": "arXiv (Cornell University)",
+   "title": "Online Learning with Regularized Kernel for One-class Classification",
+   "doi": "https://doi.org/10.48550/arxiv.1701.04508"
+  },
+  {
+   "year": 2019,
+   "cites": 58,
+   "venue": "Journal of the Franklin Institute",
+   "title": "Concept drift detection and adaptation with hierarchical hypothesis testing",
+   "doi": "https://doi.org/10.1016/j.jfranklin.2019.01.043"
+  }
+ ]
+}

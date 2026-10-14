@@ -1,0 +1,48 @@
+{
+ "query": "\"curriculum learning\" android",
+ "total": 907,
+ "rows": [
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "IEEE/CVF International Conference on Com",
+   "title": "Inside Knowledge: Graph-based Path Generation with Explainable Data Augmentation and Curriculum Learning for Visual Indo",
+   "doi": "https://doi.org/10.1109/iccvw69036.2025.00184"
+  },
+  {
+   "year": 2025,
+   "cites": 3,
+   "venue": "Proceedings of the ACM on software engin",
+   "title": "Understanding Model Weaknesses: A Path to Strengthening DNN-Based Android Malware Detection",
+   "doi": "https://doi.org/10.1145/3728884"
+  },
+  {
+   "year": 2022,
+   "cites": 22,
+   "venue": "Sensors",
+   "title": "A Preliminary Study on Realizing Human–Robot Mental Comforting Dialogue via Sharing Experience Emotionally",
+   "doi": "https://doi.org/10.3390/s22030991"
+  },
+  {
+   "year": 2025,
+   "cites": 0,
+   "venue": "arXiv (Cornell University)",
+   "title": "CRAFT-GUI: Curriculum-Reinforced Agent For GUI Tasks",
+   "doi": "https://doi.org/10.48550/arxiv.2508.11360"
+  },
+  {
+   "year": 2026,
+   "cites": 0,
+   "venue": "Repositori ObertUDL (University of Lleid",
+   "title": "Handwritten text recognition for Catalan: Overcoming Data Scarcity",
+   "doi": null
+  },
+  {
+   "year": 2026,
+   "cites": 1,
+   "venue": "Computers & Electrical Engineering",
+   "title": "Mango-Mamba and VN-MangoLeaf: A lightweight Mamba model and New Dataset for Mango leaf disease classification",
+   "doi": "https://doi.org/10.1016/j.compeleceng.2026.111033"
+  }
+ ]
+}

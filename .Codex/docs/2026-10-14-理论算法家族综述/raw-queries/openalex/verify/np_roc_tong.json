@@ -1,0 +1,27 @@
+{
+ "title_query": "Neyman-Pearson classification algorithms and NP receiver operating characteristics",
+ "total": 4,
+ "rows": [
+  {
+   "year": 2018,
+   "cites": 79,
+   "venue": "Science Advances",
+   "title": "Neyman-Pearson classification algorithms and NP receiver operating characteristics",
+   "doi": "https://doi.org/10.1126/sciadv.aao1659"
+  },
+  {
+   "year": 2016,
+   "cites": 4,
+   "venue": "arXiv (Cornell University)",
+   "title": "Neyman-Pearson (NP) classification algorithms and NP receiver operating characteristic (NP-ROC) curv",
+   "doi": null
+  },
+  {
+   "year": 2016,
+   "cites": 0,
+   "venue": "",
+   "title": "nproc: Neyman-Pearson (NP) Classification Algorithms and NP Receiver Operating Characteristic (NP-RO",
+   "doi": "https://doi.org/10.32614/cran.package.nproc"
+  }
+ ]
+}
