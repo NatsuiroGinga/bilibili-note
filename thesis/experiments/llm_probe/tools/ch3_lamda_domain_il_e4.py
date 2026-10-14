@@ -359,12 +359,14 @@ def evaluate(model, x, y, batch, device) -> dict:
 
 
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
-         buffer_repeat: int = 1, seed: int = SEED) -> int:
+         buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir") -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
     if strategy == "expreplay":
         tag = f"{strategy}_m{memory}"
+        if buffer_scheme != "reservoir":
+            tag += f"_{buffer_scheme}"
         if buffer_repeat != 1:
             tag += f"_r{buffer_repeat}"
     else:
@@ -381,7 +383,11 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
     rng = np.random.default_rng(seed)
 
     years = DOMAIN_YEARS if not years_limit else DOMAIN_YEARS[:years_limit]
-    buffer = ReplayBuffer(memory) if strategy == "expreplay" else None
+    # 配额方案每轮从**已见年度**重建缓冲，与此处增量式的蓄水池互斥（同一时间只启用一个）
+    buffer = (ReplayBuffer(memory)
+              if (strategy == "expreplay" and buffer_scheme == "reservoir") else None)
+    # 配额缓冲用**独立** RNG：不扰动 train_epochs 的洗牌流，使两臂在训练侧逐位可比
+    buf_rng = np.random.default_rng(SEED)
 
     # 预载全部年份到主机内存（int8；官方逐次读盘，见偏离 2 的注释）
     store: dict[int, tuple[np.ndarray, np.ndarray]] = {}
@@ -407,7 +413,15 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         elif strategy == "cumulative":
             parts = [store[y] for y in years[: idx + 1]]
         elif strategy == "expreplay":
-            if len(buffer):
+            if buffer_scheme == "quota":
+                # 官方语义是「当年训练前，缓冲只含**此前**年度」（add_batch 在评价之后）
+                if idx == 0:
+                    parts = [(x_curr, y_curr)]
+                else:
+                    xb, yb = quota_buffer(store, years[:idx], memory, buf_rng)
+                    blk = (xb.astype(np.int8), yb.astype(np.float32))
+                    parts = [(x_curr, y_curr)] + [blk] * buffer_repeat
+            elif len(buffer):
                 xb, yb = buffer.sample()
                 blk = (xb.astype(np.int8), yb.astype(np.float32))
                 # 模块二（$m$ 杠杆）：把**同一批**历史样本在拼接集中重复 `buffer_repeat` 次。
@@ -488,6 +502,10 @@ if __name__ == "__main__":
     p.add_argument("--batch", type=int, default=OFFICIAL_BATCH)
     p.add_argument("--lr", type=float, default=OFFICIAL_LR)
     p.add_argument("--memory", type=int, default=OFFICIAL_MEMORY)
+    p.add_argument("--buffer-scheme", choices=("reservoir", "quota"), default="reservoir",
+                   help="reservoir = 官方全局蓄水池（默认，文件名不变）；"
+                        "quota = 按年等额＋年内正负各半的配额方案（设计见 quota_buffer 文档串）。"
+                        "仅对 --strategy expreplay 生效。")
     p.add_argument("--buffer-repeat", type=int, default=1,
                    help="模块二（$m$ 杠杆）：历史样本块每轮重复次数。默认 1 = 官方语义，"
                         "文件名与既有产物保持一致。仅对 --strategy expreplay 生效。")
