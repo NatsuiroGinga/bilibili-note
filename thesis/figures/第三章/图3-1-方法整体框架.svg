@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="425.19685pt" height="272.125984pt" viewBox="0 0 425.19685 272.125984" xmlns="http://www.w3.org/2000/svg" version="1.1">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="425.19685pt" height="396.850394pt" viewBox="0 0 425.19685 396.850394" xmlns="http://www.w3.org/2000/svg" version="1.1">
  <title>图3-1-方法整体框架</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>图3-1-方法整体框架</dc:title>
-    <dc:date>2026-10-14T18:20:53.915749</dc:date>
+    <dc:date>2026-10-14T19:28:21.452055</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -23,8 +23,8 @@
  </defs>
  <g id="figure_1">
   <g id="patch_1">
-   <path d="M 0 272.125984 
-L 425.19685 272.125984 
+   <path d="M 0 396.850394 
+L 425.19685 396.850394 
 L 425.19685 0 
 L 0 0 
 z
@@ -32,395 +32,672 @@ z
   </g>
   <g id="axes_1">
    <g id="patch_2">
-    <path d="M 11.055118 185.589921 
-L 184.96063 185.589921 
-Q 190.062992 185.589921 190.062992 182.324409 
-L 190.062992 13.062047 
-Q 190.062992 9.796535 184.96063 9.796535 
-L 11.055118 9.796535 
-Q 5.952756 9.796535 5.952756 13.062047 
-L 5.952756 182.324409 
-Q 5.952756 185.589921 11.055118 185.589921 
+    <path d="M 28.062992 201.20315 
+L 217.700787 201.20315 
+Q 222.80315 201.20315 222.80315 196.440945 
+L 222.80315 123.420472 
+Q 222.80315 118.658268 217.700787 118.658268 
+L 28.062992 118.658268 
+Q 22.96063 118.658268 22.96063 123.420472 
+L 22.96063 196.440945 
+Q 22.96063 201.20315 28.062992 201.20315 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #fbfbfb; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #f1f1f1; stroke: #555555; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_3">
-    <path d="M 240.23622 185.589921 
-L 414.141732 185.589921 
-Q 419.244094 185.589921 419.244094 182.324409 
-L 419.244094 13.062047 
-Q 419.244094 9.796535 414.141732 9.796535 
-L 240.23622 9.796535 
-Q 235.133858 9.796535 235.133858 13.062047 
-L 235.133858 182.324409 
-Q 235.133858 185.589921 240.23622 185.589921 
+    <path d="M 28.062992 333.751181 
+L 217.700787 333.751181 
+Q 222.80315 333.751181 222.80315 328.988976 
+L 222.80315 255.968504 
+Q 222.80315 251.206299 217.700787 251.206299 
+L 28.062992 251.206299 
+Q 22.96063 251.206299 22.96063 255.968504 
+L 22.96063 328.988976 
+Q 22.96063 333.751181 28.062992 333.751181 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #fbfbfb; stroke: #bfbfbf; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #f1f1f1; stroke: #555555; stroke-width: 2; stroke-linejoin: miter"/>
    </g>
    <g id="patch_4">
-    <path d="M 25.937008 56.874331 
-L 170.07874 56.874331 
-Q 175.181102 56.874331 175.181102 53.608819 
-L 175.181102 34.832126 
-Q 175.181102 31.566614 170.07874 31.566614 
-L 25.937008 31.566614 
-Q 20.834646 31.566614 20.834646 34.832126 
-L 20.834646 53.608819 
-Q 20.834646 56.874331 25.937008 56.874331 
+    <path d="M 122.88189 42.066142 
+C 139.796418 42.066142 156.020448 40.937146 167.980826 38.927802 
+C 179.941204 36.918459 186.661417 34.192822 186.661417 31.351181 
+C 186.661417 28.50954 179.941204 25.783903 167.980826 23.77456 
+C 156.020448 21.765216 139.796418 20.63622 122.88189 20.63622 
+C 105.967361 20.63622 89.743331 21.765216 77.782953 23.77456 
+C 65.822576 25.783903 59.102362 28.50954 59.102362 31.351181 
+C 59.102362 34.192822 65.822576 36.918459 77.782953 38.927802 
+C 89.743331 40.937146 105.967361 42.066142 122.88189 42.066142 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #f1f1f1; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_5">
-    <path d="M 25.937008 97.693228 
-L 170.07874 97.693228 
-Q 175.181102 97.693228 175.181102 94.427717 
-L 175.181102 67.487244 
-Q 175.181102 64.221732 170.07874 64.221732 
-L 25.937008 64.221732 
-Q 20.834646 64.221732 20.834646 67.487244 
-L 20.834646 94.427717 
-Q 20.834646 97.693228 25.937008 97.693228 
+    <path d="M 122.88189 90.87874 
+L 159.448819 100.8 
+L 122.88189 110.72126 
+L 86.314961 100.8 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #f1f1f1; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_6">
-    <path d="M 25.937008 138.512126 
-L 170.07874 138.512126 
-Q 175.181102 138.512126 175.181102 135.246614 
-L 175.181102 108.306142 
-Q 175.181102 105.04063 170.07874 105.04063 
-L 25.937008 105.04063 
-Q 20.834646 105.04063 20.834646 108.306142 
-L 20.834646 135.246614 
-Q 20.834646 138.512126 25.937008 138.512126 
+    <path d="M 122.88189 223.426772 
+L 159.448819 233.348031 
+L 122.88189 243.269291 
+L 86.314961 233.348031 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #f1f1f1; stroke-dasharray: 3,2; stroke-dashoffset: 0; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_7">
-    <path d="M 25.937008 180.691654 
-L 170.07874 180.691654 
-Q 175.181102 180.691654 175.181102 177.426142 
-L 175.181102 150.485669 
-Q 175.181102 147.220157 170.07874 147.220157 
-L 25.937008 147.220157 
-Q 20.834646 147.220157 20.834646 150.485669 
-L 20.834646 177.426142 
-Q 20.834646 180.691654 25.937008 180.691654 
+    <path d="M 302.740157 144.850394 
+C 314.01651 144.850394 324.83253 143.888656 332.806115 142.176994 
+C 340.7797 140.465331 345.259843 138.143492 345.259843 135.722835 
+C 345.259843 133.302178 340.7797 130.980339 332.806115 129.268676 
+C 324.83253 127.557013 314.01651 126.595276 302.740157 126.595276 
+C 291.463805 126.595276 280.647785 127.557013 272.6742 129.268676 
+C 264.700615 130.980339 260.220472 133.302178 260.220472 135.722835 
+C 260.220472 138.143492 264.700615 140.465331 272.6742 142.176994 
+C 280.647785 143.888656 291.463805 144.850394 302.740157 144.850394 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #f1f1f1; stroke: #555555; stroke-linejoin: miter"/>
    </g>
    <g id="patch_8">
-    <path d="M 255.11811 56.874331 
-L 399.259843 56.874331 
-Q 404.362205 56.874331 404.362205 53.608819 
-L 404.362205 34.832126 
-Q 404.362205 31.566614 399.259843 31.566614 
-L 255.11811 31.566614 
-Q 250.015748 31.566614 250.015748 34.832126 
-L 250.015748 53.608819 
-Q 250.015748 56.874331 255.11811 56.874331 
+    <path d="M 31.464567 68.655118 
+L 214.299213 68.655118 
+Q 216.850394 68.655118 216.850394 66.274016 
+L 216.850394 47.225197 
+Q 216.850394 44.844094 214.299213 44.844094 
+L 31.464567 44.844094 
+Q 28.913386 44.844094 28.913386 47.225197 
+L 28.913386 66.274016 
+Q 28.913386 68.655118 31.464567 68.655118 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_9">
-    <path d="M 255.11811 97.693228 
-L 399.259843 97.693228 
-Q 404.362205 97.693228 404.362205 94.427717 
-L 404.362205 67.487244 
-Q 404.362205 64.221732 399.259843 64.221732 
-L 255.11811 64.221732 
-Q 250.015748 64.221732 250.015748 67.487244 
-L 250.015748 94.427717 
-Q 250.015748 97.693228 255.11811 97.693228 
+    <path d="M 31.464567 88.100787 
+L 214.299213 88.100787 
+Q 216.850394 88.100787 216.850394 85.719685 
+L 216.850394 72.226772 
+Q 216.850394 69.845669 214.299213 69.845669 
+L 31.464567 69.845669 
+Q 28.913386 69.845669 28.913386 72.226772 
+L 28.913386 85.719685 
+Q 28.913386 88.100787 31.464567 88.100787 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_10">
-    <path d="M 255.11811 138.512126 
-L 399.259843 138.512126 
-Q 404.362205 138.512126 404.362205 135.246614 
-L 404.362205 108.306142 
-Q 404.362205 105.04063 399.259843 105.04063 
-L 255.11811 105.04063 
-Q 250.015748 105.04063 250.015748 108.306142 
-L 250.015748 135.246614 
-Q 250.015748 138.512126 255.11811 138.512126 
+    <path d="M 31.464567 220.648819 
+L 214.299213 220.648819 
+Q 216.850394 220.648819 216.850394 218.267717 
+L 216.850394 204.774803 
+Q 216.850394 202.393701 214.299213 202.393701 
+L 31.464567 202.393701 
+Q 28.913386 202.393701 28.913386 204.774803 
+L 28.913386 218.267717 
+Q 28.913386 220.648819 31.464567 220.648819 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_11">
-    <path d="M 255.11811 180.691654 
-L 399.259843 180.691654 
-Q 404.362205 180.691654 404.362205 177.426142 
-L 404.362205 150.485669 
-Q 404.362205 147.220157 399.259843 147.220157 
-L 255.11811 147.220157 
-Q 250.015748 147.220157 250.015748 150.485669 
-L 250.015748 177.426142 
-Q 250.015748 180.691654 255.11811 180.691654 
+    <path d="M 31.464567 356.371654 
+L 214.299213 356.371654 
+Q 216.850394 356.371654 216.850394 353.990551 
+L 216.850394 337.322835 
+Q 216.850394 334.941732 214.299213 334.941732 
+L 31.464567 334.941732 
+Q 28.913386 334.941732 28.913386 337.322835 
+L 28.913386 353.990551 
+Q 28.913386 356.371654 31.464567 356.371654 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_12">
-    <path d="M 65.055118 246.00189 
-L 219.826772 246.00189 
-Q 224.929134 246.00189 224.929134 242.736378 
-L 224.929134 218.517165 
-Q 224.929134 215.251654 219.826772 215.251654 
-L 65.055118 215.251654 
-Q 59.952756 215.251654 59.952756 218.517165 
-L 59.952756 242.736378 
-Q 59.952756 246.00189 65.055118 246.00189 
+    <path d="M 31.464567 375.817323 
+L 214.299213 375.817323 
+Q 216.850394 375.817323 216.850394 373.43622 
+L 216.850394 359.943307 
+Q 216.850394 357.562205 214.299213 357.562205 
+L 31.464567 357.562205 
+Q 28.913386 357.562205 28.913386 359.943307 
+L 28.913386 373.43622 
+Q 28.913386 375.817323 31.464567 375.817323 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #ffffff; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_13">
-    <path d="M 254.267717 246.00189 
-L 404.787402 246.00189 
-Q 409.889764 246.00189 409.889764 242.736378 
-L 409.889764 218.517165 
-Q 409.889764 215.251654 404.787402 215.251654 
-L 254.267717 215.251654 
-Q 249.165354 215.251654 249.165354 218.517165 
-L 249.165354 242.736378 
-Q 249.165354 246.00189 254.267717 246.00189 
+    <path d="M 237.259843 111.911811 
+L 368.220472 111.911811 
+Q 370.771654 111.911811 370.771654 109.530709 
+L 370.771654 92.069291 
+Q 370.771654 89.688189 368.220472 89.688189 
+L 237.259843 89.688189 
+Q 234.708661 89.688189 234.708661 92.069291 
+L 234.708661 109.530709 
+Q 234.708661 111.911811 237.259843 111.911811 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #f1f1f1; stroke: #555555; stroke-linejoin: miter"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_14">
-    <path d="M 98.007874 55.785827 
-Q 98.007874 60.548031 98.007874 64.192202 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 99.207874 61.792202 
-L 98.007874 64.192202 
-L 96.807874 61.792202 
+    <path d="M 237.259843 246.047244 
+L 368.220472 246.047244 
+Q 370.771654 246.047244 370.771654 243.666142 
+L 370.771654 223.029921 
+Q 370.771654 220.648819 368.220472 220.648819 
+L 237.259843 220.648819 
+Q 234.708661 220.648819 234.708661 223.029921 
+L 234.708661 243.666142 
+Q 234.708661 246.047244 237.259843 246.047244 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
    </g>
    <g id="patch_15">
-    <path d="M 98.007874 96.604724 
-Q 98.007874 101.366929 98.007874 105.0111 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 99.207874 102.6111 
-L 98.007874 105.0111 
-L 96.807874 102.6111 
+    <path d="M 237.259843 289.700787 
+L 368.220472 289.700787 
+Q 370.771654 289.700787 370.771654 287.319685 
+L 370.771654 272.23937 
+Q 370.771654 269.858268 368.220472 269.858268 
+L 237.259843 269.858268 
+Q 234.708661 269.858268 234.708661 272.23937 
+L 234.708661 287.319685 
+Q 234.708661 289.700787 237.259843 289.700787 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.8; stroke-linejoin: miter"/>
+   </g>
+   <g id="line2d_1">
+    <path d="M 369.070866 279.779528 
+L 397.559055 279.779528 
+L 397.559055 9.92126 
+L 6.80315 9.92126 
+L 6.80315 100.8 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="line2d_2">
+    <path d="M 30.614173 366.689764 
+L 17.858268 366.689764 
+L 17.858268 233.348031 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_16">
-    <path d="M 98.007874 137.423622 
-Q 98.007874 142.866142 98.007874 147.190627 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 99.207874 144.790627 
-L 98.007874 147.190627 
-L 96.807874 144.790627 
+    <path d="M 122.88189 42.066142 
+Q 122.88189 44.248819 122.88189 45.313462 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 42.513462 
+L 122.88189 45.313462 
+L 121.48189 42.513462 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_17">
-    <path d="M 327.188976 55.785827 
-Q 327.188976 60.548031 327.188976 64.192202 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 328.388976 61.792202 
-L 327.188976 64.192202 
-L 325.988976 61.792202 
+    <path d="M 122.88189 67.067717 
+Q 122.88189 69.250394 122.88189 70.315037 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 67.515037 
+L 122.88189 70.315037 
+L 121.48189 67.515037 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_18">
-    <path d="M 327.188976 96.604724 
-Q 327.188976 101.366929 327.188976 105.0111 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 328.388976 102.6111 
-L 327.188976 105.0111 
-L 325.988976 102.6111 
+    <path d="M 122.88189 86.513386 
+Q 122.88189 88.696063 122.88189 89.760706 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 86.960706 
+L 122.88189 89.760706 
+L 121.48189 86.960706 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_19">
-    <path d="M 327.188976 137.423622 
-Q 327.188976 142.866142 327.188976 147.190627 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 328.388976 144.790627 
-L 327.188976 147.190627 
-L 325.988976 144.790627 
+    <path d="M 122.88189 110.72126 
+Q 122.88189 115.483465 122.88189 119.127635 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 116.327635 
+L 122.88189 119.127635 
+L 121.48189 116.327635 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="patch_20">
-    <path d="M 188.362205 80.95748 
-Q 212.598425 80.95748 235.716612 80.95748 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 233.316612 79.75748 
-L 235.716612 80.95748 
-L 233.316612 82.15748 
+    <path d="M 30.614173 155.962205 
+L 215.149606 155.962205 
+Q 216.850394 155.962205 216.850394 154.374803 
+L 216.850394 136.119685 
+Q 216.850394 134.532283 215.149606 134.532283 
+L 30.614173 134.532283 
+Q 28.913386 134.532283 28.913386 136.119685 
+L 28.913386 154.374803 
+Q 28.913386 155.962205 30.614173 155.962205 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_21">
-    <path d="M 223.228346 230.626772 
-Q 237.047244 230.626772 249.748108 230.626772 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 247.348108 229.426772 
-L 249.748108 230.626772 
-L 247.348108 231.826772 
+    <path d="M 30.614173 176.598425 
+L 215.149606 176.598425 
+Q 216.850394 176.598425 216.850394 175.011024 
+L 216.850394 156.755906 
+Q 216.850394 155.168504 215.149606 155.168504 
+L 30.614173 155.168504 
+Q 28.913386 155.168504 28.913386 156.755906 
+L 28.913386 175.011024 
+Q 28.913386 176.598425 30.614173 176.598425 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_22">
-    <path d="M 98.007874 184.501417 
-Q 102.153543 200.420787 106.017455 215.258209 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 106.573897 212.633257 
-L 106.017455 215.258209 
-L 104.251358 213.238085 
+    <path d="M 30.614173 197.234646 
+L 215.149606 197.234646 
+Q 216.850394 197.234646 216.850394 195.647244 
+L 216.850394 177.392126 
+Q 216.850394 175.804724 215.149606 175.804724 
+L 30.614173 175.804724 
+Q 28.913386 175.804724 28.913386 177.392126 
+L 28.913386 195.647244 
+Q 28.913386 197.234646 30.614173 197.234646 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_23">
-    <path d="M 327.188976 184.501417 
-Q 260.326772 200.420787 194.552198 216.081201 
-" clip-path="url(#p9c38ab6786)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
-    <path d="M 197.164876 216.692687 
-L 194.552198 216.081201 
-L 196.608993 214.35795 
+    <path d="M 122.88189 199.615748 
+Q 122.88189 201.798425 122.88189 202.863068 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 200.063068 
+L 122.88189 202.863068 
+L 121.48189 200.063068 
 z
-" clip-path="url(#p9c38ab6786)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_24">
+    <path d="M 122.88189 219.061417 
+Q 122.88189 221.244094 122.88189 222.308738 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 219.508738 
+L 122.88189 222.308738 
+L 121.48189 219.508738 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_25">
+    <path d="M 30.614173 288.510236 
+L 215.149606 288.510236 
+Q 216.850394 288.510236 216.850394 286.922835 
+L 216.850394 268.667717 
+Q 216.850394 267.080315 215.149606 267.080315 
+L 30.614173 267.080315 
+Q 28.913386 267.080315 28.913386 268.667717 
+L 28.913386 286.922835 
+Q 28.913386 288.510236 30.614173 288.510236 
+z
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_26">
+    <path d="M 30.614173 309.146457 
+L 215.149606 309.146457 
+Q 216.850394 309.146457 216.850394 307.559055 
+L 216.850394 289.303937 
+Q 216.850394 287.716535 215.149606 287.716535 
+L 30.614173 287.716535 
+Q 28.913386 287.716535 28.913386 289.303937 
+L 28.913386 307.559055 
+Q 28.913386 309.146457 30.614173 309.146457 
+z
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_27">
+    <path d="M 30.614173 329.782677 
+L 215.149606 329.782677 
+Q 216.850394 329.782677 216.850394 328.195276 
+L 216.850394 309.940157 
+Q 216.850394 308.352756 215.149606 308.352756 
+L 30.614173 308.352756 
+Q 28.913386 308.352756 28.913386 309.940157 
+L 28.913386 328.195276 
+Q 28.913386 329.782677 30.614173 329.782677 
+z
+" clip-path="url(#p83de757160)" style="fill: #ffffff; stroke: #555555; stroke-width: 0.7; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_28">
+    <path d="M 122.88189 243.269291 
+Q 122.88189 248.031496 122.88189 251.675667 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 248.875667 
+L 122.88189 251.675667 
+L 121.48189 248.875667 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_29">
+    <path d="M 122.88189 332.16378 
+Q 122.88189 334.346457 122.88189 335.4111 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 332.6111 
+L 122.88189 335.4111 
+L 121.48189 332.6111 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_30">
+    <path d="M 122.88189 354.784252 
+Q 122.88189 356.966929 122.88189 358.031572 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 124.28189 355.231572 
+L 122.88189 358.031572 
+L 121.48189 355.231572 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_31">
+    <path d="M 159.448819 100.8 
+Q 197.929134 100.8 235.291415 100.8 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 232.491415 99.4 
+L 235.291415 100.8 
+L 232.491415 102.2 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_32">
+    <path d="M 302.740157 110.324409 
+Q 302.740157 118.459843 302.740157 125.477242 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 304.140157 122.677242 
+L 302.740157 125.477242 
+L 301.340157 122.677242 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_33">
+    <path d="M 159.448819 233.348031 
+Q 197.929134 233.348031 235.291415 233.348031 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 232.491415 231.948031 
+L 235.291415 233.348031 
+L 232.491415 234.748031 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_34">
+    <path d="M 302.740157 244.459843 
+Q 302.740157 257.952756 302.740157 270.327635 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 304.140157 267.527635 
+L 302.740157 270.327635 
+L 301.340157 267.527635 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_35">
+    <path d="M 6.80315 100.8 
+Q 46.559055 100.8 85.196927 100.8 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 82.396927 99.4 
+L 85.196927 100.8 
+L 82.396927 102.2 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
+   </g>
+   <g id="patch_36">
+    <path d="M 17.858268 233.348031 
+Q 52.086614 233.348031 85.196927 233.348031 
+" clip-path="url(#p83de757160)" style="fill: none; stroke: #1f1f1f; stroke-linecap: round"/>
+    <path d="M 82.396927 231.948031 
+L 85.196927 233.348031 
+L 82.396927 234.748031 
+z
+" clip-path="url(#p83de757160)" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linecap: round"/>
    </g>
    <g id="text_1">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #1f1f1f" x="13.606299" y="25.819414" transform="rotate(-0 13.606299 25.819414)">年度层 · 预算切分</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="29.394931" transform="rotate(-0 122.88189 29.394931)">开始：初始化模型参数</text>
    </g>
    <g id="text_2">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="98.007874" y="47.111097" transform="rotate(-0 98.007874 47.111097)">给定存储预算 B</text>
+    <!-- $\theta,\ M\leftarrow\varnothing$ -->
+    <g style="fill: #1f1f1f" transform="translate(107.64189 38.031181)">
+     <text>
+      <tspan x="0" y="-0.328125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">θ</tspan>
+      <tspan x="4.375" y="-0.328125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">,</tspan>
+      <tspan x="9.565603" y="-0.328125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">M</tspan>
+      <tspan x="17.42029" y="-0.328125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="25.454665" y="-0.328125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">∅</tspan>
+     </text>
+    </g>
    </g>
    <g id="text_3">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="98.007874" y="76.23248" transform="rotate(-0 98.007874 76.23248)">按编码长度切出缓冲条数</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="54.424606" transform="rotate(-0 122.88189 54.424606)">当年度训练分片到达</text>
    </g>
    <g id="text_4">
-    <!-- $N=\lfloor B/d\rfloor$ -->
-    <g style="fill: #1f1f1f" transform="translate(81.527874 89.11748)">
+    <!-- $D_t$ -->
+    <g style="fill: #1f1f1f" transform="translate(119.16189 63.229606)">
      <text>
-      <tspan x="0" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
-      <tspan x="6.776562" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">=</tspan>
-      <tspan x="14.084375" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌊</tspan>
-      <tspan x="16.885156" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">B</tspan>
-      <tspan x="21.775781" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">/</tspan>
-      <tspan x="25.697656" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">d</tspan>
-      <tspan x="30.135156" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌋</tspan>
+      <tspan x="0" y="-0.671875" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">D</tspan>
+      <tspan x="5.292969" y="0.448437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
      </text>
     </g>
    </g>
    <g id="text_5">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="98.007874" y="117.051378" transform="rotate(-0 98.007874 117.051378)">按已到达年度数 k 均分</text>
+    <!-- $t\leftarrow 1$ -->
+    <g style="fill: #1f1f1f" transform="translate(114.60189 81.653228)">
+     <text>
+      <tspan x="0" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+      <tspan x="4.038281" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="12.072656" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">1</tspan>
+     </text>
+    </g>
    </g>
    <g id="text_6">
-    <!-- $q_k=\lfloor N/k\rfloor$ -->
-    <g style="fill: #1f1f1f" transform="translate(80.327874 129.936378)">
+    <!-- $t&gt;T\,?$ -->
+    <g style="fill: #1f1f1f" transform="translate(112.56189 103.44)">
      <text>
-      <tspan x="0" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">q</tspan>
-      <tspan x="8.829688" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">=</tspan>
-      <tspan x="16.1375" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌊</tspan>
-      <tspan x="18.938281" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
-      <tspan x="24.383594" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">/</tspan>
-      <tspan x="28.305469" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">k</tspan>
-      <tspan x="32.500781" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌋</tspan>
-      <tspan x="4.375" y="0.714062" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">k</tspan>
+      <tspan x="0" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+      <tspan x="4.038281" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">&gt;</tspan>
+      <tspan x="11.361719" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">T</tspan>
+      <tspan x="17.213303" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">?</tspan>
      </text>
     </g>
    </g>
    <g id="text_7">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="98.007874" y="166.643406" transform="rotate(-0 98.007874 166.643406)">年内正负各半，正例不足由负例补足</text>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #1f1f1f" x="29.76378" y="132.604823" transform="rotate(-0 29.76378 132.604823)">模块一：预算切分</text>
    </g>
    <g id="text_8">
-    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #1f1f1f" x="242.787402" y="25.801836" transform="rotate(-0 242.787402 25.801836)">轮次层 · 复用配置</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="143.737869" transform="rotate(-0 122.88189 143.737869)">按预算切出缓冲条数</text>
    </g>
    <g id="text_9">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="327.188976" y="46.661722" transform="rotate(-0 327.188976 46.661722)">当年度训练分片 D(t)</text>
+    <!-- $N\leftarrow\lfloor B/d\rfloor$ -->
+    <g style="fill: #1f1f1f" transform="translate(106.04189 151.607244)">
+     <text>
+      <tspan x="0" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
+      <tspan x="6.776562" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="14.810938" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌊</tspan>
+      <tspan x="17.611719" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">B</tspan>
+      <tspan x="22.502344" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">/</tspan>
+      <tspan x="26.424219" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">d</tspan>
+      <tspan x="30.861719" y="-0.40625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌋</tspan>
+     </text>
+    </g>
    </g>
    <g id="text_10">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="327.188976" y="76.23248" transform="rotate(-0 327.188976 76.23248)">缓冲重复 m 次与当年度分片拼接</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #555555" x="211.748031" y="146.664655" transform="rotate(-0 211.748031 146.664655)">式 3.2</text>
    </g>
    <g id="text_11">
-    <!-- $D_t\cup(M_t\times m)$ -->
-    <g style="fill: #1f1f1f" transform="translate(304.268976 89.07748)">
-     <text>
-      <tspan x="0" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">D</tspan>
-      <tspan x="8.705859" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">∪</tspan>
-      <tspan x="15.486328" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">(</tspan>
-      <tspan x="18.806641" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">M</tspan>
-      <tspan x="28.742969" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">×</tspan>
-      <tspan x="35.789062" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
-      <tspan x="42.445312" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">)</tspan>
-      <tspan x="5.292969" y="0.760937" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
-      <tspan x="25.330078" y="0.760937" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
-     </text>
-    </g>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="164.358465" transform="rotate(-0 122.88189 164.358465)">按已到达年度数均分</text>
    </g>
    <g id="text_12">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="327.188976" y="124.620128" transform="rotate(-0 327.188976 124.620128)">全局打乱后按批执行更新</text>
-   </g>
-   <g id="text_13">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="327.188976" y="159.230906" transform="rotate(-0 327.188976 159.230906)">历史信息在每轮损失中的权重</text>
-   </g>
-   <g id="text_14">
-    <!-- $\lambda=\frac{mN}{n_t+mN}$ -->
-    <g style="fill: #1f1f1f" transform="translate(310.828976 172.115906)">
+    <!-- $q\leftarrow\lfloor N/(t-1)\rfloor$ -->
+    <g style="fill: #1f1f1f" transform="translate(97.28189 172.203465)">
      <text>
-      <tspan x="0" y="-0.349219" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">λ</tspan>
-      <tspan x="5.233594" y="-0.349219" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">=</tspan>
-      <tspan x="13.041406" y="2.52625" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">n</tspan>
-      <tspan x="18.041406" y="-4.270313" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
-      <tspan x="18.55582" y="2.52625" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">+</tspan>
-      <tspan x="22.700781" y="-4.270313" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
-      <tspan x="23.671289" y="2.52625" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
-      <tspan x="28.330664" y="2.52625" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
-      <tspan x="16.166797" y="3.310469" style="font-size: 3.92px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+      <tspan x="0" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">q</tspan>
+      <tspan x="5.70625" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="13.740625" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌊</tspan>
+      <tspan x="16.541406" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
+      <tspan x="21.986719" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">/</tspan>
+      <tspan x="25.908594" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">(</tspan>
+      <tspan x="29.228906" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+      <tspan x="33.267187" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">−</tspan>
+      <tspan x="40.575" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">1</tspan>
+      <tspan x="45.004688" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">)</tspan>
+      <tspan x="48.325" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">⌋</tspan>
      </text>
-     <rect x="13.041406" y="-3.388281" width="19.100977" height="0.5"/>
     </g>
    </g>
+   <g id="text_13">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #555555" x="211.748031" y="167.300875" transform="rotate(-0 211.748031 167.300875)">式 3.3</text>
+   </g>
+   <g id="text_14">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="184.97906" transform="rotate(-0 122.88189 184.97906)">年内正负各半填充缓冲 M</text>
+   </g>
    <g id="text_15">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="212.598425" y="71.403873" transform="rotate(-0 212.598425 71.403873)">缓冲 M</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="193.763435" transform="rotate(-0 122.88189 193.763435)">（正例不足由负例补足）</text>
    </g>
    <g id="text_16">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="142.440945" y="225.917397" transform="rotate(-0 142.440945 225.917397)">每轮优化目标（式 3-6）</text>
+    <!-- $r\leftarrow 1$ -->
+    <g style="fill: #1f1f1f" transform="translate(114.32189 214.24126)">
+     <text>
+      <tspan x="0" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">r</tspan>
+      <tspan x="4.639844" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="12.674219" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">1</tspan>
+     </text>
+    </g>
    </g>
    <g id="text_17">
-    <!-- $(1-\lambda)\mathcal{L}^{new}+\lambda\mathcal{L}^{mem}$ -->
-    <g style="fill: #1f1f1f" transform="translate(108.680945 238.746772)">
+    <!-- $r&gt;R\,?$ -->
+    <g style="fill: #1f1f1f" transform="translate(112.16189 235.988031)">
      <text>
-      <tspan x="0" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">(</tspan>
-      <tspan x="3.320312" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">1</tspan>
-      <tspan x="9.08125" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">−</tspan>
-      <tspan x="16.389063" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">λ</tspan>
-      <tspan x="20.291406" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">)</tspan>
-      <tspan x="23.611719" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">L</tspan>
-      <tspan x="39.681758" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">+</tspan>
-      <tspan x="46.98957" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">λ</tspan>
-      <tspan x="50.891914" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">L</tspan>
-      <tspan x="27.970039" y="-2.973437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">n</tspan>
-      <tspan x="31.09543" y="-2.973437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">e</tspan>
-      <tspan x="33.82707" y="-2.973437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">w</tspan>
-      <tspan x="55.250234" y="-2.973437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
-      <tspan x="59.909609" y="-2.973437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">e</tspan>
-      <tspan x="62.64125" y="-2.973437" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
+      <tspan x="0" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">r</tspan>
+      <tspan x="4.639844" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">&gt;</tspan>
+      <tspan x="11.963281" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">R</tspan>
+      <tspan x="18.041428" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">?</tspan>
      </text>
     </g>
    </g>
    <g id="text_18">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="329.527559" y="227.301772" transform="rotate(-0 329.527559 227.301772)">末年模型在全部已到达年度</text>
+    <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #1f1f1f" x="29.76378" y="265.10012" transform="rotate(-0 29.76378 265.10012)">模块二：复用配置</text>
    </g>
    <g id="text_19">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="329.527559" y="239.701772" transform="rotate(-0 329.527559 239.701772)">测试分片上的跨年平均 F1（式 3-21）</text>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="276.285901" transform="rotate(-0 122.88189 276.285901)">拼接训练集合</text>
    </g>
    <g id="text_20">
-    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="212.598425" y="262.311314" transform="rotate(-0 212.598425 262.311314)">两个配置量代价性质不同：N 受存储预算约束；m 不改变存储占用，只改变历史信息进入梯度的强度</text>
+    <!-- $\tilde{D}\leftarrow D_t\cup(M\times m)$ -->
+    <g style="fill: #1f1f1f" transform="translate(93.68189 284.915276)">
+     <text>
+      <tspan x="0" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">D</tspan>
+      <tspan x="4.729492" y="-2.65625" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">̃</tspan>
+      <tspan x="6.624219" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="14.658594" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">D</tspan>
+      <tspan x="23.364453" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">∪</tspan>
+      <tspan x="30.144922" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">(</tspan>
+      <tspan x="33.465234" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">M</tspan>
+      <tspan x="41.319922" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">×</tspan>
+      <tspan x="48.366016" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
+      <tspan x="55.022266" y="-0.734375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">)</tspan>
+      <tspan x="19.951563" y="0.385938" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #555555" x="211.748031" y="279.212686" transform="rotate(-0 211.748031 279.212686)">式 3.4</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="301.290871" transform="rotate(-0 122.88189 301.290871)">全局打乱后按批更新</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="317.527092" transform="rotate(-0 122.88189 317.527092)">历史权重</text>
+   </g>
+   <g id="text_24">
+    <!-- $\lambda=mN/(n_t+mN)$ -->
+    <g style="fill: #1f1f1f" transform="translate(91.60189 325.387717)">
+     <text>
+      <tspan x="0" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">λ</tspan>
+      <tspan x="5.233594" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">=</tspan>
+      <tspan x="12.541406" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
+      <tspan x="19.197656" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
+      <tspan x="24.642969" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">/</tspan>
+      <tspan x="28.564844" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">(</tspan>
+      <tspan x="31.885156" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">n</tspan>
+      <tspan x="39.762891" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">+</tspan>
+      <tspan x="47.070703" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">m</tspan>
+      <tspan x="53.726953" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">N</tspan>
+      <tspan x="59.172266" y="-0.359375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">)</tspan>
+      <tspan x="36.35" y="0.760937" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_25">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end; fill: #555555" x="211.748031" y="320.485127" transform="rotate(-0 211.748031 320.485127)">式 3.5-3.6</text>
+   </g>
+   <g id="text_26">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="122.88189" y="343.916068" transform="rotate(-0 122.88189 343.916068)">参数更新</text>
+   </g>
+   <g id="text_27">
+    <!-- $\theta$ -->
+    <g style="fill: #1f1f1f" transform="translate(120.68189 352.616693)">
+     <text>
+      <tspan x="0" y="-0.453125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">θ</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_28">
+    <!-- $r\leftarrow r+1$ -->
+    <g style="fill: #1f1f1f" transform="translate(108.32189 369.289764)">
+     <text>
+      <tspan x="0" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">r</tspan>
+      <tspan x="4.639844" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="12.674219" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">r</tspan>
+      <tspan x="17.314063" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">+</tspan>
+      <tspan x="24.621875" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">1</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_29">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="302.740157" y="99.075" transform="rotate(-0 302.740157 99.075)">保存模型</text>
+   </g>
+   <g id="text_30">
+    <!-- $\theta_T$ -->
+    <g style="fill: #1f1f1f" transform="translate(298.780157 107.2)">
+     <text>
+      <tspan x="0" y="-0.453125" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">θ</tspan>
+      <tspan x="4.375" y="0.667187" style="font-size: 5.6px; font-family: 'Cambria Math'; fill: #1f1f1f">T</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_31">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="302.740157" y="138.629085" transform="rotate(-0 302.740157 138.629085)">结束</text>
+   </g>
+   <g id="text_32">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="302.740157" y="231.807406" transform="rotate(-0 302.740157 231.807406)">在全部已到达年度测试分片上</text>
+   </g>
+   <g id="text_33">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="302.740157" y="240.607406" transform="rotate(-0 302.740157 240.607406)">逐片评价并记录 F1</text>
+   </g>
+   <g id="text_34">
+    <!-- $t\leftarrow t+1$ -->
+    <g style="fill: #1f1f1f" transform="translate(288.780157 282.379528)">
+     <text>
+      <tspan x="0" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+      <tspan x="4.038281" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">←</tspan>
+      <tspan x="12.072656" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">t</tspan>
+      <tspan x="16.110938" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">+</tspan>
+      <tspan x="23.41875" y="-0.609375" style="font-size: 8px; font-family: 'Cambria Math'; fill: #1f1f1f">1</tspan>
+     </text>
+    </g>
+   </g>
+   <g id="text_35">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="197.929134" y="97.169144" transform="rotate(-0 197.929134 97.169144)">是</text>
+   </g>
+   <g id="text_36">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="197.929134" y="229.717175" transform="rotate(-0 197.929134 229.717175)">是</text>
+   </g>
+   <g id="text_37">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #1f1f1f" x="133.086614" y="118.09284" transform="rotate(-0 133.086614 118.09284)">否</text>
+   </g>
+   <g id="text_38">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #1f1f1f" x="133.086614" y="250.640871" transform="rotate(-0 133.086614 250.640871)">否</text>
+   </g>
+   <g id="text_39">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="212.598425" y="389.235408" transform="rotate(-0 212.598425 389.235408)">两个配置量代价性质不同：N 受存储预算约束；m 不改变存储占用，只改变历史信息进入梯度的强度</text>
    </g>
   </g>
  </g>
  <defs>
-  <clipPath id="p9c38ab6786">
-   <rect x="0" y="0" width="425.19685" height="272.125984"/>
+  <clipPath id="p83de757160">
+   <rect x="0" y="0" width="425.19685" height="396.850394"/>
   </clipPath>
  </defs>
 </svg>

@@ -126,105 +126,288 @@ def canvas_of(rect: tuple[float, float, float, float], fx: float, fy: float) -> 
 
 
 def draw_overview(cv: fs.Canvas) -> None:
-    """图3-1 方法整体框架：年度层的预算切分与轮次层的复用配置及其合成。"""
+    """图3-1 方法整体框架：年度循环（模块一）嵌套轮次循环（模块二）的自顶向下流程图。
 
-    panel_w = 0.425
-    left_x, right_x = 0.018, 0.557
-    panel_y, panel_h = 0.322, 0.638
-    box_w = 0.355
-    lcx = left_x + panel_w / 2.0
-    rcx = right_x + panel_w / 2.0
-    stack = ((0.880, 0.085), (0.760, 0.115), (0.610, 0.115), (0.455, 0.115))
+    与算法 3-1 的循环结构一致：外层为年度循环 ``for t = 1 to T``，模块一（预算切分）
+    挂在其内；内层为嵌套其中的轮次循环 ``for r = 1 to R``，模块二（复用配置）挂在其内。
+    两个判定菱形分别控制两个循环的终止，「是」分支向右引出跨年评价与模型保存，回边在
+    左侧分两层返回各自的循环入口。节点类型以形状与线型区分（椭圆＝起止、矩形＝处理、
+    虚线菱形＝判定、粗边灰底框＝模块），颜色只作辅助，灰度下同样可读。
+    """
 
-    def module(cx: float, top: float, height: float, lines) -> None:
-        fs.box(cv, cx - box_w / 2.0, top - height, box_w, height, lines, radius=0.012)
+    from matplotlib.patches import Ellipse, Polygon
 
-    # 年度层：预算切分
-    fs.panel(cv, left_x, panel_y, panel_w, panel_h, "年度层 · 预算切分")
-    module(lcx, 0.880, 0.085, (fs.Line("给定存储预算 B", FS_MIN),))
-    module(
-        lcx,
-        0.760,
-        0.115,
-        (fs.Line("按编码长度切出缓冲条数", FS_MIN), fs.Line(r"$N=\lfloor B/d\rfloor$", FS_MIN, "math")),
-    )
-    module(
-        lcx,
-        0.610,
-        0.115,
-        (fs.Line("按已到达年度数 k 均分", FS_MIN), fs.Line(r"$q_k=\lfloor N/k\rfloor$", FS_MIN, "math")),
-    )
-    module(lcx, 0.455, 0.115, (fs.Line("年内正负各半，正例不足由负例补足", FS_MIN),))
-    for index in range(3):
-        fs.arrow(
+    # 版面基线（归一化坐标，画布 150 mm × 140 mm）
+    cx = 0.289  # 主脊中心线
+    bx, bw = 0.072, 0.434  # 主脊处理节点与模块内子框的横向范围
+    fx, fw = 0.058, 0.462  # 模块外框的横向范围
+    rx0, rx1 = 0.556, 0.868  # 右列（各「是」分支）节点的横向范围
+    rcx = (rx0 + rx1) / 2.0
+    lane_outer, lane_inner = 0.016, 0.042  # 左侧回边通道：外圈为年度循环，内圈为轮次循环
+    lane_right, top_lane = 0.935, 0.975  # 年度循环回边的右侧上行通道与图顶横跨高度
+    dhw, dhh = 0.086, 0.025  # 判定菱形的半宽与半高
+    band, sub_h, sub_gap = 0.040, 0.046, 0.006  # 模块的标题带高、子框高与子框间距
+
+    def spine(top_from: float, top_to: float) -> None:
+        fs.arrow(cv, (cx, top_from), (cx, top_to), head=7.0)
+
+    def plain(top: float, height: float, lines) -> None:
+        fs.box(
             cv,
-            (lcx, stack[index][0] - stack[index][1]),
-            (lcx, stack[index + 1][0]),
-            head=6.0,
+            bx,
+            top - height,
+            bw,
+            height,
+            lines,
+            face=fs.WHITE,
+            edge=fs.MUTED,
+            linewidth=0.8,
+            radius=0.006,
+            zorder=3,
         )
 
-    # 轮次层：复用配置
-    fs.panel(cv, right_x, panel_y, panel_w, panel_h, "轮次层 · 复用配置")
-    module(rcx, 0.880, 0.085, (fs.Line("当年度训练分片 D(t)", FS_MIN),))
-    module(
-        rcx,
-        0.760,
-        0.115,
-        (fs.Line("缓冲重复 m 次与当年度分片拼接", FS_MIN), fs.Line(r"$D_t\cup(M_t\times m)$", FS_MIN, "math")),
-    )
-    module(rcx, 0.610, 0.115, (fs.Line("全局打乱后按批执行更新", FS_MIN),))
-    module(
-        rcx,
-        0.455,
-        0.115,
-        (fs.Line("历史信息在每轮损失中的权重", FS_MIN), fs.Line(r"$\lambda=\frac{mN}{n_t+mN}$", FS_MIN, "math")),
-    )
-    for index in range(3):
-        fs.arrow(
+    def terminator(top: float, height: float, half_width: float, lines) -> None:
+        center = top - height / 2.0
+        cv.ax.add_patch(
+            Ellipse(
+                (cx, center),
+                2.0 * half_width,
+                height,
+                facecolor=fs.SHADE,
+                edgecolor=fs.MUTED,
+                linewidth=fs.MAIN_LINE_PT,
+                zorder=3,
+            )
+        )
+        fs.stack(cv, cx, center, lines)
+
+    def decision(center: float, label: str) -> None:
+        cv.ax.add_patch(
+            Polygon(
+                ((cx, center + dhh), (cx + dhw, center), (cx, center - dhh), (cx - dhw, center)),
+                closed=True,
+                facecolor=fs.SHADE,
+                edgecolor=fs.MUTED,
+                linewidth=fs.MAIN_LINE_PT,
+                linestyle=(0.0, (3.0, 2.0)),
+                zorder=3,
+            )
+        )
+        fs.text(cv, cx, center, label, size=FS_MIN)
+
+    def module(top: float, title: str, cells) -> None:
+        height = band + len(cells) * sub_h + (len(cells) - 1) * sub_gap + 0.010
+        fs.box(
             cv,
-            (rcx, stack[index][0] - stack[index][1]),
-            (rcx, stack[index + 1][0]),
-            head=6.0,
+            fx,
+            top - height,
+            fw,
+            height,
+            face=fs.SHADE,
+            edge=fs.MUTED,
+            linewidth=2.0,
+            radius=0.012,
+            zorder=1,
+        )
+        fs.text(cv, fx + 0.012, top - 0.008, title, size=FS_MAIN, color=INK, ha="left", va="top")
+        for index, (lines, tag) in enumerate(cells):
+            cell_top = top - band - index * (sub_h + sub_gap)
+            fs.box(
+                cv,
+                bx,
+                cell_top - sub_h,
+                bw,
+                sub_h,
+                lines,
+                face=fs.WHITE,
+                edge=fs.MUTED,
+                linewidth=0.7,
+                radius=0.004,
+                zorder=4,
+            )
+            if tag:
+                fs.text(
+                    cv,
+                    bx + bw - 0.008,
+                    cell_top - 0.006,
+                    tag,
+                    size=FS_MIN,
+                    color=MUTED,
+                    ha="right",
+                    va="top",
+                )
+
+    def right_box(top: float, height: float, lines) -> None:
+        fs.box(
+            cv,
+            rx0,
+            top - height,
+            rx1 - rx0,
+            height,
+            lines,
+            face=fs.WHITE,
+            edge=fs.MUTED,
+            linewidth=0.8,
+            radius=0.006,
+            zorder=3,
         )
 
-    # 两层之间的耦合：缓冲 M。箭头指向轮次层的拼接盒，避免落在面板边框上。
-    fs.arrow(cv, (left_x + panel_w, 0.7025), (right_x, 0.7025), head=6.0)
-    note(cv, (left_x + panel_w + right_x) / 2.0, 0.748, "缓冲 M", color=INK)
+    # 主干：开始 → 当年度分片 → 年度循环入口 → 模块一 → 轮次循环入口 → 模块二 → 更新
+    terminator(
+        0.948,
+        0.054,
+        0.150,
+        (
+            fs.Line("开始：初始化模型参数", FS_MIN, span=1.1),
+            fs.Line(r"$\theta,\ M\leftarrow\varnothing$", FS_MIN, "math", span=1.2),
+        ),
+    )
+    plain(
+        0.883,
+        0.052,
+        (
+            fs.Line("当年度训练分片到达", FS_MIN, span=1.1),
+            fs.Line(r"$D_t$", FS_MIN, "math", span=1.3),
+        ),
+    )
+    plain(0.820, 0.038, (fs.Line(r"$t\leftarrow 1$", FS_MIN, "math", span=1.3),))
+    decision(0.746, r"$t>T\,?$")
+    spine(0.894, 0.883)
+    spine(0.831, 0.820)
+    spine(0.782, 0.771)
+    spine(0.721, 0.697)
 
-    # 合成与评价
-    fs.box(
-        cv,
-        0.145,
-        0.100,
-        0.380,
-        0.105,
+    module(
+        0.697,
+        "模块一：预算切分",
         (
-            fs.Line("每轮优化目标（式 3-6）", FS_MIN),
-            fs.Line(r"$(1-\lambda)\mathcal{L}^{new}+\lambda\mathcal{L}^{mem}$", FS_MIN, "math"),
+            (
+                (
+                    fs.Line("按预算切出缓冲条数", FS_MIN, span=1.1),
+                    fs.Line(r"$N\leftarrow\lfloor B/d\rfloor$", FS_MIN, "math", span=1.1),
+                ),
+                "式 3.2",
+            ),
+            (
+                (
+                    fs.Line("按已到达年度数均分", FS_MIN, span=1.1),
+                    fs.Line(r"$q\leftarrow\lfloor N/(t-1)\rfloor$", FS_MIN, "math", span=1.1),
+                ),
+                "式 3.3",
+            ),
+            (
+                (
+                    fs.Line("年内正负各半填充缓冲 M", FS_MIN, span=1.1),
+                    fs.Line("（正例不足由负例补足）", FS_MIN, span=1.1),
+                ),
+                None,
+            ),
         ),
-        radius=0.012,
     )
-    fs.box(
-        cv,
-        0.590,
-        0.100,
-        0.370,
-        0.105,
+
+    plain(0.486, 0.038, (fs.Line(r"$r\leftarrow 1$", FS_MIN, "math", span=1.3),))
+    decision(0.412, r"$r>R\,?$")
+    spine(0.497, 0.486)
+    spine(0.448, 0.437)
+
+    module(
+        0.363,
+        "模块二：复用配置",
         (
-            fs.Line("末年模型在全部已到达年度", FS_MIN),
-            fs.Line("测试分片上的跨年平均 F1（式 3-21）", FS_MIN),
+            (
+                (
+                    fs.Line("拼接训练集合", FS_MIN, span=1.1),
+                    fs.Line(r"$\tilde{D}\leftarrow D_t\cup(M\times m)$", FS_MIN, "math", span=1.1),
+                ),
+                "式 3.4",
+            ),
+            ((fs.Line("全局打乱后按批更新", FS_MIN, span=1.1),), None),
+            (
+                (
+                    fs.Line("历史权重", FS_MIN, span=1.1),
+                    fs.Line(r"$\lambda=mN/(n_t+mN)$", FS_MIN, "math", span=1.1),
+                ),
+                "式 3.5-3.6",
+            ),
         ),
-        face=fs.SHADE,
-        radius=0.012,
     )
-    fs.arrow(cv, (0.525, 0.1525), (0.590, 0.1525), head=6.0)
-    fs.arrow(cv, (lcx, panel_y), (0.250, 0.205), head=6.0)
-    fs.arrow(cv, (rcx, panel_y), (0.455, 0.205), head=6.0)
-    note(
-        cv,
-        0.5,
+
+    spine(0.387, 0.363)
+    spine(0.163, 0.152)
+    plain(
+        0.152,
         0.046,
+        (
+            fs.Line("参数更新", FS_MIN, span=1.05),
+            fs.Line(r"$\theta$", FS_MIN, "math", span=1.15),
+        ),
+    )
+    spine(0.106, 0.095)
+    plain(0.095, 0.038, (fs.Line(r"$r\leftarrow r+1$", FS_MIN, "math", span=1.3),))
+
+    # 右列：两个「是」分支的出口
+    right_box(
+        0.770,
+        0.048,
+        (
+            fs.Line("保存模型", FS_MIN, span=1.05),
+            fs.Line(r"$\theta_T$", FS_MIN, "math", span=1.15),
+        ),
+    )
+    cv.ax.add_patch(
+        Ellipse(
+            (rcx, 0.658),
+            0.200,
+            0.046,
+            facecolor=fs.SHADE,
+            edgecolor=fs.MUTED,
+            linewidth=fs.MAIN_LINE_PT,
+            zorder=3,
+        )
+    )
+    fs.stack(cv, rcx, 0.658, (fs.Line("结束", FS_MIN),))
+    right_box(
+        0.440,
+        0.056,
+        (
+            fs.Line("在全部已到达年度测试分片上", FS_MIN, span=1.1),
+            fs.Line("逐片评价并记录 F1", FS_MIN, span=1.1),
+        ),
+    )
+    right_box(0.316, 0.042, (fs.Line(r"$t\leftarrow t+1$", FS_MIN, "math", span=1.3),))
+
+    # 「是」分支：判定 → 右列
+    fs.arrow(cv, (cx + dhw, 0.746), (rx0, 0.746), head=7.0)
+    fs.arrow(cv, (rcx, 0.722), (rcx, 0.681), head=7.0)
+    fs.arrow(cv, (cx + dhw, 0.412), (rx0, 0.412), head=7.0)
+    fs.arrow(cv, (rcx, 0.384), (rcx, 0.316), head=7.0)
+
+    # 回边：年度循环沿右侧与图顶绕回（外圈），轮次循环沿左侧绕回（内圈）
+    fs.routed_arrow(
+        cv,
+        (
+            (rx1, 0.295),
+            (lane_right, 0.295),
+            (lane_right, top_lane),
+            (lane_outer, top_lane),
+            (lane_outer, 0.746),
+            (cx - dhw, 0.746),
+        ),
+    )
+    fs.routed_arrow(
+        cv,
+        ((bx, 0.076), (lane_inner, 0.076), (lane_inner, 0.412), (cx - dhw, 0.412)),
+    )
+
+    for label, y in (("是", 0.762), ("是", 0.428)):
+        fs.text(cv, (cx + dhw + rx0) / 2.0, y, label, size=FS_MIN)
+    for label, y in (("否", 0.709), ("否", 0.375)):
+        fs.text(cv, cx + 0.024, y, label, size=FS_MIN, ha="left")
+
+    fs.footnote(
+        cv,
         "两个配置量代价性质不同：N 受存储预算约束；m 不改变存储占用，只改变历史信息进入梯度的强度",
+        y=0.026,
     )
 
 
@@ -428,13 +611,16 @@ def finalize_manifest(previous: dict[str, object]) -> None:
 SPECS: tuple[tuple[str, str, float, float, object], ...] = (
     (
         "图3-1-方法整体框架",
-        "预算约束记忆配置方法的双层结构。年度层按存储预算 B 切出缓冲条数 N（式 3-2），"
-        "按已到达年度数 k 均分单年配额 q_k（式 3-3）并在年内正负各半；轮次层把当年度训练"
-        "分片与重复 m 次的缓冲拼接（式 3-4），经全局打乱后进入每轮优化目标（式 3-6），"
-        "历史权重由 λ=mN/(n_t+mN)（式 3-5）给出。两层在每轮更新处合成，最终模型在全部"
-        "已到达年度的测试分片上评价（式 3-21）。示意图，不承载实验数据。",
+        "预算约束记忆配置方法的自顶向下流程图，与算法 3-1 的循环结构一致。外层为年度循环"
+        "（模块一：预算切分）：按存储预算切出缓冲条数 N=⌊B/d⌋（式 3.2），按已到达年度数"
+        "均分单年配额 q=⌊N/(t−1)⌋（式 3.3），并在年内正负各半填充缓冲 M。内层为嵌套在其中的"
+        "轮次循环（模块二：复用配置）：每轮把当年度训练分片与重复 m 次的缓冲拼接（式 3.4），"
+        "全局打乱后按批更新，历史权重由 λ=mN/(n_t+mN)（式 3.5-3.6）给出。两个判定菱形分别"
+        "控制两个循环的终止：「是」分支向右引出模型的保存与在全部已到达年度测试分片上的"
+        "评价，「否」分支继续循环。回边在左侧分两层返回各自的循环入口，外圈为年度循环、"
+        "内圈为轮次循环。示意图，不承载实验数据。",
         150.0,
-        96.0,
+        140.0,
         draw_overview,
     ),
     (
