@@ -139,6 +139,57 @@
 - 后续串行队列：A-snapshot → ESAT 子集计算 → ESAT → C1R → CEQ → CBN → DRICHEL → p0 评价五臂。
 - 第二骨干队列：bresnet dry-run → A/B/EDIT4/UQ/D 五臂 → 读数交付。
 
+## 阶段 5：p0 正式评价（完成，2026-10-14）
+
+- 结果 JSON：`/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-source-p0-legal-attack-p1arms-mps-20261014-v4/p0-legal-attack-result.json`
+  （v1–v3 失败运行目录保留失败痕迹；v4 为有效身份：源成员收据与 v3 一致、算子哈希
+  `fb6f5429…` 不变、stream_id 复用 D-4 锚点。评价墙钟 3211.2s。）
+- **主档读数（fpr_0_001 ｜ random_half，攻击漏检计数，分母 n=30,000 DGA；括号为漏检率）**：
+
+| 臂 | 主档 dga_fn | k1 | k2 | 干净侧 DGA 漏检（fpr_0_001，n=30,000） | 源冻结阈值 0.1% / 1% |
+| --- | --- | --- | --- | --- | --- |
+| C1R | `12767`（0.4256） | 8950 | 9865 | 7591 | 0.993481 / 0.792446 |
+| ESAT | `15617`（0.5206） | 9151 | 10413 | 7568 | 0.997075 / 0.886427 |
+| DRICHEL | `15994`（0.5331） | 10288 | 12324 | 7394 | 0.993471 / 0.882981 |
+| CEQ | `8672`（0.2891） | 8536 | 8474 | 8376 | 0.997088 / 0.931475 |
+| CBN | `23189`（0.7730） | 11295 | 14418 | 6958 | 0.987962 / 0.581223 |
+
+- 与既有八臂同主档对照（A 23206／B 13259／D 10846／F 11023／UQ 9922／CAND4 15823／EDIT4 10476／
+  CURRICULUM 10747）：CEQ 8672 低于全部既有臂；C1R 12767 介于 B 与 D 之间；ESAT/DRICHEL 落在
+  CAND4 附近；CBN 23189 接近非防御 A。**读数仅供主代理裁决，本代理不下存废结论。**
+- 说明：v4 的 `gate_mechanical.primary_reading` 中五新臂为 null——gate 循环臂元组当时未含新臂
+  （数据完整在 `attack_metrics`，已修 ea5d569d 后续版本；上表数字直接从 attack_metrics 提取）。
+
+## 阶段 6：第二骨干五臂（完成，2026-10-14）
+
+- 运行目录：`/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-drift-bresnet-common-p1v1-mps-20261014-v1/`
+  （`bresnet-p2p3-result.json`；训练器 `bresnet_p2p3.py` sha256 `51ba661c…`，
+  `IMPLEMENTATION_VERSION = bresnet_p2p3_b_fix_v1` 追加 EDIT4/UQ 分支与 B 断言。）
+- **口径登记**：第二骨干为筛选评价（T18 val 7500/类、0.5 阈值、k2/krand/maskdga 三面板），
+  与 DRIFT 侧 p0 正式口径（30000 源验证、0.1% 预算源冻结阈值）**不同层，不可直接并列比较**；
+  其臂机制（初始化重置、B/EDIT4/UQ/D 的入批语义）与 DRIFT 侧逐字一致，骨干实现不同。
+
+| 臂 | wall (s) | clean FPR | clean FNR | k2 FNR | krand FNR | maskdga FNR |
+| --- | --- | --- | --- | --- | --- | --- |
+| A | 62.9 | 0.0375 | 0.0491 | 0.0801 | 0.0812 | 0.1279 |
+| B | 85.3 | 0.0533 | 0.0368 | 0.0255 | 0.0260 | 0.0205 |
+| EDIT4 | 88.5 | 0.0499 | 0.0367 | 0.0212 | 0.0240 | 0.0137 |
+| UQ | 99.9 | 0.0491 | 0.0400 | 0.0243 | 0.0241 | 0.0152 |
+| D | 100.4 | 0.0677 | 0.0317 | 0.0173 | 0.0176 | 0.0103 |
+
+- 机械观察（不下结论）：第二骨干上五臂 maskdga FNR 排序 D < EDIT4 < UQ < B ≪ A，与 DRIFT 侧
+  筛选面板方向一致；D 臂 clean FPR 最高（0.0677）。B 分支断言全程未触发（B 臂每批均产出变体）。
+
+## 验收命令输出汇总（实施计划 §四）
+
+1. `py_compile official_p2p3.py`：通过（每轮修改后均验证）。
+2. 既有臂零扰动：`zero-disturbance-audit.json` verdict `pass`——D/F/UQ/CAND4/EDIT4 与断点收据
+   逐字段一致；B 旧 schema 无收据，重放确定性一致（降级模式已登记）。另有轨迹级证据：
+   重跑 A 的 epoch 1 指标与既有 A 逐位一致。
+3. 新臂干跑：四臂 `--dry-run 10002` 全部通过；ESAT 在子集冻结后经正式运行完成（其训练分支
+   与 C1R/CEQ/CBN/DRICHEL 同轮实现并 dry-run 覆盖）。
+4. 评价算子哈希：`fb6f54294cd5795df3fd92076bce9cc30f918cb32e02c69971687765db77927e` **不变**。
+
 ## 待办与缺口
 
 - **p0 评价三次失败自报（v1–v3 运行目录保留失败痕迹，未删除）**：
