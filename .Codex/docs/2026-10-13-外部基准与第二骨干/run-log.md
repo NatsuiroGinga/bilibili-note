@@ -141,6 +141,13 @@
 
 ## 待办与缺口
 
+- **p0 评价三次失败自报（v1–v3 运行目录保留失败痕迹，未删除）**：
+  - v1：EXPECTED_CODE_SHA256 登记的哈希为 selector-mkdir 修复**前**的训练器（804dfe82），
+    实际训练用 e7fced23（mkdir 修复当时漏提交）→ 哈希校验拒绝。教训：改脚本后立即提交检查点。
+  - v2：status 身份段 `for arm in RUNS` 遍历全臂而 checkpoint_hashes 只含选臂 → KeyError: 'A'。
+  - v3：`nearest_cluster_by_absolute_delta` 的 `min()` 在 B/D/F 全缺席时空生成器 → ValueError。
+    三处均为陷阱 4（硬编码臂键/全臂遍历）的残余；已全量 rg 扫描确认无其他残留（ea5d569d、
+    空生成器修复已提交）。
 - p0 评价端 `p0_legal_attack_probe.py` 需追加 5 臂到 RUNS / EXPECTED_CODE_SHA256，并把
   `gate_mechanical` 汇总分支对缺臂动态化（陷阱 4）。评价前完成。
 - 第二骨干五臂的读数口径 = bresnet 内置四面板（T18 val 7500/类 + k2/krand/maskdga），
