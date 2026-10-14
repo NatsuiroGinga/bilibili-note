@@ -150,8 +150,14 @@ FISHER_SAMPLE = 4096  # Fisher 对角线的子采样上限（控制成本；全�
 # 标定依据：轮次调度**只改暴露量的分布，不改其总量**——否则测出的是「总量变化」而非
 # 「再分配」的效果。标定方法是令调度臂的每轮倍数均值等于同一容量下常数臂的最优值
 # （N=200 上为 4），据此反推 a*。该值只决定 λ_r 的绝对高度，不决定其随 ρ 的走向。
-# 正式对比前须对 a* 做敏感性扫描。
-RHO_A_STAR = 0.9975
+#
+# 2026-10-14 修正：初值 0.9975 按先导短跑的 ρ 分布标定，与全量实测不符。全量 110 次
+# 调度实测 ρ：均值 +0.027、标准差 0.360、范围 [-0.839, +0.936]，|ρ|<0.3 占 65.5%，
+# 故 E[1/(1-ρ)] 远小于先导假设，λ_r 被压到 0.0025 量级、平均倍数仅 1.45（目标 4）。
+# 按该实测 ρ 分布重解得 a* = 0.99173（平均倍数 4.0，扫描值见下）。
+# 旧标定下那次运行的总量未对齐（≈m=1 而非 m=4），其读数作废，不得引用。
+# a* 敏感性扫描（同一 ρ 序列）：0.9950→2.36、0.9900→4.94、0.9850→7.15、0.9800→9.36。
+RHO_A_STAR = 0.99173
 
 
 def compute_fisher(model, parts, batch: int, device) -> list:
@@ -494,6 +500,10 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             tag += f"_{reuse_scheme}"
         if buffer_repeat != 1:
             tag += f"_r{buffer_repeat}"
+        # 调度开关同样必须进 tag：否则 rho 臂写回 `expreplay_m200`，覆盖无调度的基线产物
+        # （2026-10-14 实测事故：rho 臂覆盖了 metrics_expreplay_m200.json / status_*.json）。
+        if reuse_schedule != "off":
+            tag += f"_{reuse_schedule}"
     else:
         tag = strategy
     if seed != SEED:                      # 多种子复现：官方未设种子，本脚本默认 42
