@@ -564,6 +564,18 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
                     blocks = split_by_year(store, years[:idx], memory, buf_rng)
                     if not blocks:
                         parts = [(x_curr, y_curr)]
+                    else:
+                        # 缓冲构成诊断（只读记录，不改训练行为、不动随机源）：
+                        # 之前没有任何产物记录过**配额臂**的年度构成——表 3-7 记的是官方蓄水池。
+                        for yr, _, yb in blocks:
+                            nb = int(yb.size)
+                            pb = int((yb == 1).sum())
+                            src = store[yr][1]
+                            ns, psrc = int(src.size), int((src == 1).sum())
+                            print(f"[audit] 截至{year} 缓冲块 {yr}: {nb}槽 正例{pb} 负例{nb - pb} "
+                                  f"| 源 {psrc}/{ns} = {psrc / max(ns, 1):.4f}", flush=True)
+                    if not blocks:
+                        pass
                     elif reuse_scheme == "deficit":
                         # 模块二的复用分配：每个年度按其正例数获得不同重复次数
                         reps = reuse_by_deficit(blocks, buffer_repeat)
