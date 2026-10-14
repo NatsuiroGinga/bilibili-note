@@ -1,0 +1,2456 @@
+ 
+ 
+ 
+ Breaking Out from the Tesseract:Reassessing ML-based Malware Detection under Spatio-Temporal Drift 
+ 
+ 
+ 
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ Report GitHub Issue 
+ × 
+ 
+
+ 
+ Title: 
+ 
+
+ Content selection saved. Describe the issue below: 
+
+ Description: 
+ 
+ 
+
+ 
+ Submit without GitHub 
+ Submit in GitHub 
+ 
+ 
+ 
+ 
+ arXiv is now an independent nonprofit! 
+ Learn more 
+ × 
+ 
+
+ 
+ 
+ 
+ Back to arXiv 
+ 
+ 
+ 
+ 
+ Why HTML? 
+ 
+ 
+ 
+ 
+ Report Issue 
+ 
+ 
+ 
+ 
+ 
+ 
+ Back to Abstract 
+ 
+ 
+ 
+ 
+ 
+ 
+ Download PDF 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Abstract 
+ I Introduction 
+ 
+ Availability 
+ 
+ II Preliminary Observations 
+ 
+ Family Overlap 
+ Novel Spatio-Temporal Bias Factors 
+ 
+ III Experimental Settings 
+ 
+ Datasets 
+ Classifiers 
+ Metrics 
+ 
+ IV Novel Spatio-Temporal Bias Factors 
+ 
+ IV-A Timestamp Types 
+ 
+ IV-A 1 Hypothesis 
+ IV-A 2 Impact 
+ 
+ Approximating Creation and Publication Timestamps 
+ Timestamps Impact on Sampling 
+ Timestamps Impact on Performance 
+ 
+ IV-A 3 Recommendations 
+ 
+ IV-B Temporal Luck 
+ 
+ IV-B 1 Hypothesis 
+ IV-B 2 Impact 
+ IV-B 3 Recommendation 
+ 
+ IV-C App Markets 
+ 
+ IV-C 1 Hypothesis 
+ IV-C 2 Impact 
+ 
+ Similarity of 
+ Combining markets for training/testing 
+ Goodware and Malware from different markets 
+ Takeaways 
+ 
+ IV-C 3 Recommendations 
+ 
+ IV-D VirusTotal Threshold 
+ 
+ IV-D 1 Hypothesis 
+ IV-D 2 Impact 
+ IV-D 3 Recommendations 
+ 
+ IV-E Dataset Size 
+ 
+ IV-E 1 Hypothesis 
+ IV-E 2 Impact 
+ 
+ Improving DaDa 
+ 
+ IV-E 3 Recommendations 
+ 
+ 
+ V Piecing It All Together: A New Dataset 
+ 
+ V-A Composing the Dataset 
+ 
+ Time frame selection 
+ Market selection 
+ Timestamps 
+ VTT selection 
+ Sampling size 
+ 
+ V-B Evaluation 
+ 
+ VI Discussion 
+ 
+ Markets in AndroZoo 
+ Grayware 
+ Single point of failure 
+ Evolution of C3 [ 29 ] 
+ K-Fold evaluation 
+ Windows malware 
+ 
+ VII Related Work 
+ 
+ Guidelines for realistic for computer security 
+ Temporal evaluations 
+ Realistic datasets for ML-based cybersecurity 
+ Research on Android malware sampling 
+ 
+ VIII Conclusion 
+ References 
+ A A: Datasets 
+ 
+ APIGraph and Transcendent Dataset 
+ App Markets dataset 
+ New dataset 
+ 
+ B C: Classifier Details 
+ C D: Family overlap 
+ 
+ Family Overlap Metric 
+ 
+ D E: Temporal Luck Example 
+ E G: Dataset Size Experiments 
+ 
+ DaDa characteristics 
+ MoE Theoretical Maximum 
+ AndroZoo crawler for 3rd party apps 
+ 
+ 
+ 
+ 
+ 
+ 
+ License: CC BY 4.0
+ 
+ 
+arXiv:2506.23814v1 [cs.CR] 30 Jun 2025 
+ 
+ 
+ 
+ 
+ ML 
+ Machine Learning 
+ MLP 
+ Multilayer Perceptron 
+ DNN 
+ Deep Neural Network 
+ AUT 
+ Area Under Time 
+ A-AUT 
+ Average Area Under Time 
+ STD 
+ Standard Deviation 
+ AV 
+ Anti-Virus 
+ API 
+ Application Programming Interface 
+ APK 
+ Android Application Package 
+ VT 
+ VirusTotal 
+ VTT 
+ VirusTotal Threshold 
+ AZ 
+ AndroZoo 
+ TPR 
+ True Positive Rate 
+ FPR 
+ False Positive Rate 
+ 
+ Breaking Out from the Tesseract :
+ Reassessing ML-based Malware Detection under Spatio-Temporal Drift 
+ 
+ 
+ Theo Chow †‡ , Mario D’Onghia ‡ , Lorenz Linhardt ⋆ , Zeliang Kan †⋄ ,
+ Daniel Arp § , Lorenzo Cavallaro ‡ , Fabio Pierazzi ‡ 
+ 
+ Affiliation: † King’s College London,
+ ⋆ Technische Universität Berlin,
+ ⋄ HiddenLayer,
+
+ § Technische Universität Wien, ‡ University College London
+ 
+
+ Abstract 
+ 
+ Several recent works focused on the best practices for applying machine learning to cybersecurity. In the context of malware, Tesseract highlighted the impact of concept drift on detection performance and suggested temporal and spatial constraints to be enforced to ensure realistic time-aware evaluations, which have been adopted by the community. 
+ 
+ In this paper, we demonstrate striking discrepancies in the performance of learning-based malware detection across the same time frame when evaluated on two representative Android malware datasets used in top-tier security conferences, both adhering to established sampling and evaluation guidelines. 
+ 
+ This questions our ability to understand how current state-of-the-art approaches would perform in realistic scenarios. 
+ 
+ To address this, we identify five novel temporal and spatial bias factors that affect realistic evaluations. We thoroughly evaluate the impact of these factors in the Android malware domain on two representative datasets and five Android malware classifiers used or proposed in top-tier security conferences. For each factor, we provide practical and actionable recommendations that the community should integrate in their methodology for more realistic and reproducible settings. 
+ 
+ 
+ 
+ I Introduction 
+
+ 
+ Despite more than a decade of research on machine learning for malware detection, the problem remains far from solved. For example, Tesseract [ 29 ] , inspired by other works [ 6 , 27 ] , demonstrated the impact of concept drift on malware classifiers, and provided constraints and suggestions to eliminate experimental bias and have more realistic evaluations. 
+ 
+ 
+ The AndroZoo [ 5 , 7 , 1 ] project generated new hope among researchers to have more realistic, large-scale evaluations. Periodically, AndroZoo crawls applications from multiple markets (e.g., GooglePlay, AppChina), and as of today provides the largest data source of apk , with over 25 millions apps from over 15 years. When crawled, apk are submitted to the VirusTotal [ 4 ] service, which runs apps against multiple AV ( AV ) engines and produce detailed analysis reports (e.g., with family information). 
+ 
+ 
+ These repositories and frameworks, such as Tesseract , advocating guidelines for evaluations in non-stationary security contexts [ 29 , 27 , 6 , 10 , 18 ] , have enabled more realistic, time-aware evaluations of ML ( ML ) methods for Android malware detection. Or have they? 
+ 
+ 
+ To challenge this assumption, let us consider two state-of-the-art datasets used in top-tier security venues and sampled from AndroZoo: APIGraph [ 37 ] and Transcendent [ 12 ] .
+Both datasets strictly abide by all constraints outlined in Tesseract [ 29 ] to eliminate spatial and temporal bias, and align with all best practices for dataset construction and evaluation [ 10 , 18 ] . Surprisingly, evaluation across five state-of-the-art malware detectors reveals substantial discrepancy in F 1 F_{1} -Score on the two datasets (see Figure 1 ), with detection performance on APIGraph being consistently higher than on Transcendent across the same time frame. We postulate that the spatio-temporal constraints in prior work [ 29 , 10 , 18 , 32 ] do not entirely eliminate experimental bias, and that there are other nuanced factors to consider. 
+ 
+ 
+ More specifically, we identify five new spatio-temporal factors that can affect dataset sampling and evaluation of a learning-based Android malware detector.
+After introducing our hypotheses, we empirically evaluate the impact of each factor using five representative state-of-the-art Android malware classifiers: Drebin [ 11 ] , DeepDrebin [ 20 ] , MalScan [ 36 ] , Ramda [ 23 ] , and Hcc [ 15 ] . Based on our findings, we provide practical recommendations for each of the five factors to reduce spatial and temporal biases, demonstrating how to practically apply our recommendations in a newly-sampled dataset in §V . 
+ 
+ 
+ In summary, we make the following contributions: 
+ 
+ • 
+ 
+ We discover five novel spatio-temporal bias factors ( §IV ) beyond Tesseract [ 29 ] , which can lead to misleading results even if following all current recommendations for realistic evaluations [ 18 , 33 , 29 , 10 , 32 ] , as shown in Figure 1 . 
+ 
+ • 
+ 
+ We systematically analyze the impact of these factors on five state-of-the-art Android classifiers [ 11 , 20 , 36 , 23 , 15 ] ), and two datasets [ 37 , 12 ] .Where necessary, we augment our analysis by sampling additional data from AndroZoo to further generalize our findings outside of Transcendent and APIGraph datasets. 
+ 
+ • 
+ 
+ We showcase the practicality of our recommendations by performing a case study on a newly sampled dataset between 2021–2023 ( §V ), that follows our sampling recommendations and evaluation guidelines. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ (a) Drebin [ 11 ] 
+ 
+ 
+ (b) DeepDrebin [ 20 ] 
+ 
+ 
+ (c) MalScan [ 36 ] 
+ 
+ 
+ (d) Ramda [ 23 ] 
+ 
+ 
+ (e) Hcc [ 15 ] 
+ 
+ Figure 1 : Motivational example. The F 1 F_{1} -Score results on two Android datasets from the same time frame are always higher on D A D_{A} [ 37 ] than on D T D_{T} [ 12 ] . This paper investigates dataset sampling bias factors that may cause this discrepancy and faulty evaluations that do not provide holistic views. 
+ 
+ 
+ Availability 
+
+ 
+ To ensure reproducibility, and to encourage and foster bias-free evaluations in Android malware classification, we release the hashes and features of the dataset curated in §V at this link: https://bit.ly/hypercube_dataset . We will publicly release all the other code and artifacts upon publication of this paper. 
+ 
+ 
+ 
+ 
+ II Preliminary Observations 
+
+ 
+ We aim to investigate the reasons behind the striking performance difference observed in Figure 1 , regardless of the feature representation or classifier used. 
+ 
+ 
+ We focus our attention on two representative Android datasets published in top-tier security conferences:
+ APIGraph [ 37 ] ( D A D_{A} ) and Transcendent [ 12 ] ( D T D_{T} ).
+We selected these datasets as they adhere to all spatial and temporal constraints outlined in Tesseract [ 29 ] and align with recommendations from Arp et al. [ 10 ] . Moreover, they overlap in 2014–2018; hence, we restrict D A D_{A} to this period to match the time frame of D T D_{T} , allowing us to perform direct comparison between the two datasets. 
+ 
+ 
+ Family Overlap 
+
+ 
+ Prior work [ 16 ] showed that the appearance of new malware families were the major cause of drift in D T D_{T} . Hence, we investigate the distribution differences between the two datasets by computing the “family overlap,” i.e., the percentage of malware families for each testing year 2015–2018 that existed during the training year 2014; a more formal definition can be found in Appendix C . Figure 2 shows that new malware families steadily replace older ones in D T D_{T} , while malware family overlap does not show a clear trend in D A D_{A} . Considering that both datasets were sampled within the same time frame, we postulate that certain factors differed during the curation of the dataset, resulting in the different distributions of malware samples. 
+ 
+ 
+ Figure 2 : Family overlap of D A D_{A} and D T D_{T} at test time (2015–2018) with respect to families in the training set (2014). 
+ 
+ 
+ 
+ Novel Spatio-Temporal Bias Factors 
+
+ 
+ To identify possible sources of bias that explain the difference in performance in Figure 1 , we first examine the high-level statistics of D A D_{A} and D T D_{T} . We summarize the main differences identified in Table I . Based on these differences, we hypothesize five novel spatio-temporal bias factors that have been overlooked in previous work and may cause the observed performance gap. The App Markets affect the sampling of both goodware and malware apps, whereas higher labeling VT Thresholds may lead to malware that is “easier to detect.” While Dataset Size is similar between D A D_{A} and D T D_{T} , it needs to be investigated whether it is statistically significant and can be expected to reliably reflect the underlying distribution. Timestamp Types may affect both the sampling and the evaluation phases, as they may result in a dissimilar distribution. Finally, while the Time Frame of the two datasets is the same, we argue that existing metrics such as Area Under Time (AUT) [ 29 ] capture only a temporal snapshot of performance, and may be the result of a lucky time frame—we call this bias factor Temporal Luck . 
+ 
+ 
+ In the remainder of this paper, we investigate how the identified factors interplay and may affect realistic evaluations. Furthermore, we provide recommendations on how to prevent them. 
+ 
+ 
+ Table I : Differences of D A D_{A} and D T D_{T} . 
+ 
+ 
+ 
+ Characteristic 
+ 
+ 
+ D A D_{A} [ 37 ] 
+ 
+ 
+ 
+ D T D_{T} [ 12 ] 
+ 
+ 
+ Time Frame 
+ 
+ 
+ 2012-2018 
+ 
+ 
+ 
+ 2014-2018 
+ 
+ 
+ Timestamp 
+ 
+ 
+ VT first_submission_date 
+ 
+ 
+ 
+ dex_date 
+ 
+ 
+ VT Threshold 
+ 
+ 
+ 15 
+ 
+ 
+ 
+ 4 
+ 
+ 
+ App Markets 
+ 
+ 
+ Google Play (goodware), 
+ 
+ 
+ 
+ Google Play (91%), 
+ 
+ 
+ 
+ 
+ VirusShare (malware) 
+ 
+ 
+ 
+ Anzhi (7%), AppChina (2%) 
+ 
+ 
+ Dataset Size 
+ 
+ 
+ 320,001 
+ 
+ 
+ 
+ 259,230 
+ 
+ 
+ Dataset Size (2014-18) 
+ 
+ 
+ 241,611 
+ 
+ 
+ 
+ 259,230 
+ 
+ 
+ Num. Families 
+ 
+ 
+ 484 
+ 
+ 
+ 
+ 492 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ III Experimental Settings 
+
+ 
+ We first provide a brief overview of the datasets, classifiers, and metrics used in the remainder of the paper. 
+ 
+ 
+ Datasets 
+
+ 
+ To investigate the four identified factors, we use both D A D_{A} [ 37 ] and D T D_{T} [ 12 ] (see §II ). Where appropriate, we generalize our findings on the wider Android malware population by utilizing metadata from AndroZoo [ 1 ] , obtaining reports from VirusTotal [ 4 ] and unifying family labels from individual AV engines using Euphony [ 21 ] . Finally, we demonstrate how to practically apply our sampling and evaluation guidelines from §IV by collecting and evaluating a recent dataset from 2021–2023 in §V . More details about the datasets used can be found in the appendix Appendix A . 
+ 
+ 
+ 
+ Classifiers 
+
+ 
+ All our experiments are carried out on five representative Android malware classifiers: 
+ 
+ 
+ 
+ • 
+ 
+ Drebin [ 11 ] : Linear SVM using binary features from static analysis (e.g., APIs, URLs, Activities). 
+ 
+ • 
+ 
+ DeepDrebin [ 20 ] : Uses the same features as Drebin , with an MLP classifier. 
+ 
+ • 
+ 
+ MalScan [ 36 ] : Graph-based approach using degree centrality with a Random Forest classifier. 
+ 
+ • 
+ 
+ Ramda [ 23 ] : DNN model combining VAE and MLP, focusing on sensitive APIs, Permissions, and Intents. 
+ 
+ • 
+ 
+ Hcc [ 15 ] : Autoencoder-guided embedding using malware family labels for enhanced class separability. 
+ 
+ 
+ These classifier represent diverse feature representations and model architectures: token-based ( Drebin , DeepDrebin , Hcc ), API-based ( Ramda ), and graph-based ( MalScan ); and models including linear SVM, MLP, autoencoder, DNN, and Random Forest. This heterogeneity allows for robust, representation-agnostic insights. Notably, Hcc [ 15 ] builds upon Drebin and DeepDrebin and represents the current state-of-the-art. 
+ 
+ 
+ 
+ Metrics 
+
+ 
+ For each factor, we assess their impact using a combination of standard performance metric, the F 1 F_{1} -Score, the AUT metric for temporal evaluation [ 29 ] , and the Family Overlap measure introduced in §II to observe the distribution shift of malware families independent from the feature representation or classifier used (see Appendix C ). 
+ 
+ 
+ 
+ 
+ IV Novel Spatio-Temporal Bias Factors 
+
+ 
+ Following the observations in §II , we introduce five novel factors for spatio-temporal experimental biases: Timestamp Type ( §IV-A ), Temporal Luck ( §IV-B ), App Markets ( §IV-C ), VirusTotal Threshold ( §IV-D ), and Dataset Size ( §IV-E ). For each factor, we begin with a hypothesis, then evaluate its impact, and finally provide practical recommendations. 
+ 
+ 
+ IV-A Timestamp Types 
+
+ 
+ IV-A 1 Hypothesis 
+
+ 
+ apk often have multiple associated timestamps, such as file creation and market publication dates. These correspond to different points in time in the apk ’s life cycle. For longitudinal evaluation, the choice of timestamps for temporal slicing affects when an apk is thought to have appeared in the real world. We focus on two main types: creation timestamps, which are locally embedded and potentially unreliable, and publication timestamps, which reflect when an app was made available to users. 
+ 
+ 
+ 
+ Hypothesis: Timestamp Type 
+ 
+ 
+ The choice of timestamp type (creation vs. publication) affects the temporal distribution of malicious apk in the sampled dataset, which in turn impacts performance evaluation. In particular, using unreliable timestamps (e.g., creation date) may misrepresent when apk or threats actually appeared. 
+ 
+ 
+ 
+ 
+ 
+ 
+ (a) D A D_{A} 
+ 
+ 
+ (b) D T D_{T} 
+ 
+ Figure 3 : Distribution shift when changing timestamp type. This heatmap shows how samples would be temporally re-allocated if D T D_{T} used VT_first_submission_dates and D A D_{A} used dex_dates . 
+ 
+ 
+ 
+ IV-A 2 Impact 
+
+ 
+ We find that creation timestamps are an unreliable proxy for the actual release time, often deviating significantly from publication timestamps. As a result, using creation dates can shift apk outside from their true temporal context, leading to incorrect assumptions on the time a threat emerged. This temporal misalignment can distort sampling and, consequently, affect performance evaluations. 
+ 
+ 
+ Approximating Creation and Publication Timestamps 
+
+ 
+ First, we need to decide how to approximate creation and publication timestamps. D T D_{T} [ 12 ] uses the dex_date , i.e., the filesystem timestamp that indicates when the classes.dex file in an apk was last modified. dex_dates have been commonly used to approximate creation dates for time-aware evaluations [ 29 , 6 ] . Instead, D A D_{A} [ 37 ] uses the VT first_submission_date , the timestamp that indicates when an apk was first submitted to vt . Conceptually, VT_first_submission_dates should be considered publication timestamps, as they indicate when a sample was first submitted to vt ( vt ). However, we observed that there are minimal differences between dex_dates and VT_first_submission_dates . As shown in Figure 3 , reordering D A D_{A} and D T D_{T} using the other dataset timestamp type: (that is, D T D_{T} sorted by VT_first_submission_dates and D A D_{A} by dex_dates ) results in the vast majority of the samples lying on the diagonal (or in its proximity). This suggests that samples are generally submitted to VT shortly after their build date. Therefore, we classify VT_first_submission_dates as creation timestamps. As GooglePlay dates became available on AndroZoo after June 2020 [ 5 ] and the time frame of D T D_{T} and D A D_{A} precedes that, we require an approximation of publication timestamps for evaluations prior to 2020. We note that the AndroZoo crawl_dates for GooglePlay represent an exceptionally accurate approximation of official GooglePlay publication dates, with a median difference of only 5 days 1 1 
+ 1 
+ 
+ 
+ 
+ This statistic was computed on a population of 10,398,144 10,398,144 samples in AndroZoo. between the publication of an apk on GooglePlay and its inclusion in AndroZoo. Hence, we refer to crawl_dates as an approximation for publication timestamps. 
+ 
+ 
+ 
+ Timestamps Impact on Sampling 
+
+ 
+ We now evaluate whether creation timestamps or publication timestamps produce more realistic data distributions. To this end, we perform experiments exclusively on D T D_{T} , since most of the information needed to perform the same evaluations on D A D_{A} is not available. More specifically, AndroZoo’s crawl_dates for D A D_{A} would indicate that most samples are from 2018, and VirusShare, from which D A D_{A} malware is sampled, is no longer accessible due to severe hardware faults (as of May/June 2025). 
+ 
+ 
+ Since goodware has minimal effect on the drift of D T D_{T} [ 16 ] , we focus on the impact that timestamps have on the distribution of malware samples. We imitated the sampling described in [ 12 ] , which used dex_dates (creation timestamps). We identically and independently (randomly) sample five malware datasets from the full AndroZoo population using the sampling criteria of D T D_{T} : time frame 2014–2018, vtt ( vtt ) ≥ 4 \geq 4 , dex_dates as timestamps, and an identical number of malicious samples per month, accumulating to 26,387 26,387 malicious apk per dataset. We then analyzed their “family overlaps” in Figure 4 (as in §II ), from which we notice a stark difference between 𝒟 v ​ t ​ t ​ 4 2025 \mathcal{D}_{vtt4}^{2025} and D T D_{T} . We hypothesize that this is due to the fact that AndroZoo has changed significantly since D T D_{T} was originally sampled. Specifically, we observe that several malicious apk with creation timestamps older than their publication dates were added to AndroZoo since the release of D T D_{T} . This suggests that malware samples with dex_dates belonging to that period were added long after the dataset was sampled.
+To further confirm our reasoning, we contacted the authors of [ 12 ] to find out the date when D T D_{T} was sampled. They informed us that the first three years 2014–2016 correspond to the dataset published with [ 29 ] and were sampled in early 2018, while the last two years 2017–2018 were sampled in early 2019 as part of the dataset released with [ 30 ] .
+By analyzing the AndroZoo metadata for the samples in D T D_{T} , we notice that the youngest sample in 2014–2016 was added to AndroZoo in April 2017 and that the youngest in 2017–2018 in January 2019. Given this information, we repeat the previous experiment filtering out all samples with dex_date between 2014–2016 whose crawl_date is subsequent to mid-2017 and all samples with dex_date between 2017–2018 whose crawl_date indicates that the samples were added to AndroZoo after January 2019. In this way, we try to emulate the sampling process of [ 29 ] and [ 30 ] . 
+ 
+ 
+ Figure 4 compares the average yearly family overlap for the datasets we sampled. It can be seen that the average family overlap for the datasets sampled in 2025 differs from that of the datasets sampled trying to emulate [ 29 , 30 ] , the latter approaching that of D T D_{T} . 
+ 
+ 
+ Figure 4 : Family overlap of 5 datasets identically and independently sampled from a snapshot of AndroZoo in 2025 and in 2017/2019 using D T D_{T} sampling parameters. 
+ 
+ 
+ Our experiments show that by using creation timestamps one may prematurely include newer samples in the dataset. This means that creation timestamps make the snapshot of the data distribution dependent on when a dataset was sampled. This implies that creation timestamps are not reliable in determining when an apk is released in the wild and should be avoided. 
+ 
+ 
+ 
+ 
+ 
+ (a) Drebin [ 11 ] 
+ 
+ 
+ (b) DeepDrebin [ 20 ] 
+ 
+ 
+ (c) MalScan [ 36 ] 
+ 
+ 
+ (d) Ramda [ 23 ] 
+ 
+ 
+ (e) Hcc [ 15 ] 
+ 
+ Figure 5 : Impact of publication vs. creation timestamps on D T D_{T} . Each plot shows the difference in F 1 F_{1} -Score when training on 2016 and evaluating on 2017 and 2018 using either dex_dates (dotted lines) or the AndroZoo crawl_dates (full lines with triangle markers), approximating creation and publication timestamps, respectively. 
+ 
+ 
+ 
+ Timestamps Impact on Performance 
+
+ 
+ We now measure the impact of creation and publication timestamps on the performance of the five classifiers we introduced in §III . As aforementioned, we limit the evaluation to D T D_{T} due to missing information for D A D_{A} . 
+ 
+ 
+ Hence, we evaluate all five classifiers on D T D_{T} , training on 2016 and testing in 2017–2018, using the crawl_date to reorder apk in the dataset. We eliminate 2014–2015 because AndroZoo had just been created in that period; hence, not many samples were added to the repository in that time frame. Specifically, no samples in D T D_{T} were added to AndroZoo in 2015. Figure 5 shows the performance difference when using dex_dates versus crawl_dates . It is evident that all classifiers exhibit more drift throughout 2017 and the first half of 2018 when using crawl_dates . In contrast, the performance remains stable for all classifiers when using dex_dates . 
+ 
+ 
+ 
+ 
+ IV-A 3 Recommendations 
+
+ 
+ Given the unreliability of creation timestamps, we advocate against using them, in contrast with previous published work [ 29 , 30 , 12 , 37 ] . Instead, we recommend using publication timestamps as these describe exactly when samples started circulating and are therefore more reliable. In particular, one should use the dates indicating when an apk was uploaded to a market. For Google Play, this corresponds to the “last update date” available for each app. This information is also provided and recommended by AndroZoo for apk downloaded from GooglePlay after June 2020 [ 5 ] . 
+ 
+ 
+ 
+ Recommendation: Timestamp Type 
+ 
+ 
+ Datasets must be sampled using publication timestamps to model the temporal distribution. Official market upload dates should be preferred (e.g., GooglePlay publication dates); otherwise, crawl_dates from AndroZoo can be an approximation. 
+ 
+ 
+ 
+ 
+ 
+ IV-B Temporal Luck 
+
+ 
+ IV-B 1 Hypothesis 
+
+ 
+ Two datasets D 1 D_{1} and D 2 D_{2} , sampled from different time frames (e.g., 2012–2014 and 2016–2018), can be expected to represent different distributions (e.g., they may vary in terms of family composition). Therefore, no meaningful conclusions can be drawn from comparing the performance of a malware classifier on D 1 D_{1} with the performance of another malware detection method evaluated on D 2 D_{2} . This issue of comparing malware detection methods on different datasets presenting a distribution mismatch often arises when researchers directly compare their results with those reported in other related papers (“comparisons on paper”). 
+ 
+ 
+ Given two malware detection approaches A 1 A_{1} and A 2 A_{2} , a straightforward solution would be to evaluate both on the same dataset, as done in recent work (e.g., [ 37 , 36 , 12 ] ). Nevertheless, this may not be sufficient to conclude which method performs best, as the reported results may still be influenced by what we call Temporal Luck . This phenomenon arises when an arbitrary time-aware split into training and testing inflates the performance of a given method, due to the training set, by chance, being “exceptionally” good or the subsequent testing period not drifting significantly. In practical terms, given a dataset 𝒟 2012 − 2020 \mathcal{D}_{2012-2020} , A 1 A_{1} may perform better than A 2 A_{2} when training on 2012 and testing on 2013–2020, whereas A 2 A_{2} may exhibit superior performance when training on 2013 and testing on 2014–2020. Hence, we postulate the following hypothesis. 
+ 
+ 
+ 
+ Hypothesis: Temporal Luck 
+ 
+ 
+ Given a dataset, the performance of a malware detection method may vary based on the temporal train/test splits. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ (a) Drebin 
+ 
+ 
+ 
+ 
+ (b) DeepDrebin 
+ 
+ 
+ 
+ 
+ (c) MalScan 
+ 
+ 
+ 
+ 
+ (d) Ramda 
+ 
+ 
+ 
+ 
+ (e) Hcc 
+ 
+ Figure 6 : Impact of Temporal Luck on performance. Each plot refers to a specific model and dataset. Each line indicates the F 1 F_{1} -Score of a model trained on a different year (between 2014 and 2017). It can be seen that training on different years within the same dataset can yield different performance profiles. The issue is evident on D T D_{T} , but also present in D A D_{A} . 
+ 
+ 
+
+ Table II : Temporal Luck. 12-month window AUT : 2014—2015 indicates that the model is trained on 2014 and its AUT value computed on 2015. It can be observed that the performance of a model on a given dataset may change depending on how we temporally split the dataset. 
+ 
+ 
+ D A D_{A} 
+ 
+ 
+ Classifier 
+ 2014—2015 
+ 2015—2016 
+ 2016—2017 
+ 2017—2018 
+ 
+ Drebin 
+ 0.90 
+ 0.87 
+ 0.87 
+ 0.80 
+ 
+ DeepDrebin 
+ 0.89 
+ 0.92 
+ 0.90 
+ 0.84 
+ 
+ MalScan 
+ 0.67 
+ 0.65 
+ 0.66 
+ 0.87 
+ 
+ Ramda 
+ 0.75 
+ 0.81 
+ 0.77 
+ 0.59 
+ 
+ Hcc 
+ 0.86 
+ 0.91 
+ 0.90 
+ 0.91 
+ 
+ 
+ 
+ D T D_{T} 
+ 
+ 
+ Classifier 
+ 2014—2015 
+ 2015—2016 
+ 2016—2017 
+ 2017—2018 
+ 
+ Drebin 
+ 0.69 
+ 0.67 
+ 0.79 
+ 0.64 
+ 
+ DeepDrebin 
+ 0.66 
+ 0.72 
+ 0.52 
+ 0.82 
+ 
+ MalScan 
+ 0.45 
+ 0.42 
+ 0.53 
+ 0.83 
+ 
+ Ramda 
+ 0.54 
+ 0.56 
+ 0.44 
+ 0.74 
+ 
+ Hcc 
+ 0.65 
+ 0.70 
+ 0.62 
+ 0.82 
+ 
+ 
+ 
+ 
+ 
+ IV-B 2 Impact 
+
+ 
+ Figure 6 provides an overview of the impact of Temporal Luck on both D A D_{A} and D T D_{T} . The settings we employ are the following: we train classifiers on data from each year in the time frame 2014–2018 and test them in the years that follow. In practice, we divide the datasets into four subsets: the first having 2014 as training window and testing on 2015–2018, the second having 2015 for training and 2016–2018 for testing, and so on. It is visually evident in D T D_{T} that significantly different performance profiles may be obtained depending on the temporal split. This can also be observed for D A D_{A} , albeit to a lesser extent. 
+ 
+ 
+ To quantify Temporal Luck in D A D_{A} and D T D_{T} , we compute the AUT ( AUT ) score when training on one year and testing only on the following year (i.e., (i) train on 2014 and test on 2015, (ii) train on 2015 and test on 2016, etc.). The AUT summarizes the performance of a classifier over a certain time frame, and in the presence of Temporal Luck, it can emphasize when a proposed approach is consistently working across different temporal splits. The results are summarized in Table II . We can again observe significantly different results on D T D_{T} for all classifiers and temporal configurations, and smaller differences for D A D_{A} (with a larger difference in the last column). 
+ 
+ 
+ While revealing substantial performance variation across training years, the AUT may complicate the comparison between different state-of-the-art classifiers, as no individual classifier clearly performs better than the others in all scenarios. For instance, Drebin performs better than DeepDrebin in 2014–2015 and 2016–2017 on D T D_{T} . The reverse is true for the other two temporal configurations. Hcc , the current state-of-the-art in Android malware detection, shows the highest AUT in 2016–2017 and 2017–2018 on D A D_{A} only. Given these mixed results, it is legitimate to wonder which one should be considered the superior classifier. 
+ 
+ 
+ To facilitate direct comparison between different malware detection methods, we propose the following extension of the AUT metric, providing a compact summary of the time-aware performance of a given classifier (given a metric f f , e.g., F 1 F_{1} -Score), while accounting for Temporal Luck: 
+ 
+ 
+ 
+
+ 
+ 
+ A-AUT ​ ( f , 𝒞 , N | 𝒟 ) = ( μ A ​ U ​ T ​ ( f , 𝒞 , N | 𝒟 ) CLOSE , \displaystyle\text{A-AUT}(f,\mathcal{C},N|\mathcal{D})=(\mu_{AUT}(f,\mathcal{C},N|\mathcal{D}), 
+ 
+ 
+ 
+ OPEN σ A ​ U ​ T ​ ( f , 𝒞 , N | 𝒟 ) ) \displaystyle\sigma_{AUT}(f,\mathcal{C},N|\mathcal{D})) 
+ 
+ (1) 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ μ A ​ U ​ T ​ ( f , 𝒞 , N | 𝒟 ) = 1 | 𝒞 | ​ ∑ c = 1 | 𝒞 | A ​ U ​ T ​ ( f , N | 𝒟 c ) \mu_{AUT}(f,\mathcal{C},N|\mathcal{D})=\frac{1}{|\mathcal{C}|}\sum_{c=1}^{|\mathcal{C}|}AUT(f,N|\mathcal{D}_{c}) 
+ 
+ (2) 
+ 
+ 
+ 
+ Equation 1 presents the A-AUT ( A-AUT ), which is defined as the arithmetic mean ( μ A ​ U ​ T \mu_{AUT} in Equation 2 ) and standard deviation ( σ A ​ U ​ T \sigma_{AUT} ) of the AUT scores computed by dividing a dataset 𝒟 \mathcal{D} into temporally successive datasets { 𝒟 1 , ⋯ , 𝒟 | 𝒞 | } \{\mathcal{D}_{1},\cdots,\mathcal{D}_{|\mathcal{C}|}\} , which are obtained by shifting forward the training set by N N months. Each test set is comprised of all the samples belonging to the following N N months. The parameter 𝒞 \mathcal{C} in Equation 1 is the set of all classifiers produced by training the model under analysis on the training set of each d ∈ { 𝒟 1 , ⋯ , 𝒟 | 𝒞 | } d\in\{\mathcal{D}_{1},\cdots,\mathcal{D}_{|\mathcal{C}|}\} . A practical example of this rolling window approach is provided in Appendix D . 
+ 
+ 
+ Table III : A-AUT for different classifiers. μ A ​ U ​ T \mu_{AUT} and σ A ​ U ​ T \sigma_{AUT} with F 1 F_{1} -Score for a given dataset and classifier 
+ 
+ 
+ Dataset 
+ Classifier 
+ μ A ​ U ​ T \mu_{AUT} 
+ σ A ​ U ​ T \sigma_{AUT} 
+ 
+ D A D_{A} 
+ Drebin 
+ 0.86 
+ 0.04 
+ 
+ DeepDrebin 
+ 0.89 
+ 0.03 
+ 
+ MalScan 
+ 0.72 
+ 0.09 
+ 
+ 
+ Ramda 
+ 0.73 
+ 0.09 
+ 
+ 
+ Hcc 
+ 0.90 
+ 0.02 
+ 
+ D T D_{T} 
+ Drebin 
+ 0.70 
+ 0.06 
+ 
+ DeepDrebin 
+ 0.68 
+ 0.11 
+ 
+ MalScan 
+ 0.56 
+ 0.16 
+ 
+ 
+ Ramda 
+ 0.57 
+ 0.11 
+ 
+ 
+ Hcc 
+ 0.71 
+ 0.07 
+ 
+ 
+ 
+ In Table III , we report the A-AUT (i.e., μ A ​ U ​ T \mu_{AUT} and σ A ​ U ​ T \sigma_{AUT} ) of the F 1 F_{1} -Score computed for our considered classifiers and datasets. The proposed metric facilitates the direct comparison of different malware detection methods, while accounting for temporal luck. For instance, it can help us determine which classifier between Drebin and DeepDrebin performs the best on D T D_{T} : Drebin shows a slightly better performance than DeepDrebin ( μ A ​ U ​ T = 0.70 \mu_{AUT}=0.70 for the first, μ A ​ U ​ T = 0.68 \mu_{AUT}=0.68 for the second) while also guaranteeing a “more stable” performance across different temporal splits ( σ A ​ U ​ T = 0.06 \sigma_{AUT}=0.06 for Drebin against σ A ​ U ​ T = 0.11 \sigma_{AUT}=0.11 for DeepDrebin ). And MalScan is worse than both of them, with higher variability. For both datasets, Hcc results as the best performing classifier overall. 
+ 
+ 
+ 
+ IV-B 3 Recommendation 
+
+ 
+ As a single train-test split may unfairly (dis)advantage one classifier over another. We recommend using the proposed A-AUT metric to provide a less biased mean estimate of the classifier performance, along with a measure of performance stability over time splits. 
+ 
+ 
+ 
+ Recommendation: Temporal Luck 
+ 
+ 
+ You must use A-AUT as a metric to compare malware detection methods.
+If multiple methods have comparable A-AUT , you must provide an AUT breakdown. You may use A-AUT with N = 12 N=12 months, to have a yearly summary of the results. 
+ 
+ 
+ 
+ 
+ 
+ IV-C App Markets 
+
+ 
+ IV-C 1 Hypothesis 
+
+ 
+ Android apps are distributed across multiple markets, each serving different regions and user bases. For example, GooglePlay is the dominant platform in Western regions, while alternative markets are more prevalent in Eastern contexts. When constructing malware datasets, researchers often sample from a single market—typically GooglePlay—especially when focusing on region-specific threats or working within the constraints of public data (see §V ). While this yields datasets representative of their target market, it may limit generalizability. In contrast, recent studies [ 29 , 12 , 37 ] adopt multi-market sampling to increase diversity and scale. However, such strategies may unintentionally introduce shortcut learning, as classifiers could learn market-correlated features instead of security-relevant ones [ 10 ] . 
+ 
+ 
+ Table IV shows the market composition of the full AndroZoo, D A D_{A} and D T D_{T} datasets, based on metadata from AndroZoo [ 1 ] . The data reveal substantial imbalance: certain markets contribute disproportionately to the AndroZoo population, and the D A D_{A} and D T D_{T} datasets differ distinctly in their sampling. In particular, D A D_{A} exhibits a pronounced sampling bias, sourcing malware primarily from VirusShare and goodware from GooglePlay. 
+ 
+ 
+ We therefore hypothesize that an imbalanced market composition in training data, where malware and goodware are predominantly sampled from different markets, results in statistically significant-degradation of classifier performance when evaluated on market-balanced or differently-composed test sets. This is consistent with previous findings on shortcut learning [ 10 ] and is testable using market metadata in AndroZoo. 
+ 
+ 
+ 
+ Hypothesis: App Markets 
+ 
+ 
+ Altering the composition of App Markets used in dataset sampling significantly affects goodware and malware class-distribution, and leads to reduced detection performance (e.g., F 1 F_{1} -Score or AUT) when models are evaluated on out-of-sample market distributions. 
+ 
+ 
+ 
+ Table IV : Comparison of market sources for the apps within AndroZoo, D A D_{A} and D T D_{T} . The market information of each apps is taken from the AndroZoo metadata (note that each apk can be present in multiple market sources). 
+ 
+ 
+ 
+ Market 
+ AndroZoo 
+ D A D_{A} 
+ D T D_{T} 
+ 
+ 
+ Goodware 
+ Malware 
+ Goodware 
+ Malware 
+ Goodware 
+ Malware 
+ 
+ angeeks 
+ 0.18% 
+ 0.64% 
+ 0.21% 
+ 0.34% 
+ - 
+ - 
+ 
+ anzhi 
+ 1.64% 
+ 29.25% 
+ 0.37% 
+ 1.89% 
+ 3.24% 
+ 37.57% 
+ 
+ apk_bang 
+ - 
+ - 
+ - 
+ 0.01% 
+ - 
+ - 
+ 
+ appchina 
+ 2.57% 
+ 22.74% 
+ 1.75% 
+ 3.75% 
+ 2.28% 
+ 11.28% 
+ 
+ fdroid 
+ 0.27% 
+ 0.01% 
+ - 
+ - 
+ 0.08% 
+ - 
+ 
+ freewarelovers 
+ 0.02% 
+ - 
+ 0.03% 
+ - 
+ - 
+ - 
+ 
+ genome 
+ - 
+ 0.06% 
+ - 
+ 0.57% 
+ - 
+ - 
+ 
+ hiapk 
+ 0.01% 
+ 0.04% 
+ 0.01% 
+ 0.01% 
+ 0.02% 
+ 0.06% 
+ 
+ mi.com 
+ 0.13% 
+ 2.82% 
+ 0.06% 
+ 0.23% 
+ 0.4% 
+ 4.12% 
+ 
+ PlayDrone 
+ 5.75% 
+ 6.41% 
+ 33.52% 
+ 9.75% 
+ 13.26% 
+ 6.35% 
+ 
+ GooglePlay 
+ 94.91% 
+ 29.50% 
+ 99.99% 
+ 10.13% 
+ 95.33% 
+ 49.29% 
+ 
+ praguard 
+ - 
+ 0.47% 
+ - 
+ 0.01% 
+ - 
+ - 
+ 
+ proandroid 
+ 0.02% 
+ 0.01% 
+ 0.06% 
+ 0.02% 
+ - 
+ - 
+ 
+ slideme 
+ 0.21% 
+ 0.27% 
+ 0.3% 
+ 0.14% 
+ 0.02% 
+ - 
+ 
+ unknown 
+ 0.01% 
+ 1.27% 
+ 0.08% 
+ 23.74% 
+ 0.02% 
+ 0.49% 
+ 
+ VirusShare 
+ 0.12% 
+ 15.95% 
+ 0.07% 
+ 81.93% 
+ 0.14% 
+ 2.05% 
+ 
+ 1mobile 
+ 0.2% 
+ 0.48% 
+ 1.36% 
+ 0.35% 
+ - 
+ - 
+ 
+ 
+ 
+ 
+ 
+ IV-C 2 Impact 
+
+ 
+ To verify that performance on D A D_{A} is influenced by the fact that goodware is entirely sampled from Google Play, whereas the malware comes primarily from VirusShare, we analyzed the fpr ( fpr ) of both datasets. We indeed notice how classifiers trained on D A D_{A} tend to be steadily confident in predicting benign apk . In contrast, classifiers trained on D T D_{T} exhibit a much more variable fpr . Figure 7 shows the fpr trend of all five classifiers when trained and evaluated on both datasets. 
+ 
+ 
+ 
+ 
+ 
+ (a) D A D_{A} 
+ 
+ 
+ (b) D T D_{T} 
+ 
+ Figure 7 : fpr of the five classifiers in 2015–2018. 
+ 
+ 
+ We now empirically evaluate the impact of market composition by constructing six dataset configurations, designed to simulate the influence of market sources on dataset composition, and evaluating their effect on malware detection performance. Instead of relying on D A D_{A} and D T D_{T} , which are already shown to be biased, we collect apk from AndroZoo from two groups of markets. We collect samples only from GooglePlay ( GP ) as its the majority market from AndroZoo, and we group all remaining 3rd Party Markets together ( 3PM ), because 3PM are otherwise individually too-small (compared to GP).
+A detailed breakdown of the configurations is given in Table V . Each dataset configuration consists of 20,000 samples for training and 5,000 samples for testing. Due to the limited number of samples per time split, we do not perform a temporal evaluation and instead average across five runs. This still provides a valid basis for comparison, as it represents an upper-bound on classifier performance [ 29 ] . 
+ 
+ 
+ Table V : Experimental configurations for the analysis of market sources. The configurations include sampling solely from (GP), and Third Party Markets (3PM), sampled from both evenly, sampled from both but with more from GooglePlay, goodware from GooglePlay and malware from 3PM and vice versa. 
+ 
+ 
+ Configuration 
+ Train set 
+ Test set 
+ 
+ Goodware 
+ Malware 
+ Goodware 
+ Malware 
+ 
+ 
+ GooglePlay 
+ 3PM 
+ GooglePlay 
+ 3PM 
+ GooglePlay 
+ 3PM 
+ GooglePlay 
+ 3PM 
+ 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 10,000 
+ 0 
+ 10,000 
+ 0 
+ 4,500 
+ 0 
+ 500 
+ 0 
+ 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 0 
+ 10,000 
+ 0 
+ 10,000 
+ 0 
+ 4,500 
+ 0 
+ 500 
+ 
+ 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} 
+ 5,000 
+ 5,000 
+ 5,000 
+ 5,000 
+ 2,250 
+ 2,250 
+ 250 
+ 250 
+ 
+ 𝒟 P ​ R ​ O ​ P \mathcal{D}_{PROP} 
+ 8,000 
+ 2,000 
+ 8,000 
+ 2,000 
+ 3,600 
+ 900 
+ 4,000 
+ 100 
+ 
+ 𝒟 G ​ P ​ 3 ​ P ​ M \mathcal{D}_{GP3PM} 
+ 10,000 
+ 0 
+ 0 
+ 10,000 
+ 4,500 
+ 0 
+ 0 
+ 500 
+ 
+ 𝒟 3 ​ P ​ M ​ G ​ P \mathcal{D}_{3PMGP} 
+ 0 
+ 10,000 
+ 10,000 
+ 0 
+ 0 
+ 4,500 
+ 500 
+ 0 
+ 
+ 
+ 
+ Table VI : Evaluation results of sampling from diverse app market sources. Training and testing on the same markets consistently yields higher F 1 F_{1} -Score compared to training and testing on different markets across all classifiers, showing a vastly different distribution in the markets. By training on all markets, the performance is similar to that of training on one market, highlighting the benefits of including several markets in training. Variance for all results is lower than 0.03. All information about the datasets can be found in Table V 
+ 
+ 
+ 
+ 
+ Drebin 
+ DeepDrebin 
+ MalScan 
+ Ramda 
+ Hcc 
+ 
+ Train Set 
+ Test Set 
+ F 1 F_{1} -Score 
+ F 1 F_{1} -Score 
+ F 1 F_{1} -Score 
+ F 1 F_{1} -Score 
+ F 1 F_{1} -Score 
+ 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 0.776 \boldsymbol{0.776} 
+ 0.788 0.788 
+ 0.841 0.841 
+ 0.524 0.524 
+ 0.813 0.813 
+ 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 0.658 \boldsymbol{0.658} 
+ 0.699 0.699 
+ 0.614 0.614 
+ 0.514 0.514 
+ 0.782 0.782 
+ 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 0.265 \boldsymbol{0.265} 
+ 0.247 0.247 
+ 0.298 0.298 
+ 0.227 0.227 
+ 0.261 0.261 
+ 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 0.415 \boldsymbol{0.415} 
+ 0.290 0.290 
+ 0.416 0.416 
+ 0.262 0.262 
+ 0.348 0.348 
+ 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} 
+ 0.422 0.422 
+ 0.395 \boldsymbol{0.395} 
+ 0.511 \boldsymbol{0.511} 
+ 0.344 0.344 
+ 0.417 0.417 
+ 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} 
+ 0.622 0.622 
+ 0.558 \boldsymbol{0.558} 
+ 0.581 \boldsymbol{0.581} 
+ 0.454 0.454 
+ 0.642 0.642 
+ 
+ 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 0.740 0.740 
+ 0.747 0.747 
+ 0.789 0.789 
+ 0.576 0.576 
+ 0.799 \boldsymbol{0.799} 
+ 
+ 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 0.659 0.659 
+ 0.566 0.566 
+ 0.666 0.666 
+ 0.467 0.467 
+ 0.781 \boldsymbol{0.781} 
+ 
+ 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} 
+ 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} 
+ 0.659 0.659 
+ 0.706 0.706 
+ 0.694 0.694 
+ 0.504 0.504 
+ 0.775 \boldsymbol{0.775} 
+ 
+ 𝒟 P ​ R ​ O ​ P \mathcal{D}_{PROP} 
+ 𝒟 G ​ P \mathcal{D}_{GP} 
+ 0.774 0.774 
+ 0.798 0.798 
+ 0.836 0.836 
+ 0.595 0.595 
+ 0.829 \boldsymbol{0.829} 
+ 
+ 𝒟 P ​ R ​ O ​ P \mathcal{D}_{PROP} 
+ 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} 
+ 0.573 0.573 
+ 0.586 0.586 
+ 0.625 0.625 
+ 0.373 0.373 
+ 0.706 \boldsymbol{0.706} 
+ 
+ 𝒟 P ​ R ​ O ​ P \mathcal{D}_{PROP} 
+ 𝒟 P ​ R ​ O ​ P \mathcal{D}_{PROP} 
+ 0.712 0.712 
+ 0.763 0.763 
+ 0.761 0.761 
+ 0.517 0.517 
+ 0.796 \boldsymbol{0.796} 
+ 
+ 𝒟 G ​ P ​ 3 ​ P ​ M \mathcal{D}_{GP3PM} 
+ 𝒟 G ​ P ​ 3 ​ P ​ M \mathcal{D}_{GP3PM} 
+ 0.899 0.899 
+ 0.904 0.904 
+ 0.814 0.814 
+ 0.844 \boldsymbol{0.844} 
+ 0.936 0.936 
+ 
+ 𝒟 G ​ P ​ 3 ​ P ​ M \mathcal{D}_{GP3PM} 
+ 𝒟 3 ​ P ​ M ​ G ​ P \mathcal{D}_{3PMGP} 
+ 0.082 0.082 
+ 0.067 0.067 
+ 0.080 0.080 
+ 0.061 \boldsymbol{0.061} 
+ 0.076 0.076 
+ 
+ 𝒟 3 ​ P ​ M ​ G ​ P \mathcal{D}_{3PMGP} 
+ 𝒟 G ​ P ​ 3 ​ P ​ M \mathcal{D}_{GP3PM} 
+ 0.142 0.142 
+ 0.116 0.116 
+ 0.140 0.140 
+ 0.074 \boldsymbol{0.074} 
+ 0.107 0.107 
+ 
+ 𝒟 3 ​ P ​ M ​ G ​ P \mathcal{D}_{3PMGP} 
+ 𝒟 3 ​ P ​ M ​ G ​ P \mathcal{D}_{3PMGP} 
+ 0.829 0.829 
+ 0.856 0.856 
+ 0.851 0.851 
+ 0.626 \boldsymbol{0.626} 
+ 0.910 0.910 
+ 
+ 
+ 
+ 
+ Similarity of apk 
+
+ 
+ We begin by analyzing the impact on performance when training and testing are conducted on the same markets and on different markets. As shown in Table VI , training and testing on the same market consistently yields higher F 1 F_{1} -Score scores compared to cross-market scenarios. For example, Drebin achieves an increase of 0.551 and 0.361 in F 1 F_{1} -Score score when evaluated on the same market. These results indicate notable differences in the characteristics of goodware and malware across market groups. 
+ 
+ 
+ This point is further underscored when examining the F 1 F_{1} -Score of classifiers trained on samples from one source, but tested on 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} (samples from GP and 3PM). For example, training on 𝒟 G ​ P \mathcal{D}_{GP} and testing on 𝒟 E ​ V ​ E ​ N \mathcal{D}_{EVEN} yields F 1 F_{1} -Score of 0.395 and 0.511 for DeepDrebin and MalScan , respectively—significantly lower than the scores observed when testing on 𝒟 G ​ P \mathcal{D}_{GP} alone. Similar trends are observed for 𝒟 3 ​ P ​ M \mathcal{D}_{3PM} and are consistent for all classifiers. 
+ 
+ 
+ 
+ Combining markets for training/testing 
+
+ 
+ Prior work [ 29 , 12 , 37 ] has adopted multi-market sampling. Here we analyze training on mixed markets and testing on mixed or single markets. We find that, regardless of the proportion of Google Play to 3PM apps (e.g., 1:1 or 4:1), the F 1 F_{1} -Score lies within the range of testing on single markets. 
+ 
+ 
+ 
+ Goodware and Malware from different markets 
+
+ 
+ Dataset compositions that include goodware and malware from distinct markets lead to unrealistically-high F 1 F_{1} -Score. This aligns with findings from [ 10 ] , where classifiers inadvertently learn spurious correlations, distinguishing app origins rather than actual differences between goodware and malware. These results clearly demonstrate the influence of app markets on classifier performance and the risk of introducing unintentional biases. 
+ 
+ 
+ 
+ Takeaways 
+
+ 
+ Arp et al. [ 10 ] showed that sampling malware and goodware from different markets can lead to spurious correlations. We extend this finding by showing apps from different markets are inherently different (even if class ratio stays consistent) and training on one market does not transfer well to another. Finally, we observed that testing on mixed markets may give unclear performance that skews towards the majority market. 
+ 
+ 
+ 
+ 
+ IV-C 3 Recommendations 
+
+ 
+ It is imperative that the sampling is not biased such that goodware and malware originate from different markets. To ensure this, one should sample goodware and malware from the same market. If you wish to use multiple markets, you must sample from each separately, and test only on single markets to obtain the best and worst case. 
+ 
+ 
+ 
+ Recommendation: App Markets 
+ 
+ 
+ The App Markets distribution must be consistent between goodware and malware apps, to avoid spatial bias. When performing multi-market evaluation, you must sample from each market separately, and report the single-market test performance to obtain the best and worst case. 
+ 
+ 
+ 
+ 
+ 
+ IV-D VirusTotal Threshold 
+
+ 
+ IV-D 1 Hypothesis 
+
+ 
+ Although vtt is generally considered by the community as a labeling tool, in pratice it also acts as a sampling parameter. For example, it excludes all samples that have a number of detections between 1 and the chosen vtt value from the base population (these samples are usually called greyware ). For this reason, we expect vtt to play a role in the distribution of malware samples within a dataset. This is particularly evident in AndroZoo, for which we posit that selecting different vtt values significantly affects the population from which to sample, leading to different malware distributions. 
+ 
+ 
+ 
+ Hypothesis: VirusTotal Threshold 
+ 
+ 
+ The choice of vtt affects the distribution from which Android malware is sampled, because it acts as a sampling parameter which filters the original population. 
+ 
+ 
+ 
+ 
+ IV-D 2 Impact 
+
+ 
+ Starting from our preliminary observation in §II , we investigate the impact of vtt on malware distribution. To this end, we use the two sampling configurations described in §IV-A2 : (i) we sample in 2025 using D T D_{T} sampling criteria; (ii) we emulate the sampling of [ 29 ] and [ 30 ] by sampling in mid-2017 and 2019 for 2014–2016 and 2017–2018, respectively. We repeat both configurations with vtt =4 and vtt =15. 
+ 
+ 
+ Figure 8 shows the family overlaps we obtained for all 4 configurations. Interestingly, we notice there is minimal difference between vtt =4 and vtt =15, when you compare orange and blue bars. This suggest that vtt does not directly influence the distribution of a sampled dataset.
+However, when observing the distribution of malware in different app markets, we notice that vtt does have an impact. Figure 9 shows the percentage of samples from each market when using a different vtt . By picking a higher vtt , one would inadvertently sample more malware from one specific market. In §IV-C , we showed that this could lead to spurious correlations and one should ensure goodware and malware are sampled from the same market. Furthermore, we observe that using a higher vtt will not only only affect distribution of markets but also reduce the population of available malware (e.g., vtt =4 captures 44% of all malware in AndroZoo, whereas vtt =15 captures 14.11%). 
+ 
+ 
+ Figure 8 : Impact of vtt on Family Overlap . Hatched bars refer to the mean family overlap of datasets sampled emulating [ 29 ] and [ 30 ] , similarly to the experiments performed in §IV-A2 . Non-hatched bars refer instead to datasets sampled assuming the full AndroZoo population in 2025. 
+ 
+ 
+ Figure 9 : Distribution of per-market malware VTT in AndroZoo. For higher VTT values, there is a higher likelihood of sampling from a subset of markets (e.g., VirusShare). 
+ 
+ 
+ 
+ IV-D 3 Recommendations 
+
+ 
+ We note that vtt does not directly affect the family overlap of malicious samples. However, it does affect the markets the malware is sampled from and, consequently, the performance (see §IV-C ) and the amount of malware available in the wild. Therefore, the lower the vtt , the more representative the sampled dataset would be. Given the finding of [ 27 ] , namely that a minimum of 4 detections is required to reduce noisy labels, we recommend to use vtt =4. 
+ 
+ 
+ 
+ Recommendation: VirusTotal Threshold 
+ 
+ 
+ You must use low VTT (e.g., VTT =4 [ 27 ] ) to sample from a distribution of app markets closer to the original population. Using high VTT will limit the distribution of malware apk . 
+ 
+ 
+ 
+ Nevertheless, dealing with grayware remains an open problem that needs addressing. We further discuss this in §VI . 
+ 
+ 
+ 
+ 
+ IV-E Dataset Size 
+
+ 
+ IV-E 1 Hypothesis 
+
+ 
+ Ideally, we would evaluate the performance of our Android classifiers against the entire Android population across all of time (or some valid surrogate, such as AndroZoo). However, AndroZoo alone contains over 25 million samples (at the time of writing) spread across 10+ years, which makes any performance evaluation on the full population infeasible. At the same time, arbitrarily choosing a “small” sample size may produce datasets not representative of the underlying population, even if a smaller time frame was selected. 
+ 
+ 
+ Many influential papers in Android malware detection, such as [ 37 , 12 , 29 , 15 ] , lack a clear rationale on the size of their dataset. Instead, some arbitrarily large sample size is chosen (most likely due to computational limitations) and domain-specific constraints such as Tesseract’s Temporal training consistency (C1), Temporal gw/mw windows consistency (C2) and Realistic malware-to-goodware ratio in testing (C3) [ 29 ] are enforced. On the other hand, Miranda et al. [ 28 ] proposed a statistical method for determining the minimum sample size for Android malware datasets, but do not enforce C2 or C3. Rather, opting to rely fully on statistical means to determine a representative dataset. As previously shown in Figure 1 , even following all prior guidelines and enforcing [ 29 ] does not completely eliminate spatial and temporal bias. As such, we hypothesize that solely relying on a statistically guided sampling methodology without considering domain knowledge-guided constraints will be insufficient in eliminating spatial-temporal bias. We note that C1 is generally reliant on the Timestamps choice and, as long as proper temporal evaluation is performed, is implicitly applied. 
+ 
+ 
+ 
+ Hypothesis: Dataset Size 
+ 
+ 
+ Purely-statistical methods to determine Dataset Size under represent the distribution of the Android population and introduce spatial and temporal bias in the dataset. 
+ 
+ 
+ 
+ 
+ IV-E 2 Impact 
+
+ 
+ We begin exploring a statistically guided sampling methodology for Android malware detection. Based on the traditional Margin of Error (MoE) formula [ 13 ] using the finite population correction, Miranda et al. [ 28 ] proposed DaDa , an approach that computes the smallest sample size for a dataset to be representative of a given population. They use the Bonferroni correction to account for general Android characteristics, such as three intervals of apk Size, 10 common boolean Android permissions extracted with Droidlysis [ 9 ] , and year of release ranging from 2011 to 2018. However, there is no clear evidence that apk size or common boolean Android permissions are important aspects in Android Malware classification. In fact, we noticed that apk Size increases across time, questioning if this is an appropriate characteristic for sampling (cf. Figure 12 in the Appendix). 
+ 
+ 
+ Improving DaDa 
+
+ 
+ Instead of applying the Bonferroni Correction , we propose focusing on the manual enforcement of the temporal (C2) and spatial (C3) constraints introduced in [ 29 ] . These two characteristics are not only supported by prior work but are also directly measurable via metadata available from AndroZoo and controllable during the sampling process. While the Bonferroni correction enhances statistical validity by reducing the risk of false positives, its use in combination with numerous characteristics — such as apk size and a set of common Android permissions — under the constraints of C2 and C3 would demand an impractically large sample size (see Figure 13 in the Appendix). Although larger samples generally yield more representative results, there is a clear trade-off: applying strict statistical corrections to characteristics with limited demonstrated impact on malware dataset evaluation can lead to diminishing returns. In this context, it is more pragmatic to prioritize a smaller number of well-validated factors over attempting to control for many uncertain ones. 
+ 
+ 
+ We use the same confidence level of C = 99 % C=99\% and margin of error δ = 0.015 \delta=0.015 as Miranda et al. [ 28 ] . We enforce a 9:1 goodware-to-malware ratio such that it satisfies the spatial constraint C3 of Tesseract [ 29 ] . We then enforce the temporal constraint C2 of Tesseract [ 29 ] by sampling either monthly/yearly based on only the MoE formula. 
+ 
+ 
+ We compare the different configurations of MoE against DaDa across the same timeframe as D A D_{A} and D T D_{T} , imitating the configurations both datasets used for sampling. We used dex_dates as they were easily accessible unlike VT_first_submission_dates . We were unable to use crawl_date despite our recommendation in §IV-A as AndroZoo was not properly established and crawling was inconsistent in 2015. Table VII shows the total number of samples required across this 5 years and the average number of malware per year. It is evident that due to the relatively small sample size of DaDa , the amount of malware is too little for proper evaluation. The same can be said with MoE/Year and MoE/Spatial/Year where the average malware per year is 122 and 61, respectively. 
+ 
+ 
+ 
+ 
+ Sampling Algorithm 
+ dex_date 
+ 
+ 
+ 
+ Average malware 
+ 
+ per month 
+ 
+ 
+ AndroZoo population 
+ 4,603,786 
+ 14,405 ± 7,964 14,405\pm 7,964 
+ 
+ D A D_{A} 
+ 241,611 
+ 373 ± 140 373\pm 140 
+ 
+ D T D_{T} 
+ 259,230 
+ 439 ± 210 439\pm 210 
+ 
+ DaDa [ 28 ] 
+ 27,951 
+ 87 ± 49 87\pm 49 
+ 
+ MoE/Spatial 
+ 7,340 
+ 12 ± 7 12\pm 7 
+ 
+ MoE/Yearly 
+ 36,480 
+ 122 ± 40 122\pm 40 
+ 
+ MoE/Monthly 
+ 390,231 
+ 1,347 ± 320 1,347\pm 320 
+ 
+ MoE/Spatial/Year 
+ 36,450 
+ 61 ± 18 61\pm 18 
+ 
+ MoE/Spatial/Month 
+ 389,920 
+ 𝟔𝟓𝟎 ± 𝟒𝟐 \mathbf{650\pm 42} 
+ 
+ Table VII : Total size of dataset using different sampling approaches (2014–2018) . According to both monthly sampling approaches, D A D_{A} and D T D_{T} does not have enough malware to be considered statistically representative. 
+ 
+ 
+ Figure 10 : Percentage of malware by different approaches compared to D A D_{A} and D T D_{T} . We see that MoE/Spatial/Month maintains a 10% malware ratio (C3) [ 29 ] , whereas DaDa does not enforce this. 
+ 
+ 
+ We now evaluate each approach’s ability to maintain C3. As shown in Figure 10 , DaDa is unable to enforce C3, and even applying a spatial constraint does not guarantee the 10% malware ratio is met. The best method is to apply MoE/Spatial/Month which consistently enforces 10% malware across all months. We discuss whether enforcing C3 is appropriate in §VI . 
+ 
+ 
+ 
+ 
+ IV-E 3 Recommendations 
+
+ 
+ While a larger dataset may better represent a given population, it is often infeasible to obtain a large sample size due to computational and storage constraints. However, by applying statistical sampling algorithms while enforcing constraints for temporal and spatial bias, one can estimate the minimum number of samples required for a dataset that maintains a relatively good representation of the real-world population. As such, one should always enforce temporal and spatial constraints to ensure that the sampled dataset is representative. 
+ 
+ 
+ 
+ Recommendation: Dataset Size 
+ 
+ 
+ You must combine statistical methods and available domain knowledge (such as temporal (C2) and spatial (C3) constraints) to determine an appropriate Dataset Size for an Android malware dataset. 
+ 
+ 
+ 
+ 
+ 
+ 
+ V Piecing It All Together: A New Dataset 
+
+ 
+ Following from our recommendations in §IV , we now show how to apply our guidelines in practice by creating a new dataset and evaluating the performance of the Android malware detectors on it. 
+ 
+ 
+ V-A Composing the Dataset 
+
+ 
+ As a first step, we sample a dataset considering the five factors introduced in the previous sections. 
+ 
+ 
+ Time frame selection 
+
+ 
+ Guided by prior work showing that malware labels tend to stabilize within one year [ 27 , 38 ] , we sample three years of data spanning from 2021 to 2023. This period is recent enough to reflect the current Android malware landscape, while also being long enough to capture the temporal dynamics in Android apps. 
+ 
+ 
+ 
+ Market selection 
+
+ 
+ To eliminate the bias caused by sampling from different markets as discussed in §IV-C , we solely sample apps from GooglePlay for this case study. 
+ 
+ 
+ 
+ Timestamps 
+
+ 
+ We use publication dates to accurately represent when an app appears in the wild. As discussed §IV-A , this is the most reliable timestamp information and in line with the recommendations of the AndroZoo authors (see Alecci et al. [ 5 ] ). 
+ 
+ 
+ 
+ VTT selection 
+
+ 
+ In §IV-D , we advocate for the use of lower VirusTotal thresholds. Therefore, we set the VTT to 4, following the recommendations in Pendlebury et al. [ 29 ] . This threshold will be used for selecting samples based on the publicly available AndroZoo metadata. 
+ 
+ 
+ 
+ Sampling size 
+
+ 
+ We apply MoE/Spatial/Month, our improved version of DaDa (introduced in §IV-E ), which ensures a statistically representative selection of both malware and goodware samples. In accordance with C3 constraints [ 29 ] , it enforces a distribution of 10 % 10\% malware and 90 % 90\% goodware. The resulting dataset comprises 159,839 159,839 apk , including 16,184 16,184 malicious and 143,655 143,655 benign samples. A detailed distribution of the dataset is presented in Figure 11 . 
+ 
+ 
+ Figure 11 : Distribution of malware and goodware in a dataset sampled from GooglePlay only in 2021-2023 . This sampling was performed using the MoE/Spatial/Temporal algorithm which enforces temporal spatial constraint suggested in [ 29 ] . 
+ 
+ 
+ 
+ 
+ V-B Evaluation 
+
+ 
+ We evaluate all 5 classifiers on the newly sampled dataset and show the full breakdown of AUT and the A-AUT. 
+ 
+ 
+ Table VIII : Breakdown of AUT and A-AUT for our newly-sampled 2021-23 dataset. 
+ 
+ 
+ Classifier 
+ 2021—2022 
+ 2022—2023 
+ μ A ​ U ​ T \mu_{AUT} 
+ σ A ​ U ​ T \sigma_{AUT} 
+ 
+ Drebin 
+ 0.573 
+ 0.488 
+ 0.531 
+ 0.043 
+ 
+ DeepDrebin 
+ 0.580 
+ 0.364 
+ 0.472 
+ 0.108 
+ 
+ MalScan 
+ 0.494 
+ 0.645 
+ 0.570 
+ 0.075 
+ 
+ Ramda 
+ 0.221 
+ 0.382 
+ 0.301 
+ 0.081 
+ 
+ Hcc 
+ 0.620 
+ 0.561 
+ 0.590 
+ 0.030 
+ 
+ 
+ 
+ As seen in Table VIII , simply relying of AUT is not sufficient to determine the best classifier for the newly sampled dataset. Hcc outperforms all five classifiers when trained on 2021 and tested 2022. However, MalScan has the highest AUT when trained on 2022 and tested on 2023. By using A-AUT proposed in §IV-B , Hcc is considered the overall best approach for the newly sampled dataset. 
+ 
+ 
+ 
+ 
+ VI Discussion 
+
+ 
+ While our paper extends the set of best practices for evaluating Android malware classifiers under spatio-temporal drift proposed in prior work [ 10 , 29 , 31 , 32 , 18 ] , there are still several open challenges the community faces. In the following, we contextualize our findings by discussing related challenges. 
+ 
+ 
+ Markets in AndroZoo 
+
+ 
+ AndroZoo [ 1 ] contains primarily apk from GooglePlay and other western markets, under-representing other regions where Android is the most popular operating system, especially China [ 2 ] . It has been noted that Chinese app markets are generally less active in protecting mobile users from deceptive or abusive actors; therefore, they tend to have a higher prevalence of malware [ 35 ] . At the same time, AndroZoo is currently the best repository we have as a community for benign and malicious apk . 
+ 
+ 
+ 
+ Grayware 
+
+ 
+ Our work provides evidence that lower VTT values better represent the malware population. However, how to account for grayware , i.e., apk detected by at least one AV but less than VTT, which are predominant in AndroZoo, remains an open problem. Works such as [ 8 ] have attempted to categorize different types of grayware in GooglePlay. However, the taxonomy of grayware remains a problem for Android malware detection. 
+ 
+ 
+ 
+ Single point of failure 
+
+ 
+ A major unspoken risk comes from the fact that AndroZoo and VirusTotal are single points of failure for the malware community. Alecci et al. [ 5 ] highlight that AndroZoo in 2024 reached 448TB of data and will continue to grow. This may eventually become unsustainable for a single research team. On the other hand, VirusTotal puts a cap of 500 queries per user per day, significantly hindering the curation of new datasets. Considering the instability of labels in the wild [ 27 ] , simply relying on AndroZoo is not sufficient. As a community, we should try to reason about what we could do to build more resilient repositories. 
+ 
+ 
+ 
+ Evolution of C3 [ 29 ] 
+
+ 
+ We observed that for AndroZoo in 2014–2018, malware is not consistently 10% across all months. However, obtaining a “true” ratio would require help from multiple industrial partners. [ 29 ] estimated the percentage of malware samples at 10 % 10\% by averaging various sources in 2019, which may no longer be valid in the current landscape. For lack of a better source, using 10 % 10\% as a spatial constraint will allow consistency in sampled datasets. Future works should investigate the temporal evolution of realistic malware ratios. 
+ 
+ 
+ 
+ K-Fold evaluation 
+
+ 
+ Evaluating an ML-based malware detector without temporal constraints would require the use of K-fold cross-validation as shown in [ 29 ] . While our study is focused on scenarios under temporal drift, the proposed spatial guidelines are still relevant for non-temporal evaluations. This includes Timestamp Type §IV-A , App Markets §IV-C , VirusTotal Threshold §IV-D , and Dataset Size §IV-E . 
+ 
+ 
+ 
+ Windows malware 
+
+ 
+ While our study is focused on Android malware, many of the challenges can be shared with the Windows domain. For example, getting a reliable timestamp source can be difficult, especially when there is no active crawler like AndroZoo. Instead, [ 22 ] recommends using first seen as the best estimate for Windows PE. Another common challenge is Temporal Luck, since both domains are evaluated in a temporal manner. Thus, our recommendations for avoiding “Lucky splits” could be beneficial in the Windows domain. 
+ 
+ 
+ 
+ 
+ VII Related Work 
+
+ 
+ In this section, we cover the research most closely related to our work. We present both seminal research papers tackling the wider problem of achieving fair evaluations in ML -based computer security research and more directly comparable publications on dataset sampling and debiasing. 
+ 
+ 
+ Guidelines for realistic ML for computer security 
+
+ 
+ Our research aligns with efforts to establish guidelines for realistic evaluations in security-related applications. Sommer and Paxson [ 32 ] highlighted key challenges in applying ML to network intrusion detection systems (NIDS), pointing out fundamental issues that persist in this domain. Rossow et al. [ 31 ] and Van der Kouwe et al. [ 34 ] further analyzed common shortcomings and best practices in security system evaluations. However, these works primarily identify challenges and methodological pitfalls without quantifying their impact on classifier performance. Arp et al. [ 10 ] extended this line of work by demonstrating the effects of these pitfalls in real-world scenarios, although their focus remained on general cybersecurity. 
+ 
+ 
+ In contrast, our work investigates the specific properties and risk factors during dataset creation for the Android malware domain that lead to many of the pitfalls identified in prior studies. 
+ 
+ 
+ 
+ Temporal evaluations 
+
+ 
+ Other relevant work includes the domain of temporal evaluation primarily raised by Allix et al [ 6 ] and Miller et al. [ 27 ] . Recently, Pendlebury et al. [ 29 ] proposed Tesseract as a framework to measure impact of performance decay. We expand on Tesseract by proposing a new evaluation guideline in Temporal Luck. Additionally, we address the validity of creation timestamps by experimentally showing the impact of timestamp inconsistencies and providing practical recommendations for researchers to follow ( §IV-A ). 
+ 
+ 
+ 
+ Realistic datasets for ML-based cybersecurity 
+
+ 
+ Prior work also focused on the problem of realistic datasets and benchmark datasets for ML-based cybersecurity. Sommer and Paxon [ 32 ] highlighted the challenges of creating realistic network intrusion detection datasets, mostly due to privacy concerns; attempts to create datasets artificially, such as DARPA98-99 [ 24 ] and KDD99 [ 3 ] , failed because they introduced artifacts [ 25 , 17 , 26 ] . Similarly, Jian et al. [ 22 ] created a benchmark dataset for Windows malware by sampling from VirusShare, following a similar dataset curation pipeline to the one we presented. However, we focus on factors related to representativeness, such as sample size and markets, rather than the quality of family labels. [ 14 ] also presented a preliminary discussion on dataset size and markets but lacks empirical evaluation or concrete recommendations, while we provide both. Notably, [ 14 ] calls for better dataset practice—our work directly answers its call. Recently, Flood et al. [ 18 ] identified six poor practices in NIDS-specific dataset including poor data diversity, highly dependent features, unclear ground truths, traffic collapse artificial diversity, and wrong labels. Instead of focusing on the limitations of network datasets, we focus our attention on the Android malware domain, where the presence of the AndroZoo [ 1 , 7 , 5 ] has offered more opportunities to build more realistic datasets. Furthermore, all our factors are directly applicable during the sampling process, helping to prevent the identified “bad” choices in [ 18 ] . [ 19 ] analyzed three datasets factors (i.e. class imbalance, quality, and timelines) by examining three state-of-the-art datasets. We differ from this work as we not only show how our sampling factors can affect the sampled distribution but also give actionable recommendations that researchers can follow to reduce the biases highlighted in [ 19 ] . Additionally, we do not limit our work to only two state-of-the-art datasets, but instead include the wider Android population in our experimental analysis. In conclusion, we identify five factors that can affect realistic evaluations and that can be controlled with actionable recommendations ( §IV ). 
+ 
+ 
+ 
+ Research on Android malware sampling 
+
+ 
+ Prior work has also attempted to provide algorithms to create representative Android benchmark datasets. Miranda et al. proposed DaDa [ 28 ] , a two step sampling approach for debiasing Android malware datasets, which combines statistical methods with general apk characteristics. The first step is to randomly sample a representative dataset from a population using the margin of classical error to then debias it. However, in §IV-E , we have shown that DaDa lacks important domain-specific knowledge, which is crucial at the sampling stage. In particular, it violates C ​ 3 C3 of [ 29 ] and P1 of [ 10 ] . Recently, Thirumuruganathan et al. [ 33 ] proposed an approach to detect and mitigate sampling bias between a labeled training dataset and unlabeled testing dataset based on domain discrimination, whereas our work focuses on the broader picture, questioning how well datasets represent the real-world population, rather than finding a classifier that fits both datasets. 
+ 
+ 
+ 
+ 
+ VIII Conclusion 
+
+ 
+ We have demonstrated that current best practices [ 10 , 29 , 31 , 32 , 18 ] for dataset curation and evaluation of Android malware datasets are insufficient to eliminate spatial and temporal biases. 
+ 
+ 
+ To better understand and mitigate this phenomenon, we have identified five factors —i.e., Timestamp Type, Temporal Luck, App Markets, VirusTotal Threshold, and Dataset Size—that can directly or indirectly affect the performance evaluation of a learning-based classifier. We have provided actionable recommendations to mitigate their impact through proper sampling strategies and evaluation guidelines. 
+ 
+ 
+ While the problem of sampling bias remains challenging and vast, this paper provides a first solid milestone towards controllable factors and actionable recommendations, which will allow for more realistic evaluations and fairer comparisons of learning-based systems for malware detection. 
+ 
+ 
+ 
+ Acknowledgments 
+
+ 
+ Zeliang Kan contributed to this work during his Ph.D. studies at King’s College London. This research was partially supported by: the UK EPSRC Grant EP/X015971/2;
+Google ASPIRE Awards; the German Federal Ministry of Education and Research under the grant BIFOLD25B; and
+the Vienna Science and Technology Fund (WWTF) through the BREADS project (10.47379/VRG23011). 
+ 
+ 
+ 
+ References 
+
+ 
+ 
+ [1] 
+ 
+Androzoo.
+ 
+ 
+ https://androzoo.uni.lu .
+ 
+ 
+ Last Accessed: 2025-01-18.
+ 
+ 
+ 
+ [2] 
+ 
+Iphone vs android user stats 2024 data.
+ 
+ 
+ https://explodingtopics.com/blog/iphone-android-users .
+ 
+ 
+ Accessed: 2025-01-12.
+ 
+ 
+ 
+ [3] 
+ 
+Kdd cup data.
+ 
+ 
+ ”http://kdd.ics.uci.edu/databases/kddcup99/kddcup99.html .
+ 
+ 
+ 
+ [4] 
+ 
+Virustotal.
+ 
+ 
+ https://www.virustotal.com .
+ 
+ 
+ Last Accessed: 2025-01-18.
+ 
+ 
+ 
+ [5] 
+ 
+Marco Alecci, Pedro Jesús Ruiz Jiménez, Kevin Allix, Tegawendé F Bissyandé, and Jacques Klein.
+ 
+ 
+ Androzoo: A retrospective with a glimpse into the future.
+ 
+ 
+ In 2024 IEEE/ACM 21st International Conference on Mining Software Repositories (MSR) , pages 389–393. IEEE, 2024.
+ 
+ 
+ 
+ [6] 
+ 
+Kevin Allix, Tegawendé F Bissyandé, Jacques Klein, and Yves Le Traon.
+ 
+ 
+ Are your training datasets yet relevant? an investigation into the importance of timeline in machine learning-based malware detection.
+ 
+ 
+ In International Symposium on Engineering Secure Software and Systems , pages 51–67. Springer, 2015.
+ 
+ 
+ 
+ [7] 
+ 
+Kevin Allix, Tegawendé F Bissyandé, Jacques Klein, and Yves Le Traon.
+ 
+ 
+ Androzoo: Collecting millions of android apps for the research community.
+ 
+ 
+ In Proceedings of the 13th international conference on mining software repositories , pages 468–471, 2016.
+ 
+ 
+ 
+ [8] 
+ 
+Benjamin Andow, Adwait Nadkarni, Blake Bassett, William Enck, and Tao Xie.
+ 
+ 
+ A study of grayware on google play.
+ 
+ 
+ In 2016 IEEE Security and Privacy Workshops (SPW) , pages 224–233. IEEE, 2016.
+ 
+ 
+ 
+ [9] 
+ 
+Ludovic Apvrille and Axelle Apvrille.
+ 
+ 
+ Pre-filtering mobile malware with heuristic techniques.
+ 
+ 
+ Proceedings of GreHack , 2013.
+ 
+ 
+ 
+ [10] 
+ 
+Daniel Arp, Erwin Quiring, Feargus Pendlebury, Alexander Warnecke, Fabio Pierazzi, Christian Wressnegger, Lorenzo Cavallaro, and Konrad Rieck.
+ 
+ 
+ Dos and don’ts of machine learning in computer security.
+ 
+ 
+ In 31st USENIX Security Symposium (USENIX Security 22) , pages 3971–3988, 2022.
+ 
+ 
+ 
+ [11] 
+ 
+Daniel Arp, Michael Spreitzenbarth, Malte Hubner, Hugo Gascon, Konrad Rieck, and CERT Siemens.
+ 
+ 
+ Drebin: Effective and explainable detection of android malware in your pocket.
+ 
+ 
+ In Ndss , volume 14, pages 23–26, 2014.
+ 
+ 
+ 
+ [12] 
+ 
+Federico Barbero, Feargus Pendlebury, Fabio Pierazzi, and Lorenzo Cavallaro.
+ 
+ 
+ Transcending transcend: Revisiting malware classification in the presence of concept drift.
+ 
+ 
+ In 2022 IEEE Symposium on Security and Privacy (SP) , pages 805–823. IEEE, 2022.
+ 
+ 
+ 
+ [13] 
+ 
+George Casella and Roger Berger.
+ 
+ 
+ Statistical inference .
+ 
+ 
+ CRC press, 2024.
+ 
+ 
+ 
+ [14] 
+ 
+Fabrício Ceschin, Marcus Botacin, Albert Bifet, Bernhard Pfahringer, Luiz S Oliveira, Heitor Murilo Gomes, and André Grégio.
+ 
+ 
+ Machine learning (in) security: A stream of problems.
+ 
+ 
+ Digital Threats: Research and Practice , 5(1):1–32, 2024.
+ 
+ 
+ 
+ [15] 
+ 
+Yizheng Chen, Zhoujie Ding, and David Wagner.
+ 
+ 
+ Continuous learning for android malware detection.
+ 
+ 
+ In USENIX Security Symposium , 2023.
+ 
+ 
+ 
+ [16] 
+ 
+Theo Chow, Zeliang Kan, Lorenz Linhardt, Lorenzo Cavallaro, Daniel Arp, and Fabio Pierazzi.
+ 
+ 
+ Drift forensics of malware classifiers.
+ 
+ 
+ In Proceedings of the 16th ACM Workshop on Artificial Intelligence and Security , pages 197–207, 2023.
+ 
+ 
+ 
+ [17] 
+ 
+Gints Engelen, Vera Rimmer, and Wouter Joosen.
+ 
+ 
+ Troubleshooting an intrusion detection dataset: the cicids2017 case study.
+ 
+ 
+ In 2021 IEEE Security and Privacy Workshops (SPW) , pages 7–12. IEEE, 2021.
+ 
+ 
+ 
+ [18] 
+ 
+Robert Flood, Gints Engelen, David Aspinall, and Lieven Desmet.
+ 
+ 
+ Bad design smells in benchmark nids datasets.
+ 
+ 
+ In 2024 IEEE 9th European Symposium on Security and Privacy (EuroS&P) , pages 658–675. IEEE, 2024.
+ 
+ 
+ 
+ [19] 
+ 
+Xiuting Ge, Yifan Huang, Zhanwei Hui, Xiaojuan Wang, and Xu Cao.
+ 
+ 
+ Impact of datasets on machine learning based methods in android malware detection: an empirical study.
+ 
+ 
+ In 2021 IEEE 21st International Conference on Software Quality, Reliability and Security (QRS) , pages 81–92. IEEE, 2021.
+ 
+ 
+ 
+ [20] 
+ 
+Kathrin Grosse, Nicolas Papernot, Praveen Manoharan, Michael Backes, and Patrick McDaniel.
+ 
+ 
+ Adversarial examples for malware detection.
+ 
+ 
+ In ESORICS . Springer, 2017.
+ 
+ 
+ 
+ [21] 
+ 
+Médéric Hurier, Guillermo Suarez-Tangil, Santanu Kumar Dash, Tegawendé F Bissyandé, Yves Le Traon, Jacques Klein, and Lorenzo Cavallaro.
+ 
+ 
+ Euphony: Harmonious unification of cacophonous anti-virus vendor labels for android malware.
+ 
+ 
+ In 2017 IEEE/ACM 14th International Conference on Mining Software Repositories (MSR) , pages 425–435. IEEE, 2017.
+ 
+ 
+ 
+ [22] 
+ 
+Yongkang Jiang, Gaolei Li, Shenghong Li, and Ying Guo.
+ 
+ 
+ Benchmfc: A benchmark dataset for trustworthy malware family classification under concept drift.
+ 
+ 
+ Computers & Security , 139:103706, 2024.
+ 
+ 
+ 
+ [23] 
+ 
+Heng Li, Shiyao Zhou, Wei Yuan, Xiapu Luo, Cuiying Gao, and Shuiyan Chen.
+ 
+ 
+ Robust android malware detection against adversarial example attacks.
+ 
+ 
+ In Proceedings of the Web Conference 2021 , pages 3603–3612, 2021.
+ 
+ 
+ 
+ [24] 
+ 
+Richard Lippmann, Joshua W Haines, David J Fried, Jonathan Korba, and Kumar Das.
+ 
+ 
+ The 1999 darpa off-line intrusion detection evaluation.
+ 
+ 
+ Computer networks , 34(4):579–595, 2000.
+ 
+ 
+ 
+ [25] 
+ 
+Matthew V Mahoney and Philip K Chan.
+ 
+ 
+ An analysis of the 1999 darpa/lincoln laboratory evaluation data for network anomaly detection.
+ 
+ 
+ In International Workshop on Recent Advances in Intrusion Detection , pages 220–237. Springer, 2003.
+ 
+ 
+ 
+ [26] 
+ 
+John McHugh.
+ 
+ 
+ Testing intrusion detection systems: a critique of the 1998 and 1999 darpa intrusion detection system evaluations as performed by lincoln laboratory.
+ 
+ 
+ ACM Transactions on Information and System Security (TISSEC) , 3(4):262–294, 2000.
+ 
+ 
+ 
+ [27] 
+ 
+Brad Miller, Alex Kantchelian, Michael Carl Tschantz, Sadia Afroz, Rekha Bachwani, Riyaz Faizullabhoy, Ling Huang, Vaishaal Shankar, Tony Wu, George Yiu, et al.
+ 
+ 
+ Reviewer integration and performance measurement for malware detection.
+ 
+ 
+ In DIMVA . Springer, 2016.
+ 
+ 
+ 
+ [28] 
+ 
+Tomás Concepción Miranda, Pierre-Francois Gimenez, Jean-François Lalande, Valérie Viet Triem Tong, and Pierre Wilke.
+ 
+ 
+ Debiasing android malware datasets: How can i trust your results if your dataset is biased?
+ 
+ 
+ IEEE Transactions on Information Forensics and Security , 17:2182–2197, 2022.
+ 
+ 
+ 
+ [29] 
+ 
+Feargus Pendlebury, Fabio Pierazzi, Roberto Jordaney, Johannes Kinder, and Lorenzo Cavallaro.
+ 
+ 
+ { \{ TESSERACT } \} : Eliminating experimental bias in malware classification across space and time.
+ 
+ 
+ In 28th USENIX security symposium (USENIX Security 19) , pages 729–746, 2019.
+ 
+ 
+ 
+ [30] 
+ 
+Fabio Pierazzi, Feargus Pendlebury, Jacopo Cortellazzi, and Lorenzo Cavallaro.
+ 
+ 
+ Intriguing properties of adversarial ml attacks in the problem space.
+ 
+ 
+ In 2020 IEEE symposium on security and privacy (SP) , pages 1332–1349. IEEE, 2020.
+ 
+ 
+ 
+ [31] 
+ 
+Christian Rossow, Christian J Dietrich, Chris Grier, Christian Kreibich, Vern Paxson, Norbert Pohlmann, Herbert Bos, and Maarten Van Steen.
+ 
+ 
+ Prudent practices for designing malware experiments: Status quo and outlook.
+ 
+ 
+ In 2012 IEEE symposium on security and privacy , pages 65–79. IEEE, 2012.
+ 
+ 
+ 
+ [32] 
+ 
+Robin Sommer and Vern Paxson.
+ 
+ 
+ Outside the closed world: On using machine learning for network intrusion detection.
+ 
+ 
+ In 2010 IEEE symposium on security and privacy , pages 305–316. IEEE, 2010.
+ 
+ 
+ 
+ [33] 
+ 
+Saravanan Thirumuruganathan, Fatih Deniz, Issa Khalil, Ting Yu, Mohamed Nabeel, and Mourad Ouzzani.
+ 
+ 
+ Detecting and mitigating sampling bias in cybersecurity with unlabeled data.
+ 
+ 
+ In 33rd USENIX Security Symposium (USENIX Security 24) , pages 1741–1758, 2024.
+ 
+ 
+ 
+ [34] 
+ 
+Erik van der Kouwe, Gernot Heiser, Dennis Andriesse, Herbert Bos, and Cristiano Giuffrida.
+ 
+ 
+ Sok: Benchmarking flaws in systems security.
+ 
+ 
+ In 2019 IEEE European Symposium on Security and Privacy (EuroS&P) , pages 310–325. IEEE, 2019.
+ 
+ 
+ 
+ [35] 
+ 
+Haoyu Wang, Zhe Liu, Jingyue Liang, Narseo Vallina-Rodriguez, Yao Guo, Li Li, Juan Tapiador, Jingcun Cao, and Guoai Xu.
+ 
+ 
+ Beyond google play: A large-scale comparative study of chinese android app markets.
+ 
+ 
+ In Proceedings of the Internet Measurement Conference 2018 , pages 293–307, 2018.
+ 
+ 
+ 
+ [36] 
+ 
+Yueming Wu, Xiaodi Li, Deqing Zou, Wei Yang, Xin Zhang, and Hai Jin.
+ 
+ 
+ Malscan: Fast market-wide mobile malware scanning by social-network centrality analysis.
+ 
+ 
+ In 2019 34th IEEE/ACM International Conference on Automated Software Engineering (ASE) , pages 139–150. IEEE, 2019.
+ 
+ 
+ 
+ [37] 
+ 
+Xiaohan Zhang, Yuan Zhang, Ming Zhong, Daizong Ding, Yinzhi Cao, Yukun Zhang, Mi Zhang, and Min Yang.
+ 
+ 
+ Enhancing state-of-the-art classifiers with api semantics to detect evolved android malware.
+ 
+ 
+ In Proceedings of the 2020 ACM SIGSAC conference on computer and communications security , pages 757–770, 2020.
+ 
+ 
+ 
+ [38] 
+ 
+Shuofei Zhu, Jianjun Shi, Limin Yang, Boqin Qin, Ziyi Zhang, Linhai Song, and Gang Wang.
+ 
+ 
+ Measuring and modeling the label dynamics of online { \{ Anti-Malware } \} engines.
+ 
+ 
+ In 29th USENIX Security Symposium (USENIX Security 20) , pages 2361–2378, 2020.
+ 
+ 
+ 
+ 
+ 
+ 
+ Appendix A A: Datasets 
+
+ 
+ APIGraph and Transcendent Dataset 
+
+ 
+ Our work begins with a motivational example of two state-of-the-art datasets, APIGraph [ 37 ] and Transcendent [ 12 ] . While they are not the only Android Malware datasets available, we picked them according to their popularity and quality. Of the X papers we reviewed from top conferences and workshops in the past 5 years, we found X papers that used the Transcendent dataset. We also noticed many of the papers sampled their own dataset, suggesting there is a lack of consistency in the datasets used in our community. To enable us to compare datasets within the same time frame. We picked APIGraph , a well established dataset that was used in the state-of-the-art android malware classifier [ 15 ] and overlaps with D T D_{T} . Both these datasets help us highlight issues with how datasets are being curated for Android Malware detection. 
+ 
+ 
+ 
+ App Markets dataset 
+
+ 
+ In §IV-C we collected 15,000 goodware and 15,000 malware samples for each GooglePlay and Third party app markets through AndroZoo, resulting in a total of 60,000 samples. We then combined them to create 6 different datset configurations detailed in Table V . 
+ 
+ 
+ 
+ New dataset 
+
+ 
+ For our case study section §V , we used the MoE/Spatial/Month to determine the amount of malware and goodware required for a representative dataset. We chose a recent time frame of 2021–2023 as it was shown in prior work that labels tend to stabilize after one year [ 27 , 38 ] . 
+ 
+ 
+ 
+ 
+ Appendix B C: Classifier Details 
+
+ 
+ We provide the details here about the classifiers mentioned in §III . For Drebin , we use a LinearSVM with the hyper-parameter C = 1 C=1 , which has been found to be representative for a variety of scenarios [ 29 , 11 , 12 ] . DeepDrebin is implemented as a Multi Layer Perceptron with two hidden and densely connected layers composed of 200 neurons each and an output layer with two neurons; hidden layers use the Rectified Linear Unit activation function, whereas the output neurons employ the softmax function. For MalScan [ 36 ] , we have used the configuration with degree centrality, with a Random Forest Classifier, with the hyper-parameter n e ​ s ​ t ​ i ​ m ​ a ​ t ​ o ​ r ​ s = 100 n_{estimators}=100 . Ramda [ 23 ] , we used the same configuration as the original paper, setting λ 1 = 10 \lambda_{1}=10 , λ 2 = 1 \lambda_{2}=1 and λ 3 = 10 \lambda_{3}=10 . Hcc [ 15 ] , we used 40 epochs during training as we did not observe any performance benefits if it was increased. 
+ 
+ 
+ 
+ Appendix C D: Family overlap 
+
+ 
+ Family Overlap Metric 
+
+ 
+ In our analysis, we are interested in describing the temporal distribution shift of the malware population within one dataset without having to rely on any classifier’s performance. Therefore, we introduce family overlap ( Φ \Phi ), a metric that models the shift in malware distribution within a dataset. Shown previously in Figure 2 , it allows us to obtain more general insights into the dataset, without relying on the representation or the classifier employed. From this, we can observe how certain sampling parameters or algorithms influence the resulting dataset composition.
+While methods quantifying the difference of distributions exist (e.g., the Kullback-Leibler divergence), they typically require a representation space to operate in. In contrast, we designed family overlap to be representation-independent and interpretable, and specifically designed based on domain knowledge from the malware domain.
+The family overlap ( Φ \Phi ) measures the the percentage of samples in a dataset 𝒟 \mathcal{D} belonging to a family that was already known in different dataset 𝒟 ref \mathcal{D}_{\text{ref}} . 
+ 
+ 
+ 
+
+ 
+ 
+ Φ ⁡ ( 𝒟 , 𝒟 ref ) = | { ( x , y ) ∈ 𝒟 | ∃ ( x ′ , y ′ ) ∈ 𝒟 ref ​  s.t.  ​ y = y ′ } | | 𝒟 | \Phi(\mathcal{D},\mathcal{D}_{\text{ref}})=\frac{\left|\left\{(x,y)\in\mathcal{D}\;\middle|\;\exists\,(x^{\prime},y^{\prime})\in\mathcal{D}_{\text{ref}}\text{ s.t. }y=y^{\prime}\right\}\right|}{|\mathcal{D}|} 
+ 
+ (3) 
+ 
+ Here, ( x , y ) (x,y) are tuples of apk and their malware family label. Unless specified otherwise, we use the training split of any given dataset as the reference dataset 𝒟 ref \mathcal{D}_{\text{ref}} and some testing split for which to calculate the family overlap as 𝒟 \mathcal{D} . 
+ 
+ 
+ Φ \Phi is helpful for measuring and visualizing malware trends over time, as it describes the percentage of malware belonging to families that already existed in the past. As it provides a compact representation of the distribution shift, it is particularly helpful for comparing the effects of different sampling strategies and is therefore largely employed in the remainder of this section. 
+ 
+ 
+ 
+ 
+ Appendix D E: Temporal Luck Example 
+
+ 
+ We here provide an example of a dataset split according to Temporal Luck, as a useful overview to the A-AUT introduced in §IV-B . 
+ 
+ 
+ A dataset ℰ \mathcal{E} containing data from January 2014 to December 2018 would be divided into the following dataset splits when using N = 12 N=12 (months): 
+ 
+ 
+ 
+
+ 
+ 
+ { E 1 , E 2 , E 3 , E 4 } := { { X 2014 , X 2015 } , { X 2015 , X 2016 } , { X 2016 , X 2017 } , { X 2017 , X 2018 } } . \{E_{1},E_{2},E_{3},E_{4}\}:=\{\{X_{2014},X_{2015}\},\{X_{2015},X_{2016}\},\\
+\{X_{2016},X_{2017}\},\{X_{2017},X_{2018}\}\}. 
+ 
+ (4) 
+ 
+ 
+ 
+ In Equation 4 , X y X_{y} indicates the subset of all data samples belonging to year y y . The set of all classifiers trained on { E 1 , E 2 , E 3 , E 4 } \{E_{1},E_{2},E_{3},E_{4}\} then becomes: 
+ 
+ 
+ 
+
+ 
+ 
+ 𝒞 := { c X 2014 , c X 2015 , c X 2016 , c X 2017 } , \mathcal{C}:=\{c_{X_{2014}},c_{X_{2015}},c_{X_{2016}},c_{X_{2017}}\}, 
+ 
+ (5) 
+ 
+ 
+ 
+ where c X y c_{X_{y}} indicates that the classifier was obtained by training the model under analysis on samples from year y y . More complex splits of ℰ \mathcal{E} can be obtained by imposing N ≠ 12 N\neq 12 months. 
+ 
+ 
+ 
+ Appendix E G: Dataset Size Experiments 
+
+ 
+ DaDa characteristics 
+
+ 
+ DaDa uses the Bonerroni correction to statistically account for general Android characteristics such as apk size, 10 common boolean Android permissions and year of release. In Figure 12 we plot the evolution of apk size over time. It is evident that the size of Android apk increases as time goes by, questioning whether using apk Size as a general characteristics, at least in the 4 bins defined in DaDa , is appropriate. 
+ 
+ 
+ Figure 12 : apk size over time in Androzoo Showing as time goes by, the size of Android apk increase. Questioning the validity of using apk size as a characteristic for sampling 
+ 
+ 
+ 
+ MoE Theoretical Maximum 
+
+ 
+ §IV-E presents a statistically guided approach for determining the minimum sample size for Android Malware datasets with the use of domain knowledge. Here we show the cost of naively adding spatial and temporal constraint to original DaDa . While it more samples would most likely be more representative of the ’real’ population, an impractically high sample size is simply infeasible. In Figure 13 , we assume a given month has 200,000 samples. Using MoE/Spatial/Month, one would require 7,111 samples per month, 85,332 samples per year. On the other hand, applying both spatial and monthly constraint on DaDa would result in a minimum sample size of 21,969 per month, 263,628 per year. 
+ 
+ 
+ Figure 13 : Assuming a given month with 200000 200000 samples in the population (which is the upper bound for many months in Androzoo). MoE/Spatial/Monthly would give you a feasible sample size of 7,111, 85,332 samples per year. On the other hand, applying spatial and monthly constaint on DaDa would require you to sample 21,969 samples per month, 263,628 samples per year. That is the size of D T D_{T} and D A D_{A} for 5 years. 
+ 
+ 
+ 
+ AndroZoo crawler for 3rd party apps 
+
+ 
+ §V showcases our sampling approach from §IV-E . Since we wanted to demonstrate this on a recent dataset, we picked a time frame of 2021–2023. Unfortunately, we noticed irregularities in the distribution of 3rd party market samples for this period Figure 14 . After contacting AndroZoo maintainers, we were informed that there was a change in implementation for 3rd party app markets and the crawler was not working. As such, we did not sample from 3rd party markets, instead focusing only on Google Play Apps. 
+ 
+ 
+ Figure 14 : Distribution of samples in Androzoo for 3rd party apps using crawl dates . There is a noticeable irregularity in the distribution of samples between 2021–2023. Therefore, we perform our evaluation only on apps that appeared on the Google Play market for this time period. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Experimental support, please
+ view the build logs 
+ for errors. Generated by
+ 
+ 
+ L
+ A 
+ T
+ E 
+ 
+ xml 
+ 
+ .
+ 
+ 
+ Instructions for reporting errors 
+ We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below: 
+ 
+ Click the "Report Issue" ( 
+ 
+ ) button, located in the page header. 
+ 
+ Tip: You can select the relevant text first, to include it in your report. 
+ Our team has already identified the following issues . We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all. 
+ Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion , and welcome developer contributions . 
+ 
+ 
+ 
+ 
+ 
+ We gratefully acknowledge support from
+ our major funders ,
+ member institutions , ,
+ and all contributors.
+ 
+ 
+ About 
+ · 
+ Help 
+ · 
+ Contact 
+ · 
+ Subscribe 
+ · 
+ Copyright 
+ · 
+ Privacy 
+ · 
+ Accessibility 
+ · 
+ Operational Status (opens in new tab) 
+ 
+ 
+
+ 
+ Major funding support from 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

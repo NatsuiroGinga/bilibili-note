@@ -94,6 +94,41 @@
 轴①⑦次优先（FAR FNR 64–70%、2017 5.19% 标签翻转是可统计病灶）。
 宿主数据集综述改为回答「各轴在别的宿主上做到哪一步」。基线清单按轴分组。
 
+### 第三轮更正（2026-10-14，协调者实测）
+
+1. **网络通路**：WebFetch 对 huggingface.co 等被重置站点不可用；改用
+   `curl -x http://127.0.0.1:7890`（代理变量未导出，必须显式 `-x`）。arXiv 可直连。
+   凡 WebFetch 报错的站点一律换 curl 重试，不得判「来源不可得」；写「未发现」必须附全部查询式与途径。
+2. **轴⑤下调、轴⑦升级**（本地新证据 `.Codex/docs/2026-10-14-LAMDA家族标签质量诊断/report.md`，
+   提交 `09a5bf81`）：单例家族样本质量占比 2013 `3.7%` → 2017 `42.9%` → 2020 `66.9%` → 2024 `84.7%`；
+   抽样四年跨年复现家族仅 236 个、四年全复现仅 11 个。倾向判读：**标签管线时间退化**（非家族生态碎片化）。
+   ⇒ 家族多分类任务窗口只能限 2013–2016；**轴⑦「标注管线/弱标签时间退化」升级为重点**，
+   文献里若有人做过该任务必须重点报（当前只是推论未核证）。
+
+### S3（2026-10-14）LAMDA 引用检索（Semantic Scholar API，走代理）
+
+- 方式：`curl -x http://127.0.0.1:7890 https://api.semanticscholar.org/graph/v1/paper/arXiv:2505.18551/citations?fields=title,year,venue,externalIds&limit=100`
+- 结果：**14 条引用**（S2 快照 2026-10-14），原始 JSON 已存
+  `.Codex/docs/2026-10-14-LAMDA任务与基线综述/s2-citations-lamda.json`。
+- 身份核验：`curl -x proxy https://arxiv.org/abs/2505.18551` → title 确认为
+  「LAMDA: A Longitudinal Android Malware Benchmark for Concept Drift Analysis」。
+  （WebSearch 曾把 2505.18551 混同于另一篇 Xi 等 Benchmarking 论文，见 S4。）
+- 本地已核过全文的引用：CITADEL（`2511.11979`）、FreeMOCA（`2605.09664`）、Sabbah（`2605.24294`）。
+- **新发现引用（E1 摘要已取，`s2-newciting-abstracts.json`）**：
+  | arXiv/DOI | 题名 | venue | 轴 | 摘要要点 |
+  | --- | --- | --- | --- | --- |
+  | `2609.28517` | Stress-Testing Structure-Aware Calibration of Malware GNNs under Type Shift | arXiv 2026 | 轴③④ | MalNet-Tiny 按类型 holdout；校准器在类型漂移下 NLL +0.1369 |
+  | `10.1016/j.eswa.2026.134586` | Cross-Environment AI-Based Malware Detection: Systematic Review | ESWA 2026 | 综述 | 无摘要，待全文 |
+  | `2608.24850` | Research Methodologies for Cybersecurity | arXiv 2026 | 方法论综述 | 与任务无关候选，暂排除 |
+  | `10.1093/comjnl/bxag021` | **PLCDroid**：pseudo-label noise under concept drift | Computer Journal 2026 | 轴⑥⑦ | 主动学习重训中伪标签自污染，提出 PTR 标签校正 |
+  | `2511.22095` | Binary-30K 数据集 | arXiv 2025 | 宿主数据集 | 多平台二进制序列数据集，非 Android 长期基准 |
+  | `2510.12310` | **DeepTrust**：级联分类器抗特征空间逃逸 | ESWA 2025 | 轴④ | SaTML 2025 Robust Android Malware Detection 竞赛第一，特征空间攻击下超次名最高 266% |
+  | `2508.06734` | **OOD Robustness Benchmark**（graph Android） | arXiv 2025 | 轴③④ | MalNet-Tiny-Common/-Distinct 两情景；已知家族未见变体上掉 45% |
+  | `2506.23814` | **Beyond the Tesseract**：数据集构建可信性 | SaTML 2026 | 元/评价 | AndroZoo 时间帧评价协议与类比真实类比 |
+  | `10.1109/ACCESS.2026.3732173` | FL-CL-IDS 联邦持续学习 | IEEE Access 2026 | 轴② | Page-Hinkley 漂移检测 + 自适应 EWC，四 Android 基准 |
+- 判读：S2 收录的 14 条引用里，**只有 CITADEL 确认在 LAMDA 上做实验**（本地 E2+ 全文）；
+  其余多为引用作近邻或用 MalNet/自建数据。**轴⑤家族分类在 LAMDA 上尚无已发表工作**（待 Google Scholar 交叉核对）。
+
 ### S1–S2（2026-10-14）本地混合索引（drift 工作树，scope=local/paper，mode=hybrid）
 
 - 索引：ch3-drift-20260908 工作树，1,934 笔记，向量模型 intfloat/multilingual-e5-small。
