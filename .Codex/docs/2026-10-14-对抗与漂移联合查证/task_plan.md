@@ -22,16 +22,17 @@
 ## 步骤
 
 - [x] S0 建立任务目录与计划文件
-- [ ] S1 本地混合索引跑 Q1–Q4 检索式，逐条落盘
-- [ ] S2 Zotero 语义检索补漏，落盘
-- [ ] S3 在线检索（Google Scholar / arXiv / WebSearch），落盘
-- [ ] S4 Q2 回原件核 PAD 2023 原文（威胁模型/攻击/保证类型/是否涉漂移）
-- [ ] S5 Q3 回原件核特征空间攻击可实现性文献页码
-- [ ] S6 写 report.md（四问逐条）+ evidence-index.md
-- [ ] S7 每节完成后 git commit
+- [x] S1 本地混合索引跑 Q1–Q4 检索式，逐条落盘
+- [x] S2 Zotero 语义检索补漏，落盘
+- [x] S3 在线检索（Google Scholar / arXiv / WebSearch / OpenAlex / Crossref / S2），落盘
+- [x] S4 Q2 回原件核 PAD 2023 原文（arXiv:2302.11328v2 全文 HTML）
+- [x] S5 Q3 回原件核特征空间攻击可实现性文献页码（Cortellazzi 本地笔记 + Zainab/DeepTrust 在线全文）
+- [x] S6 写 evidence-index.md；**report.md 被 harness 拦截**（子代理报告须以文本返回），四问全文在最终回复中，由主代理落盘
+- [x] S7 每节完成后 git commit（6 个提交，均为 --only 本任务文件）
 
-## 停止条件
+## 停止条件（已达成）
 
-- 四问各有「结论＋证据等级＋页码（或检索途径）」即完成；
-- 找到 Q1 的 A 类（联合）论文即收窄 S3 的扩展检索；
-- 不下最终裁决，不扩大范围。
+- 四问各有「结论＋证据等级＋页码（或检索途径）」；
+- Q1 的 A 类（联合）已定位两篇（Sándor ICCP 2024、TAH-GAN 2026 预印本），扩展检索已收窄；
+- 未下最终裁决，未扩大范围。
+
