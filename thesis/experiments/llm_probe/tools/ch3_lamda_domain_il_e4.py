@@ -385,7 +385,7 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
     for _ in range(epochs):
         epoch_parts = parts
         if rho_sched is not None:
-            mem_blk, curr_part, a_star = rho_sched
+            mem_blk, curr_part, a_star, m_cap = rho_sched
             rho = measure_rho(model, curr_part, mem_blk, batch, device, rng)
             lam = (1.0 - a_star) / (1.0 - rho) if abs(1.0 - rho) > 1e-6 else 1.0
             lam = min(max(lam, 0.0), 1.0)
@@ -394,7 +394,7 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
                 m_r = max(1, n_c // n_m)
             else:
                 m_r = int(round(lam * n_c / max((1.0 - lam) * n_m, 1e-9)))
-            m_r = min(max(m_r, 1), 64)
+            m_r = min(max(m_r, 1), m_cap)
             epoch_parts = [curr_part] + [mem_blk] * m_r
             print(f"[sched] rho={rho:+.4f} lambda={lam:.4f} repeat={m_r}", flush=True)
         for xb, yb in iterate_batches_parts(epoch_parts, batch, rng, True):
@@ -488,7 +488,8 @@ def reuse_by_deficit(blocks: list[tuple[int, np.ndarray, np.ndarray]], m_max: in
 
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
          buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir",
-         reuse_scheme: str = "uniform", reuse_schedule: str = "off") -> int:
+         reuse_scheme: str = "uniform", reuse_schedule: str = "off",
+         reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -601,7 +602,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             penalty = ("lwf", lwf_prev)
         t0 = time.time()
         train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=penalty,
-                     rho_sched=(*rho_sched, RHO_A_STAR) if rho_sched else None)
+                     rho_sched=(*rho_sched, rho_a_star, reuse_cap) if rho_sched else None)
         rho_sched = None
         if prev_state is not None:
             freemoca_interpolate(prev_state, model)
@@ -662,6 +663,13 @@ if __name__ == "__main__":
                    help="off = 各轮次复用倍数相同（默认）；rho = 每轮实测历史梯度与当前梯度的"
                         "余弦相似度，由一阶条件反解该轮的历史权重（模块二的轮次调度形态）。"
                         "仅对 --strategy expreplay 生效。")
+    p.add_argument("--reuse-cap", type=int, default=64,
+                   help="轮次调度的**每轮复用倍数上界**（默认 64，即近乎不限）。判别实验用："
+                        "四篇先例全部约束每步上界（3×/20×/每步1:5/总量不变），本脚本原本只约束"
+                        "均值。设为 8 即把分布夹到 [1,8] 而均值仍可由 --rho-a-star 标定到 4。")
+    p.add_argument("--rho-a-star", type=float, default=RHO_A_STAR,
+                   help="轮次调度的标定量 a*（默认取模块常量）。改上界后须重新标定："
+                        "cap=8 时取 0.99091 可使平均复用倍数≈4。")
     p.add_argument("--reuse-scheme", choices=("uniform", "deficit"), default="uniform",
                    help="uniform = 所有年度共用同一复用倍数（默认，文件名不变）；"
                         "deficit = 按各年度缓冲块的正例数分配复用次数，正例少的年度重复更多。"
@@ -681,4 +689,4 @@ if __name__ == "__main__":
     a = p.parse_args()
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
                           a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme,
-                          a.reuse_schedule))
+                          a.reuse_schedule, a.reuse_cap, a.rho_a_star))
