@@ -244,7 +244,9 @@ class ReplayBuffer:
 
     def __init__(self, capacity: int) -> None:
         self.capacity = capacity
-        self.data: list[tuple[np.ndarray, float]] = []
+        # 第三项为来源年度：只为支持按年度分配复用（模块二的复用分配）而记，
+        # 不影响抽样语义；官方语义下该字段从不被读取。
+        self.data: list[tuple[np.ndarray, float, int]] = []
         self.n_seen = 0
         self.rng = np.random.default_rng(OFFICIAL_RNG_SEED)
 
@@ -252,16 +254,29 @@ class ReplayBuffer:
         for xi, yi in zip(x, y):
             self.n_seen += 1
             if len(self.data) < self.capacity:
-                self.data.append((xi, float(yi)))
+                self.data.append((xi, float(yi), year))
             else:
                 j = int(self.rng.integers(0, self.n_seen))
                 if j < self.capacity:
-                    self.data[j] = (xi, float(yi))
+                    self.data[j] = (xi, float(yi), year)
 
     def sample(self) -> tuple[np.ndarray, np.ndarray]:
         xs = np.stack([d[0] for d in self.data])
         ys = np.array([d[1] for d in self.data], dtype=np.float32)
         return xs, ys
+
+    def blocks(self) -> list[tuple[int, np.ndarray, np.ndarray]]:
+        """按来源年度切块，返回 [(year, X, y), ...]，年度升序。"""
+        by_year: dict[int, list[int]] = {}
+        for i, (_, _, yr) in enumerate(self.data):
+            by_year.setdefault(yr, []).append(i)
+        out = []
+        for yr in sorted(by_year):
+            idx = by_year[yr]
+            xs = np.stack([self.data[i][0] for i in idx])
+            ys = np.array([self.data[i][1] for i in idx], dtype=np.float32)
+            out.append((yr, xs, ys))
+        return out
 
     def __len__(self) -> int:
         return len(self.data)
@@ -358,8 +373,56 @@ def evaluate(model, x, y, batch, device) -> dict:
     }
 
 
+def split_by_year(store: dict, years_seen: list[int], capacity: int,
+                  rng: np.random.Generator) -> list[tuple[int, np.ndarray, np.ndarray]]:
+    """按年度把缓冲切成若干块，返回 [(year, X_int8, y_float32), ...]。
+
+    与 quota_buffer 共用同一套抽取规则（按年等额、年内正负各半），但**保留年度标签**，
+    以便下游对每个年度单独设定复用次数（模块二的复用分配）。
+    """
+    k = len(years_seen)
+    per = capacity // k
+    out = []
+    for year in years_seen:
+        X, Y = store[year]
+        pos = np.flatnonzero(Y == 1)
+        neg = np.flatnonzero(Y == 0)
+        want_pos = per // 2
+        n_pos = min(pos.size, want_pos)
+        n_neg = min(neg.size, per - n_pos)
+        xs, ys = [], []
+        if n_pos:
+            xs.append(X[rng.choice(pos, size=n_pos, replace=False)])
+            ys.append(np.ones(n_pos, dtype=np.float32))
+        if n_neg:
+            xs.append(X[rng.choice(neg, size=n_neg, replace=False)])
+            ys.append(np.zeros(n_neg, dtype=np.float32))
+        if xs:
+            out.append((year, np.concatenate(xs), np.concatenate(ys)))
+    return out
+
+
+def reuse_by_deficit(blocks: list[tuple[int, np.ndarray, np.ndarray]], m_max: int) -> dict[int, int]:
+    """模块二的**复用分配**：使各年度的**正例总暴露量**相等。
+
+    规则（跑前冻结）：记第 s 年缓冲块的正例数为 $p_s$，则复用次数
+        $$m_s = \\text{clip}\\left(\\mathrm{round}(m_{max} \\cdot \\bar p / p_s),\\; 1,\\; m_{max}\\right)$$
+    其中 $\\bar p$ 为各年度 $p_s$ 的均值。**正例越少、重复越多**，用计算补偿稀缺。
+    该规则不含阈值参数，只用到 $p_s$ 这个可观测计数。
+    """
+    ps = np.array([int((y == 1).sum()) for _, _, y in blocks], dtype=float)
+    if ps.size == 0 or ps.min() <= 0:
+        return {yr: m_max for yr, _, _ in blocks}
+    target = m_max * ps.mean()
+    out = {}
+    for (yr, _, y), p in zip(blocks, ps):
+        out[yr] = int(np.clip(round(target / p), 1, m_max))
+    return out
+
+
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
-         buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir") -> int:
+         buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir",
+         reuse_scheme: str = "uniform") -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -367,6 +430,8 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         tag = f"{strategy}_m{memory}"
         if buffer_scheme != "reservoir":
             tag += f"_{buffer_scheme}"
+        if reuse_scheme != "uniform":
+            tag += f"_{reuse_scheme}"
         if buffer_repeat != 1:
             tag += f"_r{buffer_repeat}"
     else:
@@ -375,7 +440,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         tag += f"_s{seed}"
     # 运行身份横幅：把真正生效的配置打进日志，使「参数忘了往下传」这类错误当场可见
     print(f"[run] strategy={strategy} memory={memory} scheme={buffer_scheme} "
-          f"repeat={buffer_repeat} seed={seed} tag={tag}", flush=True)
+          f"reuse={reuse_scheme} repeat={buffer_repeat} seed={seed} tag={tag}", flush=True)
     status = RUN_DIR / f"status_{tag}.json"
     metrics_path = RUN_DIR / f"metrics_{tag}.json"
     write_json(status, {"status": "running", "strategy": strategy, "ts": now_utc()})
@@ -421,9 +486,20 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
                 if idx == 0:
                     parts = [(x_curr, y_curr)]
                 else:
-                    xb, yb = quota_buffer(store, years[:idx], memory, buf_rng)
-                    blk = (xb.astype(np.int8), yb.astype(np.float32))
-                    parts = [(x_curr, y_curr)] + [blk] * buffer_repeat
+                    blocks = split_by_year(store, years[:idx], memory, buf_rng)
+                    if not blocks:
+                        parts = [(x_curr, y_curr)]
+                    elif reuse_scheme == "deficit":
+                        # 模块二的复用分配：每个年度按其正例数获得不同重复次数
+                        reps = reuse_by_deficit(blocks, buffer_repeat)
+                        parts = [(x_curr, y_curr)]
+                        for yr, X, y in blocks:
+                            parts += [(X.astype(np.int8), y.astype(np.float32))] * reps[yr]
+                    else:
+                        # 模块二的统一复用：所有年度共用同一倍数
+                        blk = (np.concatenate([X for _, X, _ in blocks]).astype(np.int8),
+                               np.concatenate([y for _, _, y in blocks]).astype(np.float32))
+                        parts = [(x_curr, y_curr)] + [blk] * buffer_repeat
             elif len(buffer):
                 xb, yb = buffer.sample()
                 blk = (xb.astype(np.int8), yb.astype(np.float32))
@@ -505,6 +581,10 @@ if __name__ == "__main__":
     p.add_argument("--batch", type=int, default=OFFICIAL_BATCH)
     p.add_argument("--lr", type=float, default=OFFICIAL_LR)
     p.add_argument("--memory", type=int, default=OFFICIAL_MEMORY)
+    p.add_argument("--reuse-scheme", choices=("uniform", "deficit"), default="uniform",
+                   help="uniform = 所有年度共用同一复用倍数（默认，文件名不变）；"
+                        "deficit = 按各年度缓冲块的正例数分配复用次数，正例少的年度重复更多。"
+                        "仅对 --strategy expreplay 生效。")
     p.add_argument("--buffer-scheme", choices=("reservoir", "quota"), default="reservoir",
                    help="reservoir = 官方全局蓄水池（默认，文件名不变）；"
                         "quota = 按年等额＋年内正负各半的配额方案（设计见 quota_buffer 文档串）。"
@@ -519,4 +599,4 @@ if __name__ == "__main__":
                    help="只跑前 N 个 experience（调试用；正式复现不设）")
     a = p.parse_args()
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
-                          a.buffer_repeat, a.seed, a.buffer_scheme))
+                          a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme))
