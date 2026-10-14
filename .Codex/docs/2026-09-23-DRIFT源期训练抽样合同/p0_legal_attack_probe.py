@@ -1027,9 +1027,13 @@ def main() -> int:
                         "delta_UQ_minus_B", "delta_UQ_minus_D", "delta_UQ_minus_F",
                         "UQ_strictly_lower_misses_than_B")
         },
-        "nearest_cluster_by_absolute_delta": min(
-            (arm for arm in ("B", "D", "F") if primary_row[f"{arm}_dga_fn"] is not None),
-            key=lambda arm: abs(primary_row["UQ_dga_fn"] - primary_row[f"{arm}_dga_fn"]),
+        "nearest_cluster_by_absolute_delta": (
+            min(
+                (arm for arm in ("B", "D", "F") if primary_row[f"{arm}_dga_fn"] is not None),
+                key=lambda arm: abs(primary_row["UQ_dga_fn"] - primary_row[f"{arm}_dga_fn"]),
+            ) if primary_row["UQ_dga_fn"] is not None and any(
+                primary_row[f"{arm}_dga_fn"] is not None for arm in ("B", "D", "F")
+            ) else None
         ),
         "all_budget_tier_rows": attribution_rows,
     }
