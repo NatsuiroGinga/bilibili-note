@@ -114,5 +114,30 @@
 - Q3：**大部分完成**。Cortellazzi/Pierazzi 全文笔记已核页码（四约束 p.7–8、投影单调性 p.9、Android 可行性规则 p.15、硬化结果 p.21–22）；新增两条 2026 系统评价线索待取全文。**「改一个二值特征对应什么真实操作」的正面页码证据已在 Cortellazzi 笔记内（注入良性字节码切片+权限经验规则），待补一句「删除不存在的权限不可实现」的直接文献表述。**
 - Q4：**部分完成**。本地侧（LAMDA 原文笔记+14 条引用核验综述）无对抗评价；待在线 arXiv 引用面补查。
 
+## 检查点 2（2026-10-14 ~15:45）· Q2 已核清
+
+### 先记录一次已推翻的误判（留档，防复发）
+
+**误判**：检查点 1 中「PAD 2023 题录核验全面失败 ⇒ 查无实据，可能是网页综述残留」。
+**推翻依据**（主代理核到，本代理复核确认）：
+1. 真 DOI 是 `10.1109/tdsc.2023.3265665`（此前 WebSearch 给的 `...2023.3271837` 与 `...2022.3175541` 都是错的题录——404 证明的是「那个 DOI 不存在」，不是「这篇论文不存在」）。
+2. OpenAlex 直连（无代理）`api.openalex.org/works/doi:10.1109/tdsc.2023.3265665` 返回完整记录（本代理已复核）：题名 **PAD: Towards Principled Adversarial Malware Detection Against Evasion Attacks**，2023，**IEEE TDSC**，被引 40，作者 Deqiang Li, Shicheng Cui, Yun Li, Jia Hao Xu, Fu Xiao, Shouhuai Xu；OA PDF = `arxiv.org/pdf/2302.11328`。
+3. **答案早就在本地**：`.Codex/docs/2026-10-14-理论算法家族综述/raw-queries/openalex/abs_PAD.json` 存有完整 OpenAlex 记录。动手查网前应先 `rg` 本地 `raw-queries/`。
+4. 教训：IEEE bot 拦截+Crossref 404+Scholar 无 cookie 三个工具失败叠加 ≠ 来源不存在；**OpenAlex 直连可用，走代理反而 429**。
+
+### Q2 正式答案：PAD 2023（TDSC）到底占了什么（已回全文，arXiv:2302.11328v2 HTML）
+
+- **威胁模型**（§III-A）：白盒规避攻击——攻击者通过搜索**非功能性指令**集合 $\delta_z$ 修改恶意软件样本 $z$，拥有对检测器 $f$ 与对抗检测器 $g$ 的完全知识（引 Kerckhoffs 原则）；鲁棒性评估用灰盒（知道 $f$ 不知道 $g$）。
+- **攻击**：特征空间 box 约束扰动 $\mathbf{x}'\in[\underline{u},\overline{u}]$（**明确不用 norm 球约束**：「the defender should resist semantics-based attacks rather than small perturbations」）；实现为 **SMA（Stepwise Mixture of Attacks）**——多种梯度攻击的混合。数据集 **Drebin 与 Malscan**（二值静态特征）；实验称 PAD-SMA 对 Drebin 16 个攻击、Malscan 13 个攻击保持 ≥85% 准确率。
+- **保证类型**：**对抗训练的优化收敛保证**——内层最大化可解析求解（凹损失），外层 SGD 收敛率 **$\mathcal{O}(1/\sqrt{N})$**（Theorem 2，正文行 339：「the convergence rate of the adversarial training is $\mathcal{O}(1/\sqrt{N})$」）；前提是检测器光滑（convex measurement $\psi_\vartheta$ 使损失对输入凹）。此外用 Wasserstein 距离把扰动解释为分布鲁棒优化（式 9：$\max_{\mathbb{P}': W(\mathbb{P}',\mathbb{P})\le\varepsilon}\mathbb{E}_{x'\sim\mathbb{P}'}\mathcal{F}$）。
+- **「收敛」是否涉及分布漂移：不涉及。** 全文 rg 检索 `concept drift|temporal|distribution shift|time-evolv` **零命中**。PAD 的「distribution-wise」指**扰动球**（训练分布邻域内的对抗扰动分布），数据分布本身固定；时间维完全缺席。
+- **对 C4 的含义（仅陈述事实，不下裁决）**：PAD 占据的是「**固定数据分布 + 扰动球内层最大化**的对抗训练收敛保证」；C4 若把最坏情形同时放在「输入扰动 × 时间切片选择」上，其最坏情形集合与 PAD 的 Wasserstein 扰动球是**不同对象**——差异化空间存在，但差异是否足够构成章级创新，须由主代理结合其他三问答裁。
+
+### Q1 补充：Sándor 2026 续作与 ICCP 2024 原件
+
+- Scholar 命中 `hit.bme.hu/~buttyan/publications/SandorKB2026cscs.pdf`（Sándor, Kovács, Buttyán, CSCS 2026）——待抓全文确认它与 ICCP 2024 的关系（是否同一框架、是否涉漂移）。
+- ICCP 2024 原件（DOI 10.1109/ICCP63557.2024.10793037）IEEE 挡；**待查 BME 主页副本**。
+
+
 
 
