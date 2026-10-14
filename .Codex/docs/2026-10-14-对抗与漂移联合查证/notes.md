@@ -171,6 +171,13 @@
 - arXiv API 偶发 >120s（转后台重试成功）；arXiv HTML 全文（`arxiv.org/html/<id>`）直连可用且快。
 - S2 API 间歇 429，重试可用。
 
+### 未核成项登记（防复发，2026-10-14 收尾）
+
+- **Kolosnjaji et al. 2018「malware padding / Adversarial Malware Binaries」未核成**：`au:Kolosnjaji AND all:padding` 在 arXiv API 返回 0 命中（题录可能不符或该文不在 arXiv），后台重试任务以退出码 144 终止。**本任务任何结论均未引用该文**；后续如需「字节注入式真实攻击」证据，须重新核其题录与全文，不得凭记忆引用。
+- 「Adversarial Malware Binaries」+ padding 的 arXiv 检索命中的是 **Demetrio et al.（arXiv:1901.03583）**，摘要已核，已在证据索引 #14 登记——与 Kolosnjaji 是不同论文，不得混淆。
+- **Grosse et al.（Android 特征空间对抗样本）同样未核成**：`au:Grosse AND "adversarial examples" AND malware` 后台任务以退出码 144 终止，无产出。**本任务结论未引用该文**；如后续需要「最早对 DREBIN 做特征空间攻击」的出处，须重新核题录，不得凭记忆引用。Q3 的「可实施、被接受」结论不依赖它——已由 Cortellazzi（本地全文页码）、PAD（arXiv 全文）、ELSA-RAMD（经 DeepTrust 全文核）独立支撑。
+
+
 
 
 
