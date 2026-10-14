@@ -64,6 +64,10 @@ PAIRED_ARMS = (
     ("B", "C1R"), ("D", "CEQ"), ("F", "CEQ"), ("F", "CBN"),
     ("B", "ESAT"), ("F", "ESAT"), ("B", "DRICHEL"), ("F", "DRICHEL"),
     ("C1R", "ESAT"), ("C1R", "DRICHEL"),
+    # CEQ 选择规则归因（2026-10-14，主代理裁决依据）：全局 CE 排序 vs 均匀随机/组相对/
+    # 其他核与配额——CEQ-D/CEQ-F 已在上组，这里补齐 CEQ 对全部既有对照臂的配对。
+    ("CEQ", "UQ"), ("CEQ", "EDIT4"), ("CEQ", "B"),
+    ("CEQ", "CAND4"), ("CEQ", "CURRICULUM"),
 )
 EXPECTED_CODE_SHA256 = {
     "A": "8ab6307f18142aae829a96565c46206f6ca8a70cfef09804b1e9e21411c5b44b",
@@ -943,6 +947,19 @@ def main() -> int:
         clean_check[arm] = clean_entry
         metrics[arm] = arm_metrics
         predictions[arm] = arm_predictions
+        # 逐臂增量落盘（2026-10-14，主代理要求）：每评完一臂立即原子写中间快照，
+        # 不等全部臂完成；只含机械读数，不改变最终 result JSON 的任何字段。
+        atomic_json(run_dir / "partial-metrics.json", {
+            "schema_version": SCHEMA_VERSION + "+partial",
+            "run_name": args.run_name,
+            "arm_set": list(selected_arms),
+            "completed_arms": sorted(metrics),
+            "thresholds": thresholds,
+            "clean_side_recheck": clean_check,
+            "attack_metrics": metrics,
+            "ladder_budget_metrics": ladder_metrics,
+            "updated_at": utc_now(),
+        })
 
     paired: dict[str, Any] = {THRESHOLD_0_5: paired_error_counts(
         {arm: predictions[arm][THRESHOLD_0_5] for arm in selected_arms}, n_dga
