@@ -18,9 +18,14 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
+
+# 必须在 import lightgbm/xgboost 之前设：多线程 OMP 初始化在本机失败
+# （`OMP: Error #179: Function pthread_mutex_init failed`），4 线程实测最快且稳定。
+os.environ.setdefault("OMP_NUM_THREADS", "4")
 
 import numpy as np
 
@@ -37,13 +42,17 @@ RUN_DIR = (
 THRESHOLD = 0.5
 FAR_YEARS = tuple(range(2018, 2026))
 
+# n_jobs 由官方脚本原值 8 改为 4：**资源参数，非科研参数**。依据：本机多线程 OMP
+# 初始化失败（`OMP: Error #179`），实测 4 线程最快（12.1 s）且稳定。
+# 该改动只影响墙钟，不影响拟合结果；已登记进 run-log。
+N_JOBS = 4
 LIGHTGBM_PARAMS = dict(
     learning_rate=0.02, num_leaves=256, min_child_samples=30,
     subsample=0.8, subsample_freq=1, colsample_bytree=0.8,
-    reg_alpha=1.5, reg_lambda=1.5, n_estimators=5000, metric="auc", n_jobs=8,
+    reg_alpha=1.5, reg_lambda=1.5, n_estimators=5000, metric="auc", n_jobs=N_JOBS,
 )
 XGBOOST_PARAMS = dict(max_depth=12, eta=0.05, n_estimators=3000,
-                      objective="binary:logistic", tree_method="hist", n_jobs=8)
+                      objective="binary:logistic", tree_method="hist", n_jobs=N_JOBS)
 
 
 def metrics_at(labels: np.ndarray, scores: np.ndarray) -> dict:
@@ -146,6 +155,7 @@ def main() -> int:
     import lightgbm as lgb
     t0 = time.time()
     Xtr_sp, Xiid_sp, Xfar_sp = sparse(Xtr), sparse(Xiid), sparse(Xfar)
+    del Xtr, Xiid, Xfar  # 释放稠密副本（约 0.63 GiB），GBDT/SVM 走稀疏
     print(f"[lgb] sparse built density={Xtr_sp.nnz / (Xtr_sp.shape[0] * Xtr_sp.shape[1]):.4f}", flush=True)
     gbm = lgb.LGBMClassifier(**LIGHTGBM_PARAMS)
     gbm.fit(Xtr_sp, ytr)
