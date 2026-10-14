@@ -135,8 +135,42 @@
 
 ### Q1 补充：Sándor 2026 续作与 ICCP 2024 原件
 
-- Scholar 命中 `hit.bme.hu/~buttyan/publications/SandorKB2026cscs.pdf`（Sándor, Kovács, Buttyán, CSCS 2026）——待抓全文确认它与 ICCP 2024 的关系（是否同一框架、是否涉漂移）。
-- ICCP 2024 原件（DOI 10.1109/ICCP63557.2024.10793037）IEEE 挡；**待查 BME 主页副本**。
+- Scholar 命中 `hit.bme.hu/~buttyan/publications/SandorKB2026cscs.pdf`（Sándor, Kovács, Buttyán, CSCS 2026）——**已证伪关联**：BME 的 Sándor 是 János Sándor（与 Kovács/Buttyán 合作），与 ICCP 2024 的 **Marian Şandor**（与 Portase/Coleşa，克卢日）**不是同一人**；该 PDF 与本任务无关。
+- ICCP 2024 原件已经 **OpenAlex 直连 DOI 查询核到**（`api.openalex.org/works/doi:10.1109/ICCP63557.2024.10793037`）：题名 **Enhancing ML Model Resilience to Time-Evolving Data in Malware Detection Systems with Adversarial Learning**，2024，IEEE ICCP，被引 1，作者 Marian Şandor, Radu Marian Portase, Adrian Coleşa。
+- **ICCP 2024 摘要全文（OpenAlex 倒排重建，在线摘要级）**：「ML efficacy degrades over time as malware evolves. We propose **combining feature engineering and adversarial training** to enhance model resilience. By **generating training data mutations**, our method helps models better recognize true malware indicators, **maintaining high performance over time**.」
+  - 性质：**对抗训练 × 时间演化数据的联合工作**（防御侧），形态是「训练数据变异 + 特征工程」，不是最坏情形联合优化；无 IEEE OA PDF（被挡），页码未取得，细节只有 El-Hajj 2026 的二手转述（漂移致精度降 9.1%、训练时间 +300%、需已知攻击模式）。
+
+### S3 续：Q1 联合工作专项检索（Scholar）
+
+- Scholar 查询 `"adversarial training" "concept drift" malware`，10 条命中逐一判读：
+  - **TAH-GAN（2026 预印本，Research Square，DOI 10.21203/rs.3.rs-10821022/v1）**：「Time-Aware Hybrid Generative Adversarial Network for Robust Android Malware Evasion」。Crossref 摘要直核：「Existing **adversarial generators rarely model temporal change**…We introduce a **time-aware** hybrid GAN…for **drift-aware robustness assessment**. 评估在 **KronoDroid 与三个 AndroMD 特征视图**」。**性质：攻击侧的「对抗 × 时间」联合（生成器建模时间变化以做漂移感知鲁棒性评价）**；预印本（未经同行评审）；非 LAMDA。
+  - REPLICANT（arXiv:2608.28499，2026）：deep RL 学「真实规避策略」，强调**现实攻击者建模**（无特权信息）；摘要未见时间维。
+  - HYDRA（arXiv 2026）：漂移适应（图对比学习），无对手。
+  - 「Evasion Attacks on Cost-Utility-Based Adversarial Training for Online AutoML in IoT」（arXiv 2026）：在线学习+对抗训练，IoT AutoML 场景，相邻非同题。
+  - 其余为纯漂移侧或纯对抗侧，无第三篇直接联合。
+
+### S3 续：Q4 LAMDA 引用面全扫（S2 API，2026-10-14）
+
+- S2 `paper/arXiv:2505.18551`（LAMDA）**被引 14 条，逐条标题判读**：
+  - Stress-Testing Structure-Aware Calibration…Type Shift（校准/型移）、Cross-Environment Systematic Review、Research Methodologies Narrative Review、Sabbah SSCL+RL（漂移）、FreeMOCA（持续学习）、PLCDroid（伪标签+漂移）、Binary-30K（数据集）、CITADEL（主动学习）、**DeepTrust**、Feature-Centric Survey、OOD Robustness Graph Benchmark（2508.06734）、Regression-Aware Continual Learning、Beyond the Tesseract（数据集清洗）、Drift-Aware Federated Continual Learning。
+- **唯一对抗向引用 = DeepTrust（arXiv:2510.12310；DOI 10.1016/j.eswa.2026.132961，ESWA 已发表）**。已抓 arXiv HTML 全文核验：
+  - 全文 `rg LAMDA` **零命中**——DeepTrust **引用 LAMDA 但不在 LAMDA 上做实验**。
+  - 它的对抗评价在 **ELSA-RAMD 基准（ELSA European Lighthouse on Secure and Safe AI）+ SaTML'25 竞赛**（`benchmarks.elsa-ai.eu`，`ramd-competition.github.io`，DeepTrust 参考文献 [10][11]），Track 1 = **Adversarial Robustness to Feature-space Attacks**，DREBIN 特征 $x\in\{0,1\}^d$（$d=1{,}461{,}078$）。
+  - 竞赛基线：DREBIN、Sec-SVM、SVM-CB（用 Temporal Feature Stability 裁剪不稳定特征权重——**时间信息用于特征选择而非最坏情形联合**）、C-PCT、DeepTrust；DeepTrust 拿 SaTML'25 金牌。
+- **Q4 中间结论：未发现 LAMDA 上的对抗评价。** 检索途径：本地两份 LAMDA 笔记（`rg adversar` 双零命中）+ S2 全部 14 条引用标题判读 + DeepTrust 全文核验（唯一对抗向引用不在 LAMDA 实验）。「没有」不写成「不存在」——本结论只覆盖 2026-10-14 可检索面。
+
+### S3 续：Q3 补充证据
+
+- **Zainab, Dyrmishi, Bostani, Cavallaro (arXiv:2609.34456, 2026)**「Breaking Windows Malware Detection: A Comprehensive Evaluation of Problem-Space Adversarial Robustness」——Windows PE 问题空间（证书/UPX/节区），全文已抓。关键句（§讨论，行 2035）：「enforcing **executability** substantially reduces the measured effectiveness of some attacks…the Gamma-section attack suffers a dramatic drop in ASR once **non-executable samples are removed**」——**可实施性约束大幅压低表观攻击成功率**的直接实测证据。
+- **Demetrio et al.（arXiv:1901.03583）**「Explaining Vulnerabilities of Deep Learning to Adversarial Malware Binaries」——Windows PE，特征归因+真实注入（SecML Malware 线起点）。摘要已核。
+- **ELSA-RAMD（SaTML'25）**：把「DREBIN 二值特征上的特征空间攻击」制度化为**正式竞赛赛道**——特征空间攻击在二值静态特征上的**可实施性与接受度**的最强社区证据。
+
+### 工具通路更新（2026-10-14 ~16:30）
+
+- **OpenAlex 直连（无代理）DOI 单条查询可用**；但 `filter=title_and_abstract.search` 检索接口限流（共享 IP 日预算）。DOI 直查绕过该限制。
+- arXiv API 偶发 >120s（转后台重试成功）；arXiv HTML 全文（`arxiv.org/html/<id>`）直连可用且快。
+- S2 API 间歇 429，重试可用。
+
 
 
 
