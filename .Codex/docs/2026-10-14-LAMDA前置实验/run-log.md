@@ -88,3 +88,29 @@
 3. **与 v3 先例交叉一致**：本模型 2016/2017 AP 0.9307/0.3467 vs v3 独立读数 0.9374/0.3462（同协议不同次训练），方向与量级一致。
 4. 已登记的实现缺陷：macOS `getrusage` 峰值 RSS 收据初始按 Linux 习惯 ×1024，膨胀 1024 倍；已修正（2.83 GiB，低于 8 GiB 门），原始值保留在 metrics.json。
 5. 模型权重未持久化（分数已逐样本落盘 npz，全部下游数字可从制品复算；MPS 本身非逐位确定，权重重训不会逐位复现）。
+
+## E2 首次运行失败与机器根因（2026-10-14）
+
+**失败形态**：`status.json` 停在 `phase=lightgbm`；console 打印完 MLP 第 6 轮 loss（`0.095318`）后**无任何错误行即终止**。
+崩溃报告 `~/Library/Logs/DiagnosticReports/python3.14-2026-10-14-140653.ips`：
+`EXC_BAD_ACCESS / SIGSEGV / KERN_INVALID_ADDRESS at 0x580`。
+
+**根因（机器级，非实现级）**：本机内存枯竭。
+
+| 指标 | 实测 |
+| --- | --- |
+| 物理内存 | `15G used / 126 MB unused` |
+| 压缩器 | `6.9 GB` |
+| swap | `5,974 / 7,168 MB` 已用（本轮复测 `6,280 / 7,168 MB`） |
+| 累计 swapins／swapouts | `298,923,945 / 320,721,584` 页 |
+| `ANECompilerService` | **93–96% CPU 连续 19 小时 21 分**（`kill` 无效，系统 XPC 服务由 launchd 管理） |
+
+**⇒ 该状态同样可以解释本轮两次代理卡死（`Agent stalled: no progress for 600s`）。
+此前把卡死归因于「代理又卡了」是**错误归因**，已更正。**
+
+**已做的修复（不依赖机器恢复）**：脚本改为
+① GBDT 与 SVM 走 **CSR 稀疏输入**（稠密 float32 约 2.5 GiB）；
+② **每完成一个模型立即落盘 `metrics.json`**（旧版只在末尾写，导致已完成的 MLP 白跑）。
+脚本修订 `380257ba`。
+
+**未做的验证**：E2 **尚未取到任何模型读数**；`Baseline` 之外的两个特征视图（`var_thresh_0.01`／`0.0001`）与 `NPZ_Version` 已补齐但**未核内容**。
