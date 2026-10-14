@@ -35,15 +35,27 @@
 | # | 步骤 | 状态 |
 | --- | --- | --- |
 | 1 | 建目录、task_plan.md、notes.md | 完成 |
-| 2 | 读本地已有 LAMDA 工作（综述、方案卡、筛选台账），记录已试/被否方向 | 进行中 |
-| 3 | 本地混合索引检索（status + query --scope local --mode hybrid） | 待办 |
-| 4 | Zotero 语义检索（LAMDA / 概念漂移 / Android 恶意软件时间泛化） | 待办 |
-| 5 | 在线检索：引用 LAMDA / IQSeC-Lab/LAMDA 的工作（arXiv、OpenReview、PapersWithCode、HF） | 待办 |
-| 6 | 在线检索：任务家族已发表方法（时间泛化、域增量、持续学习、概念漂移适应） | 待办 |
-| 7 | 落盘 `literature-survey.md` | 待办 |
-| 8 | 落盘 `task-candidates.md` | 待办 |
-| 9 | 落盘 `baselines.md` | 待办 |
-| 10 | 回报：文件路径、候选数、最有希望者与理由、最大不确定 | 待办 |
+| 2 | 读本地已有 LAMDA 工作（综述、方案卡、筛选台账 L0–L29） | 完成 |
+| 3 | 本地混合索引检索（9 组查询，drift 树索引） | 完成 |
+| 4 | Zotero 语义检索 | **未执行**（改用 S2 引用 API + R1–R11 引用图覆盖同一目的：定位 LAMDA 使用者与近邻） |
+| 5 | 在线检索 LAMDA 引用（S2 API 14 条 + arXiv 元数据检索 + 身份核验） | 完成（Google Scholar 受阻已登记） |
+| 6 | 在线检索任务家族方法（DREAM/DRMD 全文、OOD 基准、OSR、弱标签检索） | 完成 |
+| 7 | 落盘 `literature-survey.md` | 完成（8 轴 + 宿主数据集 + 余量地图） |
+| 8 | 落盘 `task-candidates.md` | 完成（C1/C2/C3） |
+| 9 | 落盘 `baselines.md` | 完成 |
+| 10 | 回报 | 完成 |
+
+## 裁决边界
+
+本文档集只汇报文献与数据证据；**不裁决选哪个任务**。C1/C2/C3 的取舍由主代理与用户定。
+
+## 遗留不确定（交主代理）
+
+1. Google Scholar 引用检索受阻（CLI 需 Chrome 调试端口）：LAMDA 被引清单边界 = S2 14 条
+   + 深度研究引用图 R1–R11 + arXiv 元数据检索，OpenReview 引用图未抓取。
+2. PLCDroid、FL-CL-IDS、DeepTrust 为摘要级（付费墙/未核全文），不得作对比基线。
+3. C2 的「统一病灶」判读依赖本地家族标签诊断（另一代理制品，提交 `09a5bf81`），该诊断本身
+   只覆盖抽样年份，全量逐年曲线尚未复算。
 
 ## 检索登记（每跑一组查询立即追加到 notes.md）
 
