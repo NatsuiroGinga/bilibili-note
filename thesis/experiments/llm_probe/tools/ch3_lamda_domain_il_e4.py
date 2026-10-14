@@ -359,22 +359,26 @@ def evaluate(model, x, y, batch, device) -> dict:
 
 
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
-         buffer_repeat: int = 1) -> int:
+         buffer_repeat: int = 1, seed: int = SEED) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
-    # repeat==1 时**不加后缀**，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
+    # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
     if strategy == "expreplay":
-        tag = f"{strategy}_m{memory}" if buffer_repeat == 1 else f"{strategy}_m{memory}_r{buffer_repeat}"
+        tag = f"{strategy}_m{memory}"
+        if buffer_repeat != 1:
+            tag += f"_r{buffer_repeat}"
     else:
         tag = strategy
+    if seed != SEED:                      # 多种子复现：官方未设种子，本脚本默认 42
+        tag += f"_s{seed}"
     status = RUN_DIR / f"status_{tag}.json"
     metrics_path = RUN_DIR / f"metrics_{tag}.json"
     write_json(status, {"status": "running", "strategy": strategy, "ts": now_utc()})
 
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-    rng = np.random.default_rng(SEED)
+    rng = np.random.default_rng(seed)
 
     years = DOMAIN_YEARS if not years_limit else DOMAIN_YEARS[:years_limit]
     buffer = ReplayBuffer(memory) if strategy == "expreplay" else None
@@ -487,8 +491,11 @@ if __name__ == "__main__":
     p.add_argument("--buffer-repeat", type=int, default=1,
                    help="模块二（$m$ 杠杆）：历史样本块每轮重复次数。默认 1 = 官方语义，"
                         "文件名与既有产物保持一致。仅对 --strategy expreplay 生效。")
+    p.add_argument("--seed", type=int, default=SEED,
+                   help="多种子复现用；官方未设种子（其 run 脚本循环 3 次不传 seed）。"
+                        "默认 42 = 本脚本既有全部产物所用的种子，文件名不变。")
     p.add_argument("--years-limit", type=int, default=None,
                    help="只跑前 N 个 experience（调试用；正式复现不设）")
     a = p.parse_args()
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
-                          a.buffer_repeat))
+                          a.buffer_repeat, a.seed))
