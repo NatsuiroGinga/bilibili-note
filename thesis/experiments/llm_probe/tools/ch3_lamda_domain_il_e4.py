@@ -133,6 +133,50 @@ class ChenEncoderMLP(nn.Module):
         return self.classifier(self.encoder(x))
 
 
+FREEMOCA_LAMBDA_MIN = 0.1  # 取自官方 main_domain.py 的 Domain-IL 调用（非本项目设定）
+FREEMOCA_LAMBDA_MAX = 0.9
+
+
+def freemoca_interpolate(prev_state: dict, model, lmin: float = FREEMOCA_LAMBDA_MIN,
+                         lmax: float = FREEMOCA_LAMBDA_MAX, eps: float = 1e-12) -> None:
+    """逐字对齐官方 `models.py::compute_layerwise_lambdas` + `interpolate_models`。
+
+    - 位移分 `s = |new − old|.mean()`（**按参数张量**，官方如此，非按"层"）
+    - 归一化 `ŝ = (s − s_min)/(s_max − s_min + ε)`；`s_max−s_min < ε` 时取区间中点
+    - 反向映射 `λ = λ_min + (1 − ŝ)(λ_max − λ_min)`（**位移大 ⇒ 更保守**）
+    - 插值 `θ ← (1−λ)·θ_prev + λ·θ_cur`；非浮点或形状不符的取新值
+    """
+    cur = model.state_dict()
+    scores = {}
+    for name, new_p in cur.items():
+        old_p = prev_state.get(name)
+        if old_p is None or old_p.shape != new_p.shape:
+            continue
+        if not (torch.is_floating_point(new_p) and torch.is_floating_point(old_p)):
+            continue
+        scores[name] = (new_p.detach().float() - old_p.float()).abs().mean().item()
+
+    if not scores:
+        return
+    vals = list(scores.values())
+    s_min, s_max = min(vals), max(vals)
+    if s_max - s_min < eps:
+        lam = {n: 0.5 * (lmin + lmax) for n in scores}
+    else:
+        lam = {n: lmin + (1.0 - (s - s_min) / (s_max - s_min)) * (lmax - lmin)
+               for n, s in scores.items()}
+
+    with torch.no_grad():
+        for name, new_p in cur.items():
+            old_p = prev_state.get(name)
+            if old_p is None or old_p.shape != new_p.shape or name not in lam:
+                continue
+            if not (torch.is_floating_point(new_p) and torch.is_floating_point(old_p)):
+                continue
+            a = lam[name]
+            new_p.copy_((1.0 - a) * old_p.to(new_p.device) + a * new_p)
+
+
 def quota_buffer(store: dict, years_seen: list[int], capacity: int,
                  rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
     """**按年等额 + 年内正负各半**的配额缓冲（容量不变，只改构成）。
@@ -299,7 +343,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             n_params = sum(p.numel() for p in model.parameters())
             print(f"[model] params={n_params:,}", flush=True)
 
-        if strategy == "naive":
+        if strategy in ("naive", "freemoca"):
             parts = [(x_curr, y_curr)]
         elif strategy == "cumulative":
             parts = [store[y] for y in years[: idx + 1]]
@@ -313,8 +357,14 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             raise ValueError(strategy)
 
         n_train = int(sum(p[0].shape[0] for p in parts))
+        # FreeMOCA 需要 θ_prev（只看不存样本；t=1 不插值，对齐官方 Algorithm 1 第 5 行）
+        prev_state = ({k: v.detach().clone() for k, v in model.state_dict().items()}
+                      if (strategy == "freemoca" and idx > 0) else None)
         t0 = time.time()
         train_epochs(model, parts, epochs, batch, lr, device, rng)
+        if prev_state is not None:
+            freemoca_interpolate(prev_state, model)
+            print(f"[{year}] FreeMOCA 逐参数插值完成（λ∈[{FREEMOCA_LAMBDA_MIN},{FREEMOCA_LAMBDA_MAX}]）", flush=True)
         print(f"[{year}] trained on {n_train:,} rows in {time.time()-t0:.1f}s", flush=True)
 
         for j, ty in enumerate(years[: idx + 1]):
@@ -355,7 +405,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="LAMDA 官方 Domain-IL 复现")
-    p.add_argument("--strategy", choices=("naive", "cumulative", "expreplay"), required=True)
+    p.add_argument("--strategy", choices=("naive", "cumulative", "expreplay", "freemoca"), required=True)
     p.add_argument("--epochs", type=int, default=OFFICIAL_EPOCHS)
     p.add_argument("--batch", type=int, default=OFFICIAL_BATCH)
     p.add_argument("--lr", type=float, default=OFFICIAL_LR)
