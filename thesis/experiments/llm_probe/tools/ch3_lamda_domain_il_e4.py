@@ -235,8 +235,10 @@ def evaluate(model, x, y, batch, device) -> dict:
 
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
-    status = RUN_DIR / f"status_{strategy}.json"
-    metrics_path = RUN_DIR / f"metrics_{strategy}.json"
+    # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖
+    tag = f"{strategy}_m{memory}" if strategy == "expreplay" else strategy
+    status = RUN_DIR / f"status_{tag}.json"
+    metrics_path = RUN_DIR / f"metrics_{tag}.json"
     write_json(status, {"status": "running", "strategy": strategy, "ts": now_utc()})
 
     torch.manual_seed(SEED)
