@@ -83,15 +83,31 @@ def build_sets():
     return Xtr, ytr, Xiid, yiid, Xfar, yfar
 
 
+def sparse(x: np.ndarray):
+    """二值特征 → CSR 稀疏矩阵（float32）。137,869×4,561 稠密 float32 约 2.5 GiB，
+    稀疏后大幅下降；本机内存紧张，GBDT/SVM 一律走稀疏。"""
+    from scipy.sparse import csr_matrix
+    return csr_matrix(x.astype(np.float32))
+
+
 def main() -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     status_path = RUN_DIR / "status.json"
+    metrics_path = RUN_DIR / "metrics.json"
     e1.set_status(status_path, "running", phase="load")
     t_start = time.time()
     Xtr, ytr, Xiid, yiid, Xfar, yfar = build_sets()
 
     results: dict[str, dict] = {}
     receipts: dict[str, dict] = {}
+
+    def flush(phase: str) -> None:
+        """每完成一个模型立即落盘，崩溃不丢已完成的结果。"""
+        e1.write_json(metrics_path, {
+            "run_name": RUN_NAME, "threshold": THRESHOLD, "phase": phase,
+            "results": results, "receipts": receipts,
+            "wall_seconds_total": time.time() - t_start,
+        })
 
     # ---- MLP（MPS） ----
     e1.set_status(status_path, "running", phase="mlp")
@@ -129,25 +145,31 @@ def main() -> int:
     e1.set_status(status_path, "running", phase="lightgbm")
     import lightgbm as lgb
     t0 = time.time()
+    Xtr_sp, Xiid_sp, Xfar_sp = sparse(Xtr), sparse(Xiid), sparse(Xfar)
+    print(f"[lgb] sparse built density={Xtr_sp.nnz / (Xtr_sp.shape[0] * Xtr_sp.shape[1]):.4f}", flush=True)
     gbm = lgb.LGBMClassifier(**LIGHTGBM_PARAMS)
-    gbm.fit(Xtr, ytr)
-    results["LightGBM"] = {"IID": metrics_at(yiid, gbm.predict_proba(Xiid)[:, 1]),
-                           "FAR": metrics_at(yfar, gbm.predict_proba(Xfar)[:, 1])}
-    receipts["LightGBM"] = {"device": "cpu", "wall_seconds": time.time() - t0, "version": lgb.__version__}
+    gbm.fit(Xtr_sp, ytr)
+    results["LightGBM"] = {"IID": metrics_at(yiid, gbm.predict_proba(Xiid_sp)[:, 1]),
+                           "FAR": metrics_at(yfar, gbm.predict_proba(Xfar_sp)[:, 1])}
+    receipts["LightGBM"] = {"device": "cpu", "wall_seconds": time.time() - t0,
+                            "version": lgb.__version__, "input": "csr_sparse_float32"}
     print(f"[lgb] done in {receipts['LightGBM']['wall_seconds']:.1f}s", flush=True)
     del gbm
+    flush("lightgbm_done")
 
     # ---- XGBoost ----
     e1.set_status(status_path, "running", phase="xgboost")
     import xgboost as xgb
     t0 = time.time()
     clf = xgb.XGBClassifier(**XGBOOST_PARAMS)
-    clf.fit(Xtr, ytr)
-    results["XGBoost"] = {"IID": metrics_at(yiid, clf.predict_proba(Xiid)[:, 1]),
-                          "FAR": metrics_at(yfar, clf.predict_proba(Xfar)[:, 1])}
-    receipts["XGBoost"] = {"device": "cpu", "wall_seconds": time.time() - t0, "version": xgb.__version__}
+    clf.fit(Xtr_sp, ytr)
+    results["XGBoost"] = {"IID": metrics_at(yiid, clf.predict_proba(Xiid_sp)[:, 1]),
+                          "FAR": metrics_at(yfar, clf.predict_proba(Xfar_sp)[:, 1])}
+    receipts["XGBoost"] = {"device": "cpu", "wall_seconds": time.time() - t0,
+                           "version": xgb.__version__, "input": "csr_sparse_float32"}
     print(f"[xgb] done in {receipts['XGBoost']['wall_seconds']:.1f}s", flush=True)
     del clf
+    flush("xgboost_done")
 
     # ---- SVM ----
     e1.set_status(status_path, "running", phase="svm")
@@ -155,22 +177,14 @@ def main() -> int:
     from sklearn.svm import LinearSVC
     t0 = time.time()
     svm = CalibratedClassifierCV(LinearSVC(max_iter=10000))
-    svm.fit(Xtr, ytr)
-    results["SVM"] = {"IID": metrics_at(yiid, svm.predict_proba(Xiid)[:, 1]),
-                      "FAR": metrics_at(yfar, svm.predict_proba(Xfar)[:, 1])}
-    receipts["SVM"] = {"device": "cpu", "wall_seconds": time.time() - t0}
+    svm.fit(Xtr_sp, ytr)
+    results["SVM"] = {"IID": metrics_at(yiid, svm.predict_proba(Xiid_sp)[:, 1]),
+                      "FAR": metrics_at(yfar, svm.predict_proba(Xfar_sp)[:, 1])}
+    receipts["SVM"] = {"device": "cpu", "wall_seconds": time.time() - t0,
+                       "input": "csr_sparse_float32"}
     print(f"[svm] done in {receipts['SVM']['wall_seconds']:.1f}s", flush=True)
 
-    payload = {
-        "run_name": RUN_NAME,
-        "threshold": THRESHOLD,
-        "protocol": {"train": "2013/2014 train minus IID months", "iid": "2013-12/2014-08 from test shards",
-                     "far": "2018-2025 test shards"},
-        "results": results,
-        "receipts": receipts,
-        "wall_seconds_total": time.time() - t_start,
-    }
-    e1.write_json(RUN_DIR / "metrics.json", payload)
+    flush("done")
     e1.set_status(status_path, "done", status="completed")
 
     print("\n=== E2 复现表（阈值 0.5）===")
