@@ -129,6 +129,41 @@
 - 判读：S2 收录的 14 条引用里，**只有 CITADEL 确认在 LAMDA 上做实验**（本地 E2+ 全文）；
   其余多为引用作近邻或用 MalNet/自建数据。**轴⑤家族分类在 LAMDA 上尚无已发表工作**（待 Google Scholar 交叉核对）。
 
+### S4（2026-10-14）arXiv 身份核验（curl，部分走代理）
+
+- `2506.23814` → 「Beyond the TESSERACT: Trustworthy Dataset Curation…」确认。
+- `2508.06734` → 「Evaluating Out-of-Distribution Robustness in Graph-Based Android Malware
+  Classification…」确认。两篇 HTML 全文已缓存（`ood-benchmark-2508.06734.txt`、
+  `beyond-tesseract-2506.23814.txt`）。
+- **Beyond the TESSERACT v1 正文未提 LAMDA**（rg 0 命中）；引用边在 v2 §XI（既有深度研究已核）。
+- `2405.04095v3`（DREAM）与 `2508.18839v2`（DRMD）HTML 全文已缓存并提取关键数字。
+- `2505.18551` → title 确认为 LAMDA（WebSearch 曾混淆为 Xi 等 Benchmarking 论文，已排除该混淆）。
+
+### S5（2026-10-14）arXiv 检索（searchtype=all，走代理）
+
+- `"LAMDA" AND "Android malware"` → 仅 2 篇：CITADEL、LAMDA 本身。
+- `"open set recognition" AND "malware"` → 3 篇：`2505.12750`（Android 权限 OSR）、`2205.06918`
+  （FCG OSR）、`2006.15117`（MMF loss）。前两篇已取摘要（E1）。
+- `"malware" AND "weak labels"` → 0 命中。
+- `"VirusTotal" AND "label" AND "temporal"` → 仅 `1510.07338`（Miller 2015，审阅者预算，
+  1.1M VT 二进制 2.5 年，72%@0.5%FPR → 80 审阅/日 89%）。
+- `"malware family" AND "few-shot"` → 0 命中。
+- 注意：arXiv 检索是元数据检索，非全文检索。
+
+### S6（2026-10-14）S2 批量与限流
+
+- 批量摘要接口一次 429（已改走 arXiv abs 页逐篇取）；`s2-axis3-abstracts.json` 为错误响应存根。
+- MalNet 身份核验：`2011.07682`「A Large-Scale Database for Graph Representation Learning」（E1）。
+- CADE/APIGraph 题录未重新核验（S2 限流）；其数字仅从 LAMDA 附录 H 表 14（E3）转引，
+  不作为独立题录证据。
+
+### S7（2026-10-14）Google Scholar 阻塞记录
+
+- `scholar` CLI 两个技能均要求 Chrome 远程调试端口认证（`scholar auth --port 9222`），
+  本只读会话不能启动 Chrome，**途径受阻**。
+- 影响面：LAMDA 被引列表可能不完整（S2 快照 14 条 + 深度研究引用图 R1–R11 为当前边界）。
+  结论一律写「未发现」，不写「不存在」。
+
 ### S1–S2（2026-10-14）本地混合索引（drift 工作树，scope=local/paper，mode=hybrid）
 
 - 索引：ch3-drift-20260908 工作树，1,934 笔记，向量模型 intfloat/multilingual-e5-small。

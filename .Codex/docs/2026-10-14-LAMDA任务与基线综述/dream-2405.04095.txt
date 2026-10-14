@@ -1,0 +1,6609 @@
+ 
+ 
+ 
+ Combating Concept Drift with Explanatory Detection and Adaptation for Android Malware Classification 
+ 
+ 
+ 
+
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
+ Report GitHub Issue 
+ × 
+ 
+
+ 
+ Title: 
+ 
+
+ Content selection saved. Describe the issue below: 
+
+ Description: 
+ 
+ 
+
+ 
+ Submit without GitHub 
+ Submit in GitHub 
+ 
+ 
+ 
+ 
+ arXiv is now an independent nonprofit! 
+ Learn more 
+ × 
+ 
+
+ 
+ 
+ 
+ Back to arXiv 
+ 
+ 
+ 
+ 
+ Why HTML? 
+ 
+ 
+ 
+ 
+ Report Issue 
+ 
+ 
+ 
+ 
+ 
+ 
+ Back to Abstract 
+ 
+ 
+ 
+ 
+ 
+ 
+ Download PDF 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Abstract. 
+ 1 Introduction 
+ 2 Background 
+ 
+ 2.1 Android Malware Concept Drift 
+ 2.2 Mitigating Malware Concept Drift 
+ 
+ 3 Motivation and Research Scope 
+ 
+ 3.1 Limitations on Current Detection Methods 
+ 3.2 Challenges in AL-based Adaptation 
+ 3.3 Research Scope 
+ 
+ 4 Our Dream System 
+ 
+ 4.1 Design Insights 
+ 4.2 Concept-based Drift Detection 
+ 4.3 Explanatory Drift Adaptation 
+ 
+ 5 System Evaluation 
+ 
+ 5.1 Experimental Setup 
+ 5.2 Drift Detection Performance 
+ 5.3 Drift Adaptation Performance 
+ 5.4 Drift Explanation Performance 
+ 5.5 Computational & Human Effort Analysis 
+ 
+ 6 Extended Evaluation 
+ 7 Discussion 
+ 8 Related Work 
+ 9 Conclusion 
+ References 
+ A Malware Dataset 
+ B Autoencoder Architecture 
+ C Open-world Testing 
+ D Insights from Drift Explanation 
+ E Concept-based ID Explanation 
+ F Baselines from Existing Work 
+ G Formalization 
+ H Characterizing Current Drift Detectors 
+ I Lessons from Current Detectors 
+ 
+ 
+ 
+ 
+ 
+ License: CC BY-SA 4.0
+ 
+ 
+arXiv:2405.04095v3 [cs.CR] 24 May 2025 
+ 
+ 
+ Combating Concept Drift with Explanatory Detection and Adaptation for Android Malware Classification 
+ Conference:  Proceedings of the 2025 ACM SIGSAC Conference on Computer and Communications Security; October 13–17, 2025; Taipei, Taiwan Proceedings of the 2025 ACM SIGSAC Conference on Computer and Communications Security (CCS ’25), October 13–17, 2025, Taipei, Taiwan Price:  15.00 ISBN:  978-1-4503-XXXX-X/18/06 
+ 
+ 
+ Yiling He
+ 
+ Note:  This work was conducted during the author’s PhD studies at Zhejiang University.
+ 
+ Affiliation:  University College London , London , United Kingdom 
+ 
+ email: yiling-he@ucl.ac.uk 
+ 
+ , 
+ Junchi Lei
+ 
+ Affiliation:  Zhejiang University , Hangzhou , China 
+ 
+ email: junchilei@zju.edu.cn 
+ 
+ , 
+ Zhan Qin
+ 
+ Affiliation:  Zhejiang University , Hangzhou , China 
+ 
+ email: qinzhan@zju.edu.cn 
+ 
+ , 
+ Kui Ren
+ 
+ Affiliation:  Zhejiang University , Hangzhou , China 
+ 
+ email: kuiren@zju.edu.cn 
+ 
+ and 
+ Chun Chen
+ 
+ Affiliation:  Zhejiang University , Hangzhou , China 
+ 
+ email: chenc@zju.edu.cn 
+ 
+ 2025 
+
+ Abstract. 
+ 
+ Machine learning-based Android malware classifiers achieve high accuracy in stationary environments but struggle with concept drift.
+The rapid evolution of malware, especially with new families, can depress classification accuracy to near-random levels.
+Previous research has largely centered on detecting drift samples, with expert-led label revisions on these samples to guide model retraining.
+However, these methods often lack a comprehensive understanding of malware concepts and provide limited guidance for effective drift adaptation, leading to unstable detection performance and high human labeling costs. 
+ 
+ To combat concept drift, we propose Dream , a novel system that improves drift detection and establishes an explanatory adaptation process.
+ Our core idea is to integrate classifier and expert knowledge within a unified model.
+To achieve this, we embed malware explanations (or concepts) within the latent space of a contrastive autoencoder, while constraining sample reconstruction based on classifier predictions. This approach enhances classifier retraining in two key ways: 1) capturing the target classifier’s characteristics to select more effective samples in drift detection and 2) enabling concept revisions that extend the classifier’s semantics to provide stronger guidance for adaptation.
+Additionally, Dream eliminates reliance on training data during real-time drift detection and provides a behavior-based drift explainer to support concept revision. 
+Our evaluation shows that Dream effectively improves the drift detection accuracy and reduces the expert analysis effort in adaptation across different malware datasets and classifiers.
+ Notably, when updating a widely-used Drebin classifier, Dream achieves the same accuracy with 76.6 % 76.6\% fewer newly labeled samples compared to the best existing methods. 
+ 
+ 
+ 
+ Keywords:  Concept Drift; Malware Analysis; Explanatory Interactive Learning
+ 
+ 
+ 1. Introduction 
+
+ 
+ Android malware classification is continually challenged by concept drift  ( Pendlebury et al., 2019 ) .
+As cyber attackers constantly devise evasion techniques and varied intents  ( Avllazagaj et al., 2021 ) , the evolving nature of malware behaviors can rapidly alter the patterns which classifiers rely on.
+Consequently, static machine learning models trained on historical data face a significant drop in performance and become incapable of handling unseen families  ( He et al., 2023a ) . 
+ 
+ 
+ To combat malware concept drift, current state-of-the-art solutions leverage active learning  ( Hsu and Lin, 2015 ) , comprising two primary stages.
+In the drift detection stage, new test samples that exhibit signs of drift are periodically selected. Most existing research has focused on improving this stage using techniques like statistical analysis  ( Jordaney et al., 2017 ; Barbero et al., 2022 ) or contrastive learning  ( Yang et al., 2021a ; Chen et al., 2023a ) to identify atypical data points. The subsequent drift adaptation stage follows a standard approach: the identified drifting samples are labeled by malware analysts and then added to the training set for classifier retraining  ( Zhang et al., 2020 ) . 
+ 
+ 
+ Existing methods for drift detection fall short in two main aspects.
+Firstly, they often falsely neglect the patterns which the targeted classifier depends on.
+For example, the CADE detector  ( Yang et al., 2021a ) leverages an independent autoencoder to learn a distance function, identifying drifts by the distances with training data.
+Such misalignment can lead to inefficiency in detecting model-specific drifts, especially when dealing with complex classifier feature spaces, as validated by our experiments in  Section 5.2 .
+Secondly, existing methods often rely on constant access to training data during the testing phase, such as for querying reference uncertainties  ( Barbero et al., 2022 ; Jordaney et al., 2017 ) or searching for nearest neighbors  ( Chen et al., 2023a ) .
+Such practices bring practical issues in local deployment scenarios, where managing large training datasets leads to storage and security concerns  ( Ren et al., 2023 ) . 
+ 
+ 
+ In the drift adaptation stage, the common label-centric retraining strategy poses significant challenges to human efforts.
+A clear discrepancy exists between the extensive analysis required for assigning labels and the limited information actually utilized by the model.
+While analysts use static/dynamic program analysis to extract rich reasoning insights  ( Mantovani et al., 2022 ; Aonzo et al., 2023 ) , these insights are largely disregarded as the model only considers the revised labels.
+This mismatch limits the effectiveness of model updates, with mislabeling further complicating improvements  ( Wu et al., 2023 ; Pirch et al., 2021 ) .
+Consequently, analysts often need to label a large number of samples to ensure accurate updates. 
+ 
+ 
+ To address these challenges, our high-level idea is to design a system that aligns closely with the classifier knowledge while supporting human revision of malware behavioral concepts.
+This alignment facilitates the two integral processes:
+1) in drift detection, deviations are identified by assessing the reliability of malware concepts under the supervision of the classifier;
+2) in drift adaptation, experts are provided with interfaces to directly revise the deviated concepts, enabling these adjustments to inversely update the classifier. 
+ 
+ 
+ We develop the system, called Dream , distinguished by model-sensitive dr ift detection and e xplanatory a daption for Android m alware classification.
+Specifically, we train an autoencoder with model sensitive concept learning.
+To embed malware concepts, we combine supervised concept learning  ( Jia et al., 2013 ) with unsupervised contrastive learning  ( Chen et al., 2020a ) : elements in the latent space are representative of behavioral concepts that can be labeled, such as remote control and stealthy download.
+For drift detection, Dream integrates classifier knowledge and achieves data-independent testing through a unique concept reliability measure, grounded in the intuition that reconstructed samples from reliable concepts should yield consistent model predictions with the original samples. 
+ 
+ 
+ For adaptation, we envision that human intelligence can not only be utilized for feedback on prediction labels but also for the explanations  ( Teso and Kersting, 2019 ) .
+Rather than creating an external explanation module for the classifier, we utilize concepts embedded within our detector.
+This integration offers dual benefits: high-level explanation abstraction for human understanding  ( He et al., 2023b ) and immediate revision impact on evolving concepts.
+Furthermore, Dream effectively harnesses human intelligence with a joint update scheme.
+The classifier’s retraining process is assisted by the detector, allowing for the utilization of both malware labels and behavioral explanations. 
+ 
+ 
+ We evaluate Dream with 2 2 distinct Android malware datasets ( Yang et al., 2021a ; Wang et al., 2022 ) and 3 3 state-of-the-art classifiers  ( Arp et al., 2014 ; Mariconti et al., 2017 ; McLaughlin et al., 2017 ) .
+Results demonstrate that Dream outperforms 3 3 existing drift detection methods  ( Barbero et al., 2022 ; Yang et al., 2021a ; Chen et al., 2023a ) in malware classification, achieving an average improvement of 11.5%, 12.0%, and 13.6% in terms of the AUC  1 1 
+ 1 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ The AUC specifically refers to the Area Under the Receiver Operating Characteristic (ROC) Curve  ( Fan et al., 2006 ) in this paper. metric.
+For drift adaptation, Dream notably enhances the label-centric retraining approach.
+It achieves improved F1-scores of 168.4%, 73.5%, 22.2%, 19.7%, and 6.0% over the benchmark under the same data constraints when the human analysis budget is set at 10 10 , 20 20 , 30 30 , 40 40 , and 100 100 , respectively.
+A standout observation is the increased advantage at lower human labeling costs.
+For instance, analysts can analyze over 80% fewer samples while still achieving a test accuracy of 0.9 0.9 for the updated classifier. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Detection 
+ Adaptation 
+ Application 
+ 
+ 
+ 
+ 
+ MS 
+ 
+ 
+ 
+ DA 
+ 
+ 
+ 
+ Act. 
+ 
+ 
+ 
+ Exp. 
+ 
+ 
+ 
+ Inter 
+ 
+ 
+ 
+ Intra 
+ 
+ 
+ 
+ Agn. 
+ 
+ 
+ Trans.  ( Barbero et al., 2022 ) 
+ 
+ 
+ ◐ 
+ 
+ 
+ 
+ ○ 
+ 
+ 
+ 
+ ○ 
+ 
+ 
+ 
+ ○ 
+ 
+ 
+ 
+ ◐ 
+ 
+ 
+ 
+ ◐ 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ CADE  ( Yang et al., 2021a ) 
+ 
+ 
+ ○ 
+ 
+ 
+ 
+ ◐ 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ◐ 
+ 
+ 
+ 
+ ◐ 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ HCC  ( Chen et al., 2023a ) 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ○ 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ○ 
+ 
+ 
+ 
+ ○ 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ○ 
+ 
+ 
+ Dream 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ ● 
+ 
+ 
+ 
+ a 
+ 
+ ●=true, ○=false, ◐=partially true. 
+ 
+ b 
+ 
+ Detection methods can be distinguished by model sensitivity (MS) and data autonomy (DA). Adaptation techniques can be proactive and explanatory. Different support in the detection and proactive adaptation phases includes inter-class drifts, intra-class drifts, and model-agnostic applications. 
+ 
+ 
+ Table 1. Comparison to existing work in terms of the detection method, adaptation method, and the applicable scope. 
+ 
+ 
+ Contributions. 
+This paper has three main contributions. 
+ 
+ • 
+ 
+ We revisit existing drift detection methods in malware classification, identifying necessity for model sensitivity and data autonomy. We design a novel drift detector to meet the two needs, enriched with the integration of malware behavioral concepts. 
+ 
+ • 
+ 
+ We initiate an explanatory concept adaptation process, enabling expert intelligence to revise malware labels and concept explanations. Through a joint update of both the classifier and our drift detector, we harness the synergy between human expertise and automated detection. 
+ 
+ • 
+ 
+ We implement Dream and evaluate it across different datasets and classifiers. Experimental results show that Dream significantly outperforms existing drift detectors and the conventional retraining-based adaptation approach. 
+ 
+ 
+ 
+ 
+ Figure 1. Active learning framework for concept drift mitigation: standard components and operations in common active learning (grey, italic), specialized components for concept drift (blue boxes), and new features of our method compared to existing works (purple). 
+ 
+ 
+ 
+ 2. Background 
+
+ 
+ In this section, we delve into the background of malware concept drift.
+ We begin by discussing the two primary types of drift in learning-based malware classifiers, particularly in the context of Android.
+Next, we introduce existing work for mitigating the drift, highlighting key studies for dynamic adaptation in this domain. 
+ 
+ 
+ 2.1. Android Malware Concept Drift 
+
+ 
+ The widespread adoption of Android, which holds a dominant mobile market share of 71.31 % 71.31\% as of April 2024  ( Iqubal et al., 2024 ) , has made it an attractive target for cybercriminals  ( Chen et al., 2023b ) .
+With over 3 3 million new malware samples detected every month  ( AV-ATLAS, 2023 ) , the platform faces a rapidly evolving threat landscape. This dynamic environment, driven by attackers seeking to evade  ( Wang et al., 2021 ; Jiang et al., 2020 ) , poses significant challenges for both deep learning-based malware detection and classification systems  ( Li et al., 2021 ; Gong et al., 2020 ; Fan et al., 2016 ; Rabadi and Teo, 2020 ) .
+These systems are particularly vulnerable to concept drift , a phenomenon where the statistical properties of data change over time, leading to a degradation in model performance  ( Guerra-Manzanares et al., 2022 ; Pendlebury et al., 2019 ) . 
+ 
+ 
+ Concept drift in malware manifests in two primary forms, with the ever-evolving nature of Android malware providing prominent examples :
+1)  Intra-class drift refers to changes within existing malware families, such as the emergence of new variants. For example, the information-stealing Android malware Xavier produced 5 5 different versions within eight months of its discovery  ( Xu, 2017 ) . 
+This type of drift primarily impacts the binary detection tasks, with studies showing that models for Android malware can degrade to near-random levels after two years without updates  ( Meng et al., 2024 ; He et al., 2023a ) ; 
+2)  Inter-class drift , which is the focus of this paper , involves the emergence of entirely new malware families. The rapid emergence is exemplified by the identification of 10 10 new families of Android banking malware alone in 2023, each targeting critical financial applications globally with different capabilities  ( Toulas, 2023 ) . This type of drift is pressing, as it requires timely updates to the multi-class classification models to ensure a more granular response to malware  ( Gandotra et al., 2014 ) . 
+ 
+ 
+ 
+ 
+ 
+ (a) Latent Space of Detector 
+ 
+ 
+ (b) Activation Embedding of Classifier 
+ 
+ Figure 2. Model sensitive concept learning: how concepts are learned by the detector and used by the classifier. 
+ 
+ 
+ 
+ 2.2. Mitigating Malware Concept Drift 
+
+ 
+ Traditional approaches to mitigating malware concept drift often lack support for online scenarios that require continuous adaptation. 
+ These methods typically involve redesigning feature spaces, followed by retraining from scratch using the new features  ( Barddal et al., 2017 ; Ceschin et al., 2023 ) . The key challenge in this process is identifying a feature set that remains relevant as the malware evolves. A recent work proposes drift forensics  ( Chow et al., 2023 ) , adopting multiple retraining and feature attribution calculations across different dataset divisions.
+While their in-depth analysis provides valuable insights for feature selection in a binary feature space  ( Arp et al., 2014 ) , their method relies on ground truth labels and become infeasible for complex classifiers.
+Designing robust feature spaces remains an open research question.
+ 
+ To address online scenarios, recent research has adopted a two-stage paradigm: determining when to take action ( drift detection ) and what action to take ( drift adaptation ). 
+ 
+ 
+ Drift Detection. 
+The detection stage involves identifying drift by selecting ambiguous samples. Much of the existing research focuses on this stage, drawing inspiration from Out-of-Distribution (OOD) detection methods in the machine learning domain  ( Yang et al., 2021b ) . For example, uncertainty estimation gauges a model’s prediction confidence, with a naive approach for DNN being the probability.
+However, probability alone can be misleading, as overfitted models may assign high softmax values to unfamiliar data, falsely indicating high confidence  ( Hendrycks and Gimpel, 2016 ; Pearce et al., 2021 ) . As a result, many researchers have shifted towards nonconformity scoring , which evaluates how unusual new data is compared to a calibration set  ( Jordaney et al., 2017 ; Barbero et al., 2022 ) .
+Notably, contrastive learning has shown promise in modeling an effective distance function for this purpose  ( Yang et al., 2021a ; Chen et al., 2023a ) . 
+ 
+ 
+ Drift Adaptation. 
+Once drift is detected, the goal is to properly handle the identified samples. A conservative approach involves withholding ambiguous samples for expert analysis to minimize misclassification risks  ( Jordaney et al., 2017 ; Barbero et al., 2022 ) .
+While this strategy provides a safeguard against immediate threats, it lacks long-term resilience.
+Alternatively, active learning  (AL) inspired strategies introduce a labeling budget to prioritize a subset of drifting samples for humans to label.
+These labeled samples are then integrated into the retraining process, enabling the model to adapt dynamically to new data distributions  ( Chen et al., 2023a ) .
+To streamline human labeling in active learning, there’s growing interest in drift explanation   ( Yang et al., 2021a ; Han et al., 2023 ) , but how these explanations can help update the classifiers remains underexplored. 
+ 
+ 
+ Summary of Key Studies. 
+Advancements in drift detection and adaptation techniques are essential for combating malware drifts dynamically.
+As summarized in Table 1 , three notable existing studies have contributed significantly to the fields  (see more discussions in  Appendix F ).
+Among these, Transcendent focuses on drift detection by refining the calibration process and employs a conservative adaptation approach, whereas CADE and HCC use contrastive learning for drift detection and active learning for adaptation.
+Notably, HCC specializes in intra-class drift by incorporating a hierarchical structure into the contrastive loss, and its drift detector has an inherent design that is incompatible with off-the-shelf classifiers.
+This paper targets a similar scope of applicability as CADE but also addresses inter-class adaptation, a challenging aspect not considered in these existing works. 
+ 
+ 
+ 
+ 
+ 3. Motivation and Research Scope 
+
+ 
+ In this section, we identify the limitations of current drift detection methods and active learning-based drift adaptation strategies, followed by a discussion of our research scope. 
+ 
+ 
+ Figure 3. Overview (left) and design insights (right) of our Dream system. To enhance contrastive autoencoder-based drift detector, we employ model sensitive concept learning: Dream enriches the latent space with concepts of malicious behaviors, and it learns those concepts along with classifier knowledge. 
+ 
+ 
+ 3.1. Limitations on Current Detection Methods 
+
+ 
+ Current inter-class drift detectors often lack model sensitivity and data autonomy  (detailed in  Appendix H ), resulting in ineffective drift detection. 
+ 
+ 
+ (L1) 
+Firstly, these detectors are typically trained independently of the classifier, which should have been the subject of drift.
+For instance, the contrastive learning-based methods  ( Yang et al., 2021a ; Chen et al., 2023a ) use an unsupervised approach to learn a distance metric with training data, without fully considering the specific characteristics of the classifier.
+This unguided training leads to a poorly modeled outlier space : as illustrated in the left side of Figure  2a , drift samples (representing a new malware family FakeInstaller ) often become entangled with existing classes in the latent space, making it difficult to distinguish between them effectively. 
+ 
+ 
+ (L2) 
+Secondly, current detectors rely on training data to compute drift scores in operational phase.
+This dependence could be impractical and inefficient —it requires constant access to potentially large datasets, posing challenges in terms of security and scalability  ( Ren et al., 2023 ) .
+Moreover, we find that over-reliance on static training data risks overfitting, causing unseen samples from existing families to be misclassified as drift, further diminishing detection effectiveness. 
+ 
+ 
+ 
+ 3.2. Challenges in AL-based Adaptation 
+
+ 
+ Active learning is employed to dynamically update classifier predictions in drift adaptation, involving human analysts in the process.
+To ensure the updated model is accurate, analysts assign new labels to a contextually determined number of drift samples ( labeling budget ), which are then incorporated into the original training data for retraining.
+This adaptation stage presents two challenges regarding the effectiveness and efficiency of human efforts. 
+ 
+ 
+ (C1) 
+One major challenge is minimizing the labeling budget needed to achieve target accuracy in the updated model.
+The common retraining approach is inherently inefficient, as it relies solely on the final family label provided by analysts, overlooking the valuable reasoning insights they apply during analysis.
+For example, analysts often derive their understanding about malware family from observing specific malicious behaviors through static and dynamic analysis  ( Aonzo et al., 2023 ) , which offer valuable context beyond a simple label.
+The failure to incorporate rich behavioral explanations limits potential improvements in model updating. Consequently, this inefficiency increases the labeling burden, requiring more samples to be precisely analyzed  ( Wu et al., 2023 ; Pirch et al., 2021 ) . 
+ 
+ 
+ (C2) 
+During label assignment, reducing expert effort in malware analysis remains a challenge  ( Burk et al., 2022 ; Mantovani et al., 2022 ) .
+Current drift explanations fall short as generated at the feature level, where intelligibility issues exist especially for malware classifiers  ( He et al., 2023b ) .
+More importantly, unlike explanations for non-drift data  ( Guo et al., 2018 ) , drift explanations emphasize differences relative to a closest family.
+Given that features are static properties, such explanations provide no additional insights beyond a simple diff calculation .
+We also observe that CADE’s explainer ( Figure 8 ) highlights more features than those genuinely different, with only 25 % 25\% being accurate, which fails to narrow the analysis scope and even provides misleading information. 
+ 
+ 
+ 
+ 3.3. Research Scope 
+
+ 
+ In this research, we employ active learning to mitigate Android malware concept drift, as depicted in Figure 1 .
+ Cybersecurity teams deploy the malware classifier in a production environment online, while another system periodically evaluates its ability to make accurate decisions on incoming samples and take appropriate actions. 
+ 
+ 
+ This system consists of three key components (formalized in   Appendix G ).
+The detector (
+ 1 ) provides drift scores to indicate how much samples deviate from the existing distribution of labeled data.
+Detected samples, ranked and selected within a labeling budget, are then presented to malware analysts for review.
+The explainer (
+ 2 ) links detection decisions to semantically meaningful behaviors (features in existing research  ( Yang et al., 2021a ) ), helping analysts understand the rationale behind the drift.
+Once the samples are labeled, the adaptor (
+ 3 ) uses them to expand the original training data and dynamically update the classifier. 
+ 
+ 
+ Recognizing that intra-class drift scenarios have been more extensively explored, our work primarily addresses the challenges associated with inter-class drifts, specifically those caused by previously unseen malware families.
+ Our goal is to enhance detection and adaptation strategies for such drifts, enabling accurate malware classification in the dynamic environment.
+By accurately identifying malware families, cybersecurity teams can take more targeted incident responses. 
+Nevertheless, our proposed solution is not limited to inter-class drifts, as its generalizability to intra-class drifts will also be evaluated in  Section 6 . 
+ 
+ 
+ 
+ 
+ 4. Our Dream System 
+
+ 
+ We propose a system, named Dream , for drift detection and drift adaptation within the active learning framework.
+In this section, we introduce design insights and technical details of the system. 
+ 
+ 
+ 4.1. Design Insights 
+
+ 
+ To overcome the identified limitations and challenges, our core idea is to establish a bidirectional connection between the classifier and the drift detector, while embedding high-level malware explanations directly into the learning process.
+As shown in  Figure 3 , we design the drift detector using an autoencoder structure that incorporates two key features:
+1) aligning reconstructed samples with original samples in classifier predictions and 2) embedding malware behavioral concepts in latent representations.
+These features enable the drift detector to be informed by the classifier knowledge while also allowing expert insights to guide the classifier during adaptation, respectively addressing L1 and C1 , which directly impacts the accuracy of the updated classifier. 
+ 
+ 
+ Specifically, we employ what we call model-sensitive concept learning to train the drift detector.
+As shown in  Figure 2 , the embedding space of the drift detector effectively separates different malware families with larger centroid distances, while drift samples are mapped to a clear outlier space.
+Furthermore, the alignment between the detector and classifier is evidenced by the classifier’s activation embeddings: original and reconstructed samples from the same non-drift family cluster together, creating a well-defined decision boundary that accurately distinguishes drift samples.
+This consistency also suggests that the learned behavioral concepts can, in turn, enhance classifier retraining during adaptation. 
+ 
+ 
+ Following these designs, we achieve data autonomy (solving L2 ) by relying on reconstructed samples to calculate drifting scores, eliminating the need for training data during drift detection. To facilitate analysis on drift samples (addressing C2 ) in adaptation, we adjust the drift explainer to generate explanations within the concept space, providing extended semantics beyond features that align with human insights. 
+ 
+ 
+ Key Notations. 
+Let 𝒳 ⊆ ℝ p × q \mathcal{X}\subseteq\mathbb{R}^{p\times q} denote the input feature space and 𝒴 \mathcal{Y} the output label space.
+The classifier is represented as 𝐌 : 𝒳 → 𝒫 ⁡ ( 𝒴 ) \mathbf{M}:\mathcal{X}\rightarrow\mathcal{P}(\mathcal{Y}) , mapping features to label distributions.
+The latent embedding space is 𝒵 ⊆ ℝ N \mathcal{Z}\subseteq\mathbb{R}^{N} , learned via an autoencoder f f , where an encoder f enc f_{\text{enc}} maps 𝒳 → 𝒵 \mathcal{X}\rightarrow\mathcal{Z} and a decoder f dec f_{\text{dec}} reconstructs 𝒵 → 𝒳 \mathcal{Z}\rightarrow\mathcal{X} .
+We use 𝒟 train \mathcal{D}_{\text{train}} and 𝒟 test \mathcal{D}_{\text{test}} to refer to the training and test datasets, respectively.
+In CADE, the autoencoder is trained with a reconstruction loss ℒ rec \mathcal{L}_{\text{rec}} and a novel contrastive loss ℒ sep \mathcal{L}_{\text{sep}} to enforce separation between samples from different families.
+In Dream , we enrich the latent space 𝒵 \mathcal{Z} into a malware concept space composed of an explicit concept space 𝒵 exp \mathcal{Z}_{\text{exp}} and an implicit concept space 𝒵 imp \mathcal{Z}_{\text{imp}} . Built on this, we introduce a concept presence loss ℒ pre \mathcal{L}_{\text{pre}} to align embeddings with behavioral labels, and a reliability loss ℒ rel \mathcal{L}_{\text{rel}} to inject classifier knowledge for model-sensitive alignment.
+We elaborate on their roles in enhancing the drift detection and adaptation process in the following sections.
+ 
+ 
+ 
+ 
+ 4.2. Concept-based Drift Detection 
+
+ 
+ Model Sensitive Concept Learning. 
+We explore the idea of concept learning to enhance the latent representations of the contrastive autoencoder. In machine learning, concept learning typically involves the task of inferring generalizable patterns (often framed as boolean-valued functions) from labeled examples to represent higher-level abstractions  ( Jia et al., 2013 ; Chiu and Churchill, 2016 ) .
+In our context, we envision that learning generalized malicious behavior concepts can guide the model in better identifying new malware families under drift. To this end, our goal is to integrate the supervised concept learning with the unsupervised contrastive learning. 
+ 
+ 
+ We define the unique latent space 𝒵 \mathcal{Z} in our method as the malware concept space, comprising the explicit concept space and the implicit concept space.
+ The explicit concept space 𝒵 exp \mathcal{Z}_{\text{exp}} is structured around a set of manually defined behaviors, where each element 𝐳 e ( i ) \mathbf{z}_{e}^{(i)} corresponds to a predefined malicious concept (e.g., information stealing, remote control, and stealthy download). 
+This mirrors the classic concept learning, where boolean-valued functions are used to assign interpretable concepts to samples.
+ In contrast, the implicit concept space 𝒵 imp \mathcal{Z}_{\text{imp}} captures statistical patterns from the data and serves as an automatically learned latent representation.
+It complements the explicit space by enriching the contrastive autoencoder and refining the contrastive loss ℒ sep \mathcal{L}_{\text{sep}} in two ways:
+1) improving class separation when explicit behaviors overlap across malware families, and 2) enabling concept space extensibility, such as accommodating benign behaviors in binary detection tasks. 
+ 
+ 
+ Built on the malware concept space, we introduce two key training requirements focused on concept handling.
+Firstly, we implement a concept presence loss for the precise detection of explicit concepts for each sample, which is defined as 
+ 
+
+ 
+ (1) 
+ 
+ ℒ pre = − 𝐦 e ⊙ ( 𝐥 e ⊙ log ( 𝐩 e ) + ( 1 − 𝐥 e ) ⊙ log ( 1 − 𝐩 e ) ) . \mathcal{L}_{\text{pre}}=-\mathbf{m}_{e}\odot\left(\mathbf{l}_{e}\odot\log(\mathbf{p}_{e})+(1-\mathbf{l}_{e})\odot\log(1-\mathbf{p}_{e})\right). 
+ 
+ 
+ Here, ⊙ \odot denotes element-wise multiplication. The vectors 𝐦 e \mathbf{m}_{e} , 𝐥 e \mathbf{l}_{e} , and 𝐩 e \mathbf{p}_{e} each have a length of N e N_{e} , representing the total number of explicit concepts.
+The elements 𝐦 e ( i ) \mathbf{m}_{e}^{(i)} and 𝐥 e ( i ) \mathbf{l}_{e}^{(i)} correspond to the valid label mask and the binary label for the i-th concept, respectively; and 𝐩 e ( i ) \mathbf{p}_{e}^{(i)} is calculated with g ⁡ ( 𝐳 e ( i ) ) g(\mathbf{z}_{e}^{(i)}) , which is the probability of the i-th explicit concept being present.
+This formula aggregates binary cross-entropy for all explicit concepts, incorporating the valid label mask 𝐦 e \mathbf{m}_{e} to handle imprecise behavior labels.
+This strategy addresses the challenge of behavior labeling in the malware domain, where unlike the image domain with direct human annotations, concept labels often originate from technical reports or dynamic analysis and can be uncertain or missing  ( Smith et al., 2020 ) . 
+ 
+ 
+ Our second innovation is the introduction of the concept reliability loss, endowing the detector with model sensitivity from the early training stage.
+Our approach is based on the premise that a sample reconstructed from the concept space 𝒵 exp ∪ 𝒵 imp \mathcal{Z}_{\text{exp}}\cup\mathcal{Z}_{\text{imp}} should exhibit a probability distribution similar to the original sample when processed by the classifier 𝐌 \mathbf{M} .
+The concept reliability loss is formally represented as 
+ 
+
+ 
+ (2) 
+ 
+ ℒ rel = − ∑ i C 𝐌 ( 𝐱 ) ( i ) log ( 𝐌 ( 𝐱 ^ ) ( i ) ) . \mathcal{L}_{\text{rel}}=-\sum_{i}^{C}\mathbf{M}(\mathbf{x})^{(i)}\log(\mathbf{M}(\hat{\mathbf{x}})^{(i)}). 
+ 
+ 
+ In this equation, the probability distributions of the original sample 𝐱 \mathbf{x} serve as “true labels”, and those of the reconstructed sample 𝐱 ^ \hat{\mathbf{x}} are treated as predictions.
+This loss function effectively measures the divergence between the original and reconstructed sample distributions, ensuring that the model retains fidelity to the original concept representations even after reconstruction.
+Moreover, it implicitly measures the entropy-based uncertainty of the original distribution. 
+ 
+ 
+ In summary, the training objective for our drift detector is centered on tuning the parameters of the autoencoder f f and the concept presence function g g , minimizing 
+ 
+
+ 
+ (3) 
+ 
+ ℒ ⁡ ( 𝒟 train , 𝐥 , 𝐌 ) = λ 0 ​ ℒ rec + λ 1 ​ ℒ sep + λ 2 ​ ℒ pre + λ 3 ​ ℒ rel , \mathcal{L}(\mathcal{D}_{\text{train}};\mathbf{l},\mathbf{M})=\lambda_{0}\mathcal{L}_{\text{rec}}+\lambda_{1}\mathcal{L}_{\text{sep}}+\lambda_{2}\mathcal{L}_{\text{pre}}+\lambda_{3}\mathcal{L}_{\text{rel}}, 
+ 
+ 
+ where the traditional reconstruction loss, the concept-based contrastive loss, the concept presence loss, and the concept reliability loss are balanced by coefficients λ 0 \lambda_{0} , λ 1 \lambda_{1} , λ 2 \lambda_{2} , and λ 3 \lambda_{3} . 
+ 
+ 
+ Data Autonomous Detector. 
+With the trained detector, we can leverage it to detect drifting samples for incoming test data 𝐱 t ∈ 𝒟 test \mathbf{x}_{t}\in\mathcal{D}_{\text{test}} .
+Our design draws inspiration from a notable observation in the state-of-the-art intra-class detector HCC ( Appendix I ).
+Considering the significant contribution of the cross-entropy-based pseudo loss to the performance, we focus on enhancing its contrastive-based element ( Equation 16 ).
+We achieve this by maintaining the neighborhood function while substituting ℒ ^ h ​ c \hat{\mathcal{L}}_{hc} with ℒ ^ c ​ e \hat{\mathcal{L}}_{ce} , leading to the introduction of the neighborhood cross-entropy (NCE) based pseudo loss, defined as 
+ 
+
+ 
+ (4) 
+ 
+ 𝐃 nce ​ ( 𝐱 t , 𝒟 train ) = ℒ ^ ce ​ ( { 𝐱 t } ∪ 𝒩 ⁡ ( 𝐱 t , f , 𝒟 train ) ) . \mathbf{D}_{\text{nce}}(\mathbf{x}_{t};\mathcal{D}_{\text{train}})=\hat{\mathcal{L}}_{\text{ce}}(\{\mathbf{x}_{t}\}\cup\mathcal{N}(\mathbf{x}_{t};f,\mathcal{D}_{\text{train}})). 
+ 
+ 
+ We observe that this adjustment can improve the HCC detector’s performance to some extent, with the improvement in the average AUC achieves 6.11 % 6.11\%  (see  Table 13 ). 
+ 
+ 
+ To comprehend the underlying principle, it’s important to understand that NCE calculates uncertainty for nearest neighbors based on the assumption that a non-drifting sample should remain certain even if slightly perturbed.
+This leads us to the samples reconstructed by the autoencoder, which essentially represent a constrained perturbation.
+Consequently, the pseudo loss defined with our concept reliability loss ( Equation 2 ) can align well with this principle.
+The drift scoring function of our Concept Reliability Detector  (CRD) is 
+ 
+
+ 
+ (5) 
+ 
+ u d := 𝐃 CRD ​ ( 𝐱 t ) = ℒ ^ ce ​ ( 𝐱 t , 𝐌 ) + λ 3 ​ ℒ ^ rel ​ ( 𝐱 t , f ⁡ ( 𝐱 t ) ) , u_{d}:=\mathbf{D}_{\text{CRD}}(\mathbf{x}_{t})=\hat{\mathcal{L}}_{\text{ce}}(\mathbf{x}_{t};\mathbf{M})+\lambda_{3}\hat{\mathcal{L}}_{\text{rel}}(\mathbf{x}_{t},f(\mathbf{x}_{t})), 
+ 
+ 
+ where the first item is the pseudo cross-entropy loss of the test sample in terms of the original classifier, and the second can be interpreted as the deviation in uncertainty after meaningful perturbations.
+This approach offers advantages for two primary reasons:
+1) the perturbation 𝐱 t ^ = f ⁡ ( 𝐱 t ) \hat{\mathbf{x}_{t}}=f(\mathbf{x}_{t}) is confined within the meaningful concept space, and the loss calculation considers the entropy of both the original sample and the perturbation;
+2) the testing phase of the detector is specifically designed for data autonomy, ensuring its efficiency and operational independence from the training data. 
+ 
+ 
+ 
+ 4.3. Explanatory Drift Adaptation 
+
+ 
+ As shown in  Figure 4 , Dream addresses the human-in-the-loop challenges with two strategies: 1) a human-centered explanation mechanism to facilitate behavior labeling that can operate on the classifier, and 2) a system-level behavior-involved adaptation algorithm to reduce the labeling budget required for maintaining classifier accuracy. 
+ 
+ 
+ Figure 4. Human-in-the-loop strategies in Dream . Bold blue arrows emphasize two core interaction flows: solid arrows denote system-level adaptation for efficient retraining with low budget, while hollow arrows represent human-centered behavioral explanation to assist labeling. 
+ 
+ 
+ Explaining with Concept. 
+To implement the drift explainer, CADE introduces two key components: a perturbation function and a deviation function ( p ​ e ​ r per and d ​ e ​ v dev as in  Equation 11 ).
+Specifically, given a drifting sample 𝐱 d \mathbf{x}_{d} , it selects a reference sample 𝐱 r \mathbf{x}_{r} from the training data by first identifying the closest class centroid y r y_{r} , and then choosing the training sample whose latent representation is nearest to this centroid.
+The perturbation process involves using the mask 𝐦 ∈ ℝ p × q \mathbf{m}\in\mathbb{R}^{p\times q} , resulting in the perturbed sample 
+ 
+
+ 
+ (6) 
+ 
+ 𝐱 d ′ := 𝐱 d ⊙ ( 1 − 𝐦 ) + 𝐱 r ⊙ 𝐦 . \mathbf{x}_{d}^{\prime}:=\mathbf{x}_{d}\odot(1-\mathbf{m})+\mathbf{x}_{r}\odot\mathbf{m}. 
+ 
+ 
+ The deviation is then quantified by calculating the distance between the latent representation of the perturbed sample, 𝐳 d ′ \mathbf{z}_{d}^{\prime} , and the nearest class centroid, represented as d ⁡ ( 𝐳 d ′ , 𝐜 y r ) d(\mathbf{z}_{d}^{\prime},\mathbf{c}_{y_{r}}) . 
+ 
+ 
+ Motivated by this approach, our method focuses on generating concept-based explanations while leveraging the model-sensitive nature of our detector.
+First of all, in terms of the selection of the nearest class y r y_{r} , we directly use y ^ \hat{y} which is the class predicted by the original classifier.
+To create concept-based explanations, we introduce a concept-space mask 𝐦 c ∈ ℝ N \mathbf{m}_{c}\in\mathbb{R}^{N} .
+This mask redefines the perturbation function within the concept space, while still allowing us to compute the original distance-based deviation using latent representations.
+Further enhancing the deviation function, we incorporate the model-sensitive drifting scoring function.
+Therefore, the primary component of the explainer’s optimization function is 
+ 
+ 
+ 
+ (7) 
+ 
+ 
+ d ⁡ ( 𝐳 d ′ , 𝐜 y ^ ) + α u ​ ( ℒ ^ ce ​ ( 𝐱 d ′ ) + ℒ ^ rel ​ ( f ⁡ ( 𝐱 r ) , 𝐱 d ′ ) ) , \displaystyle d\left(\mathbf{z}_{d}^{\prime},\mathbf{c}_{\hat{y}}\right)+\alpha_{u}\left(\hat{\mathcal{L}}_{\text{ce}}\left(\mathbf{x}_{d}^{\prime}\right)+\hat{\mathcal{L}}_{\text{rel}}\left(f\left(\mathbf{x}_{r}\right),\mathbf{x}_{d}^{\prime}\right)\right), 
+ 
+ 
+ 
+ 
+ s . t . 𝐳 d ′ := 𝐳 d ⊙ ( 1 − 𝐦 c ) + 𝐳 r ⊙ 𝐦 c , 𝐱 d ′ := f dec ( 𝐳 d ′ ) , \displaystyle\operatorname*{s.t.}\mathbf{z}_{d}^{\prime}:=\mathbf{z}_{d}\odot(1-\mathbf{m}_{c})+\mathbf{z}_{r}\odot\mathbf{m}_{c},\ \mathbf{x}_{d}^{\prime}:=f_{\text{dec}}(\mathbf{z}_{d}^{\prime}), 
+ 
+ 
+ where the drifting score is balanced by α u \alpha_{u} and determined by the feature-space perturbed sample 𝐱 d ′ \mathbf{x}_{d}^{\prime} decoded from the perturbed concepts.
+Specifically in the pseudo concept reliability loss ℒ ^ rel \hat{\mathcal{L}}_{\text{rel}} , the sample reconstructed from the reference input, i.e., f ⁡ ( 𝐱 r ) f(\mathbf{x}_{r}) , acts as a proxy for the in-distribution output probabilities.
+Note that our method can still generate feature-space explanations if needed: 𝐱 d ′ \mathbf{x}_{d}^{\prime} is created with feature-space operations as in  Equation 6 , so that pseudo concept reliability loss will be in its typical form, which is ℒ ^ rel ​ ( 𝐱 d ′ , f ⁡ ( 𝐱 d ′ ) ) \hat{\mathcal{L}}_{\text{rel}}(\mathbf{x}_{d}^{\prime},f(\mathbf{x}_{d}^{\prime})) . 
+ 
+ 
+ Concept-involved Adaptor. 
+Besides the drift explainer, our detector can serve as an explainer for in-distribution data in relation to the classifier.
+This is facilitated by the development of the explicit concept space. In this context, the outputs from the concept presence function g g are intrinsically linked to the malicious behaviors identified by the system.
+When dealing with out-of-distribution samples, it is possible that these explanations may be inaccurate due to the evolving nature of the concepts they are based on.
+Nevertheless, the architecture of our detector is designed to allow malware analysts to utilize the drift explainer as a tool and refine these behavioral concepts.
+This adaptable design is instrumental in updating and enhancing the classifier’s performance in response to conceptual drifts. 
+ 
+ 
+ We enable human analysts to provide feedback not only on the predicted labels of drifting samples but also on their behavioral explanations (predicted concepts).
+For instance, in malware classification tasks, analysts might encounter a drifting sample identified as belonging to the GhostCtrl family, exhibiting malicious behaviors like PrivacyStealing , SMSCALL , RemoteControl , and Ransom . Feedback in this scenario can be formatted as: 
+ 
+ 
+
+ 
+ 
+ ∃ m ​ a ​ l ( Family ( m a l , GhostCtrl ) ) ∧ ( Behaviors ( m a l ) ⇔ PrivacyStealing ​ ( m ​ a ​ l ) ∧ SMSCALL ​ ( m ​ a ​ l ) OPEN ∧ RemoteControl ​ ( m ​ a ​ l ) ∧ Ransom ​ ( m ​ a ​ l ) ) . \begin{split}\exists mal\,\,\,\,&(\texttt{Family}(mal,\texttt{GhostCtrl}))\land(\texttt{Behaviors}(mal)\Leftrightarrow\\
+&\texttt{PrivacyStealing}(mal)\land\texttt{SMSCALL}(mal)\\
+&\land\texttt{RemoteControl}(mal)\land\texttt{Ransom}(mal)).\end{split} 
+ 
+ 
+ 
+ 
+ 
+ Utilizing the feedback provided, our drift adaptor operates by concurrently tuning the classifier and the detector.
+Let Θ \Theta represent the parameters of the classifier’s model, and Ψ \Psi denote those of the detector.
+The optimization problem, which aims to minimize the combined loss functions of the classifier and the detector, is formally defined as 
+ 
+ 
+ 
+ (8) 
+ 
+ 
+ min { Θ , Ψ } ⁡ ( ℒ ce ​ ( Θ ) + ℒ det ​ ( Ψ ) + λ 3 ​ ℒ rel ​ ( Θ , Ψ ) ) , \displaystyle\min_{\{\Theta,\Psi\}}\left(\mathcal{L}_{\text{ce}(\Theta)}+\mathcal{L}_{\text{det}(\Psi)}+\lambda_{3}\mathcal{L}_{\text{rel}(\Theta,\Psi)}\right), 
+ 
+ 
+ 
+ 
+ s . t . ⁡ ℒ det = λ 0 ​ ℒ rec ​ ( Ψ ) + λ 1 ​ ℒ sep ​ ( Ψ ) + λ 2 ​ ℒ pre ​ ( Ψ ) . \displaystyle\operatorname{s.t.}\mathcal{L}_{\text{det}}=\lambda_{0}\mathcal{L}_{\text{rec}(\Psi)}+\lambda_{1}\mathcal{L}_{\text{sep}(\Psi)}+\lambda_{2}\mathcal{L}_{\text{pre}(\Psi)}. 
+ 
+ 
+ The label feedback takes effect on the malware classification loss ℒ ce \mathcal{L}_{\text{ce}} and the explanation feedback influences the concept presence loss ℒ pre \mathcal{L}_{\text{pre}} .
+Contrasting with the detector’s training process where Θ \Theta is fixed ( Equation 5 ), during the adaptation phase, both Θ \Theta and Ψ \Psi are subject to influence the concept reliability loss ℒ rel \mathcal{L}_{\text{rel}} .
+To address the complexities of joint parameter updating, we’ve implemented a dynamic learning rate schedule for the detector.
+Specifically, when ℒ det \mathcal{L}_{\text{det}} indicates that concept stability falls below a certain threshold, we reduce the learning rate using a scaling factor η \eta .
+This reduction is based on the principle that stable concepts require less aggressive updates, promoting smoother model convergence and reducing the risk of overfitting. 
+ 
+ 
+ 
+ 
+ 5. System Evaluation 
+
+ 
+ 
+ 
+ 
+ (a) Transcendent, Drebin 
+ 
+ 
+ (b) CADE, Drebin 
+ 
+ 
+ (c) Probability, Drebin 
+ 
+ 
+ (d) (Ours) Dream , Drebin 
+ 
+ 
+ (e) Transcendent, Mamadroid 
+ 
+ 
+ (f) CADE, Mamadroid 
+ 
+ 
+ (g) Probability, Mamadroid 
+ 
+ 
+ (h) (Ours) Dream , Mamadroid 
+ 
+ 
+ (i) Transcendent, Damd 
+ 
+ 
+ (j) CADE, Damd 
+ 
+ 
+ (k) Probability, Damd 
+ 
+ 
+ (l) (Ours) Dream , Damd 
+ 
+ Figure 5. Evaluation of inter-class drift detection on Drebin dataset with three feature spaces. The first three columns are Transcendent, CADE, Probability, respectively, and our method is on the last column. 
+ 
+ 
+ This section presents a systematic evaluation of Dream , specifically focusing on inter-class drift scenarios, which are central to our research.
+We analyze the drift detector ( Section 5.2 ), the drift adaptor, and their joint effectiveness in updating the classifier ( Section 5.3 ).
+We also evaluate the drift explainer ( Section 5.4 ) and perform a computational and human effort analysis of the system ( Section 5.5 ). 
+ 
+ 
+ 5.1. Experimental Setup 
+
+ 
+ Dataset. 
+We employ two malware datasets for malware family classification tasks, as illustrated in Table 2 . Our first dataset is the well-known Drebin dataset ( Arp et al., 2014 ) .
+To capture more recent trends in the evolving malware landscape, we utilize the Malradar dataset ( Wang et al., 2022 ) .
+For each dataset, we select 8 8 families with the same criteria used in the CADE paper, each comprising at least 100 100 malware samples.
+The resulting datasets consist of 3,317 3,317 and 2,589 2,589 malware samples for Drebin and Malradar, respectively.
+Both datasets are well-labeled with respect to malware families.
+Malradar also provides behavioral labels derived from threat reports for each family, and we select 10 10 distinct behaviors to form its behavioral labels: privacy information stealing ( b 0 \text{b}_{0} ), abusing SMS/CALL ( b 1 \text{b}_{1} ), remote control ( b 2 \text{b}_{2} ), bank/financial stealing ( b 3 \text{b}_{3} ), ransom ( b 4 \text{b}_{4} ), abusing accessibility ( b 5 \text{b}_{5} ), privilege escalation ( b 6 \text{b}_{6} ), stealthy download ( b 7 \text{b}_{7} ), aggressive advertising ( b 8 \text{b}_{8} ), and premium service ( b 9 \text{b}_{9} ).
+To ensure consistency in behavioral analysis, we augment the Drebin dataset with these same behaviors.
+For more details about the datasets, please also refer to  Appendix A . 
+ 
+ 
+ Classifier. 
+We use three deep learning-based malware classifiers, leveraging the features and models defined in previous works.
+These classifiers differ in data modality and model complexity.
+1)  Drebin   ( Arp et al., 2014 ) classifier utilizes eight feature sets representing binary vectors of predefined patterns, such as required permissions and suspicious API calls.
+The underlying model is a MLP  ( Grosse et al., 2017 ) , configured with two hidden layers, sized at 100 100 and 30 30 neurons respectively.
+2)  Mamadroid   ( Mariconti et al., 2017 ) classifier involves extracting API call pairs and abstracting them into package call pairs. It builds a Markov chain to model the transitions between packages, using the derived float vectors as features.
+Its MLP architecture includes hidden layers with dimensions of 1,000 1,000 and 200 200 .
+3)  Damd   ( McLaughlin et al., 2017 ) classifier leverages the raw opcode sequences as features.
+The sequence representation utilizes an embedding technique with a vocabulary size of 218 218 tokens and an embedding dimension of 128 128 .
+Its underlying model is a CNN tailored for this task, featuring two convolutional layers, each with 64 64 filters. 
+ 
+ 
+ Hold-out Strategy. 
+To evaluate inter-class drifts, where the drift labels are determined based on whether a malware family was unseen during training, we employ a commonly used hold-out strategy  ( Yang et al., 2021a ; Smith et al., 2020 ) .
+To implement this, we first exclude samples of each malware family from the training set, reserving them solely for the testing phase.
+The remaining families are then divided into an 80:20 ratio for training and testing, adhering to a time-based separation criterion  ( Ucci et al., 2019 ) .
+Since both datasets contain 8 8 families, this strategy trains 8 8 classifiers per dataset, matching the number of malware families. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Family 
+ 
+ 
+ 
+ # sample 
+ 
+ 
+ 
+ (#) behavior 
+ 
+ 
+ 
+ Time 
+ 
+ 
+ 
+ 
+ FakeInstaller 
+ 
+ 
+ 
+ 925 
+ 
+ 
+ 
+ (5)  b 0 ​ ,  b 1 ​ ,  b 7 ​ ,  b 8 ​ ,  b 9 \text{(5) }\text{b}_{0}\text{, }\text{b}_{1}\text{, }\text{b}_{7}\text{, }\text{b}_{8}\text{, }\text{b}_{9} 
+ 
+ 
+ 
+ 2011-2012 
+ 
+ 
+ 
+ 
+ DroidKungFu 
+ 
+ 
+ 
+ 667 
+ 
+ 
+ 
+ (3)  b 0 ​ ,  b 2 ​ ,  b 6 \text{(3) }\text{b}_{0}\text{, }\text{b}_{2}\text{, }\text{b}_{6} 
+ 
+ 
+ 
+ 2011-2012 
+ 
+ 
+ 
+ 
+ Plankton 
+ 
+ 
+ 
+ 625 
+ 
+ 
+ 
+ (4)  b 0 ​ ,  b 2 ​ ,  b 7 ​ ,  b 8 \text{(4) }\text{b}_{0}\text{, }\text{b}_{2}\text{, }\text{b}_{7}\text{, }\text{b}_{8} 
+ 
+ 
+ 
+ 2011-2012 
+ 
+ 
+ 
+ 
+ GingerMaster 
+ 
+ 
+ 
+ 339 
+ 
+ 
+ 
+ (2)  b 0 ​ ,  b 6 \text{(2) }\text{b}_{0}\text{, }\text{b}_{6} 
+ 
+ 
+ 
+ 2011-2012 
+ 
+ 
+ 
+ 
+ BaseBridge 
+ 
+ 
+ 
+ 330 
+ 
+ 
+ 
+ (4)  b 0 ​ ,  b 1 ​ ,  b 6 ​ ,  b 9 \text{(4) }\text{b}_{0}\text{, }\text{b}_{1}\text{, }\text{b}_{6}\text{, }\text{b}_{9} 
+ 
+ 
+ 
+ 2010-2011 
+ 
+ 
+ 
+ 
+ Iconosys 
+ 
+ 
+ 
+ 152 
+ 
+ 
+ 
+ (2)  b 0 ​ ,  b 8 \text{(2) }\text{b}_{0}\text{, }\text{b}_{8} 
+ 
+ 
+ 
+ 2010-2011 
+ 
+ 
+ 
+ 
+ Kmin 
+ 
+ 
+ 
+ 147 
+ 
+ 
+ 
+ (1)  b 0 \text{(1) }\text{b}_{0} 
+ 
+ 
+ 
+ 2010-2012 
+ 
+ 
+ 
+ 
+ FakeDoc 
+ 
+ 
+ 
+ 132 
+ 
+ 
+ 
+ (1)  b 4 \text{(1) }\text{b}_{4} 
+ 
+ 
+ 
+ 2011-2012 
+ 
+ 
+ 
+ 
+ 
+ 
+ RuMMS 
+ 
+ 
+ 
+ 796 
+ 
+ 
+ 
+ (4)  b 0 ​ ,  b 1 ​ ,  b 2 ​ ,  b 3 \text{(4) }\text{b}_{0}\text{, }\text{b}_{1}\text{, }\text{b}_{2}\text{, }\text{b}_{3} 
+ 
+ 
+ 
+ 2016-2018 
+ 
+ 
+ 
+ 
+ Xavier 
+ 
+ 
+ 
+ 589 
+ 
+ 
+ 
+ (4)  b 0 ​ ,  b 2 ​ ,  b 7 ​ ,  b 8 \text{(4) }\text{b}_{0}\text{, }\text{b}_{2}\text{, }\text{b}_{7}\text{, }\text{b}_{8} 
+ 
+ 
+ 
+ 2016-2021 
+ 
+ 
+ 
+ 
+ LIBSKIN 
+ 
+ 
+ 
+ 290 
+ 
+ 
+ 
+ (4)  b 0 ​ ,  b 1 ​ ,  b 2 ​ ,  b 6 ​ ,  b 7 ​ ,  b 8 \text{(4) }\text{b}_{0}\text{, }\text{b}_{1}\text{, }\text{b}_{2}\text{, }\text{b}_{6}\text{, }\text{b}_{7}\text{, }\text{b}_{8} 
+ 
+ 
+ 
+ 2015-2021 
+ 
+ 
+ 
+ 
+ HiddenAd 
+ 
+ 
+ 
+ 289 
+ 
+ 
+ 
+ (2)  b 0 ​ ,  b 8 \text{(2) }\text{b}_{0}\text{, }\text{b}_{8} 
+ 
+ 
+ 
+ 2017-2021 
+ 
+ 
+ 
+ 
+ MilkyDoor 
+ 
+ 
+ 
+ 210 
+ 
+ 
+ 
+ (2)  b 0 ​ ,  b 2 \text{(2) }\text{b}_{0}\text{, }\text{b}_{2} 
+ 
+ 
+ 
+ 2016-2020 
+ 
+ 
+ 
+ 
+ GhostClicker 
+ 
+ 
+ 
+ 182 
+ 
+ 
+ 
+ (4)  b 0 ​ ,  b 2 ​ ,  b 6 ​ ,  b 8 \text{(4) }\text{b}_{0}\text{, }\text{b}_{2}\text{, }\text{b}_{6}\text{, }\text{b}_{8} 
+ 
+ 
+ 
+ 2016-2020 
+ 
+ 
+ 
+ 
+ EventBot 
+ 
+ 
+ 
+ 124 
+ 
+ 
+ 
+ (5)  b 0 ​ ,  b 1 ​ ,  b 2 ​ ,  b 3 ​ ,  b 5 \text{(5) }\text{b}_{0}\text{, }\text{b}_{1}\text{, }\text{b}_{2}\text{, }\text{b}_{3}\text{, }\text{b}_{5} 
+ 
+ 
+ 
+ 2020 
+ 
+ 
+ 
+ 
+ GhostCtrl 
+ 
+ 
+ 
+ 109 
+ 
+ 
+ 
+ (3)  b 0 ​ ,  b 1 ​ ,  b 2 \text{(3) }\text{b}_{0}\text{, }\text{b}_{1}\text{, }\text{b}_{2} 
+ 
+ 
+ 
+ 2016-2020 
+ 
+ 
+ Table 2. Drebin (top) and Malradar (bottom) datasets. In the third column, the number of behaviors is in parentheses, followed by their indices. 
+ 
+ 
+ 
+ 5.2. Drift Detection Performance 
+
+ 
+ Baseline and Metric. 
+For assessing our drift detector’s performance in inter-class scenarios, we take into account the vanilla probability-based detector (as depicted in  Equation 13 ) and the innovative detectors from key studies summarized in  Table 1 . The HCC detector is excluded from this evaluation for being incompatible with inter-class contexts.
+To ensure a fair comparison, both the CADE detector and our detector, which each leverage an autoencoder model, are configured to share the same architecture across all features (detailed in  Appendix B ).
+For the metric, we utilize the AUC calculated from the detector’s drifting score output and the ground truth labels, which are determined by the held-out malware families during the training process. 
+ 
+ 
+ Evaluation Results. 
+ Figure 5 and Figure 7 depict the drift detection performance of our detector and the three baselines on the Drebin dataset and the Malradar dataset.
+Comparing the average AUC scores across different classifiers, we observe that Dream outperforms Transcendent, CADE, and Probability by 11.95%, 15.64%, and 12.4%, respectively, on the Drebin dataset. Similarly, on the Malradar dataset, Dream shows an increase of 10.98%, 8.33%, and 14.7%.
+In evaluating detection performance for different classifiers, we observed three key points.
+For the Drebin classifier, which is simpler and where most methods excel, the CADE detector performs comparably to our method on both datasets.
+However, for classifiers with more complex feature spaces, such as the Damd feature within the MalRadar dataset , CADE’s effectiveness decreases by 26.5% compared to the Drebin feature, while our method shows a 22.2% advantage over CADE .
+Regarding the Mamadroid classifier, it is less accurate in training compared to other classifiers.
+For this classifier, model-sensitive baselines such as Transcendent and Probability perform poorly. Our method, however, demonstrates stability and benefits from concept-based contrastive learning.
+In the case of the Damd classifier, the most complex among the tested, the Transcendent detector shows a smaller performance decline relative to other baselines.
+This is likely due to its calibration process, which boosts accuracy in scenarios of slight classifier overfitting (evidenced by a test accuracy of only 0.94, even 2.97% lower than that for the Mamadroid classifier). Although calibration proves beneficial, our method, with a focus on learning distance metrics, is more efficient, showing an average improvement of 6.62% over the Transcendent detector. 
+ 
+ 
+ 
+ 
+ 
+ 
+ Feature 
+ 
+ 
+ 
+ Budget 
+ 
+ 
+ 
+ 
+ 
+ Metric 
+ 
+ 
+ Drebin Dataset 
+ MalRadar Dataset 
+ 
+ 
+ 
+ 
+ Baseline Adaptor 
+ Dream Adaptor 
+ Baseline Adaptor 
+ Dream Adaptor 
+ 
+ 
+ 
+ 
+ 
+ 
+ Trans. 
+ 
+ 
+ 
+ CADE 
+ 
+ 
+ 
+ Prob. 
+ 
+ 
+ 
+ CRD 
+ 
+ 
+ 
+ Trans. 
+ 
+ 
+ 
+ CADE 
+ 
+ 
+ 
+ Prob. 
+ 
+ 
+ 
+ CRD 
+ 
+ 
+ 
+ 
+ Drebin 
+ 
+ 
+ 
+ 10 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.416 
+ 
+ 
+ 
+ 0.166 
+ 
+ 
+ 
+ 0.173 
+ 
+ 
+ 
+ 0.449 
+ 
+ 0.805 ↑ \uparrow 93.33 93.33 % 
+ ↑ \uparrow 79.09 79.09 % 
+ 
+ 
+ 0.262 
+ 
+ 
+ 
+ 0.235 
+ 
+ 
+ 
+ 0.191 
+ 
+ 
+ 
+ 0.228 
+ 
+ 0.469 ↑ \uparrow 78.94 78.94 % 
+ ↑ \uparrow 105.84 105.84 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.407 
+ 
+ 
+ 
+ 0.172 
+ 
+ 
+ 
+ 0.168 
+ 
+ 
+ 
+ 0.418 
+ 
+ 0.778 ↑ \uparrow 91.36 91.36 % 
+ ↑ \uparrow 86.33 86.33 % 
+ 
+ 
+ 0.295 
+ 
+ 
+ 
+ 0.283 
+ 
+ 
+ 
+ 0.207 
+ 
+ 
+ 
+ 0.265 
+ 
+ 0.525 ↑ \uparrow 78.04 78.04 % 
+ ↑ \uparrow 97.81 97.81 % 
+ 
+ 
+ 
+ 
+ 20 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.703 
+ 
+ 
+ 
+ 0.407 
+ 
+ 
+ 
+ 0.528 
+ 
+ 
+ 
+ 0.562 
+ 
+ 0.928 ↑ \uparrow 31.85 31.85 % 
+ ↑ \uparrow 64.90 64.90 % 
+ 
+ 
+ 0.434 
+ 
+ 
+ 
+ 0.399 
+ 
+ 
+ 
+ 0.291 
+ 
+ 
+ 
+ 0.305 
+ 
+ 0.921 ↑ \uparrow 112.30 112.30 % 
+ ↑ \uparrow 201.64 201.64 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.677 
+ 
+ 
+ 
+ 0.402 
+ 
+ 
+ 
+ 0.497 
+ 
+ 
+ 
+ 0.531 
+ 
+ 0.905 ↑ \uparrow 33.67 33.67 % 
+ ↑ \uparrow 70.30 70.30 % 
+ 
+ 
+ 0.455 
+ 
+ 
+ 
+ 0.457 
+ 
+ 
+ 
+ 0.336 
+ 
+ 
+ 
+ 0.349 
+ 
+ 0.913 ↑ \uparrow 99.95 99.95 % 
+ ↑ \uparrow 161.26 161.26 % 
+ 
+ 
+ 
+ 
+ 30 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.852 
+ 
+ 
+ 
+ 0.749 
+ 
+ 
+ 
+ 0.785 
+ 
+ 
+ 
+ 0.717 
+ 
+ 0.961 ↑ \uparrow 12.72 12.72 % 
+ ↑ \uparrow 22.34 22.34 % 
+ 
+ 
+ 0.706 
+ 
+ 
+ 
+ 0.587 
+ 
+ 
+ 
+ 0.605 
+ 
+ 
+ 
+ 0.560 
+ 
+ 0.952 ↑ \uparrow 34.85 34.85 % 
+ ↑ \uparrow 57.23 57.23 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.834 
+ 
+ 
+ 
+ 0.712 
+ 
+ 
+ 
+ 0.744 
+ 
+ 
+ 
+ 0.697 
+ 
+ 0.952 ↑ \uparrow 14.14 14.14 % 
+ ↑ \uparrow 27.95 27.95 % 
+ 
+ 
+ 0.726 
+ 
+ 
+ 
+ 0.622 
+ 
+ 
+ 
+ 0.629 
+ 
+ 
+ 
+ 0.585 
+ 
+ 0.948 ↑ \uparrow 30.69 30.69 % 
+ ↑ \uparrow 50.76 50.76 % 
+ 
+ 
+ 
+ 
+ 40 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.890 
+ 
+ 
+ 
+ 0.856 
+ 
+ 
+ 
+ 0.886 
+ 
+ 
+ 
+ 0.781 
+ 
+ 0.956 ↑ \uparrow 7.42 7.42 % ↑ \uparrow 7.88 7.88 % 
+ 
+ 
+ 0.793 
+ 
+ 
+ 
+ 0.714 
+ 
+ 
+ 
+ 0.631 
+ 
+ 
+ 
+ 0.687 
+ 
+ 0.967 ↑ \uparrow 21.87 21.87 % 
+ ↑ \uparrow 40.73 40.73 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.878 
+ 
+ 
+ 
+ 0.810 
+ 
+ 
+ 
+ 0.849 
+ 
+ 
+ 
+ 0.755 
+ 
+ 0.943 ↑ \uparrow 7.40 7.40 % ↑ \uparrow 11.04 11.04 % 
+ 
+ 
+ 0.808 
+ 
+ 
+ 
+ 0.740 
+ 
+ 
+ 
+ 0.657 
+ 
+ 
+ 
+ 0.703 
+ 
+ 0.964 ↑ \uparrow 19.29 19.29 % 
+ ↑ \uparrow 37.12 37.12 % 
+ 
+ 
+ 
+ 
+ 100 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.942 
+ 
+ 
+ 
+ 0.965 
+ 
+ 
+ 
+ 0.923 
+ 
+ 
+ 
+ 0.937 
+ 
+ 0.975 ↑ \uparrow 1.10 1.10 % ↑ \uparrow 4.13 4.13 % 
+ 
+ 
+ 0.940 
+ 
+ 
+ 
+ 0.913 
+ 
+ 
+ 
+ 0.904 
+ 
+ 
+ 
+ 0.949 
+ 
+ 0.982 ↑ \uparrow 4.45 4.45 % ↑ \uparrow 3.49 3.49 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.946 
+ 
+ 
+ 
+ 0.955 
+ 
+ 
+ 
+ 0.901 
+ 
+ 
+ 
+ 0.927 
+ 
+ 0.973 ↑ \uparrow 1.87 1.87 % ↑ \uparrow 4.88 4.88 % 
+ 
+ 
+ 0.931 
+ 
+ 
+ 
+ 0.901 
+ 
+ 
+ 
+ 0.892 
+ 
+ 
+ 
+ 0.945 
+ 
+ 0.981 ↑ \uparrow 5.43 5.43 % ↑ \uparrow 3.83 3.83 % 
+ 
+ 
+ 
+ 
+ 
+ 
+ Mama- 
+ 
+ droid 
+ 
+ 
+ 
+ 
+ 10 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.294 
+ 
+ 
+ 
+ 0.313 
+ 
+ 
+ 
+ 0.169 
+ 
+ 
+ 
+ 0.299 
+ 
+ 0.648 ↑ \uparrow 106.93 106.93 % 
+ ↑ \uparrow 116.60 116.60 % 
+ 
+ 
+ 0.445 
+ 
+ 
+ 
+ 0.377 
+ 
+ 
+ 
+ 0.476 
+ 
+ 
+ 
+ 0.474 
+ 
+ 0.651 ↑ \uparrow 46.25 46.25 % 
+ ↑ \uparrow 36.80 36.80 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.264 
+ 
+ 
+ 
+ 0.311 
+ 
+ 
+ 
+ 0.156 
+ 
+ 
+ 
+ 0.300 
+ 
+ 0.650 ↑ \uparrow 108.64 108.64 % 
+ ↑ \uparrow 116.53 116.53 % 
+ 
+ 
+ 0.300 
+ 
+ 
+ 
+ 0.413 
+ 
+ 
+ 
+ 0.514 
+ 
+ 
+ 
+ 0.520 
+ 
+ 0.670 ↑ \uparrow 36.89 36.89 % 
+ ↑ \uparrow 28.75 28.75 % 
+ 
+ 
+ 
+ 
+ 20 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.443 
+ 
+ 
+ 
+ 0.490 
+ 
+ 
+ 
+ 0.449 
+ 
+ 
+ 
+ 0.428 
+ 
+ 0.740 ↑ \uparrow 51.02 51.02 % 
+ ↑ \uparrow 64.92 64.92 % 
+ 
+ 
+ 0.571 
+ 
+ 
+ 
+ 0.483 
+ 
+ 
+ 
+ 0.623 
+ 
+ 
+ 
+ 0.629 
+ 
+ 0.718 ↑ \uparrow 25.79 25.79 % 
+ ↑ \uparrow 14.21 14.21 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.411 
+ 
+ 
+ 
+ 0.474 
+ 
+ 
+ 
+ 0.435 
+ 
+ 
+ 
+ 0.426 
+ 
+ 0.736 ↑ \uparrow 55.16 55.16 % 
+ ↑ \uparrow 69.32 69.32 % 
+ 
+ 
+ 0.602 
+ 
+ 
+ 
+ 0.519 
+ 
+ 
+ 
+ 0.626 
+ 
+ 
+ 
+ 0.654 
+ 
+ 0.725 ↑ \uparrow 20.38 20.38 % 
+ ↑ \uparrow 10.97 10.97 % 
+ 
+ 
+ 
+ 
+ 30 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.610 
+ 
+ 
+ 
+ 0.582 
+ 
+ 
+ 
+ 0.601 
+ 
+ 
+ 
+ 0.614 
+ 
+ 0.789 ↑ \uparrow 29.37 29.37 % 
+ ↑ \uparrow 28.59 28.59 % 
+ 
+ 
+ 0.615 
+ 
+ 
+ 
+ 0.594 
+ 
+ 
+ 
+ 0.718 
+ 
+ 
+ 
+ 0.669 
+ 
+ 0.734 ↑ \uparrow 19.50 19.50 % 
+ ↑ \uparrow 2.31 2.31 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.573 
+ 
+ 
+ 
+ 0.566 
+ 
+ 
+ 
+ 0.579 
+ 
+ 
+ 
+ 0.603 
+ 
+ 0.780 ↑ \uparrow 36.05 36.05 % 
+ ↑ \uparrow 29.28 29.28 % 
+ 
+ 
+ 0.641 
+ 
+ 
+ 
+ 0.623 
+ 
+ 
+ 
+ 0.722 
+ 
+ 
+ 
+ 0.687 
+ 
+ 0.737 ↑ \uparrow 14.88 14.88 % 
+ ↑ \uparrow 2.09 2.09 % 
+ 
+ 
+ 
+ 
+ 40 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.712 
+ 
+ 
+ 
+ 0.587 
+ 
+ 
+ 
+ 0.630 
+ 
+ 
+ 
+ 0.677 
+ 
+ 0.808 ↑ \uparrow 13.51 13.51 % 
+ ↑ \uparrow 19.34 19.34 % 
+ 
+ 
+ 0.672 
+ 
+ 
+ 
+ 0.653 
+ 
+ 
+ 
+ 0.756 
+ 
+ 
+ 
+ 0.684 
+ 
+ 0.766 ↑ \uparrow 14.00 14.00 % 
+ ↑ \uparrow 1.33 1.33 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.677 
+ 
+ 
+ 
+ 0.590 
+ 
+ 
+ 
+ 0.621 
+ 
+ 
+ 
+ 0.670 
+ 
+ 0.794 ↑ \uparrow 17.21 17.21 % 
+ ↑ \uparrow 18.51 18.51 % 
+ 
+ 
+ 0.681 
+ 
+ 
+ 
+ 0.666 
+ 
+ 
+ 
+ 0.747 
+ 
+ 
+ 
+ 0.698 
+ 
+ 0.759 ↑ \uparrow 11.37 11.37 % 
+ ↑ \uparrow 1.51 1.51 % 
+ 
+ 
+ 
+ 
+ 100 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.827 
+ 
+ 
+ 
+ 0.642 
+ 
+ 
+ 
+ 0.814 
+ 
+ 
+ 
+ 0.807 
+ 
+ 0.864 ↑ \uparrow 4.47 4.47 % ↑ \uparrow 6.22 6.22 % 
+ 
+ 
+ 0.785 
+ 
+ 
+ 
+ 0.769 
+ 
+ 
+ 
+ 0.821 
+ 
+ 
+ 
+ 0.830 
+ 
+ 0.839 ↑ \uparrow 6.88 6.88 % ↑ \uparrow 1.10 1.10 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.797 
+ 
+ 
+ 
+ 0.652 
+ 
+ 
+ 
+ 0.805 
+ 
+ 
+ 
+ 0.793 
+ 
+ 0.853 ↑ \uparrow 6.97 6.97 % ↑ \uparrow 6.00 6.00 % 
+ 
+ 
+ 0.781 
+ 
+ 
+ 
+ 0.767 
+ 
+ 
+ 
+ 0.811 
+ 
+ 
+ 
+ 0.820 
+ 
+ 0.829 ↑ \uparrow 6.12 6.12 % ↑ \uparrow 1.14 1.14 % 
+ 
+ 
+ 
+ Damd 
+ 
+ 
+ 
+ 10 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.510 
+ 
+ 
+ 
+ 0.339 
+ 
+ 
+ 
+ 0.442 
+ 
+ 
+ 
+ 0.363 
+ 
+ 0.738 ↑ \uparrow 44.60 44.60 % 
+ ↑ \uparrow 66.91 66.91 % 
+ 
+ 
+ 0.209 
+ 
+ 
+ 
+ 0.179 
+ 
+ 
+ 
+ 0.246 
+ 
+ 
+ 
+ 0.227 
+ 
+ 0.525 ↑ \uparrow 151.16 151.16 % 
+ ↑ \uparrow 113.68 113.68 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.437 
+ 
+ 
+ 
+ 0.360 
+ 
+ 
+ 
+ 0.422 
+ 
+ 
+ 
+ 0.353 
+ 
+ 0.702 ↑ \uparrow 60.62 60.62 % 
+ ↑ \uparrow 66.38 66.38 % 
+ 
+ 
+ 0.263 
+ 
+ 
+ 
+ 0.231 
+ 
+ 
+ 
+ 0.303 
+ 
+ 
+ 
+ 0.294 
+ 
+ 0.556 ↑ \uparrow 111.10 111.10 % 
+ ↑ \uparrow 83.58 83.58 % 
+ 
+ 
+ 
+ 
+ 20 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.801 
+ 
+ 
+ 
+ 0.582 
+ 
+ 
+ 
+ 0.711 
+ 
+ 
+ 
+ 0.659 
+ 
+ 0.837 ↑ \uparrow 4.50 4.50 % ↑ \uparrow 17.77 17.77 % 
+ 
+ 
+ 0.482 
+ 
+ 
+ 
+ 0.420 
+ 
+ 
+ 
+ 0.454 
+ 
+ 
+ 
+ 0.495 
+ 
+ 0.683 ↑ \uparrow 41.71 41.71 % 
+ ↑ \uparrow 37.86 37.86 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.767 
+ 
+ 
+ 
+ 0.599 
+ 
+ 
+ 
+ 0.684 
+ 
+ 
+ 
+ 0.640 
+ 
+ 0.820 ↑ \uparrow 6.98 6.98 % ↑ \uparrow 19.92 19.92 % 
+ 
+ 
+ 0.535 
+ 
+ 
+ 
+ 0.474 
+ 
+ 
+ 
+ 0.497 
+ 
+ 
+ 
+ 0.538 
+ 
+ 0.707 ↑ \uparrow 32.16 32.16 % 
+ ↑ \uparrow 31.27 31.27 % 
+ 
+ 
+ 
+ 
+ 30 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.840 
+ 
+ 
+ 
+ 0.610 
+ 
+ 
+ 
+ 0.775 
+ 
+ 
+ 
+ 0.687 
+ 
+ 0.849 ↑ \uparrow 1.07 1.07 % ↑ \uparrow 9.51 9.51 % 
+ 
+ 
+ 0.541 
+ 
+ 
+ 
+ 0.530 
+ 
+ 
+ 
+ 0.681 
+ 
+ 
+ 
+ 0.550 
+ 
+ 0.750 ↑ \uparrow 38.52 38.52 % 
+ ↑ \uparrow 10.18 10.18 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.804 
+ 
+ 
+ 
+ 0.631 
+ 
+ 
+ 
+ 0.756 
+ 
+ 
+ 
+ 0.687 
+ 
+ 0.844 ↑ \uparrow 4.96 4.96 % ↑ \uparrow 11.66 11.66 % 
+ 
+ 
+ 0.600 
+ 
+ 
+ 
+ 0.571 
+ 
+ 
+ 
+ 0.697 
+ 
+ 
+ 
+ 0.605 
+ 
+ 0.751 ↑ \uparrow 25.29 25.29 % 
+ ↑ \uparrow 7.86 7.86 % 
+ 
+ 
+ 
+ 
+ 40 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.910 
+ 
+ 
+ 
+ 0.590 
+ 
+ 
+ 
+ 0.778 
+ 
+ 
+ 
+ 0.714 
+ 
+ 0.867 ↓ \downarrow 4.74 4.74 % ↑ \uparrow 11.32 11.32 % 
+ 
+ 
+ 0.578 
+ 
+ 
+ 
+ 0.541 
+ 
+ 
+ 
+ 0.630 
+ 
+ 
+ 
+ 0.630 
+ 
+ 0.732 ↑ \uparrow 26.66 26.66 % 
+ ↑ \uparrow 16.11 16.11 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.881 
+ 
+ 
+ 
+ 0.628 
+ 
+ 
+ 
+ 0.766 
+ 
+ 
+ 
+ 0.697 
+ 
+ 0.863 ↓ \downarrow 2.05 2.05 % ↑ \uparrow 12.71 12.71 % 
+ 
+ 
+ 0.626 
+ 
+ 
+ 
+ 0.595 
+ 
+ 
+ 
+ 0.669 
+ 
+ 
+ 
+ 0.655 
+ 
+ 0.749 ↑ \uparrow 19.69 19.69 % 
+ ↑ \uparrow 11.92 11.92 % 
+ 
+ 
+ 
+ 
+ 100 
+ 
+ 
+ 
+ F1 
+ 
+ 
+ 
+ 0.955 
+ 
+ 
+ 
+ 0.652 
+ 
+ 
+ 
+ 0.888 
+ 
+ 
+ 
+ 0.904 
+ 
+ 0.955 ↓ \downarrow 0.01 0.01 % ↑ \uparrow 5.63 5.63 % 
+ 
+ 
+ 0.753 
+ 
+ 
+ 
+ 0.669 
+ 
+ 
+ 
+ 0.768 
+ 
+ 
+ 
+ 0.770 
+ 
+ 0.811 ↑ \uparrow 7.64 7.64 % ↑ \uparrow 5.29 5.29 % 
+ 
+ 
+ 
+ 
+ 
+ Acc. 
+ 
+ 
+ 
+ 0.941 
+ 
+ 
+ 
+ 0.654 
+ 
+ 
+ 
+ 0.872 
+ 
+ 
+ 
+ 0.875 
+ 
+ 0.941 ↑ \uparrow 0.03 0.03 % ↑ \uparrow 7.55 7.55 % 
+ 
+ 
+ 0.761 
+ 
+ 
+ 
+ 0.697 
+ 
+ 
+ 
+ 0.778 
+ 
+ 
+ 
+ 0.777 
+ 
+ 0.809 ↑ \uparrow 6.29 6.29 % ↑ \uparrow 4.04 4.04 % 
+ 
+ Table 3. Drift adaptation results on two malware datasets across three feature sets. We integrate the baseline adaptor with different drift detectors and categorize them into two groups based on their applicable scenarios: those that require access to the original training data for drift detection (Transcendent, CADE) and those that do not (Probability, CRD). Baselines with the best performance in each scenario are highlighted in bold, and our respective improvement ratios are reported in blue. 
+ 
+ 
+ 
+ 5.3. Drift Adaptation Performance 
+
+ 
+ Baseline and Metric. 
+We compare our adaptation methods against commonly used techniques that retrain the classifier using selected samples and their annotated classification labels  ( Jan et al., 2020 ; Chen et al., 2023a ; Yang et al., 2021a ) .
+ For comprehensive comparison and ablation analysis, we integrate the baseline adaptor with previous drift detectors.
+We categorize these four baseline adaptors into two groups, based on whether they use detectors that are data-autonomous or not.
+In particular, the Probability baseline adaptor serves as a benchmark in scenarios where drift detection must be performed locally without training data and without components from Dream , allowing for a direct comparison under constraints similar to ours.
+Note that although the CRD baseline employs drift detector within our system, it uses traditional retraining without incorporating the concept revision component in our adaptor. 
+ 
+ 
+ These experiments are conducted across a range of labeling budgets for active learning, specifically using absolute numbers of labeled samples —10, 20, 30, 40, and 100—with an emphasis on smaller budgets to minimize the need for extensive human annotation.
+The effectiveness of each approach is quantified by measuring F1-scores and accuracy scores of the updated classifiers on the remaining test dataset.
+For inter-class adaptation, an important step is the modification of the classifier output to include new classes.
+This modification involves randomly initializing the new output layer while preserving the learned weights in the existing layers, enabling continuous utilization of prior knowledge, and is consistently applied across all methods. 
+ 
+ 
+ Evaluation Results. 
+ Table 3 shows the drift adaptation results across different labeling budgets on all datasets and classifiers. 
+ 
+ 
+ 1) Bechmark Comparison. 
+Our method outperforms the benchmark in different settings without exception.
+Firstly, regarding performance improvements with different classifiers, we observed significant enhancements. On the Drebin dataset, the improvements of F1-score are 95.2%, 82.7%, and 22.6% for Drebin , Mamadroid , and Damd classifiers, respectively. On the Malradar dataset, the improvements are 96.3%, 11.6%, and 39.2% for the same classifiers.
+Secondly, when considering varying human labeling budgets (10, 20, 30, 40, 100), the improvements of F1-score on the Drebin dataset are 238.1%, 52.8%, 21.1%, 15.8%, and 6.5%, respectively, while being 98.7%, 94.2%, 23.3%, 23.6%, and 5.5% on the Malradar dataset for these respective budgets.
+A key finding is that the smaller the budget, the greater the improvement.
+This suggests that in scenarios prioritizing human analysis, our method can significantly reduce labeling budgets.
+For example, achieving an accuracy score of 0.9 on the Drebin feature of the Drebin dataset requires labeling only 20 new samples with Dream , compared to 100 samples with the benchmark, reducing analysis cost by 80 % 80\% . 
+ 
+ 
+ 
+ 
+ 
+ 
+ Explainer 
+ 
+ 
+ 
+ Metric 
+ 
+ 
+ 
+ f0 
+ 
+ 
+ 
+ f1 
+ 
+ 
+ 
+ f2 
+ 
+ 
+ 
+ f3 
+ 
+ 
+ 
+ f4 
+ 
+ 
+ 
+ f5 
+ 
+ 
+ 
+ f6 
+ 
+ 
+ 
+ f7 
+ 
+ 
+ 
+ Avg. 
+ 
+ 
+ 
+ 
+ Random 
+ 
+ 
+ 
+ CBP 
+ 
+ 
+ 
+ 0.239 
+ 
+ 
+ 
+ 0.145 
+ 
+ 
+ 
+ 0.131 
+ 
+ 
+ 
+ 0.070 
+ 
+ 
+ 
+ 0.093 
+ 
+ 
+ 
+ 0.191 
+ 
+ 
+ 
+ 0.225 
+ 
+ 
+ 
+ 0.057 
+ 
+ 
+ 
+ 0.144 
+ 
+ 
+ 
+ 
+ 
+ DRR 
+ 
+ 
+ 
+ 0.212 
+ 
+ 
+ 
+ 0.175 
+ 
+ 
+ 
+ 0.218 
+ 
+ 
+ 
+ 0.153 
+ 
+ 
+ 
+ 0.201 
+ 
+ 
+ 
+ 0.202 
+ 
+ 
+ 
+ 0.324 
+ 
+ 
+ 
+ 0.316 
+ 
+ 
+ 
+ 0.225 
+ 
+ 
+ 
+ 
+ Dri-IG 
+ 
+ 
+ 
+ CBP 
+ 
+ 
+ 
+ 0.154 
+ 
+ 
+ 
+ 0.217 
+ 
+ 
+ 
+ 0.166 
+ 
+ 
+ 
+ 0.246 
+ 
+ 
+ 
+ 0.103 
+ 
+ 
+ 
+ 0.194 
+ 
+ 
+ 
+ 0.299 
+ 
+ 
+ 
+ 0.208 
+ 
+ 
+ 
+ 0.198 
+ 
+ 
+ 
+ 
+ 
+ DRR 
+ 
+ 
+ 
+ 0.134 
+ 
+ 
+ 
+ 0.281 
+ 
+ 
+ 
+ 0.287 
+ 
+ 
+ 
+ 0.464 
+ 
+ 
+ 
+ 0.263 
+ 
+ 
+ 
+ 0.263 
+ 
+ 
+ 
+ 0.469 
+ 
+ 
+ 
+ 0.463 
+ 
+ 
+ 
+ 0.328 
+ 
+ 
+ 
+ 
+ CADE + \text{CADE}^{\text{+}} 
+ 
+ 
+ 
+ CBP 
+ 
+ 
+ 
+ 0.347 
+ 
+ 
+ 
+ 0.372 
+ 
+ 
+ 
+ 0.312 
+ 
+ 
+ 
+ 0.319 
+ 
+ 
+ 
+ 0.320 
+ 
+ 
+ 
+ 0.361 
+ 
+ 
+ 
+ 0.341 
+ 
+ 
+ 
+ 0.436 
+ 
+ 
+ 
+ 0.351 
+ 
+ 
+ 
+ 
+ 
+ DRR 
+ 
+ 
+ 
+ 0.834 
+ 
+ 
+ 
+ 0.722 
+ 
+ 
+ 
+ 0.781 
+ 
+ 
+ 
+ 0.791 
+ 
+ 
+ 
+ 0.788 
+ 
+ 
+ 
+ 0.752 
+ 
+ 
+ 
+ 0.808 
+ 
+ 
+ 
+ 0.819 
+ 
+ 
+ 
+ 0.787 
+ 
+ 
+ 
+ 
+ Dream 
+ 
+ 
+ 
+ CBP 
+ 
+ 
+ 
+ 0.348 
+ 
+ 
+ 
+ 0.408 
+ 
+ 
+ 
+ 0.331 
+ 
+ 
+ 
+ 0.402 
+ 
+ 
+ 
+ 0.338 
+ 
+ 
+ 
+ 0.372 
+ 
+ 
+ 
+ 0.487 
+ 
+ 
+ 
+ 0.443 
+ 
+ 
+ 
+ 0.391 
+ 
+ 
+ 
+ 
+ 
+ DRR 
+ 
+ 
+ 
+ 0.835 
+ 
+ 
+ 
+ 0.733 
+ 
+ 
+ 
+ 0.797 
+ 
+ 
+ 
+ 0.800 
+ 
+ 
+ 
+ 0.792 
+ 
+ 
+ 
+ 0.765 
+ 
+ 
+ 
+ 0.842 
+ 
+ 
+ 
+ 0.819 
+ 
+ 
+ 
+ 0.798 
+ 
+ 
+ Table 4. Explanation evaluation results on the Drebin dataset with CBP and DRR metrics. The columns labeled f0 to f7 represent the held-out families, arranged in descending order by the number of samples in each family within the dataset. 
+ 
+ 
+ 
+ 
+ 
+ (a) Reduced Budget 
+ 
+ 
+ (b) Useful Drift Explanation 
+ 
+ Figure 6. Human effort analysis: demonstration of how Dream can (a) reduce the labeling budget needed to maintain a certain accuracy level and (b) facilitate the labeling process through explainability. 
+ 
+ 
+ 2) Existing Work Comparison. 
+ Compared with the two baselines that utilize data-dependent drift detectors from existing work, Dream maintains a clear advantage across the two datasets.
+When evaluating across classifiers, Dream achieves F1-score improvements over Transcendent of 40.1%, 34.7%, and 31.1%, respectively. The improvements over CADE are more substantial, at 89.0%, 43.7%, and 64.8%.
+Similarly, when comparing under varying annotation budgets, Dream outperforms Transcendent by 89.1%, 47.2%, 22.7%, 13.1%, and 4.5%; compared with CADE, the improvements are 162.7%, 77.5%, 38.4%, 30.7%, and 20.0%. 
+ Comparing the two baselines, we observe an interesting phenomenon: the Transcendent-based adaptor outperforms the CADE-based in over 83 % 83\% of cases, even if it identifies fewer true drift samples (detailed in Table 11 ).
+For instance, within the budget 10, even if Transcendent correctly detects only 2 2 samples on average compared to CADE’s 9.3 9.3 , the updated model using Transcendent still achieves a 0.25 0.25 advantage in F1-score.
+This performance can be attributed to Transcendent’s focus on statistical decision boundaries rather than true malware patterns.
+As a result, it inaccurately detects new families but improves retraining performance, especially for complex classifiers like those on Damd .
+Transcendent even achieves slightly higher F1-score than Dream in two high-budget cases on this classifier within the Drebin dataset.
+For the two specific instances, we combine Transcendent with our adaptor and improve its performance by 1.7 % 1.7\% and 1.4 % 1.4\% . However, this combination requires training both our autoencoder and Transcendent’s model sets, making it computationally expensive and limited to data-dependent detection scenarios. 
+ 
+ 
+ 3) Ablation Analysis. 
+ Within the selected low budgets in adaptation, we observe that the Probability and CRD detectors are often comparable in accurately detecting samples from new families, outperforming existing detectors in 86.7 % 86.7\% cases.
+Notably, our previous detection evaluation uses the AUC metric, showing that the CRD detector demonstrates an advantage in overall accuracy across different budgets. To clarify this difference, we threshold the number of samples that are truly drifting, finding that the CRD detector achieves an accuracy 14.56 % 14.56\% higher than the Probability detector. 
+ When the two detectors are integrated with the baseline adaptor, their performance remains similar, each succeeding in half of the specific cases.
+However, when paired with Dream adaptor, we find that the Probability falls 12.8 % 12.8\% short of Dream in terms of F1-score of the updated classifier.
+These findings suggest that the majority of performance gains in adaptation stem from our updating mechanism.
+While the detected samples are crucial, their impact is highly specific to our system, as the primary value lies in how Dream utilizes them to update the classifier, with our detector incorporating behavioral concepts and actively participating in the process.
+ 
+ 
+ 
+ 
+ 5.4. Drift Explanation Performance 
+
+ 
+ Baseline and Metric. 
+We consider three baseline methods for drift explanation, adapted to generate both concept-level and traditional feature-level explanations:
+1) a random baseline that randomly selects features or concepts as important;
+2) a gradient-based explainer that utilizes Integrated Gradients (IG)  ( Sundararajan et al., 2017 ) , adapted here to analyze drifting scores derived from our detector.
+Originally designed to attribute a deep network’s predictions to its input features, IG has demonstrated effectiveness in explicating supervised security applications  ( Warnecke et al., 2020 ; He et al., 2023b ) .
+In this context, it is tailored to focus on the drifting scores derived from model predictions, and the reference sample 𝐱 r \mathbf{x}_{r} serves as the baseline in its method;
+3) the state-of-the-art CADE explainer used with the CADE detector, as described in Section 4.3 . Since this method is not inherently designed for concept-space explanations, we adapt it to our detector for generating explanations in the concept space. 
+ 
+ 
+ To evaluate the effectiveness of the drift explainers, we design two metrics.
+The first metric, named Cross Boundary P-value (CBP), assesses if explanations enable samples to cross the decision boundary, a key aspect in evaluating eXplainable AI (XAI) methods  ( Samek et al., 2016 ) .
+In our context, CBP is quantified as the proportion of training set samples with higher drifting scores than the perturbed samples, formally represented as: 
+ 
+
+ 
+ (9) 
+ 
+ | { α ∈ 𝒟 train ​ [ y ^ i ] : u d ​ ( α , 𝐌 ) ≥ u d ​ ( 𝐱 d ′ , 𝐌 ) } | | 𝒟 train ​ [ y ^ i ] | . \frac{|\{\alpha\in\mathcal{D}_{\text{train}}[\hat{y}_{i}]:u_{d}(\alpha;\mathbf{M})\geq u_{d}(\mathbf{x}_{d}^{\prime};\mathbf{M})\}|}{|\mathcal{D}_{\text{train}}[\hat{y}_{i}]|}. 
+ 
+ 
+ The second metric, as suggested in existing research  ( Yang et al., 2021a ) , focuses on the distance to the reference sample in the detector’s latent space after perturbation.
+We employ the Distance Reduction Rate (DRR) for this purpose, which measures the ratio of the reduced distance to the original distance between the drifting sample and the reference sample.
+It is worth mentioning that CBP is our primary metric of interest, as it directly correlates with classifier results, whereas DRR serves more as a supplementary measure in the latent space. 
+ 
+ 
+ For a balanced comparison, particularly against the first two baseline methods that only yield importance scores, we align the number of altered features or concepts with those pinpointed by our techniques.
+These experiments are conducted using the Drebin feature of the Drebin dataset, maintaining consistency with the CADE paper, where the performance of its drift detector is established. 
+ 
+ 
+ Evaluation Results. 
+ Table 4 illustrates the evaluation results of concept-based explanations generated by different methods.
+Comparing to three baseline explainers, i.e., Random, Dri-IG and CADE + \text{CADE}^{\text{+}} , Dream surpasses them by 172.1%, 97.2% and 11.5% on the CBP metric, and by 254.2%, 143.3% and 1.4% on the DRR metric.
+Notably, CADE + \text{CADE}^{\text{+}} is included in this comparison as it utilizes our detector for concept-based explanations, extending beyond its original method’s capabilities.
+To examine the efficacy in areas typically addressed by common methods, Table 10 presents the outcomes for feature-level explanation evaluations.
+Here, our method, despite not being primarily designed for feature-level explanations, outperforms all baselines, including the state-of-the-art CADE explainer, benefiting from our method’s sensitive capture of deviations.
+Combining the results from both tables, our explainer yields more substantial improvements in concept space than in feature space.
+For instance, while a 45.2% increase in mean CBP over Dri-IG is shown at the feature level, a remarkable 97.2% increase is illustrated at the concept level, highlighting the effectiveness of our design in concept space. 
+ 
+ 
+ 
+ 5.5. Computational & Human Effort Analysis 
+
+ 
+ The overhead of Dream comprises three primary components: 1) computational investment required for detecting drift samples from unlabeled data, 2) computational cost involved in tuning the model during drift adaptation, and 3) human effort required to generate correct labels for accurate adaptation.
+We investigate the first two components in computational performance analysis and the last component in human effort analysis .
+All the following experiments are conducted using a single NVIDIA A6000 GPU, with results reported on the Drebin features and the MalRadar dataset.
+ 
+ 
+ 
+ Computational Performance Analysis . 
+ Regarding the drift detection investment, we consider both the training and testing phases of the detector.
+During training, our detector has similar computational overhead as CADE and remains more efficient than Transcend.
+Specifically, the training computational complexity follows CADE’s model, expressed as O ⁡ ( I ​ B 2 ​ | Ψ | ) O(IB^{2}|\Psi|) , where I I , B B , and | Ψ | |\Psi| represents the number of training iterations, batch size, and the number of model parameters.
+Although our detector is slightly larger than CADE’s due to an additional dense layer for concept presence prediction, the small number of high-level concepts (e.g., 10 malicious behaviors) keeps the model sizes comparable, both estimated at 5.58 5.58  MB; training time is slightly higher at 0.81 0.81  s per epoch compared to 0.74 0.74  s.
+For Transcendent, evaluated in its rather computationally friendly setting with 10 10 -fold, has a model size of about 5.45 5.45  MB but a longer training epoch time of 1.12 1.12  s.
+During testing phase, where efficiency is important for real-time applications, Dream demonstrates superior performance by requiring only 0.57 0.57  ms per sample without additional data. In contrast, CADE and Transcendent require 1.89 1.89  ms and 5.75 5.75  ms, respectively. Moreover, their dependence on training data increases memory usage. 
+ 
+ 
+ In terms of operations for tuning the model, the concept-involved adaptor in Dream incurs the most computational cost. The retraining time is 2.86 2.86  s per epoch, while the baseline adaptor takes 0.64 0.64  s.
+Despite this, the time remains acceptable—fine-tuning requires much fewer iterations than training from scratch ( 50 50 epochs in our experiments)—and is unlikely to be a barrier to deployment  ( Chen et al., 2023a ) . The primary focus here is to achieve higher accuracy in the adapted model and reduce human effort, as will be explained subsequently. 
+ 
+ 
+ Human Effort Analysis . 
+The total human effort can be approximated by n × w n\times w , where n n is the number of samples to be analyzed, and w w is the analysis workload per sample.
+ Dream reduces human effort by decreasing 1)  n n : utilizing an effective drift adaptor that requires significantly fewer budgets to achieve high accuracy ( Section 5.3 ), and 2)  w w : providing an effective explainer that pinpoints key concepts faithfully ( Section 5.4 ).
+In the following, we further discuss the first aspect and support the second with a case study . 
+ 
+ 
+ Firstly, as shown in Figure  6a , we present the budget versus accuracy curves derived from previous adaptation performance results.
+By selecting the desired classification accuracy threshold, we estimate the required labeling budget.
+Typically, to achieve 90 % 90\% accuracy in the updated model, Dream requires only 19.54 19.54 samples to be analyzed. In contrast, the baseline method requires 99.12 99.12 samples, and even when enhanced with more time-consuming detectors, the best alternative still requires 83.67 83.67 samples. This substantial reduction translates to 80.3 % 80.3\% savings in n n . 
+ 
+ 
+ Secondly, to understand Dream ’s explanation impact, we present a case study using drift explanations for a sample from RuMMS  (the largest family in the dataset), which mainly targets banking information through SMS interception  ( (2016), Fireeye ) .
+As illustrated in Figure  6b , Dream detects GhostCtrl as the closest family in the training data.
+While this family may serve as a reference, it focuses on remote control functionalities for data theft and manipulation  ( Lenart Bermejo, 2017 ) , and our drift explainer identifies 3 3 drifting behaviors out of the 10 10 predefined concepts.
+ This explanation was manually verified to be useful in assigning the correct family label (see Appendix D for a detailed discussion of its influence on analysts’ workflows) .
+For instance, the identification of bank stealing as a new behavior allowed analysts to effectively prioritize their investigation and find the primary malicious intent of the RuMMS malware. Furthermore, reviewing the reference pseudocode revealed that abusing phone calls is also a significant drift: while GhostCtrl exhibited diverse and aggressive SMS/CALL functionalities, RuMMS specialized in SMS interception for data exfiltration. This specialization enabled analysts to understand the sample’s more focused but narrower abusing behaviors. 
+ 
+ 
+ 
+ 
+ 6. Extended Evaluation 
+
+ 
+ 
+ 
+ Detector 
+ 
+ 
+ 2016 
+ 
+ 
+ 
+ 2017 
+ 
+ 
+ 
+ 2018 
+ 
+ 
+ 
+ 2019 
+ 
+ 
+ 
+ 2020 
+ 
+ 
+ 
+ Avg. 
+ 
+ 
+ HCC + \text{HCC}^{\text{+}} 
+ 
+ 
+ 0.741 
+ ↑ \uparrow 4.75 4.75 % 
+ 
+ 
+ 
+ 0.718 
+ ↑ \uparrow 10.68 10.68 % 
+ 
+ 
+ 
+ 0.734 
+ ↑ \uparrow 21.35 21.35 % 
+ 
+ 
+ 
+ 0.765 
+ ↑ \uparrow 6.34 6.34 % 
+ 
+ 
+ 
+ 0.699 
+ ↑ \uparrow 6.80 6.80 % 
+ 
+ 
+ 
+ 0.731 
+ ↑ \uparrow 9.66 9.66 % 
+ 
+ 
+ HCC c ​ e + \text{HCC}_{ce}^{\text{+}} 
+ 
+ 
+ 0.745 
+ ↑ \uparrow 4.84 4.84 % 
+ 
+ 
+ 
+ 0.724 
+ ↑ \uparrow 11.52 11.52 % 
+ 
+ 
+ 
+ 0.719 
+ ↑ \uparrow 18.74 18.74 % 
+ 
+ 
+ 
+ 0.768 
+ ↑ \uparrow 6.81 6.81 % 
+ 
+ 
+ 
+ 0.698 
+ ↑ \uparrow 6.63 6.63 % 
+ 
+ 
+ 
+ 0.731 
+ ↑ \uparrow 9.43 9.43 % 
+ 
+ 
+ HCC h ​ c + \text{HCC}_{hc}^{\text{+}} 
+ 
+ 
+ 0.637 
+ ↑ \uparrow 9.61 9.61 % 
+ 
+ 
+ 
+ 0.700 
+ ↑ \uparrow 15.00 15.00 % 
+ 
+ 
+ 
+ 0.714 
+ ↑ \uparrow 20.59 20.59 % 
+ 
+ 
+ 
+ 0.713 
+ ↑ \uparrow 5.19 5.19 % 
+ 
+ 
+ 
+ 0.684 
+ ↑ \uparrow 4.08 4.08 % 
+ 
+ 
+ 
+ 0.690 
+ ↑ \uparrow 10.62 10.62 % 
+ 
+ 
+ Dream 
+ 
+ 
+ 0.754 
+ ↑ \uparrow 6.58 6.58 % 
+ 
+ 
+ 
+ 0.781 
+ ↑ \uparrow 20.31 20.31 % 
+ 
+ 
+ 
+ 0.866 
+ ↑ \uparrow 43.11 43.11 % 
+ 
+ 
+ 
+ 0.791 
+ ↑ \uparrow 9.98 9.98 % 
+ 
+ 
+ 
+ 0.763 
+ ↑ \uparrow 16.55 16.55 % 
+ 
+ 
+ 
+ 0.791 
+ ↑ \uparrow 18.57 18.57 % 
+ 
+ 
+ Table 5. The enhancement of intra-class drift detection with our detection framework. 
+ 
+ 
+ To broaden our focus, we examine Dream ’s effectiveness in intra-class drift.
+ In  Appendix I , we evaluate drift detection methods from related work and demonstrate HCC’s best overall performance on the dataset for binary malware detection.
+Adopting the same experimental setup, we compare Dream against HCC in intra-class drift detection and adaptation. 
+ 
+ 
+ Intra-class Drift Detection. 
+ Dream achieves an 18.57 % 18.57\% AUC improvement on average compared to the HCC detector.
+We further enhance the baseline with our insights about model sensitivity and the NCE metric, achieved by
+1) the removal of the surrogate classifier 𝐌 s \mathbf{M}_{s} and its integration into the original classifier using the autoencoder structure; 2) the augmentation of the previous cross-entropy based pseudo loss item with NCE ( Equation 4 ).
+As presented in  Table 5 , our modification achieves significant enhancements in HCC’s detection performance, evident by both the integrated method and its two individual pseudo-loss detectors. Notably, there is an average performance increase from 9.43 % 9.43\% to 10.62 % 10.62\% . The contrastive-based pseudo-loss detector, previously the least effective, now surpasses all prior baselines with the most substantial improvement.
+Nevertheless, our approach maintains an 8.21 % 8.21\% lead against the improved HCC method, largely due to our enriched latent space and data-autonomous design. 
+ 
+ 
+ Intra-class Drift Adaptation . 
+ We integrate the HCC detector with the baseline adaptor to enable updates to external classifiers.
+As presented in  Table 6 , Dream exceeds the HCC baseline in 76 % 76\% of cases, with more improvements observed at the higher labeling budget (i.e., 4.73% at budget 100).
+However, the gains are less pronounced compared to prior intra-class drift detection or our adaptor’s performance in inter-class scenarios, which can be attributed to two main reasons.
+First, Dream detects more malware samples than the baseline ( 51 % 51\% vs. 40 % 40\% ).
+Due to the highly imbalanced nature of binary malware detection ( 10 : 1 10:1 goodware to malware  ( Pendlebury et al., 2019 ) ), malware samples, despite being more prone to drift, represent a smaller portion of the retraining process.
+Second, our adaptor’s design emphasizes embedding malware concepts to differentiate families. When adapting to a binary detection task, all benign samples are labeled with zero concept vectors.
+Given the larger proportion of benign samples, this limits our semantic enrichment, resulting in less effective adaptation. 
+ 
+ 
+ 
+ 
+ Budget 
+ 
+ 
+ Adaptor 
+ 
+ 
+ 
+ 2016 
+ 
+ 
+ 
+ 2017 
+ 
+ 
+ 
+ 2018 
+ 
+ 
+ 
+ 2019 
+ 
+ 
+ 
+ 2020 
+ 
+ 
+ 10 
+ 
+ 
+ HCC 
+ 
+ 
+ 
+ 0.9199 
+ 
+ 
+ 
+ 0.9151 
+ 
+ 
+ 
+ 0.8948 
+ 
+ 
+ 
+ 0.9070 
+ 
+ 
+ 
+ 0.8691 
+ 
+ 
+ 
+ 
+ Dream 
+ 
+ 
+ 
+ 0.9206 
+ 
+ 
+ 
+ 0.9191 
+ 
+ 
+ 
+ 0.8959 
+ 
+ 
+ 
+ 0.9074 
+ 
+ 
+ 
+ 0.8708 
+ 
+ 
+ 20 
+ 
+ 
+ HCC 
+ 
+ 
+ 
+ 0.9219 
+ 
+ 
+ 
+ 0.9204 
+ 
+ 
+ 
+ 0.8971 
+ 
+ 
+ 
+ 0.9088 
+ 
+ 
+ 
+ 0.8753 
+ 
+ 
+ 
+ 
+ Dream 
+ 
+ 
+ 
+ 0.9228 
+ 
+ 
+ 
+ 0.9239 
+ 
+ 
+ 
+ 0.8982 
+ 
+ 
+ 
+ 0.9142 
+ 
+ 
+ 
+ 0.8733 
+ 
+ 
+ 30 
+ 
+ 
+ HCC 
+ 
+ 
+ 
+ 0.9221 
+ 
+ 
+ 
+ 0.9221 
+ 
+ 
+ 
+ 0.8990 
+ 
+ 
+ 
+ 0.9090 
+ 
+ 
+ 
+ 0.8903 
+ 
+ 
+ 
+ 
+ Dream 
+ 
+ 
+ 
+ 0.9196 
+ 
+ 
+ 
+ 0.9226 
+ 
+ 
+ 
+ 0.8998 
+ 
+ 
+ 
+ 0.9109 
+ 
+ 
+ 
+ 0.8870 
+ 
+ 
+ 40 
+ 
+ 
+ HCC 
+ 
+ 
+ 
+ 0.9246 
+ 
+ 
+ 
+ 0.9217 
+ 
+ 
+ 
+ 0.8994 
+ 
+ 
+ 
+ 0.9128 
+ 
+ 
+ 
+ 0.8892 
+ 
+ 
+ 
+ 
+ Dream 
+ 
+ 
+ 
+ 0.9208 
+ 
+ 
+ 
+ 0.9231 
+ 
+ 
+ 
+ 0.9001 
+ 
+ 
+ 
+ 0.9112 
+ 
+ 
+ 
+ 0.8857 
+ 
+ 
+ 100 
+ 
+ 
+ HCC 
+ 
+ 
+ 
+ 0.9241 
+ 
+ 
+ 
+ 0.9239 
+ 
+ 
+ 
+ 0.9017 
+ 
+ 
+ 
+ 0.9157 
+ 
+ 
+ 
+ 0.8890 
+ 
+ 
+ 
+ 
+ Dream 
+ 
+ 
+ 
+ 0.9291 
+ 
+ 
+ 
+ 0.9304 
+ 
+ 
+ 
+ 0.9018 
+ 
+ 
+ 
+ 0.9176 
+ 
+ 
+ 
+ 0.8971 
+ 
+ 
+ Table 6. F1-score comparison of HCC and Dream in intra-class drift adaptation across different labeling budget. 
+ 
+ 
+ 
+ 
+ 7. Discussion 
+
+ 
+ Concepts and Annotators. 
+We define malicious Android behaviors as concepts to effectively handle inter-class drift.
+These concepts can be extended to cover benign functionality for intra-class drift and platform-specific behaviors beyond Android.
+ For example, PE (Windows) malware often exhibits behaviors such as process injection, registry persistence, and credential access  ( Smith et al., 2020 ) . While some rootkit-like PE malware may involve deeper system-level integration, these behaviors still fall into structured categories (e.g., privilege escalation), similar to those in Android malware, so the concept space is not necessarily larger.
+To support generalization, we envision leveraging standardized taxonomies such as MITRE ATT&CK  ( Strom et al., 2018 ) , which captures cross-platform adversarial techniques organized hierarchically, enabling both coarse- and fine-grained modeling of explicit concepts. 
+To reduce labeling overhead, concept annotation can be supported by automated analysis tools  ( Egele et al., 2008 ; Lorenzoli et al., 2008 ) or LLM-based methods  ( Cai et al., 2023 ; Bansal and Sharma, 2023 ) , enhancing applicability across diverse malware triage settings. 
+ 
+ 
+ Robustness to Attacks. 
+Autoencoders have shown promise in anomaly detection  ( Han et al., 2023 ) and have been extended to detect attacks.
+For instance, CAE  ( Razmi and Xiong, 2023 ) applies a classifier in the autoencoder’s latent space to identify poisoning samples, and MagNet  ( Meng and Chen, 2017 ) trains multiple autoencoders independently of the target classifier to detect adversarial attacks.
+Interestingly, the autoencoder-based drift detector CADE  ( Yang et al., 2021a ) is proven capable of detecting adversarial malware samples  ( KASTEL: Cryptography and Security Group, 2021 ) , and active learning is also promising in mitigating poisoning attacks  ( McFadden et al., 2023 ; Lin et al., 2021 ) .
+Although attack defense is beyond our research scope, Dream combines autoencoder-based drift detection with active learning, incorporating both classifier and expert knowledge, potentially enhancing robustness against such attacks. 
+We demonstrate Dream ’s resilience in handling noisy labels in Appendix C , leaving a more in-depth analysis of attack robustness for future work. 
+ 
+ 
+ 
+ 8. Related Work 
+
+ 
+ OOD Detection. 
+The majority of existing OOD detection methods in machine learning community rely on auxiliary OOD dataset  ( Hendrycks and Gimpel, 2016 ; Chen et al., 2020b ; Liang et al., 2017 ; Masana et al., 2018 ) .
+For instance, Chen et al.  ( Chen et al., 2020b ) uses an auxiliary dataset like the 80 Million Tiny Images.
+However, acquiring such large-scale and comprehensive auxiliary OOD datasets can be particularly challenging in the malware domain.
+Similar to existing work in malware domain, we are not dependent on auxiliary OOD dataset to offer greater practicality.
+Moreover, Dream operates independently of any training data during the drift detection phase, enhancing its applicability in real-world scenarios. 
+ 
+ 
+ Labelless Drift Adaptation. 
+Besides active learning, there are also drift adaptation strategies without labels  ( Kan et al., 2021 ) .
+For example, APIGraph  ( Zhang et al., 2020 ) and AMDASE  ( Yang et al., 2024 ) use semantically-equivalent API usages to mitigate classifier aging  ( Xu et al., 2019 ) .
+However, they only apply to classifiers with specific types of features.
+DroidEvolver  ( Xu et al., 2019 ; Kan et al., 2021 ) employs pseudo-labels and is a promising solution to address labeling capacity.
+Nevertheless, this method can easily lead to negative feedback loops and self-poisoning  ( Barbero et al., 2022 ) .
+Our work is based on active learning which involves human and effectively minimizes the labeling budget.
+Nevertheless, these works can be complementary to us to further enhance the robustness in drift adaptation. 
+ 
+ 
+ Explainable Security Applications. 
+Recent research has focused on offering post-hoc explanations to security applications. For example, in malware detection  ( Anderson and Roth, 2018 ; Arp et al., 2014 ) tasks, FINER  ( He et al., 2023b ) produces function-level explanations to facilitate code analysis.
+In malware mutation  ( Lakshminarayanan et al., 2017 ; Chen et al., 2015 ) applications, AIRS  ( Yu et al., 2023 ) explains deep reinforcement learning models in security by offering step-level explanations.
+On a different basis, Dream addresses the explainability problem in a drift adaptation setting, where the intrinsic behavioral explanations can propagate expert revisions to update the classifier. 
+ 
+ 
+ Explanatory Interactive Learning. 
+Recent advancements in machine learning have combined explainable AI with active learning, leading to progress in explanatory interactive learning  ( Stammer et al., 2021 ; Selvaraju et al., 2019 ; Ross et al., 2017 ) .
+Inspired by this, our approach incorporates human feedback on both labels and explanations, but with distinct objectives and settings.
+Unlike these works that focus on image domain and feature-level explanation annotation, our method is tailored for malware analysis and generates high-level explanations.
+Furthermore, while they use external explainers to guide classifiers  ( Stammer et al., 2021 ) , our approach integrates explanations directly within the drift detector, enhancing the efficiency of our drift adaptation method. 
+ 
+ 
+ 
+ 9. Conclusion 
+
+ 
+ To deploy deep learning-based malware classifiers in dynamic and hostile environments, our work addresses a crucial aspect of combating concept drift.
+The proposed Dream system emerges as an innovative and effective solution.
+Behavioral explanations are integrated into a contrastive autoencoder, connecting the classifier to achieve model-sensitive detection and explanatory adaptation.
+The effectiveness of Dream against evolving threats is demonstrated through extensive evaluation and marks a notable advancement over existing methods.
+We make the system open-source  2 2 
+ 2 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ https://github.com/E0HYL/DREAM-drift-adapt and hope that it can inspire future research to explore concept drift in broader security contexts. 
+ 
+ 
+ 
+ References 
+
+ 
+ 
+ Anderson and Roth (2018) 
+ 
+Hyrum S Anderson and Phil Roth. 2018.
+
+ 
+ Ember: an open dataset for training static pe malware machine learning models.
+
+ 
+ arXiv preprint arXiv:1804.04637 (2018).
+
+ 
+ 
+ 
+ 
+ Aonzo et al . (2023) 
+ 
+Simone Aonzo, Yufei Han, Alessandro Mantovani, and Davide Balzarotti. 2023.
+
+ 
+ Humans vs. machines in malware classification. In 32nd USENIX Security Symposium (USENIX Security 23) . 1145–1162 .
+
+ 
+ 
+ 
+ 
+ Arp et al . (2014) 
+ 
+Daniel Arp, Michael Spreitzenbarth, Malte Hubner, Hugo Gascon, Konrad Rieck, and CERT Siemens. 2014.
+
+ 
+ Drebin: Effective and explainable detection of android malware in your pocket. In Proceedings of the Network and Distributed Systems Security Symposium (NDSS) , Vol. 14. 23–26.
+
+ 
+ 
+ 
+ 
+ AV-ATLAS (2023) 
+ 
+AV-ATLAS. 2023.
+
+ 
+ New malware.
+
+ 
+ https://portal.av-atlas.org/ .
+
+ 
+ 
+ 
+ 
+ Avllazagaj et al . (2021) 
+ 
+Erin Avllazagaj, Ziyun Zhu, Leyla Bilge, Davide Balzarotti, and Tudor Dumitra
+ 
+ 
+ s 
+ 
+ , 
+ . 2021.
+
+ 
+ When malware changed its mind: An empirical study of variable program behaviors in the real world. In 30th USENIX security symposium (USENIX Security 21) . 3487–3504.
+
+ 
+ 
+ 
+ 
+ Bansal and Sharma (2023) 
+ 
+Parikshit Bansal and Amit Sharma. 2023.
+
+ 
+ Large language models as annotators: Enhancing generalization of nlp models at minimal cost.
+
+ 
+ arXiv preprint arXiv:2306.15766 (2023).
+
+ 
+ 
+ 
+ 
+ Barbero et al . (2022) 
+ 
+Federico Barbero, Feargus Pendlebury, Fabio Pierazzi, and Lorenzo Cavallaro. 2022.
+
+ 
+ Transcending transcend: Revisiting malware classification in the presence of concept drift. In 2022 IEEE Symposium on Security and Privacy (SP) . IEEE, 805–823.
+
+ 
+ 
+ 
+ 
+ Barddal et al . (2017) 
+ 
+Jean Paul Barddal, Heitor Murilo Gomes, Fabrício Enembreck, and Bernhard Pfahringer. 2017.
+
+ 
+ A survey on feature drift adaptation: Definition, benchmark, challenges and future directions.
+
+ 
+ Journal of Systems and Software 127 (2017), 278–294.
+
+ 
+ 
+ 
+ 
+ Burk et al . (2022) 
+ 
+Kevin Burk, Fabio Pagani, Christopher Kruegel, and Giovanni Vigna. 2022.
+
+ 
+ Decomperson: How Humans Decompile and What We Can Learn From It. In 31st USENIX Security Symposium (USENIX Security 22) . 2765–2782.
+
+ 
+ 
+ 
+ 
+ Cai et al . (2023) 
+ 
+Tianle Cai, Xuezhi Wang, Tengyu Ma, Xinyun Chen, and Denny Zhou. 2023.
+
+ 
+ Large language models as tool makers.
+
+ 
+ arXiv preprint arXiv:2305.17126 (2023).
+
+ 
+ 
+ 
+ 
+ Ceschin et al . (2023) 
+ 
+Fabrício Ceschin, Marcus Botacin, Heitor Murilo Gomes, Felipe Pinagé, Luiz S Oliveira, and André Grégio. 2023.
+
+ 
+ Fast & Furious: On the modelling of malware detection as an evolving data stream.
+
+ 
+ Expert Systems with Applications 212 (2023), 118590.
+
+ 
+ 
+ 
+ 
+ Chen et al . (2020b) 
+ 
+Jiefeng Chen, Yixuan Li, Xi Wu, Yingyu Liang, and Somesh Jha. 2020b.
+
+ 
+ Robust out-of-distribution detection for neural networks.
+
+ 
+ arXiv preprint arXiv:2003.09711 (2020).
+
+ 
+ 
+ 
+ 
+ Chen et al . (2015) 
+ 
+Kai Chen, Peng Wang, Yeonjoon Lee, XiaoFeng Wang, Nan Zhang, Heqing Huang, Wei Zou, and Peng Liu. 2015.
+
+ 
+ Finding unknown malice in 10 seconds: Mass vetting for new threats at the { \{ Google-Play } \} scale. In 24th USENIX Security Symposium (USENIX Security 15) . 659–674.
+
+ 
+ 
+ 
+ 
+ Chen et al . (2020a) 
+ 
+Ting Chen, Simon Kornblith, Mohammad Norouzi, and Geoffrey Hinton. 2020a.
+
+ 
+ A simple framework for contrastive learning of visual representations. In International conference on machine learning . PMLR, 1597–1607.
+
+ 
+ 
+ 
+ 
+ Chen et al . (2023a) 
+ 
+Yizheng Chen, Zhoujie Ding, and David Wagner. 2023a.
+
+ 
+ Continuous learning for android malware detection. In 32nd USENIX Security Symposium (USENIX Security 23) . 1127–1144.
+
+ 
+ 
+ 
+ 
+ Chen et al . (2023b) 
+ 
+Zhuo Chen, Jie Liu, Yubo Hu, Lei Wu, Yajin Zhou, Yiling He, Xianhao Liao, Ke Wang, Jinku Li, and Zhan Qin. 2023b.
+
+ 
+ Deuedroid: Detecting underground economy apps based on utg similarity. In Proceedings of the 32nd ACM SIGSOFT International Symposium on Software Testing and Analysis . 223–235.
+
+ 
+ 
+ 
+ 
+ Chiu and Churchill (2016) 
+ 
+Thomas KF Chiu and Daniel Churchill. 2016.
+
+ 
+ Design of learning objects for concept learning: Effects of multimedia learning principles and an instructional approach.
+
+ 
+ Interactive Learning Environments 24, 6 (2016), 1355–1370.
+
+ 
+ 
+ 
+ 
+ Chow et al . (2023) 
+ 
+Theo Chow, Zeliang Kan, Lorenz Linhardt, Daniel Arp, Lorenzo Cavallaro, and Fabio Pierazzi. 2023.
+
+ 
+ Drift Forensics of Malware Classifiers. In Proc. of the ACM Workshop on Artificial Intelligence and Security (AISec) . ACM.
+
+ 
+ 
+ 
+ 
+ Egele et al . (2008) 
+ 
+Manuel Egele, Theodoor Scholte, Engin Kirda, and Christopher Kruegel. 2008.
+
+ 
+ A survey on automated dynamic malware-analysis techniques and tools.
+
+ 
+ ACM computing surveys (CSUR) 44, 2 (2008), 1–42.
+
+ 
+ 
+ 
+ 
+ Fan et al . (2006) 
+ 
+Jerome Fan, Suneel Upadhye, and Andrew Worster. 2006.
+
+ 
+ Understanding receiver operating characteristic (ROC) curves.
+
+ 
+ Canadian Journal of Emergency Medicine 8, 1 (2006), 19–20.
+
+ 
+ 
+ 
+ 
+ Fan et al . (2016) 
+ 
+Ming Fan, Jun Liu, Xiapu Luo, Kai Chen, Tianyi Chen, Zhenzhou Tian, Xiaodong Zhang, Qinghua Zheng, and Ting Liu. 2016.
+
+ 
+ Frequent subgraph based familial classification of android malware. In 2016 IEEE 27th International Symposium on Software Reliability Engineering (ISSRE) . IEEE, 24–35.
+
+ 
+ 
+ 
+ 
+ (23) 
+ 
+Wu Zhuo (Fireeye). 2016.
+
+ 
+ RuMMS: The Latest Family of Android Malware Attacking Users in Russia Via SMS Phishing.
+
+ 
+ https://vulners.com/fireeye/FIREEYE:9AE5925A39D370A4CBCA111D177A7AB9 .
+
+ 
+ 
+ 
+ 
+ Gandotra et al . (2014) 
+ 
+Ekta Gandotra, Divya Bansal, and Sanjeev Sofat. 2014.
+
+ 
+ Malware analysis and classification: A survey.
+
+ 
+ Journal of Information Security 2014 (2014).
+
+ 
+ 
+ 
+ 
+ Gong et al . (2020) 
+ 
+Liangyi Gong, Zhenhua Li, Feng Qian, Zifan Zhang, Qi Alfred Chen, Zhiyun Qian, Hao Lin, and Yunhao Liu. 2020.
+
+ 
+ Experiences of landing machine learning onto market-scale mobile malware detection. In Proceedings of the Fifteenth European Conference on Computer Systems . 1–14.
+
+ 
+ 
+ 
+ 
+ Grosse et al . (2017) 
+ 
+Kathrin Grosse, Nicolas Papernot, Praveen Manoharan, Michael Backes, and Patrick McDaniel. 2017.
+
+ 
+ Adversarial examples for detection. In Computer Security–ESORICS 2017: 22nd European Symposium on Research in Computer Security, Oslo, Norway, September 11-15, 2017, Proceedings, Part II 22 . Springer, 62–79.
+
+ 
+ 
+ 
+ 
+ Guerra-Manzanares et al . (2022) 
+ 
+Alejandro Guerra-Manzanares, Marcin Luckner, and Hayretdin Bahsi. 2022.
+
+ 
+ Concept drift and cross-device behavior: Challenges and implications for effective android malware detection.
+
+ 
+ Computers & Security 120 (2022), 102757.
+
+ 
+ 
+ 
+ 
+ Guo et al . (2018) 
+ 
+Wenbo Guo, Dongliang Mu, Jun Xu, Purui Su, Gang Wang, and Xinyu Xing. 2018.
+
+ 
+ Lemna: Explaining deep learning based security applications. In Proceedings of the 2018 ACM SIGSAC Conference on Computer and Communications Security . 364–379.
+
+ 
+ 
+ 
+ 
+ Han et al . (2023) 
+ 
+Dongqi Han, Zhiliang Wang, Wenqi Chen, Kai Wang, Rui Yu, Su Wang, Han Zhang, Zhihua Wang, Minghui Jin, Jiahai Yang, et al . 2023.
+
+ 
+ Anomaly Detection in the Open World: Normality Shift Detection, Explanation, and Adaptation. In Proceedings of the Network and Distributed Systems Security Symposium (NDSS) .
+
+ 
+ 
+ 
+ 
+ He et al . (2023a) 
+ 
+Yiling He, Yiping Liu, Lei Wu, Ziqi Yang, Kui Ren, and Zhan Qin. 2023a.
+
+ 
+ MsDroid: Identifying Malicious Snippets for Android Malware Detection.
+
+ 
+ IEEE Transactions on Dependable and Secure Computing 20, 3 (2023), 2025–2039.
+
+ 
+ 
+ 
+ 
+ He et al . (2023b) 
+ 
+Yiling He, Jian Lou, Zhan Qin, and Kui Ren. 2023b.
+
+ 
+ FINER: Enhancing State-of-the-art Classifiers with Feature Attribution to Facilitate Security Analysis. In Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security . 416–430.
+
+ 
+ 
+ 
+ 
+ Hendrycks and Gimpel (2016) 
+ 
+Dan Hendrycks and Kevin Gimpel. 2016.
+
+ 
+ A Baseline for Detecting Misclassified and Out-of-Distribution Examples in Neural Networks. In International Conference on Learning Representations .
+
+ 
+ 
+ 
+ 
+ Hsu and Lin (2015) 
+ 
+Wei-Ning Hsu and Hsuan-Tien Lin. 2015.
+
+ 
+ Active learning by learning. In Proceedings of the AAAI Conference on Artificial Intelligence , Vol. 29.
+
+ 
+ 
+ 
+ 
+ Iqubal et al . (2024) 
+ 
+Asif Iqubal, Subodh Kant Tiwari, Sikander Azad, Mithun Kumar Paswan, et al . 2024.
+
+ 
+ Android Based Malware Detection Technique Using Machine Learning Algorithms. In 2024 First International Conference on Pioneering Developments in Computer Science & Digital Technologies (IC2SDT) . IEEE, 1–6.
+
+ 
+ 
+ 
+ 
+ Jan et al . (2020) 
+ 
+Steve TK Jan, Qingying Hao, Tianrui Hu, Jiameng Pu, Sonal Oswal, Gang Wang, and Bimal Viswanath. 2020.
+
+ 
+ Throwing darts in the dark? detecting bots with limited data using neural data augmentation. In 2020 IEEE symposium on security and privacy (SP) . IEEE, 1190–1206.
+
+ 
+ 
+ 
+ 
+ Jia et al . (2013) 
+ 
+Yangqing Jia, Joshua T Abbott, Joseph L Austerweil, Tom Griffiths, and Trevor Darrell. 2013.
+
+ 
+ Visual concept learning: Combining machine vision and bayesian generalization on concept hierarchies.
+
+ 
+ Advances in Neural Information Processing Systems 26 (2013).
+
+ 
+ 
+ 
+ 
+ Jiang et al . (2020) 
+ 
+Yu Jiang, Ruixuan Li, Junwei Tang, Ali Davanian, and Heng Yin. 2020.
+
+ 
+ Aomdroid: detecting obfuscation variants of android malware using transfer learning. In Security and Privacy in Communication Networks: 16th EAI International Conference, SecureComm 2020, Washington, DC, USA, October 21-23, 2020, Proceedings, Part II 16 . Springer, 242–253.
+
+ 
+ 
+ 
+ 
+ Jordaney et al . (2017) 
+ 
+Roberto Jordaney, Kumar Sharad, Santanu K Dash, Zhi Wang, Davide Papini, Ilia Nouretdinov, and Lorenzo Cavallaro. 2017.
+
+ 
+ Transcend: Detecting concept drift in malware classification models. In 26th USENIX security symposium (USENIX security 17) . 625–642.
+
+ 
+ 
+ 
+ 
+ Kan et al . (2021) 
+ 
+Zeliang Kan, Feargus Pendlebury, Fabio Pierazzi, and Lorenzo Cavallaro. 2021.
+
+ 
+ Investigating labelless drift adaptation for malware detection. In Proceedings of the 14th ACM Workshop on Artificial Intelligence and Security . 123–134.
+
+ 
+ 
+ 
+ 
+ KASTEL: Cryptography and Security Group (2021) 
+ 
+KASTEL: Cryptography and Security Group. 2021.
+
+ 
+ Detecting Adversarial Malware Examples as Concept Drift .
+
+ 
+ 
+ https://crypto.iti.kit.edu/english/seminar_ba_detecting_adversarial_malware_examples_as_concept_drift.php 
+
+ 
+ Accessed on November, 2023.
+
+ 
+ 
+ Lakshminarayanan et al . (2017) 
+ 
+Balaji Lakshminarayanan, Alexander Pritzel, and Charles Blundell. 2017.
+
+ 
+ Simple and scalable predictive uncertainty estimation using deep ensembles.
+
+ 
+ Advances in neural information processing systems 30 (2017).
+
+ 
+ 
+ 
+ 
+ Lenart Bermejo (2017) 
+ 
+Cedric Pernet (TrendMicro) Lenart Bermejo, Jordan Pan. 2017.
+
+ 
+ Android Backdoor GhostCtrl Records Your Audio, Video.
+
+ 
+ https://www.trendmicro.com/en_us/research/17/g/android-backdoor-ghostctrl-can-silently-record-your-audio-video-and-more.html .
+
+ 
+ 
+ 
+ 
+ Li et al . (2021) 
+ 
+Heng Li, Shiyao Zhou, Wei Yuan, Xiapu Luo, Cuiying Gao, and Shuiyan Chen. 2021.
+
+ 
+ Robust android malware detection against adversarial example attacks. In Proceedings of the Web Conference 2021 . 3603–3612.
+
+ 
+ 
+ 
+ 
+ Liang et al . (2017) 
+ 
+Shiyu Liang, Yixuan Li, and Rayadurgam Srikant. 2017.
+
+ 
+ Enhancing the reliability of out-of-distribution image detection in neural networks.
+
+ 
+ arXiv preprint arXiv:1706.02690 (2017).
+
+ 
+ 
+ 
+ 
+ Lin et al . (2021) 
+ 
+Jing Lin, Ryan Luley, and Kaiqi Xiong. 2021.
+
+ 
+ Active learning under malicious mislabeling and poisoning attacks. In 2021 IEEE Global Communications Conference (GLOBECOM) . IEEE, 1–6.
+
+ 
+ 
+ 
+ 
+ Lorenzoli et al . (2008) 
+ 
+Davide Lorenzoli, Leonardo Mariani, and Mauro Pezzè. 2008.
+
+ 
+ Automatic generation of software behavioral models. In Proceedings of the 30th international conference on Software engineering . 501–510.
+
+ 
+ 
+ 
+ 
+ Mantovani et al . (2022) 
+ 
+Alessandro Mantovani, Simone Aonzo, Yanick Fratantonio, and Davide Balzarotti. 2022.
+
+ 
+ RE-Mind: a First Look Inside the Mind of a Reverse Engineer. In 31st USENIX Security Symposium (USENIX Security 22) . 2727–2745.
+
+ 
+ 
+ 
+ 
+ Mariconti et al . (2017) 
+ 
+E Mariconti, L Onwuzurike, P Andriotis, E De Cristofaro, G Ross, and G Stringhini. 2017.
+
+ 
+ MamaDroid: Detecting Android Malware by Building Markov Chains of Behavioral Models. In Proceedings of the Network and Distributed Systems Security Symposium (NDSS) .
+
+ 
+ 
+ 
+ 
+ Masana et al . (2018) 
+ 
+Marc Masana, Idoia Ruiz, Joan Serrat, Joost van de Weijer, and Antonio M Lopez. 2018.
+
+ 
+ Metric learning for novelty and anomaly detection.
+
+ 
+ arXiv preprint arXiv:1808.05492 (2018).
+
+ 
+ 
+ 
+ 
+ McFadden et al . (2023) 
+ 
+Shae McFadden, Zeliang Kan, Lorenzo Cavallaro, and Fabio Pierazzi. 2023.
+
+ 
+ Poster: RPAL-Recovering Malware Classifiers from Data Poisoning using Active Learning. In Proc. of ACM Conference on Computer and Communications Security (CCS) .
+
+ 
+ 
+ 
+ 
+ McLaughlin et al . (2017) 
+ 
+Niall McLaughlin, Jesus Martinez del Rincon, BooJoong Kang, Suleiman Yerima, Paul Miller, Sakir Sezer, Yeganeh Safaei, Erik Trickel, Ziming Zhao, Adam Doupé, et al . 2017.
+
+ 
+ Deep android malware detection. In Proceedings of the seventh ACM on conference on data and application security and privacy . 301–308.
+
+ 
+ 
+ 
+ 
+ Meng and Chen (2017) 
+ 
+Dongyu Meng and Hao Chen. 2017.
+
+ 
+ Magnet: a two-pronged defense against adversarial examples. In Proceedings of the 2017 ACM SIGSAC conference on computer and communications security . 135–147.
+
+ 
+ 
+ 
+ 
+ Meng et al . (2024) 
+ 
+Zhaoyi Meng, Jiale Zhang, Jiaqi Guo, Wansen Wang, Wenchao Huang, Jie Cui, Hong Zhong, and Yan Xiong. 2024.
+
+ 
+ Detecting Android Malware by Visualizing App Behaviors from Multiple Complementary Views.
+
+ 
+ arXiv preprint arXiv:2410.06157 (2024).
+
+ 
+ 
+ 
+ 
+ Nadeem et al . (2023) 
+ 
+Azqa Nadeem, Daniël Vos, Clinton Cao, Luca Pajola, Simon Dieck, Robert Baumgartner, and Sicco Verwer. 2023.
+
+ 
+ Sok: Explainable machine learning for computer security applications. In 2023 IEEE 8th European Symposium on Security and Privacy (EuroS&P) . IEEE, 221–240.
+
+ 
+ 
+ 
+ 
+ Pa Pa et al . (2023) 
+ 
+Yin Minn Pa Pa, Shunsuke Tanizaki, Tetsui Kou, Michel Van Eeten, Katsunari Yoshioka, and Tsutomu Matsumoto. 2023.
+
+ 
+ An attacker’s dream? exploring the capabilities of chatgpt for developing. In Proceedings of the 16th Cyber Security Experimentation and Test Workshop . 10–18.
+
+ 
+ 
+ 
+ 
+ Pearce et al . (2021) 
+ 
+Tim Pearce, Alexandra Brintrup, and Jun Zhu. 2021.
+
+ 
+ Understanding softmax confidence and uncertainty.
+
+ 
+ arXiv preprint arXiv:2106.04972 (2021).
+
+ 
+ 
+ 
+ 
+ Pendlebury et al . (2019) 
+ 
+Feargus Pendlebury, Fabio Pierazzi, Roberto Jordaney, Johannes Kinder, and Lorenzo Cavallaro. 2019.
+
+ 
+ TESSERACT: Eliminating experimental bias in malware classification across space and time. In 28th USENIX Security Symposium (USENIX Security 19) . 729–746.
+
+ 
+ 
+ 
+ 
+ Pirch et al . (2021) 
+ 
+Lukas Pirch, Alexander Warnecke, Christian Wressnegger, and Konrad Rieck. 2021.
+
+ 
+ Tagvet: Vetting malware tags using explainable machine learning. In Proceedings of the 14th European Workshop on Systems Security . 34–40.
+
+ 
+ 
+ 
+ 
+ Rabadi and Teo (2020) 
+ 
+Dima Rabadi and Sin G Teo. 2020.
+
+ 
+ Advanced windows methods on malware detection and classification. In Annual Computer Security Applications Conference . 54–68.
+
+ 
+ 
+ 
+ 
+ Razmi and Xiong (2023) 
+ 
+Fereshteh Razmi and Li Xiong. 2023.
+
+ 
+ Classification auto-encoder based detector against diverse data poisoning attacks. In IFIP Annual Conference on Data and Applications Security and Privacy . Springer, 263–281.
+
+ 
+ 
+ 
+ 
+ Ren et al . (2023) 
+ 
+Pengcheng Ren, Chaoshun Zuo, Xiaofeng Liu, Wenrui Diao, Qingchuan Zhao, and Shanqing Guo. 2023.
+
+ 
+ DEMISTIFY: Identifying On-device Machine Learning Models Stealing and Reuse Vulnerabilities in Mobile Apps. In 2024 IEEE/ACM 46th International Conference on Software Engineering (ICSE) . IEEE Computer Society, 468–480.
+
+ 
+ 
+ 
+ 
+ Ribeiro et al . (2016) 
+ 
+Marco Tulio Ribeiro, Sameer Singh, and Carlos Guestrin. 2016.
+
+ 
+ ‘Why should i trust you?’ Explaining the predictions of any classifier. In Proceedings of the 22nd ACM SIGKDD international conference on knowledge discovery and data mining . 1135–1144.
+
+ 
+ 
+ 
+ 
+ Roberts et al . (2018) 
+ 
+Jonathan C. Roberts, Panagiotis D. Ritsos, James R. Jackson, and Christopher Headleand. 2018.
+
+ 
+ The Explanatory Visualization Framework: An Active Learning Framework for Teaching Creative Computing Using Explanatory Visualizations.
+
+ 
+ IEEE Transactions on Visualization and Computer Graphics 24, 1 (2018), 791–801.
+
+ 
+ 
+ https://doi.org/10.1109/TVCG.2017.2745878 
+
+ 
+ 
+ Ross et al . (2017) 
+ 
+Andrew Slavin Ross, Michael C Hughes, and Finale Doshi-Velez. 2017.
+
+ 
+ Right for the right reasons: Training differentiable models by constraining their explanations.
+
+ 
+ arXiv preprint arXiv:1703.03717 (2017).
+
+ 
+ 
+ 
+ 
+ Samek et al . (2016) 
+ 
+Wojciech Samek, Alexander Binder, Grégoire Montavon, Sebastian Lapuschkin, and Klaus-Robert Müller. 2016.
+
+ 
+ Evaluating the visualization of what a deep neural network has learned.
+
+ 
+ IEEE transactions on neural networks and learning systems 28, 11 (2016), 2660–2673.
+
+ 
+ 
+ 
+ 
+ Selvaraju et al . (2019) 
+ 
+Ramprasaath R Selvaraju, Stefan Lee, Yilin Shen, Hongxia Jin, Shalini Ghosh, Larry Heck, Dhruv Batra, and Devi Parikh. 2019.
+
+ 
+ Taking a hint: Leveraging explanations to make vision and language models more grounded. In Proceedings of the IEEE/CVF international conference on computer vision . 2591–2600.
+
+ 
+ 
+ 
+ 
+ Smith et al . (2020) 
+ 
+Michael R Smith, Nicholas T Johnson, Joe B Ingram, Armida J Carbajal, Bridget I Haus, Eva Domschot, Ramyaa Ramyaa, Christopher C Lamb, Stephen J Verzi, and W Philip Kegelmeyer. 2020.
+
+ 
+ Mind the gap: On bridging the semantic gap between machine learning and malware analysis. In Proceedings of the 13th ACM Workshop on Artificial Intelligence and Security . 49–60.
+
+ 
+ 
+ 
+ 
+ Stammer et al . (2021) 
+ 
+Wolfgang Stammer, Patrick Schramowski, and Kristian Kersting. 2021.
+
+ 
+ Right for the right concept: Revising neuro-symbolic concepts by interacting with their explanations. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition . 3619–3629.
+
+ 
+ 
+ 
+ 
+ Strom et al . (2018) 
+ 
+Blake E Strom, Andy Applebaum, Doug P Miller, Kathryn C Nickels, Adam G Pennington, and Cody B Thomas. 2018.
+
+ 
+ Mitre att&ck: Design and philosophy.
+
+ 
+ In Technical report . The MITRE Corporation.
+
+ 
+ 
+ 
+ 
+ Sundararajan et al . (2017) 
+ 
+Mukund Sundararajan, Ankur Taly, and Qiqi Yan. 2017.
+
+ 
+ Axiomatic attribution for deep networks. In International conference on machine learning . PMLR, 3319–3328.
+
+ 
+ 
+ 
+ 
+ Teso and Kersting (2019) 
+ 
+Stefano Teso and Kristian Kersting. 2019.
+
+ 
+ Explanatory interactive machine learning. In Proceedings of the 2019 AAAI/ACM Conference on AI, Ethics, and Society . 239–245.
+
+ 
+ 
+ 
+ 
+ Toulas (2023) 
+ 
+Bill Toulas. 2023.
+
+ 
+ Ten new Android banking trojans targeted 985 bank apps in 2023.
+
+ 
+ 
+ 
+ 
+ https://www.bleepingcomputer.com/news/security/ten-new-android-banking-trojans-targeted-985-bank-apps-in-2023/ 
+
+ 
+ 
+ Ucci et al . (2019) 
+ 
+Daniele Ucci, Leonardo Aniello, and Roberto Baldoni. 2019.
+
+ 
+ Survey of machine learning techniques for analysis.
+
+ 
+ Computers & Security 81 (2019), 123–147.
+
+ 
+ 
+ 
+ 
+ Vovk (2015) 
+ 
+Vladimir Vovk. 2015.
+
+ 
+ Cross-conformal predictors.
+
+ 
+ Annals of Mathematics and Artificial Intelligence 74 (2015), 9–28.
+
+ 
+ 
+ 
+ 
+ Wang et al . (2021) 
+ 
+Liu Wang, Ren He, Haoyu Wang, Pengcheng Xia, Yuanchun Li, Lei Wu, Yajin Zhou, Xiapu Luo, Yulei Sui, Yao Guo, et al . 2021.
+
+ 
+ Beyond the virus: a first look at coronavirus-themed Android malware.
+
+ 
+ Empirical Software Engineering 26, 4 (2021), 82.
+
+ 
+ 
+ 
+ 
+ Wang et al . (2022) 
+ 
+Liu Wang, Haoyu Wang, Ren He, Ran Tao, Guozhu Meng, Xiapu Luo, and Xuanzhe Liu. 2022.
+
+ 
+ MalRadar: Demystifying Android malware in the new era.
+
+ 
+ Proceedings of the ACM on Measurement and Analysis of Computing Systems 6, 2 (2022), 1–27.
+
+ 
+ 
+ 
+ 
+ Warnecke et al . (2020) 
+ 
+Alexander Warnecke, Daniel Arp, Christian Wressnegger, and Konrad Rieck. 2020.
+
+ 
+ Evaluating explanation methods for deep learning in security. In 2020 IEEE european symposium on security and privacy (EuroS&P) . IEEE, 158–174.
+
+ 
+ 
+ 
+ 
+ Wu et al . (2023) 
+ 
+Xian Wu, Wenbo Guo, Jia Yan, Baris Coskun, and Xinyu Xing. 2023.
+
+ 
+ From Grim Reality to Practical Solution: Malware Classification in Real-World Noise. In 2023 IEEE Symposium on Security and Privacy (SP) . IEEE Computer Society, 2602–2619.
+
+ 
+ 
+ 
+ 
+ Xu (2017) 
+ 
+Ecular Xu. 2017.
+
+ 
+ Xavier: An Information-Stealing Ad Library on Android.
+
+ 
+ https://www.trendmicro.com/en_sg/research/17/f/analyzing-xavier-information-stealing-ad-library-android.html .
+
+ 
+ 
+ 
+ 
+ Xu et al . (2019) 
+ 
+Ke Xu, Yingjiu Li, Robert Deng, Kai Chen, and Jiayun Xu. 2019.
+
+ 
+ Droidevolver: Self-evolving android malware detection system. In 2019 IEEE European Symposium on Security and Privacy (EuroS&P) . IEEE, 47–62.
+
+ 
+ 
+ 
+ 
+ Yang et al . (2024) 
+ 
+Hongyu Yang, Youwei Wang, Liang Zhang, Xiang Cheng, and Ze Hu. 2024.
+
+ 
+ A novel Android malware detection method with API semantics extraction.
+
+ 
+ Computers & Security 137 (2024), 103651.
+
+ 
+ 
+ 
+ 
+ Yang et al . (2021b) 
+ 
+Jingkang Yang, Kaiyang Zhou, Yixuan Li, and Ziwei Liu. 2021b.
+
+ 
+ Generalized out-of-distribution detection: A survey.
+
+ 
+ arXiv preprint arXiv:2110.11334 (2021).
+
+ 
+ 
+ 
+ 
+ Yang et al . (2021a) 
+ 
+Limin Yang, Wenbo Guo, Qingying Hao, Arridhana Ciptadi, Ali Ahmadzadeh, Xinyu Xing, and Gang Wang. 2021a.
+
+ 
+ CADE: Detecting and Explaining Concept Drift Samples for Security Applications. In 30th USENIX Security Symposium (USENIX Security 21) . 2327–2344.
+
+ 
+ 
+ 
+ 
+ Yu et al . (2023) 
+ 
+Jiahao Yu, Wenbo Guo, Qi Qin, Gang Wang, Ting Wang, and Xinyu Xing. 2023.
+
+ 
+ { \{ AIRS } \} : Explanation for Deep Reinforcement Learning based Security Applications. In 32nd USENIX Security Symposium (USENIX Security 23) . 7375–7392.
+
+ 
+ 
+ 
+ 
+ Zhang et al . (2022) 
+ 
+Shu Zhang, Ran Xu, Caiming Xiong, and Chetan Ramaiah. 2022.
+
+ 
+ Use all the labels: A hierarchical multi-label contrastive learning framework. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition . 16660–16669.
+
+ 
+ 
+ 
+ 
+ Zhang et al . (2020) 
+ 
+Xiaohan Zhang, Yuan Zhang, Ming Zhong, Daizong Ding, Yinzhi Cao, Yukun Zhang, Mi Zhang, and Min Yang. 2020.
+
+ 
+ Enhancing state-of-the-art classifiers with API semantics to detect evolved android malware. In Proceedings of the 2020 ACM SIGSAC Conference on Computer and Communications Security . 757–770.
+
+ 
+ 
+ 
+ 
+ Zou and Hastie (2005) 
+ 
+Hui Zou and Trevor Hastie. 2005.
+
+ 
+ Regularization and variable selection via the elastic net.
+
+ 
+ Journal of the Royal Statistical Society Series B: Statistical Methodology 67, 2 (2005), 301–320.
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ (a) Transcendent, Drebin 
+ 
+ 
+ (b) CADE, Drebin 
+ 
+ 
+ (c) Probability, Drebin 
+ 
+ 
+ (d) (Ours) Dream , Drebin 
+ 
+ 
+ (e) Transcendent, Mamadroid 
+ 
+ 
+ (f) CADE, Mamadroid 
+ 
+ 
+ (g) Probability, Mamadroid 
+ 
+ 
+ (h) (Ours) Dream , Mamadroid 
+ 
+ 
+ (i) Transcendent, Damd 
+ 
+ 
+ (j) CADE, Damd 
+ 
+ 
+ (k) Probability, Damd 
+ 
+ 
+ (l) (Ours) Dream , Damd 
+ 
+ Figure 7. Evaluation of inter-class drift detection on Malradar dataset with three feature spaces. The first three columns are Transcendent, CADE, Probability, respectively, and our method is on the last column. 
+ 
+ 
+ Appendix A Malware Dataset 
+
+ 
+ As shown in Table 2 , we use two datasets for malware family classification.
+Specifically, we select 8 families for each of the Drebin  ( Yang et al., 2021a ) and the MalRadar  ( Wang et al., 2022 ) dataset, where the family selection adheres to the same criteria used in the CADE paper.
+The Drebin dataset spans the years from 2010 to 2012, offering insights into malware characteristics from the early period.
+To capture more recent trends in the evolving malware landscape, the Malradar dataset ( Wang et al., 2022 ) covers the period from 2015 to 2021. 
+ 
+ 
+ We use the malicious behaviors defined in the Malradar paper.
+To ensure consistency in behavioral analysis, we augment the Drebin dataset, which originally lacks behavior labels, with these same behaviors.
+This extension involves extrapolating the labels based on Malradar’s definitions, supplemented by expert analysis and validation through GPT  ( Pa Pa et al., 2023 ) .
+Note that the concept labels were assigned with minimal additional effort, and it is uniform within each family.
+In cases where certain behaviors in the Malradar dataset are specific to particular variants, we accommodate this by setting the relevant valid label mask m e m_{e} to zero.
+Despite the simplicity, this approach is in line with an active learning setting that typically utilizes limited human effort. 
+ 
+ 
+ For the Drebin dataset, the time-split is performed across all remaining families, as detailed in the CADE paper.
+For the Malradar dataset, its extensive time range and emergence of new families in recent years necessitate a tailored splitting approach. The previous split would classify newer families, such as EventBot which emerged in 2020, entirely into the testing set, potentially introducing unintended drift. To avoid this, we adjust the strategy by performing the split on a per-family basis within this dataset. 
+ 
+ 
+ 
+ Appendix B Autoencoder Architecture 
+
+ 
+ For the Drebin feature, the autoencoder used is a form of Tabular Autoencoder consisting of two dense layers in both the encoder and decoder components. The architecture features a hidden dimension size of 512 512 and an encoding dimension of 32 32 .
+In the case of the Mamadroid feature, the autoencoder is similarly structured as a Tabular Autoencoder, but with a larger hidden dimension of 2048 2048 and an encoding dimension of 128 128 . This expanded architecture accommodates the more complex nature of the Mamadroid feature set.
+For the Damd feature, the autoencoder is a specialized convolutional Text Autoencoder.
+This autoencoder works in conjunction with an embedding layer to facilitate reconstruction on numerical data.
+The encoder incorporates a convolutional layer with a kernel size of 3 3 and 64 64 filters, followed by a global max pooling layer.
+The decoder comprises a dense layer and a convolutional transpose layer that transform the data back into the embedding dimension, maintaining the same kernel size.
+This configuration is tailored to effectively handle the sequential nature of this feature set. 
+ 
+ 
+ 
+ Appendix C Open-world Testing 
+
+ 
+ In this section, we present two case studies to evaluate the generalization and robustness of our approach in open-world scenarios. Specifically, we explore the detector’s ability to handle various unseen test families and the adaptor’s resilience to imperfect human feedback during active learning. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ f0+ 
+ 
+ 
+ 
+ f1+ 
+ 
+ 
+ 
+ f2+ 
+ 
+ 
+ 
+ f3+ 
+ 
+ 
+ 
+ f4+ 
+ 
+ Avg. ± \pm Std. 
+ 
+ 
+ 
+ Prob. 
+ 
+ 
+ 
+ -3.4% 
+ 
+ 
+ 
+ 23.1% 
+ 
+ 
+ 
+ -12.5% 
+ 
+ 
+ 
+ 8.6% 
+ 
+ 
+ 
+ -9.9% 
+ 
+ 1.2% ± \pm 13.2% 
+ 
+ 
+ 
+ Trans. 
+ 
+ 
+ 
+ -3.3% 
+ 
+ 
+ 
+ 14.3% 
+ 
+ 
+ 
+ -9.4% 
+ 
+ 
+ 
+ 4.3% 
+ 
+ 
+ 
+ 1.1% 
+ 
+ 1.4% ± \pm 7.9% 
+ 
+ 
+ 
+ CADE 
+ 
+ 
+ 
+ -1.4% 
+ 
+ 
+ 
+ 13.7% 
+ 
+ 
+ 
+ -14.1% 
+ 
+ 
+ 
+ -4.7% 
+ 
+ 
+ 
+ 12.5% 
+ 
+ 1.2% ± \pm 10.6% 
+ 
+ 
+ 
+ Dream 
+ 
+ 
+ 
+ 0.0% 
+ 
+ 
+ 
+ 11.4% 
+ 
+ 
+ 
+ -5.2% 
+ 
+ 
+ 
+ 5.7% 
+ 
+ 
+ 
+ -4.1% 
+ 
+ 1.6% ± \pm 6.2% 
+ 
+ Table 7. Impact of including small families in the test set: percentage change in drift detection AUC. The columns labeled f0+ to f4+ indicate results where, in addition to the held-out family used as drift, previously excluded small families in MalRadar are also included in the test set. 
+ 
+ 
+ Small Families . 
+ To evaluate the drift detector’s ability to generalize beyond large families, we assess its performance when previously excluded small families from the MalRadar dataset are added to the test set.
+In our earlier setup, each classifier was trained by holding out one of the largest families, which served as the drift source during testing.
+Here, we extend this setting by introducing 1,821 1,821 additional samples from 172 172 small families into the test set; these samples are also treated as drift.
+This experiment focuses on the top five largest families and is conducted using the DAMD feature representation.
+ Table 7 reports the percentage change in drift detection AUC resulting from the inclusion of small-family samples.
+Interestingly, the inclusion does not necessarily degrade performance.
+On average, all methods maintain stable detection AUC compared to the original setup (see Figure 7 ), and in some cases, even achieve slightly higher performance.
+This stability arises because, although small families differ from the held-out drift family, their samples remain outside the training distribution and are still detectable as drift.
+Notably, our method shows both the highest average AUC and the most stable performance across models (i.e., lowest standard deviation), demonstrating its generalization in a more open-world testing scenario.
+ 
+ 
+ 
+ Labeling Noise. 
+We conduct a case study to compare the resilience of our method and the benchmark against labeling noise   ( Pirch et al., 2021 ) , where we use the model trained on the Drebin feature of the Drebin dataset and a labeling budget of 50.
+ Noise is introduced by randomly selecting a subset of samples and reassigning their family labels to the nearest families. 
+As shown in Table 8 , DREAM consistently achieves higher and more stable F1 and accuracy scores compared to the benchmark.
+Moreover, when the noise level increases, such as to 6%, the accuracy score improvement can reach 28.4%. This could be attributed to the inclusion of an explanation revision step during model updates, making our method more robust and resilient to noise.
+ To examine where DREAM’s performance begins to degrade, we extend the noise ratio and observe that DREAM remains robust up to 30–40% noise, maintaining F1-scores above 0.8. Beyond this point, a noticeable drop occurs (e.g., 0.711 at 50% noise), indicating the method’s practical tolerance to moderate annotation errors. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Noise 
+ 
+ Ratio 
+ 
+ 
+ F1-score 
+ Accuracy 
+ 
+ 
+ 
+ 
+ Bench. 
+ 
+ 
+ 
+ Ours 
+ 
+ 
+ 
+ Imp. 
+ 
+ 
+ 
+ Bench. 
+ 
+ 
+ 
+ Ours 
+ 
+ 
+ 
+ Imp. 
+ 
+ 
+ 
+ 
+ 0% 
+ 
+ 
+ 
+ 0.894 
+ 
+ 
+ 
+ 0.966 
+ 
+ 
+ 
+ 8.0% 
+ 
+ 
+ 
+ 0.863 
+ 
+ 
+ 
+ 0.956 
+ 
+ 
+ 
+ 10.7% 
+ 
+ 
+ 
+ 
+ 2% 
+ 
+ 
+ 
+ 0.862 
+ 
+ 
+ 
+ 0.950 
+ 
+ 
+ 
+ 10.2% 
+ 
+ 
+ 
+ 0.800 
+ 
+ 
+ 
+ 0.916 
+ 
+ 
+ 
+ 14.5% 
+ 
+ 
+ 
+ 
+ 6% 
+ 
+ 
+ 
+ 0.801 
+ 
+ 
+ 
+ 0.967 
+ 
+ 
+ 
+ 20.7% 
+ 
+ 
+ 
+ 0.760 
+ 
+ 
+ 
+ 0.976 
+ 
+ 
+ 
+ 28.4% 
+ 
+ 
+ 
+ 
+ 10% 
+ 
+ 
+ 
+ 0.822 
+ 
+ 
+ 
+ 0.945 
+ 
+ 
+ 
+ 14.9% 
+ 
+ 
+ 
+ 0.772 
+ 
+ 
+ 
+ 0.959 
+ 
+ 
+ 
+ 24.3% 
+ 
+ 
+ Table 8. Impact of labeling noise during active learning: comparison of drift adaptation results with the benchmark under different noise ratios. 
+ 
+ 
+ 
+ Appendix D Insights from Drift Explanation 
+
+ 
+ Unlike traditional explanations for ID data, drift explanations highlight differences between new samples and existing training data, posing unique challenges for effective presentation and user studies  ( Nadeem et al., 2023 ) .
+Previous approaches fail to convey the reference-based properties, simply visualizing important features on drift samples  ( Yang et al., 2021a )  ( Figure 8 ).
+We address the shortcoming by connecting drift explanations with the original behaviors of the closest family, with an example presented in Figure  6b .  3 3 
+ 3 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ SHA256: 7ae4f72eeec59d03a20fda4a04f8098875df20af6d9f7e3625d1800bbe169ec3 
+ In this case study, the explanation has the potential to guide malware analysis in three major steps: 
+ 
+ • 
+ 
+ Behavior Identification: analysts can combine behaviors from the closest family with the identified drift behaviors, focusing on four specific behaviors out of ten categories. The non-drift behavior remote control prompts further examination for similar malicious activities in the new sample. 
+ 
+ • 
+ 
+ Prioritization of New Behaviors: the identification of the new behavior, bank stealing , allows analysts to prioritize their investigation effectively, recognizing it as a particularly dangerous activity. Around these functions, an initial understanding of two other malicious behaviors can also be developed. 
+ 
+ • 
+ 
+ Drift Verification of Uncertain Behaviors: to verify the behavior abusing SMS/CALL as drifting, analysts can review the reference pseudocode and find that, unlike GhostCtrl ’s broad SMS functionalities, the new sample specifically focuses on SMS interception for data exfiltration. Similarly, privacy stealing is narrower compared to GhostCtrl ’s broader device profiling. 
+ 
+ 
+ 
+ 
+ Overall, Dream ’s explanations may help analysts narrow their focus with a reasonable reference and drift behaviors, enabling them to efficiently identify similarities and significant behavioral differences, ultimately reducing their labeling workload. 
+ 
+ 
+ Figure 8. CADE’s drift explanation example (truncated version; original length 1329 1329 ) for a sample from the RuMMS family, highlighting features contributing to drift compared to its ‘Closest Family’ output. Drebin feature space is sparse and only 28 28 features differ by diff, but 29 29 are highlighted and only 7 7 correctly match the actual differences. 
+ 
+ 
+ 
+ Appendix E Concept-based ID Explanation 
+
+ 
+ The drift explainer in our system can explain OOD data, identifying concepts which contributes most to the drifting.
+Besides drift explanation, Dream leverages an autoencoder intermediary to generate concept-based explanations for in-depth analysis of ID data.
+The challenge in offering high-level explanations, beyond mere feature attribution, persists even in non-drifting scenarios. Current methodologies tend to abstract explanations from features  ( Ribeiro et al., 2016 ; He et al., 2023b ) , but they cannot readily translate into behavioral insights. 
+ 
+ 
+ To establish a baseline for concept-based explanations, we frame it as a series of binary classification tasks, each corresponding to a different explicit concept. Specifically, we adapt the output layer of the classifier to yield sigmoid probabilities and conduct fine-tuning over 100 retraining epochs. This ensures that each classifier achieves an accuracy of over 0.99 during training. We then select in-distribution data from the test dataset—specifically, data that corresponds to classes previously encountered during training—and assess the concept classification accuracy across all concepts. 
+ 
+ 
+ We conduct the experiments with the Drebin dataset, and as in  Table 9 , the results reveal that our method achieves near-perfect accuracy on the non-drifting test dataset, approaching 100 % 100\% . This represents a significant 93.9 % 93.9\% improvement over the baseline across all models, indicating strong stability on in-distribution data.
+However, we observed a stark decrease in concept accuracy on out-of-distribution data, with average accuracies around 66 % 66\% for both the baseline and our method.
+Interestingly, the baseline shows a slight improvement in this context, possibly due to its conservative nature, leading to more frequent negative outputs.
+These observations emphasize the necessity of updating both the detector and classifier during updating, a key aspect of our drift adaptor’s design. 
+ 
+ 
+ 
+ 
+ Hold-out 
+ 
+ 
+ Baseline 
+ 
+ 
+ 
+ Ours 
+ 
+ Imp. 
+ 
+ FakeInstaller 
+ 
+ 
+ 0.472 
+ 
+ 
+ 
+ 0.999 
+ 
+ 111.8% 
+ 
+ DroidKungFu 
+ 
+ 
+ 0.496 
+ 
+ 
+ 
+ 1.000 
+ 
+ 101.8% 
+ 
+ Plankton 
+ 
+ 
+ 0.516 
+ 
+ 
+ 
+ 1.000 
+ 
+ 93.9% 
+ 
+ GingerMaster 
+ 
+ 
+ 0.526 
+ 
+ 
+ 
+ 1.000 
+ 
+ 90.2% 
+ 
+ BaseBridge 
+ 
+ 
+ 0.527 
+ 
+ 
+ 
+ 1.000 
+ 
+ 89.8% 
+ 
+ Iconosys 
+ 
+ 
+ 0.532 
+ 
+ 
+ 
+ 1.000 
+ 
+ 87.9% 
+ 
+ Kmin 
+ 
+ 
+ 0.532 
+ 
+ 
+ 
+ 1.000 
+ 
+ 87.8% 
+ 
+ FakeDoc 
+ 
+ 
+ 0.532 
+ 
+ 
+ 
+ 1.000 
+ 
+ 87.8% 
+ 
+ Table 9. Concept classification accuracy for ID test data. 
+ 
+ 
+ 
+ 
+ Explainer 
+ 
+ 
+ CBP 
+ 
+ 
+ 
+ DRR 
+ 
+ 
+ Random 
+ 
+ 
+ 0.017 ± 0.031 
+ 
+ 
+ 
+ 0.023 ± 0.009 
+ 
+ 
+ Dri-IG 
+ 
+ 
+ 0.228 ± 0.103 
+ 
+ 
+ 
+ 0.355 ± 0.337 
+ 
+ 
+ CADE 
+ 
+ 
+ 0.173 ± 0.112 
+ 
+ 
+ 
+ 0.974 ± 0.009 
+ 
+ 
+ Dream 
+ 
+ 
+ 0.331 ± 0.197 
+ 
+ 
+ 
+ 0.974 ± 0.009 
+ 
+ 
+ Table 10. Evaluation of feature-level explanations. 
+ 
+ 
+ 
+ Appendix F Baselines from Existing Work 
+
+ 
+ Advancements in drift detection and adaptation techniques are crucial for combating malware drifts effectively.
+Focusing on these aspects, three notable studies have contributed significantly to the field.
+As outlined in Table 1 , we discuss their methodologies and comparative research focuses below, leaving technical details of their detectors in  Appendix H . 
+ 
+ 
+ Transcendent. 
+Transcendent  ( Barbero et al., 2022 ) innovates the conformal prediction-based drift detection by introducing novel conformal evaluators that refine the calibration process.
+Compared to its predecessor  ( Jordaney et al., 2017 ) , this refinement allows for a much more efficient calculation of p-values, concurrently enhancing drift detection accuracy.
+This method does not introduce a new detection model and can be generally applied to different types of drift and classifier architectures.
+However, it relies on statistical analysis with frequent retraining of the classifier (which can be time-consuming for complex classifiers) and its drift adaptation is conservative as it simply rejects drift samples. 
+ 
+ 
+ CADE. 
+Contrastive learning is introduced to the nonconformity scoring based drift detection by CADE  ( Yang et al., 2021a ) .
+It trains an unsupervised autoencoder to create a latent space for measuring distances, and the nonconformity for a test sample is the minimum distance to the multi-class centroids of training data.
+This work also pioneers in drift explanation by connecting drift detection decisions to important features, but it does not address how explanations integrate into the updating process of the classifier  ( Roberts et al., 2018 ; Teso and Kersting, 2019 ) .
+For adaptation, it simply applies retraining and is limited to intra-class scenarios. 
+ 
+ 
+ HCC. 
+Hierarchical Contrastive Classifier (HCC) presents a novel malware classifier by implementing a dual subnetwork architecture  ( Chen et al., 2023a ) .
+The first subnetwork leverages contrastive learning to generate embeddings, which are then utilized by the second for malware detection.
+HCC integrates active learning and improves CADE in intra-class scenarios.
+Specifically, it customizes intra-class by infusing a hierarchical design in the contrastive loss  ( Zhang et al., 2022 ) and defining a pseudo loss to capture model uncertainty with training data.
+Nevertheless, a notable feature of the HCC detector is its inherent design, which can pose challenges in adapting off-the-shelf classifiers. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Feature 
+ 
+ #N 
+ Drebin 
+ MalRadar 
+ 
+ 
+ 
+ 
+ Trans. 
+ 
+ 
+ 
+ CADE 
+ 
+ 
+ 
+ Prob. 
+ 
+ 
+ 
+ CRD 
+ 
+ 
+ 
+ Trans. 
+ 
+ 
+ 
+ CADE 
+ 
+ 
+ 
+ Prob. 
+ 
+ 
+ 
+ CRD 
+ 
+ 
+ 
+ 
+ Drebin 
+ 
+ 10 
+ 
+ 
+ 2.0 
+ 
+ 
+ 
+ 9.3 
+ 
+ 
+ 
+ 9.9 
+ 
+ 
+ 
+ 9.6 
+ 
+ 
+ 
+ 5.0 
+ 
+ 
+ 
+ 6.8 
+ 
+ 
+ 
+ 7.9 
+ 
+ 
+ 
+ 8.4 
+ 
+ 
+ 
+ 20 
+ 
+ 
+ 5.8 
+ 
+ 
+ 
+ 19.0 
+ 
+ 
+ 
+ 19.4 
+ 
+ 
+ 
+ 19.0 
+ 
+ 
+ 
+ 11.8 
+ 
+ 
+ 
+ 15.9 
+ 
+ 
+ 
+ 16.4 
+ 
+ 
+ 
+ 17.9 
+ 
+ 
+ 
+ 30 
+ 
+ 
+ 9.5 
+ 
+ 
+ 
+ 28.9 
+ 
+ 
+ 
+ 29.4 
+ 
+ 
+ 
+ 29.0 
+ 
+ 
+ 
+ 21.8 
+ 
+ 
+ 
+ 25.8 
+ 
+ 
+ 
+ 24.9 
+ 
+ 
+ 
+ 27.6 
+ 
+ 
+ 
+ 40 
+ 
+ 
+ 13.8 
+ 
+ 
+ 
+ 38.8 
+ 
+ 
+ 
+ 39.4 
+ 
+ 
+ 
+ 39.0 
+ 
+ 
+ 
+ 31.8 
+ 
+ 
+ 
+ 35.6 
+ 
+ 
+ 
+ 33.5 
+ 
+ 
+ 
+ 37.5 
+ 
+ 
+ 
+ 100 
+ 
+ 
+ 44.4 
+ 
+ 
+ 
+ 98.5 
+ 
+ 
+ 
+ 98.3 
+ 
+ 
+ 
+ 97.9 
+ 
+ 
+ 
+ 91.8 
+ 
+ 
+ 
+ 94.6 
+ 
+ 
+ 
+ 80.3 
+ 
+ 
+ 
+ 96.3 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Mama- 
+ 
+ droid 
+ 
+ 
+ 10 
+ 
+ 
+ 8.6 
+ 
+ 
+ 
+ 5.6 
+ 
+ 
+ 
+ 6.8 
+ 
+ 
+ 
+ 5.6 
+ 
+ 
+ 
+ 4.4 
+ 
+ 
+ 
+ 0.5 
+ 
+ 
+ 
+ 4.8 
+ 
+ 
+ 
+ 4.9 
+ 
+ 
+ 
+ 20 
+ 
+ 
+ 17.4 
+ 
+ 
+ 
+ 9.3 
+ 
+ 
+ 
+ 14.8 
+ 
+ 
+ 
+ 12.5 
+ 
+ 
+ 
+ 8.9 
+ 
+ 
+ 
+ 3.8 
+ 
+ 
+ 
+ 11.9 
+ 
+ 
+ 
+ 10.0 
+ 
+ 
+ 
+ 30 
+ 
+ 
+ 24.0 
+ 
+ 
+ 
+ 12.9 
+ 
+ 
+ 
+ 23.0 
+ 
+ 
+ 
+ 20.9 
+ 
+ 
+ 
+ 14.1 
+ 
+ 
+ 
+ 10.0 
+ 
+ 
+ 
+ 18.8 
+ 
+ 
+ 
+ 15.3 
+ 
+ 
+ 
+ 40 
+ 
+ 
+ 30.3 
+ 
+ 
+ 
+ 17.9 
+ 
+ 
+ 
+ 31.1 
+ 
+ 
+ 
+ 28.5 
+ 
+ 
+ 
+ 20.9 
+ 
+ 
+ 
+ 17.6 
+ 
+ 
+ 
+ 25.8 
+ 
+ 
+ 
+ 21.9 
+ 
+ 
+ 
+ 100 
+ 
+ 
+ 70.4 
+ 
+ 
+ 
+ 46.5 
+ 
+ 
+ 
+ 78.0 
+ 
+ 
+ 
+ 79.5 
+ 
+ 
+ 
+ 62.4 
+ 
+ 
+ 
+ 68.4 
+ 
+ 
+ 
+ 71.9 
+ 
+ 
+ 
+ 68.3 
+ 
+ 
+ 
+ 
+ Damd 
+ 
+ 10 
+ 
+ 
+ 7.0 
+ 
+ 
+ 
+ 3.8 
+ 
+ 
+ 
+ 7.8 
+ 
+ 
+ 
+ 8.1 
+ 
+ 
+ 
+ 4.1 
+ 
+ 
+ 
+ 2.1 
+ 
+ 
+ 
+ 5.4 
+ 
+ 
+ 
+ 5.6 
+ 
+ 
+ 
+ 20 
+ 
+ 
+ 13.9 
+ 
+ 
+ 
+ 6.1 
+ 
+ 
+ 
+ 14.9 
+ 
+ 
+ 
+ 15.1 
+ 
+ 
+ 
+ 10.4 
+ 
+ 
+ 
+ 7.1 
+ 
+ 
+ 
+ 14.8 
+ 
+ 
+ 
+ 14.6 
+ 
+ 
+ 
+ 30 
+ 
+ 
+ 20.8 
+ 
+ 
+ 
+ 10.3 
+ 
+ 
+ 
+ 21.1 
+ 
+ 
+ 
+ 20.5 
+ 
+ 
+ 
+ 17.5 
+ 
+ 
+ 
+ 11.6 
+ 
+ 
+ 
+ 24.1 
+ 
+ 
+ 
+ 24.1 
+ 
+ 
+ 
+ 40 
+ 
+ 
+ 27.8 
+ 
+ 
+ 
+ 13.4 
+ 
+ 
+ 
+ 28.5 
+ 
+ 
+ 
+ 26.1 
+ 
+ 
+ 
+ 24.6 
+ 
+ 
+ 
+ 16.9 
+ 
+ 
+ 
+ 32.2 
+ 
+ 
+ 
+ 31.9 
+ 
+ 
+ 
+ 100 
+ 
+ 
+ 68.6 
+ 
+ 
+ 
+ 27.0 
+ 
+ 
+ 
+ 68.4 
+ 
+ 
+ 
+ 74.1 
+ 
+ 
+ 
+ 71.5 
+ 
+ 
+ 
+ 56.5 
+ 
+ 
+ 
+ 84.5 
+ 
+ 
+ 
+ 84.0 
+ 
+ 
+ 
+ Table 11. Number of test samples correctly identified and used for adaptation. Numbers in bold indicate the highest counts. Cells in grey indicate that the detector achieves the highest F1-score paired with the baseline adaptor. 
+ 
+ 
+ 
+ Appendix G Formalization 
+
+ 
+ Notations. 
+We define an input instance 𝐱 \mathbf{x} as an element of the feature space 𝒳 ⊆ ℝ p × q \mathcal{X}\subseteq\mathbb{R}^{p\times q} , where p p and q q represent dimensions pertinent to the attributes of the data.
+The label for any instance 𝐱 \mathbf{x} is represented by y y , where y y belongs to the label space 𝒴 \mathcal{Y} .
+The space 𝒴 \mathcal{Y} can be binary, for instance, { 0 , 1 } \{0,1\} for malware detection tasks, or a finite set for malware classification, such as { 1 , 2 , … , C } \{1,2,\ldots,C\} , with C C being the number of malware families.
+We consider two primary data partitions: the training dataset 𝒟 train \mathcal{D}_{\text{train}} used to train the predictive classifier, and the test dataset 𝒟 test \mathcal{D}_{\text{test}} , employed for drift assessment.
+The classifier
+ 𝐌 \mathbf{M} functionally maps the feature space to the probability space over the labels, formalized as 𝐌 : 𝒳 → 𝒫 ⁡ ( 𝒴 ) \mathbf{M}:\mathcal{X}\rightarrow\mathcal{P}(\mathcal{Y}) , and the predicted label y ^ \hat{y} for an instance 𝐱 \mathbf{x} is the class with the highest probability, i.e., y ^ = argmax y ∈ 𝒴 𝐌 ​ ( 𝐱 ) ​ [ y ] \hat{y}=\argmax_{y\in\mathcal{Y}}\mathbf{M}(\mathbf{x})[y] . 
+ 
+ 1 
+ Drift Detector. 
+The drift detector, denoted by 𝐃 \mathbf{D} , is tasked with quantifying the extent of drift in the test dataset 𝒟 test \mathcal{D}_{\text{test}} , with respect to the model 𝐌 \mathbf{M} trained on 𝒟 train \mathcal{D}_{\text{train}} .
+The detection process utilizes two main functions, i.e., uncertainty estimation function u ​ n ​ c : 𝒳 × 𝐌 → ℝ unc:\mathcal{X}\times\mathbf{M}\rightarrow\mathbb{R} and nonconformity scoring function n ​ c ​ m : 𝒳 × 𝒴 × 𝒟 train → ℝ ncm:\mathcal{X}\times\mathcal{Y}\times\mathcal{D}_{\text{train}}\rightarrow\mathbb{R} . 
+ 
+ 
+ The function u ​ n ​ c ​ ( 𝐱 , 𝐌 ) unc(\mathbf{x};\mathbf{M}) represents the uncertainty estimation associated with 𝐌 \mathbf{M} for an input instance 𝐱 \mathbf{x} , outputting an uncertainty metric to reflect the confidence of the predictive model.
+Concurrently, the nonconformity scoring function n ​ c ​ m ​ ( 𝐱 , y ^ , 𝒟 train ) = d ​ i ​ s ​ ( 𝐱 , s ​ e ​ l ​ ( y ^ , 𝒟 train ) ) ncm(\mathbf{x},\hat{y};\mathcal{D}_{\text{train}})=dis(\mathbf{x},sel(\hat{y},\mathcal{D}_{\text{train}})) , which employs a specific distance measure to evaluate how much a new observation ( 𝐱 , y ^ ) (\mathbf{x},\hat{y}) deviates from the calibration data selected from 𝒟 train \mathcal{D}_{\text{train}} . Integrating these two measures, the drift detector 𝐃 \mathbf{D} is defined by the following operation: 
+ 
+
+ 
+ (10) 
+ 
+ 𝐃 ⁡ ( 𝐱 , 𝐌 , 𝒟 train ) := a ​ g ​ g ​ ( u ​ n ​ c ​ ( 𝐱 , 𝐌 ) , n ​ c ​ m ​ ( 𝐱 , y ^ , 𝒟 train ) ) , \mathbf{D}(\mathbf{x};\mathbf{M},\mathcal{D}_{\text{train}}):=agg(unc(\mathbf{x};\mathbf{M}),ncm(\mathbf{x},\hat{y};\mathcal{D}_{\text{train}})), 
+ 
+ 
+ where a ​ g ​ g agg is a fusion function that combines the uncertainty and nonconformity scores into a singular drift metric.
+A higher output from 𝐃 \mathbf{D} indicates a more pronounced drift, signaling the potential necessity for model adaptation. 
+ 
+ 2 
+ Drift Explainer. 
+The drift explainer, denoted by 𝐄 \mathbf{E} , elucidates the features that contribute to the transition from in-distribution (ID) data to out-of-distribution (OOD) data.
+For a given drifting sample 𝐱 drift \mathbf{x}_{\text{drift}} , the drift explainer seeks to learn a binary feature importance mask 𝐦 ∈ { 0 , 1 } m × n \mathbf{m}\in\{0,1\}^{m\times n} . 
+ 
+ 
+ This involves a perturbation function, p ​ e ​ r : ( 𝐱 , 𝐦 ) ↦ 𝐱 ′ per:(\mathbf{x},\mathbf{m})\mapsto\mathbf{x}^{\prime} , that applies the mask 𝐦 \mathbf{m} to the sample 𝐱 drift \mathbf{x}_{\text{drift}} , resulting in the perturbed sample 𝐱 drift ′ \mathbf{x}_{\text{drift}}^{\prime} ; a deviation function d ​ e ​ v : ( 𝐱 ′ , 𝒟 ) ↦ ℝ dev:(\mathbf{x}^{\prime},\mathcal{D})\mapsto\mathbb{R} that quantifies the discrepancy between 𝐱 drift ′ \mathbf{x}_{\text{drift}}^{\prime} and the training data distribution 𝒟 train \mathcal{D}_{\text{train}} .
+The optimization task is defined as: 
+ 
+
+ 
+ (11) 
+ 
+ min 𝐦 ⁡ { d ​ e ​ v ​ ( p ​ e ​ r ​ ( 𝐱 drift , 𝐦 ) , 𝒟 train ) + α s ​ r ​ e ​ g ​ ( 𝐦 ) } . \min_{\mathbf{m}}\left\{dev(per(\mathbf{x}_{\text{drift}},\mathbf{m}),\mathcal{D}_{\text{train}})+\alpha_{s}reg(\mathbf{m})\right\}. 
+ 
+ 
+ In this formulation, α s \alpha_{s} represents the regularization parameter promoting sparsity in the binary mask 𝐦 \mathbf{m} . The regularization function r ​ e ​ g reg might implement sparsity-inducing techniques such as the L1 norm or elastic-net  ( Zou and Hastie, 2005 ) .
+The primary aim of this optimization is to minimize the deviation metric, ensuring that the positive values in the resulting mask 𝐦 \mathbf{m} pinpoint the features driving the concept drift. 
+ 
+ 3 
+ Drift Adaptor. 
+The drift adaptor, denoted as 𝐀 \mathbf{A} , integrates the newly annotated data into the model updating process.
+It can be conceptualized as a function 
+ 
+
+ 
+ (12) 
+ 
+ 𝐀 : ( 𝐱 drift , l new , 𝒟 train , 𝐌 ) ↦ 𝐌 ′ \mathbf{A}:(\mathbf{x}_{\text{drift}},l_{\text{new}},\mathcal{D}_{\text{train}},\mathbf{M})\mapsto\mathbf{M}^{\prime} 
+ 
+ 
+ that takes the new labels from the human annotator l new := 𝐇 ⁡ ( 𝐱 drift ) l_{\text{new}}:=\mathbf{H}(\mathbf{x}_{\text{drift}}) , the original training dataset 𝒟 train \mathcal{D}_{\text{train}} , and the current model 𝐌 \mathbf{M} , to update the model. 
+ 
+ 
+ In this process, the annotated samples ( 𝐱 drift , l new ) (\mathbf{x}_{\text{drift}},l_{\text{new}}) are incorporated into the training dataset, resulting in an expanded dataset 𝒟 train ′ \mathcal{D}_{\text{train}}^{\prime} .
+Then, the model 𝐌 \mathbf{M} is retrained using this updated dataset, yielding an adapted model 𝐌 ′ \mathbf{M}^{\prime} .
+Specifically, in the scenario of inter-class drift, the role of 𝐀 \mathbf{A} extends to updating the original label set 𝒴 \mathcal{Y} , accommodating new malware classes. This necessitates a modification in the model’s output layer to align with the updated label set 𝒴 ′ \mathcal{Y}^{\prime} before retraining. 
+ 
+ 
+ 
+ Appendix H Characterizing Current Drift Detectors 
+
+ 
+ Current research in malware concept drift has predominantly concentrated on the development of effective detectors.
+In this section, we examine these detectors through the lens of our proposed formalization, categorizing them based on: 
+ 
+ • 
+ 
+ Model sensitivity: the alignment of the drift detector with the specific characteristics of the classifier, which can lead to a more precise response to model-specific drifts. 
+ 
+ • 
+ 
+ Data autonomy: the detector’s capability to operate independently of the training data during its operational phase, indicating adaptability and efficiency. 
+ 
+ 
+ For DNNs, a straightforward uncertainty measurement ( u ​ n ​ c unc ) is probability-based, typically using the negated maximum softmax output: 
+ 
+
+ 
+ (13) 
+ 
+ u 0 ​ ( 𝐱 , 𝐌 ) := − max y ∈ 𝒴 ⁡ 𝐌 ⁡ ( 𝐱 ) ​ [ y ] . u_{0}(\mathbf{x};\mathbf{M}):=-\max_{y\in\mathcal{Y}}\mathbf{M}(\mathbf{x})[y]. 
+ 
+ 
+ In model-sensitive drift detectors, this uncertainty measure is incorporated into the drift scoring function using various approaches.
+The design of the nonconformity score ( n ​ c ​ m ncm ) in current detectors all involves the utilization of the classifier’s training data during the testing phase.
+This includes comparing specific uncertainty values, establishing class centroids, or identifying the nearest neighbors in the latent space. 
+ 
+ 
+ Transcendent Detector. 
+In Transcendent’s drift detection approach, the nonconformity scoring ( n ​ c ​ m ncm ) is implemented using p-values ( d ​ i ​ s dis ) through a k-fold cross validation  ( Vovk, 2015 ) approach ( s ​ e ​ l sel )  4 4 
+ 4 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ The cross-conformal evaluator has the best performance within Transcendent, and we follow  ( Chen et al., 2023a ) to use this configuration for consistent application. .
+For a test instance 𝐱 \mathbf{x} , the p-value in a given fold is defined as the proportion of instances in the calibration set, which are predicted to be in the same class as 𝐱 \mathbf{x} and have an uncertainty score at least as high as it:
+ | { α ∈ 𝒞 i ​ [ y ^ i ] : u 0 ​ ( α , 𝐌 i ) ≥ u 0 ​ ( 𝐱 , 𝐌 i ) } | | 𝒞 i ​ [ y ^ i ] | \frac{|\{\alpha\in\mathcal{C}_{i}[\hat{y}_{i}]:u_{0}(\alpha;\mathbf{M}_{i})\geq u_{0}(\mathbf{x};\mathbf{M}_{i})\}|}{|\mathcal{C}_{i}[\hat{y}_{i}]|} .
+Here, 𝒞 i ⊂ 𝒟 train \mathcal{C}_{i}\subset\mathcal{D}_{\text{train}} is the calibration set for the i i -th fold in the k-fold partitioning, and 𝐌 i \mathbf{M}_{i} is the model retrained on the remaining training data 𝒟 train ∖ 𝒞 i \mathcal{D}_{\text{train}}\setminus\mathcal{C}_{i} .
+The function u 0 u_{0} measures the model uncertainty of 𝐌 i \mathbf{M}_{i} for both the test instance 𝐱 \mathbf{x} and each calibration instance in the class y ^ i = 𝐌 i ​ ( 𝐱 ) \hat{y}_{i}=\mathbf{M}_{i}(\mathbf{x}) .
+In this case, the function a ​ g ​ g agg initially combines u ​ n ​ c unc implicitly in n ​ c ​ m ncm within each fold, and then aggregates these results across all folds with a median-like approach. 
+ 
+ 
+ This method is characterized as semi model-sensitive as it involves retraining models 𝐌 i \mathbf{M}_{i} for each fold, instead of directly using the original classifier 𝐌 \mathbf{M} .
+It is highly dependent on the entire training dataset, as the test uncertainties are compared with each specific training point during calibrations. 
+ 
+ 
+ CADE Detector. 
+The CADE detector’s innovation lies in its distance function ( d ​ i ​ s dis ), leveraging an autoencoder to map data from 𝒳 \mathcal{X} into a latent space 𝒵 \mathcal{Z} where inter-class relationships are captured.
+In this space, the selection function ( s ​ e ​ l sel ) identifies class centroids as the average of latent vectors for each class: 𝐜 y = 𝔼 ⁡ ( 𝒵 train ​ [ y ] ) \mathbf{c}_{y}=\mathbb{E}(\mathcal{Z}_{\text{train}}[y]) . The nonconformity measure ( n ​ c ​ m ncm ) for a test instance 𝐱 \mathbf{x} is then the minimum Euclidean distance from its latent representation 𝐳 ∈ 𝒵 \mathbf{z}\in\mathcal{Z} to these class centroids { 𝐜 y ; y ∈ 𝒴 } \{\mathbf{c}_{y};y\in\mathcal{Y}\} .
+The autoencoder is trained with two loss items: the reconstruction loss to ensure the preservation of data integrity during encoding and decoding: 
+ 
+
+ 
+ (14) 
+ 
+ ℒ rec = 𝔼 𝐱 ​ ‖ 𝐱 − 𝐱 ^ ‖ 2 2 , \mathcal{L}_{\text{rec}}=\mathbb{E}_{\mathbf{x}}\|\mathbf{x}-\hat{\mathbf{x}}\|_{2}^{2}, 
+ 
+ 
+ and the contrastive loss that minimizes distances between instances of the same class and enforces a margin m m between those of different classes: 
+ 
+
+ 
+ (15) 
+ 
+ ℒ sep = 𝔼 𝐱 i , 𝐱 j [ 𝕀 y i = y j d i ​ j 2 + ∼ 𝕀 y i = y j max ( 0 , m − d i ​ j ) 2 ] , \mathcal{L}_{\text{sep}}=\mathbb{E}_{\mathbf{x}_{i},\mathbf{x}_{j}}\left[\mathbb{I}_{y_{i}=y_{j}}d_{ij}^{2}+\sim\mathbb{I}_{y_{i}=y_{j}}\max(0,m-d_{ij})^{2}\right], 
+ 
+ 
+ where d i ​ j = ‖ 𝐳 i − 𝐳 j ‖ 2 d_{ij}=\|\mathbf{z}_{i}-\mathbf{z}_{j}\|_{2} is the Euclidean distance between two latent representations, 𝕀 y i = y j \mathbb{I}_{y_{i}=y_{j}} is the binary indicator that equals 1 1 for same-class pairs and 0 0 for different-class pairs. 
+ 
+ 
+ The CADE detector functions independently of the classifier, with both u ​ n ​ c unc and a ​ g ​ g agg not explicitly defined, resulting in a lack of model sensitivity.
+This aspect may be problematic in situations where model-specific drift detection is crucial for maintaining accuracy.
+On another note, this method is semi-independent of training data, which enhances the efficiency by relying on class centroids for drift detection rather than the entire dataset. 
+ 
+ 
+ HCC Detector. 
+Adapting the HCC detector for model-agnostic applications, the learning mechanism for the distance function ( d ​ i ​ s dis ) closely resembles that of the CADE detector, except that: 1) the autoencoder’s decoder is replaced with a surrogate classifier 𝐌 s \mathbf{M}_{s} operating in the latent space; 2) the reconstruction loss is replaced with the binary cross-entropy loss ℒ ce \mathcal{L}_{\text{ce}} of the surrogate classifier and the contrastive loss is adapted to a hierarchical form ℒ hc \mathcal{L}_{\text{hc}} , specific to intra-class drifts.
+For the selection function ( s ​ e ​ l sel ), the HCC detector employs a nearest neighbor search in the training data.
+The final drifting score is calculated with a novel method, named pseudo loss, that uses the prediction label as the pseudo label for each test sample to calculate the losses: 
+ 
+
+ 
+ (16) 
+ 
+ 𝐃 HCC ​ ( 𝐱 , 𝒟 train ) = ℒ ^ ce ​ ( 𝐱 , 𝐌 s ) + β ​ ℒ ^ hc ​ ( 𝐱 , 𝐱 j , 𝐱 j ∈ 𝒩 ⁡ ( 𝐱 ) ) , \mathbf{D}_{\text{HCC}}(\mathbf{x};\mathcal{D}_{\text{train}})=\hat{\mathcal{L}}_{\text{ce}}(\mathbf{x};\mathbf{M}_{s})+\beta\hat{\mathcal{L}}_{\text{hc}}(\mathbf{x},\mathbf{x}_{j};\mathbf{x}_{j}\in\mathcal{N}(\mathbf{x})), 
+ 
+ 
+ where 𝒩 ⁡ ( 𝐱 ) ⊆ 𝒟 train \mathcal{N}(\mathbf{x})\subseteq\mathcal{D}_{\text{train}} is the set of nearest neighbors of 𝐱 \mathbf{x} in the latent space. The first item can be interpreted as a variation of u 0 ​ ( 𝐱 , 𝐌 s ) u_{0}(\mathbf{x};\mathbf{M}_{s}) since the cross-entropy is also probability-based, and the second item is an implementation of n ​ c ​ m ncm restricted by class separation. Therefore, the a ​ g ​ g agg in this context is a weighted sum, with the weight given by the scalar β \beta . 
+ 
+ 
+ In this adapted context, the HCC detector exhibits semi model sensitive as it depends on the u ​ n ​ c unc derived from the surrogate classifier 𝐌 s \mathbf{M}_{s} .
+Additionally, its operation is characterized by a reliance on the entire training dataset for identifying nearest neighbors. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 2016 
+ 
+ 
+ 
+ 2017 
+ 
+ 
+ 
+ 2018 
+ 
+ 
+ 
+ 2019 
+ 
+ 
+ 
+ 2020 
+ 
+ 
+ 
+ Avg. 
+ 
+ 
+ 
+ 
+ Prob. 
+ 
+ 
+ 
+ 0.631 
+ 
+ 
+ 
+ 0.646 
+ 
+ 
+ 
+ 0.600 
+ 
+ 
+ 
+ 0.696 
+ 
+ 
+ 
+ 0.662 
+ 
+ 
+ 
+ 0.647 
+ 
+ 
+ 
+ 
+ Trans. 
+ 
+ 
+ 
+ 0.733 
+ 
+ 
+ 
+ 0.674 
+ 
+ 
+ 
+ 0.587 
+ 
+ 
+ 
+ 0.708 
+ 
+ 
+ 
+ 0.599 
+ 
+ 
+ 
+ 0.660 
+ 
+ 
+ 
+ 
+ CADE 
+ 
+ 
+ 
+ 0.721 
+ 
+ 
+ 
+ 0.686 
+ 
+ 
+ 
+ 0.739 
+ 
+ 
+ 
+ 0.594 
+ 
+ 
+ 
+ 0.487 
+ 
+ 
+ 
+ 0.645 
+ 
+ 
+ 
+ 
+ HCC 
+ 
+ 
+ 
+ 0.708 
+ 
+ 
+ 
+ 0.649 
+ 
+ 
+ 
+ 0.605 
+ 
+ 
+ 
+ 0.719 
+ 
+ 
+ 
+ 0.654 
+ 
+ 
+ 
+ 0.667 
+ 
+ 
+ 
+ 
+ HCC ce \text{HCC}_{\text{ce}} 
+ 
+ 
+ 
+ 0.711 
+ 
+ 
+ 
+ 0.649 
+ 
+ 
+ 
+ 0.606 
+ 
+ 
+ 
+ 0.719 
+ 
+ 
+ 
+ 0.655 
+ 
+ 
+ 
+ 0.668 
+ 
+ 
+ 
+ 
+ HCC hc \text{HCC}_{\text{hc}} 
+ 
+ 
+ 
+ 0.581 
+ 
+ 
+ 
+ 0.609 
+ 
+ 
+ 
+ 0.592 
+ 
+ 
+ 
+ 0.678 
+ 
+ 
+ 
+ 0.657 
+ 
+ 
+ 
+ 0.623 
+ 
+ 
+ Table 12. Intra-class drift detection performance of existing works. For the state-of-the-art method HCC, we also make a separate study of the two items in its drift scoring function. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 2016 
+ 
+ 
+ 
+ 2017 
+ 
+ 
+ 
+ 2018 
+ 
+ 
+ 
+ 2019 
+ 
+ 
+ 
+ 2020 
+ 
+ 
+ 
+ Avg. 
+ 
+ 
+ NCE 
+ 
+ 
+ 0.734 
+ ↑ \uparrow 3.28 3.28 % 
+ 
+ 
+ 
+ 0.702 
+ ↑ \uparrow 8.18 8.18 % 
+ 
+ 
+ 
+ 0.727 
+ ↑ \uparrow 20.04 20.04 % 
+ 
+ 
+ 
+ 0.733 
+ ↑ \uparrow 1.85 1.85 % 
+ 
+ 
+ 
+ 0.648 
+ 
+ ↓ \downarrow 1.04 1.04 % 
+ 
+ 
+ 
+ 0.709 
+ ↑ \uparrow 6.11 6.11 % 
+ 
+ 
+ Table 13. The detection AUC of the proposed NCE compared with the original ce-based detector in HCC. 
+ 
+ 
+ 
+ Appendix I Lessons from Current Detectors 
+
+ 
+ Despite the introduction of methods for drift detection in existing research, a comprehensive comparison focusing exclusively on their drift detection performance remains absent.
+This shortfall leads to a gap in understanding the true effectiveness of these methods under different conditions.
+Notably, the most recent work HCC has been recognized for its effectiveness in updating malware detection classifiers.
+This method is exclusively applicable to intra-class drifts.
+To address the gap, our study begins by examining the problem within an intra-class scenario.
+In the following, we establish a methodology for evaluating intra-class drift detection performance and provide several insights. 
+ 
+ 
+ Evaluation Method. 
+For malware detection tasks, we leverage malware samples from the Malradar dataset  ( Wang et al., 2022 ) , which covers 4,410 malware across 180 families including singletons.
+Moreover, we make efforts to collect 43,641 benign samples in the same year period from 2015 to 2020. Our dataset has been carefully designed to mitigate spatial bias and temporal bias  ( Pendlebury et al., 2019 ) .
+For the classifier, we use the Drebin features and an MLP model (detailed in Section 5.1 ).
+Regarding baselines, we take into account the vanilla probability-based detector (as depicted in  Equation 13 ) and the three innovative detectors formalized in  Appendix   H .
+During the evaluation phase, we assign positive drift labels to samples where predictions are incorrect, following the rationale that these misclassified samples are particularly valuable for adapting the classifier. This approach differs from inter-class drift detection evaluation, where positive drift labels are typically assigned based on the presence of unseen families, as utilized in existing work  ( Yang et al., 2021a ) .
+Then we compute the AUC metric using drifting scores and the ground truth drift labels. 
+ 
+ 
+ Key Findings. Our evaluation results are shown in  Table 12 , from which we have identified four key findings.
+1) The performance order in our experiments, i.e., HCC, Transcendent, and Probability all outperforming CADE, highlights the essential role of model sensitivity in effective drift detection.
+2) Although CADE is not specifically tailored for intra-class drift, its superior performance in a non-model sensitive comparison with the HCC h ​ c \text{HCC}_{hc} indicates the potential advantages of data autonomy and its autoencoder-based structure .
+3) HCC surpassing Transcendent in performance indicates that learning a distance metric , rather than relying on calibration, can be more effective in complex models like DNNs.
+4) The performance decline over time, particularly noticeable in the CADE method, suggests that continuous adaptation might be necessary not just for classifiers, but also for detection models. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ Experimental support, please
+ view the build logs 
+ for errors. Generated by
+ 
+ 
+ L
+ A 
+ T
+ E 
+ 
+ xml 
+ 
+ .
+ 
+ 
+ Instructions for reporting errors 
+ We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below: 
+ 
+ Click the "Report Issue" ( 
+ 
+ ) button, located in the page header. 
+ 
+ Tip: You can select the relevant text first, to include it in your report. 
+ Our team has already identified the following issues . We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all. 
+ Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion , and welcome developer contributions . 
+ 
+ 
+ 
+ 
+ 
+ We gratefully acknowledge support from
+ our major funders ,
+ member institutions , ,
+ and all contributors.
+ 
+ 
+ About 
+ · 
+ Help 
+ · 
+ Contact 
+ · 
+ Subscribe 
+ · 
+ Copyright 
+ · 
+ Privacy 
+ · 
+ Accessibility 
+ · 
+ Operational Status (opens in new tab) 
+ 
+ 
+
+ 
+ Major funding support from 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
