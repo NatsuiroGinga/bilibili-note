@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="374.173228pt" height="249.448819pt" viewBox="0 0 374.173228 249.448819" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>图3-6-复用倍数与检测能力</title>
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>图3-6-复用倍数与检测能力</dc:title>
+    <dc:date>2026-10-14T18:20:55.766741</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 249.448819 
+L 374.173228 249.448819 
+L 374.173228 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="text_1">
+    <g id="patch_2">
+     <path d="M 160.894488 44.120348 
+L 238.894488 44.120348 
+Q 240.174488 44.120348 240.174488 42.840348 
+L 240.174488 34.488786 
+Q 240.174488 33.208786 238.894488 33.208786 
+L 160.894488 33.208786 
+Q 159.614488 33.208786 159.614488 34.488786 
+L 159.614488 42.840348 
+Q 159.614488 44.120348 160.894488 44.120348 
+z
+" style="fill: #ffffff"/>
+    </g>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #1f1f1f" x="160.894488" y="41.113786" transform="rotate(-0 160.894488 41.113786)">内部最优：复用倍数 4</text>
+   </g>
+   <g id="text_2">
+    <g id="patch_3">
+     <path d="M 261.92126 172.58649 
+L 336.58501 172.58649 
+Q 337.86501 172.58649 337.86501 171.30649 
+L 337.86501 162.954927 
+Q 337.86501 161.674927 336.58501 161.674927 
+L 261.92126 161.674927 
+Q 260.64126 161.674927 260.64126 162.954927 
+L 260.64126 171.30649 
+Q 260.64126 172.58649 261.92126 172.58649 
+z
+" style="fill: #ffffff"/>
+    </g>
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #555555" x="261.92126" y="169.579927" transform="rotate(-0 261.92126 169.579927)">倍数 8 回落至 80.57%</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="patch_4">
+    <path d="M 61.738583 195.817323 
+L 361.077165 195.817323 
+L 361.077165 23.697638 
+L 61.738583 23.697638 
+L 61.738583 195.817323 
+z
+" style="fill: none"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <defs>
+       <path id="mc01d367471" d="M 0 0 
+L 0 2.5 
+" style="stroke: #000000; stroke-width: 0.7"/>
+      </defs>
+      <g>
+       <use xlink:href="#mc01d367471" x="75.435565" y="195.817323" style="stroke: #000000; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="75.435565" y="206.88451" transform="rotate(-0 75.435565 206.88451)">1</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2">
+      <g>
+       <use xlink:href="#mc01d367471" x="165.545457" y="195.817323" style="stroke: #000000; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_4">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="165.545457" y="206.88451" transform="rotate(-0 165.545457 206.88451)">2</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3">
+      <g>
+       <use xlink:href="#mc01d367471" x="255.65535" y="195.817323" style="stroke: #000000; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="255.65535" y="206.88451" transform="rotate(-0 255.65535 206.88451)">4</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_4">
+      <g>
+       <use xlink:href="#mc01d367471" x="345.765242" y="195.817323" style="stroke: #000000; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="345.765242" y="206.837635" transform="rotate(-0 345.765242 206.837635)">8</text>
+     </g>
+    </g>
+    <g id="text_7">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="211.407874" y="218.998573" transform="rotate(-0 211.407874 218.998573)">复用倍数 m（对数刻度）</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_5">
+      <path d="M 61.738583 195.817323 
+L 361.077165 195.817323 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6">
+      <defs>
+       <path id="m301a5e2a49" d="M 0 0 
+L -2.5 0 
+" style="stroke: #000000; stroke-width: 0.7"/>
+      </defs>
+      <g>
+       <use xlink:href="#m301a5e2a49" x="61.738583" y="195.817323" style="stroke: #000000; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_8">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end" x="57.738583" y="199.296229" transform="rotate(-0 57.738583 199.296229)">75</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_7">
+      <path d="M 61.738583 129.617444 
+L 361.077165 129.617444 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8">
+      <g>
+       <use xlink:href="#m301a5e2a49" x="61.738583" y="129.617444" style="stroke: #000000; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_9">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end" x="57.738583" y="133.1276" transform="rotate(-0 57.738583 133.1276)">80</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_9">
+      <path d="M 61.738583 63.417565 
+L 361.077165 63.417565 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10">
+      <g>
+       <use xlink:href="#m301a5e2a49" x="61.738583" y="63.417565" style="stroke: #000000; stroke-width: 0.7"/>
+      </g>
+     </g>
+     <g id="text_10">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end" x="57.738583" y="66.927721" transform="rotate(-0 57.738583 66.927721)">85</text>
+     </g>
+    </g>
+    <g id="text_11">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="44.7962" y="109.75748" transform="rotate(-90 44.7962 109.75748)">跨年平均 F1（%）</text>
+    </g>
+   </g>
+   <g id="line2d_11">
+    <path d="M 75.435565 250.448819 
+L 75.435565 155.454987 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #bfbfbf; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_12">
+    <path d="M 165.545457 250.448819 
+L 165.545457 125.642068 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #bfbfbf; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_13">
+    <path d="M 255.65535 250.448819 
+L 255.65535 66.695036 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #bfbfbf; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_14">
+    <path d="M 345.765242 250.448819 
+L 345.765242 122.012025 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #bfbfbf; stroke-width: 0.5; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 61.738583 195.817323 
+L 61.738583 23.697638 
+" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 61.738583 195.817323 
+L 361.077165 195.817323 
+" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_15">
+    <path d="M 75.435565 155.454987 
+L 165.545457 125.642068 
+L 255.65535 66.695036 
+L 345.765242 122.012025 
+" clip-path="url(#pd352b5ed49)" style="fill: none; stroke: #2f6b9a; stroke-width: 1.4; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_16">
+    <defs>
+     <path id="mbab05f7867" d="M 0 2.2 
+C 0.583447 2.2 1.143076 1.968194 1.555635 1.555635 
+C 1.968194 1.143076 2.2 0.583447 2.2 0 
+C 2.2 -0.583447 1.968194 -1.143076 1.555635 -1.555635 
+C 1.143076 -1.968194 0.583447 -2.2 0 -2.2 
+C -0.583447 -2.2 -1.143076 -1.968194 -1.555635 -1.555635 
+C -1.968194 -1.143076 -2.2 -0.583447 -2.2 0 
+C -2.2 0.583447 -1.968194 1.143076 -1.555635 1.555635 
+C -1.143076 1.968194 -0.583447 2.2 0 2.2 
+z
+" style="stroke: #2f6b9a"/>
+    </defs>
+    <g clip-path="url(#pd352b5ed49)">
+     <use xlink:href="#mbab05f7867" x="75.435565" y="155.454987" style="fill: #ffffff; stroke: #2f6b9a"/>
+     <use xlink:href="#mbab05f7867" x="165.545457" y="125.642068" style="fill: #ffffff; stroke: #2f6b9a"/>
+     <use xlink:href="#mbab05f7867" x="255.65535" y="66.695036" style="fill: #ffffff; stroke: #2f6b9a"/>
+     <use xlink:href="#mbab05f7867" x="345.765242" y="122.012025" style="fill: #ffffff; stroke: #2f6b9a"/>
+    </g>
+   </g>
+   <g id="line2d_17">
+    <defs>
+     <path id="md0c146132f" d="M -0 2.3 
+L 2.3 -2.3 
+L -2.3 -2.3 
+z
+" style="stroke: #1f1f1f; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#pd352b5ed49)">
+     <use xlink:href="#md0c146132f" x="255.65535" y="66.695036" style="fill: #1f1f1f; stroke: #1f1f1f; stroke-linejoin: miter"/>
+    </g>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pd352b5ed49">
+   <rect x="61.738583" y="23.697638" width="299.338583" height="172.119685"/>
+  </clipPath>
+ </defs>
+</svg>

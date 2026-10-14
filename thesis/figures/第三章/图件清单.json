@@ -1,12 +1,13 @@
 {
   "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）",
   "environment": {
-    "generator": "绘制第三章LAMDA机制图.py",
+    "generator": "绘制第三章LAMDA结果图.py",
     "python": "3.12.13",
     "matplotlib": "3.11.1",
     "pillow": "12.3.0",
     "generators": [
-      "绘制第三章LAMDA机制图.py"
+      "绘制第三章LAMDA机制图.py",
+      "绘制第三章LAMDA结果图.py"
     ]
   },
   "typography": {
@@ -44,7 +45,59 @@
         400.0,
         399.8
       ],
-      "evidence_mode": "机制示意图（不承载实验数据）"
+      "evidence_mode": "机制示意图（不承载实验数据）",
+      "data_keys": [
+        "机制示意图，不承载实验数据"
+      ]
+    },
+    {
+      "stem": "图3-10-缺口的两级分解",
+      "caption": "按式 (3-14) 把联合上界与有限容量配置之间的总缺口分解为漂移通道（九年集合）与枯竭通道（三年集合），横轴为缓冲容量档位。漂移通道在容量 50 条处即大幅收窄，枯竭通道收窄缓慢。总缺口为两条通道按 9/12 与 3/12 权重的合成。",
+      "width_mm": 140.0,
+      "height_mm": 92.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-10-缺口的两级分解.svg",
+        "pdf": "图3-10-缺口的两级分解.pdf",
+        "png": "图3-10-缺口的两级分解.png"
+      },
+      "evidence_mode": "权威制品重算（ch3-lamda-domain-il-e4-replication-v1）",
+      "png_pixels": [
+        2204,
+        1448
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.8
+      ],
+      "data_keys": [
+        "metrics_naive.json、metrics_expreplay_m50.json、metrics_expreplay.json、metrics_expreplay_m400.json、metrics_expreplay_m800.json、metrics_expreplay_m18854.json 与 metrics_cumulative.json 的逐测试年 f1",
+        "漂移通道与枯竭通道由 resultdata_lamda.gap_channels_percent 按式 (3-14) 的 9/12 与 3/12 权重重算，并断言与总缺口相等"
+      ]
+    },
+    {
+      "stem": "图3-11-各年度正例率",
+      "caption": "12 个年度训练分片的恶意样本占比（对数纵轴），由各年度测试分片的 n_pos/n 直接给出（3.2.1 规定两个分片类别构成一致）。2023 至 2025 三个年度依次为 14.52%、1.64% 与 0.05%，末期发生先验塌缩。",
+      "width_mm": 150.0,
+      "height_mm": 90.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-11-各年度正例率.svg",
+        "pdf": "图3-11-各年度正例率.pdf",
+        "png": "图3-11-各年度正例率.png"
+      },
+      "evidence_mode": "权威制品重算（ch3-lamda-domain-il-e4-replication-v1）",
+      "png_pixels": [
+        2362,
+        1417
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.9
+      ],
+      "data_keys": [
+        "metrics_naive.json 的 records[experience=2025, mode=backward].n_pos 与其同条的 n，按 test_year 取比值"
+      ]
     },
     {
       "stem": "图3-2-历史权重随复用倍数的变化",
@@ -65,7 +118,10 @@
         399.9,
         399.8
       ],
-      "evidence_mode": "机制示意图（不承载实验数据）"
+      "evidence_mode": "机制示意图（不承载实验数据）",
+      "data_keys": [
+        "机制示意图，不承载实验数据"
+      ]
     },
     {
       "stem": "图3-3-有效适应步长随历史权重的变化",
@@ -86,7 +142,10 @@
         399.9,
         399.8
       ],
-      "evidence_mode": "机制示意图（不承载实验数据）"
+      "evidence_mode": "机制示意图（不承载实验数据）",
+      "data_keys": [
+        "机制示意图，不承载实验数据"
+      ]
     },
     {
       "stem": "图3-4-复用配置的两个相反作用示意",
@@ -107,7 +166,277 @@
         399.9,
         399.9
       ],
-      "evidence_mode": "机制示意图（不承载实验数据）"
+      "evidence_mode": "机制示意图（不承载实验数据）",
+      "data_keys": [
+        "机制示意图，不承载实验数据"
+      ]
+    },
+    {
+      "stem": "图3-5-存储容量与检测能力的关系",
+      "caption": "存储占用（对数刻度）与末年在 12 个测试年度上的平均 F1。实线为样本侧回放缓冲的容量档位 50/200/400/800/18,854 条；空心标记为参数侧三种形态；虚线为朴素更新（存储 0）；星号为联合训练上界。竖细线标出 10.25 MB 处样本侧与参数侧的等预算对照。",
+      "width_mm": 150.0,
+      "height_mm": 92.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-5-存储容量与检测能力的关系.svg",
+        "pdf": "图3-5-存储容量与检测能力的关系.pdf",
+        "png": "图3-5-存储容量与检测能力的关系.png"
+      },
+      "evidence_mode": "权威制品重算（ch3-lamda-domain-il-e4-replication-v1）",
+      "png_pixels": [
+        2362,
+        1448
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.8
+      ],
+      "data_keys": [
+        "样本侧曲线：metrics_expreplay_m50.json、metrics_expreplay.json、metrics_expreplay_m400.json、metrics_expreplay_m800.json、metrics_expreplay_m18854.json 的 records[experience=2025, mode=backward].f1 十二年均值；横轴为 N×4561/8/1024 KiB",
+        "参数侧三点：metrics_freemoca.json、metrics_lwf.json、metrics_ewc.json 同口径均值；横轴为 2,687,293×4/1024 KiB 与其两倍",
+        "朴素端点：metrics_naive.json 同口径均值",
+        "联合上界：metrics_cumulative.json 同口径均值；横轴为 806,700 条样本的缓冲存储"
+      ]
+    },
+    {
+      "stem": "图3-6-复用倍数与检测能力",
+      "caption": "缓冲容量固定 200 条时，复用倍数 1、2、4、8 对应的跨年平均 F1。曲线在倍数 4 处取得内部最优，倍数 8 回落，与 3.5.4 的保持—适应权衡一致。",
+      "width_mm": 132.0,
+      "height_mm": 88.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-6-复用倍数与检测能力.svg",
+        "pdf": "图3-6-复用倍数与检测能力.pdf",
+        "png": "图3-6-复用倍数与检测能力.png"
+      },
+      "evidence_mode": "权威制品重算（ch3-lamda-domain-il-e4-replication-v1）",
+      "png_pixels": [
+        2078,
+        1385
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.8
+      ],
+      "data_keys": [
+        "metrics_expreplay.json（m=1）、metrics_expreplay_m200_r2.json（m=2）、metrics_expreplay_m200_r4.json（m=4）、metrics_expreplay_m200_r8.json（m=8）的 records[experience=2025, mode=backward].f1 十二年均值"
+      ]
+    },
+    {
+      "stem": "图3-7-双机制消融",
+      "caption": "缓冲构成方式（全局蓄水池 / 按年度配额）× 复用倍数（1 / 2）的 2×2 对照，格内为跨年平均 F1。深色高亮格为本章方法。右侧边栏给出复用倍数在两个构成方式下的增益，下侧边栏给出按年度配额在两个复用倍数下的增益。",
+      "width_mm": 130.0,
+      "height_mm": 92.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-7-双机制消融.svg",
+        "pdf": "图3-7-双机制消融.pdf",
+        "png": "图3-7-双机制消融.png"
+      },
+      "evidence_mode": "权威制品重算（ch3-lamda-domain-il-e4-replication-v1）",
+      "png_pixels": [
+        2047,
+        1448
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.8
+      ],
+      "data_keys": [
+        "全局蓄水池×复用1：metrics_expreplay.json；全局蓄水池×复用2：metrics_expreplay_m200_r2.json",
+        "按年度配额×复用1：metrics_expreplay_m200_quota.json；按年度配额×复用2：metrics_expreplay_m200_quota_r2.json",
+        "四格读数均为 records[experience=2025, mode=backward].f1 的十二年均值；边栏增益由这四处读数作差得到"
+      ]
+    },
+    {
+      "stem": "图3-8-逐年检测能力分解",
+      "caption": "三种配置在 12 个测试年度上的 F1。2025 年度测试分片仅含 5 条正例，任何配置在该年度的 F1 均为 0，在图内单独标注，不作配置优劣的比较依据。",
+      "width_mm": 150.0,
+      "height_mm": 92.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-8-逐年检测能力分解.svg",
+        "pdf": "图3-8-逐年检测能力分解.pdf",
+        "png": "图3-8-逐年检测能力分解.png"
+      },
+      "evidence_mode": "权威制品重算（ch3-lamda-domain-il-e4-replication-v1）",
+      "png_pixels": [
+        2362,
+        1448
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.8
+      ],
+      "data_keys": [
+        "metrics_expreplay.json、metrics_expreplay_m200_quota.json、metrics_expreplay_m200_quota_r2.json 的 records[experience=2025, mode=backward].f1，按 test_year 逐年取值",
+        "2025 年度的 n_pos=5 来自同批 records 的 n_pos 字段"
+      ]
+    },
+    {
+      "stem": "图3-9-缓冲年度构成审计",
+      "caption": "官方全局蓄水池在容量 200 条下运行至 12 个年度结束时，六个代表年度的缓冲槽位数与其中正例数（零训练审计）。2024 与 2025 年度的正例数为 0。该组数值无对应制品字段，来源为外部给定常数，登记于图件清单的 external_constants 段。",
+      "width_mm": 140.0,
+      "height_mm": 90.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图3-9-缓冲年度构成审计.svg",
+        "pdf": "图3-9-缓冲年度构成审计.pdf",
+        "png": "图3-9-缓冲年度构成审计.png"
+      },
+      "evidence_mode": "外部给定常数（零训练审计）",
+      "png_pixels": [
+        2204,
+        1417
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.9
+      ],
+      "data_keys": [
+        "缓冲槽位数与其中的正例数：resultdata_lamda.BUFFER_AUDIT 外部给定常数表（无对应制品字段，来源见 external_constants）"
+      ]
+    }
+  ],
+  "withdrawn": [
+    {
+      "stem": "图3-10-攻击类别分面",
+      "withdrawn_at": "2026-08-26",
+      "reason": "旧图取自已作废的 runs/diagnostics/ch3-full 运行；当前权威制品（正式 CPA×ELP 四格 BF16 运行、统一指标总表、共同首次告警预算包络）均不含任何按攻击类别的分面字段，无法换底重绘。",
+      "recovery": "若正文保留攻击类别分面，需要新增一次按 Category 字段分面的目标年评价运行；在此之前正文不应引用图 3-10。",
+      "files_moved_to": "作废/"
+    },
+    {
+      "stem": "图3-3-因果前缀跨流聚合",
+      "withdrawn_at": "2026-08-31",
+      "reason": "旧图描述的因果前缀跨流聚合（CPA）已不是第三章的当前机制；第三章重锚到 CEM-BER 后，表示层机制改为因果实体记忆的读写与交叉注意力。",
+      "recovery": "若正文重新采用因果前缀聚合，须先恢复对应机制合同再重绘。",
+      "files_moved_to": "作废/"
+    },
+    {
+      "stem": "图3-4-实体级可学Lp池化",
+      "withdrawn_at": "2026-08-31",
+      "reason": "旧图描述的实体级可学幂平均池化（ELP）已不是第三章的当前机制；第三章重锚到 CEM-BER 后，决策层机制改为预算感知实体排序的训练目标。",
+      "recovery": "若正文重新采用可学幂平均池化，须先恢复对应机制合同再重绘。",
+      "files_moved_to": "作废/"
+    },
+    {
+      "stem": "图3-1-整体方法框架 等 11 幅旧线图件",
+      "withdrawn_at": "2026-10-14",
+      "reason": "第三章宿主由流量检测数据（LSPR/TQH-C2）重锚到 LAMDA 年度序列，全部机制与实验面板更换：表示层与决策层机制、消融对象、指标口径、数据来源均不再对应。旧图取自已停用的 runs/diagnostics/ch3-* 运行制品，与新章的权威制品（runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/）无重合。涉及 图3-1-整体方法框架、图3-2-二IP无向对序列构造、图3-3-因果实体记忆的读写与交叉注意力、图3-4-预算感知实体排序的目标构造、图3-5-六个方法在三个指标上的相对位置、图3-6-双机制消融交互、图3-7-训练稳定性、图3-8-Lp指数收敛轨迹、图3-9-实体流数分桶敏感性、图3-11-受限观测下的检测能力、图3-12-检出率随告警预算的变化。图号随之释放，由 LAMDA 线的新图占用。",
+      "recovery": "需要恢复旧线图件时，须先在对应工作树恢复流量检测宿主合同与 runs/diagnostics/ch3-* 制品，再重绘；本工作树不承载该路线。",
+      "files_moved_to": "作废/"
+    }
+  ],
+  "readout_contract": {
+    "report_experience": 2025,
+    "mode": "backward",
+    "metric": "12 个测试年度 F1 的算术平均（式 3-21）",
+    "note": "forward 与 backward 语义不同，本清单全部读数只取 backward"
+  },
+  "artifacts": [
+    {
+      "role": "联合训练（上界） 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_cumulative.json",
+      "sha256": "65f35732f3f7bee6026e15f85622bc6f94283e003711eedeedd22ccea5725c1f",
+      "bytes": 38820
+    },
+    {
+      "role": "弹性权重巩固 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_ewc.json",
+      "sha256": "fc953e206cd52f7bb8f619006bbf256ad3363190d7d56920f32ccc8c95a17151",
+      "bytes": 38833
+    },
+    {
+      "role": "回放容量 200（官方） 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay.json",
+      "sha256": "fbfec656e701a12158522fe757a7297f61b5fcf18adb9cbfa00781959d94a2a3",
+      "bytes": 38826
+    },
+    {
+      "role": "回放容量 18,854 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m18854.json",
+      "sha256": "99ee9c4092c079792d5c124591dc1aa8514468eb05753d84a7c9654a636f0166",
+      "bytes": 38813
+    },
+    {
+      "role": "按年度配额 复用 1 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota.json",
+      "sha256": "322786dcbace52b5a1765249bcfb6991b26a93eae869c10d965fc5f5fa66c6ed",
+      "bytes": 38812
+    },
+    {
+      "role": "按年度配额 复用 2（本章方法） 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_r2.json",
+      "sha256": "62820842039430bfe7a625696939f126cbabfbdff75a84b0c534902920840aac",
+      "bytes": 38820
+    },
+    {
+      "role": "容量 200 复用 2 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_r2.json",
+      "sha256": "079b984467e1c29bed5ec030d369df82a2642074946aed74f92601c6cf68b3e5",
+      "bytes": 38924
+    },
+    {
+      "role": "容量 200 复用 4 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_r4.json",
+      "sha256": "8de31d88e059862242bc49afbe0accb76b69fa283571b21d54664b72a5c5903e",
+      "bytes": 38837
+    },
+    {
+      "role": "容量 200 复用 8 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_r8.json",
+      "sha256": "1ab5c891fe2696929a5dab50ece0d04dba8a61d8b0f3d0b62b6347298325ebfa",
+      "bytes": 38868
+    },
+    {
+      "role": "回放容量 400 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m400.json",
+      "sha256": "aa3ca21e115055dab053b9d4bb032faa7ab9a31f7e8a8946d11a5afd48b1e97c",
+      "bytes": 38927
+    },
+    {
+      "role": "回放容量 50 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m50.json",
+      "sha256": "75da0d26f28901b846c8179b567116e3701d4cc742028e6ef2c70be202797113",
+      "bytes": 38866
+    },
+    {
+      "role": "回放容量 800 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m800.json",
+      "sha256": "0f53ec89e4027765c2ee1f6fd43c297ecf73decbcc24050efe79ecfdcef7d64a",
+      "bytes": 38868
+    },
+    {
+      "role": "容量 800 复用 2 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m800_r2.json",
+      "sha256": "15782b59b01e11aba48e206b3c28e2ef127a867f210c63ec9345e59a63de7f1b",
+      "bytes": 38888
+    },
+    {
+      "role": "逐参数位移插值 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_freemoca.json",
+      "sha256": "ec11876cc5b414c065b13832ad5c50d781fccb36516027a5b2766ce6868ef440",
+      "bytes": 38899
+    },
+    {
+      "role": "无遗忘学习 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_lwf.json",
+      "sha256": "50e3573e09cfe00e89743578d52f889659fac7bbdf17eaf4e610ffe5e23821d6",
+      "bytes": 38915
+    },
+    {
+      "role": "朴素更新 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_naive.json",
+      "sha256": "95c2fd2a75ca0cd15a3a984cc376cd1bc4bdb6ba3183961d85fba32e192ececc",
+      "bytes": 38859
+    }
+  ],
+  "external_constants": [
+    {
+      "figure": "图3-9-缓冲年度构成审计",
+      "values": "各年度缓冲槽位数与其中正例数",
+      "source": "主代理 2026-10-14 零训练审计实测（官方全局蓄水池，容量 200），与 3.6.8 表 3-7 同值；无对应制品字段"
     }
   ]
 }

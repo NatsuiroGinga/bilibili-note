@@ -28,7 +28,14 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import figstyle as fs
 import numpy as np
+from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
+
+# `figstyle` 只把 mathtext 的 rm/it/bf 接到 Cambria Math，未设 `mathtext.cal`。图3-1 的
+# 损失符号用 \mathcal{L}，其字形在 Cambria Math 内（U+1D4DB）但默认不被接入，实测会回退到
+# macOS 的 Apple-Chancery（2026-10-14 由 pdffonts 核验），违反「数学符号用 Cambria Math」。
+# 此处只在本脚本内补设该 rcParam，不修改 figstyle.py。
+plt.rcParams["mathtext.cal"] = fs.MATH_FONT.family if fs.MATH_FONT is not None else "stix"
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -387,21 +394,32 @@ def draw_tradeoff(cv: fs.Canvas) -> None:
 # ------------------------------------------------------------------ 清单
 
 
-def finalize_manifest() -> None:
-    """补记 `figstyle.write_manifest` 未覆盖的字段：真实数学字体、生成器清单。"""
+def finalize_manifest(previous: dict[str, object]) -> None:
+    """补记 `figstyle.write_manifest` 未覆盖的字段：真实数学字体、生成器清单、其余顶层段。
+
+    `figstyle.write_manifest` 每次都会新建一个只含 `figures` 的顶层字典，其余顶层键
+    （撤下段、制品哈希、口径段）与 `environment.generators` 都会被丢弃。本脚本可能先于或
+    后于结果图脚本运行，因此必须把上一版清单中的这些键原样恢复，保证清单内容与运行顺序无关。
+    """
 
     data = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    for key, value in previous.items():
+        data.setdefault(key, value)
+    for entry in data["figures"]:
+        if entry["stem"] in MECHANISM_STEMS:
+            entry["data_keys"] = ["机制与理论示意图，不承载实验数据"]
+
     typography = data["typography"]
     typography["math_fontset"] = "stix（回退）" if fs.MATH_FONT is None else fs.MATH_FONT.family
     typography["math_font_path"] = None if fs.MATH_FONT is None else fs.MATH_FONT.path
+
+    previous_environment = previous.get("environment", {})
+    generators = {
+        g for g in (list(previous_environment.get("generators", [])) + [GENERATOR]) if g
+    }
     environment = data["environment"]
-    generators = environment.get("generators")
-    if not isinstance(generators, list):
-        generators = [environment.get("generator")]
-    if GENERATOR not in generators:
-        generators.append(GENERATOR)
-    environment["generators"] = sorted({g for g in generators if g})
-    environment["generator"] = environment["generators"][-1]
+    environment["generators"] = sorted(generators)
+    environment["generator"] = GENERATOR
     MANIFEST_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
@@ -453,7 +471,14 @@ SPECS: tuple[tuple[str, str, float, float, object], ...] = (
 )
 
 
+MECHANISM_STEMS = frozenset(spec[0] for spec in SPECS)
+
+
 def main() -> int:
+    previous: dict[str, object] = {}
+    if MANIFEST_PATH.exists():
+        previous = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+
     entries: list[dict[str, object]] = []
     for stem, caption, width_mm, height_mm, draw in SPECS:
         cv = fs.canvas(width_mm, height_mm)
@@ -465,7 +490,7 @@ def main() -> int:
         logger.info(line)
 
     fs.write_manifest(ROOT, GENERATOR, entries, evidence_mode="机制示意图（不承载实验数据）")
-    finalize_manifest()
+    finalize_manifest(previous)
     logger.info("已写出 %d 张机制图与 %s", len(entries), MANIFEST_PATH.name)
     return 0
 
