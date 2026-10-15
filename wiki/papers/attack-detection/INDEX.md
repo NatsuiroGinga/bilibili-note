@@ -206,6 +206,22 @@ related:
 - **[[lamda-related/2025-Zheng-TIF时序不变性Android恶意软件检测|Zheng et al. 2025：TIF 时序不变性 Android 恶意软件检测（IEEE TSE）]]** — 按应用观测日期把训练数据切为不相交时间环境，用多代理对比学习（MPC）+ 不变梯度对齐（IGA，基于 IRMv1）学跨时间稳定判别表示；动机实验取 AndroZoo 2014–2021 的 110,723 良性 + 20,790 恶意、切成 30 个等长区间（§III-C2，第 3 页）。**与第四章候选最贴近的直接近邻与占用证据**——「按时间环境 + 不变风险」已覆盖，本课题须以「最坏组风险（min-max）vs 不变性（梯度对齐）」的直接对照实验区分。
 - **[[lamda-related/2026-Sabbah-时序概念漂移下Android对抗脆弱性|Sabbah et al. 2026：时序概念漂移下 Android 对抗脆弱性（预印本）]]** — 十余年 Android 应用按年切片，用 same-year / cross-year / expanding-window 三种部署协议评测对抗鲁棒性（FGSM/SPSA），提出 AAF 等时序指标；结论为 expanding-window 重训**减缓但不消除**持续漂移下的鲁棒性损失（摘要）。**年度切片评测协议的先例来源**；「仅累积重训不足」的旁证（对抗维度，不可等同清洁准确率）。
 
+## LAMDA 第三章：当代对照补查（2024–2026 固定预算 CL 与恶意软件 CL，2026-10-15 新增）
+
+为补第三章"当代对照方法"段（原 13 篇中位年份 2020、近两年仅 3 篇）而检索入库。**结论先行：本次检索所及，2024–2026 固定预算 CL 的当代方法**要么已在库（Seo 2025／CSReL 2025／MADAR 2025／PBR 2024／FOREVER 2026），**要么有可用性硬伤**（依赖自监督嵌入／无代码／生成式回放需额外模型）；**恶意软件域在 LAMDA 上做持续学习记忆预算的新工作，本次检索未发现——LAMDA 自身只给 Naive/Replay/Joint 三个基线**。每篇笔记含"三问"（200 条预算／能否挂 MLP／有无公开代码）答案。
+
+- **[[lamda-related/2025-Krutsylo-经验回放非均匀记忆采样|Krutsylo 2025：非均匀记忆采样（arXiv 2502.11305）]]** — 固定缓冲内容、只改**回放采样概率**；缓冲 200/500/1000 上非均匀一致优于均匀（CIFAR-10 +2.33~4.68%）；采样概率与损失/梯度范数仅弱相关（ρ≈0.28/0.32）。**本文"亏空加权复用倍数"的直接先例轴**；在线全文＋公开代码 `github.com/DentonJC/memory-sampling`。三问：能／能／有。
+- **[[lamda-related/2026-Yanowsky-MERS互补嵌入回放选择|Yanowsky & Weinshall 2026：MERS（arXiv 2604.08336）]]** — 监督＋自监督嵌入的加权 k-覆盖选样，drop-in 换缓冲更新规则，低内存区间增益最大。**依赖 SimCLR 自监督嵌入**（表格二值特征上不可直接迁移）；**无代码**。三问：能／受限／无。
+- **[[lamda-related/2025-Deng-排练理论视角与混合排练|Deng 等 2025：排练的理论视角与混合排练（ICML 2025，arXiv 2506.00205）]]** — 等额记忆分配下并发/顺序排练的遗忘闭式解；提出混合排练（相似任务并发、不相似顺序）。**等额配额的理论支柱候选**；**无代码**。三问：能／能／无。
+- **[[lamda-related/2025-Huang-OWMMD最优加权MMD持续学习|Huang 等 2025：OWMMD（KBS 2025，arXiv 2501.12121）]]** — 多层特征匹配＋自适应正则；**明确给出缓冲 200 的 Class-IL 读数**（OWMMD 67.74 vs DER++ 64.88／ER 44.79／GEM 25.54）。三问：能／能／未定位。
+- **[[lamda-related/2025-Wang-注意力特征记忆表格持续学习|Wang 等 2025：AttenMLP（arXiv 2510.04660）]]** — **表格数据流 + MLP 骨干 + 固定内存**，存潜特征而非原始样本。与本文四要素最贴合，但**存储语义不同**（潜特征 vs 原始样本）。三问：口径不同／能（原生 MLP）／未定位。
+- **[[lamda-related/2025-Park-MalCL-GAN生成式回放恶意软件分类|Park 等 2025：MalCL（AAAI 2025，arXiv 2501.01110）]]** — GAN 生成式回放做恶意软件家族类增量；EMBER/AZ-Class。**需 GAN + 1D CNN**，与本文固定 200 条原始样本 + MLP 不兼容；**公开代码** `github.com/MalwareReplayGAN/MalCL`。三问：不能（原样）／不能直接／有。
+- **[[lamda-related/2026-Lemoria-DAHT-LAMDA纵向漂移Transformer|Lemoria & Lakshmi 2026：DAHT（Zenodo 22206206）]]** — **唯一在 LAMDA 上评测的新方法**，但为**冻结模型前向时间**（非持续学习、无记忆预算），XGBoost 在 5 年中的 4 年更优；venue（IJCRST 2(4)）可信度存疑，**不作基线**。三问：不适用／N/A／未定位。
+
+**本轮检索方法与边界**：WebSearch ＋ arXiv API（curl＋代理）＋ 直接下载 ＋ MinerU `extract` 全文精读 7 篇。**`scholar` CLI 全程 429**（挂代理多次重试失败）；**Zotero 语义库对本主题返回不相关结果**（相似度全负），本地查重改用 rg。**未发现**在 LAMDA 上用固定记忆预算跑持续学习的新方法；LAMDA ICLR 2026 原论文的 CL 基线只有 Naive/Replay/Joint 三个。
+
+**同批核验、判定为"不作可跑基线但须引用"的边界**：MERS 的 SSL 嵌入依赖、AttenMLP 的潜特征存储语义、MalCL 的 GAN 开销、DAHT 的静态非 CL 与弱 venue——四条都写入各笔记的"三问"与"不能直接声称"。
+
 ## 方法学入口
 
 - **[[../methodology/INDEX#组条件控制与分层预算分配（2026-08-26 新增）|组条件控制与分层预算分配]]** — Vovk 条件 ICP、Barber 条件推断极限、p-filter 多层预算，本节两篇安全应用的理论侧对应。
