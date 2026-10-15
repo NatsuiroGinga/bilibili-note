@@ -43,3 +43,34 @@
 **下一步**：下载 PPO / RCPO / PID-Lagrangian / V-trace / ACI 五篇 PDF 核原文；查 Zhang 2023 dynamical clipping 的 arXiv ID。
 **未关闭疑点**：C4 经典三篇的 arXiv ID；C8 原文细节。
 **无法获取原文清单**：暂无。
+
+### 2026-10-15 T3 原文核验完成（六篇全部本地全文）
+
+- **ID 核验**（arXiv API 按标题检索，非搜索引擎）：PPO=1707.06347v2；RCPO=1805.11074v3；PID Lagrangian=2007.03964v1；V-trace/IMPALA=1802.01561；ACI=2106.00170v3；Pb-PPO(dynclip)=2312.07624v3。
+- **PDF 已入库 raw/**：`raw/papers/attack-detection/lamda-related/` 六个新 PDF（2017-Schulman、2019-Tessler、2020-Stooke、2018-Espeholt、2021-Gibbs、2023-Zhang）。
+- **MinerU 全文已生成 wiki/**：六个 `-全文.md`。
+- **公式核验记录**：
+  - PPO §4 式 (8) 后：`d<d_targ/1.5 → β←β/2；d>d_targ×1.5 → β←β×2`；原文自述 1.5 与 2 为启发式、算法不敏感。
+  - RCPO §3 Eq.(4)(5)：拉格朗日 + 对偶上升 `λ_{k+1}=Γ_λ[λ_k−η₁∇_λL]`，投影到 [0, λ_max]。
+  - PID-Lagrangian §4.2 Eq.(13) `λ̇=αg+βġ`；§4.3 Eq.(16) `λ̇=αg+γg̈`；§5 CMDP=动力系统+PID；相关工作段确认 An et al. 2018「SGD=P 控制、动量=PI 控制」先例。
+  - V-trace §4.1 Eq.(1)：`ρ_t=min(ρ̄,π/μ)`、`c_i=min(c̄,π/μ)`；c̄=方差缩减、ρ̄=决定收敛不动点（§4.1 末段）。
+  - ACI §2 Eq.(2) `α_{t+1}=α_t+γ(α−err_t)`；Eq.(3) 指数加权变体；§A 等价于 pinball loss 的在线梯度下降。
+  - Pb-PPO：双层优化 + UCB bandit 在候选截断界集合 ζ 中按 Return 反馈选 ε*。
+- **CVaR/DRO 线**：Scholar 确认 Esfahani & Kuhn 2018（3054 引）与 Kisiala 2015 综述（arXiv:1511.00140）；Rockafellar-Uryasev 2000 原文未取（Journal of Risk，无公开 PDF），降为题录级引用。
+- **下一条查询**：无需再检索；进入报告撰写。
+- **未关闭疑点**：CBF（控制屏障函数）线未深查——如实记录为「未检索」而非「不存在」。
+- **无法获取原文清单**：Rockafellar & Uryasev 2000《Optimization of Conditional Value-at-Risk》(Journal of Risk 2(4))——未取得 PDF，仅题录级。
+
+### 2026-10-15 T4 任务完成
+
+- **报告已交付**：`缺陷A-凸性标定-文献解法检索报告.md`（缺陷刻画→候选总表→逐条移植式→E1–E6 最小验证实验→四问回答→未取得原文清单→裁决「需要自创（仅凸性修正一个组件自创）」）。
+- **入库完成**（raw/ 6 PDF + wiki/ 6 机械全文 + wiki/ 6 结构化笔记 + INDEX 七处追加）：
+  - 2017-Schulman-PPO-自适应KL惩罚系数
+  - 2018-Espeholt-IMPALA-V-trace重要性权重截断
+  - 2019-Tessler-奖励约束策略优化-对偶梯度下降
+  - 2020-Stooke-PID拉格朗日方法-约束RL安全
+  - 2021-Gibbs-自适应保形推断-分布漂移在线标定
+  - 2023-Zhang-PPO任务反馈动态截断
+- **裁决一句话**：闭环控制替代一次性标定有现成多源文献（PPO/RCPO/ACI 可直接落式）；「凸映射放大分布漂移」无对症文献，解析修正与线性化映射需自创；总体**需要自创（组合），但自创面只有一个组件**。
+- **过程事故记录（如实）**：报告与两篇笔记的首次生成出现内容损坏（重复短语、乱码占位 token、一次错误路径写入）；已逐处修复并全文重写受影响文件，最终版已通读核对（报告 161 行、六篇笔记各 37–39 行）。错误路径写入的目录已删除。
+- **遗留**：CBF 线未检索（如实记录为未查，非不存在）；Rockafellar & Uryasev 2000 仅题录级；未做任何 git 提交（遵守任务约束）。
