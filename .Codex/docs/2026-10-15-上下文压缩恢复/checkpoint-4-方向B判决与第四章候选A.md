@@ -29,7 +29,18 @@
 | **调度·上界 6× + EMA β=0.7** | **84.96%** | **88.64%** | 3.93 |
 | 调度·上界 5× + EMA β=0.7 | 跑中 | | |
 
-**⇒ 两个不同 cap（8× 与 6×）配 EMA0.7 都超过基准（+0.34 与 +0.22），方向一致——比单点更像真信号。但都是单种子，且幅度仍在跨配置种子波动（0.14–1.16）内。** 这是方向 B 能否翻案的关键未决项。
+**⇒ 三个 cap 不单调（8× 最好、6× 次之、5× 明显差），削弱了「上界越紧越好」的解释；且 cap5 的倍数均值 3.79 偏离目标 5.3%，本身也不可比。现状更像噪声分布而非一致效应。**
+
+**⚠️ 补种子的确切参数（从代理 `notes.md` 取得，不是猜的）**：EMA β=0.7 的标定值 **a\* = 0.989397**（β=0.5 是 0.990196）。补种子命令：
+
+```bash
+/opt/miniconda3/envs/rwkv/bin/python thesis/experiments/llm_probe/tools/ch3_lamda_domain_il_e4.py \
+  --strategy expreplay --memory 200 --reuse-schedule rho \
+  --reuse-cap 8 --rho-a-star 0.989397 --rho-ema 0.7 --seed 43
+# 同 seed 44
+```
+
+**⚠️ 已知缺口**：脚本的启动 banner **没有打印 `--rho-a-star` 与 `--rho-ema`**（只打了 strategy/memory/scheme/reuse/repeat/seed/tag）。banner 的设计目的正是「使参数忘了往下传这类错误当场可见」，这两个新参数漏了。**补种子前建议先补 banner**，否则下次仍无法从产物确认配置。
 
 ### 3.2 三个已证实的缺陷（代码诊断代理，有制品）
 
