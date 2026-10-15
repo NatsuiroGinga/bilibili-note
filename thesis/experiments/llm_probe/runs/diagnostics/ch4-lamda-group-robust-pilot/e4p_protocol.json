@@ -1,0 +1,61 @@
+{
+  "arms": [
+    "er",
+    "groupdro_eta0.01",
+    "groupdro_eta0.1",
+    "groupdro_eta1"
+  ],
+  "bootstrap_n": 2000,
+  "bootstrap_seed": 42,
+  "criteria_text": "主判据：2024 年度测试分片上的 F1，ΔF1 = F1_groupdro − F1_er。η 跑前冻结为阶梯 {0.01, 0.1, 1.0}（实施计划未给 η；无本数据标定依据、无本仓库可核的文献默认值 ⇒ 跨量级取三点，非标定值）。**任一 η 为正不算支持：三个 η 的结果必须全部报出，不得只报最好者。**支持：至少一个 η 的 ΔF1(2024) > 0 且配对 bootstrap 95% CI 不含 0，且其余 η 的结果一并列出并说明离散程度。部分支持：至少一个 η 为正但 CI 含 0。证伪：2024 不升，或早期年度显著下降（搬移错误而非降低最坏风险）。强证伪：**三个 η 全部** ΔF1(2024) ≤ 0 且 CI 不含 0 ⇒ 卡作废，第四章重新选题。不确定性：单一冻结种子 42（禁多种子）；测试集配对 bootstrap n=2000，只量化样本不确定性，不冒充训练随机性。",
+  "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+  "env_data_root_var": "LAMDA_DATA_ROOT",
+  "gate_er": {
+    "expected": 0.8169830287163194,
+    "reference_artifact": "ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json",
+    "tol": 1e-06
+  },
+  "group_definition": "某次训练用到的 parts 里，每个年度块自成一組（当年度分片为一组，缓冲中每个年度块各为一组）",
+  "groupdro": {
+    "eta_ladder": [
+      0.01,
+      0.1,
+      1.0
+    ],
+    "eta_provenance": "实施计划未给 η 数值；本地 Sagawa 全文笔记（wiki/papers/methodology/2020-Sagawa-GroupDRO群体移位.md）只记指数梯度形式、未记常数 ⇒ 无本数据标定依据，亦无本仓库可核的文献默认值。主代理 2026-10-15 裁决为**跑前冻结的跨量级阶梯** {0.01, 0.1, 1.0}，三臂全部报出，非标定值",
+    "loss": "批内逐样本 BCE 按 q_{g(x)} 加权后归一化 Σq·ℓ/Σq",
+    "only_variable": "组加权损失；缓冲构成/复用倍数/轮数/批大小/学习率/随机源/批序均与 er 臂逐位相同",
+    "q_init": "每个年度重新置为均匀（每次训练 = 一个年度）",
+    "q_update": "逐批：批内各组均值 BCE ℓ̄_g，q_g ← q_g·exp(η·ℓ̄_g)，再整体归一化"
+  },
+  "mainline": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "deficit_gamma": 1.0,
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "lr": 0.01,
+    "memory": 200,
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "seed": 42,
+    "strategy": "expreplay",
+    "threshold": 0.5
+  },
+  "run_name": "ch4-lamda-group-robust-pilot",
+  "ts": "2026-10-15T09:58:00.182793Z"
+}
