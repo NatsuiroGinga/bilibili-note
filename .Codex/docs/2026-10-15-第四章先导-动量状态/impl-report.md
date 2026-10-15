@@ -306,8 +306,12 @@ t 检验 `p=0.2188`）；**没有任何一臂达到「显著非正」或「显�
    `run2-no-scale-assert/`），**不得引用其读数**。
 6. **未做**：未改任何受保护脚本；未改 `thesis/chapters/**`、`thesis/figures/**`；
    未跑多种子（单一冻结种子 42）；未运行 `black`；未用系统 `python3`。
-7. **未做**：未提交 Git（工作树中存在其他代理的未提交改动，按根 `AGENTS.md`
-   「共享暂存区含他人文件时不建快照」保留 `HEAD`，由主代理裁决提交范围）。
+7. **Git**：已按「修改即检查点」与根 `AGENTS.md` 版本同步条款，以**显式路径**提交
+   `5aaa9bad feat(ch4): add cross-year momentum-state pilot for domain-IL`（107 个文件：
+   本脚本、最终制品目录、被取代的运行目录、本报告）。**未 `push`**（留给主代理走分支/MR）。
+   提交前索引为空；工作树中另有其他代理/用户的未提交改动（`AGENTS.md`、`output/*.md`、
+   `thesis/figures/第三章/*`、`ch3-lamda-domain-il-e4-replication-v1/metrics_*.json` 等），
+   **一律未纳入本次提交**。
 8. **成本偏离**：计划估「每臂约 2 分钟」；实测 `284.1 / 309.9 / 402.9` 秒（三臂合计约 `16.6`
    分钟，机器负载均值一度达 `12`），瓶颈在 12 年 × 12 测试分片评价与 `n=2000` 配对 bootstrap。
 9. **制品目录多出两份被取代的运行**：`runs/diagnostics/ch4-lamda-momentum-state-pilot-SUPERSEDED/`
