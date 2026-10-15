@@ -1,0 +1,73 @@
+{
+  "criteria_text": "主判据：ΔF1(s) = F1_active(s) − F1_passive(s) 随 α_s 的单调性。支持：ΔF1(2024) 显著为正，且大于 ΔF1(2017)，后者不小于 ΔF1(2016) 与 ΔF1(2018)（后两者预期落 |·|<0.5）。部分支持：仅 2024 显著为正。证伪：任一臂 ΔF1<0；或四年均不可分辨。强证伪：ΔF1(2024)≤0。不确定性：单一冻结种子 42（禁多种子）；配对 bootstrap(n=2000) 95% 区间，该区间只量化样本不确定性，不冒充训练随机性。",
+  "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+  "env_data_root_var": "LAMDA_DATA_ROOT",
+  "mainline": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "lr": 0.01,
+    "memory": 200,
+    "reuse_scheme": "deficit",
+    "seed": 42,
+    "strategy": "expreplay",
+    "threshold": 0.5
+  },
+  "run_name": "ch4-lamda-rank-gated-acquisition-e2",
+  "side": {
+    "arm_definition": {
+      "active": "用 Y-1 模型给 D_Y^train 打分，取 top-Λ（分数降序），与主线缓冲合并训练 10 轮",
+      "buffer_only": "零标注，只用主线缓冲训练 10 轮",
+      "full": "主线全标注臂（引用主线读数，不重跑）",
+      "passive": "从 D_Y^train 均匀随机抽 Λ 条（rng=default_rng(SEED+Y*1000+Λ)），与主线缓冲合并训练 10 轮",
+      "uncertainty": "用 Y-1 模型给 D_Y^train 打分，取 |score-0.5| 升序前 Λ 条（决策边界最近、模型最不确定的样本），与主线缓冲合并训练 10 轮"
+    },
+    "arms": [
+      "active",
+      "passive",
+      "uncertainty",
+      "buffer_only"
+    ],
+    "arms_per_lambda": 3,
+    "bootstrap_n": 2000,
+    "bootstrap_seed": 42,
+    "buffer_composition": "沿用主线同一构成 reuse_by_deficit(blocks, 2) 的逐年重复",
+    "fork_years": [
+      2016,
+      2017,
+      2018,
+      2024
+    ],
+    "lambda_grid": [
+      200,
+      800
+    ],
+    "primary_contrast": "active − passive（主判据，不变）",
+    "sealed_years_untouched": [
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "secondary_contrast_required": "active − uncertainty（必须同时报；若不为正须明说「主动获取相对不确定采样无优势」，不得隐去）",
+    "total_arm_instances": 28,
+    "uncertainty_arm_rationale": "2026-10-15 预注册增补（出结果前）：主动学习的标准基线不是随机而是不确定采样；只与随机比较的结论会被审稿以「未对比标准主动学习基线」打掉。故 active 的对照除 passive 外还须含 uncertainty。三种策略在正例率 1.64% 的年份里预期差异显著：active 走高置信正例、uncertainty 走决策边界。"
+  },
+  "ts": "2026-10-15T09:16:49.090463Z"
+}
