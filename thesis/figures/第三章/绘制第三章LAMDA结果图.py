@@ -131,6 +131,24 @@ def draw_storage_curve(ctx: dict[str, Any]) -> None:
         zorder=6,
     )
 
+    # 本章方法：同一条容量轴上的第二条曲线，构成方式与复用分配均与默认配置一致。
+    # 与官方回放以**线型 + 空心标记**区分，不依赖颜色，满足灰度可读要求。
+    quota_keys = ("q_m50", "q_m200", "q_m400", "q_m800", "q_m1600", "q_m18854")
+    qxs = [reads[key].storage_kib for key in quota_keys]
+    qys = [reads[key].cross_year_f1 * 100.0 for key in quota_keys]
+    ax.plot(qxs, qys, color=fs.M2_EDGE, linestyle="--", linewidth=1.4, zorder=5)
+    ax.plot(
+        qxs,
+        qys,
+        marker="s",
+        markersize=3.6,
+        markerfacecolor="white",
+        markeredgecolor=fs.M2_EDGE,
+        markeredgewidth=1.0,
+        linestyle="none",
+        zorder=6,
+    )
+
     # 朴素更新与联合训练：存储分别为 0 与 438.6 MB，作为缺口的两端刻度。
     naive_f1 = reads["naive"].cross_year_f1 * 100.0
     ax.axhline(naive_f1, color=MUTED, linewidth=fs.MAIN_LINE_PT, linestyle="--", zorder=3)
@@ -178,7 +196,8 @@ def draw_storage_curve(ctx: dict[str, Any]) -> None:
         return rect[1] + (value - lo) / (hi - lo) * rect[3]
 
     tag(cv, px(30.0), py(naive_f1) - 0.055, "朴素更新（存储 0）", color=MUTED)
-    tag(cv, px(30.0), py(79.8), "样本侧回放缓冲", color=fs.M1_EDGE)
+    tag(cv, px(30.0), py(79.8), "官方回放", color=fs.M1_EDGE)
+    tag(cv, px(270.0), py(84.3), "本章方法", color=fs.M2_EDGE)
     tag(cv, px(1300.0), py(87.4), "参数侧三种形态", color=MUTED)
     tag(cv, px(300_000.0), py(89.0), "联合训练（上界）", color=INK, ha="right")
     tag(cv, px(13_000.0), py(76.5), "无遗忘学习", color=MUTED)
@@ -687,9 +706,12 @@ def main() -> int:
     specs: tuple[tuple[str, str, float, float, object, dict[str, Any]], ...] = (
         (
             "图3-5-存储容量与检测能力的关系",
-            "存储占用（对数刻度）与末年在 12 个测试年度上的平均 F1。实线为样本侧回放缓冲的"
-            "容量档位 50/200/400/800/18,854 条；空心标记为参数侧三种形态；虚线为朴素更新"
-            "（存储 0）；星号为联合训练上界。竖细线标出 10.25 MB 处样本侧与参数侧的等预算对照。",
+            "存储占用（对数刻度）与末年在 12 个测试年度上的平均 F1。实线带实心圆为官方回放的"
+            "容量档位 50/200/400/800/18,854 条；虚线带空心方块为本章方法在同一组容量点上的"
+            "读数（构成方式与复用分配固定为默认配置，只改变容量）；空心标记为参数侧三种形态；"
+            "水平虚线为朴素更新（存储 0）；星号为联合训练上界。"
+            "竖细线标出 10.25 MB 处样本侧与参数侧的等预算对照。"
+            "两条样本侧曲线以线型与标记填充区分，不依赖颜色，灰度打印下可辨。",
             150.0,
             92.0,
             draw_storage_curve,

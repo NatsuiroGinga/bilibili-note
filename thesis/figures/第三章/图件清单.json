@@ -1,7 +1,7 @@
 {
   "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）",
   "environment": {
-    "generator": "绘制第三章LAMDA机制图.py",
+    "generator": "绘制第三章LAMDA结果图.py",
     "python": "3.12.13",
     "matplotlib": "3.11.1",
     "pillow": "12.3.0",
@@ -47,7 +47,7 @@
       ],
       "evidence_mode": "机制示意图（不承载实验数据）",
       "data_keys": [
-        "机制与理论示意图，不承载实验数据"
+        "机制示意图，不承载实验数据"
       ]
     },
     {
@@ -120,7 +120,7 @@
       ],
       "evidence_mode": "机制示意图（不承载实验数据）",
       "data_keys": [
-        "机制与理论示意图，不承载实验数据"
+        "机制示意图，不承载实验数据"
       ]
     },
     {
@@ -144,7 +144,7 @@
       ],
       "evidence_mode": "机制示意图（不承载实验数据）",
       "data_keys": [
-        "机制与理论示意图，不承载实验数据"
+        "机制示意图，不承载实验数据"
       ]
     },
     {
@@ -168,12 +168,12 @@
       ],
       "evidence_mode": "机制示意图（不承载实验数据）",
       "data_keys": [
-        "机制与理论示意图，不承载实验数据"
+        "机制示意图，不承载实验数据"
       ]
     },
     {
       "stem": "图3-5-存储容量与检测能力的关系",
-      "caption": "存储占用（对数刻度）与末年在 12 个测试年度上的平均 F1。实线为样本侧回放缓冲的容量档位 50/200/400/800/18,854 条；空心标记为参数侧三种形态；虚线为朴素更新（存储 0）；星号为联合训练上界。竖细线标出 10.25 MB 处样本侧与参数侧的等预算对照。",
+      "caption": "存储占用（对数刻度）与末年在 12 个测试年度上的平均 F1。实线带实心圆为官方回放的容量档位 50/200/400/800/18,854 条；虚线带空心方块为本章方法在同一组容量点上的读数（构成方式与复用分配固定为默认配置，只改变容量）；空心标记为参数侧三种形态；水平虚线为朴素更新（存储 0）；星号为联合训练上界。竖细线标出 10.25 MB 处样本侧与参数侧的等预算对照。两条样本侧曲线以线型与标记填充区分，不依赖颜色，灰度打印下可辨。",
       "width_mm": 150.0,
       "height_mm": 92.0,
       "png_dpi": 400,
@@ -354,16 +354,34 @@
       "bytes": 38826
     },
     {
+      "role": "本章方法 容量 1,600 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m1600_quota_deficit_r2.json",
+      "sha256": "9ecac99898e9f641290ee487025850ce8e63450667307d5b330e5ccc50ea6906",
+      "bytes": 38769
+    },
+    {
       "role": "回放容量 18,854 指标制品",
       "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m18854.json",
       "sha256": "99ee9c4092c079792d5c124591dc1aa8514468eb05753d84a7c9654a636f0166",
       "bytes": 38813
     },
     {
+      "role": "本章方法 容量 18,854 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m18854_quota_deficit_r2.json",
+      "sha256": "f4e69049cd36df8abea95ff4c61b2b72cf5bf71fccc9989a53ec51ac69ef62e2",
+      "bytes": 38833
+    },
+    {
       "role": "按年度配额 复用 1 指标制品",
       "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota.json",
       "sha256": "322786dcbace52b5a1765249bcfb6991b26a93eae869c10d965fc5f5fa66c6ed",
       "bytes": 38812
+    },
+    {
+      "role": "本章方法（容量 200） 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json",
+      "sha256": "bf141d079ddedc59f58351a3ca87aac19656e6114d98fdb944fb32f762219e58",
+      "bytes": 38889
     },
     {
       "role": "按年度配额 复用 2（本章方法） 指标制品",
@@ -396,16 +414,34 @@
       "bytes": 38927
     },
     {
+      "role": "本章方法 容量 400 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m400_quota_deficit_r2.json",
+      "sha256": "a18a73ad0bbe58bded46bc0895d5aef444cc6e02e1abacb00d46273b409541e1",
+      "bytes": 38819
+    },
+    {
       "role": "回放容量 50 指标制品",
       "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m50.json",
       "sha256": "75da0d26f28901b846c8179b567116e3701d4cc742028e6ef2c70be202797113",
       "bytes": 38866
     },
     {
+      "role": "本章方法 容量 50 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m50_quota_deficit_r2.json",
+      "sha256": "534ce358d5cab36cde2f43b10d1133dd431ca12897ae06571aa7316a976f4acd",
+      "bytes": 38869
+    },
+    {
       "role": "回放容量 800 指标制品",
       "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m800.json",
       "sha256": "0f53ec89e4027765c2ee1f6fd43c297ecf73decbcc24050efe79ecfdcef7d64a",
       "bytes": 38868
+    },
+    {
+      "role": "本章方法 容量 800 指标制品",
+      "path": "thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m800_quota_deficit_r2.json",
+      "sha256": "24d8b95be73cea6ca9cc160f6347f3348b037b1b2d5564790334111843c945e9",
+      "bytes": 38761
     },
     {
       "role": "容量 800 复用 2 指标制品",
