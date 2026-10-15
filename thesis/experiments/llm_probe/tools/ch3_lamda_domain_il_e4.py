@@ -477,31 +477,55 @@ def evaluate(model, x, y, batch, device) -> dict:
 
 
 def split_by_year(store: dict, years_seen: list[int], capacity: int,
-                  rng: np.random.Generator) -> list[tuple[int, np.ndarray, np.ndarray]]:
+                  rng: np.random.Generator, scheme: str = "quota"
+                  ) -> list[tuple[int, np.ndarray, np.ndarray]]:
     """按年度把缓冲切成若干块，返回 [(year, X_int8, y_float32), ...]。
 
-    与 quota_buffer 共用同一套抽取规则（按年等额、年内正负各半），但**保留年度标签**，
-    以便下游对每个年度单独设定复用次数（模块二的复用分配）。
+    **2×2 四格（2026-10-15 加）**——用来分离此前被捆绑在一起的两件事：
+    「年度间如何分配位置」与「年度内是否按标签分层」。既有的 `quota` 臂同时改了这两件，
+    因而它的增益无法归给其中任何一个。
+
+      scheme="quota"         —— 年度间等额 + 年内正负各半（本章模块一，既有行为，逐位不变）
+      scheme="prop_strat"    —— 年度间按样本量比例 + 年内正负各半
+      scheme="equal_unstrat" —— 年度间等额 + 年内不分层
+    第四格「按样本量比例 + 不分层」即官方全局蓄水池（`buffer_scheme="reservoir"`）。
+
+    保留年度标签，以便下游对每个年度单独设定复用次数（模块二的复用分配）。
     """
     k = len(years_seen)
-    per = capacity // k
+    if scheme == "prop_strat":
+        # 按各年度样本量比例分配，向下取整（不强制回补到 capacity，与 quota 的余数丢弃口径一致）
+        sizes = np.array([store[y][0].shape[0] for y in years_seen], dtype=float)
+        per_year = {y: int(a) for y, a in
+                    zip(years_seen, np.floor(capacity * sizes / sizes.sum()).astype(int))}
+    else:
+        per_year = {y: capacity // k for y in years_seen}
     out = []
     for year in years_seen:
         X, Y = store[year]
-        pos = np.flatnonzero(Y == 1)
-        neg = np.flatnonzero(Y == 0)
-        want_pos = per // 2
-        n_pos = min(pos.size, want_pos)
-        n_neg = min(neg.size, per - n_pos)
-        xs, ys = [], []
-        if n_pos:
-            xs.append(X[rng.choice(pos, size=n_pos, replace=False)])
-            ys.append(np.ones(n_pos, dtype=np.float32))
-        if n_neg:
-            xs.append(X[rng.choice(neg, size=n_neg, replace=False)])
-            ys.append(np.zeros(n_neg, dtype=np.float32))
-        if xs:
-            out.append((year, np.concatenate(xs), np.concatenate(ys)))
+        per = per_year[year]
+        if per <= 0:
+            continue
+        if scheme == "equal_unstrat":
+            idx = rng.choice(X.shape[0], size=min(per, X.shape[0]), replace=False)
+            xs, ys = X[idx], Y[idx].astype(np.float32)
+        else:
+            pos = np.flatnonzero(Y == 1)
+            neg = np.flatnonzero(Y == 0)
+            want_pos = per // 2
+            n_pos = min(pos.size, want_pos)
+            n_neg = min(neg.size, per - n_pos)
+            xs, ys = [], []
+            if n_pos:
+                xs.append(X[rng.choice(pos, size=n_pos, replace=False)])
+                ys.append(np.ones(n_pos, dtype=np.float32))
+            if n_neg:
+                xs.append(X[rng.choice(neg, size=n_neg, replace=False)])
+                ys.append(np.zeros(n_neg, dtype=np.float32))
+            if xs:
+                xs, ys = np.concatenate(xs), np.concatenate(ys)
+        if xs.size:
+            out.append((year, xs, ys))
     return out
 
 
@@ -603,12 +627,12 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         elif strategy == "cumulative":
             parts = [store[y] for y in years[: idx + 1]]
         elif strategy == "expreplay":
-            if buffer_scheme == "quota":
+            if buffer_scheme != "reservoir":
                 # 官方语义是「当年训练前，缓冲只含**此前**年度」（add_batch 在评价之后）
                 if idx == 0:
                     parts = [(x_curr, y_curr)]
                 else:
-                    blocks = split_by_year(store, years[:idx], memory, buf_rng)
+                    blocks = split_by_year(store, years[:idx], memory, buf_rng, buffer_scheme)
                     if not blocks:
                         parts = [(x_curr, y_curr)]
                     else:
@@ -760,9 +784,15 @@ if __name__ == "__main__":
                    help="uniform = 所有年度共用同一复用倍数（默认，文件名不变）；"
                         "deficit = 按各年度缓冲块的正例数分配复用次数，正例少的年度重复更多。"
                         "仅对 --strategy expreplay 生效。")
-    p.add_argument("--buffer-scheme", choices=("reservoir", "quota"), default="reservoir",
-                   help="reservoir = 官方全局蓄水池（默认，文件名不变）；"
-                        "quota = 按年等额＋年内正负各半的配额方案（设计见 quota_buffer 文档串）。"
+    p.add_argument("--buffer-scheme",
+                   choices=("reservoir", "quota", "prop_strat", "equal_unstrat"),
+                   default="reservoir",
+                   help="reservoir = 官方全局蓄水池（默认，文件名不变），即「按样本量比例 + 年内不分层」；"
+                        "quota = 按年等额＋年内正负各半（本章模块一）；"
+                        "prop_strat = 按样本量比例＋年内正负各半；"
+                        "equal_unstrat = 按年等额＋年内不分层。"
+                        "后两者与 quota 构成 2×2，用于分离「年度间分配」与「年内分层」"
+                        "（2026-10-15 加：quota 臂此前把这两件事捆绑在一起）。"
                         "仅对 --strategy expreplay 生效。")
     p.add_argument("--buffer-repeat", type=int, default=1,
                    help="模块二（$m$ 杠杆）：历史样本块每轮重复次数。默认 1 = 官方语义，"
