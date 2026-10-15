@@ -1,0 +1,70 @@
+{
+  "arm_semantics_as_written_in_plan": {
+    "beta0": "完全重置",
+    "beta05": "部分衰减",
+    "beta1": "现状（计划称必须逐位复现 0.8170）"
+  },
+  "arms": {
+    "beta0": 0.0,
+    "beta05": 0.5,
+    "beta1": 1.0
+  },
+  "baseline_momentum_lifetime": {
+    "claim_in_plan": "β=1.0 为「现状」，应逐位复现 0.8170",
+    "evidence": [
+      "official-src/domain_il_experiment.py:194 —— optim 构造在年度循环体内",
+      "ch3_lamda_domain_il_e4.py:388 —— train_epochs 内构造 optim，main 每年调用一次",
+      "本脚本 _selfcheck_zero_buffer_equals_fresh_optimizer —— 零缓冲与新建优化器逐位等价"
+    ],
+    "observed_conflict": "基线的优化器在**每个年度重新构造**，动量缓冲每年年初即为空；「上个年度方向被带入当前年度」在基线中不成立。β=1.0 因此是**引入携带**，不复现 0.8170；与基线逐位等价的是 β=0.0",
+    "planned_stop_condition": "implementation_plan.md §6：β=1.0 复现不出 0.8170 ⇒ 停，报主代理"
+  },
+  "bootstrap_n": 2000,
+  "bootstrap_seed": 42,
+  "boundary_batches": 5,
+  "criteria_text": "主判据：2024 年度测试分片 F1，ΔF1 = F1_beta − F1_beta1（β0−β1 与 β05−β1）。支持：至少一臂 ΔF1(2024) > 0 且配对 bootstrap 95% CI 不含 0，且 cos 的年度分布显著非正。部分支持：ΔF1(2024) > 0 但 CI 含 0，或 cos 非正但 F1 未动。证伪：两臂 ΔF1(2024) ≤ 0，或 cos 显著为正（提升另有原因）。强证伪：两臂 ΔF1(2024) ≤ 0 且 CI 不含 0。不确定性：单一冻结种子 42（禁多种子）；测试集配对 bootstrap n=2000，只量化样本不确定性，不冒充训练随机性。",
+  "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+  "env_data_root_var": "LAMDA_DATA_ROOT",
+  "gate_er": {
+    "assigned_to_arm_by_plan": "beta1",
+    "expected": 0.8169830287163194,
+    "reference_artifact": "ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json",
+    "tol": 1e-06
+  },
+  "h0_falsification": "年末重置动量不提高 2024 年度 F1；或提高但 cos > 0（即提升另有原因）。",
+  "hypothesis_H_verbatim": "在年度序列的分布漂移下，SGD 的动量缓冲会把**上一个年度的梯度方向**带进当前年度的训练；跨年度边界时这些方向来自**分布已经变了的年度**，因而拖累适应。",
+  "intervention": "进入新年度的第一个 batch 之前，对动量缓冲做 m ← beta·m；其余一字不动",
+  "mainline": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "deficit_gamma": 1.0,
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "lr": 0.01,
+    "memory": 200,
+    "momentum": 0.9,
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "seed": 42,
+    "strategy": "expreplay",
+    "threshold": 0.5,
+    "weight_decay": 1e-06
+  },
+  "observable_definition": "年度边界处，进入新年度时的动量缓冲 m（**缩放前**）与该年度**前 5 个 batch** 的梯度均值 g_new 的余弦相似度 cos(m, g_new)。cos ≲ 0 ⇒ 动量携带无关甚至反向的历史方向 ⇒ 假说有机制层支撑；cos 显著为正 ⇒ 动量仍是有效加速项 ⇒ 假说不成立，即使 F1 有变化也不能归因于它。",
+  "run_name": "ch4-lamda-momentum-state-pilot",
+  "ts": "2026-10-15T11:37:53.771533Z"
+}
