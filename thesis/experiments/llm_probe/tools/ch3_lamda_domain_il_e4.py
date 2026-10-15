@@ -477,7 +477,8 @@ def evaluate(model, x, y, batch, device) -> dict:
 
 
 def split_by_year(store: dict, years_seen: list[int], capacity: int,
-                  rng: np.random.Generator, scheme: str = "quota"
+                  rng: np.random.Generator, scheme: str = "quota",
+                  pos_ratio: float = 0.5
                   ) -> list[tuple[int, np.ndarray, np.ndarray]]:
     """按年度把缓冲切成若干块，返回 [(year, X_int8, y_float32), ...]。
 
@@ -489,6 +490,10 @@ def split_by_year(store: dict, years_seen: list[int], capacity: int,
       scheme="prop_strat"    —— 年度间按样本量比例 + 年内正负各半
       scheme="equal_unstrat" —— 年度间等额 + 年内不分层
     第四格「按样本量比例 + 不分层」即官方全局蓄水池（`buffer_scheme="reservoir"`）。
+
+    `pos_ratio`（D1，2026-10-15 加）：年内配额中**正例所占比例**，默认 0.5 即既有行为。
+    3.3.2 写死「正负各半」但正文从未推导过该取值，也从未扫描过，故加此旋钮。
+    正例不足时仍由负例补足（沿用既有规则）。
 
     保留年度标签，以便下游对每个年度单独设定复用次数（模块二的复用分配）。
     """
@@ -512,7 +517,10 @@ def split_by_year(store: dict, years_seen: list[int], capacity: int,
         else:
             pos = np.flatnonzero(Y == 1)
             neg = np.flatnonzero(Y == 0)
-            want_pos = per // 2
+            # pos_ratio=0.5 时**必须**走 `per // 2`：`round(per * 0.5)` 用的是 banker's rounding，
+            # 对 per ≡ 3 (mod 4) 的奇数会多给一个正例名额（如 per=7 时得 4 而非 3），
+            # 与既有产物不再逐位一致。默认路径保持与原实现完全相同。
+            want_pos = per // 2 if pos_ratio == 0.5 else int(round(per * pos_ratio))
             n_pos = min(pos.size, want_pos)
             n_neg = min(neg.size, per - n_pos)
             xs, ys = [], []
@@ -551,7 +559,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
          buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir",
          reuse_scheme: str = "uniform", reuse_schedule: str = "off",
          reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR, rho_ema: float = 0.0,
-         anchor_beta: float = 0.0) -> int:
+         anchor_beta: float = 0.0, pos_ratio: float = 0.5) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -559,6 +567,9 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         tag = f"{strategy}_m{memory}"
         if buffer_scheme != "reservoir":
             tag += f"_{buffer_scheme}"
+            # D1：年内正例占比偏离默认 0.5 时必须进 tag，否则扫描会互相覆盖
+            if pos_ratio != 0.5:
+                tag += f"_pr{int(round(pos_ratio * 100))}"
         if reuse_scheme != "uniform":
             tag += f"_{reuse_scheme}"
         if buffer_repeat != 1:
@@ -632,7 +643,8 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
                 if idx == 0:
                     parts = [(x_curr, y_curr)]
                 else:
-                    blocks = split_by_year(store, years[:idx], memory, buf_rng, buffer_scheme)
+                    blocks = split_by_year(store, years[:idx], memory, buf_rng,
+                                           buffer_scheme, pos_ratio)
                     if not blocks:
                         parts = [(x_curr, y_curr)]
                     else:
@@ -794,6 +806,10 @@ if __name__ == "__main__":
                         "后两者与 quota 构成 2×2，用于分离「年度间分配」与「年内分层」"
                         "（2026-10-15 加：quota 臂此前把这两件事捆绑在一起）。"
                         "仅对 --strategy expreplay 生效。")
+    p.add_argument("--pos-ratio", type=float, default=0.5,
+                   help="D1（2026-10-15 加）：年内配额中**正例所占比例**，默认 0.5 = 既有行为。"
+                        "3.3.2 写死「正负各半」但正文从未推导过该取值、也从未扫描过，故加此旋钮。"
+                        "正例不足时仍由负例补足。仅对 --buffer-scheme 非 reservoir 时生效。")
     p.add_argument("--buffer-repeat", type=int, default=1,
                    help="模块二（$m$ 杠杆）：历史样本块每轮重复次数。默认 1 = 官方语义，"
                         "文件名与既有产物保持一致。仅对 --strategy expreplay 生效。")
@@ -806,4 +822,4 @@ if __name__ == "__main__":
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
                           a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme,
                           a.reuse_schedule, a.reuse_cap, a.rho_a_star, a.rho_ema,
-                          a.anchor_beta))
+                          a.anchor_beta, a.pos_ratio))
