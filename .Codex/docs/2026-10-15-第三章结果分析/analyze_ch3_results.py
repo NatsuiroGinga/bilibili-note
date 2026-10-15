@@ -75,6 +75,46 @@ def load_years(tag: str) -> dict[int, float]:
     return {int(r["test_year"]): float(r["f1"]) for r in recs}
 
 
+def load_records(tag: str) -> list[dict]:
+    """读某臂末年 experience=2025、mode=backward 的 12 条完整记录。"""
+    p = ART / f"metrics_{tag}.json"
+    payload = json.loads(p.read_text(encoding="utf-8"))
+    recs = [r for r in payload["records"]
+            if r["experience"] == 2025 and r["mode"] == "backward"]
+    if len(recs) != 12:
+        raise Incomplete(f"{tag} 的 backward 记录 {len(recs)}/12 条")
+    return recs
+
+
+def confusion(r: dict) -> tuple[int, int, int, int]:
+    """由 (n, n_pos, precision, recall, accuracy) 反解四格计数（四舍五入）。"""
+    n, n_pos = int(r["n"]), int(r["n_pos"])
+    tp = round(float(r["recall"]) * n_pos)
+    tn = round(float(r["accuracy"]) * n) - tp
+    fn = n_pos - tp
+    fp = n - tp - fn - tn
+    return tp, fp, fn, tn
+
+
+def derived_pair12(tag: str) -> dict[str, float]:
+    """跨年平均的七个指标（12 年与 11 年两个口径）。"""
+    recs = load_records(tag)
+    rows = {}
+    for r in recs:
+        tp, fp, fn, tn = confusion(r)
+        fpr = fp / (fp + tn) if fp + tn else float("nan")
+        fnr = fn / (fn + tp) if fn + tp else float("nan")
+        rows[int(r["test_year"])] = {
+            "precision": 100 * float(r["precision"]), "recall": 100 * float(r["recall"]),
+            "f1": 100 * float(r["f1"]), "accuracy": 100 * float(r["accuracy"]),
+            "fpr": 100 * fpr, "fnr": 100 * fnr, "ba": 100 * (float(r["recall"]) + 1 - fpr) / 2}
+
+    def avg(years):
+        return {k: sum(rows[y][k] for y in years) / len(years) for k in rows[years[0]]}
+
+    return {"12y": avg(TEST_YEARS), "11y": avg(Y11)}
+
+
 def mean12(by: dict[int, float]) -> float:
     return 100.0 * sum(by[y] for y in TEST_YEARS) / 12
 
@@ -391,6 +431,59 @@ def main() -> int:
         pr_rows.append(r)
         print(f"  q+={lbl}  11y={r['11y']:.2f}  12y={r['12y']:.2f}")
     report["pr_sweep"] = pr_rows
+
+    # -------- 表 3-1 的七个指标复核
+    print("\n[表 3-1 复核] 七个跨年平均指标（由 records 的四格反解，单位：百分点）")
+    TBL31 = {"朴素更新": "naive", "经验回放（官方容量）": "expreplay_m200",
+             "本章方法": METH_TAG, "联合训练（上界）": "cumulative"}
+    tbl31: dict[str, object] = {}
+    hdr = f"{'方法':<20} {'口径':>4} {'精确率':>8} {'召回率':>8} {'F1':>8} {'准确率':>8} {'假正率':>8} {'假负率':>8} {'平衡准确率':>10}"
+    print(hdr)
+    for name, tag in TBL31.items():
+        d = derived_pair12(tag)
+        tbl31[name] = d
+        for k in ("12y", "11y"):
+            v = d[k]
+            print(f"{name:<20} {k:>4} {v['precision']:>8.2f} {v['recall']:>8.2f} {v['f1']:>8.2f} "
+                  f"{v['accuracy']:>8.2f} {v['fpr']:>8.2f} {v['fnr']:>8.2f} {v['ba']:>10.2f}")
+    f1n = tbl31["朴素更新"]["12y"]["f1"]
+    f1j = tbl31["联合训练（上界）"]["12y"]["f1"]
+    f1r = tbl31["经验回放（官方容量）"]["12y"]["f1"]
+    f1m = tbl31["本章方法"]["12y"]["f1"]
+    print(f"  12 年口径缺口闭合率：经验回放 {100*(f1r-f1n)/(f1j-f1n):.2f}%；本章方法 {100*(f1m-f1n)/(f1j-f1n):.2f}%")
+    print(f"  与联合上界的差距：经验回放 {f1j-f1r:.2f}；本章方法 {f1j-f1m:.2f}"
+          f"（缩小 {(f1j-f1r)-(f1j-f1m):.2f}）")
+    report["table_3_1_recheck"] = tbl31
+    report["gap_closure"] = {
+        "expreplay_12y_pct": 100 * (f1r - f1n) / (f1j - f1n),
+        "method_12y_pct": 100 * (f1m - f1n) / (f1j - f1n),
+        "gap_to_joint_expreplay": f1j - f1r,
+        "gap_to_joint_method": f1j - f1m}
+    report["table_3_1_recheck"] = tbl31
+
+    # -------- 表 3-3 参数侧等预算对照复核
+    print("\n[表 3-3 复核] 参数侧三形态与样本侧两档（12 年协议口径，单位：百分点）")
+    PARAM = {"逐参数位移插值": "freemoca", "弹性权重巩固": "ewc", "无遗忘学习": "lwf",
+             "200 条样本": "expreplay_m200", "18,854 条样本": "expreplay_m18854"}
+    n12, j12 = mean12(load_years("naive")), mean12(load_years("cumulative"))
+    param_rows = []
+    for name, tag in PARAM.items():
+        by = load_years(tag)
+        row = {"name": name, "tag": tag, "12y": mean12(by), "11y": mean11(by)}
+        row["gap_closure_12y"] = 100 * (row["12y"] - n12) / (j12 - n12)
+        param_rows.append(row)
+        print(f"  {name:<14} ({tag:<18}) 12y={row['12y']:6.2f}  11y={row['11y']:6.2f}  "
+              f"缺口闭合率 {row['gap_closure_12y']:5.2f}%")
+    print("  注：缺口闭合率由未取整读数算出；正文用「两个两位小数均值之差」的约定，"
+          "个别行会差 0.1 个百分点")
+    print("  注：正文「逐参数位移插值」一行在制品中对应 tag=freemoca，命名与机制名不一致，待作者确认")
+    report["table_3_3_recheck"] = param_rows
+
+    # -------- 2025 退化年的独立对照
+    cum = load_years("cumulative")
+    print(f"\n[2025 退化年] 联合训练（全历史）在 2025 测试分片上的 F1 = {100*cum[2025]:.2f}%"
+          f"（测试 n_pos=5）；本章方法与官方回放均为 0.00%")
+    report["joint_2025_f1"] = 100 * cum[2025]
 
     # -------- 隔离核验：逐样本分数
     quar = quarantine_npz()
