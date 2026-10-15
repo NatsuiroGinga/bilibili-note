@@ -103,3 +103,16 @@ zeek_orange_dmz.zip
 
 # 嵌套在子目录里的 Claude/Codex 会话日志
 **/.claude/logs/
+
+# ── 凭据类文件（一律不入库） ──
+# 依据全局规则：settings.json、.env、*.pem、credentials.json、*.db 禁止提交。
+# 事故背景：2026-10-15 核查发现 Zotero.txt 曾被跟踪，且历史提交 943ae620 中该文件为 30 字节
+# （含非字母数字字符，未能判定是否为凭据，已交用户裁决）；当前工作树版本为空文件。
+# 注意：`.claude/settings.json` 文件名命中该模式，但实测不含任何凭据键（仅 claudeMdExcludes／
+# permissions／hooks），且它是本仓库 hook 系统的注册入口，取消跟踪会使新机器上的 hooks 全部失效。
+# 故该文件**有意保留跟踪**，此处不列入忽略——这是一条对字面规则的显式偏离，理由如上。
+Zotero.txt
+.env
+.env.*
+*.pem
+credentials.json
