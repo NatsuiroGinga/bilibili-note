@@ -1595,6 +1595,6 @@
   ],
   "run_name": "ch3-lamda-domain-il-e4-replication-v1",
   "strategy": "expreplay",
-  "ts": "2026-10-14T13:17:39.023817Z",
-  "wall_seconds": 2086.7990550994873
+  "ts": "2026-10-15T08:55:19.327982Z",
+  "wall_seconds": 210.67498803138733
 }
