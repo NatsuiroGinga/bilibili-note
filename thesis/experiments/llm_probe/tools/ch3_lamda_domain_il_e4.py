@@ -371,9 +371,12 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
     `penalty`（可选）＝`("ewc", fisher_list, anchor_list)` 或 `("lwf", prev_model)`，
     分别对应参数侧的两条经典保持路线；**默认 None ⇒ 行为与官方 naive 逐位一致**。
 
-    `rho_sched`（可选）＝`(mem_blk, curr_part, a_star)`：模块二的**轮次调度**形态。
+    `rho_sched`（可选）＝`(mem_blk, curr_part, a_star, m_cap[, ema_beta])`：模块二的**轮次调度**形态。
     每轮开始前实测历史梯度与当前梯度的余弦相似度 $\\rho_r$，由一阶条件反解该轮的
     历史权重 $\\lambda_r = (1-a^{*})/(1-\\rho_r)$，再换算成该轮的记忆块重复份数。
+    `ema_beta > 0` 时改用 EMA 平滑后的 $\\hat\\rho_r$：首轮直接取实测值，其后
+    $\\hat\\rho_r = \\beta\\,\\hat\\rho_{r-1} + (1-\\beta)\\,\\rho_r$。EMA 状态是本函数局部变量，
+    而 `train_epochs` 每年度调用一次 ⇒ **平滑只在同一年度的轮次之间延续，不跨年度**。
     默认 None ⇒ 与统一复用逐位一致。
     """
     opt = torch.optim.SGD(model.parameters(), lr=lr, momentum=OFFICIAL_MOMENTUM,
@@ -382,11 +385,19 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
     if penalty and penalty[0] == "lwf":
         penalty[1].eval()
     model.train()
+    rho_ema_val = None   # EMA 状态仅在同一年度的轮次之间延续（本函数每年调用一次，天然逐年重置）
     for _ in range(epochs):
         epoch_parts = parts
         if rho_sched is not None:
-            mem_blk, curr_part, a_star, m_cap = rho_sched
-            rho = measure_rho(model, curr_part, mem_blk, batch, device, rng)
+            mem_blk, curr_part, a_star, m_cap = rho_sched[:4]
+            ema_beta = rho_sched[4] if len(rho_sched) > 4 else 0.0
+            rho_raw = measure_rho(model, curr_part, mem_blk, batch, device, rng)
+            if ema_beta > 0.0:
+                rho_ema_val = rho_raw if rho_ema_val is None \
+                    else ema_beta * rho_ema_val + (1.0 - ema_beta) * rho_raw
+                rho = rho_ema_val
+            else:
+                rho = rho_raw
             lam = (1.0 - a_star) / (1.0 - rho) if abs(1.0 - rho) > 1e-6 else 1.0
             lam = min(max(lam, 0.0), 1.0)
             n_c, n_m = int(curr_part[0].shape[0]), int(mem_blk[0].shape[0])
@@ -396,7 +407,10 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
                 m_r = int(round(lam * n_c / max((1.0 - lam) * n_m, 1e-9)))
             m_r = min(max(m_r, 1), m_cap)
             epoch_parts = [curr_part] + [mem_blk] * m_r
-            print(f"[sched] rho={rho:+.4f} lambda={lam:.4f} repeat={m_r}", flush=True)
+            if ema_beta > 0.0:
+                print(f"[sched] rho_raw={rho_raw:+.4f} rho={rho:+.4f} lambda={lam:.4f} repeat={m_r}", flush=True)
+            else:
+                print(f"[sched] rho={rho:+.4f} lambda={lam:.4f} repeat={m_r}", flush=True)
         for xb, yb in iterate_batches_parts(epoch_parts, batch, rng, True):
             xt = torch.from_numpy(xb.astype(np.float32)).to(device)
             yt = torch.from_numpy(yb).to(device).unsqueeze(1)
@@ -489,7 +503,7 @@ def reuse_by_deficit(blocks: list[tuple[int, np.ndarray, np.ndarray]], m_max: in
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
          buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir",
          reuse_scheme: str = "uniform", reuse_schedule: str = "off",
-         reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR) -> int:
+         reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR, rho_ema: float = 0.0) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -508,6 +522,9 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             # 上界偏离近乎不限的默认值时必须进 tag，否则判别实验会覆盖无上界的旧读数
             if reuse_cap != 64:
                 tag += f"_cap{reuse_cap}"
+            # EMA 平滑系数进 tag：不同 β 的读数互不覆盖（β=0 不进 tag，与既有产物命名一致）
+            if rho_ema > 0.0:
+                tag += f"_ema{int(round(rho_ema * 100))}"
     else:
         tag = strategy
     if seed != SEED:                      # 多种子复现：官方未设种子，本脚本默认 42
@@ -617,7 +634,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             penalty = ("lwf", lwf_prev)
         t0 = time.time()
         train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=penalty,
-                     rho_sched=(*rho_sched, rho_a_star, reuse_cap) if rho_sched else None)
+                     rho_sched=(*rho_sched, rho_a_star, reuse_cap, rho_ema) if rho_sched else None)
         rho_sched = None
         if prev_state is not None:
             freemoca_interpolate(prev_state, model)
@@ -683,8 +700,16 @@ if __name__ == "__main__":
                         "四篇先例全部约束每步上界（3×/20×/每步1:5/总量不变），本脚本原本只约束"
                         "均值。设为 8 即把分布夹到 [1,8] 而均值仍可由 --rho-a-star 标定到 4。")
     p.add_argument("--rho-a-star", type=float, default=RHO_A_STAR,
-                   help="轮次调度的标定量 a*（默认取模块常量）。改上界后须重新标定："
-                        "cap=8 时取 0.99091 可使平均复用倍数≈4。")
+                   help="轮次调度的标定量 a*（默认取模块常量）。改上界或 EMA 后须重新标定："
+                        "cap=8 无平滑取 0.99091；cap8+β=0.5 取 0.990196；cap8+β=0.7 取 0.989397。")
+    p.add_argument("--rho-ema", type=float, default=0.0,
+                   help="轮次调度的 ρ EMA 平滑系数 β（0 = 关闭，默认）。>0 时每轮改用 "
+                        "ρ_smooth = β·ρ_smooth_prev + (1−β)·ρ_now，只在同一年度的轮次之间延续、"
+                        "不跨年度。取值依据（魔法数字门禁登记）：110 个实测 ρ 去趋势后 lag-1 自相关 "
+                        "−0.12（近白噪声），EMA 只降噪不丢动态；β∈{0.5,0.7,0.9} 相对年内均值的平均跟踪"
+                        "误差 0.158/0.140/0.205，β=0.9 已因滞后反弹，故取 0.5 与 0.7 两档。"
+                        "β 使 m_r(ρ) 凸映射下的均值下降，a* 须重标：β=0.5→0.990196，β=0.7→0.989397"
+                        "（cap 8，用 cap8 跑实测 ρ 离线二分标定到平均 repeat≈4）。")
     p.add_argument("--reuse-scheme", choices=("uniform", "deficit"), default="uniform",
                    help="uniform = 所有年度共用同一复用倍数（默认，文件名不变）；"
                         "deficit = 按各年度缓冲块的正例数分配复用次数，正例少的年度重复更多。"
@@ -704,4 +729,4 @@ if __name__ == "__main__":
     a = p.parse_args()
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
                           a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme,
-                          a.reuse_schedule, a.reuse_cap, a.rho_a_star))
+                          a.reuse_schedule, a.reuse_cap, a.rho_a_star, a.rho_ema))
