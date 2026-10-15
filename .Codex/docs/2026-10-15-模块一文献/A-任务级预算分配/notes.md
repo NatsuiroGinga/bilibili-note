@@ -131,15 +131,22 @@
 
 ## 未关闭疑点
 
-- Krawczyk & Gepperth 2024 是否有公开版（Gepperth 主页或 ResearchGate）——待查
-- CORE 正式发表信息（仅 arXiv）——待查
-- 任务级「等额 vs 按规模比例」的**直接实验对照**是否存在于任何一篇——重点在 A4/A7/A8 精读中找
+- ~~Krawczyk & Gepperth 2024 是否有公开版~~ **已解决**：并行代理 2026-10-14 已将该文 PDF 入库（`raw/papers/attack-detection/lamda-related/2024-Krawczyk-重放与排练最佳实践策略分析.pdf`）并建 `-全文.md`；本轮补齐 8 字段 frontmatter 并追加「任务级/构成比例视角」补注。此前「疑似付费墙」判断作废。
+- CORE 正式发表信息（仅 arXiv）——报告已如实标注预印本。
+- 任务级「等额 vs 按规模比例」直接存量对照——**已裁定不存在**（report.md §三），由 E1 自建。
 
 ## 无法获取原文清单
 
-- （暂无，待确认 Krawczyk）
+- Ma et al. 2025 IEEE（付费墙）、Yoon arXiv:2606.30067、Wen arXiv:2507.12043、Li/Braverman ICLR 2026、Knoblauch ICML 2020 及 Tier B 其余 13 篇——明细见 report.md §五。
 
 ## 阻塞
 
-- 本地混合索引构建报错 + 本机算力占用，跳过本地索引通道（不影响主检索线）
+- 本地混合索引构建报错 + 本机算力占用，跳过本地索引通道（不影响主检索线）。
+- scholar CLI 14:43 起限流（返回空），第 8 轮检索式未取得结果即停，不再重试。
+
+## 收尾状态（2026-10-15 14:55）
+
+- 入库：9 篇新 PDF（raw/papers/attack-detection/lamda-related/）+ 9 篇 `-全文.md`（8 篇新建含 8 字段 frontmatter + 五类分节摘要头 + MinerU 全文；Krawczyk 为补齐既有笔记）。
+- INDEX：`wiki/papers/attack-detection/INDEX.md` 新增「LAMDA 第三章：固定记忆预算的任务级/经验级分配（2026-10-15 新增）」分节，10 条目 + 检索方法与边界。**INDEX.md 原有他人未提交改动，未做快照提交（遵守「含他人文件不夹带提交」），提交决定留主代理。**
+- 交付：`report.md`（§一做法清单 / §二研究对象与最优性 / §三等额vs比例对照 / §四E1-E6证伪实验 / §五未取得原文清单 / §六交叉核对 / §七裁决：**部分现成、关键对照需自创**）。
 

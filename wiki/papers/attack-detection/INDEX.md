@@ -156,6 +156,23 @@ related:
 
 **本轮检索方法与边界**：Scholar CLI（挂本机代理）+ arXiv API 直查核实；6 篇全部取得合法全文 PDF 入 `raw/papers/attack-detection/lamda-related/` 并经 MinerU 全文转换精读；引用以章节号+公式号为准。**文献侧未发现任何直接处理「批采样噪声下梯度夹角分配」的论文**——这是本课题自身实测发现的问题，文献只提供可移植的信号构造与分配规则。
 
+## LAMDA 第三章：固定记忆预算的任务级/经验级分配（2026-10-15 新增）
+
+为回答「固定容量 N=200 缓冲按已到达年度等额 ⌊N/k⌋ 分配（年度内正负各半）在文献中的地位与对照」而入库。**结论先行：任务级分配规则有研究（等额即 GEM 默认约定），自适应非均匀分配有代表（CORE/PDCL/RMM/RL 调度族），但没有任何文献给出该层次的最优性/遗憾理论，也没有任务级「等额 vs 按规模比例」的直接存量对照——该对照须在本课题数据上自建。** 检索报告见 `.Codex/docs/2026-10-15-模块一文献/A-任务级预算分配/report.md`。
+
+- **[[lamda-related/2017-LopezPaz-梯度情景记忆GEM-全文|GEM：等额分配的规范出处（NeurIPS 2017）]]** — §2 原文 "we can allocate m = M/T memories for each task"（任务数已知）与 "gradually reduce the value of m"（未知时，引 iCaRL）；两者均为工程约定、无最优性论证。我们「按年度等额 ⌊N/k⌋」正是此约定的年度版。
+- **[[lamda-related/2024-Zhang-认知回放CORE-全文|CORE：遗忘率驱动的任务级自适应配额（arXiv 2024）]]** — 明文批评「allocate the replay buffer space indiscriminately across all tasks」；AQA：att=−log(1−f)（Eq.3）、干扰度（Eq.4）、softmax（Eq.5）、阈值 1/(λ|P|)（Eq.6，λ=2）、SR 保底（Eq.7）+ TR 按比例（Eq.8）；消融去 AQA 平均精度 −5.17%（Table 4）。无最优性理论，arXiv 预印本。
+- **[[lamda-related/2023-Elenter-原始对偶持续学习-全文|PDCL：对偶变量驱动的任务级缓冲划分（arXiv 2023）]]** — 任务级不遗忘约束下的拉格朗日对偶：n(t)=|B|·λ(t)/‖λ(t)‖₁ 加仿射保底（α=1/2 → 每任务保底 |B|/2t，恰为均分一半）；Theorem 1 敏感度偏差界；Fig.3 非均匀划分优于均匀划分。**本层次唯一带理论的任务级非均匀分配**，但敏感度界 ≠ 分配最优性。
+- **[[lamda-related/2021-Liu-强化记忆管理RMM-全文|RMM：RL 学内存分配（NeurIPS 2021）]]** — 批评静态分配（旧类 20 vs 新类 1300 实例）；Level-1 新旧切分 + Level-2 按熵二分组组内均分；伪 CIL 任务预训练策略；POD+AANets 25-phase +3.6%/+4.4%/+1.9%。分配单元含阶段（时间）维与类维。
+- **[[lamda-related/2022-Klasson-回放调度-全文|Replay Scheduling：任务级回放比例调度（arXiv 2022/TMLR 2023）]]** — 动作=任务比例向量（Σp=1），MCTS 搜出显著非均匀日程（Fig.4 含间隔重复模式），学习策略平均排名优于等额基线 ETS。**其设定假设历史数据随时可访问、每任务重填缓冲，是采样比例问题，不能平移到存量配额。**
+- **[[lamda-related/2018-Isele-选择性经验回放-全文|SER：分布匹配 vs 覆盖最大化（AAAI 2018）]]** — 四种长期存储选择策略对照：分布匹配全程最优（=隐式按流频率的比例分配），覆盖最大化仅在「训练少的任务更重要」时占优；未把「目标分布怎么定」当变量。
+- **[[lamda-related/2023-Brignac-重放样本选择与存储改进-全文|IES：N=200 固定缓冲下的群体策略对照（WACV 2023）]]** — 与本课题同容量（200/500/5120）：小缓冲下 herding/IPM（每类 |M|/s 均分）普遍优于蓄水池（隐式比例）；Table 3 实测蓄水池任务份额偏差 ≤3.5 个百分点（与二项波动 σ≈2.8% 同量级，其「偏向早期」表述证据弱）；随缓冲增大差距收窄。
+- **[[lamda-related/2022-Chen-持续学习内存下界-全文|Memory Bounds：总内存线性下界（FOCS 2022）]]** — Theorem 1.1：k+1 任务 (ε,0.01)-continual learner 即使 improper 也需 Ω(kdb/ε) 比特——固定 N 在任务数增长下摊薄是信息论必然；不处理任务间怎么切。
+- **[[lamda-related/2024-Smith-自适应记忆回放-全文|Adaptive Memory Replay：算力受限下的回放占比 bandit（WACV 2024）]]** — 内存充裕设定下把「每步从哪个旧任务取多少」建模为非平稳 K 臂老虎机 + Boltzmann 采样；遗忘最多降 10%。是回放预算的时间分配，非存量配额。
+- **[[lamda-related/2024-Krawczyk-重放与排练最佳实践策略分析-全文|Krawczyk & Gepperth：回放构成比例对照（IEEE 2024，补齐补注）]]** — χ_M 参数化（Eq.1），balanced（Eq.2）/constant/weighted（Eq.3-4）对照：balanced 最稳、不均衡切分上优势最明显；任务加权 vs 类加权几乎无差。批内构成比例对照，非存量配额。
+
+**本轮检索方法与边界**：Scholar CLI 7 轮检索式（挂本机代理，q1–q7 存 `/tmp/scholar-task-budget/q*.json`）+ arXiv API 核验 ID；9 篇取得合法全文 PDF 入 `raw/papers/attack-detection/lamda-related/` 并经 MinerU `extract` 转全文精读，另有 Krawczyk 系并行代理 2026-10-14 已入库、本轮补齐结构化补注。Tier B 仅题录/摘要级候选（Ma 2025 联合内存优化、DM-DAR、CASP、PRS、CBRS、BRS/LARS、GSS、InfoRS、KL-reservoir、MEMO、Knoblauch NP-hard、Wen 2025 信息论界、Li/Braverman ICLR 2026、Yoon 2606.30067 regret 界、PROXYMIX、CL-KR-TD、FeDMRA）未取得全文，不作正文论断依据。**任务级「等额 vs 按规模比例」的直接存量对照在本轮检索所及范围内不存在。**
+
 ## 方法学入口
 
 - **[[../methodology/INDEX#组条件控制与分层预算分配（2026-08-26 新增）|组条件控制与分层预算分配]]** — Vovk 条件 ICP、Barber 条件推断极限、p-filter 多层预算，本节两篇安全应用的理论侧对应。
