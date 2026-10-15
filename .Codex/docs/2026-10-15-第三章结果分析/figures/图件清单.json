@@ -1,0 +1,109 @@
+{
+  "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）",
+  "environment": {
+    "generator": "analyze_ch3_results.py",
+    "python": "3.14.5",
+    "matplotlib": "3.11.1",
+    "pillow": "12.2.0"
+  },
+  "typography": {
+    "cjk_font_requested": "SimHei",
+    "cjk_font_used": "SimHei",
+    "cjk_font_path": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/SimHei.ttf",
+    "cjk_face_index": 0,
+    "latin_font_used": "Times New Roman",
+    "latin_font_path": "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+    "math_fontset": "stix",
+    "min_font_pt": 8.0,
+    "main_font_pt": 9.0,
+    "main_line_pt": 1.0,
+    "aux_line_pt": 0.5
+  },
+  "grayscale_readable": true,
+  "figures": [
+    {
+      "stem": "图A-主对照-逐年配对与自助分布",
+      "caption": "官方回放（容量 200，蓄水池抽样、统一复用）与本章方法（按年度配额切分 + deficit 复用分配，m=2）在同一冻结种子 42 下的逐年 F1 与 11 年平均 F1 之差。左：11 个测试年度（2025 因正例仅 5 条、两臂 F1 均为 0，按 11 年口径排除）的逐年读数，标注为逐年度配对差；点线为各自 11 年平均。右：年度级配对自助（重采样 11 个年度单元，n=2000）得到的均值差分布，竖实线为点估计，虚线为 0。误差区间只量化年度测试分片这一层的样本不确定性，不量化训练随机性（单一种子）。",
+      "width_mm": 158.0,
+      "height_mm": 80.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图A-主对照-逐年配对与自助分布.svg",
+        "pdf": "图A-主对照-逐年配对与自助分布.pdf",
+        "png": "图A-主对照-逐年配对与自助分布.png"
+      },
+      "png_pixels": [
+        2488,
+        1259
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.7
+      ],
+      "evidence_mode": "第三章实验制品重算（单一冻结种子 42）"
+    },
+    {
+      "stem": "图B-支撑-容量曲线与双机制消融",
+      "caption": "左：官方回放与本章方法的 11 年平均 F1 随缓冲容量的变化（对数横轴），标注为两者之差；相对优势在协议默认容量 200 条上最大，向两侧收窄，18,854 条处归零转负。右：双机制 2×2 消融（统一复用，12 年协议口径，与表 3-4 逐格对应），自左至右为蓄水池×倍数1（官方回放）、蓄水池×倍数2、按年度配额×倍数1、按年度配额×倍数2。两幅均为单一冻结种子 42 的读数，不含误差棒。",
+      "width_mm": 162.0,
+      "height_mm": 78.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图B-支撑-容量曲线与双机制消融.svg",
+        "pdf": "图B-支撑-容量曲线与双机制消融.pdf",
+        "png": "图B-支撑-容量曲线与双机制消融.png"
+      },
+      "png_pixels": [
+        2551,
+        1228
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.9
+      ],
+      "evidence_mode": "第三章实验制品重算（单一冻结种子 42）"
+    },
+    {
+      "stem": "图C-支撑-复用上限与正例配额扫描",
+      "caption": "左：配额臂复用上限 m_max 在 2–64 区间的 11 年平均 F1（容量 200，deficit 分配，种子 42），曲线非单调、上下抖动，全区间跨度 0.92 个百分点，点线为全区间均值。右：年内正例配额占比 q+ 的扫描（0.25–0.75），空心标记为最优取值；内部最优落在现状 0.50，两侧对称下降，降比例方向的损失最大。两幅均为单一冻结种子 42 的读数，不含误差棒。",
+      "width_mm": 162.0,
+      "height_mm": 76.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图C-支撑-复用上限与正例配额扫描.svg",
+        "pdf": "图C-支撑-复用上限与正例配额扫描.pdf",
+        "png": "图C-支撑-复用上限与正例配额扫描.png"
+      },
+      "png_pixels": [
+        2551,
+        1196
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.7
+      ],
+      "evidence_mode": "第三章实验制品重算（单一冻结种子 42）"
+    },
+    {
+      "stem": "图D-支撑-容量曲线的配对差与自助区间",
+      "caption": "官方回放与本章方法在各缓冲容量上的 11 年平均 F1 之差，误差棒为年度级配对自助 95% 置信区间（重采样 11 个年度测试分片，n=2000），星号标记 Holm 校正后 p<0.05 的容量点。差值在协议默认容量 200 条上最大，向两侧收窄，18,854 条处归零转负；该区间只量化年度测试分片这一层的样本不确定性，不量化训练随机性（单一冻结种子 42）。",
+      "width_mm": 148.0,
+      "height_mm": 74.0,
+      "png_dpi": 400,
+      "outputs": {
+        "svg": "图D-支撑-容量曲线的配对差与自助区间.svg",
+        "pdf": "图D-支撑-容量曲线的配对差与自助区间.pdf",
+        "png": "图D-支撑-容量曲线的配对差与自助区间.png"
+      },
+      "png_pixels": [
+        2330,
+        1165
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.9
+      ],
+      "evidence_mode": "第三章实验制品重算（单一冻结种子 42）"
+    }
+  ]
+}
