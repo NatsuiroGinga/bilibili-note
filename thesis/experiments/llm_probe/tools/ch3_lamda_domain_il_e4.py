@@ -537,21 +537,24 @@ def split_by_year(store: dict, years_seen: list[int], capacity: int,
     return out
 
 
-def reuse_by_deficit(blocks: list[tuple[int, np.ndarray, np.ndarray]], m_max: int) -> dict[int, int]:
-    """模块二的**复用分配**：使各年度的**正例总暴露量**相等。
+def reuse_by_deficit(blocks: list[tuple[int, np.ndarray, np.ndarray]], m_max: int,
+                     gamma: float = 1.0) -> dict[int, int]:
+    """模块二的**复用分配**：使各年度的**正例总暴露量**相称。
 
     规则（跑前冻结）：记第 s 年缓冲块的正例数为 $p_s$，则复用次数
-        $$m_s = \\text{clip}\\left(\\mathrm{round}(m_{max} \\cdot \\bar p / p_s),\\; 1,\\; m_{max}\\right)$$
+        $$m_s = \\text{clip}\\left(\\mathrm{round}(m_{max} \\cdot (\\bar p / p_s)^{\\gamma}),\\; 1,\\; m_{max}\\right)$$
     其中 $\\bar p$ 为各年度 $p_s$ 的均值。**正例越少、重复越多**，用计算补偿稀缺。
     该规则不含阈值参数，只用到 $p_s$ 这个可观测计数。
+
+    `gamma`（D6，2026-10-15 加）：分配的**缓释指数**，默认 1.0 = 既有行为（逐位不变）。
+    γ<1 时对稀缺年度的倾斜减弱（更接近统一复用），γ>1 时加重。
     """
     ps = np.array([int((y == 1).sum()) for _, _, y in blocks], dtype=float)
     if ps.size == 0 or ps.min() <= 0:
         return {yr: m_max for yr, _, _ in blocks}
-    target = m_max * ps.mean()
     out = {}
     for (yr, _, y), p in zip(blocks, ps):
-        out[yr] = int(np.clip(round(target / p), 1, m_max))
+        out[yr] = int(np.clip(round(m_max * (ps.mean() / p) ** gamma), 1, m_max))
     return out
 
 
@@ -559,7 +562,8 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
          buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir",
          reuse_scheme: str = "uniform", reuse_schedule: str = "off",
          reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR, rho_ema: float = 0.0,
-         anchor_beta: float = 0.0, pos_ratio: float = 0.5) -> int:
+         anchor_beta: float = 0.0, pos_ratio: float = 0.5,
+         deficit_gamma: float = 1.0) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -572,6 +576,9 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
                 tag += f"_pr{int(round(pos_ratio * 100))}"
         if reuse_scheme != "uniform":
             tag += f"_{reuse_scheme}"
+            # D6：缓释指数偏离默认 1.0 时必须进 tag，否则扫描会互相覆盖
+            if deficit_gamma != 1.0:
+                tag += f"_g{int(round(deficit_gamma * 100))}"
         if buffer_repeat != 1:
             tag += f"_r{buffer_repeat}"
         # 调度开关同样必须进 tag：否则 rho 臂写回 `expreplay_m200`，覆盖无调度的基线产物
@@ -661,7 +668,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
                         pass
                     elif reuse_scheme == "deficit":
                         # 模块二的复用分配：每个年度按其正例数获得不同重复次数
-                        reps = reuse_by_deficit(blocks, buffer_repeat)
+                        reps = reuse_by_deficit(blocks, buffer_repeat, deficit_gamma)
                         parts = [(x_curr, y_curr)]
                         for yr, X, y in blocks:
                             parts += [(X.astype(np.int8), y.astype(np.float32))] * reps[yr]
@@ -806,6 +813,10 @@ if __name__ == "__main__":
                         "后两者与 quota 构成 2×2，用于分离「年度间分配」与「年内分层」"
                         "（2026-10-15 加：quota 臂此前把这两件事捆绑在一起）。"
                         "仅对 --strategy expreplay 生效。")
+    p.add_argument("--deficit-gamma", type=float, default=1.0,
+                   help="D6（2026-10-15 加）：复用分配规则的**缓释指数**，默认 1.0 = 既有行为。"
+                        "规则为 m_s = clip(round(m_max * (mean(p)/p_s)**gamma), 1, m_max)；"
+                        "gamma<1 时对稀缺年度的倾斜减弱，gamma>1 时加重。仅对 --reuse-scheme deficit 生效。")
     p.add_argument("--pos-ratio", type=float, default=0.5,
                    help="D1（2026-10-15 加）：年内配额中**正例所占比例**，默认 0.5 = 既有行为。"
                         "3.3.2 写死「正负各半」但正文从未推导过该取值、也从未扫描过，故加此旋钮。"
@@ -822,4 +833,4 @@ if __name__ == "__main__":
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
                           a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme,
                           a.reuse_schedule, a.reuse_cap, a.rho_a_star, a.rho_ema,
-                          a.anchor_beta, a.pos_ratio))
+                          a.anchor_beta, a.pos_ratio, a.deficit_gamma))
