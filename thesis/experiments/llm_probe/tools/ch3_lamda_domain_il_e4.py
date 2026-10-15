@@ -476,6 +476,24 @@ def evaluate(model, x, y, batch, device) -> dict:
     }
 
 
+@torch.inference_mode()
+def score_shard(model, x: np.ndarray, batch: int, device) -> np.ndarray:
+    """用当前模型对整个分片逐样本打分（logits），按原始顺序返回。
+
+    **只读诊断用**（`--dump-scores`）：为核验「排序头 lift」是否成立，需要该模型在
+    各年度分片上的完整分数排序，而非聚合指标。本函数不写任何状态、不参与训练。
+    训练循环在每轮开始时显式 `model.train()`（见 train_epochs），故此处切 `eval`
+    不影响后续 dropout 语义；关闭该开关时逐位行为与既有产物完全一致。
+    """
+    model.eval()
+    dummy = np.zeros(x.shape[0], dtype=np.float32)
+    out = []
+    for xb, _ in iterate_batches(x, dummy, batch, np.random.default_rng(0), False):
+        xt = torch.from_numpy(xb.astype(np.float32)).to(device)
+        out.append(model(xt).squeeze(1).cpu().numpy())
+    return np.concatenate(out).astype(np.float32) if out else np.zeros(0, dtype=np.float32)
+
+
 def split_by_year(store: dict, years_seen: list[int], capacity: int,
                   rng: np.random.Generator, scheme: str = "quota",
                   pos_ratio: float = 0.5
@@ -563,7 +581,7 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
          reuse_scheme: str = "uniform", reuse_schedule: str = "off",
          reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR, rho_ema: float = 0.0,
          anchor_beta: float = 0.0, pos_ratio: float = 0.5,
-         deficit_gamma: float = 1.0) -> int:
+         deficit_gamma: float = 1.0, dump_scores: bool = False) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -633,12 +651,22 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
     rho_sched = None   # 模块二的轮次调度模板，(mem_blk, curr_part)，每个年度重设
     t_start = time.time()
 
+    score_dump: dict[str, np.ndarray] = {}   # `--dump-scores`：逐年度分片分数（只读诊断）
+
     for idx, year in enumerate(years):
         x_curr, y_curr = store[year]
         if model is None:
             model = ChenEncoderMLP(x_curr.shape[1]).to(device)
             n_params = sum(p.numel() for p in model.parameters())
             print(f"[model] params={n_params:,}", flush=True)
+
+        if dump_scores and idx > 0:
+            # RGA 只读诊断：用**上一轮模型**（即该年度标注时实际可用的模型）给本年度
+            # 训练分片打分。仅记录，不参与训练、不改变随机源。
+            sc = score_shard(model, x_curr, batch, device)
+            score_dump[f"s{year}"] = sc
+            score_dump[f"y{year}"] = y_curr.astype(np.float32)
+            print(f"[scores] {year}: n={sc.size} 正例{int((y_curr == 1).sum())}", flush=True)
 
         if strategy in ("naive", "freemoca", "ewc", "lwf"):
             parts = [(x_curr, y_curr)]
@@ -755,6 +783,11 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         })
         print(f"[{year}] avg_f1 backward={np.mean([r['f1'] for r in back]):.4f}", flush=True)
 
+    if dump_scores and score_dump:
+        sp = RUN_DIR / f"scores_{tag}.npz"
+        np.savez_compressed(sp, **score_dump)
+        print(f"[scores] 已写出 {sp.name}（{len(score_dump) // 2} 个年度）", flush=True)
+
     write_json(status, {"status": "completed", "strategy": strategy, "ts": now_utc()})
     final = max(years)
     last = [r for r in records if r["experience"] == final and r["mode"] == "backward"]
@@ -813,6 +846,10 @@ if __name__ == "__main__":
                         "后两者与 quota 构成 2×2，用于分离「年度间分配」与「年内分层」"
                         "（2026-10-15 加：quota 臂此前把这两件事捆绑在一起）。"
                         "仅对 --strategy expreplay 生效。")
+    p.add_argument("--dump-scores", action="store_true",
+                   help="只读诊断：在每个年度**训练开始前**，用上一轮模型给该年度训练分片"
+                        "逐样本打分并写出 scores_<tag>.npz，用于核验排序头 lift（RGA 的排序门）。"
+                        "仅记录，不参与训练、不改变随机源；关闭时逐位行为与既有产物一致。")
     p.add_argument("--deficit-gamma", type=float, default=1.0,
                    help="D6（2026-10-15 加）：复用分配规则的**缓释指数**，默认 1.0 = 既有行为。"
                         "规则为 m_s = clip(round(m_max * (mean(p)/p_s)**gamma), 1, m_max)；"
@@ -833,4 +870,4 @@ if __name__ == "__main__":
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
                           a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme,
                           a.reuse_schedule, a.reuse_cap, a.rho_a_star, a.rho_ema,
-                          a.anchor_beta, a.pos_ratio, a.deficit_gamma))
+                          a.anchor_beta, a.pos_ratio, a.deficit_gamma, a.dump_scores))
