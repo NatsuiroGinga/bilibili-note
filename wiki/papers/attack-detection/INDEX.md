@@ -186,6 +186,18 @@ related:
 - **[[lamda-related/2023-Chen-Android恶意软件持续学习主动学习-全文|Chen 2023：Android 恶意软件持续学习+主动学习（USENIX Security 2023）]]** — 层级对比学习+伪损失不确定性选样，每月固定标注量（如 200/月）；**存储侧明文 out of scope**（"Retiring training samples is out of scope in this paper"）——「标什么」与「存什么」在现有 Android 恶意软件文献里被当作两个问题，这正是 RGA 双预算命题的空白。
 - **[[lamda-related/2025-Haque-CITADEL半监督主动学习漂移-全文|CITADEL 2025：半监督主动学习+漂移（arXiv:2511.11979）]]** — FixMatch 改造 SSL（Bernoulli 二值特征增强）+ 多判据不确定性 top-k 选样；LAMDA 12 年序列上 budget 400 达 F1 77.7%。预算外生固定（50–400），**无排序门、无存储受限回放**（原文明文 CL out of scope）。
 - **[[lamda-related/2023-Li-预算约束深度异常检测-全文|Li 2023：标注预算约束下的深度异常检测 SOEL（ICML 2023）]]** — budgeted acquisition 强代表作：覆盖半径 δ 的排序泛化定理（Thm.1）+ k-means++ 多样性查询 + 污染率重要性加权估计（Thm.2）。**其门是空间覆盖条件，不是排序头部 lift 门**；静态污染池设定，无 Domain-IL 与存储侧。
+- **[[lamda-related/2022-Faber-主动终身异常检测与经验回放-全文|Faber 2022：主动终身异常检测＋经验回放（IEEE DSAA 2022）]]** — **原件由用户手动下载提供**（此前代理三条通路均未取得）。支持任意 memory-based 回放方法 ＋ 任意查询策略的框架。**关键判读：其标注预算 $B$ 花在「审计已存入缓冲的样本、剔除污染」，不是「给当年度未标注数据打标签」；存储侧规则外生固定**（原文 `space in the replay memory is equally divided between each task` ＋ 蓄水池），**全篇无 (存储, 标注) 联合形式化** ⇒ 不构成第四章双预算命题的先例。另两条对照：①「按 task 均分缓冲」是**第三章配额切分的直接先例**，须引用并划界；②其 `HAS` 基线（取最高分 $B$ 条）与 E2 的 `active` 臂同构，但 Faber 用于**移除**异常、E2 用于**加入**正例，**同一动作在两个目标下结论相反**（E2 2016 年 $\Delta F_1=-4.9$，因负例被全部剔除致 FPR 翻倍）。
+
+## LAMDA 第四章：标注×存储双预算联合配置的任务先例核查（2026-10-15 新增）
+
+为核查「固定标注预算＋固定存储预算下把『标什么』与『存什么』放进同一联合配置问题（含极端正例稀缺）」是否有先例而检索入库。**结论先行：(b) 有大量相邻工作但该组合未见——最接近的是 DMAE（标注预算＋有界记忆＋类不平衡＋漂移四要素同框架，流式集成底座）与 Xie UGSR（固定月标注预算＋不平衡持续恶意软件检测），两者都没有把双预算作为联合配置量，也都没有 LAMDA Domain-IL 读数；Faber DSAA 2022（任意查询策略×任意记忆回放框架）closed access 待取得后复核。** 检索报告见 `.Codex/docs/2026-10-15-第四章任务先例/`。
+
+- **[[lamda-related/2025-Xie-UGSR-不确定性分层采样与非平衡持续恶意软件检测|Xie 2025：UGSR 非平衡持续恶意软件检测（arXiv 2509.07532）]]** — 月标注预算固定 B=50（§IV.E）+ 分层不确定性采样（μB 多分类＋(1−μ)B 二分类）+ 10% 良性配额；memory bank 累积已标注样本（微调用约 20%）、检测端 codebook top-50/类有界；9:1 类不平衡是核心动机。**「标什么」与「存什么」是同框架内两个机制，但预算只压标注侧，无联合配置；APIGraph/AndroZoo 月度流，非 LAMDA。**
+- **[[lamda-related/2026-Han-DMAE-双记忆主动集成-类不平衡漂移数据流|Han 2026：DMAE 双记忆主动集成（Springer gold OA）]]** — 四要素同框架共置的最强先例：limited labeling budgets（随机+主动双通道标注）＋有界记忆（类级短窗＋长期原型，SDMI-PDSR 按漂移强度混合）＋多类不平衡（PCN-Weight）＋ADWIN 漂移。**底座是流式在线集成而非神经回放；局限节自认「labelling budget extremely small + rare classes 时估计不稳」——恰是目标任务病灶；非恶意软件域。**
+- **[[lamda-related/2020-Aggarwal-主动类增量学习-不平衡数据集|Aggarwal 2020：主动类增量×不平衡（ECML-PKDD 2020）]]** — 同时丢弃「随到随标」与「测试平衡」两假设，预算 B 两阶段消耗＋平衡驱动获取函数＋推理期类预测缩放；有界记忆只是背景讨论，方法用累积标注集。问题 2/3 的早期先例。
+- **[[lamda-related/2025-Daniel-持续深度主动学习-回放架构医学影像|Daniel 2025：RBACA 持续深度主动学习（arXiv 2501.08245）]]** — CAL 组合（回放式 rehearsal＋AL 选样）＋多种 memory management/pruning 策略可替换；组合活跃的直接证据，但无联合预算形式化，医学影像域。
+
+**本轮检索方法与边界**：OpenAlex `title_and_abstract.search` 结构化扫描（六路：双预算/active-CL/稀缺标签/PU 流式/恶意软件标注/AL×回放组合）＋ arXiv API（https+代理）＋ scholar CLI（挂代理，触发 429 一次）＋本地 53 篇库与既有笔记清点。4 篇取得合法全文 PDF 入 `raw/papers/attack-detection/lamda-related/` 并经 MinerU `extract` 转全文精读。**「FEC」缩写未能在 OpenAlex 定位（`FEC continual learning`/`FEC replay memory` 零命中/不相关），如指特定工作需补全称。** 无法取得全文而待用户手动下载：Faber DSAA 2022（`10.1109/dsaa54385.2022.10032405`，closed）、FALCON（IEEE TMC 2026，`10.1109/tmc.2026.3684501`）、ALPHA（ACM 2026，`10.1145/3779208.3807494`，OA 但 ACM 反爬）、Nie TNNLS 2023（`10.1109/tnnls.2023.3308900`）。
 
 ## 方法学入口
 
