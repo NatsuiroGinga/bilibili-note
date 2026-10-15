@@ -34,14 +34,16 @@ $q$ 用指数梯度 $q_g \\propto q_g\\exp(\\eta\\,\\bar\\ell_g)$ 逐批更新�
 某次训练用到的 parts 里，**每个年度块自成一組**（当年度分片为一组，缓冲中每个年度块各为一组）。
 组权重向量长度随已见年度增长。
 
-## η——实施计划的规格缺口，本脚本登记取值
+## η——实施计划未给值：**跑前冻结**为跨量级阶梯
 
-实施计划只写 $q_g \\propto q_g\\exp(\\eta\\,\\bar\\ell_g)$，**未给出 η 的数值**。
-本脚本取 **η = 1.0**。依据：Sagawa 等 (ICLR 2020) 的指数梯度形式；
-本地全文笔记 `wiki/papers/methodology/2020-Sagawa-GroupDRO群体移位.md`
-第 24 行与第 52 行给出该形式但同样未给常数，故 η=1.0 是该形式的
-**无标定默认步长**，**不是从本数据标定所得**。该取值属实现缺口填充，
-已在交付报告中显式披露。
+实施计划只写 $q_g \\propto q_g\\exp(\\eta\\,\\bar\\ell_g)$，**未给出 η 的数值**；
+本地 `wiki/papers/methodology/2020-Sagawa-GroupDRO群体移位.md` 只记该形式
+（第 24 行、第 52 行），**同样未记 η 的取值**。
+⇒ **无本数据标定依据，亦无本仓库可核的文献默认值。**
+按主代理 2026-10-15 裁决，**跑前冻结阶梯 η ∈ {0.01, 0.1, 1.0}**（跨两个数量级），
+采用"不知道就跨量级取三点"的处置，**不是标定值**。
+三个 η 的结果**必须全部报出**，不得只报效果最好的那一个；
+取值由 argparse `choices` 限定在该阶梯内。
 
 ## 数据根
 
@@ -53,7 +55,9 @@ $q$ 用指数梯度 $q_g \\propto q_g\\exp(\\eta\\,\\bar\\ell_g)$ 逐批更新�
     PY=/opt/miniconda3/envs/rwkv/bin/python
     export LAMDA_DATA_ROOT=<...>/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767
     $PY thesis/experiments/llm_probe/tools/ch4_lamda_group_robust_pilot.py --arm er
-    $PY thesis/experiments/llm_probe/tools/ch4_lamda_group_robust_pilot.py --arm groupdro
+    $PY thesis/experiments/llm_probe/tools/ch4_lamda_group_robust_pilot.py --arm groupdro --eta 0.01
+    $PY thesis/experiments/llm_probe/tools/ch4_lamda_group_robust_pilot.py --arm groupdro --eta 0.1
+    $PY thesis/experiments/llm_probe/tools/ch4_lamda_group_robust_pilot.py --arm groupdro --eta 1.0
 
 ## 实现说明（规格未规定、由本脚本确定并登记，**非科研数值改动**）
 
@@ -105,7 +109,9 @@ BUFFER_REPEAT = 2            # 第三章冻结值（deficit 的 m_max）
 MEMORY = 200                 # 第三章冻结容量
 POS_RATIO = 0.5              # 第三章冻结值
 DEFICIT_GAMMA = 1.0          # 第三章冻结值
-GROUP_DRO_ETA = 1.0          # 实施计划未给值；取 Sagawa 参考实现的无标定默认步长（见模块文档）
+# η：实施计划未给值，无本数据标定依据、无本仓库可核的文献默认值 ⇒
+# 主代理 2026-10-15 裁决为**跑前冻结的跨量级阶梯**（见模块文档）。三臂全部报出，不得只报最好者。
+GROUP_DRO_ETAS = (0.01, 0.1, 1.0)
 
 BOOTSTRAP_N = 2000           # 配对 bootstrap 重采样次数（计划 §3）
 BOOTSTRAP_SEED = 42
@@ -116,16 +122,24 @@ DATA_ROOT_ENV = "LAMDA_DATA_ROOT"
 
 CRITERIA_TEXT = (
     "主判据：2024 年度测试分片上的 F1，ΔF1 = F1_groupdro − F1_er。"
-    "支持：ΔF1(2024) > 0 且配对 bootstrap 95% CI 不含 0，且早期年度（2013/2014/2016）的 F1 "
-    "下降不超过同年零假设尺度。"
-    "部分支持：2024 改善但 CI 含 0。"
+    "η 跑前冻结为阶梯 {0.01, 0.1, 1.0}（实施计划未给 η；无本数据标定依据、"
+    "无本仓库可核的文献默认值 ⇒ 跨量级取三点，非标定值）。"
+    "**任一 η 为正不算支持：三个 η 的结果必须全部报出，不得只报最好者。**"
+    "支持：至少一个 η 的 ΔF1(2024) > 0 且配对 bootstrap 95% CI 不含 0，"
+    "且其余 η 的结果一并列出并说明离散程度。"
+    "部分支持：至少一个 η 为正但 CI 含 0。"
     "证伪：2024 不升，或早期年度显著下降（搬移错误而非降低最坏风险）。"
-    "强证伪：ΔF1(2024) ≤ 0 且 CI 不含 0 ⇒ 卡作废，第四章重新选题。"
+    "强证伪：**三个 η 全部** ΔF1(2024) ≤ 0 且 CI 不含 0 ⇒ 卡作废，第四章重新选题。"
     "不确定性：单一冻结种子 42（禁多种子）；测试集配对 bootstrap n=2000，"
     "只量化样本不确定性，不冒充训练随机性。"
 )
 
 ARMS = ("er", "groupdro")
+
+
+def eta_arm_key(eta: float) -> str:
+    """组鲁棒臂在制品中的稳定键（每个 η 一个独立臂，互不覆盖）。"""
+    return f"groupdro_eta{eta:g}"
 
 
 def now_utc() -> str:
@@ -422,17 +436,18 @@ def paired_bootstrap(
 # ---------------------------------------------------------------------------
 # 单臂主循环
 # ---------------------------------------------------------------------------
-def run_arm(arm: str) -> int:
+def run_arm(arm: str, eta: float | None) -> int:
+    key = "er" if arm == "er" else eta_arm_key(eta)
     torch.manual_seed(ch3.SEED)
     np.random.seed(ch3.SEED)
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-    print(f"[arm] {arm} device={device.type}", flush=True)
+    print(f"[arm] {key} device={device.type}", flush=True)
     print(f"[config] epochs={ch3.OFFICIAL_EPOCHS} batch={ch3.OFFICIAL_BATCH} "
           f"lr={ch3.OFFICIAL_LR} memory={MEMORY} buffer_scheme={BUFFER_SCHEME} "
           f"reuse_scheme={REUSE_SCHEME} buffer_repeat={BUFFER_REPEAT} "
           f"pos_ratio={POS_RATIO} deficit_gamma={DEFICIT_GAMMA} seed={ch3.SEED} "
-          f"threshold={ch3.THRESHOLD} arm={arm}"
-          + (f" groupdro_eta={GROUP_DRO_ETA}" if arm == "groupdro" else ""), flush=True)
+          f"threshold={ch3.THRESHOLD} arm={key}"
+          + (f" groupdro_eta={eta:g}" if arm == "groupdro" else ""), flush=True)
 
     rng = np.random.default_rng(ch3.SEED)         # 训练洗牌流（两臂同种子）
     buf_rng = np.random.default_rng(ch3.SEED)     # 缓冲构造流（两臂同种子，独立于训练流）
@@ -484,7 +499,7 @@ def run_arm(arm: str) -> int:
         elif arm == "groupdro":
             trace = train_epochs_groupdro(model, parts, gids, ch3.OFFICIAL_EPOCHS,
                                           ch3.OFFICIAL_BATCH, ch3.OFFICIAL_LR, device, rng,
-                                          GROUP_DRO_ETA)
+                                          float(eta))
             weight_trace[year] = trace
             gs = trace["groups"]
             qf = trace["q_final"]
@@ -533,7 +548,7 @@ def run_arm(arm: str) -> int:
     print(f"\n=== {arm}：末年 {final} 的 avg_f1（官方报告口径）= {final_avg:.4f} ===", flush=True)
 
     for ty, d in preds.items():
-        np.savez_compressed(RUN_DIR / f"preds_{arm}_{ty}.npz",
+        np.savez_compressed(RUN_DIR / f"preds_{key}_{ty}.npz",
                             y_true=d["y_true"], y_score=d["y_score"],
                             threshold=np.float32(ch3.THRESHOLD))
 
@@ -544,7 +559,7 @@ def run_arm(arm: str) -> int:
     results["ts"] = now_utc()
     results["criteria_text"] = CRITERIA_TEXT
     arms = results.setdefault("arms", {})
-    arms[arm] = {
+    arms[key] = {
         "final_year": final,
         "final_avg_f1_backward": final_avg,
         "per_year_f1_final_experience": per_year,
@@ -552,14 +567,16 @@ def run_arm(arm: str) -> int:
         "records": records,
     }
     if arm == "groupdro":
-        arms[arm]["groupdro_eta"] = GROUP_DRO_ETA
-        arms[arm]["group_weight_trace"] = {str(k): v for k, v in weight_trace.items()}
+        arms[key]["groupdro_eta"] = eta
+        arms[key]["group_weight_trace"] = {str(k): v for k, v in weight_trace.items()}
 
-    if all((RUN_DIR / f"preds_{a}_{ty}.npz").exists() for a in ARMS for ty in years):
+    done_keys = [k for k in ("er", *[eta_arm_key(e) for e in GROUP_DRO_ETAS]) if k in arms]
+    if "er" in arms and all((RUN_DIR / f"preds_{k}_{ty}.npz").exists()
+                            for k in done_keys for ty in years):
         results["comparison"] = build_comparison(years, results)
-        print("[comparison] 两臂预测齐备，已计算 ΔF1 与配对 bootstrap", flush=True)
+        print(f"[comparison] 已据 {done_keys} 重算 ΔF1 与配对 bootstrap", flush=True)
     write_json(res_path, results)
-    print(f"[done] {arm} 用时 {time.time() - t_start:.1f}s，制品 {res_path}", flush=True)
+    print(f"[done] {key} 用时 {time.time() - t_start:.1f}s，制品 {res_path}", flush=True)
 
     if arm == "er":
         delta = abs(final_avg - GATE_ER_REF)
@@ -580,40 +597,83 @@ def _entropy(q: list[float]) -> float:
 
 
 def build_comparison(years: list[int], results: dict[str, Any]) -> dict[str, Any]:
-    """由两臂的逐样本预测计算 ΔF1（逐年）与配对 bootstrap（主判据 2024）。"""
-    comp: dict[str, Any] = {"pair": ["groupdro", "er"], "per_year": {}, "bootstrap": {}}
-    er_arm = results["arms"].get("er", {})
-    gr_arm = results["arms"].get("groupdro", {})
-    for ty in years:
-        e = np.load(RUN_DIR / f"preds_er_{ty}.npz")
-        g = np.load(RUN_DIR / f"preds_groupdro_{ty}.npz")
-        assert np.array_equal(e["y_true"], g["y_true"]), f"两臂 y_true 顺序不一致 @{ty}"
-        der = float(er_arm["per_year_f1_final_experience"][str(ty)])
-        dgr = float(gr_arm["per_year_f1_final_experience"][str(ty)])
-        boot = paired_bootstrap(e["y_true"], g["y_score"], e["y_score"])
-        comp["per_year"][str(ty)] = {"f1_er": der, "f1_groupdro": dgr, "delta": dgr - der}
-        comp["bootstrap"][str(ty)] = boot
-    comp["mean_f1_er"] = float(np.mean([v["f1_er"] for v in comp["per_year"].values()]))
-    comp["mean_f1_groupdro"] = float(np.mean([v["f1_groupdro"] for v in comp["per_year"].values()]))
-    comp["primary_test_year"] = 2024
-    comp["primary"] = {
-        "delta_f1_2024": comp["per_year"]["2024"]["delta"],
-        "bootstrap": comp["bootstrap"]["2024"],
+    """由 er 与各 η 臂的逐样本预测计算 ΔF1（逐年）与配对 bootstrap（主判据 2024）。
+
+    **三个 η 全部计算并全部保留**，不得只留效果最好的那个。
+    """
+    expected = {"er", *[eta_arm_key(e) for e in GROUP_DRO_ETAS]}
+    present = set(results["arms"]) & expected
+    comp: dict[str, Any] = {
+        "eta_ladder": list(GROUP_DRO_ETAS),
+        "arms_present": sorted(present),
+        "arms_missing": sorted(expected - present),
+        "paired_with": "er",
+        "primary_test_year": 2024,
+        "per_eta": {},
     }
+    if "er" not in results["arms"]:
+        return comp
+    er_arm = results["arms"]["er"]
+    for e in GROUP_DRO_ETAS:
+        k = eta_arm_key(e)
+        if k not in results["arms"]:
+            continue
+        gr_arm = results["arms"][k]
+        per_year: dict[str, dict] = {}
+        boots: dict[str, dict] = {}
+        for ty in years:
+            pe = np.load(RUN_DIR / f"preds_er_{ty}.npz")
+            pg = np.load(RUN_DIR / f"preds_{k}_{ty}.npz")
+            assert np.array_equal(pe["y_true"], pg["y_true"]), f"两臂 y_true 顺序不一致 @{ty}"
+            der = float(er_arm["per_year_f1_final_experience"][str(ty)])
+            dgr = float(gr_arm["per_year_f1_final_experience"][str(ty)])
+            per_year[str(ty)] = {"f1_er": der, "f1_groupdro": dgr, "delta": dgr - der}
+            boots[str(ty)] = paired_bootstrap(pe["y_true"], pg["y_score"], pe["y_score"])
+        comp["per_eta"][str(gr_arm["groupdro_eta"])] = {
+            "arm_key": k,
+            "per_year": per_year,
+            "bootstrap": boots,
+            "mean_f1_groupdro": float(np.mean([v["f1_groupdro"] for v in per_year.values()])),
+            "delta_f1_2024": per_year["2024"]["delta"],
+            "bootstrap_2024": boots["2024"],
+        }
+    comp["mean_f1_er"] = float(np.mean(
+        [float(er_arm["per_year_f1_final_experience"][str(ty)]) for ty in years]))
+    print("[comparison] η 敏感性（主判据 ΔF1(2024)）:", flush=True)
+    for e in GROUP_DRO_ETAS:
+        d = comp["per_eta"].get(str(e))
+        if d is None:
+            print(f"  η={e:g}: 未运行", flush=True)
+            continue
+        b = d["bootstrap_2024"]
+        print(f"  η={e:g}: ΔF1(2024)={d['delta_f1_2024']:+.4f} "
+              f"95%=[{b['ci95_low']:+.4f}, {b['ci95_high']:+.4f}] "
+              f"含0={b['contains_zero']} | 12年均F1={d['mean_f1_groupdro']:.4f} "
+              f"(er={comp['mean_f1_er']:.4f})", flush=True)
     return comp
 
 
 # ---------------------------------------------------------------------------
-def main(arm: str) -> int:
+def main(arm: str, eta: float | None) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
 
     protocol_path = RUN_DIR / "e4p_protocol.json"
-    if not protocol_path.exists():
+    # 冻结配置在**本臂跑前**写出；η 阶梯变更（如从单值改为跨量级阶梯）后须重写，
+    # 使制品中的冻结判据始终与实际运行一致。
+    _need_protocol = True
+    if protocol_path.exists():
+        try:
+            _old = json.loads(protocol_path.read_text())
+            _need_protocol = list(_old.get("groupdro", {}).get("eta_ladder", [])) \
+                != list(GROUP_DRO_ETAS)
+        except (OSError, ValueError):
+            _need_protocol = True
+    if _need_protocol:
         protocol = {
             "run_name": RUN_NAME,
             "ts": now_utc(),
             "criteria_text": CRITERIA_TEXT,
-            "arms": list(ARMS),
+            "arms": ["er", *[eta_arm_key(e) for e in GROUP_DRO_ETAS]],
             "mainline": {
                 "strategy": "expreplay", "buffer_scheme": BUFFER_SCHEME,
                 "reuse_scheme": REUSE_SCHEME, "buffer_repeat": BUFFER_REPEAT,
@@ -625,9 +685,13 @@ def main(arm: str) -> int:
             "group_definition": "某次训练用到的 parts 里，每个年度块自成一組"
                                 "（当年度分片为一组，缓冲中每个年度块各为一组）",
             "groupdro": {
-                "eta": GROUP_DRO_ETA,
-                "eta_provenance": "实施计划未给 η 数值；取 Sagawa ICLR2020 指数梯度形式的"
-                                  "无标定默认步长 1.0，非本数据标定值（规格缺口，见报告）",
+                "eta_ladder": list(GROUP_DRO_ETAS),
+                "eta_provenance": "实施计划未给 η 数值；本地 Sagawa 全文笔记"
+                                  "（wiki/papers/methodology/2020-Sagawa-GroupDRO群体移位.md）"
+                                  "只记指数梯度形式、未记常数 ⇒ 无本数据标定依据，"
+                                  "亦无本仓库可核的文献默认值。主代理 2026-10-15 裁决为"
+                                  "**跑前冻结的跨量级阶梯** {0.01, 0.1, 1.0}，"
+                                  "三臂全部报出，非标定值",
                 "q_init": "每个年度重新置为均匀（每次训练 = 一个年度）",
                 "q_update": "逐批：批内各组均值 BCE ℓ̄_g，q_g ← q_g·exp(η·ℓ̄_g)，再整体归一化",
                 "loss": "批内逐样本 BCE 按 q_{g(x)} 加权后归一化 Σq·ℓ/Σq",
@@ -644,7 +708,7 @@ def main(arm: str) -> int:
         write_json(protocol_path, protocol)
         print(f"[protocol] 已写出 {protocol_path}", flush=True)
 
-    return run_arm(arm)
+    return run_arm(arm, eta)
 
 
 if __name__ == "__main__":
@@ -657,8 +721,13 @@ if __name__ == "__main__":
     p.add_argument("--arm", choices=ARMS, required=True,
                    help="er = 经验风险最小化（第三章基线，必须复现 0.8170）；"
                         "groupdro = 组鲁棒（只改损失加权）")
+    p.add_argument("--eta", type=float, default=None, choices=list(GROUP_DRO_ETAS),
+                   help="组鲁棒臂的 η。**跑前冻结的跨量级阶梯 {0.01, 0.1, 1.0}**"
+                        "（由 choices 限定，防止事后挑 η）。仅 --arm groupdro 需要。")
     a = p.parse_args()
+    if a.arm == "groupdro" and a.eta is None:
+        p.error("--arm groupdro 必须显式给出 --eta（跑前冻结阶梯 {0.01, 0.1, 1.0}）")
     try:
-        raise SystemExit(main(a.arm))
+        raise SystemExit(main(a.arm, a.eta))
     finally:
         _log_fh.flush()
