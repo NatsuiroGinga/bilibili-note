@@ -1,0 +1,150 @@
+[run] strategy=expreplay memory=200 scheme=reservoir reuse=uniform repeat=1 seed=43 tag=expreplay_m200_rho_cap8_ema70_s43
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[model] params=2,687,293
+[2013] trained on 69,144 rows in 10.8s
+[2013] avg_f1 backward=0.6786
+[sched] rho_raw=+0.9144 rho=+0.9144 lambda=0.1239 repeat=8
+[sched] rho_raw=+0.5374 rho=+0.8013 lambda=0.0534 repeat=8
+[sched] rho_raw=+0.8294 rho=+0.8097 lambda=0.0557 repeat=8
+[sched] rho_raw=+0.5532 rho=+0.7328 lambda=0.0397 repeat=8
+[sched] rho_raw=+0.7855 rho=+0.7486 lambda=0.0422 repeat=8
+[sched] rho_raw=-0.4958 rho=+0.3753 lambda=0.0170 repeat=7
+[sched] rho_raw=+0.9336 rho=+0.5428 lambda=0.0232 repeat=8
+[sched] rho_raw=+0.3458 rho=+0.4837 lambda=0.0205 repeat=8
+[sched] rho_raw=+0.7598 rho=+0.5665 lambda=0.0245 repeat=8
+[sched] rho_raw=+0.5341 rho=+0.5568 lambda=0.0239 repeat=8
+[2014] trained on 81,146 rows in 11.9s
+[2014] avg_f1 backward=0.9515
+[sched] rho_raw=-0.8012 rho=-0.8012 lambda=0.0059 repeat=3
+[sched] rho_raw=+0.3376 rho=-0.4596 lambda=0.0073 repeat=3
+[sched] rho_raw=-0.2901 rho=-0.4087 lambda=0.0075 repeat=3
+[sched] rho_raw=+0.4153 rho=-0.1615 lambda=0.0091 repeat=4
+[sched] rho_raw=+0.8239 rho=+0.1341 lambda=0.0122 repeat=5
+[sched] rho_raw=+0.0533 rho=+0.1099 lambda=0.0119 repeat=5
+[sched] rho_raw=-0.4818 rho=-0.0676 lambda=0.0099 repeat=4
+[sched] rho_raw=+0.7449 rho=+0.1761 lambda=0.0129 repeat=6
+[sched] rho_raw=-0.4999 rho=-0.0267 lambda=0.0103 repeat=5
+[sched] rho_raw=-0.4061 rho=-0.1405 lambda=0.0093 repeat=4
+[2016] trained on 87,554 rows in 12.5s
+[2016] avg_f1 backward=0.9150
+[sched] rho_raw=+0.6402 rho=+0.6402 lambda=0.0295 repeat=8
+[sched] rho_raw=+0.0314 rho=+0.4576 lambda=0.0195 repeat=8
+[sched] rho_raw=-0.0972 rho=+0.2912 lambda=0.0150 repeat=6
+[sched] rho_raw=+0.5510 rho=+0.3691 lambda=0.0168 repeat=7
+[sched] rho_raw=-0.1263 rho=+0.2205 lambda=0.0136 repeat=5
+[sched] rho_raw=-0.1597 rho=+0.1064 lambda=0.0119 repeat=5
+[sched] rho_raw=+0.0885 rho=+0.1010 lambda=0.0118 repeat=5
+[sched] rho_raw=+0.0766 rho=+0.0937 lambda=0.0117 repeat=5
+[sched] rho_raw=-0.1027 rho=+0.0348 lambda=0.0110 repeat=4
+[sched] rho_raw=-0.1540 rho=-0.0219 lambda=0.0104 repeat=4
+[2017] trained on 79,515 rows in 12.5s
+[2017] avg_f1 backward=0.9370
+[sched] rho_raw=+0.4536 rho=+0.4536 lambda=0.0194 repeat=8
+[sched] rho_raw=+0.1176 rho=+0.3528 lambda=0.0164 repeat=7
+[sched] rho_raw=+0.7572 rho=+0.4741 lambda=0.0202 repeat=8
+[sched] rho_raw=-0.1443 rho=+0.2886 lambda=0.0149 repeat=6
+[sched] rho_raw=+0.5576 rho=+0.3693 lambda=0.0168 repeat=7
+[sched] rho_raw=+0.0664 rho=+0.2784 lambda=0.0147 repeat=6
+[sched] rho_raw=+0.2452 rho=+0.2685 lambda=0.0145 repeat=6
+[sched] rho_raw=+0.2423 rho=+0.2606 lambda=0.0143 repeat=6
+[sched] rho_raw=-0.3385 rho=+0.0809 lambda=0.0115 repeat=5
+[sched] rho_raw=+0.2478 rho=+0.1310 lambda=0.0122 repeat=5
+[2018] trained on 83,633 rows in 13.7s
+[2018] avg_f1 backward=0.9112
+[sched] rho_raw=-0.2300 rho=-0.2300 lambda=0.0086 repeat=3
+[sched] rho_raw=-0.5072 rho=-0.3131 lambda=0.0081 repeat=3
+[sched] rho_raw=-0.2007 rho=-0.2794 lambda=0.0083 repeat=3
+[sched] rho_raw=+0.0014 rho=-0.1951 lambda=0.0089 repeat=3
+[sched] rho_raw=-0.0852 rho=-0.1622 lambda=0.0091 repeat=3
+[sched] rho_raw=-0.4053 rho=-0.2351 lambda=0.0086 repeat=3
+[sched] rho_raw=+0.4370 rho=-0.0335 lambda=0.0103 repeat=4
+[sched] rho_raw=+0.0874 rho=+0.0028 lambda=0.0106 repeat=4
+[sched] rho_raw=+0.3568 rho=+0.1090 lambda=0.0119 repeat=4
+[sched] rho_raw=+0.1532 rho=+0.1223 lambda=0.0121 repeat=4
+[2019] trained on 73,040 rows in 12.4s
+[2019] avg_f1 backward=0.8684
+[sched] rho_raw=+0.1015 rho=+0.1015 lambda=0.0118 repeat=5
+[sched] rho_raw=+0.2104 rho=+0.1342 lambda=0.0122 repeat=5
+[sched] rho_raw=+0.0761 rho=+0.1167 lambda=0.0120 repeat=5
+[sched] rho_raw=+0.1840 rho=+0.1369 lambda=0.0123 repeat=5
+[sched] rho_raw=+0.0259 rho=+0.1036 lambda=0.0118 repeat=5
+[sched] rho_raw=-0.0043 rho=+0.0712 lambda=0.0114 repeat=5
+[sched] rho_raw=+0.3080 rho=+0.1423 lambda=0.0124 repeat=5
+[sched] rho_raw=+0.1713 rho=+0.1510 lambda=0.0125 repeat=5
+[sched] rho_raw=+0.1808 rho=+0.1599 lambda=0.0126 repeat=5
+[sched] rho_raw=-0.4182 rho=-0.0135 lambda=0.0105 repeat=4
+[2020] trained on 81,858 rows in 12.8s
+[2020] avg_f1 backward=0.8880
+[sched] rho_raw=+0.1998 rho=+0.1998 lambda=0.0133 repeat=4
+[sched] rho_raw=-0.0407 rho=+0.1277 lambda=0.0122 repeat=4
+[sched] rho_raw=+0.2717 rho=+0.1709 lambda=0.0128 repeat=4
+[sched] rho_raw=+0.0215 rho=+0.1261 lambda=0.0121 repeat=4
+[sched] rho_raw=+0.4023 rho=+0.2089 lambda=0.0134 repeat=4
+[sched] rho_raw=+0.3146 rho=+0.2406 lambda=0.0140 repeat=5
+[sched] rho_raw=+0.1029 rho=+0.1993 lambda=0.0132 repeat=4
+[sched] rho_raw=+0.0399 rho=+0.1515 lambda=0.0125 repeat=4
+[sched] rho_raw=+0.0057 rho=+0.1078 lambda=0.0119 repeat=4
+[sched] rho_raw=-0.0691 rho=+0.0547 lambda=0.0112 repeat=4
+[2021] trained on 65,124 rows in 10.6s
+[2021] avg_f1 backward=0.8825
+[sched] rho_raw=-0.0166 rho=-0.0166 lambda=0.0104 repeat=4
+[sched] rho_raw=-0.1805 rho=-0.0657 lambda=0.0099 repeat=3
+[sched] rho_raw=-0.4346 rho=-0.1764 lambda=0.0090 repeat=3
+[sched] rho_raw=+0.0062 rho=-0.1216 lambda=0.0095 repeat=3
+[sched] rho_raw=+0.3250 rho=+0.0124 lambda=0.0107 repeat=4
+[sched] rho_raw=+0.6063 rho=+0.1906 lambda=0.0131 repeat=5
+[sched] rho_raw=+0.4287 rho=+0.2620 lambda=0.0144 repeat=5
+[sched] rho_raw=+0.0365 rho=+0.1944 lambda=0.0132 repeat=5
+[sched] rho_raw=-0.0160 rho=+0.1312 lambda=0.0122 repeat=4
+[sched] rho_raw=+0.3349 rho=+0.1923 lambda=0.0131 repeat=5
+[2022] trained on 69,332 rows in 12.5s
+[2022] avg_f1 backward=0.8674
+[sched] rho_raw=-0.4707 rho=-0.4707 lambda=0.0072 repeat=2
+[sched] rho_raw=+0.2345 rho=-0.2591 lambda=0.0084 repeat=2
+[sched] rho_raw=+0.0988 rho=-0.1517 lambda=0.0092 repeat=2
+[sched] rho_raw=+0.3309 rho=-0.0069 lambda=0.0105 repeat=2
+[sched] rho_raw=+0.3965 rho=+0.1141 lambda=0.0120 repeat=3
+[sched] rho_raw=+0.2131 rho=+0.1438 lambda=0.0124 repeat=3
+[sched] rho_raw=+0.2417 rho=+0.1732 lambda=0.0128 repeat=3
+[sched] rho_raw=+0.4208 rho=+0.2475 lambda=0.0141 repeat=3
+[sched] rho_raw=+0.0004 rho=+0.1734 lambda=0.0128 repeat=3
+[sched] rho_raw=+0.1035 rho=+0.1524 lambda=0.0125 repeat=3
+[2023] trained on 43,683 rows in 7.5s
+[2023] avg_f1 backward=0.8818
+[sched] rho_raw=+0.6417 rho=+0.6417 lambda=0.0296 repeat=6
+[sched] rho_raw=+0.0316 rho=+0.4587 lambda=0.0196 repeat=4
+[sched] rho_raw=+0.3635 rho=+0.4301 lambda=0.0186 repeat=4
+[sched] rho_raw=-0.1873 rho=+0.2449 lambda=0.0140 repeat=3
+[sched] rho_raw=+0.1584 rho=+0.2190 lambda=0.0136 repeat=3
+[sched] rho_raw=+0.0361 rho=+0.1641 lambda=0.0127 repeat=2
+[sched] rho_raw=+0.3275 rho=+0.2131 lambda=0.0135 repeat=3
+[sched] rho_raw=+0.1274 rho=+0.1874 lambda=0.0130 repeat=3
+[sched] rho_raw=-0.1191 rho=+0.0955 lambda=0.0117 repeat=2
+[sched] rho_raw=+0.1149 rho=+0.1013 lambda=0.0118 repeat=2
+[2024] trained on 38,941 rows in 6.7s
+[2024] avg_f1 backward=0.8970
+[sched] rho_raw=+0.2500 rho=+0.2500 lambda=0.0141 repeat=3
+[sched] rho_raw=-0.1880 rho=+0.1186 lambda=0.0120 repeat=2
+[sched] rho_raw=+0.2023 rho=+0.1437 lambda=0.0124 repeat=2
+[sched] rho_raw=-0.1312 rho=+0.0612 lambda=0.0113 repeat=2
+[sched] rho_raw=+0.3901 rho=+0.1599 lambda=0.0126 repeat=2
+[sched] rho_raw=+0.0293 rho=+0.1207 lambda=0.0121 repeat=2
+[sched] rho_raw=+0.0863 rho=+0.1104 lambda=0.0119 repeat=2
+[sched] rho_raw=+0.0962 rho=+0.1061 lambda=0.0119 repeat=2
+[sched] rho_raw=-0.0649 rho=+0.0548 lambda=0.0112 repeat=2
+[sched] rho_raw=-0.1222 rho=+0.0017 lambda=0.0106 repeat=2
+[2025] trained on 35,930 rows in 6.5s
+[2025] avg_f1 backward=0.8080
+
+=== expreplay：末年 2025 的 avg_f1（官方报告口径）= 0.8080 ===

@@ -1,0 +1,66 @@
+
+===== beta=0.0001 =====
+[sched] rho=-0.4965 lambda=0.0061 repeat=2
+[anchor] bce=0.689755 l2=2.272287e-02 beta*l2/bce=0.0000
+[sched] rho=+0.8503 lambda=0.0607 repeat=8
+[anchor] bce=0.687445 l2=4.676079e-02 beta*l2/bce=0.0000
+[sched] rho=+0.6198 lambda=0.0239 repeat=8
+[anchor] bce=0.686158 l2=7.524739e-02 beta*l2/bce=0.0000
+[sched] rho=+0.2638 lambda=0.0123 repeat=5
+[anchor] bce=0.681815 l2=1.677483e-01 beta*l2/bce=0.0000
+[sched] rho=+0.6414 lambda=0.0253 repeat=8
+[anchor] bce=0.651271 l2=6.370031e-01 beta*l2/bce=0.0001
+[sched] rho=+0.8129 lambda=0.0486 repeat=8
+[anchor] bce=0.378441 l2=4.186543e+00 beta*l2/bce=0.0011
+[sched] rho=-0.3394 lambda=0.0068 repeat=3
+[anchor] bce=0.186231 l2=8.039423e+00 beta*l2/bce=0.0043
+[sched] rho=+0.1937 lambda=0.0113 repeat=5
+[anchor] bce=0.143877 l2=9.550235e+00 beta*l2/bce=0.0066
+[sched] rho=+0.4870 lambda=0.0177 repeat=7
+[anchor] bce=0.127861 l2=1.072110e+01 beta*l2/bce=0.0084
+[sched] rho=+0.8957 lambda=0.0871 repeat=8
+[anchor] bce=0.121625 l2=1.147736e+01 beta*l2/bce=0.0094
+
+===== beta=0.001 =====
+[sched] rho=-0.4965 lambda=0.0061 repeat=2
+[anchor] bce=0.689757 l2=2.259225e-02 beta*l2/bce=0.0000
+[sched] rho=+0.8471 lambda=0.0595 repeat=8
+[anchor] bce=0.687455 l2=4.622134e-02 beta*l2/bce=0.0001
+[sched] rho=+0.6101 lambda=0.0233 repeat=8
+[anchor] bce=0.686210 l2=7.362971e-02 beta*l2/bce=0.0001
+[sched] rho=+0.2420 lambda=0.0120 repeat=5
+[anchor] bce=0.682173 l2=1.599512e-01 beta*l2/bce=0.0002
+[sched] rho=+0.6243 lambda=0.0242 repeat=8
+[anchor] bce=0.655775 l2=5.763748e-01 beta*l2/bce=0.0009
+[sched] rho=+0.7988 lambda=0.0452 repeat=8
+[anchor] bce=0.402279 l2=3.809379e+00 beta*l2/bce=0.0095
+[sched] rho=-0.1326 lambda=0.0080 repeat=3
+[anchor] bce=0.191153 l2=7.834904e+00 beta*l2/bce=0.0410
+[sched] rho=-0.0185 lambda=0.0089 repeat=4
+[anchor] bce=0.148136 l2=9.295264e+00 beta*l2/bce=0.0627
+[sched] rho=-0.7756 lambda=0.0051 repeat=2
+[anchor] bce=0.127736 l2=1.041717e+01 beta*l2/bce=0.0816
+[sched] rho=-0.4638 lambda=0.0062 repeat=3
+[anchor] bce=0.116791 l2=1.116315e+01 beta*l2/bce=0.0956
+
+===== beta=0.01 =====
+[sched] rho=-0.4965 lambda=0.0061 repeat=2
+[anchor] bce=0.689778 l2=2.133729e-02 beta*l2/bce=0.0003
+[sched] rho=+0.8071 lambda=0.0471 repeat=8
+[anchor] bce=0.687561 l2=4.130409e-02 beta*l2/bce=0.0006
+[sched] rho=+0.5153 lambda=0.0188 repeat=8
+[anchor] bce=0.686659 l2=6.007489e-02 beta*l2/bce=0.0009
+[sched] rho=+0.0068 lambda=0.0092 repeat=4
+[anchor] bce=0.684640 l2=1.034030e-01 beta*l2/bce=0.0015
+[sched] rho=+0.4567 lambda=0.0167 repeat=7
+[anchor] bce=0.678080 l2=2.334041e-01 beta*l2/bce=0.0034
+[sched] rho=+0.8590 lambda=0.0645 repeat=8
+[anchor] bce=0.628326 l2=9.039536e-01 beta*l2/bce=0.0144
+[sched] rho=+0.7966 lambda=0.0447 repeat=8
+[anchor] bce=0.329766 l2=4.733421e+00 beta*l2/bce=0.1435
+[sched] rho=+0.6717 lambda=0.0277 repeat=8
+[anchor] bce=0.185617 l2=7.385845e+00 beta*l2/bce=0.3979
+[sched] rho=-0.5618 lambda=0.0058 repeat=2
+[anchor] bce=0.153935 l2=8.253286e+00 beta*l2/bce=0.5362
+[sched] rho=-0.5783 lambda=0.0058 repeat=2
+[anchor] bce=0.137109 l2=8.809779e+00 beta*l2/bce=0.6425
