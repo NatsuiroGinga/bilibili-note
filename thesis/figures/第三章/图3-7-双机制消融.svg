@@ -8,7 +8,7 @@
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
     <dc:title>图3-7-双机制消融</dc:title>
-    <dc:date>2026-10-14T18:20:55.948300</dc:date>
+    <dc:date>2026-10-15T16:32:58.033660</dc:date>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
      <cc:Agent>
@@ -42,7 +42,7 @@ Q 204.888189 40.682835 204.888189 43.812283
 L 204.888189 110.052283 
 Q 204.888189 113.181732 209.310236 113.181732 
 z
-" clip-path="url(#pfadba6cae1)" style="fill: url(#h3c68962a6e)"/>
+" clip-path="url(#p6d84f9ca61)" style="fill: url(#habd97b35f1)"/>
    </g>
    <g id="patch_3">
     <path d="M 209.310236 186.202205 
@@ -55,7 +55,7 @@ Q 204.888189 113.703307 204.888189 116.832756
 L 204.888189 183.072756 
 Q 204.888189 186.202205 209.310236 186.202205 
 z
-" clip-path="url(#pfadba6cae1)" style="fill: url(#hdeb668a59c)"/>
+" clip-path="url(#p6d84f9ca61)" style="fill: url(#h4b0aed165a)"/>
    </g>
    <g id="patch_4">
     <path d="M 119.026772 113.181732 
@@ -68,7 +68,7 @@ Q 114.604724 40.682835 114.604724 43.812283
 L 114.604724 110.052283 
 Q 114.604724 113.181732 119.026772 113.181732 
 z
-" clip-path="url(#pfadba6cae1)" style="fill: #f6f6f6; stroke: #8c8c8c; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#p6d84f9ca61)" style="fill: #f6f6f6; stroke: #8c8c8c; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_5">
     <path d="M 209.310236 113.181732 
@@ -82,7 +82,7 @@ L 204.888189 110.052283
 Q 204.888189 113.181732 209.310236 113.181732 
 L 209.310236 113.181732 
 z
-" clip-path="url(#pfadba6cae1)" style="fill: none; stroke: #8c8c8c; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#p6d84f9ca61)" style="fill: none; stroke: #8c8c8c; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_6">
     <path d="M 119.026772 186.202205 
@@ -95,7 +95,7 @@ Q 114.604724 113.703307 114.604724 116.832756
 L 114.604724 183.072756 
 Q 114.604724 186.202205 119.026772 186.202205 
 z
-" clip-path="url(#pfadba6cae1)" style="fill: #d0d0d0; stroke: #8c8c8c; stroke-width: 0.7; stroke-linejoin: miter"/>
+" clip-path="url(#p6d84f9ca61)" style="fill: #d0d0d0; stroke: #8c8c8c; stroke-width: 0.7; stroke-linejoin: miter"/>
    </g>
    <g id="patch_7">
     <path d="M 209.310236 186.202205 
@@ -109,7 +109,7 @@ L 204.888189 183.072756
 Q 204.888189 186.202205 209.310236 186.202205 
 L 209.310236 186.202205 
 z
-" clip-path="url(#pfadba6cae1)" style="fill: none; stroke: #1f1f1f; stroke-width: 1.4; stroke-linejoin: miter"/>
+" clip-path="url(#p6d84f9ca61)" style="fill: none; stroke: #1f1f1f; stroke-width: 1.4; stroke-linejoin: miter"/>
    </g>
    <g id="text_1">
     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="155.692913" y="16.291323" transform="rotate(-0 155.692913 16.291323)">复用倍数 1</text>
@@ -162,12 +162,12 @@ z
   </g>
  </g>
  <defs>
-  <clipPath id="pfadba6cae1">
+  <clipPath id="p6d84f9ca61">
    <rect x="0" y="0" width="368.503937" height="260.787402"/>
   </clipPath>
  </defs>
  <defs>
-  <pattern id="h3c68962a6e" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+  <pattern id="habd97b35f1" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
    <rect x="0" y="0" width="73" height="73" fill="#d0d0d0"/>
    <path d="M 0 72.6 
 C 0.159122 72.6 0.311748 72.53678 0.424264 72.424264 
@@ -1801,7 +1801,7 @@ C 71.688252 0.53678 71.840878 0.6 72 0.6
 z
 " style="fill: #1f1f1f; stroke: #1f1f1f; stroke-width: 0.5; stroke-linecap: butt; stroke-linejoin: miter"/>
   </pattern>
-  <pattern id="hdeb668a59c" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
+  <pattern id="h4b0aed165a" patternUnits="userSpaceOnUse" x="0" y="0" width="72" height="72">
    <rect x="0" y="0" width="73" height="73" fill="#b8b8b8"/>
    <path d="M 0 72.6 
 C 0.159122 72.6 0.311748 72.53678 0.424264 72.424264 
