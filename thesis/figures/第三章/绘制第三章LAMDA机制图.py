@@ -266,7 +266,7 @@ def draw_overview(cv: fs.Canvas) -> None:
         0.883,
         0.052,
         (
-            fs.Line("当年度训练分片到达", FS_MIN, span=1.1),
+            fs.Line("当年度训练分片到达（4561 维二值特征）", FS_MIN, span=1.1),
             fs.Line(r"$D_t$", FS_MIN, "math", span=1.3),
         ),
     )
@@ -367,11 +367,12 @@ def draw_overview(cv: fs.Canvas) -> None:
     )
     fs.stack(cv, rcx, 0.658, (fs.Line("结束", FS_MIN),))
     right_box(
-        0.440,
-        0.056,
+        0.447,
+        0.070,
         (
-            fs.Line("在全部已到达年度测试分片上", FS_MIN, span=1.1),
-            fs.Line("逐片评价并记录 F1", FS_MIN, span=1.1),
+            fs.Line("在已到达年度的测试分片", FS_MIN, span=1.0),
+            fs.Line(r"$E_1,\ldots,E_t$", FS_MIN, "math", span=1.3),
+            fs.Line("上逐片评价并记录 F1", FS_MIN, span=1.0),
         ),
     )
     right_box(0.316, 0.042, (fs.Line(r"$t\leftarrow t+1$", FS_MIN, "math", span=1.3),))
@@ -380,7 +381,7 @@ def draw_overview(cv: fs.Canvas) -> None:
     fs.arrow(cv, (cx + dhw, 0.746), (rx0, 0.746), head=7.0)
     fs.arrow(cv, (rcx, 0.722), (rcx, 0.681), head=7.0)
     fs.arrow(cv, (cx + dhw, 0.412), (rx0, 0.412), head=7.0)
-    fs.arrow(cv, (rcx, 0.384), (rcx, 0.316), head=7.0)
+    fs.arrow(cv, (rcx, 0.377), (rcx, 0.316), head=7.0)
 
     # 回边：年度循环沿右侧与图顶绕回（外圈），轮次循环沿左侧绕回（内圈）
     fs.routed_arrow(
