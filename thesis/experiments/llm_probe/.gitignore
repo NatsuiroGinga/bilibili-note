@@ -8,5 +8,11 @@ data/raw/
 data/processed/
 runs/*
 !runs/README.md
+# 实验产物入库（2026-10-15 用户裁决：代码与产物须随时同步 GitHub，便于换机续研）。
+# 仅放行 diagnostics：这里是正文表格直接引用的指标 JSON、运行日志与诊断制品，
+# 是正文读数的证据链，不入库则换机后无法追溯与复核。
+!runs/diagnostics/
+# data-raw 仍被上面的 runs/* 挡住：8.2 GB 数据集，可由 HuggingFace 重新获取，
+# 获取方式见 .Codex/docs/LAMDA/LAMDA第三章恢复卡.md 的「数据获取」一节。
 checkpoints/
 cache/

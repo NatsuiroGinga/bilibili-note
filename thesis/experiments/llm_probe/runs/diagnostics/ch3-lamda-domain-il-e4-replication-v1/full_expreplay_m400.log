@@ -1,0 +1,39 @@
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[model] params=2,687,293
+[2013] trained on 69,144 rows in 12.3s
+[2013] avg_f1 backward=0.6786
+[2014] trained on 81,346 rows in 11.5s
+[2014] avg_f1 backward=0.9472
+[2016] trained on 87,754 rows in 13.0s
+[2016] avg_f1 backward=0.9430
+[2017] trained on 79,715 rows in 12.8s
+[2017] avg_f1 backward=0.9351
+[2018] trained on 83,833 rows in 12.9s
+[2018] avg_f1 backward=0.9138
+[2019] trained on 73,240 rows in 12.2s
+[2019] avg_f1 backward=0.8954
+[2020] trained on 82,058 rows in 13.6s
+[2020] avg_f1 backward=0.8687
+[2021] trained on 65,324 rows in 9.1s
+[2021] avg_f1 backward=0.9023
+[2022] trained on 69,532 rows in 10.4s
+[2022] avg_f1 backward=0.8439
+[2023] trained on 43,883 rows in 7.3s
+[2023] avg_f1 backward=0.8908
+[2024] trained on 39,141 rows in 6.4s
+[2024] avg_f1 backward=0.9060
+[2025] trained on 36,130 rows in 5.3s
+[2025] avg_f1 backward=0.8061
+
+=== expreplay：末年 2025 的 avg_f1（官方报告口径）= 0.8061 ===

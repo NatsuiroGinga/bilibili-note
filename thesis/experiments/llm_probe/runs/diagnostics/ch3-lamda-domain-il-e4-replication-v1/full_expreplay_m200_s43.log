@@ -1,0 +1,40 @@
+[run] strategy=expreplay memory=200 scheme=reservoir reuse=uniform repeat=1 seed=43 tag=expreplay_m200_s43
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[model] params=2,687,293
+[2013] trained on 69,144 rows in 13.6s
+[2013] avg_f1 backward=0.6786
+[2014] trained on 81,146 rows in 14.1s
+[2014] avg_f1 backward=0.9539
+[2016] trained on 87,554 rows in 14.2s
+[2016] avg_f1 backward=0.9443
+[2017] trained on 79,515 rows in 12.0s
+[2017] avg_f1 backward=0.9323
+[2018] trained on 83,633 rows in 11.7s
+[2018] avg_f1 backward=0.9087
+[2019] trained on 73,040 rows in 10.5s
+[2019] avg_f1 backward=0.8850
+[2020] trained on 81,858 rows in 12.9s
+[2020] avg_f1 backward=0.8924
+[2021] trained on 65,124 rows in 10.3s
+[2021] avg_f1 backward=0.8938
+[2022] trained on 69,332 rows in 10.8s
+[2022] avg_f1 backward=0.8486
+[2023] trained on 43,683 rows in 7.0s
+[2023] avg_f1 backward=0.9031
+[2024] trained on 38,941 rows in 6.0s
+[2024] avg_f1 backward=0.8972
+[2025] trained on 35,930 rows in 5.9s
+[2025] avg_f1 backward=0.8101
+
+=== expreplay：末年 2025 的 avg_f1（官方报告口径）= 0.8101 ===

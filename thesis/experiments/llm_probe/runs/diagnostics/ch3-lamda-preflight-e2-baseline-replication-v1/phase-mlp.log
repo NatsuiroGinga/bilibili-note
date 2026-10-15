@@ -1,0 +1,29 @@
+[load] 2013: train_kept=61599 iid=1944
+[load] 2014: train_kept=76270 iid=1121
+[load] 2018: far_test=20859 pos=7870
+[load] 2019: far_test=18210 pos=8317
+[load] 2020: far_test=20415 pos=9271
+[load] 2021: far_test=16231 pos=7125
+[load] 2022: far_test=17284 pos=8330
+[load] 2023: far_test=10871 pos=1578
+[load] 2024: far_test=9686 pos=159
+[load] 2025: far_test=8933 pos=5
+[sets] train=(137869, 4561) iid=(3065, 4561) far=(122489, 4561) far_pos=42655
+[mlp] epoch 1/6 loss=0.221916
+[mlp] epoch 2/6 loss=0.128857
+[mlp] epoch 3/6 loss=0.113949
+[mlp] epoch 4/6 loss=0.105658
+[mlp] epoch 5/6 loss=0.098380
+[mlp] epoch 6/6 loss=0.095318
+
+=== E2 复现表（阈值 0.5）===
+-- IID --
+  LightGBM  F1=0.9750 ROC-AUC=0.9957 PR-AUC=0.9957 FPR=0.0277 FNR=0.0178 n=3065
+  XGBoost   F1=0.9770 ROC-AUC=0.9951 PR-AUC=0.9953 FPR=0.0235 FNR=0.0185 n=3065
+  MLP       F1=0.9660 ROC-AUC=0.9938 PR-AUC=0.9932 FPR=0.0314 FNR=0.0313 n=3065
+  SVM       F1=0.9517 ROC-AUC=0.9893 PR-AUC=0.9891 FPR=0.0416 FNR=0.0476 n=3065
+-- FAR --
+  LightGBM  F1=0.6468 ROC-AUC=0.8745 PR-AUC=0.8504 FPR=0.0147 FNR=0.5089 n=122489
+  XGBoost   F1=0.6541 ROC-AUC=0.9073 PR-AUC=0.8799 FPR=0.0115 FNR=0.5036 n=122489
+  MLP       F1=0.5916 ROC-AUC=0.9167 PR-AUC=0.8906 FPR=0.0058 FNR=0.5754 n=122489
+  SVM       F1=0.5374 ROC-AUC=0.8632 PR-AUC=0.8126 FPR=0.0169 FNR=0.6209 n=122489

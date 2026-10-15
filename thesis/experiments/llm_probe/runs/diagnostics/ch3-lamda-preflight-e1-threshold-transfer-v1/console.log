@@ -1,0 +1,25 @@
+[04:26:30] data identity verified: 24 shards match official manifest
+[04:26:31] loaded 2013_train: rows=69144 pos=35506
+[04:26:31] loaded 2013_test: rows=17287 pos=8877
+[04:26:32] loaded 2014_train: rows=80946 pos=36605
+[04:26:32] loaded 2014_test: rows=20237 pos=9151
+[04:26:33] train rows=137869 pos=66537; calibration benign=19496; iid rows=3065
+[04:26:37] epoch 1/6 train_loss=0.221916 iid_AP=0.990019
+[04:26:39] epoch 2/6 train_loss=0.128857 iid_AP=0.991648
+[04:26:41] epoch 3/6 train_loss=0.113949 iid_AP=0.992636
+[04:26:43] epoch 4/6 train_loss=0.105658 iid_AP=0.993058
+[04:26:45] epoch 5/6 train_loss=0.098380 iid_AP=0.993127
+[04:26:47] epoch 6/6 train_loss=0.095318 iid_AP=0.993236
+[04:26:47] thresholds: {'0.0010': 0.9928970539569857, '0.0100': 0.8511442631483075}; calibration FPR receipt: {'0.0010': 0.0010258514567090685, '0.0100': 0.010002051702913418}
+[04:26:47] IID context: AUROC=0.993840 AP=0.993236 A-FNR@0.1%=0.344705
+[04:26:49] year 2016: n=109193 pos=45134 AUROC=0.945754 AP=0.930747 FNR@0.1% A=0.769065 B=0.869300
+[04:26:51] year 2017: n=99144 pos=21359 AUROC=0.571165 AP=0.346667 FNR@0.1% A=0.990917 B=0.968116
+[04:26:53] year 2018: n=104292 pos=39350 AUROC=0.642313 AP=0.554822 FNR@0.1% A=0.977942 B=0.947624
+[04:26:55] year 2019: n=91050 pos=41585 AUROC=0.954901 AP=0.953363 FNR@0.1% A=0.857352 B=0.726488
+[04:26:57] year 2020: n=102073 pos=46355 AUROC=0.956220 AP=0.956381 FNR@0.1% A=0.920526 B=0.789192
+[04:26:58] year 2021: n=81155 pos=35627 AUROC=0.946007 AP=0.946258 FNR@0.1% A=0.976563 B=0.863587
+[04:27:00] year 2022: n=86416 pos=41648 AUROC=0.961040 AP=0.968491 FNR@0.1% A=0.938821 B=0.679096
+[04:27:01] year 2023: n=54354 pos=7892 AUROC=0.882083 AP=0.763782 FNR@0.1% A=0.956792 B=0.660289
+[04:27:02] year 2024: n=48427 pos=794 AUROC=0.781696 AP=0.377379 FNR@0.1% A=0.996222 B=0.774559
+[04:27:03] year 2025: n=44663 pos=23 AUROC=0.595824 AP=0.001169 FNR@0.1% A=1.000000 B=1.000000
+[04:27:04] completed in 34.0s; outputs at /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch3-lamda-preflight-e1-threshold-transfer-v1

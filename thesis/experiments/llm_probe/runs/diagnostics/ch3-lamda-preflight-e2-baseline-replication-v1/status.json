@@ -1,0 +1,11 @@
+{
+  "completed_models": [
+    "LightGBM",
+    "MLP",
+    "SVM",
+    "XGBoost"
+  ],
+  "phase": "gbdt",
+  "status": "completed",
+  "ts": "2026-10-14T07:12:21.355248Z"
+}

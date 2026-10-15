@@ -1,0 +1,21 @@
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[model] params=2,687,293
+[2013] trained on 69,144 rows in 11.5s
+[2013] avg_f1 backward=0.6786
+[2014] trained on 80,946 rows in 11.4s
+[2014] avg_f1 backward=0.9148
+[2016] trained on 87,354 rows in 12.1s
+[2016] avg_f1 backward=0.9341
+
+=== naive：末年 2016 的 avg_f1（官方报告口径）= 0.9341 ===

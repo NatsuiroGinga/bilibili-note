@@ -1,0 +1,66 @@
+{
+  "entry_script": "/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/tools/ch3_lamda_preflight_e1.py",
+  "entry_script_sha256": "d0a335eb43c8be9e3627081fc862d6b3360dde7b56bbbd914010025ebb2519d4",
+  "generated_at": "2026-10-14T04:27:04.349169Z",
+  "input_manifest_path": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767/manifest.json",
+  "input_manifest_sha256": "9ea0aa7ef45ac79a82cb9626c1d9b3a0a1df0928922b4dc834f4a2fd93d8e65e",
+  "notes": [
+    "predictions npz 保存逐年 scores/labels/months（行序=分片读取顺序，train 在前 test 在后），可由相同读取程序复现逐样本",
+    "无凭据写入任何文件"
+  ],
+  "outputs": {
+    "2016.npz": {
+      "bytes": 472040,
+      "sha256": "ea9639b2ed809deea9124dbae474162cbd5ca8b70b3b99fdef9da9374eb985df"
+    },
+    "2017.npz": {
+      "bytes": 408845,
+      "sha256": "7d8bdd763e28ed33ce31da09c42695aaf33bcae20c74df6f59785d0d8caecc3b"
+    },
+    "2018.npz": {
+      "bytes": 454005,
+      "sha256": "5425b442482586dc54228aabdf965cc5ca16b9609c4d528a71f491cd910211ae"
+    },
+    "2019.npz": {
+      "bytes": 438701,
+      "sha256": "72fa2692523e3f5082a44287ea0cb17f150567e893fc44e3f2aa86b09e3f8113"
+    },
+    "2020.npz": {
+      "bytes": 494519,
+      "sha256": "4215cffd20fbbebb984f11488bcb0a74a2089d923531eb57c7cd83b37feeed5a"
+    },
+    "2021.npz": {
+      "bytes": 397551,
+      "sha256": "f224792e8e9bdfe01c49e60fed6db4aad4bffa81d95d10f6d8115bd8213549e3"
+    },
+    "2022.npz": {
+      "bytes": 421345,
+      "sha256": "740d492ec4572f6eeb93eaec002772c2ff47ba132fd36f6c5e9b93fed26692c3"
+    },
+    "2023.npz": {
+      "bytes": 269478,
+      "sha256": "ea207d6e18607b9a14ec8250d5b4dba2d930ff8d88092d8024f601d3736a4121"
+    },
+    "2024.npz": {
+      "bytes": 233952,
+      "sha256": "8e4a473db755e3f5d3c9a8d676030d9b3e03d490ac7a558994f13f5b1f891260"
+    },
+    "2025.npz": {
+      "bytes": 167928,
+      "sha256": "b6010a4e3b4f6739221149ab28d5177c5031d19590dc243de914948440e6c1d7"
+    },
+    "console.log": {
+      "bytes": 1915,
+      "sha256": "f09b170d49e7224b055234b77ff7e26fd09b2a6c54d6a9f321cbeae723465dcd"
+    },
+    "metrics.json": {
+      "bytes": 20281,
+      "sha256": "6d2cabbe81a3134edc02e6b424416c2c1a2e90cc6f1307b860e36f11d5e15f10"
+    },
+    "progress.jsonl": {
+      "bytes": 3939,
+      "sha256": "b92b76a9c375168c73b7c35322ec3358e40863a6beaab1cbe32b07bb967d35aa"
+    }
+  },
+  "run_id": "ch3-lamda-preflight-e1-threshold-transfer-v1"
+}
