@@ -199,6 +199,13 @@ related:
 
 **本轮检索方法与边界**：OpenAlex `title_and_abstract.search` 结构化扫描（六路：双预算/active-CL/稀缺标签/PU 流式/恶意软件标注/AL×回放组合）＋ arXiv API（https+代理）＋ scholar CLI（挂代理，触发 429 一次）＋本地 53 篇库与既有笔记清点。4 篇取得合法全文 PDF 入 `raw/papers/attack-detection/lamda-related/` 并经 MinerU `extract` 转全文精读。**「FEC」缩写未能在 OpenAlex 定位（`FEC continual learning`/`FEC replay memory` 零命中/不相关），如指特定工作需补全称。** 无法取得全文而待用户手动下载：Faber DSAA 2022（`10.1109/dsaa54385.2022.10032405`，closed）、FALCON（IEEE TMC 2026，`10.1109/tmc.2026.3684501`）、ALPHA（ACM 2026，`10.1145/3779208.3807494`，OA 但 ACM 反爬）、Nie TNNLS 2023（`10.1109/tnnls.2023.3308900`）。
 
+## LAMDA 第四章：年度序列最坏组风险家族补查（2026-10-15 新增）
+
+为第四章候选「以年度为组的最坏组风险训练」补查 2023–2026 家族与近邻。**结论先行：按时间环境切分 + 不变风险（IRM 族）已在本数据（Android 年度漂移）上被 TIF 占用；DRO/最坏组风险直接用于「年度 Android 恶意软件」的工作在本轮检索所及范围内未见，但时序 DRO（TDRO/AAAI24、DRO-over-Time/INFORMS23）与 year-slice 评测协议已有成熟先例。** 检索报告见 `.Codex/docs/2026-10-15-第四章鲁棒家族补查/`。
+
+- **[[lamda-related/2025-Zheng-TIF时序不变性Android恶意软件检测|Zheng et al. 2025：TIF 时序不变性 Android 恶意软件检测（IEEE TSE）]]** — 按应用观测日期把训练数据切为不相交时间环境，用多代理对比学习（MPC）+ 不变梯度对齐（IGA，基于 IRMv1）学跨时间稳定判别表示；动机实验取 AndroZoo 2014–2021 的 110,723 良性 + 20,790 恶意、切成 30 个等长区间（§III-C2，第 3 页）。**与第四章候选最贴近的直接近邻与占用证据**——「按时间环境 + 不变风险」已覆盖，本课题须以「最坏组风险（min-max）vs 不变性（梯度对齐）」的直接对照实验区分。
+- **[[lamda-related/2026-Sabbah-时序概念漂移下Android对抗脆弱性|Sabbah et al. 2026：时序概念漂移下 Android 对抗脆弱性（预印本）]]** — 十余年 Android 应用按年切片，用 same-year / cross-year / expanding-window 三种部署协议评测对抗鲁棒性（FGSM/SPSA），提出 AAF 等时序指标；结论为 expanding-window 重训**减缓但不消除**持续漂移下的鲁棒性损失（摘要）。**年度切片评测协议的先例来源**；「仅累积重训不足」的旁证（对抗维度，不可等同清洁准确率）。
+
 ## 方法学入口
 
 - **[[../methodology/INDEX#组条件控制与分层预算分配（2026-08-26 新增）|组条件控制与分层预算分配]]** — Vovk 条件 ICP、Barber 条件推断极限、p-filter 多层预算，本节两篇安全应用的理论侧对应。
