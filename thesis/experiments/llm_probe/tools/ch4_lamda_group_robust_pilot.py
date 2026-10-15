@@ -538,14 +538,15 @@ def run_arm(arm: str, eta: float | None) -> int:
                 f1m = _f1_of_scores(yt, sc, ch3.THRESHOLD)
                 assert abs(f1m - float(rec["f1"])) < 1e-12, \
                     f"evaluate 与分数口径不一致 {arm} {ty}: {rec['f1']} vs {f1m}"
-                print(f"[preds] {arm} 末年模型 @{ty}: f1={f1m:.4f} n={int(yt.size)} "
+                print(f"[preds] {key} 末年模型 @{ty}: f1={f1m:.4f} n={int(yt.size)} "
                       f"pos={int((yt == 1).sum())}", flush=True)
 
     final = max(years)
     last = [r for r in records if r["experience"] == final and r["mode"] == "backward"]
-    per_year = {int(r["test_year"]): float(r["f1"]) for r in last}
+    # 键统一为字符串：JSON 往返后整数键会变字符串，内存态与落盘态必须一致
+    per_year = {str(int(r["test_year"])): float(r["f1"]) for r in last}
     final_avg = float(np.mean([r["f1"] for r in last]))
-    print(f"\n=== {arm}：末年 {final} 的 avg_f1（官方报告口径）= {final_avg:.4f} ===", flush=True)
+    print(f"\n=== {key}：末年 {final} 的 avg_f1（官方报告口径）= {final_avg:.4f} ===", flush=True)
 
     for ty, d in preds.items():
         np.savez_compressed(RUN_DIR / f"preds_{key}_{ty}.npz",
