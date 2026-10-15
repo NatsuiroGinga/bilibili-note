@@ -365,7 +365,7 @@ def measure_rho(model, curr_part, mem_blk, batch, device, rng) -> float:
 
 
 def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
-                 rho_sched=None) -> None:
+                 rho_sched=None, l2_beta: float = 0.0, theta_star: list | None = None) -> None:
     """`parts` 为 [(X_int8, y_float32), ...]，按官方语义全局洗牌后取批（虚拟拼接，见上）。
 
     `penalty`（可选）＝`("ewc", fisher_list, anchor_list)` 或 `("lwf", prev_model)`，
@@ -378,6 +378,12 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
     $\\hat\\rho_r = \\beta\\,\\hat\\rho_{r-1} + (1-\\beta)\\,\\rho_r$。EMA 状态是本函数局部变量，
     而 `train_epochs` 每年度调用一次 ⇒ **平滑只在同一年度的轮次之间延续，不跨年度**。
     默认 None ⇒ 与统一复用逐位一致。
+
+    `l2_beta > 0` 且 `theta_star` 非空 ⇒ 参数锚定兜底（FOREVER 式）：每批损失加
+    $\\beta\\,\\|\\Theta-\\Theta^{*}\\|^2 = \\beta\\sum_j \\|\\Theta_j - \\Theta_j^{*}\\|_2^2$
+    （与 FOREVER Eq. 11 同形，不加 0.5 系数）。`theta_star` 为上一经验（年度）
+    训练结束的权重张量列表，由调用方每年重设一次、年度内固定；首年无历史不锚定。
+    每轮结束打印该轮数据损失与锚定项的轮均比值（可观察指标，量级对齐验收用）。
     """
     opt = torch.optim.SGD(model.parameters(), lr=lr, momentum=OFFICIAL_MOMENTUM,
                           weight_decay=OFFICIAL_WEIGHT_DECAY)
@@ -386,7 +392,11 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
         penalty[1].eval()
     model.train()
     rho_ema_val = None   # EMA 状态仅在同一年度的轮次之间延续（本函数每年调用一次，天然逐年重置）
+    l2_active = l2_beta > 0.0 and theta_star is not None
     for _ in range(epochs):
+        epoch_bce = torch.zeros((), device=device)   # 轮内数据损失累计（轮末一次 item，避免逐批同步）
+        epoch_l2 = torch.zeros((), device=device)
+        n_batches = 0
         epoch_parts = parts
         if rho_sched is not None:
             mem_blk, curr_part, a_star, m_cap = rho_sched[:4]
@@ -416,7 +426,15 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
             yt = torch.from_numpy(yb).to(device).unsqueeze(1)
             opt.zero_grad()
             out = model(xt)
-            loss = criterion(out, yt)
+            loss_data = criterion(out, yt)
+            loss = loss_data
+            if l2_beta > 0.0 and theta_star is not None:
+                l2_val = sum((p - a).pow(2).sum()
+                             for p, a in zip(model.parameters(), theta_star))
+                loss = loss + l2_beta * l2_val
+                epoch_l2 = epoch_l2 + l2_val.detach()
+            epoch_bce = epoch_bce + loss_data.detach()
+            n_batches += 1
             if penalty and penalty[0] == "ewc":
                 _, fisher, anchor = penalty
                 pen = sum((f * (p - a) ** 2).sum()
@@ -431,6 +449,11 @@ def train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=None,
                     torch.nn.functional.binary_cross_entropy(pred, tgt)
             loss.backward()
             opt.step()
+        if l2_active:
+            bce_m = epoch_bce.item() / max(n_batches, 1)
+            l2_m = epoch_l2.item() / max(n_batches, 1)
+            print(f"[anchor] bce={bce_m:.6f} l2={l2_m:.6e} beta*l2/bce={(l2_beta * l2_m) / max(bce_m, 1e-12):.4f}",
+                  flush=True)
 
 
 @torch.inference_mode()
@@ -503,7 +526,8 @@ def reuse_by_deficit(blocks: list[tuple[int, np.ndarray, np.ndarray]], m_max: in
 def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_limit: int | None,
          buffer_repeat: int = 1, seed: int = SEED, buffer_scheme: str = "reservoir",
          reuse_scheme: str = "uniform", reuse_schedule: str = "off",
-         reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR, rho_ema: float = 0.0) -> int:
+         reuse_cap: int = 64, rho_a_star: float = RHO_A_STAR, rho_ema: float = 0.0,
+         anchor_beta: float = 0.0) -> int:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # 存储预算曲线需要对同一策略跑多个容量 ⇒ 文件名必须带容量，否则互相覆盖。
     # 后缀仅在**偏离官方默认**时追加，以保持既有 `metrics_expreplay_m200.json` 等文件名不变。
@@ -525,6 +549,9 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
             # EMA 平滑系数进 tag：不同 β 的读数互不覆盖（β=0 不进 tag，与既有产物命名一致）
             if rho_ema > 0.0:
                 tag += f"_ema{int(round(rho_ema * 100))}"
+            # 参数锚定系数进 tag：不同 β 的读数互不覆盖（β=0 不进 tag）
+            if anchor_beta > 0.0:
+                tag += f"_anc{anchor_beta:g}"
     else:
         tag = strategy
     if seed != SEED:                      # 多种子复现：官方未设种子，本脚本默认 42
@@ -633,8 +660,14 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
         elif strategy == "lwf" and lwf_prev is not None:
             penalty = ("lwf", lwf_prev)
         t0 = time.time()
+        # 参数锚定兜底（FOREVER Eq.11 式）：Θ* 取**上一经验（年度）训练结束的权重**
+        # （FOREVER Algorithm 1 的任务末权重粒度）。首年无历史不锚定；锚定每年重设、
+        # 年度内固定，不随轮次更新。
+        anchor_theta = ([p.detach().clone() for p in model.parameters()]
+                        if (anchor_beta > 0.0 and idx > 0) else None)
         train_epochs(model, parts, epochs, batch, lr, device, rng, penalty=penalty,
-                     rho_sched=(*rho_sched, rho_a_star, reuse_cap, rho_ema) if rho_sched else None)
+                     rho_sched=(*rho_sched, rho_a_star, reuse_cap, rho_ema) if rho_sched else None,
+                     l2_beta=anchor_beta, theta_star=anchor_theta)
         rho_sched = None
         if prev_state is not None:
             freemoca_interpolate(prev_state, model)
@@ -710,6 +743,16 @@ if __name__ == "__main__":
                         "误差 0.158/0.140/0.205，β=0.9 已因滞后反弹，故取 0.5 与 0.7 两档。"
                         "β 使 m_r(ρ) 凸映射下的均值下降，a* 须重标：β=0.5→0.990196，β=0.7→0.989397"
                         "（cap 8，用 cap8 跑实测 ρ 离线二分标定到平均 repeat≈4）。")
+    p.add_argument("--anchor-beta", type=float, default=0.0,
+                   help="参数锚定兜底系数 β（0 = 关闭，默认）。>0 时每批损失加 β·‖Θ−Θ*‖²，"
+                        "Θ* 取**上一经验（年度）训练结束的权重**，每年重设、年度内固定，"
+                        "首年无历史不锚定。形式与 FOREVER Eq.11 同形（其 Algorithm 1 锚定"
+                        "上一任务末权重 Θ^{k-1}；粒度选择的文献依据）。β 量级对齐原则取自"
+                        "FOREVER（其 Fig.6 讨论：β_base 使正则项与任务损失处于可比数值量级，"
+                        "名义 1e-3 为其 LLM 短回放场景的标定值，不直接照搬）。本数据标定："
+                        "源侧 2013→2014 两年短程扫描 β∈{1e-4,1e-3,1e-2}，取锚定项/数据损失"
+                        "轮均比值最接近 0.1 者（0.1 = 全程作用相对 FOREVER 短回放事件的保守化，"
+                        "任务化设定，无直接文献页码）。实测比值见 [anchor] 行（标定与正式臂日志）。")
     p.add_argument("--reuse-scheme", choices=("uniform", "deficit"), default="uniform",
                    help="uniform = 所有年度共用同一复用倍数（默认，文件名不变）；"
                         "deficit = 按各年度缓冲块的正例数分配复用次数，正例少的年度重复更多。"
@@ -729,4 +772,5 @@ if __name__ == "__main__":
     a = p.parse_args()
     raise SystemExit(main(a.strategy, a.epochs, a.batch, a.lr, a.memory, a.years_limit,
                           a.buffer_repeat, a.seed, a.buffer_scheme, a.reuse_scheme,
-                          a.reuse_schedule, a.reuse_cap, a.rho_a_star, a.rho_ema))
+                          a.reuse_schedule, a.reuse_cap, a.rho_a_star, a.rho_ema,
+                          a.anchor_beta))
