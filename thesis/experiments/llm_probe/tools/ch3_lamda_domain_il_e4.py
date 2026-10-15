@@ -557,8 +557,11 @@ def main(strategy: str, epochs: int, batch: int, lr: float, memory: int, years_l
     if seed != SEED:                      # 多种子复现：官方未设种子，本脚本默认 42
         tag += f"_s{seed}"
     # 运行身份横幅：把真正生效的配置打进日志，使「参数忘了往下传」这类错误当场可见
+    # 轮次调度的三个标定量必须进横幅（2026-10-15 缺口：此前只能从 tag 反推 a*/β/cap）
+    sched_banner = (f" a_star={rho_a_star} rho_ema={rho_ema} reuse_cap={reuse_cap}"
+                    if reuse_schedule == "rho" else "")
     print(f"[run] strategy={strategy} memory={memory} scheme={buffer_scheme} "
-          f"reuse={reuse_scheme} repeat={buffer_repeat} seed={seed} tag={tag}", flush=True)
+          f"reuse={reuse_scheme} repeat={buffer_repeat} seed={seed}{sched_banner} tag={tag}", flush=True)
     status = RUN_DIR / f"status_{tag}.json"
     metrics_path = RUN_DIR / f"metrics_{tag}.json"
     write_json(status, {"status": "running", "strategy": strategy, "ts": now_utc()})
