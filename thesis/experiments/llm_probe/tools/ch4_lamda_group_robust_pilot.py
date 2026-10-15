@@ -295,7 +295,8 @@ def train_epochs_groupdro(
                 q[g] = q[g] * np.exp(eta * float(per_sample_np[gi == g].mean()))
             q = q / q.sum()
 
-            w = torch.from_numpy(q[gi]).to(device)
+            # q 以 float64 维护（数值稳定），加权张量转 float32 上设备（MPS 不支持 float64）
+            w = torch.from_numpy(q[gi].astype(np.float32)).to(device)
             loss = (per_sample * w).sum() / w.sum()
             epoch_loss = epoch_loss + loss.detach()
             n_batches += 1
@@ -354,7 +355,7 @@ def _selfcheck_uniform_loss_is_er(
     yt = torch.from_numpy(yb).to(device).unsqueeze(1)
     uniq = np.unique(gb)
     q = np.full(uniq.size, 1.0 / uniq.size)
-    w = torch.from_numpy(q[np.searchsorted(uniq, gb)]).to(device)
+    w = torch.from_numpy(q[np.searchsorted(uniq, gb)].astype(np.float32)).to(device)
 
     was_training = model.training
     model.eval()
