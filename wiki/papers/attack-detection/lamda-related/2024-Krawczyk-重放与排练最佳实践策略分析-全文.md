@@ -1,10 +1,14 @@
 ---
 title: "2024-Krawczyk-重放与排练最佳实践策略分析"
+authors: "Krawczyk, Alexander; Gepperth, Alexander"
+year: 2024
 date: 2026-10-14
+journal: "IEEE（2024）"
+source_pdf: "raw/papers/attack-detection/lamda-related/2024-Krawczyk-重放与排练最佳实践策略分析.pdf"
 tags:
   - 类型/全文转换
   - "attack-detection"
-source_pdf: "raw/papers/attack-detection/lamda-related/2024-Krawczyk-重放与排练最佳实践策略分析.pdf"
+key_finding: "把回放构成比例参数化为 χ_M（Eq.1），对照 balanced/constant/weighted 三种策略：balanced 最稳，在不均衡任务切分上优势最明显；任务数加权与类数加权几乎无差别。是批内构成比例而非存储配额的对照。"
 ---
 
 > 本文件由 `tools/pdf_to_fulltext.sh`（`mineru-open-api extract`）机械批量转换生成，用于全文检索与细节复查；不是 `SCHEMA.md`「类型/论文」要求的结构化理解笔记（无背景/方法核心/我的理解等分节）。原件中的图片按 `wiki/AGENTS.md` 的规定未落库（不保存 PDF 转换中间文件），正文中的图片引用链接可能失效。
@@ -313,3 +317,21 @@ learning. Advances in Neural Information Processing Systems, 32:350–360, 2019.
 [56] Han Xiao, Kashif Rasul, and Roland Vollgraf. Fashionmnist: a novel image dataset for benchmarking machine learning algorithms. arXiv preprint arXiv:1708.07747, 2017. 4
 
 [57] Michał Zajkac, Kamil Deja, Anna Kuzina, Jakub M Tomczak, Tomasz Trzcinski, Florian Shkurti, and Piotr Miło´ s.´ Exploring continual learning of diffusion models. arXiv preprint arXiv:2303.15342, 2023. 2, 7
+
+---
+
+## 补注：任务级/构成比例视角（2026-10-15 任务级预算分配检索补齐）
+
+**参数化（§2.3）**：χ_M = |M_i|/(|R_i|+|M_i|)（Eq.1）定义每个 mini-batch 中回放样本占比。
+
+- balanced（Eq.2）：χ_M = Σ_{j<i}N_j / Σ_{j≤i}N_j，N_j 为任务 j 类数——回放量随已见类数线性放大，保证每个类在批内份额相同。
+- constant（§2.3）：χ_M = 0.5（回放量与当前任务样本量相同）；作者注明「回放固定数量样本的做法隐含假设各任务样本量相同」。
+- weighted（Eq.3/Eq.4）：损失权重按任务数（1/i 与 (i−1)/i）或按类数加权。
+
+**结论（§4 + take-home）**：balanced 在几乎所有数据集×切分上最稳，不均衡切分（D-CP1/2、A-CP1/2）上优势最明显；任务数加权 vs 类数加权仅 E-MNIST D-CP1 一处可分。设定：ER 存 50 样本/类，任务边界已知。
+
+**与本检索问题的关系**：这是批内构成比例（每次回放多少）的对照，不是固定缓冲存量配额的对照；但它是文献中把「任务/类级比例当自变量」最系统的实验研究。
+
+**本课题推论**：其 D-CP（递减）/A-CP（波动）切分思想可移植为年度流的「规模不敏感」检验协议，检验等额分配在年度样本量波动下的稳健性。
+
+**不可直接声称的内容**：对象是生成式回放与损失加权，存储配额结论不能由此引出；其 balanced 定义基于类数而非任务规模。

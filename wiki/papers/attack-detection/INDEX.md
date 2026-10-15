@@ -179,6 +179,14 @@ related:
 
 **本轮检索方法与边界**：Scholar CLI 7 轮检索式（挂本机代理，q1–q7 存 `/tmp/scholar-task-budget/q*.json`）+ arXiv API 核验 ID；9 篇取得合法全文 PDF 入 `raw/papers/attack-detection/lamda-related/` 并经 MinerU `extract` 转全文精读，另有 Krawczyk 系并行代理 2026-10-14 已入库、本轮补齐结构化补注。Tier B 仅题录/摘要级候选（Ma 2025 联合内存优化、DM-DAR、CASP、PRS、CBRS、BRS/LARS、GSS、InfoRS、KL-reservoir、MEMO、Knoblauch NP-hard、Wen 2025 信息论界、Li/Braverman ICLR 2026、Yoon 2606.30067 regret 界、PROXYMIX、CL-KR-TD、FeDMRA）未取得全文，不作正文论断依据。**任务级「等额 vs 按规模比例」的直接存量对照在本轮检索所及范围内不存在。**
 
+## LAMDA 第四章：RGA（排序门控获取）的家族与近邻（2026-10-15 新增）
+
+为第四章候选机制 RGA 检索方法家族与直接近邻。**结论先行：主动获取侧有成熟家族（不确定性选样、预算约束查询、TAR 停止判据），但没有文献把「排序头部 lift」用作「主动获取是否值得」的可行性门——已核全文中预算都是外生固定量。** 检索报告见 `.Codex/docs/2026-10-15-第四章RGA文献/`。
+
+- **[[lamda-related/2023-Chen-Android恶意软件持续学习主动学习-全文|Chen 2023：Android 恶意软件持续学习+主动学习（USENIX Security 2023）]]** — 层级对比学习+伪损失不确定性选样，每月固定标注量（如 200/月）；**存储侧明文 out of scope**（"Retiring training samples is out of scope in this paper"）——「标什么」与「存什么」在现有 Android 恶意软件文献里被当作两个问题，这正是 RGA 双预算命题的空白。
+- **[[lamda-related/2025-Haque-CITADEL半监督主动学习漂移-全文|CITADEL 2025：半监督主动学习+漂移（arXiv:2511.11979）]]** — FixMatch 改造 SSL（Bernoulli 二值特征增强）+ 多判据不确定性 top-k 选样；LAMDA 12 年序列上 budget 400 达 F1 77.7%。预算外生固定（50–400），**无排序门、无存储受限回放**（原文明文 CL out of scope）。
+- **[[lamda-related/2023-Li-预算约束深度异常检测-全文|Li 2023：标注预算约束下的深度异常检测 SOEL（ICML 2023）]]** — budgeted acquisition 强代表作：覆盖半径 δ 的排序泛化定理（Thm.1）+ k-means++ 多样性查询 + 污染率重要性加权估计（Thm.2）。**其门是空间覆盖条件，不是排序头部 lift 门**；静态污染池设定，无 Domain-IL 与存储侧。
+
 ## 方法学入口
 
 - **[[../methodology/INDEX#组条件控制与分层预算分配（2026-08-26 新增）|组条件控制与分层预算分配]]** — Vovk 条件 ICP、Barber 条件推断极限、p-filter 多层预算，本节两篇安全应用的理论侧对应。
