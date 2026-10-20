@@ -82,3 +82,33 @@
 
 - 本检查点与 cRT 文献、诊断 JSON 一并提交；分支 `exp/ch3-lamda-20260908` 推送 origin（28+ 个提交）。
 - 若 cRT/理论代理在压缩后继续写入，下一次同步需再提交它们的剩余产物。
+
+---
+
+## 十一、cRT 文献回收（2026-10-20 晚，压缩前最后更新）
+
+### 题录更正（重要）
+- **BalancedSoftmax 实际 arXiv:2007.10740**（不是 2007.10742，后者是 Willmore 能量数学论文）。
+- **LADE 实际 arXiv:2012.00321**（不是 2103.17084，后者是 DA-DETR 目标检测）。
+- Logit Adjustment `2007.07314` 正确。
+- 7 篇均已本地全文入库（含 LT-CIL、DELTA、Online Label Shift、LIMES），笔记与 INDEX 已更新，Zotero 已入库。
+
+### cRT 精确协议（Decoupling §4/§5.1/Table 2–3）
+冻结整个骨干；**随机重新初始化分类器**；**10 epoch**；类平衡采样 + 交叉熵；SGD momentum 0.9、batch 512、cosine 0.2→0。增益：ImageNet-LT ResNeXt-50 `44.4→49.5`；ResNet-10 `34.8→41.8`；Places-LT `30.2→36.7`。NCM 不训练，整体低于 cRT（ImageNet-LT `47.3` vs `49.5`）。
+
+### DRW 精确调度（LDAM Algorithm 1 / Fig. 3）
+`t ≤ T0` 自然 ERM；`t > T0` 按 `n_y^{-1}` 重加权并除以 `Σ_B n_y^{-1}` 归一化；`T0` 绑定**学习率退火点**（CIFAR 160/200、iNat 60/90、TinyImageNet 90/120）。**10 轮年度协议的任务化假设：T0=8，另测 7/6 作敏感性**，不得假设 8 轮 ERM 已学好表示。
+
+### 致命前提冲突（必须正视）
+BSM、Logit Adjustment、LADE、OLS、LIMES **全部假设 label shift**（`p(x|y)` 不变，只变 `p(y)`）。本课题实测 `p(x|y)` 跨年漂移 **33.5× 采样噪声**（最相似一对仍 5.6×），路线总控已据此**否决“先验/标签转移校正”方向**。
+**⇒ 这些方法不能作为 M2' 的机制主张，只能作为 post-hoc 基线/诊断；二分类下它们退化为先验 logit 偏移/阈值平移，吸收不了 `p(x|y)` 漂移。**
+
+### “漂移 + 长尾”联合证据
+**未检得**：LT-CIL/DELTA 是类增量；OLS/LIMES 假设 `Q_t(x|y)` 不变；`deferred rebalancing AND drift`、`classifier rebalancing AND continual learning` 均零命中。
+
+### 对 M2' 的裁决建议
+1. 结构（表示自然采样＋分类器再平衡）有 Kang/LT-CIL/DELTA 支持；
+2. 但本课题的 `p(x|y)` 漂移使**纯先验/决策边界校正**的前提不成立；
+3. 若仍做 M2'，先跑**零训练诊断**（post-hoc 先验偏移 / LA / PC Softmax / bias 平移），**不要直接上 cRT/DRW**；
+4. 若零训练诊断失败，训练方法线收口，第四章转**架构（TabM 本地全文，最优先）**；
+5. 若做 cRT，顺序：post-hoc 先验偏移 → LWS/逐类缩放 → cRT（冻结编码器、10 epoch 的一部分）；再平衡头**不得反传进编码器**（LT-CIL 表示漂移证据）。
