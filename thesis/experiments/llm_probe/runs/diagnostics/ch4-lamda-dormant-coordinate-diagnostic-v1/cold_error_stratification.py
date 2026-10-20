@@ -2,8 +2,9 @@
 """第四章材料性诊断（模型侧、零训练）：基线误差是否集中在冷坐标样本上。
 
 只读现有基线逐样本预测 `preds_base_<year>.npz` 与年度 Parquet。
-冷坐标定义：该测试样本活跃、但在截至本年度的全部训练分片中从未活跃
-（即模型没有任何梯度历史）。2013 年没有更早训练分片，单独标注。
+冷坐标定义：本年度训练分片首次激活、且此前任何年度训练分片从未激活
+（即模型在进入本年度时没有任何梯度历史）。统计测试样本中落在这个集合上的活跃坐标数。
+2013 年没有更早训练分片，单独标注。
 
 产物：cold-error-stratification.json
 """
@@ -80,6 +81,7 @@ def main() -> int:
         del xtr
         if ever_train is None:
             ever_train = np.zeros_like(active_train)
+        cold_year = active_train & ~ever_train
         ever_train |= active_train
 
         _, xte, yte = load_split(year, "test")
@@ -102,8 +104,7 @@ def main() -> int:
             continue
 
         active_test = np.any(xte != 0, axis=0)
-        cold = active_test & ~ever_train
-        cold_idx = np.flatnonzero(cold)
+        cold_idx = np.flatnonzero(cold_year)
         if cold_idx.size:
             cold_counts = np.count_nonzero(xte[:, cold_idx], axis=1)
         else:
@@ -175,12 +176,12 @@ def main() -> int:
         "prediction_source": str(PRED_DIR),
         "data_root": str(DATA_ROOT),
         "definitions": {
-            "cold_coord_at_test": "该年度测试分片中活跃、但截至本年度的全部训练分片中从未活跃",
-            "has_cold": "测试样本至少含一个冷坐标",
+            "cold_coord_at_year_start": "本年度训练分片首次激活、且此前任何年度训练分片从未激活",
+            "has_cold": "测试样本至少含一个年度起点冷坐标",
         },
         "notes": [
             "冷坐标样本与其余样本的差异是描述性分层，不构成因果归因。",
-            "2013 年没有更早训练分片，其 cold 集合按定义等于测试活跃集合，不单独解释。",
+            "2013 年没有更早训练分片，其 cold 集合按定义等于全部训练活跃集合，不单独解释。",
             "本诊断只读取现有 base 臂逐样本预测，不重新训练。",
         ],
         "years_detail": rows,
