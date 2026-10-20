@@ -312,7 +312,7 @@ tags:
 
 - **cRT**：冻结全部骨干层，随机重初始化分类器，类平衡采样 + CE，10 epoch（Kang §4、§5.1）。与 NCM 的区别是“是否训练分类器 + 是否改采样”。
 - **DRW**：LDAM 的 Algorithm 1（物理第 6 页）：\(t\le T_0\) 用自然 ERM；\(t>T_0\) 用 \(n_y^{-1}\) 重加权并归一化学习率。\(T_0\) 绑定**学习率退火点**而不是固定比例：CIFAR-10/100 训练 200 epoch、学习率在第 160/180 epoch 各衰减一次，Figure 3（第 10 页）明确“在 epoch 160 退火”，DRW 从此点开始 → \(T_0=160\)（0.80）；iNat 2018 训练 90 epoch、在第 30/60 epoch 退火，“从 epoch 60 开始再平衡” → \(T_0=60\)（0.667）；Tiny ImageNet 训练 120 epoch、第 90 epoch 衰减 → \(T_0=90\)（0.75）（附录 B，第 15 页）。**原文 §4 说“until the last learning rate decay”，与 CIFAR 的 160/180 两次衰减存在措辞歧义；以 Figure 3 与实现细节为准。** PAAT 的 10 epoch 年度协议若按 0.8 比例映射，可先测 \(T_0=8\)，并同时测 \(T_0=7\)/\(T_0=6\) 作为敏感性；这是**任务化假设，需实验验证**，不是论文给出的常数。
-- **前提边界**：Balanced Softmax / Logit Adjustment / LADE / OLS / LIMES 全部假设 \(p(x\mid y)\) 不变、只变 \(p(y)\)。本课题的 33.5× 采样噪声若反映类条件漂移，则这些方法只能作“先验校正基线/诊断”，不能作机制主张。
+- **前提边界**：Balanced Softmax / Logit Adjustment / LADE / OLS / LIMES 全部假设 \(p(x\mid y)\) 不变、只变 \(p(y)\)。本课题已实测 \(p(x\mid y)\) 跨年漂移为 **33.5× 采样噪声**（最相似的一对年度仍 5.6×；`thesis/experiments/llm_probe/runs/diagnostics/ch4-prior-shift-diagnostic/prior_shift_diag.json`；`.Codex/docs/LAMDA/LAMDA路线总控.md` 第 521 行已据此否决“先验／标签转移校正”方向），因此这些方法只能作“先验校正基线/诊断”，**不能作机制主张**。
 - **「漂移 + 长尾」联合证据**：本次检索**未检得**同时满足“\(p(x\mid y)\) 漂移 + 长尾训练分布 + 分类器再平衡”的论文。LT-CIL/DELTA 是“长尾 + 序列/在线任务（新增类）”，OLS/LIMES 是“标签比例漂移 + 类条件不变”，三者的假设与本课题都不完全同构；不能用静态长尾或纯 label shift 结论冒充联合证据。检索式与候选见任务目录 `notes.md`。
 
 ## 相关索引

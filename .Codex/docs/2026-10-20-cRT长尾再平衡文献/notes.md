@@ -24,7 +24,7 @@
 - **原件**：`raw/papers/methodology/2020-Ren-Balanced-Meta-Softmax.pdf`（24 页，sha256 `e3af957b2387cd2bfdfa3fe50eb90b6865d1ab9b80fad9f0cdfb5f22625722c8`）。
 - **全文转换**：MinerU `extract` → `/tmp/2026-10-20-cRT长尾再平衡文献/md/bsm/bsm.md`；页码索引 `/tmp/2026-10-20-cRT长尾再平衡文献/mdjson/bsm.json`。
 - **证据等级**：本地全文（L1）。
-- **页码锚点**：Theorem 1/Eq. 3–4 p3；泛化界 Eq. 8/10 p4；Meta Sampler §3.2 p5–6；Table 2–3 p7；Table 4 p8；Table 5 p8–9；附录 C.3 训练细节 p20；Table 8 p20。
+- **页码锚点**：Theorem 1/Eq. 3–4 p3；泛化界 Eq. 8/10 p4；Meta Sampler §3.2 p5–6；Table 2–3 p7；Table 4 p8；Table 5 p8–9；附录 C.3 训练细节 p20；Table 8 p23。
 - **与 M2' 关系**：Balanced Softmax = 二分类下的先验 logit 偏移（等价于阈值平移）；不需要改采样。其 label shift 前提是 \(p(x\mid y)\) 不变，故只作基线/诊断。Table 8 再次支持“自然采样学表示、分类器再平衡”。
 - **wiki**：`wiki/papers/methodology/2020-Ren-平衡元Softmax.md`。
 - **Zotero**：已入库，key `LAV9HUZX`（arXiv abs 页面导入后改为 preprint；PDF 已附）。
@@ -176,7 +176,7 @@
 ## 8. 四个必答问题的结论
 
 1. **cRT 精确协议**：冻结骨干；随机重初始化分类器；类平衡采样 + CE；10 epoch；SGD 动量 0.9、batch 512、cosine 0.2→0（Kang §4、§5.1）。增益：ImageNet-LT `44.4`→`49.5`（ResNeXt-50）、`34.8`→`41.8`（ResNet-10）；Places-LT `30.2`→`36.7`；iNat `61.7/65.8`→`65.2/67.6`（Table 2–3）。与 NCM 的区别：NCM 不训练、不采样，直接类均值最近邻；NCM 在 few-shot 分片接近 cRT，整体低 2–7 个点。
-2. **Balanced Softmax / Logit Adjustment 是否假设 label shift**：是。两者都假设 \(p(x\mid y)\) 固定、只变 \(p(y)\)（BSM §3.1 第 3 页；LA Eq. 7–8 第 5 页）。在 \(p(x\mid y)\) 也漂移时前提不成立：先验偏移无法吸收特征分布变化。**结论：可迁移为基线/诊断，不可迁移为机制主张。** 本课题已实测 33.5× 采样噪声，需先诊断它是否反映类条件漂移。
+2. **Balanced Softmax / Logit Adjustment 是否假设 label shift**：是。两者都假设 \(p(x\mid y)\) 固定、只变 \(p(y)\)（BSM §3.1 第 3 页；LA Eq. 7–8 第 5 页）。在 \(p(x\mid y)\) 也漂移时前提不成立：先验偏移无法吸收特征分布变化。**结论：可迁移为基线/诊断，不可迁移为机制主张。** 本课题已实测 \(p(x\mid y)\) 跨年漂移为 **33.5× 采样噪声**（最相似的一对年度仍 5.6×；`thesis/experiments/llm_probe/runs/diagnostics/ch4-prior-shift-diagnostic/prior_shift_diag.json` 的 `per_label["0"].ratio=33.5316`；`.Codex/docs/LAMDA/LAMDA路线总控.md` 第 521 行已据此否决“先验／标签转移校正”方向）。因此 label shift 前提在本课题**已不成立**，先验校正只能作诊断/基线。
 3. **DRW 精确调度**：\(t\le T_0\) 自然 ERM；\(t>T_0\) 用 \(n_y^{-1}\) 重加权并归一化学习率（Algorithm 1，第 6 页）。\(T_0\) 绑定学习率退火点：CIFAR 200 epoch / 160 退火 → \(T_0=160\)（0.80）；iNat 90 epoch / 60 再平衡 → \(T_0=60\)（0.667）；Tiny ImageNet 120 epoch / 90 衰减 → \(T_0=90\)（0.75）。10 epoch 年度协议的任务化：先测 \(T_0=8\)，并测 7/6 作为敏感性；这是假设，需实验。
 4. **漂移 + 长尾联合证据**：**未检得**。LT-CIL/DELTA 是长尾 + 序列/在线任务（新增类），OLS/LIMES 是标签比例漂移 + 类条件不变；没有论文同时处理 \(p(x\mid y)\) 漂移 + 长尾 + 分类器再平衡。
 

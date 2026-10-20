@@ -132,7 +132,7 @@ Table 3（第 9 页，5 次运行平均，balanced error，越低越好）：
 ## 不可迁移边界（label shift 前提）
 
 - **全部推导假设 \(\mathbb{P}(x\mid y)\) 固定**（Eq. 7–8 的前提；第 5 页原文：“for fixed class-conditionals \(\mathbb{P}(x\mid y)\), varying the class priors \(\mathbb{P}(y)\) arbitrarily will not affect the optimal scorers”）。若年度漂移改变 \(p(x\mid y)\)，则 Bayes 最优评分器本身改变，单靠 \(-\tau\log\pi_y\) 不能恢复；此时 LA 是**误设定校正**，不是一致方法。
-- **本课题已实测 33.5× 采样噪声**：这会使 \(\pi_y\) 的经验估计和类条件分布都不稳定。LA 只能校正“类比例”，不能校正“同类样本的特征分布变了”；因此标为 **“可迁移为 post-hoc 基线/诊断，不可迁移为机制主张”**。
+- **本课题已实测 \(p(x\mid y)\) 跨年漂移为 33.5× 采样噪声**（`thesis/experiments/llm_probe/runs/diagnostics/ch4-prior-shift-diagnostic/prior_shift_diag.json`：`per_label["0"].ratio=33.5316`；最相似的一对年度仍为 5.6×；`.Codex/docs/LAMDA/LAMDA路线总控.md` 第 521 行据此把“先验／标签转移校正”列为已否决方向）。这会使 \(\pi_y\) 的经验估计和类条件分布都不稳定。LA 只能校正“类比例”，不能校正“同类样本的特征分布变了”；因此标为 **“可迁移为 post-hoc 基线/诊断，不可迁移为机制主张”**。
 - **平衡误差 ≠ 自然 F1**：LA 的理论目标是 balanced error（各类等权）。PAAT 评测自然年度分布下的 F1（2024 正例率约 1.64%，2025 约 0.05%），两者目标函数不同；把先验推向 1:1 会改变 0.5 阈值下的正例率，未必提升 F1。
 - **\(\tau\) 的选择**：论文用验证集/校准准则选 \(\tau\)；PAAT 末期年度正例极少，若用末期年度选 \(\tau\) 会接触目标标签，必须在前一年度或训练区内冻结。
 - **多类 vs 二分类**：二分类下 Eq. 10 可化为单 logit 的 BCE + 常数偏移；但“平衡误差”与“固定 0.5 阈值的 F1”之间的对应需要重新推导，不能直接把多类结论逐字搬过来。

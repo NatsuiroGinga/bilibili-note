@@ -24,7 +24,7 @@ key_finding:
   - '**Meta Sampler** 用双层元学习学习各类采样率 \(\pi_\psi\)，缓解 Balanced Softmax 与类平衡采样叠加造成的 **over-balance**（\(1/n_j^2\) 效应，Eq. 11–12，第 5 页）。'
   - "CIFAR-10-LT（不平衡因子 200）Top-1：Softmax `71.2`、cRT `76.6`、LWS `78.1`、BALMS `81.5`；CIFAR-100-LT `41.0`→`45.5`（Table 2，第 7 页）。"
   - "Places-LT：cRT `36.7`、BALMS `38.7`；LVIS 稀有类 mask AP `19.6` 对次优 `14.6`（Table 3–4，第 7–8 页）。"
-  - "**表示学习阶段仍以自然采样特征更好**：Softmax 预训练特征在解耦重训中普遍优于 Balanced Softmax 预训练特征（Table 8，附录第 20 页）。"
+  - "**表示学习阶段仍以自然采样特征更好**：Softmax 预训练特征在解耦重训中普遍优于 Balanced Softmax 预训练特征（Table 8，附录第 23 页）。"
 method: 'Balanced Softmax（按训练类频 \(n_j\) 校正 softmax 分母）+ Meta Sampler（元学习采样率）；可端到端或解耦训练'
 baseline: "Softmax、CBW、CBS、Focal、Class-Balanced、LDAM、Equalization Loss、cRT、LWS"
 metrics: [top-1 accuracy, many/medium/few split accuracy, LVIS AP]
@@ -111,7 +111,7 @@ err_{bal}(t)\lesssim \frac{1}{k}\sum_{j=1}^{k}
 | LVIS, mask AP | BALMS / 次优 | `19.6` / `14.6`（rare） | Table 4，第 8 页 |
 
 - **增益来源拆分**：Table 5（第 8–9 页）显示 Balanced Softmax 与 cRT/LWS 是正交组件；在 CIFAR-10-LT IF=200 上，端到端 Balanced Softmax `79.0`，解耦 Balanced Softmax `78.6`，再加 Meta Sampler `81.5`。
-- **表示质量**：附录 Table 8（第 20 页）比较“用 Softmax 特征 vs 用 Balanced Softmax 特征”再重训分类器；Softmax 预训练特征普遍更好（例如 Softmax 特征 + Balanced Softmax 分类器 `78.53`，Balanced Softmax 特征 + Balanced Softmax 分类器 `77.04`）。这与 Kang et al. 的“自然采样学表示、分类器再平衡”结论一致。
+- **表示质量**：附录 Table 8（第 23 页）比较“用 Softmax 特征 vs 用 Balanced Softmax 特征”再重训分类器；Softmax 预训练特征普遍更好（例如 Softmax 特征 + Balanced Softmax 分类器 `78.53`，Balanced Softmax 特征 + Balanced Softmax 分类器 `77.04`）。这与 Kang et al. 的“自然采样学表示、分类器再平衡”结论一致。
 
 ## 与 PAAT M2'（分类器再平衡／延迟重加权）的可迁移点
 
@@ -129,7 +129,7 @@ err_{bal}(t)\lesssim \frac{1}{k}\sum_{j=1}^{k}
 ## 不可迁移边界（label shift 前提）
 
 - **核心假设是 \(p(x\mid y)\) 不变、只有 \(p(y)\) 变**（第 3 页原文：“Assuming that all instances in the training dataset and the test dataset are generated from the same process \(p(x\mid y=j)\)”）。本课题的年度概念漂移若改变 \(p(x\mid y)\)，则 Theorem 1 的前提不成立，\(n_j\) 校正无法吸收特征分布的变化。
-- **本课题已实测 33.5× 采样噪声**：在这类量级下，\(n_j\) 的经验估计与类条件分布本身都不稳定；先验校正只能处理“类比例变化”，不能处理“同类样本特征变了”。因此本文只标为 **“可迁移为基线/诊断，不可迁移为机制主张”**。
+- **本课题已实测 \(p(x\mid y)\) 跨年漂移为 33.5× 采样噪声**（`thesis/experiments/llm_probe/runs/diagnostics/ch4-prior-shift-diagnostic/prior_shift_diag.json`：`per_label["0"].ratio=33.5316`；最相似的一对年度仍为 5.6×；`.Codex/docs/LAMDA/LAMDA路线总控.md` 第 521 行据此把“先验／标签转移校正”列为已否决方向）。在该量级下，\(n_j\) 的经验估计与类条件分布本身都不稳定；先验校正只能处理“类比例变化”，不能处理“同类样本特征变了”。因此本文只标为 **“可迁移为基线/诊断，不可迁移为机制主张”**。
 - **评测口径不同**：本文全部在**类别平衡**的测试集上报告 top-1；PAAT 报告自然年度分布下的 F1（2024 正例率约 1.64%，2025 约 0.05%）。把先验推向 1:1 会改变 0.5 阈值下的正例率，未必最大化 F1。
 - **Meta Sampler 的 meta set 来自训练集类平衡采样**，在 PAAT 中等于用训练年度的正例构造一个平衡验证集；末期正例只有 5 个时，meta set 的方差极大，不能直接照搬。
 - **视觉骨干与大数据**：ResNet/ResNeXt + 数十万图像；PAAT 是行为特征上的小模型，迁移需实测。
@@ -149,7 +149,7 @@ err_{bal}(t)\lesssim \frac{1}{k}\sum_{j=1}^{k}
 | Table 3（ImageNet-LT / Places-LT） | §4.2，物理第 7 页 |
 | Table 4（LVIS） | §4.3，物理第 8 页 |
 | Table 5（组件分析） | §4.4，物理第 8–9 页 |
-| Table 8（特征来源对比） | 附录 F.1，物理第 20 页 |
+| Table 8（特征来源对比） | 附录 F.1，物理第 23 页 |
 | 训练细节（13K/2K iterations、无延迟） | 附录 C.3，物理第 20 页 |
 
 ## 与相关工作的关系
