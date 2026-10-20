@@ -80,10 +80,10 @@ from ch4_lamda_training_process_2x2 import build_parts  # noqa: E402
 RUN_NAME = "ch4-lamda-paat-pilot"
 RUN_DIR = Path(__file__).resolve().parents[1] / "runs/diagnostics" / RUN_NAME
 
-ARMS = ("base", "m1", "m2", "m1m2", "orig", "orig_m1m2")
+ARMS = ("base", "m1", "m2", "m1m2", "orig", "orig_m1", "orig_m1m2")
 REPLAY_ARMS = ("base", "m1", "m2", "m1m2")
-ORIG_ARMS = ("orig", "orig_m1m2")
-M1_ARMS = ("m1", "m1m2", "orig_m1m2")
+ORIG_ARMS = ("orig", "orig_m1", "orig_m1m2")
+M1_ARMS = ("m1", "m1m2", "orig_m1", "orig_m1m2")
 M2_ARMS = ("m2", "m1m2", "orig_m1m2")
 
 SEED = int(ch3.SEED)
