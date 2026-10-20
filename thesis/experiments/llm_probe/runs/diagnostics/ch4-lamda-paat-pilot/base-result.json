@@ -1,0 +1,127 @@
+{
+  "arm": "base",
+  "backward_f1": {
+    "2013": 0.9121379759192971,
+    "2014": 0.9076352694642953,
+    "2016": 0.8779861576244697,
+    "2017": 0.9060695344725987,
+    "2018": 0.8885175778639219,
+    "2019": 0.9359930400198857,
+    "2020": 0.9408994056296961,
+    "2021": 0.9298871063576946,
+    "2022": 0.9381684703499779,
+    "2023": 0.8243143068939955,
+    "2024": 0.7421875,
+    "2025": 0.0
+  },
+  "current_year_f1": {
+    "2013": 0.6785659685063445,
+    "2014": 0.9574065053850733,
+    "2016": 0.9584700061155279,
+    "2017": 0.9506072874493927,
+    "2018": 0.9561899917339607,
+    "2019": 0.9744263862332696,
+    "2020": 0.9770208164368749,
+    "2021": 0.9855542245084913,
+    "2022": 0.9869316470942487,
+    "2023": 0.9352472089314194,
+    "2024": 0.7789473684210526,
+    "2025": 0.0
+  },
+  "f1_2023": 0.8243143068939955,
+  "f1_2024": 0.7421875,
+  "gate": {
+    "abs_delta": 0.0,
+    "expected": 0.8169830287163194,
+    "observed": 0.8169830287163194,
+    "passed": true,
+    "tol": 1e-06
+  },
+  "mean_f1": 0.8169830287163194,
+  "mechanism_config": {
+    "balanced_batches": null,
+    "balanced_neg": null,
+    "balanced_pos": null,
+    "proto_ema": null,
+    "proto_label_order": null,
+    "proto_lambda": null,
+    "proto_tau": null
+  },
+  "mechanisms": {
+    "m1_prototype": false,
+    "m2_balanced": false
+  },
+  "protocol": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "deficit_gamma": 1.0,
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "loss": "BCE",
+    "lr": 0.01,
+    "memory": 200,
+    "momentum": 0.9,
+    "optimizer": "SGD",
+    "optimizer_lifetime": "per_year_rebuild_inside_train_fn",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "seed": 42,
+    "threshold": 0.5,
+    "train_eval_protocol": "ch4_lamda_inversion_pilot.py::replay",
+    "weight_decay": 1e-06
+  },
+  "train_logs": {
+    "2013": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2014": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2016": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2017": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2018": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2019": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2020": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2021": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2022": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2023": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2024": {
+      "trainer": "ch3.train_epochs"
+    },
+    "2025": {
+      "trainer": "ch3.train_epochs"
+    }
+  },
+  "ts": "2026-10-20T07:41:35.976056Z",
+  "wall_seconds": 165.5
+}
