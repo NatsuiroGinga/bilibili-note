@@ -54,20 +54,29 @@ LSUV_TOL = (0.9, 1.1)
 
 
 def lsuv_calibrate(model: nn.Module, x_cal: np.ndarray) -> list[dict]:
-    """按 LSUV 原文逐层把 Linear 输出标定到单位方差。返回逐层记录。"""
-    linears = [m for m in model.modules() if isinstance(m, nn.Linear)]
+    """按 LSUV 原文逐层把 Linear 输出标定到单位方差。返回逐层记录。
+
+    前向按 `encoder → classifier` 的完整顺序进行到目标 Linear 层（含该层、
+    不含其后的激活）；标定在 eval 模式下做（关闭 Dropout），结束恢复 train。
+    """
+    ordered = list(model.encoder) + list(model.classifier)
+    linears = [m for m in ordered if isinstance(m, nn.Linear)]
     records: list[dict] = []
     xb = torch.from_numpy(x_cal[:LSUV_BATCH].astype(np.float32)).to(DEVICE)
+    was_training = model.training
+    model.eval()
     for li, layer in enumerate(linears):
+        std = float("nan")
+        iters_used = 0
         with torch.no_grad():
-            for _ in range(LSUV_ITERS):
-                # 前向到该层为止（含该层，不含其后的 ReLU/Sigmoid）
+            for it in range(LSUV_ITERS):
                 out = xb
-                for m in model.encoder if layer in model.encoder.modules() else model.classifier:
+                for m in ordered:
                     out = m(out)
                     if m is layer:
                         break
                 std = float(out.std())
+                iters_used = it + 1
                 if LSUV_TOL[0] <= std <= LSUV_TOL[1]:
                     break
                 factor = 1.0 / max(std, 1e-12)
@@ -79,10 +88,12 @@ def lsuv_calibrate(model: nn.Module, x_cal: np.ndarray) -> list[dict]:
                 "layer_index": li,
                 "layer": str(layer),
                 "final_output_std": std,
-                "iters_used": _ + 1 if "_" in dir() else None,
+                "iters_used": iters_used,
             }
         )
-        print(f"[lsuv] layer {li}: std={std:.6f}", flush=True)
+        print(f"[lsuv] layer {li}: std={std:.6f} iters={iters_used}", flush=True)
+    if was_training:
+        model.train()
     return records
 
 
