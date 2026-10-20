@@ -111,4 +111,31 @@ BSM、Logit Adjustment、LADE、OLS、LIMES **全部假设 label shift**（`p(x|
 2. 但本课题的 `p(x|y)` 漂移使**纯先验/决策边界校正**的前提不成立；
 3. 若仍做 M2'，先跑**零训练诊断**（post-hoc 先验偏移 / LA / PC Softmax / bias 平移），**不要直接上 cRT/DRW**；
 4. 若零训练诊断失败，训练方法线收口，第四章转**架构（TabM 本地全文，最优先）**；
-5. 若做 cRT，顺序：post-hoc 先验偏移 → LWS/逐类缩放 → cRT（冻结编码器、10 epoch 的一部分）；再平衡头**不得反传进编码器**（LT-CIL 表示漂移证据）。
+5. 若做 cRT，顺序：post-hoc 先验偏移 → LWS/在逐类缩放 → cRT（冻结编码器、10 epoch 的一部分）；再平衡头**不得反传进编码器**（LT-CIL 表示漂移证据）。
+
+---
+
+## 十二、零训练先验校正诊断（2026-10-20 晚，已出结论）
+
+**制品**：`thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-posthoc-prior-diag/posthoc-prior-diag.json`；
+脚本 `tools/ch4_lamda_posthoc_prior_diag.py`；判据冻结于 `.Codex/docs/2026-10-20-第四章零训练先验诊断/plan.md`（看读数前冻结，逐位复现门通过）。
+
+**关键数学事实**：二分类下任何单调后验变换（LA/PC Softmax/先验偏移/bias 平移）退化为一次阈值平移，
+故 oracle 阈值扫描是该族的严格上界。
+
+| 年 | base F1 | AUC | oracle Δ | 可部署规则最好 Δ |
+|---|---:|---:|---:|---:|
+| 2023 | 0.8243 | 0.9778 | **+5.20 pp** | f1_rate +4.49（但 2024 −4.41） |
+| 2024 | 0.7422 | 0.9421 | **+0.68 pp** | 全部为负（−3.86～−50.9） |
+
+- **G1 否决**：2024 oracle 仅 +0.68 pp < 1.0 pp 门槛 ⇒ 事后校正族（含 cRT/DRW 的决策层部分）够不着章级门槛；
+- **G2 否决**：三条可部署规则（训练年正例率分位数、沿用上年 oracle 阈值、沿用上年告警率）在 2024 全负——帮助 2023 的规则恰好伤 2024；
+- **G3 归因**：M1 的 2023 +1.36 pp 伴随 **AUC 下降 0.0038** ⇒ 增益是阈值位置效应，不是表示改善；2024 同样（AUC −0.001）。
+- **裁决**：`posthoc_family_insufficient` ⇒ **训练方法线收口**，转架构线。
+
+## 十三、TabM 架构探针（2026-10-20 晚，在跑）
+
+- 判据冻结于 `.Codex/docs/2026-10-20-第四章TabM架构探针/plan.md`（k∈{4,8}；支持=2023/2024 均 ≥ base+1.0 pp 且 12y ≥ base−0.20 pp；否决=任一 < +0.3 pp 或 12y < base−0.50 pp）；
+- 机制事实源：`wiki/papers/methodology/2025-Gorishniy-TabM参数高效集成.md`（首层随机符号适配、成员 BCE 均值训练、概率均值推理）；
+- 脚本 `tools/ch4_lamda_tabm_pilot.py` 已提交（`70e686a7`），`tabm4` 后台运行中；协议与 base 臂逐位同源，参照 base-result.json 只读；
+- 机制核查披露项：2023/2024 的 delta_auc——AUC 降而 F1 升属阈值位置效应（M1 教训），不得写成表示改善。
