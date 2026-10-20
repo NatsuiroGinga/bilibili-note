@@ -1,0 +1,264 @@
+[arm] drop20 p=0.2 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_scheme=quota reuse_scheme=deficit buffer_repeat=2 pos_ratio=0.5 deficit_gamma=1.0 seed=42 threshold=0.5 p=0.2 mask_seed=43
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[model] params=2,687,293
+[parts] 2013: n_parts=1 sizes=[69144]
+[epoch] year=2013 epoch=1/10 mean_loss=0.693124 dropout_measured=0.199986
+[epoch] year=2013 epoch=2/10 mean_loss=0.692795 dropout_measured=0.200016
+[epoch] year=2013 epoch=3/10 mean_loss=0.692792 dropout_measured=0.199972
+[epoch] year=2013 epoch=4/10 mean_loss=0.692790 dropout_measured=0.199969
+[epoch] year=2013 epoch=5/10 mean_loss=0.692768 dropout_measured=0.199975
+[epoch] year=2013 epoch=6/10 mean_loss=0.692746 dropout_measured=0.199981
+[epoch] year=2013 epoch=7/10 mean_loss=0.692756 dropout_measured=0.199999
+[epoch] year=2013 epoch=8/10 mean_loss=0.692720 dropout_measured=0.199970
+[epoch] year=2013 epoch=9/10 mean_loss=0.692676 dropout_measured=0.200013
+[epoch] year=2013 epoch=10/10 mean_loss=0.692618 dropout_measured=0.200019
+[2013] trained on 69,144 rows in 33.5s
+[2013] avg_f1 backward=0.6786
+[parts] 2014: n_parts=3 sizes=[80946, 200, 200]
+[audit] 截至2014 缓冲块 2013: 200槽 正例100 负例100 | 源 35506/69144 = 0.5135
+[reuse] 截至2014 deficit 复用 = {2013: 2}
+[epoch] year=2014 epoch=1/10 mean_loss=0.690367 dropout_measured=0.199981
+[epoch] year=2014 epoch=2/10 mean_loss=0.688366 dropout_measured=0.200026
+[epoch] year=2014 epoch=3/10 mean_loss=0.688225 dropout_measured=0.200003
+[epoch] year=2014 epoch=4/10 mean_loss=0.687957 dropout_measured=0.200004
+[epoch] year=2014 epoch=5/10 mean_loss=0.687565 dropout_measured=0.200003
+[epoch] year=2014 epoch=6/10 mean_loss=0.686857 dropout_measured=0.200005
+[epoch] year=2014 epoch=7/10 mean_loss=0.684902 dropout_measured=0.200025
+[epoch] year=2014 epoch=8/10 mean_loss=0.677396 dropout_measured=0.200014
+[epoch] year=2014 epoch=9/10 mean_loss=0.610738 dropout_measured=0.200014
+[epoch] year=2014 epoch=10/10 mean_loss=0.308673 dropout_measured=0.199981
+[2014] trained on 81,346 rows in 38.2s
+[2014] avg_f1 backward=0.9007
+[parts] 2016: n_parts=5 sizes=[87354, 100, 100, 100, 100]
+[audit] 截至2016 缓冲块 2013: 100槽 正例50 负例50 | 源 35506/69144 = 0.5135
+[audit] 截至2016 缓冲块 2014: 100槽 正例50 负例50 | 源 36605/80946 = 0.4522
+[reuse] 截至2016 deficit 复用 = {2013: 2, 2014: 2}
+[epoch] year=2016 epoch=1/10 mean_loss=0.283095 dropout_measured=0.199977
+[epoch] year=2016 epoch=2/10 mean_loss=0.221836 dropout_measured=0.200004
+[epoch] year=2016 epoch=3/10 mean_loss=0.198888 dropout_measured=0.200011
+[epoch] year=2016 epoch=4/10 mean_loss=0.184125 dropout_measured=0.200028
+[epoch] year=2016 epoch=5/10 mean_loss=0.173783 dropout_measured=0.199980
+[epoch] year=2016 epoch=6/10 mean_loss=0.167846 dropout_measured=0.200009
+[epoch] year=2016 epoch=7/10 mean_loss=0.159268 dropout_measured=0.199978
+[epoch] year=2016 epoch=8/10 mean_loss=0.149101 dropout_measured=0.200005
+[epoch] year=2016 epoch=9/10 mean_loss=0.145323 dropout_measured=0.199998
+[epoch] year=2016 epoch=10/10 mean_loss=0.140520 dropout_measured=0.200012
+[2016] trained on 87,754 rows in 40.9s
+[2016] avg_f1 backward=0.9192
+[parts] 2017: n_parts=7 sizes=[79315, 66, 66, 66, 66, 66, 66]
+[audit] 截至2017 缓冲块 2013: 66槽 正例33 负例33 | 源 35506/69144 = 0.5135
+[audit] 截至2017 缓冲块 2014: 66槽 正例33 负例33 | 源 36605/80946 = 0.4522
+[audit] 截至2017 缓冲块 2016: 66槽 正例33 负例33 | 源 36107/87354 = 0.4133
+[reuse] 截至2017 deficit 复用 = {2013: 2, 2014: 2, 2016: 2}
+[epoch] year=2017 epoch=1/10 mean_loss=0.151012 dropout_measured=0.199999
+[epoch] year=2017 epoch=2/10 mean_loss=0.107214 dropout_measured=0.200029
+[epoch] year=2017 epoch=3/10 mean_loss=0.100846 dropout_measured=0.199990
+[epoch] year=2017 epoch=4/10 mean_loss=0.092315 dropout_measured=0.199973
+[epoch] year=2017 epoch=5/10 mean_loss=0.085679 dropout_measured=0.200002
+[epoch] year=2017 epoch=6/10 mean_loss=0.082708 dropout_measured=0.200000
+[epoch] year=2017 epoch=7/10 mean_loss=0.078466 dropout_measured=0.199997
+[epoch] year=2017 epoch=8/10 mean_loss=0.074683 dropout_measured=0.199992
+[epoch] year=2017 epoch=9/10 mean_loss=0.072715 dropout_measured=0.200015
+[epoch] year=2017 epoch=10/10 mean_loss=0.070500 dropout_measured=0.199982
+[2017] trained on 79,711 rows in 37.3s
+[2017] avg_f1 backward=0.9250
+[parts] 2018: n_parts=9 sizes=[83433, 50, 50, 50, 50, 50, 50, 50, 50]
+[audit] 截至2018 缓冲块 2013: 50槽 正例25 负例25 | 源 35506/69144 = 0.5135
+[audit] 截至2018 缓冲块 2014: 50槽 正例25 负例25 | 源 36605/80946 = 0.4522
+[audit] 截至2018 缓冲块 2016: 50槽 正例25 负例25 | 源 36107/87354 = 0.4133
+[audit] 截至2018 缓冲块 2017: 50槽 正例25 负例25 | 源 17087/79315 = 0.2154
+[reuse] 截至2018 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2}
+[epoch] year=2018 epoch=1/10 mean_loss=0.168346 dropout_measured=0.199981
+[epoch] year=2018 epoch=2/10 mean_loss=0.142778 dropout_measured=0.200020
+[epoch] year=2018 epoch=3/10 mean_loss=0.133789 dropout_measured=0.199973
+[epoch] year=2018 epoch=4/10 mean_loss=0.126596 dropout_measured=0.199975
+[epoch] year=2018 epoch=5/10 mean_loss=0.121598 dropout_measured=0.200014
+[epoch] year=2018 epoch=6/10 mean_loss=0.117032 dropout_measured=0.200017
+[epoch] year=2018 epoch=7/10 mean_loss=0.115919 dropout_measured=0.199974
+[epoch] year=2018 epoch=8/10 mean_loss=0.111002 dropout_measured=0.199996
+[epoch] year=2018 epoch=9/10 mean_loss=0.110382 dropout_measured=0.200054
+[epoch] year=2018 epoch=10/10 mean_loss=0.105961 dropout_measured=0.199978
+[2018] trained on 83,833 rows in 39.4s
+[2018] avg_f1 backward=0.9045
+[parts] 2019: n_parts=11 sizes=[72840, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
+[audit] 截至2019 缓冲块 2013: 40槽 正例20 负例20 | 源 35506/69144 = 0.5135
+[audit] 截至2019 缓冲块 2014: 40槽 正例20 负例20 | 源 36605/80946 = 0.4522
+[audit] 截至2019 缓冲块 2016: 40槽 正例20 负例20 | 源 36107/87354 = 0.4133
+[audit] 截至2019 缓冲块 2017: 40槽 正例20 负例20 | 源 17087/79315 = 0.2154
+[audit] 截至2019 缓冲块 2018: 40槽 正例20 负例20 | 源 31480/83433 = 0.3773
+[reuse] 截至2019 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2}
+[epoch] year=2019 epoch=1/10 mean_loss=0.138330 dropout_measured=0.200027
+[epoch] year=2019 epoch=2/10 mean_loss=0.096806 dropout_measured=0.200027
+[epoch] year=2019 epoch=3/10 mean_loss=0.086984 dropout_measured=0.200005
+[epoch] year=2019 epoch=4/10 mean_loss=0.078338 dropout_measured=0.200011
+[epoch] year=2019 epoch=5/10 mean_loss=0.075968 dropout_measured=0.199989
+[epoch] year=2019 epoch=6/10 mean_loss=0.067517 dropout_measured=0.200023
+[epoch] year=2019 epoch=7/10 mean_loss=0.064360 dropout_measured=0.200024
+[epoch] year=2019 epoch=8/10 mean_loss=0.059605 dropout_measured=0.199968
+[epoch] year=2019 epoch=9/10 mean_loss=0.055926 dropout_measured=0.200030
+[epoch] year=2019 epoch=10/10 mean_loss=0.052995 dropout_measured=0.200042
+[2019] trained on 73,240 rows in 34.5s
+[2019] avg_f1 backward=0.8725
+[parts] 2020: n_parts=13 sizes=[81658, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33]
+[audit] 截至2020 缓冲块 2013: 33槽 正例16 负例17 | 源 35506/69144 = 0.5135
+[audit] 截至2020 缓冲块 2014: 33槽 正例16 负例17 | 源 36605/80946 = 0.4522
+[audit] 截至2020 缓冲块 2016: 33槽 正例16 负例17 | 源 36107/87354 = 0.4133
+[audit] 截至2020 缓冲块 2017: 33槽 正例16 负例17 | 源 17087/79315 = 0.2154
+[audit] 截至2020 缓冲块 2018: 33槽 正例16 负例17 | 源 31480/83433 = 0.3773
+[audit] 截至2020 缓冲块 2019: 33槽 正例16 负例17 | 源 33268/72840 = 0.4567
+[reuse] 截至2020 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2}
+[epoch] year=2020 epoch=1/10 mean_loss=0.092467 dropout_measured=0.200031
+[epoch] year=2020 epoch=2/10 mean_loss=0.075399 dropout_measured=0.199974
+[epoch] year=2020 epoch=3/10 mean_loss=0.067782 dropout_measured=0.199992
+[epoch] year=2020 epoch=4/10 mean_loss=0.063680 dropout_measured=0.199986
+[epoch] year=2020 epoch=5/10 mean_loss=0.059064 dropout_measured=0.199972
+[epoch] year=2020 epoch=6/10 mean_loss=0.055721 dropout_measured=0.199969
+[epoch] year=2020 epoch=7/10 mean_loss=0.054351 dropout_measured=0.200010
+[epoch] year=2020 epoch=8/10 mean_loss=0.050939 dropout_measured=0.200004
+[epoch] year=2020 epoch=9/10 mean_loss=0.048925 dropout_measured=0.200029
+[epoch] year=2020 epoch=10/10 mean_loss=0.045780 dropout_measured=0.200007
+[2020] trained on 82,054 rows in 38.2s
+[2020] avg_f1 backward=0.8814
+[parts] 2021: n_parts=15 sizes=[64924, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28]
+[audit] 截至2021 缓冲块 2013: 28槽 正例14 负例14 | 源 35506/69144 = 0.5135
+[audit] 截至2021 缓冲块 2014: 28槽 正例14 负例14 | 源 36605/80946 = 0.4522
+[audit] 截至2021 缓冲块 2016: 28槽 正例14 负例14 | 源 36107/87354 = 0.4133
+[audit] 截至2021 缓冲块 2017: 28槽 正例14 负例14 | 源 17087/79315 = 0.2154
+[audit] 截至2021 缓冲块 2018: 28槽 正例14 负例14 | 源 31480/83433 = 0.3773
+[audit] 截至2021 缓冲块 2019: 28槽 正例14 负例14 | 源 33268/72840 = 0.4567
+[audit] 截至2021 缓冲块 2020: 28槽 正例14 负例14 | 源 37084/81658 = 0.4541
+[reuse] 截至2021 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2}
+[epoch] year=2021 epoch=1/10 mean_loss=0.103679 dropout_measured=0.199976
+[epoch] year=2021 epoch=2/10 mean_loss=0.077702 dropout_measured=0.199997
+[epoch] year=2021 epoch=3/10 mean_loss=0.067152 dropout_measured=0.199987
+[epoch] year=2021 epoch=4/10 mean_loss=0.059336 dropout_measured=0.200011
+[epoch] year=2021 epoch=5/10 mean_loss=0.054439 dropout_measured=0.199971
+[epoch] year=2021 epoch=6/10 mean_loss=0.050872 dropout_measured=0.200022
+[epoch] year=2021 epoch=7/10 mean_loss=0.047289 dropout_measured=0.199996
+[epoch] year=2021 epoch=8/10 mean_loss=0.042837 dropout_measured=0.200046
+[epoch] year=2021 epoch=9/10 mean_loss=0.042183 dropout_measured=0.200001
+[epoch] year=2021 epoch=10/10 mean_loss=0.037055 dropout_measured=0.199994
+[2021] trained on 65,316 rows in 30.9s
+[2021] avg_f1 backward=0.8994
+[parts] 2022: n_parts=17 sizes=[69132, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]
+[audit] 截至2022 缓冲块 2013: 25槽 正例12 负例13 | 源 35506/69144 = 0.5135
+[audit] 截至2022 缓冲块 2014: 25槽 正例12 负例13 | 源 36605/80946 = 0.4522
+[audit] 截至2022 缓冲块 2016: 25槽 正例12 负例13 | 源 36107/87354 = 0.4133
+[audit] 截至2022 缓冲块 2017: 25槽 正例12 负例13 | 源 17087/79315 = 0.2154
+[audit] 截至2022 缓冲块 2018: 25槽 正例12 负例13 | 源 31480/83433 = 0.3773
+[audit] 截至2022 缓冲块 2019: 25槽 正例12 负例13 | 源 33268/72840 = 0.4567
+[audit] 截至2022 缓冲块 2020: 25槽 正例12 负例13 | 源 37084/81658 = 0.4541
+[audit] 截至2022 缓冲块 2021: 25槽 正例12 负例13 | 源 28502/64924 = 0.4390
+[reuse] 截至2022 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2}
+[epoch] year=2022 epoch=1/10 mean_loss=0.066108 dropout_measured=0.199952
+[epoch] year=2022 epoch=2/10 mean_loss=0.047449 dropout_measured=0.200009
+[epoch] year=2022 epoch=3/10 mean_loss=0.041281 dropout_measured=0.200001
+[epoch] year=2022 epoch=4/10 mean_loss=0.038253 dropout_measured=0.200020
+[epoch] year=2022 epoch=5/10 mean_loss=0.037436 dropout_measured=0.199950
+[epoch] year=2022 epoch=6/10 mean_loss=0.032942 dropout_measured=0.200026
+[epoch] year=2022 epoch=7/10 mean_loss=0.031773 dropout_measured=0.200002
+[epoch] year=2022 epoch=8/10 mean_loss=0.030461 dropout_measured=0.200036
+[epoch] year=2022 epoch=9/10 mean_loss=0.028492 dropout_measured=0.200011
+[epoch] year=2022 epoch=10/10 mean_loss=0.025911 dropout_measured=0.199989
+[2022] trained on 69,532 rows in 32.8s
+[2022] avg_f1 backward=0.8379
+[parts] 2023: n_parts=19 sizes=[43483, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22]
+[audit] 截至2023 缓冲块 2013: 22槽 正例11 负例11 | 源 35506/69144 = 0.5135
+[audit] 截至2023 缓冲块 2014: 22槽 正例11 负例11 | 源 36605/80946 = 0.4522
+[audit] 截至2023 缓冲块 2016: 22槽 正例11 负例11 | 源 36107/87354 = 0.4133
+[audit] 截至2023 缓冲块 2017: 22槽 正例11 负例11 | 源 17087/79315 = 0.2154
+[audit] 截至2023 缓冲块 2018: 22槽 正例11 负例11 | 源 31480/83433 = 0.3773
+[audit] 截至2023 缓冲块 2019: 22槽 正例11 负例11 | 源 33268/72840 = 0.4567
+[audit] 截至2023 缓冲块 2020: 22槽 正例11 负例11 | 源 37084/81658 = 0.4541
+[audit] 截至2023 缓冲块 2021: 22槽 正例11 负例11 | 源 28502/64924 = 0.4390
+[audit] 截至2023 缓冲块 2022: 22槽 正例11 负例11 | 源 33318/69132 = 0.4819
+[reuse] 截至2023 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2}
+[epoch] year=2023 epoch=1/10 mean_loss=0.109229 dropout_measured=0.200046
+[epoch] year=2023 epoch=2/10 mean_loss=0.077391 dropout_measured=0.200005
+[epoch] year=2023 epoch=3/10 mean_loss=0.070476 dropout_measured=0.199981
+[epoch] year=2023 epoch=4/10 mean_loss=0.065114 dropout_measured=0.200008
+[epoch] year=2023 epoch=5/10 mean_loss=0.058020 dropout_measured=0.199980
+[epoch] year=2023 epoch=6/10 mean_loss=0.055278 dropout_measured=0.199994
+[epoch] year=2023 epoch=7/10 mean_loss=0.050457 dropout_measured=0.199992
+[epoch] year=2023 epoch=8/10 mean_loss=0.049433 dropout_measured=0.200016
+[epoch] year=2023 epoch=9/10 mean_loss=0.044868 dropout_measured=0.200019
+[epoch] year=2023 epoch=10/10 mean_loss=0.045338 dropout_measured=0.199975
+[2023] trained on 43,879 rows in 20.1s
+[2023] avg_f1 backward=0.8824
+[parts] 2024: n_parts=21 sizes=[38741, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+[audit] 截至2024 缓冲块 2013: 20槽 正例10 负例10 | 源 35506/69144 = 0.5135
+[audit] 截至2024 缓冲块 2014: 20槽 正例10 负例10 | 源 36605/80946 = 0.4522
+[audit] 截至2024 缓冲块 2016: 20槽 正例10 负例10 | 源 36107/87354 = 0.4133
+[audit] 截至2024 缓冲块 2017: 20槽 正例10 负例10 | 源 17087/79315 = 0.2154
+[audit] 截至2024 缓冲块 2018: 20槽 正例10 负例10 | 源 31480/83433 = 0.3773
+[audit] 截至2024 缓冲块 2019: 20槽 正例10 负例10 | 源 33268/72840 = 0.4567
+[audit] 截至2024 缓冲块 2020: 20槽 正例10 负例10 | 源 37084/81658 = 0.4541
+[audit] 截至2024 缓冲块 2021: 20槽 正例10 负例10 | 源 28502/64924 = 0.4390
+[audit] 截至2024 缓冲块 2022: 20槽 正例10 负例10 | 源 33318/69132 = 0.4819
+[audit] 截至2024 缓冲块 2023: 20槽 正例10 负例10 | 源 6314/43483 = 0.1452
+[reuse] 截至2024 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2}
+[epoch] year=2024 epoch=1/10 mean_loss=0.043320 dropout_measured=0.200012
+[epoch] year=2024 epoch=2/10 mean_loss=0.035211 dropout_measured=0.200026
+[epoch] year=2024 epoch=3/10 mean_loss=0.031614 dropout_measured=0.199942
+[epoch] year=2024 epoch=4/10 mean_loss=0.028728 dropout_measured=0.199983
+[epoch] year=2024 epoch=5/10 mean_loss=0.026401 dropout_measured=0.200014
+[epoch] year=2024 epoch=6/10 mean_loss=0.026209 dropout_measured=0.199978
+[epoch] year=2024 epoch=7/10 mean_loss=0.024073 dropout_measured=0.199992
+[epoch] year=2024 epoch=8/10 mean_loss=0.022204 dropout_measured=0.199968
+[epoch] year=2024 epoch=9/10 mean_loss=0.021717 dropout_measured=0.200038
+[epoch] year=2024 epoch=10/10 mean_loss=0.020637 dropout_measured=0.200027
+[2024] trained on 39,141 rows in 18.8s
+[2024] avg_f1 backward=0.9002
+[parts] 2025: n_parts=23 sizes=[35730, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18]
+[audit] 截至2025 缓冲块 2013: 18槽 正例9 负例9 | 源 35506/69144 = 0.5135
+[audit] 截至2025 缓冲块 2014: 18槽 正例9 负例9 | 源 36605/80946 = 0.4522
+[audit] 截至2025 缓冲块 2016: 18槽 正例9 负例9 | 源 36107/87354 = 0.4133
+[audit] 截至2025 缓冲块 2017: 18槽 正例9 负例9 | 源 17087/79315 = 0.2154
+[audit] 截至2025 缓冲块 2018: 18槽 正例9 负例9 | 源 31480/83433 = 0.3773
+[audit] 截至2025 缓冲块 2019: 18槽 正例9 负例9 | 源 33268/72840 = 0.4567
+[audit] 截至2025 缓冲块 2020: 18槽 正例9 负例9 | 源 37084/81658 = 0.4541
+[audit] 截至2025 缓冲块 2021: 18槽 正例9 负例9 | 源 28502/64924 = 0.4390
+[audit] 截至2025 缓冲块 2022: 18槽 正例9 负例9 | 源 33318/69132 = 0.4819
+[audit] 截至2025 缓冲块 2023: 18槽 正例9 负例9 | 源 6314/43483 = 0.1452
+[audit] 截至2025 缓冲块 2024: 18槽 正例9 负例9 | 源 635/38741 = 0.0164
+[reuse] 截至2025 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2, 2024: 2}
+[epoch] year=2025 epoch=1/10 mean_loss=0.007761 dropout_measured=0.200011
+[epoch] year=2025 epoch=2/10 mean_loss=0.005643 dropout_measured=0.200019
+[epoch] year=2025 epoch=3/10 mean_loss=0.004759 dropout_measured=0.199896
+[epoch] year=2025 epoch=4/10 mean_loss=0.003985 dropout_measured=0.199953
+[epoch] year=2025 epoch=5/10 mean_loss=0.003540 dropout_measured=0.199996
+[epoch] year=2025 epoch=6/10 mean_loss=0.003222 dropout_measured=0.199972
+[epoch] year=2025 epoch=7/10 mean_loss=0.002929 dropout_measured=0.200039
+[epoch] year=2025 epoch=8/10 mean_loss=0.002213 dropout_measured=0.200011
+[epoch] year=2025 epoch=9/10 mean_loss=0.002443 dropout_measured=0.199974
+[epoch] year=2025 epoch=10/10 mean_loss=0.002181 dropout_measured=0.199981
+[2025] trained on 36,126 rows in 16.7s
+[2025] avg_f1 backward=0.8211
+[preds] drop20 末年模型 @2013: f1=0.8894 n=17287 pos=8877 nonfinite=0
+[preds] drop20 末年模型 @2014: f1=0.8943 n=20237 pos=9151 nonfinite=0
+[preds] drop20 末年模型 @2016: f1=0.8779 n=21839 pos=9027 nonfinite=0
+[preds] drop20 末年模型 @2017: f1=0.8731 n=19829 pos=4272 nonfinite=0
+[preds] drop20 末年模型 @2018: f1=0.8935 n=20859 pos=7870 nonfinite=0
+[preds] drop20 末年模型 @2019: f1=0.9509 n=18210 pos=8317 nonfinite=0
+[preds] drop20 末年模型 @2020: f1=0.9542 n=20415 pos=9271 nonfinite=0
+[preds] drop20 末年模型 @2021: f1=0.9475 n=16231 pos=7125 nonfinite=0
+[preds] drop20 末年模型 @2022: f1=0.9589 n=17284 pos=8330 nonfinite=0
+[preds] drop20 末年模型 @2023: f1=0.8702 n=10871 pos=1578 nonfinite=0
+[preds] drop20 末年模型 @2024: f1=0.7433 n=9686 pos=159 nonfinite=0
+[preds] drop20 末年模型 @2025: f1=0.0000 n=8933 pos=5 nonfinite=0
+
+=== drop20：末年 2025 的 avg_f1（官方报告口径）= 0.8210919340 ===
+[done] drop20 用时 453.1s
+[comparison] 已写出 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-feature-dropout-pilot/comparison.json

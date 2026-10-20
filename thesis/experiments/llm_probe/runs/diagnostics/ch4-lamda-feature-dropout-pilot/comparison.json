@@ -1,0 +1,168 @@
+{
+  "arms": {
+    "drop10": {
+      "delta_mean_f1_minus_base": 0.004734392918889219,
+      "dropout_measured_mean": 0.0999989815388748,
+      "mean_f1": 0.8217174216352087,
+      "p": 0.1
+    },
+    "drop20": {
+      "delta_mean_f1_minus_base": 0.004108905261216433,
+      "dropout_measured_mean": 0.19999902180867335,
+      "mean_f1": 0.8210919339775359,
+      "p": 0.2
+    }
+  },
+  "base_gate": {
+    "abs_delta": 0.0,
+    "expected": 0.8169830287163194,
+    "observed": 0.8169830287163194,
+    "passed": true
+  },
+  "comparison_arms": [
+    "drop10",
+    "drop20"
+  ],
+  "feature_dropout_protocol": {
+    "applies_to": "仅训练批次；评价 ch3.evaluate 与打分 ch3.score_shard 不丢弃",
+    "mask_formula": "keep = (mask_rng.random(xb.shape) >= p).astype(np.float32); xb = xb * keep",
+    "p_by_arm": {
+      "base": 0.0,
+      "drop10": 0.1,
+      "drop20": 0.2
+    },
+    "post_transform": "无：丢弃后不重新二值化，不做其他变换",
+    "rng": "mask_rng = np.random.default_rng(ch3.SEED + 1)，独立于 rng 与 buf_rng",
+    "rng_seed": 43
+  },
+  "mean_f1_base": 0.8169830287163194,
+  "notes": [
+    "ΔF1 = drop* − base，单种子 42，未做多种子训练。",
+    "本文件只报告材料性先导读数，不作机制定案。"
+  ],
+  "per_year": {
+    "2013": {
+      "delta_drop10_minus_base": -0.012075449866775223,
+      "delta_drop20_minus_base": -0.022784305562719043,
+      "f1_base": 0.9121379759192971,
+      "f1_drop10": 0.9000625260525219,
+      "f1_drop20": 0.8893536703565781
+    },
+    "2014": {
+      "delta_drop10_minus_base": -0.007553620148108342,
+      "delta_drop20_minus_base": -0.013328788543641168,
+      "f1_base": 0.9076352694642953,
+      "f1_drop10": 0.900081649316187,
+      "f1_drop20": 0.8943064809206541
+    },
+    "2016": {
+      "delta_drop10_minus_base": 0.012677102249904815,
+      "delta_drop20_minus_base": -4.0072900464593886e-05,
+      "f1_base": 0.8779861576244697,
+      "f1_drop10": 0.8906632598743746,
+      "f1_drop20": 0.8779460847240051
+    },
+    "2017": {
+      "delta_drop10_minus_base": -0.01594001236451481,
+      "delta_drop20_minus_base": -0.03294006147324935,
+      "f1_base": 0.9060695344725987,
+      "f1_drop10": 0.8901295221080839,
+      "f1_drop20": 0.8731294729993494
+    },
+    "2018": {
+      "delta_drop10_minus_base": 0.010744366976166098,
+      "delta_drop20_minus_base": 0.004974302969731004,
+      "f1_base": 0.8885175778639219,
+      "f1_drop10": 0.899261944840088,
+      "f1_drop20": 0.8934918808336529
+    },
+    "2019": {
+      "delta_drop10_minus_base": 0.01268427315821985,
+      "delta_drop20_minus_base": 0.014883941476106055,
+      "f1_base": 0.9359930400198857,
+      "f1_drop10": 0.9486773131781056,
+      "f1_drop20": 0.9508769814959918
+    },
+    "2020": {
+      "delta_drop10_minus_base": 0.005994883421074126,
+      "delta_drop20_minus_base": 0.013303684149840955,
+      "f1_base": 0.9408994056296961,
+      "f1_drop10": 0.9468942890507702,
+      "f1_drop20": 0.954203089779537
+    },
+    "2021": {
+      "delta_drop10_minus_base": 0.005720632528732894,
+      "delta_drop20_minus_base": 0.01760380273321449,
+      "f1_base": 0.9298871063576946,
+      "f1_drop10": 0.9356077388864275,
+      "f1_drop20": 0.947490909090909
+    },
+    "2022": {
+      "delta_drop10_minus_base": 0.011529217114960133,
+      "delta_drop20_minus_base": 0.020688177549545772,
+      "f1_base": 0.9381684703499779,
+      "f1_drop10": 0.949697687464938,
+      "f1_drop20": 0.9588566478995236
+    },
+    "2023": {
+      "delta_drop10_minus_base": 0.0233391227088926,
+      "delta_drop20_minus_base": 0.04583866357914568,
+      "f1_base": 0.8243143068939955,
+      "f1_drop10": 0.8476534296028881,
+      "f1_drop20": 0.8701529704731412
+    },
+    "2024": {
+      "delta_drop10_minus_base": 0.009692199248120259,
+      "delta_drop20_minus_base": 0.001107519157088177,
+      "f1_base": 0.7421875,
+      "f1_drop10": 0.7518796992481203,
+      "f1_drop20": 0.7432950191570882
+    },
+    "2025": {
+      "delta_drop10_minus_base": 0.0,
+      "delta_drop20_minus_base": 0.0,
+      "f1_base": 0.0,
+      "f1_drop10": 0.0,
+      "f1_drop20": 0.0
+    }
+  },
+  "public_protocol": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "deficit_gamma": 1.0,
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "evaluate_fn": "ch3.evaluate",
+    "lr": 0.01,
+    "memory": 200,
+    "model": "ch3.ChenEncoderMLP",
+    "momentum": 0.9,
+    "optimizer_lifetime": "per_year_rebuild_inside_train_fn",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "rng_streams": "train_rng=default_rng(SEED); buf_rng=default_rng(SEED)（各臂同序消费）",
+    "score_fn": "ch3.score_shard",
+    "seed": 42,
+    "strategy": "expreplay",
+    "threshold": 0.5,
+    "train_fn": "train_epochs_with_feature_dropout（ch3.train_epochs 的逐句镜像）",
+    "weight_decay": 1e-06
+  },
+  "reference_arm": "base",
+  "run_name": "ch4-lamda-feature-dropout-pilot",
+  "ts": "2026-10-20T04:33:53.807815Z"
+}
