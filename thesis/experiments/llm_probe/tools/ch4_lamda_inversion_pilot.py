@@ -78,9 +78,9 @@ def run_arm(arm: str) -> int:
         x_curr, y_curr = store[year]
         if model is None:
             model = ch3.ChenEncoderMLP(input_dim).to(DEVICE)
-            if arm in HEAD_ARMS:
-                for p in model.encoder.parameters():
-                    p.requires_grad = False
+            # 头适配臂：第一年先训练完整模型，使编码器学到表示；第一年结束后再冻结编码器。
+            # 若在创建时立即冻结，编码器停留在随机初始化（输出 std 3e-5），
+            # 分类头只能学出常数，整臂 F1=0——那是实现缺陷，不是科学结果。
             n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
             print(f"[model] params={sum(p.numel() for p in model.parameters()):,} "
                   f"trainable={n_trainable:,}", flush=True)
@@ -98,6 +98,11 @@ def run_arm(arm: str) -> int:
         current_year_f1[str(year)] = float(m["f1"])
         del xt, yt
         print(f"[{year}] current_f1={m['f1']:.4f} ({time.time() - t_epoch:.0f}s)", flush=True)
+
+        if idx == 0 and arm in HEAD_ARMS:
+            for p in model.encoder.parameters():
+                p.requires_grad = False
+            print("[freeze] encoder frozen after first year", flush=True)
 
         if idx == len(years) - 1:
             for ty in years:
