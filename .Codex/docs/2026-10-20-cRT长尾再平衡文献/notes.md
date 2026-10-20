@@ -27,7 +27,7 @@
 - **页码锚点**：Theorem 1/Eq. 3–4 p3；泛化界 Eq. 8/10 p4；Meta Sampler §3.2 p5–6；Table 2–3 p7；Table 4 p8；Table 5 p8–9；附录 C.3 训练细节 p20；Table 8 p20。
 - **与 M2' 关系**：Balanced Softmax = 二分类下的先验 logit 偏移（等价于阈值平移）；不需要改采样。其 label shift 前提是 \(p(x\mid y)\) 不变，故只作基线/诊断。Table 8 再次支持“自然采样学表示、分类器再平衡”。
 - **wiki**：`wiki/papers/methodology/2020-Ren-平衡元Softmax.md`。
-- **Zotero**：待重试（arXiv API 429/timeout）。条目尚未入库。
+- **Zotero**：已入库，key `LAV9HUZX`（arXiv abs 页面导入后改为 preprint；PDF 已附）。
 
 ## 2. LA（Logit Adjustment）
 
@@ -38,7 +38,7 @@
 - **页码锚点**：Eq. 7–8 p5；Eq. 9 p5；Eq. 10 p6；Eq. 11 p7；Theorem 1 p7；Table 3 p9；Table 4 p10；附录 D 训练细节 p23。
 - **与 M2' 关系**：最便宜的 post-hoc 先验校正；对平衡误差 Fisher 一致；前提是固定类条件、只变先验。若 \(p(x\mid y)\) 漂移，则误设定。
 - **wiki**：`wiki/papers/methodology/2021-Menon-对数几率调整.md`。
-- **Zotero**：待重试（arXiv API 429/timeout）。条目尚未入库。
+- **Zotero**：已入库，key `IFIFVMX8`（arXiv abs 页面导入后改为 preprint；PDF 已附）。
 
 ## 3. LADE（PC Softmax + LADER）
 
@@ -182,13 +182,20 @@
 
 ## 9. Zotero 状态
 
-- 已入库：LADE `V3UP8CV5`；LT-CIL `YXSSPY5R`；DELTA `BJ6CG2AT`；OLS `ZW67265D`；LIMES `NX7JYS84`。
-- 待重试：BSM（arXiv:2007.10740）、LA（arXiv:2007.07314）。arXiv API 在 2026-10-20 多次返回 429/timeout；稍后重试 `zotero_add_items_by_arxiv`。若持续失败，改用 arXiv abs 页面 URL 导入，并在报告中标注“题录来自 arXiv 页面，非 API”。
-- 查重：入库前按题名检索 Zotero，三者均无既有条目；第二优先四篇亦无既有条目。
+- 已入库（7/7）：
+  - LADE `V3UP8CV5`（DOI 导入，PDF 已附）
+  - LT-CIL `YXSSPY5R`（arXiv 导入，PDF 已附）
+  - DELTA `BJ6CG2AT`（DOI 导入，PDF 已附）
+  - OLS `ZW67265D`（DOI 导入，PDF 已附）
+  - LIMES `NX7JYS84`（DOI 导入，PDF 已附）
+  - BSM `LAV9HUZX`（arXiv abs 页面导入后改为 preprint；arXiv API 多次 429/timeout；PDF 已附）
+  - LA `IFIFVMX8`（同上；PDF 已附）
+- 查重：入库前按题名检索 Zotero，7 篇均无既有条目。
+- 说明：BSM/LA 的条目字段（作者、日期、arXiv ID、venue）已用 arXiv API 返回值核对并手工写入；网页导入的 `needs-metadata` 标签已移除。PDF 由 `zotero_find_and_attach_pdfs` 附加。
 
 ## 10. 待办 / 阻塞
 
-- [ ] 重试 BSM、LA 的 Zotero 入库。
-- [ ] 用 `yaml` 解析器校验 7 篇笔记的 frontmatter。
-- [ ] 核对 INDEX 中的链接文件名与实际文件一致。
+- [x] BSM、LA 的 Zotero 入库（改用 arXiv abs 页面导入 + preprint 更新）。
+- [x] 用 `yaml` 解析器校验 7 篇笔记的 frontmatter（全部 OK）。
+- [x] 核对 INDEX 中的链接文件名与实际文件一致（全部 OK）。
 - [ ] 不 commit（任务要求）。

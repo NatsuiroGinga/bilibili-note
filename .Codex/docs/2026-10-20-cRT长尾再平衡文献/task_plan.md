@@ -8,9 +8,9 @@
 
 | 短名 | 任务给定标识 | 核验结果 | 实际标识 | PDF 落点 | wiki 笔记 | 状态 |
 |---|---|---|---|---|---|---|
-| BalancedSoftmax | arXiv:2007.10742 | **给定 ID 错误**（该 ID 是 Willmore 能量数学论文） | arXiv:2007.10740（NeurIPS 2020） | `raw/papers/methodology/2020-Ren-Balanced-Meta-Softmax.pdf` | `wiki/papers/methodology/2020-Ren-平衡元Softmax.md` | 进行中 |
-| LogitAdjust | arXiv:2007.07314 | 正确（ICLR 2021） | arXiv:2007.07314 | `raw/papers/methodology/2021-Menon-Logit-Adjustment.pdf` | `wiki/papers/methodology/2021-Menon-对数几率调整.md` | 进行中 |
-| LADE | arXiv:2103.17084 | **给定 ID 错误**（该 ID 是 DA-DETR 目标检测论文） | arXiv:2012.00321（CVPR 2021） | `raw/papers/methodology/2021-Hong-LADE-Label-Distribution-Disentangling.pdf` | `wiki/papers/methodology/2021-Hong-LADE标签分布解耦.md` | 进行中 |
+| BalancedSoftmax | arXiv:2007.10742 | **给定 ID 错误**（该 ID 是 Willmore 能量数学论文） | arXiv:2007.10740（NeurIPS 2020） | `raw/papers/methodology/2020-Ren-Balanced-Meta-Softmax.pdf` | `wiki/papers/methodology/2020-Ren-平衡元Softmax.md` | 完成 |
+| LogitAdjust | arXiv:2007.07314 | 正确（ICLR 2021） | arXiv:2007.07314 | `raw/papers/methodology/2021-Menon-Logit-Adjustment.pdf` | `wiki/papers/methodology/2021-Menon-对数几率调整.md` | 完成 |
+| LADE | arXiv:2103.17084 | **给定 ID 错误**（该 ID 是 DA-DETR 目标检测论文） | arXiv:2012.00321（CVPR 2021） | `raw/papers/methodology/2021-Hong-LADE-Label-Distribution-Disentangling.pdf` | `wiki/papers/methodology/2021-Hong-LADE标签分布解耦.md` | 完成 |
 
 ## 第二优先（检索确认后再入库）
 
