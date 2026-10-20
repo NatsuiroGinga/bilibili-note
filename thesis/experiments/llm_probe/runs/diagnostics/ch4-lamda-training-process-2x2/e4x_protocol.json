@@ -1,0 +1,93 @@
+{
+  "adam_hyperparams": {
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "eps": 1e-08,
+    "lr": 0.01,
+    "note": "只换优化器类型，lr 与 weight_decay 保持基线值；lr 不因发散而调整",
+    "weight_decay": 1e-06
+  },
+  "arms": {
+    "adam": {
+      "init": "pytorch_default",
+      "optimizer": "Adam"
+    },
+    "base": {
+      "init": "pytorch_default",
+      "optimizer": "SGD"
+    },
+    "he": {
+      "init": "he_scale_kaiming_a0_fan_in",
+      "optimizer": "SGD"
+    },
+    "he_adam": {
+      "init": "he_scale_kaiming_a0_fan_in",
+      "optimizer": "Adam"
+    }
+  },
+  "aux_metrics": "2013／2014／2024 三个年度的 F1",
+  "bootstrap_n": 2000,
+  "bootstrap_seed": 42,
+  "criteria_noise_band_f1": [
+    0.0014,
+    0.0116
+  ],
+  "criteria_text": "主判据：**末年 2025 对 12 个测试分片的平均 F1**（官方报告口径），Δ = F1_arm − F1_base。种子噪声尺度（本课题实测，跑前写死）：跨配置种子波动 0.14–1.16 点（= 0.0014–0.0116 F1）。材料（靶子成立）：至少一臂 |Δ| 超过噪声上界 0.0116，且方向为改善（Δ > 0）。不可分辨：全部 |Δ| 落在噪声内。恶化：至少一臂显著恶化（Δ < −0.0116）⇒ 该干预不成立，但仍说明该因材料。辅助：2013／2014／2024 三个年度的 F1（缺陷所在年度与目标年度）；若材料性只体现在 2013／2014 而不传导到整体，如实报告——那说明缺陷是局部的，不构成章级问题。不确定性：单一冻结种子 42（禁多种子）；测试集配对 bootstrap n=2000，只量化样本不确定性，不冒充训练随机性。",
+  "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+  "env_data_root_var": "LAMDA_DATA_ROOT",
+  "frozen_common": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "deficit_gamma": 1.0,
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "lr": 0.01,
+    "memory": 200,
+    "momentum": 0.9,
+    "optimizer_lifetime": "per_year_rebuild_inside_train_fn",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "rng_streams": "train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）",
+    "seed": 42,
+    "strategy": "expreplay",
+    "threshold": 0.5,
+    "weight_decay": 1e-06
+  },
+  "gate_base": {
+    "expected": 0.8169830287163194,
+    "reference_artifact": "ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json",
+    "tol": 1e-06
+  },
+  "he_init": {
+    "rng": "独立 torch.Generator(seed=42)，不消耗全局 torch 随机源",
+    "rule": "U(-sqrt(6/fan_in), sqrt(6/fan_in))（等价 kaiming_uniform_(a=0, fan_in)）",
+    "scope": "全部 7 个 nn.Linear 的 weight；bias 保持默认",
+    "theory_std": "sqrt(2/fan_in)"
+  },
+  "optimizer_lifetime": {
+    "baseline": "ch3.train_epochs 第 388 行在函数体内构造 SGD；main 每年调用一次 ⇒ 每年重建",
+    "consequence": "优化器重建时机不是本实验的变量；adam 臂与 base 臂的唯一差异是优化器类型",
+    "evidence": "official-src/domain_il_experiment.py:194（官方亦在年度循环体内构造）",
+    "this_script": "train_epochs_with_optimizer 同样在函数体内构造 ⇒ 每年重建，四臂一致"
+  },
+  "primary_metric": "末年 2025 对 12 个测试分片的平均 F1（官方报告口径）",
+  "purpose": "只回答一个问题：「首年度/次年度被浪费的训练轮次」对最终指标有没有可测影响。四臂全落在种子噪声内 ⇒ 靶子作废。",
+  "run_name": "ch4-lamda-training-process-2x2",
+  "ts": "2026-10-15T12:11:56.074530Z"
+}

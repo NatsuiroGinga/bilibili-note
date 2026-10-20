@@ -1,0 +1,645 @@
+[protocol] 已写出 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-training-process-2x2/e4x_protocol.json
+[arm] base init=pytorch_default optimizer=SGD device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_scheme=quota reuse_scheme=deficit buffer_repeat=2 pos_ratio=0.5 deficit_gamma=1.0 seed=42 threshold=0.5 arm=base
+[lifecycle] 优化器在训练函数体内构造、每年度重建（与 ch3.train_epochs 一致）⇒ 四臂的优化器生命周期逐位相同，唯一差异是优化器类型
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[selfcheck-config] 四臂配置对照（除 init／optimizer 外必须逐字相同）:
+  batch                  [同] base=1024 | he=1024 | adam=1024 | he_adam=1024
+  buffer_repeat          [同] base=2 | he=2 | adam=2 | he_adam=2
+  buffer_scheme          [同] base='quota' | he='quota' | adam='quota' | he_adam='quota'
+  deficit_gamma          [同] base=1.0 | he=1.0 | adam=1.0 | he_adam=1.0
+  domain_years           [同] base=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he_adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  epochs                 [同] base=10 | he=10 | adam=10 | he_adam=10
+  init                   [**异**] base='pytorch_default' | he='he_scale_kaiming_a0_fan_in' | adam='pytorch_default' | he_adam='he_scale_kaiming_a0_fan_in'
+  lr                     [同] base=0.01 | he=0.01 | adam=0.01 | he_adam=0.01
+  memory                 [同] base=200 | he=200 | adam=200 | he_adam=200
+  momentum               [同] base=0.9 | he=0.9 | adam=0.9 | he_adam=0.9
+  optimizer              [**异**] base='SGD' | he='SGD' | adam='Adam' | he_adam='Adam'
+  optimizer_lifetime     [同] base='per_year_rebuild_inside_train_fn' | he='per_year_rebuild_inside_train_fn' | adam='per_year_rebuild_inside_train_fn' | he_adam='per_year_rebuild_inside_train_fn'
+  pos_ratio              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  reuse_scheme           [同] base='deficit' | he='deficit' | adam='deficit' | he_adam='deficit'
+  rng_streams            [同] base='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he_adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）'
+  seed                   [同] base=42 | he=42 | adam=42 | he_adam=42
+  strategy               [同] base='expreplay' | he='expreplay' | adam='expreplay' | he_adam='expreplay'
+  threshold              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  weight_decay           [同] base=1e-06 | he=1e-06 | adam=1e-06 | he_adam=1e-06
+[selfcheck-config] PASS：仅 init 与 optimizer 两个键在四臂间不同，其余逐字相同
+[selfcheck-he-isolation] He 重初始化只改 weight（7 层）、bias 逐位不变，且**全局 torch RNG 状态逐位不变**
+[selfcheck-optimizer] arm=base type=SGD lr=0.01 betas=None eps=None weight_decay=1e-06
+[selfcheck-parity] 训练镜像函数（SGD）与 ch3.train_epochs 逐位一致（1 轮，全参数张量相等）
+[model] params=2,687,293 init=pytorch_default n_layers_reinit=0
+[selfcheck-init] arm=base 逐层 weight std（实测 vs He 理论 vs 默认理论）:
+  encoder.0                    fan_in=4561  实测=0.008548 He理论=0.020940 默认理论=0.008549 实测/He=0.408 实测/默认=1.000
+  encoder.2                    fan_in=512   实测=0.025500 He理论=0.062500 默认理论=0.025516 实测/He=0.408 实测/默认=0.999
+  encoder.4                    fan_in=384   实测=0.029595 He理论=0.072169 默认理论=0.029463 实测/He=0.410 实测/默认=1.004
+  encoder.6                    fan_in=256   实测=0.036108 He理论=0.088388 默认理论=0.036084 实测/He=0.409 实测/默认=1.001
+  classifier.0                 fan_in=128   实测=0.051130 He理论=0.125000 默认理论=0.051031 实测/He=0.409 实测/默认=1.002
+  classifier.3                 fan_in=100   实测=0.057225 He理论=0.141421 默认理论=0.057735 实测/He=0.405 实测/默认=0.991
+  classifier.6                 fan_in=100   实测=0.060237 He理论=0.141421 默认理论=0.057735 实测/He=0.426 实测/默认=1.043
+[selfcheck-init] arm=base 实测/默认理论 std 比值：min=0.991 max=1.043（He 尺度预期 ≈ 2.449）×
+[selfcheck-init] arm=base 实测尺度与声明的初始化一致（全部 7 层，±5%）
+[parts] 2013: n_parts=1 sizes=[69144]
+[2013] trained on 69,144 rows in 9.9s params_finite=True
+[2013] avg_f1 backward=0.6786
+[parts] 2014: n_parts=3 sizes=[80946, 200, 200]
+[audit] 截至2014 缓冲块 2013: 200槽 正例100 负例100 | 源 35506/69144 = 0.5135
+[reuse] 截至2014 deficit 复用 = {2013: 2}
+[2014] trained on 81,346 rows in 11.3s params_finite=True
+[2014] avg_f1 backward=0.9471
+[parts] 2016: n_parts=5 sizes=[87354, 100, 100, 100, 100]
+[audit] 截至2016 缓冲块 2013: 100槽 正例50 负例50 | 源 35506/69144 = 0.5135
+[audit] 截至2016 缓冲块 2014: 100槽 正例50 负例50 | 源 36605/80946 = 0.4522
+[reuse] 截至2016 deficit 复用 = {2013: 2, 2014: 2}
+[2016] trained on 87,754 rows in 12.5s params_finite=True
+[2016] avg_f1 backward=0.9438
+[parts] 2017: n_parts=7 sizes=[79315, 66, 66, 66, 66, 66, 66]
+[audit] 截至2017 缓冲块 2013: 66槽 正例33 负例33 | 源 35506/69144 = 0.5135
+[audit] 截至2017 缓冲块 2014: 66槽 正例33 负例33 | 源 36605/80946 = 0.4522
+[audit] 截至2017 缓冲块 2016: 66槽 正例33 负例33 | 源 36107/87354 = 0.4133
+[reuse] 截至2017 deficit 复用 = {2013: 2, 2014: 2, 2016: 2}
+[2017] trained on 79,711 rows in 11.2s params_finite=True
+[2017] avg_f1 backward=0.9344
+[parts] 2018: n_parts=9 sizes=[83433, 50, 50, 50, 50, 50, 50, 50, 50]
+[audit] 截至2018 缓冲块 2013: 50槽 正例25 负例25 | 源 35506/69144 = 0.5135
+[audit] 截至2018 缓冲块 2014: 50槽 正例25 负例25 | 源 36605/80946 = 0.4522
+[audit] 截至2018 缓冲块 2016: 50槽 正例25 负例25 | 源 36107/87354 = 0.4133
+[audit] 截至2018 缓冲块 2017: 50槽 正例25 负例25 | 源 17087/79315 = 0.2154
+[reuse] 截至2018 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2}
+[2018] trained on 83,833 rows in 12.2s params_finite=True
+[2018] avg_f1 backward=0.9159
+[parts] 2019: n_parts=11 sizes=[72840, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
+[audit] 截至2019 缓冲块 2013: 40槽 正例20 负例20 | 源 35506/69144 = 0.5135
+[audit] 截至2019 缓冲块 2014: 40槽 正例20 负例20 | 源 36605/80946 = 0.4522
+[audit] 截至2019 缓冲块 2016: 40槽 正例20 负例20 | 源 36107/87354 = 0.4133
+[audit] 截至2019 缓冲块 2017: 40槽 正例20 负例20 | 源 17087/79315 = 0.2154
+[audit] 截至2019 缓冲块 2018: 40槽 正例20 负例20 | 源 31480/83433 = 0.3773
+[reuse] 截至2019 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2}
+[2019] trained on 73,240 rows in 9.8s params_finite=True
+[2019] avg_f1 backward=0.8824
+[parts] 2020: n_parts=13 sizes=[81658, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33]
+[audit] 截至2020 缓冲块 2013: 33槽 正例16 负例17 | 源 35506/69144 = 0.5135
+[audit] 截至2020 缓冲块 2014: 33槽 正例16 负例17 | 源 36605/80946 = 0.4522
+[audit] 截至2020 缓冲块 2016: 33槽 正例16 负例17 | 源 36107/87354 = 0.4133
+[audit] 截至2020 缓冲块 2017: 33槽 正例16 负例17 | 源 17087/79315 = 0.2154
+[audit] 截至2020 缓冲块 2018: 33槽 正例16 负例17 | 源 31480/83433 = 0.3773
+[audit] 截至2020 缓冲块 2019: 33槽 正例16 负例17 | 源 33268/72840 = 0.4567
+[reuse] 截至2020 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2}
+[2020] trained on 82,054 rows in 11.8s params_finite=True
+[2020] avg_f1 backward=0.8754
+[parts] 2021: n_parts=15 sizes=[64924, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28]
+[audit] 截至2021 缓冲块 2013: 28槽 正例14 负例14 | 源 35506/69144 = 0.5135
+[audit] 截至2021 缓冲块 2014: 28槽 正例14 负例14 | 源 36605/80946 = 0.4522
+[audit] 截至2021 缓冲块 2016: 28槽 正例14 负例14 | 源 36107/87354 = 0.4133
+[audit] 截至2021 缓冲块 2017: 28槽 正例14 负例14 | 源 17087/79315 = 0.2154
+[audit] 截至2021 缓冲块 2018: 28槽 正例14 负例14 | 源 31480/83433 = 0.3773
+[audit] 截至2021 缓冲块 2019: 28槽 正例14 负例14 | 源 33268/72840 = 0.4567
+[audit] 截至2021 缓冲块 2020: 28槽 正例14 负例14 | 源 37084/81658 = 0.4541
+[reuse] 截至2021 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2}
+[2021] trained on 65,316 rows in 13.0s params_finite=True
+[2021] avg_f1 backward=0.9031
+[parts] 2022: n_parts=17 sizes=[69132, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]
+[audit] 截至2022 缓冲块 2013: 25槽 正例12 负例13 | 源 35506/69144 = 0.5135
+[audit] 截至2022 缓冲块 2014: 25槽 正例12 负例13 | 源 36605/80946 = 0.4522
+[audit] 截至2022 缓冲块 2016: 25槽 正例12 负例13 | 源 36107/87354 = 0.4133
+[audit] 截至2022 缓冲块 2017: 25槽 正例12 负例13 | 源 17087/79315 = 0.2154
+[audit] 截至2022 缓冲块 2018: 25槽 正例12 负例13 | 源 31480/83433 = 0.3773
+[audit] 截至2022 缓冲块 2019: 25槽 正例12 负例13 | 源 33268/72840 = 0.4567
+[audit] 截至2022 缓冲块 2020: 25槽 正例12 负例13 | 源 37084/81658 = 0.4541
+[audit] 截至2022 缓冲块 2021: 25槽 正例12 负例13 | 源 28502/64924 = 0.4390
+[reuse] 截至2022 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2}
+[2022] trained on 69,532 rows in 9.9s params_finite=True
+[2022] avg_f1 backward=0.8533
+[parts] 2023: n_parts=19 sizes=[43483, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22]
+[audit] 截至2023 缓冲块 2013: 22槽 正例11 负例11 | 源 35506/69144 = 0.5135
+[audit] 截至2023 缓冲块 2014: 22槽 正例11 负例11 | 源 36605/80946 = 0.4522
+[audit] 截至2023 缓冲块 2016: 22槽 正例11 负例11 | 源 36107/87354 = 0.4133
+[audit] 截至2023 缓冲块 2017: 22槽 正例11 负例11 | 源 17087/79315 = 0.2154
+[audit] 截至2023 缓冲块 2018: 22槽 正例11 负例11 | 源 31480/83433 = 0.3773
+[audit] 截至2023 缓冲块 2019: 22槽 正例11 负例11 | 源 33268/72840 = 0.4567
+[audit] 截至2023 缓冲块 2020: 22槽 正例11 负例11 | 源 37084/81658 = 0.4541
+[audit] 截至2023 缓冲块 2021: 22槽 正例11 负例11 | 源 28502/64924 = 0.4390
+[audit] 截至2023 缓冲块 2022: 22槽 正例11 负例11 | 源 33318/69132 = 0.4819
+[reuse] 截至2023 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2}
+[2023] trained on 43,879 rows in 6.2s params_finite=True
+[2023] avg_f1 backward=0.8929
+[parts] 2024: n_parts=21 sizes=[38741, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+[audit] 截至2024 缓冲块 2013: 20槽 正例10 负例10 | 源 35506/69144 = 0.5135
+[audit] 截至2024 缓冲块 2014: 20槽 正例10 负例10 | 源 36605/80946 = 0.4522
+[audit] 截至2024 缓冲块 2016: 20槽 正例10 负例10 | 源 36107/87354 = 0.4133
+[audit] 截至2024 缓冲块 2017: 20槽 正例10 负例10 | 源 17087/79315 = 0.2154
+[audit] 截至2024 缓冲块 2018: 20槽 正例10 负例10 | 源 31480/83433 = 0.3773
+[audit] 截至2024 缓冲块 2019: 20槽 正例10 负例10 | 源 33268/72840 = 0.4567
+[audit] 截至2024 缓冲块 2020: 20槽 正例10 负例10 | 源 37084/81658 = 0.4541
+[audit] 截至2024 缓冲块 2021: 20槽 正例10 负例10 | 源 28502/64924 = 0.4390
+[audit] 截至2024 缓冲块 2022: 20槽 正例10 负例10 | 源 33318/69132 = 0.4819
+[audit] 截至2024 缓冲块 2023: 20槽 正例10 负例10 | 源 6314/43483 = 0.1452
+[reuse] 截至2024 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2}
+[2024] trained on 39,141 rows in 5.4s params_finite=True
+[2024] avg_f1 backward=0.9006
+[parts] 2025: n_parts=23 sizes=[35730, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18]
+[audit] 截至2025 缓冲块 2013: 18槽 正例9 负例9 | 源 35506/69144 = 0.5135
+[audit] 截至2025 缓冲块 2014: 18槽 正例9 负例9 | 源 36605/80946 = 0.4522
+[audit] 截至2025 缓冲块 2016: 18槽 正例9 负例9 | 源 36107/87354 = 0.4133
+[audit] 截至2025 缓冲块 2017: 18槽 正例9 负例9 | 源 17087/79315 = 0.2154
+[audit] 截至2025 缓冲块 2018: 18槽 正例9 负例9 | 源 31480/83433 = 0.3773
+[audit] 截至2025 缓冲块 2019: 18槽 正例9 负例9 | 源 33268/72840 = 0.4567
+[audit] 截至2025 缓冲块 2020: 18槽 正例9 负例9 | 源 37084/81658 = 0.4541
+[audit] 截至2025 缓冲块 2021: 18槽 正例9 负例9 | 源 28502/64924 = 0.4390
+[audit] 截至2025 缓冲块 2022: 18槽 正例9 负例9 | 源 33318/69132 = 0.4819
+[audit] 截至2025 缓冲块 2023: 18槽 正例9 负例9 | 源 6314/43483 = 0.1452
+[audit] 截至2025 缓冲块 2024: 18槽 正例9 负例9 | 源 635/38741 = 0.0164
+[reuse] 截至2025 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2, 2024: 2}
+[2025] trained on 36,126 rows in 5.5s params_finite=True
+[2025] avg_f1 backward=0.8170
+[preds] base 末年模型 @2013: f1=0.9121 n=17287 pos=8877 nonfinite=0
+[preds] base 末年模型 @2014: f1=0.9076 n=20237 pos=9151 nonfinite=0
+[preds] base 末年模型 @2016: f1=0.8780 n=21839 pos=9027 nonfinite=0
+[preds] base 末年模型 @2017: f1=0.9061 n=19829 pos=4272 nonfinite=0
+[preds] base 末年模型 @2018: f1=0.8885 n=20859 pos=7870 nonfinite=0
+[preds] base 末年模型 @2019: f1=0.9360 n=18210 pos=8317 nonfinite=0
+[preds] base 末年模型 @2020: f1=0.9409 n=20415 pos=9271 nonfinite=0
+[preds] base 末年模型 @2021: f1=0.9299 n=16231 pos=7125 nonfinite=0
+[preds] base 末年模型 @2022: f1=0.9382 n=17284 pos=8330 nonfinite=0
+[preds] base 末年模型 @2023: f1=0.8243 n=10871 pos=1578 nonfinite=0
+[preds] base 末年模型 @2024: f1=0.7422 n=9686 pos=159 nonfinite=0
+[preds] base 末年模型 @2025: f1=0.0000 n=8933 pos=5 nonfinite=0
+
+=== base：末年 2025 的 avg_f1（官方报告口径）= 0.8170 ===
+[comparison] 已据 ['base'] 重算 ΔF1、配对 bootstrap 与机械判据对照
+[done] base 用时 195.0s，制品 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-training-process-2x2/e4x_results.json
+[gate] base 复现门：末年 12 年平均 F1 = 0.8169830287，参照 0.8169830287，绝对差 0.000e+00 ⇒ PASS
+[protocol] 已写出 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-training-process-2x2/e4x_protocol.json
+[arm] he init=he_scale_kaiming_a0_fan_in optimizer=SGD device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_scheme=quota reuse_scheme=deficit buffer_repeat=2 pos_ratio=0.5 deficit_gamma=1.0 seed=42 threshold=0.5 arm=he
+[lifecycle] 优化器在训练函数体内构造、每年度重建（与 ch3.train_epochs 一致）⇒ 四臂的优化器生命周期逐位相同，唯一差异是优化器类型
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[selfcheck-config] 四臂配置对照（除 init／optimizer 外必须逐字相同）:
+  batch                  [同] base=1024 | he=1024 | adam=1024 | he_adam=1024
+  buffer_repeat          [同] base=2 | he=2 | adam=2 | he_adam=2
+  buffer_scheme          [同] base='quota' | he='quota' | adam='quota' | he_adam='quota'
+  deficit_gamma          [同] base=1.0 | he=1.0 | adam=1.0 | he_adam=1.0
+  domain_years           [同] base=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he_adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  epochs                 [同] base=10 | he=10 | adam=10 | he_adam=10
+  init                   [**异**] base='pytorch_default' | he='he_scale_kaiming_a0_fan_in' | adam='pytorch_default' | he_adam='he_scale_kaiming_a0_fan_in'
+  lr                     [同] base=0.01 | he=0.01 | adam=0.01 | he_adam=0.01
+  memory                 [同] base=200 | he=200 | adam=200 | he_adam=200
+  momentum               [同] base=0.9 | he=0.9 | adam=0.9 | he_adam=0.9
+  optimizer              [**异**] base='SGD' | he='SGD' | adam='Adam' | he_adam='Adam'
+  optimizer_lifetime     [同] base='per_year_rebuild_inside_train_fn' | he='per_year_rebuild_inside_train_fn' | adam='per_year_rebuild_inside_train_fn' | he_adam='per_year_rebuild_inside_train_fn'
+  pos_ratio              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  reuse_scheme           [同] base='deficit' | he='deficit' | adam='deficit' | he_adam='deficit'
+  rng_streams            [同] base='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he_adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）'
+  seed                   [同] base=42 | he=42 | adam=42 | he_adam=42
+  strategy               [同] base='expreplay' | he='expreplay' | adam='expreplay' | he_adam='expreplay'
+  threshold              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  weight_decay           [同] base=1e-06 | he=1e-06 | adam=1e-06 | he_adam=1e-06
+[selfcheck-config] PASS：仅 init 与 optimizer 两个键在四臂间不同，其余逐字相同
+[selfcheck-he-isolation] He 重初始化只改 weight（7 层）、bias 逐位不变，且**全局 torch RNG 状态逐位不变**
+[selfcheck-optimizer] arm=he type=SGD lr=0.01 betas=None eps=None weight_decay=1e-06
+[selfcheck-parity] 训练镜像函数（SGD）与 ch3.train_epochs 逐位一致（1 轮，全参数张量相等）
+[model] params=2,687,293 init=he_scale_kaiming_a0_fan_in n_layers_reinit=7
+[selfcheck-init] arm=he 逐层 weight std（实测 vs He 理论 vs 默认理论）:
+  encoder.0                    fan_in=4561  实测=0.020938 He理论=0.020940 默认理论=0.008549 实测/He=1.000 实测/默认=2.449
+  encoder.2                    fan_in=512   实测=0.062460 He理论=0.062500 默认理论=0.025516 实测/He=0.999 实测/默认=2.448
+  encoder.4                    fan_in=384   实测=0.072496 He理论=0.072169 默认理论=0.029463 实测/He=1.005 实测/默认=2.461
+  encoder.6                    fan_in=256   实测=0.088454 He理论=0.088388 默认理论=0.036084 实测/He=1.001 实测/默认=2.451
+  classifier.0                 fan_in=128   实测=0.125088 He理论=0.125000 默认理论=0.051031 实测/He=1.001 实测/默认=2.451
+  classifier.3                 fan_in=100   实测=0.140520 He理论=0.141421 默认理论=0.057735 实测/He=0.994 实测/默认=2.434
+  classifier.6                 fan_in=100   实测=0.145540 He理论=0.141421 默认理论=0.057735 实测/He=1.029 实测/默认=2.521
+[selfcheck-init] arm=he 实测/默认理论 std 比值：min=2.434 max=2.521（He 尺度预期 ≈ 2.449）×
+[selfcheck-init] arm=he 实测尺度与声明的初始化一致（全部 7 层，±5%）
+[parts] 2013: n_parts=1 sizes=[69144]
+[2013] trained on 69,144 rows in 9.8s params_finite=True
+[2013] avg_f1 backward=0.9742
+[parts] 2014: n_parts=3 sizes=[80946, 200, 200]
+[audit] 截至2014 缓冲块 2013: 200槽 正例100 负例100 | 源 35506/69144 = 0.5135
+[reuse] 截至2014 deficit 复用 = {2013: 2}
+[2014] trained on 81,346 rows in 12.5s params_finite=True
+[2014] avg_f1 backward=0.9643
+[parts] 2016: n_parts=5 sizes=[87354, 100, 100, 100, 100]
+[audit] 截至2016 缓冲块 2013: 100槽 正例50 负例50 | 源 35506/69144 = 0.5135
+[audit] 截至2016 缓冲块 2014: 100槽 正例50 负例50 | 源 36605/80946 = 0.4522
+[reuse] 截至2016 deficit 复用 = {2013: 2, 2014: 2}
+[2016] trained on 87,754 rows in 13.1s params_finite=True
+[2016] avg_f1 backward=0.9487
+[parts] 2017: n_parts=7 sizes=[79315, 66, 66, 66, 66, 66, 66]
+[audit] 截至2017 缓冲块 2013: 66槽 正例33 负例33 | 源 35506/69144 = 0.5135
+[audit] 截至2017 缓冲块 2014: 66槽 正例33 负例33 | 源 36605/80946 = 0.4522
+[audit] 截至2017 缓冲块 2016: 66槽 正例33 负例33 | 源 36107/87354 = 0.4133
+[reuse] 截至2017 deficit 复用 = {2013: 2, 2014: 2, 2016: 2}
+[2017] trained on 79,711 rows in 11.9s params_finite=True
+[2017] avg_f1 backward=0.9431
+[parts] 2018: n_parts=9 sizes=[83433, 50, 50, 50, 50, 50, 50, 50, 50]
+[audit] 截至2018 缓冲块 2013: 50槽 正例25 负例25 | 源 35506/69144 = 0.5135
+[audit] 截至2018 缓冲块 2014: 50槽 正例25 负例25 | 源 36605/80946 = 0.4522
+[audit] 截至2018 缓冲块 2016: 50槽 正例25 负例25 | 源 36107/87354 = 0.4133
+[audit] 截至2018 缓冲块 2017: 50槽 正例25 负例25 | 源 17087/79315 = 0.2154
+[reuse] 截至2018 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2}
+[2018] trained on 83,833 rows in 11.4s params_finite=True
+[2018] avg_f1 backward=0.9207
+[parts] 2019: n_parts=11 sizes=[72840, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
+[audit] 截至2019 缓冲块 2013: 40槽 正例20 负例20 | 源 35506/69144 = 0.5135
+[audit] 截至2019 缓冲块 2014: 40槽 正例20 负例20 | 源 36605/80946 = 0.4522
+[audit] 截至2019 缓冲块 2016: 40槽 正例20 负例20 | 源 36107/87354 = 0.4133
+[audit] 截至2019 缓冲块 2017: 40槽 正例20 负例20 | 源 17087/79315 = 0.2154
+[audit] 截至2019 缓冲块 2018: 40槽 正例20 负例20 | 源 31480/83433 = 0.3773
+[reuse] 截至2019 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2}
+[2019] trained on 73,240 rows in 10.0s params_finite=True
+[2019] avg_f1 backward=0.9022
+[parts] 2020: n_parts=13 sizes=[81658, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33]
+[audit] 截至2020 缓冲块 2013: 33槽 正例16 负例17 | 源 35506/69144 = 0.5135
+[audit] 截至2020 缓冲块 2014: 33槽 正例16 负例17 | 源 36605/80946 = 0.4522
+[audit] 截至2020 缓冲块 2016: 33槽 正例16 负例17 | 源 36107/87354 = 0.4133
+[audit] 截至2020 缓冲块 2017: 33槽 正例16 负例17 | 源 17087/79315 = 0.2154
+[audit] 截至2020 缓冲块 2018: 33槽 正例16 负例17 | 源 31480/83433 = 0.3773
+[audit] 截至2020 缓冲块 2019: 33槽 正例16 负例17 | 源 33268/72840 = 0.4567
+[reuse] 截至2020 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2}
+[2020] trained on 82,054 rows in 17.7s params_finite=True
+[2020] avg_f1 backward=0.8841
+[parts] 2021: n_parts=15 sizes=[64924, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28]
+[audit] 截至2021 缓冲块 2013: 28槽 正例14 负例14 | 源 35506/69144 = 0.5135
+[audit] 截至2021 缓冲块 2014: 28槽 正例14 负例14 | 源 36605/80946 = 0.4522
+[audit] 截至2021 缓冲块 2016: 28槽 正例14 负例14 | 源 36107/87354 = 0.4133
+[audit] 截至2021 缓冲块 2017: 28槽 正例14 负例14 | 源 17087/79315 = 0.2154
+[audit] 截至2021 缓冲块 2018: 28槽 正例14 负例14 | 源 31480/83433 = 0.3773
+[audit] 截至2021 缓冲块 2019: 28槽 正例14 负例14 | 源 33268/72840 = 0.4567
+[audit] 截至2021 缓冲块 2020: 28槽 正例14 负例14 | 源 37084/81658 = 0.4541
+[reuse] 截至2021 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2}
+[2021] trained on 65,316 rows in 9.4s params_finite=True
+[2021] avg_f1 backward=0.9162
+[parts] 2022: n_parts=17 sizes=[69132, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]
+[audit] 截至2022 缓冲块 2013: 25槽 正例12 负例13 | 源 35506/69144 = 0.5135
+[audit] 截至2022 缓冲块 2014: 25槽 正例12 负例13 | 源 36605/80946 = 0.4522
+[audit] 截至2022 缓冲块 2016: 25槽 正例12 负例13 | 源 36107/87354 = 0.4133
+[audit] 截至2022 缓冲块 2017: 25槽 正例12 负例13 | 源 17087/79315 = 0.2154
+[audit] 截至2022 缓冲块 2018: 25槽 正例12 负例13 | 源 31480/83433 = 0.3773
+[audit] 截至2022 缓冲块 2019: 25槽 正例12 负例13 | 源 33268/72840 = 0.4567
+[audit] 截至2022 缓冲块 2020: 25槽 正例12 负例13 | 源 37084/81658 = 0.4541
+[audit] 截至2022 缓冲块 2021: 25槽 正例12 负例13 | 源 28502/64924 = 0.4390
+[reuse] 截至2022 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2}
+[2022] trained on 69,532 rows in 9.9s params_finite=True
+[2022] avg_f1 backward=0.8706
+[parts] 2023: n_parts=19 sizes=[43483, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22]
+[audit] 截至2023 缓冲块 2013: 22槽 正例11 负例11 | 源 35506/69144 = 0.5135
+[audit] 截至2023 缓冲块 2014: 22槽 正例11 负例11 | 源 36605/80946 = 0.4522
+[audit] 截至2023 缓冲块 2016: 22槽 正例11 负例11 | 源 36107/87354 = 0.4133
+[audit] 截至2023 缓冲块 2017: 22槽 正例11 负例11 | 源 17087/79315 = 0.2154
+[audit] 截至2023 缓冲块 2018: 22槽 正例11 负例11 | 源 31480/83433 = 0.3773
+[audit] 截至2023 缓冲块 2019: 22槽 正例11 负例11 | 源 33268/72840 = 0.4567
+[audit] 截至2023 缓冲块 2020: 22槽 正例11 负例11 | 源 37084/81658 = 0.4541
+[audit] 截至2023 缓冲块 2021: 22槽 正例11 负例11 | 源 28502/64924 = 0.4390
+[audit] 截至2023 缓冲块 2022: 22槽 正例11 负例11 | 源 33318/69132 = 0.4819
+[reuse] 截至2023 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2}
+[2023] trained on 43,879 rows in 7.0s params_finite=True
+[2023] avg_f1 backward=0.9053
+[parts] 2024: n_parts=21 sizes=[38741, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+[audit] 截至2024 缓冲块 2013: 20槽 正例10 负例10 | 源 35506/69144 = 0.5135
+[audit] 截至2024 缓冲块 2014: 20槽 正例10 负例10 | 源 36605/80946 = 0.4522
+[audit] 截至2024 缓冲块 2016: 20槽 正例10 负例10 | 源 36107/87354 = 0.4133
+[audit] 截至2024 缓冲块 2017: 20槽 正例10 负例10 | 源 17087/79315 = 0.2154
+[audit] 截至2024 缓冲块 2018: 20槽 正例10 负例10 | 源 31480/83433 = 0.3773
+[audit] 截至2024 缓冲块 2019: 20槽 正例10 负例10 | 源 33268/72840 = 0.4567
+[audit] 截至2024 缓冲块 2020: 20槽 正例10 负例10 | 源 37084/81658 = 0.4541
+[audit] 截至2024 缓冲块 2021: 20槽 正例10 负例10 | 源 28502/64924 = 0.4390
+[audit] 截至2024 缓冲块 2022: 20槽 正例10 负例10 | 源 33318/69132 = 0.4819
+[audit] 截至2024 缓冲块 2023: 20槽 正例10 负例10 | 源 6314/43483 = 0.1452
+[reuse] 截至2024 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2}
+[2024] trained on 39,141 rows in 5.9s params_finite=True
+[2024] avg_f1 backward=0.9095
+[parts] 2025: n_parts=23 sizes=[35730, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18]
+[audit] 截至2025 缓冲块 2013: 18槽 正例9 负例9 | 源 35506/69144 = 0.5135
+[audit] 截至2025 缓冲块 2014: 18槽 正例9 负例9 | 源 36605/80946 = 0.4522
+[audit] 截至2025 缓冲块 2016: 18槽 正例9 负例9 | 源 36107/87354 = 0.4133
+[audit] 截至2025 缓冲块 2017: 18槽 正例9 负例9 | 源 17087/79315 = 0.2154
+[audit] 截至2025 缓冲块 2018: 18槽 正例9 负例9 | 源 31480/83433 = 0.3773
+[audit] 截至2025 缓冲块 2019: 18槽 正例9 负例9 | 源 33268/72840 = 0.4567
+[audit] 截至2025 缓冲块 2020: 18槽 正例9 负例9 | 源 37084/81658 = 0.4541
+[audit] 截至2025 缓冲块 2021: 18槽 正例9 负例9 | 源 28502/64924 = 0.4390
+[audit] 截至2025 缓冲块 2022: 18槽 正例9 负例9 | 源 33318/69132 = 0.4819
+[audit] 截至2025 缓冲块 2023: 18槽 正例9 负例9 | 源 6314/43483 = 0.1452
+[audit] 截至2025 缓冲块 2024: 18槽 正例9 负例9 | 源 635/38741 = 0.0164
+[reuse] 截至2025 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2, 2024: 2}
+[2025] trained on 36,126 rows in 5.3s params_finite=True
+[2025] avg_f1 backward=0.8205
+[preds] he 末年模型 @2013: f1=0.9174 n=17287 pos=8877 nonfinite=0
+[preds] he 末年模型 @2014: f1=0.9123 n=20237 pos=9151 nonfinite=0
+[preds] he 末年模型 @2016: f1=0.8993 n=21839 pos=9027 nonfinite=0
+[preds] he 末年模型 @2017: f1=0.9059 n=19829 pos=4272 nonfinite=0
+[preds] he 末年模型 @2018: f1=0.8929 n=20859 pos=7870 nonfinite=0
+[preds] he 末年模型 @2019: f1=0.9449 n=18210 pos=8317 nonfinite=0
+[preds] he 末年模型 @2020: f1=0.9495 n=20415 pos=9271 nonfinite=0
+[preds] he 末年模型 @2021: f1=0.9449 n=16231 pos=7125 nonfinite=0
+[preds] he 末年模型 @2022: f1=0.9497 n=17284 pos=8330 nonfinite=0
+[preds] he 末年模型 @2023: f1=0.8213 n=10871 pos=1578 nonfinite=0
+[preds] he 末年模型 @2024: f1=0.7077 n=9686 pos=159 nonfinite=0
+[preds] he 末年模型 @2025: f1=0.0000 n=8933 pos=5 nonfinite=0
+
+=== he：末年 2025 的 avg_f1（官方报告口径）= 0.8205 ===
+[comparison] 已据 ['base', 'he'] 重算 ΔF1、配对 bootstrap 与机械判据对照
+[done] he 用时 403.2s，制品 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-training-process-2x2/e4x_results.json
+[protocol] 已写出 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-training-process-2x2/e4x_protocol.json
+[arm] adam init=pytorch_default optimizer=Adam device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_scheme=quota reuse_scheme=deficit buffer_repeat=2 pos_ratio=0.5 deficit_gamma=1.0 seed=42 threshold=0.5 arm=adam
+[lifecycle] 优化器在训练函数体内构造、每年度重建（与 ch3.train_epochs 一致）⇒ 四臂的优化器生命周期逐位相同，唯一差异是优化器类型
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[selfcheck-config] 四臂配置对照（除 init／optimizer 外必须逐字相同）:
+  batch                  [同] base=1024 | he=1024 | adam=1024 | he_adam=1024
+  buffer_repeat          [同] base=2 | he=2 | adam=2 | he_adam=2
+  buffer_scheme          [同] base='quota' | he='quota' | adam='quota' | he_adam='quota'
+  deficit_gamma          [同] base=1.0 | he=1.0 | adam=1.0 | he_adam=1.0
+  domain_years           [同] base=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he_adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  epochs                 [同] base=10 | he=10 | adam=10 | he_adam=10
+  init                   [**异**] base='pytorch_default' | he='he_scale_kaiming_a0_fan_in' | adam='pytorch_default' | he_adam='he_scale_kaiming_a0_fan_in'
+  lr                     [同] base=0.01 | he=0.01 | adam=0.01 | he_adam=0.01
+  memory                 [同] base=200 | he=200 | adam=200 | he_adam=200
+  momentum               [同] base=0.9 | he=0.9 | adam=0.9 | he_adam=0.9
+  optimizer              [**异**] base='SGD' | he='SGD' | adam='Adam' | he_adam='Adam'
+  optimizer_lifetime     [同] base='per_year_rebuild_inside_train_fn' | he='per_year_rebuild_inside_train_fn' | adam='per_year_rebuild_inside_train_fn' | he_adam='per_year_rebuild_inside_train_fn'
+  pos_ratio              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  reuse_scheme           [同] base='deficit' | he='deficit' | adam='deficit' | he_adam='deficit'
+  rng_streams            [同] base='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he_adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）'
+  seed                   [同] base=42 | he=42 | adam=42 | he_adam=42
+  strategy               [同] base='expreplay' | he='expreplay' | adam='expreplay' | he_adam='expreplay'
+  threshold              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  weight_decay           [同] base=1e-06 | he=1e-06 | adam=1e-06 | he_adam=1e-06
+[selfcheck-config] PASS：仅 init 与 optimizer 两个键在四臂间不同，其余逐字相同
+[selfcheck-he-isolation] He 重初始化只改 weight（7 层）、bias 逐位不变，且**全局 torch RNG 状态逐位不变**
+[selfcheck-optimizer] arm=adam type=Adam lr=0.01 betas=[0.9, 0.999] eps=1e-08 weight_decay=1e-06
+[selfcheck-parity] 训练镜像函数（SGD）与 ch3.train_epochs 逐位一致（1 轮，全参数张量相等）
+[model] params=2,687,293 init=pytorch_default n_layers_reinit=0
+[selfcheck-init] arm=adam 逐层 weight std（实测 vs He 理论 vs 默认理论）:
+  encoder.0                    fan_in=4561  实测=0.008548 He理论=0.020940 默认理论=0.008549 实测/He=0.408 实测/默认=1.000
+  encoder.2                    fan_in=512   实测=0.025500 He理论=0.062500 默认理论=0.025516 实测/He=0.408 实测/默认=0.999
+  encoder.4                    fan_in=384   实测=0.029595 He理论=0.072169 默认理论=0.029463 实测/He=0.410 实测/默认=1.004
+  encoder.6                    fan_in=256   实测=0.036108 He理论=0.088388 默认理论=0.036084 实测/He=0.409 实测/默认=1.001
+  classifier.0                 fan_in=128   实测=0.051130 He理论=0.125000 默认理论=0.051031 实测/He=0.409 实测/默认=1.002
+  classifier.3                 fan_in=100   实测=0.057225 He理论=0.141421 默认理论=0.057735 实测/He=0.405 实测/默认=0.991
+  classifier.6                 fan_in=100   实测=0.060237 He理论=0.141421 默认理论=0.057735 实测/He=0.426 实测/默认=1.043
+[selfcheck-init] arm=adam 实测/默认理论 std 比值：min=0.991 max=1.043（He 尺度预期 ≈ 2.449）×
+[selfcheck-init] arm=adam 实测尺度与声明的初始化一致（全部 7 层，±5%）
+[parts] 2013: n_parts=1 sizes=[69144]
+[opt] 2013 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.2946, 0.1032, 0.0847, 0.0757, 0.0649, 0.0589, 0.0549, 0.0505, 0.0469, 0.0428
+[2013] trained on 69,144 rows in 12.2s params_finite=True
+[2013] avg_f1 backward=0.9690
+[parts] 2014: n_parts=3 sizes=[80946, 200, 200]
+[audit] 截至2014 缓冲块 2013: 200槽 正例100 负例100 | 源 35506/69144 = 0.5135
+[reuse] 截至2014 deficit 复用 = {2013: 2}
+[opt] 2014 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1243, 0.0773, 0.0659, 0.0533, 0.0473, 0.0437, 0.0375, 0.0414, 0.0348, 0.0336
+[2014] trained on 81,346 rows in 14.8s params_finite=True
+[2014] avg_f1 backward=0.9618
+[parts] 2016: n_parts=5 sizes=[87354, 100, 100, 100, 100]
+[audit] 截至2016 缓冲块 2013: 100槽 正例50 负例50 | 源 35506/69144 = 0.5135
+[audit] 截至2016 缓冲块 2014: 100槽 正例50 负例50 | 源 36605/80946 = 0.4522
+[reuse] 截至2016 deficit 复用 = {2013: 2, 2014: 2}
+[opt] 2016 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1698, 0.1089, 0.0864, 0.0734, 0.0643, 0.0581, 0.0513, 0.0474, 0.0445, 0.0413
+[2016] trained on 87,754 rows in 16.1s params_finite=True
+[2016] avg_f1 backward=0.9379
+[parts] 2017: n_parts=7 sizes=[79315, 66, 66, 66, 66, 66, 66]
+[audit] 截至2017 缓冲块 2013: 66槽 正例33 负例33 | 源 35506/69144 = 0.5135
+[audit] 截至2017 缓冲块 2014: 66槽 正例33 负例33 | 源 36605/80946 = 0.4522
+[audit] 截至2017 缓冲块 2016: 66槽 正例33 负例33 | 源 36107/87354 = 0.4133
+[reuse] 截至2017 deficit 复用 = {2013: 2, 2014: 2, 2016: 2}
+[opt] 2017 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1298, 0.0696, 0.0585, 0.0510, 0.0470, 0.0461, 0.0385, 0.0378, 0.0420, 0.0375
+[2017] trained on 79,711 rows in 15.1s params_finite=True
+[2017] avg_f1 backward=0.9019
+[parts] 2018: n_parts=9 sizes=[83433, 50, 50, 50, 50, 50, 50, 50, 50]
+[audit] 截至2018 缓冲块 2013: 50槽 正例25 负例25 | 源 35506/69144 = 0.5135
+[audit] 截至2018 缓冲块 2014: 50槽 正例25 负例25 | 源 36605/80946 = 0.4522
+[audit] 截至2018 缓冲块 2016: 50槽 正例25 负例25 | 源 36107/87354 = 0.4133
+[audit] 截至2018 缓冲块 2017: 50槽 正例25 负例25 | 源 17087/79315 = 0.2154
+[reuse] 截至2018 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2}
+[opt] 2018 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1668, 0.1129, 0.0958, 0.1097, 0.0852, 0.0788, 0.0768, 0.0699, 0.0675, 0.0613
+[2018] trained on 83,833 rows in 19.1s params_finite=True
+[2018] avg_f1 backward=0.8889
+[parts] 2019: n_parts=11 sizes=[72840, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
+[audit] 截至2019 缓冲块 2013: 40槽 正例20 负例20 | 源 35506/69144 = 0.5135
+[audit] 截至2019 缓冲块 2014: 40槽 正例20 负例20 | 源 36605/80946 = 0.4522
+[audit] 截至2019 缓冲块 2016: 40槽 正例20 负例20 | 源 36107/87354 = 0.4133
+[audit] 截至2019 缓冲块 2017: 40槽 正例20 负例20 | 源 17087/79315 = 0.2154
+[audit] 截至2019 缓冲块 2018: 40槽 正例20 负例20 | 源 31480/83433 = 0.3773
+[reuse] 截至2019 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2}
+[opt] 2019 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1284, 0.0771, 0.0584, 0.0449, 0.0400, 0.0335, 0.0333, 0.0332, 0.0267, 0.0287
+[2019] trained on 73,240 rows in 13.9s params_finite=True
+[2019] avg_f1 backward=0.8912
+[parts] 2020: n_parts=13 sizes=[81658, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33]
+[audit] 截至2020 缓冲块 2013: 33槽 正例16 负例17 | 源 35506/69144 = 0.5135
+[audit] 截至2020 缓冲块 2014: 33槽 正例16 负例17 | 源 36605/80946 = 0.4522
+[audit] 截至2020 缓冲块 2016: 33槽 正例16 负例17 | 源 36107/87354 = 0.4133
+[audit] 截至2020 缓冲块 2017: 33槽 正例16 负例17 | 源 17087/79315 = 0.2154
+[audit] 截至2020 缓冲块 2018: 33槽 正例16 负例17 | 源 31480/83433 = 0.3773
+[audit] 截至2020 缓冲块 2019: 33槽 正例16 负例17 | 源 33268/72840 = 0.4567
+[reuse] 截至2020 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2}
+[opt] 2020 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1139, 0.0654, 0.0543, 0.0476, 0.0435, 0.0395, 0.0330, 0.0321, 0.0317, 0.0270
+[2020] trained on 82,054 rows in 16.8s params_finite=True
+[2020] avg_f1 backward=0.8724
+[parts] 2021: n_parts=15 sizes=[64924, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28]
+[audit] 截至2021 缓冲块 2013: 28槽 正例14 负例14 | 源 35506/69144 = 0.5135
+[audit] 截至2021 缓冲块 2014: 28槽 正例14 负例14 | 源 36605/80946 = 0.4522
+[audit] 截至2021 缓冲块 2016: 28槽 正例14 负例14 | 源 36107/87354 = 0.4133
+[audit] 截至2021 缓冲块 2017: 28槽 正例14 负例14 | 源 17087/79315 = 0.2154
+[audit] 截至2021 缓冲块 2018: 28槽 正例14 负例14 | 源 31480/83433 = 0.3773
+[audit] 截至2021 缓冲块 2019: 28槽 正例14 负例14 | 源 33268/72840 = 0.4567
+[audit] 截至2021 缓冲块 2020: 28槽 正例14 负例14 | 源 37084/81658 = 0.4541
+[reuse] 截至2021 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2}
+[opt] 2021 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1075, 0.0606, 0.0457, 0.0352, 0.0396, 0.0292, 0.0250, 0.0216, 0.0199, 0.0187
+[2021] trained on 65,316 rows in 12.8s params_finite=True
+[2021] avg_f1 backward=0.8856
+[parts] 2022: n_parts=17 sizes=[69132, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]
+[audit] 截至2022 缓冲块 2013: 25槽 正例12 负例13 | 源 35506/69144 = 0.5135
+[audit] 截至2022 缓冲块 2014: 25槽 正例12 负例13 | 源 36605/80946 = 0.4522
+[audit] 截至2022 缓冲块 2016: 25槽 正例12 负例13 | 源 36107/87354 = 0.4133
+[audit] 截至2022 缓冲块 2017: 25槽 正例12 负例13 | 源 17087/79315 = 0.2154
+[audit] 截至2022 缓冲块 2018: 25槽 正例12 负例13 | 源 31480/83433 = 0.3773
+[audit] 截至2022 缓冲块 2019: 25槽 正例12 负例13 | 源 33268/72840 = 0.4567
+[audit] 截至2022 缓冲块 2020: 25槽 正例12 负例13 | 源 37084/81658 = 0.4541
+[audit] 截至2022 缓冲块 2021: 25槽 正例12 负例13 | 源 28502/64924 = 0.4390
+[reuse] 截至2022 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2}
+[opt] 2022 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.0823, 0.0459, 0.0343, 0.0306, 0.0241, 0.0257, 0.0235, 0.0227, 0.0257, 0.0211
+[2022] trained on 69,532 rows in 14.4s params_finite=True
+[2022] avg_f1 backward=0.8232
+[parts] 2023: n_parts=19 sizes=[43483, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22]
+[audit] 截至2023 缓冲块 2013: 22槽 正例11 负例11 | 源 35506/69144 = 0.5135
+[audit] 截至2023 缓冲块 2014: 22槽 正例11 负例11 | 源 36605/80946 = 0.4522
+[audit] 截至2023 缓冲块 2016: 22槽 正例11 负例11 | 源 36107/87354 = 0.4133
+[audit] 截至2023 缓冲块 2017: 22槽 正例11 负例11 | 源 17087/79315 = 0.2154
+[audit] 截至2023 缓冲块 2018: 22槽 正例11 负例11 | 源 31480/83433 = 0.3773
+[audit] 截至2023 缓冲块 2019: 22槽 正例11 负例11 | 源 33268/72840 = 0.4567
+[audit] 截至2023 缓冲块 2020: 22槽 正例11 负例11 | 源 37084/81658 = 0.4541
+[audit] 截至2023 缓冲块 2021: 22槽 正例11 负例11 | 源 28502/64924 = 0.4390
+[audit] 截至2023 缓冲块 2022: 22槽 正例11 负例11 | 源 33318/69132 = 0.4819
+[reuse] 截至2023 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2}
+[opt] 2023 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1464, 0.0715, 0.0540, 0.0442, 0.0378, 0.0322, 0.0262, 0.0283, 0.0338, 0.0234
+[2023] trained on 43,879 rows in 10.3s params_finite=True
+[2023] avg_f1 backward=0.8576
+[parts] 2024: n_parts=21 sizes=[38741, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+[audit] 截至2024 缓冲块 2013: 20槽 正例10 负例10 | 源 35506/69144 = 0.5135
+[audit] 截至2024 缓冲块 2014: 20槽 正例10 负例10 | 源 36605/80946 = 0.4522
+[audit] 截至2024 缓冲块 2016: 20槽 正例10 负例10 | 源 36107/87354 = 0.4133
+[audit] 截至2024 缓冲块 2017: 20槽 正例10 负例10 | 源 17087/79315 = 0.2154
+[audit] 截至2024 缓冲块 2018: 20槽 正例10 负例10 | 源 31480/83433 = 0.3773
+[audit] 截至2024 缓冲块 2019: 20槽 正例10 负例10 | 源 33268/72840 = 0.4567
+[audit] 截至2024 缓冲块 2020: 20槽 正例10 负例10 | 源 37084/81658 = 0.4541
+[audit] 截至2024 缓冲块 2021: 20槽 正例10 负例10 | 源 28502/64924 = 0.4390
+[audit] 截至2024 缓冲块 2022: 20槽 正例10 负例10 | 源 33318/69132 = 0.4819
+[audit] 截至2024 缓冲块 2023: 20槽 正例10 负例10 | 源 6314/43483 = 0.1452
+[reuse] 截至2024 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2}
+[opt] 2024 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.0573, 0.0362, 0.0272, 0.0360, 0.0194, 0.0194, 0.0156, 0.0138, 0.0161, 0.0243
+[2024] trained on 39,141 rows in 8.4s params_finite=True
+[2024] avg_f1 backward=0.8436
+[parts] 2025: n_parts=23 sizes=[35730, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18]
+[audit] 截至2025 缓冲块 2013: 18槽 正例9 负例9 | 源 35506/69144 = 0.5135
+[audit] 截至2025 缓冲块 2014: 18槽 正例9 负例9 | 源 36605/80946 = 0.4522
+[audit] 截至2025 缓冲块 2016: 18槽 正例9 负例9 | 源 36107/87354 = 0.4133
+[audit] 截至2025 缓冲块 2017: 18槽 正例9 负例9 | 源 17087/79315 = 0.2154
+[audit] 截至2025 缓冲块 2018: 18槽 正例9 负例9 | 源 31480/83433 = 0.3773
+[audit] 截至2025 缓冲块 2019: 18槽 正例9 负例9 | 源 33268/72840 = 0.4567
+[audit] 截至2025 缓冲块 2020: 18槽 正例9 负例9 | 源 37084/81658 = 0.4541
+[audit] 截至2025 缓冲块 2021: 18槽 正例9 负例9 | 源 28502/64924 = 0.4390
+[audit] 截至2025 缓冲块 2022: 18槽 正例9 负例9 | 源 33318/69132 = 0.4819
+[audit] 截至2025 缓冲块 2023: 18槽 正例9 负例9 | 源 6314/43483 = 0.1452
+[audit] 截至2025 缓冲块 2024: 18槽 正例9 负例9 | 源 635/38741 = 0.0164
+[reuse] 截至2025 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2, 2024: 2}
+[opt] 2025 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.0125, 0.0074, 0.0050, 0.0029, 0.0045, 0.0025, 0.0106, 0.0098, 0.0406, 0.0119
+[2025] trained on 36,126 rows in 8.9s params_finite=True
+[2025] avg_f1 backward=0.7535
+[preds] adam 末年模型 @2013: f1=0.8401 n=17287 pos=8877 nonfinite=0
+[preds] adam 末年模型 @2014: f1=0.8329 n=20237 pos=9151 nonfinite=0
+[preds] adam 末年模型 @2016: f1=0.7927 n=21839 pos=9027 nonfinite=0
+[preds] adam 末年模型 @2017: f1=0.6950 n=19829 pos=4272 nonfinite=0
+[preds] adam 末年模型 @2018: f1=0.7927 n=20859 pos=7870 nonfinite=0
+[preds] adam 末年模型 @2019: f1=0.8901 n=18210 pos=8317 nonfinite=0
+[preds] adam 末年模型 @2020: f1=0.9120 n=20415 pos=9271 nonfinite=0
+[preds] adam 末年模型 @2021: f1=0.9085 n=16231 pos=7125 nonfinite=0
+[preds] adam 末年模型 @2022: f1=0.9265 n=17284 pos=8330 nonfinite=0
+[preds] adam 末年模型 @2023: f1=0.7845 n=10871 pos=1578 nonfinite=0
+[preds] adam 末年模型 @2024: f1=0.6667 n=9686 pos=159 nonfinite=0
+[preds] adam 末年模型 @2025: f1=0.0000 n=8933 pos=5 nonfinite=0
+
+=== adam：末年 2025 的 avg_f1（官方报告口径）= 0.7535 ===
+[comparison] 已据 ['base', 'he', 'adam'] 重算 ΔF1、配对 bootstrap 与机械判据对照
+[done] adam 用时 662.9s，制品 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-training-process-2x2/e4x_results.json
+[protocol] 已写出 /Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-training-process-2x2/e4x_protocol.json
+[arm] he_adam init=he_scale_kaiming_a0_fan_in optimizer=Adam device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_scheme=quota reuse_scheme=deficit buffer_repeat=2 pos_ratio=0.5 deficit_gamma=1.0 seed=42 threshold=0.5 arm=he_adam
+[lifecycle] 优化器在训练函数体内构造、每年度重建（与 ch3.train_epochs 一致）⇒ 四臂的优化器生命周期逐位相同，唯一差异是优化器类型
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[selfcheck-config] 四臂配置对照（除 init／optimizer 外必须逐字相同）:
+  batch                  [同] base=1024 | he=1024 | adam=1024 | he_adam=1024
+  buffer_repeat          [同] base=2 | he=2 | adam=2 | he_adam=2
+  buffer_scheme          [同] base='quota' | he='quota' | adam='quota' | he_adam='quota'
+  deficit_gamma          [同] base=1.0 | he=1.0 | adam=1.0 | he_adam=1.0
+  domain_years           [同] base=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025] | he_adam=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  epochs                 [同] base=10 | he=10 | adam=10 | he_adam=10
+  init                   [**异**] base='pytorch_default' | he='he_scale_kaiming_a0_fan_in' | adam='pytorch_default' | he_adam='he_scale_kaiming_a0_fan_in'
+  lr                     [同] base=0.01 | he=0.01 | adam=0.01 | he_adam=0.01
+  memory                 [同] base=200 | he=200 | adam=200 | he_adam=200
+  momentum               [同] base=0.9 | he=0.9 | adam=0.9 | he_adam=0.9
+  optimizer              [**异**] base='SGD' | he='SGD' | adam='Adam' | he_adam='Adam'
+  optimizer_lifetime     [同] base='per_year_rebuild_inside_train_fn' | he='per_year_rebuild_inside_train_fn' | adam='per_year_rebuild_inside_train_fn' | he_adam='per_year_rebuild_inside_train_fn'
+  pos_ratio              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  reuse_scheme           [同] base='deficit' | he='deficit' | adam='deficit' | he_adam='deficit'
+  rng_streams            [同] base='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）' | he_adam='train_rng=default_rng(seed); buf_rng=default_rng(SEED)（各臂同序消费）'
+  seed                   [同] base=42 | he=42 | adam=42 | he_adam=42
+  strategy               [同] base='expreplay' | he='expreplay' | adam='expreplay' | he_adam='expreplay'
+  threshold              [同] base=0.5 | he=0.5 | adam=0.5 | he_adam=0.5
+  weight_decay           [同] base=1e-06 | he=1e-06 | adam=1e-06 | he_adam=1e-06
+[selfcheck-config] PASS：仅 init 与 optimizer 两个键在四臂间不同，其余逐字相同
+[selfcheck-he-isolation] He 重初始化只改 weight（7 层）、bias 逐位不变，且**全局 torch RNG 状态逐位不变**
+[selfcheck-optimizer] arm=he_adam type=Adam lr=0.01 betas=[0.9, 0.999] eps=1e-08 weight_decay=1e-06
+[selfcheck-parity] 训练镜像函数（SGD）与 ch3.train_epochs 逐位一致（1 轮，全参数张量相等）
+[model] params=2,687,293 init=he_scale_kaiming_a0_fan_in n_layers_reinit=7
+[selfcheck-init] arm=he_adam 逐层 weight std（实测 vs He 理论 vs 默认理论）:
+  encoder.0                    fan_in=4561  实测=0.020938 He理论=0.020940 默认理论=0.008549 实测/He=1.000 实测/默认=2.449
+  encoder.2                    fan_in=512   实测=0.062460 He理论=0.062500 默认理论=0.025516 实测/He=0.999 实测/默认=2.448
+  encoder.4                    fan_in=384   实测=0.072496 He理论=0.072169 默认理论=0.029463 实测/He=1.005 实测/默认=2.461
+  encoder.6                    fan_in=256   实测=0.088454 He理论=0.088388 默认理论=0.036084 实测/He=1.001 实测/默认=2.451
+  classifier.0                 fan_in=128   实测=0.125088 He理论=0.125000 默认理论=0.051031 实测/He=1.001 实测/默认=2.451
+  classifier.3                 fan_in=100   实测=0.140520 He理论=0.141421 默认理论=0.057735 实测/He=0.994 实测/默认=2.434
+  classifier.6                 fan_in=100   实测=0.145540 He理论=0.141421 默认理论=0.057735 实测/He=1.029 实测/默认=2.521
+[selfcheck-init] arm=he_adam 实测/默认理论 std 比值：min=2.434 max=2.521（He 尺度预期 ≈ 2.449）×
+[selfcheck-init] arm=he_adam 实测尺度与声明的初始化一致（全部 7 层，±5%）
+[parts] 2013: n_parts=1 sizes=[69144]
+[opt] 2013 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.5026, 0.0928, 0.0747, 0.0634, 0.0550, 0.0496, 0.0460, 0.0431, 0.0387, 0.0356
+[2013] trained on 69,144 rows in 16.7s params_finite=True
+[2013] avg_f1 backward=0.9725
+[parts] 2014: n_parts=3 sizes=[80946, 200, 200]
+[audit] 截至2014 缓冲块 2013: 200槽 正例100 负例100 | 源 35506/69144 = 0.5135
+[reuse] 截至2014 deficit 复用 = {2013: 2}
+[opt] 2014 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1332, 0.0775, 0.0642, 0.0565, 0.0488, 0.0451, 0.0422, 0.0400, 0.0335, 0.0347
+[2014] trained on 81,346 rows in 15.4s params_finite=True
+[2014] avg_f1 backward=0.9612
+[parts] 2016: n_parts=5 sizes=[87354, 100, 100, 100, 100]
+[audit] 截至2016 缓冲块 2013: 100槽 正例50 负例50 | 源 35506/69144 = 0.5135
+[audit] 截至2016 缓冲块 2014: 100槽 正例50 负例50 | 源 36605/80946 = 0.4522
+[reuse] 截至2016 deficit 复用 = {2013: 2, 2014: 2}
+[opt] 2016 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1670, 0.1044, 0.0834, 0.0693, 0.0593, 0.0557, 0.0494, 0.0460, 0.0442, 0.0416
+[2016] trained on 87,754 rows in 19.9s params_finite=True
+[2016] avg_f1 backward=0.9430
+[parts] 2017: n_parts=7 sizes=[79315, 66, 66, 66, 66, 66, 66]
+[audit] 截至2017 缓冲块 2013: 66槽 正例33 负例33 | 源 35506/69144 = 0.5135
+[audit] 截至2017 缓冲块 2014: 66槽 正例33 负例33 | 源 36605/80946 = 0.4522
+[audit] 截至2017 缓冲块 2016: 66槽 正例33 负例33 | 源 36107/87354 = 0.4133
+[reuse] 截至2017 deficit 复用 = {2013: 2, 2014: 2, 2016: 2}
+[opt] 2017 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1112, 0.0706, 0.0569, 0.0496, 0.0439, 0.0415, 0.0395, 0.0360, 0.0458, 0.0396
+[2017] trained on 79,711 rows in 17.4s params_finite=True
+[2017] avg_f1 backward=0.9048
+[parts] 2018: n_parts=9 sizes=[83433, 50, 50, 50, 50, 50, 50, 50, 50]
+[audit] 截至2018 缓冲块 2013: 50槽 正例25 负例25 | 源 35506/69144 = 0.5135
+[audit] 截至2018 缓冲块 2014: 50槽 正例25 负例25 | 源 36605/80946 = 0.4522
+[audit] 截至2018 缓冲块 2016: 50槽 正例25 负例25 | 源 36107/87354 = 0.4133
+[audit] 截至2018 缓冲块 2017: 50槽 正例25 负例25 | 源 17087/79315 = 0.2154
+[reuse] 截至2018 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2}
+[opt] 2018 type=Adam betas=[0.9, 0.999] eps=1e-08 lr=0.01 weight_decay=1e-06 | epoch_mean_loss=0.1541, 0.1103, 0.0941, 0.0893, 0.0808, 0.0767, 0.0821, 0.0759, 0.0725, 0.0639
+[2018] trained on 83,833 rows in 188.3s params_finite=True
+[2018] avg_f1 backward=0.8867
+[parts] 2019: n_parts=11 sizes=[72840, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
+[audit] 截至2019 缓冲块 2013: 40槽 正例20 负例20 | 源 35506/69144 = 0.5135
+[audit] 截至2019 缓冲块 2014: 40槽 正例20 负例20 | 源 36605/80946 = 0.4522
+[audit] 截至2019 缓冲块 2016: 40槽 正例20 负例20 | 源 36107/87354 = 0.4133
+[audit] 截至2019 缓冲块 2017: 40槽 正例20 负例20 | 源 17087/79315 = 0.2154
+[audit] 截至2019 缓冲块 2018: 40槽 正例20 负例20 | 源 31480/83433 = 0.3773
+[reuse] 截至2019 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2}
