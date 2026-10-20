@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 2,
+    "failed": 0,
+    "total": 2
+  },
+  "expectations": [
+    {
+      "text": "断言1: 命中 miner/云主机",
+      "passed": true,
+      "evidence": "关键词 命中"
+    },
+    {
+      "text": "obsidian:// 链接 ≥1",
+      "passed": true,
+      "evidence": "9 个"
+    }
+  ]
+}

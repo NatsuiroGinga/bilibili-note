@@ -1,0 +1,34 @@
+# Memory Index
+
+- [复杂调研交网页版 ChatGPT](delegate-heavy-research-to-web-chatgpt.md) — 文献搜索/调研分析/复杂推演经 chatgpt-handoff MCP 交出，本地只做核验裁决
+
+- [开题参考论文仅作结构模板](thesis-reference-template-only.md) — 同门/参考论文只借章节结构与组织，方法/公式/创新点须自主
+- [每次更新同步交接文档](keep-handoff-doc-in-sync.md) — 开题任何实质更新都须同步 output/开题改进交接文档.md
+- [修复的 bug 必须写回实验规则](record-fixed-bugs-into-rules.md) — 写手册时同步补路由触发词与可执行断言，否则会复发
+- [复杂问题显式指定 opus](delegate-complex-problems-to-fable5.md) — 派 Agent 必须写 model；fable 已改为画图专用，最强通用档是 opus
+- [定范围前先查门禁与合同](check-gates-and-contracts-before-scoping.md) — 上游门禁/冻结合同/决定性函数，三问答完再定范围
+- [用实验反驳方向，不空想](falsify-directions-with-experiments-not-speculation.md) — 先出预选方案再快速消融；复审也要用数据反驳
+- [汇报提到的论文必须下载并写笔记](download-and-note-every-cited-paper.md) — 只给题名或链接算任务未完成
+- [禁止 sleep 死等](no-sleep-polling-use-background-tasks.md) — 用后台任务或立即只读检查，不要占住回合空等
+- [对齐已发表论文，不自创分类学](align-to-published-papers-not-own-taxonomy.md) — 字段/协议/判据照论文，禁止自编框架论证
+- [不确定先查原件再开口](consult-sources-before-asserting.md) — 别等用户提醒去查文献；凭记忆断言接口存在与不存在同样不可靠
+- [文献要挖方法不是查引用](mine-literature-for-methods-not-citations.md) — 问「有什么技术能用」而非「谁做过」，否则漏掉现成工具
+- [排队中的测量出结果前不下裁决](no-verdict-before-queued-measurement.md) — 已排的实验没回来就不要先给结论
+- [用 Skill 工具真正加载技能](invoke-skills-not-guess-from-names.md) — 别凭技能名猜内容就动手；派子代理时要求它显式调用
+- [每次派发都标模型与 effort](annotate-model-effort-on-every-dispatch.md) — 重启和续跑也算派发通知，档位从脚本或 meta 实测
+- [按难度分档不按重要性](match-model-tier-to-difficulty-not-importance.md) — 规格写死的实现任务给 sonnet，别因为「重要」就默认 opus
+- [改文档前先提交](commit-before-editing-any-document.md) — 查整棵树而非只查目标文件，防会话前的旧改动被夹带
+- [朱论文是标准上限](zhu-thesis-is-the-standard-ceiling.md) — 定稿只按参照论文同级标准，不加码；对标等级不照抄结构
+- [标准是参照论文不是顶会](thesis-standard-is-the-reference-thesis-not-a-venue.md) — 毕业论文验收对齐参照论文水准即可，别自加码
+- [数值路径配置在第一个臂前定死](decide-numeric-path-config-before-first-arm.md) — compile/TF32/精度/算子实现事后追加＝要重跑全部
+- [静态检查不等于能跑](syntax-check-is-not-execution.md) — bash -n／py_compile 放行过必然失败的脚本；交付前真跑一次并计时
+- [靠脚本不靠记性](make-it-mechanical-not-remembered.md) — 凡是「记得做」的事都要变成程序动作，否则必漏
+- [保全焊进动作本身](fuse-safeguards-into-the-action.md) — 需要「记得启动」的保全工具等于没有；起训练必须同时起回传
+- [架构恒等式不能跨模型断言](architecture-identity-is-not-cross-model-assertion.md) — 「置零即退化为基线」只在同权重内成立，跨训练格写成逐位相等＝必然失败的检查
+- [读 PDF 只用 pdf-converter](use-pdf-converter-not-pdftotext.md) — pdftotext 丢公式符号，据此推导＝猜公式；长文一次转全落盘 wiki，派子代理时也要写进简报
+- [每次误判都要落盘登记](log-every-misjudgment.md) — 对话里的更正会消失，下轮原样重犯；重点记「错在哪一步推理」
+- [未决裁决先用证据解决](resolve-open-decisions-by-evidence-first.md) — 能测能查的别攒成待裁决清单；只有纯写作取舍才上呈
+- [禁止本机跑实验](never-run-experiments-on-laptop.md) — 不占 GPU≠安全，CPU/内存照样打满；TaskStop 不停子进程
+- [别人做过不是否决理由](occupancy-is-not-a-disqualifier.md) — 文献只交付「可组装的部件」与「要引用的对象」，不交付「能不能做」
+- [从文档推理会收窄空间](reasoning-from-documents-narrows-space.md) — 站得住的判断理由都来自实测；「做不到」的断言先分清是协议要求还是当前选择
+- [第四章五问](chapter-four-five-questions.md) — 进度/任务/方案/理论家族/能否对标朱第四章；答不上来就明说未定，禁止包装

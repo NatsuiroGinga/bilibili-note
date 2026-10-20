@@ -1,0 +1,20 @@
+{
+  "expectations": [
+    {
+      "text": "检索结果包含 bban-taishan-probe-mapping.md",
+      "passed": true,
+      "evidence": "命中 bban-taishan-probe-mapping（最直接命中）+ 3 篇相关"
+    },
+    {
+      "text": "输出包含 obsidian:// 跳转链接",
+      "passed": true,
+      "evidence": "8 个 obsidian:// 链接"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 2,
+    "failed": 0,
+    "total": 2
+  }
+}

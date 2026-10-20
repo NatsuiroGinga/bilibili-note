@@ -1,0 +1,15 @@
+{
+  "eval_id": 8,
+  "eval_name": "obsidian-setup-and-graph-lookup",
+  "prompt": "知识库里有 Obsidian 知识库配置和知识图谱相关的文档吗？",
+  "assertions": [
+    {
+      "text": "检索命中 obsidian-project-kb-setup 或知识图谱相关",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

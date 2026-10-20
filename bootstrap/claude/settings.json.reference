@@ -1,0 +1,209 @@
+{
+  "env": {
+    "DISABLE_TELEMETRY": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -w \"\\\\n%{http_code}\" \"http://cloud.bilibili.co/api/v2/job\" -H \"Content-Type: application/json\")",
+      "Bash(/opt/miniconda3/bin/python -c ' *)",
+      "Bash(踢点逻辑.md)",
+      "Bash(git -C /Users/bilibili/Dev/go-op/.claude/worktrees/bvc-packetloss-batch rebase --abort)",
+      "mcp__research-knowledge__knowledge_search",
+      "Bash(cd /Users/bilibili/Dev/Research/.knowledge-mcp *)",
+      "Read(//Users/bilibili/Dev/Research/.knowledge-mcp/**)",
+      "Bash(rg -n \"MemListNodes\" app/admin/internal/middleware/bban/*.go)",
+      "Bash(git -C /Users/bilibili/Dev/bi/.worktrees/tcpsocket-mcdn-full-conn diff -U10 e9fcf50..e50979f)",
+      "Bash(python3 -)",
+      "Bash(crontab /tmp/crontab_hysteresis.txt)",
+      "Bash(crontab -l)"
+    ],
+    "defaultMode": "auto",
+    "additionalDirectories": [
+      "/Users/bilibili/Dev/Research/manba-bi/Writing",
+      "/tmp",
+      "/private/tmp",
+      "/Users/bilibili/Dev/go-op/.claude/scripts/moni"
+    ]
+  },
+  "model": "sonnet",
+  "skillOverrides": {
+    "agent-identifier": "off",
+    "anthropic-skills:docx": "off",
+    "anthropic-skills:pptx": "off",
+    "anthropic-skills:skill-creator": "off",
+    "anthropic-skills:xlsx": "off",
+    "command-development": "off",
+    "daily-paper-generator": "off",
+    "find-skills": "user-invocable-only",
+    "frontend-design": "off",
+    "hook-development": "off",
+    "kaggle-learner": "off",
+    "latex-conference-template-organizer": "off",
+    "mcp-integration": "off",
+    "mcpmarket-me:sql-database-assistant": "off",
+    "nature-data": "off",
+    "nature-polishing": "off",
+    "nature-response": "off",
+    "nature-writing": "off",
+    "rust-skills": "off",
+    "skill-development": "off",
+    "skill-improver": "off",
+    "skill-quality-reviewer": "off",
+    "summary": "off",
+    "superpowers:finishing-a-development-branch": "off",
+    "superpowers:test-driven-development": "off",
+    "superpowers:using-git-worktrees": "off",
+    "superpowers:writing-skills": "off",
+    "ui-ux-pro-max": "off",
+    "web-design-reviewer": "off",
+    "webapp-testing": "off"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const{execSync}=require('child_process'),p=require('path'),h=require('os').homedir();execSync(\\\"node \\\"+p.join(h,'.claude/hooks/security-guard.js'),{stdio:'inherit'})\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Read|Edit|Write|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env node /Users/bilibili/.claude/hooks/rule-injector.js",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/env node /Users/bilibili/.claude/hooks/rule-injector.js",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.claude/hooks/kb-reindex.sh\" --if-kb-edit",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"const{execSync}=require('child_process'),p=require('path'),h=require('os').homedir();execSync(\\\"node \\\"+p.join(h,'.claude/hooks/session-summary.js'),{stdio:'inherit'})\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.claude/hooks/run-node-hook.sh\" \"session-start.js\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.claude/hooks/kb-reindex.sh\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh \"/Users/bilibili/.claude/hooks/run-node-hook.sh\" \"stop-summary.js\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "document-skills@anthropic-agent-skills": false,
+    "mcpmarket-me@mcpmarket-me": true,
+    "github@claude-plugins-official": true,
+    "rust-analyzer-lsp@claude-plugins-official": false,
+    "clangd-lsp@claude-plugins-official": false,
+    "huggingface-skills@claude-plugins-official": true,
+    "rust-skills@rust-skills": false,
+    "context7@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "commit-commands@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "fullstack-dev-skills": {
+      "source": {
+        "source": "github",
+        "repo": "jeffallan/claude-skills"
+      }
+    },
+    "anthropic-agent-skills": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/skills"
+      }
+    },
+    "mcpmarket-me": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/bilibili/.claude/plugins/mcpmarket-me"
+      }
+    },
+    "obsidian-skills": {
+      "source": {
+        "source": "github",
+        "repo": "kepano/obsidian-skills"
+      }
+    },
+    "rust-skills": {
+      "source": {
+        "source": "github",
+        "repo": "actionbook/rust-skills"
+      }
+    }
+  },
+  "tui": "fullscreen",
+  "skipWorkflowUsageWarning": true,
+  "theme": "auto",
+  "effortLevel": "max"
+}

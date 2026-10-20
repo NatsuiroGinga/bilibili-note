@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "pass_rate": 0.5,
+    "passed": 1,
+    "failed": 1,
+    "total": 2
+  },
+  "expectations": [
+    {
+      "text": "断言1: 命中 VodPlay/LivePlay/ffmpeg",
+      "passed": true,
+      "evidence": "关键词 命中"
+    },
+    {
+      "text": "obsidian:// 链接 ≥3",
+      "passed": false,
+      "evidence": "1 个"
+    }
+  ]
+}

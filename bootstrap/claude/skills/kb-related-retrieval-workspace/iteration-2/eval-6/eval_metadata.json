@@ -1,0 +1,15 @@
+{
+  "eval_id": 5,
+  "eval_name": "vod-live-play-probe-lookup",
+  "prompt": "还有配置是 vod-play 和 live-play，这个是怎么探测到的？",
+  "assertions": [
+    {
+      "text": "检索命中 VodPlay/LivePlay 探测机制（ffmpeg 拉流/Hebe 现算 URL）",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

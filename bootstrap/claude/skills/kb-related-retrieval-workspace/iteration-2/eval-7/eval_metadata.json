@@ -1,0 +1,15 @@
+{
+  "eval_id": 6,
+  "eval_name": "moni-promql-monitoring-lookup",
+  "prompt": "读取知识库中的 moni 监控和 promql 相关知识，设计一个探测任务下发的监控方案",
+  "assertions": [
+    {
+      "text": "检索命中 moni/promql 相关（mcdn-probe-prometheus-exporter/json-to-prometheus/hawkeye 任一）",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

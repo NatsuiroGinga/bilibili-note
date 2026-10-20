@@ -1,0 +1,15 @@
+{
+  "eval_id": 1,
+  "eval_name": "taishan-storage-lookup",
+  "prompt": "知识库里有 Taishan/泰山 存储相关的资料吗？列出相关文档和它们的关联",
+  "assertions": [
+    {
+      "text": "检索结果包含 bban-taishan-probe-mapping.md",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

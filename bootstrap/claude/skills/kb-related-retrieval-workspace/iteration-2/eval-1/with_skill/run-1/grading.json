@@ -1,0 +1,25 @@
+{
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 3,
+    "failed": 0,
+    "total": 3
+  },
+  "expectations": [
+    {
+      "text": "断言1: 命中 mcdn-v-probe-task-system",
+      "passed": true,
+      "evidence": "关键词 命中"
+    },
+    {
+      "text": "断言2: 命中 bban-taishan-probe-mapping/bban-mcdn-probe-targets",
+      "passed": true,
+      "evidence": "关键词 命中"
+    },
+    {
+      "text": "obsidian:// 链接 ≥3",
+      "passed": true,
+      "evidence": "13 个"
+    }
+  ]
+}

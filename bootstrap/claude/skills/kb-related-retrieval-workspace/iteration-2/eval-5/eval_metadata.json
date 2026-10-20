@@ -1,0 +1,15 @@
+{
+  "eval_id": 4,
+  "eval_name": "mcdn-http-executor-lookup",
+  "prompt": "如果我给一个 mcdn 配置了 http 为 baidu.com，那么 miner 该怎么探测？不是只有 mcdn 自己能测试是否访问到 baidu 吗",
+  "assertions": [
+    {
+      "text": "检索命中『HTTP/ICMP/TCP 探测真实执行方』（miner 裸连 URL 不读 TargetIP）",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

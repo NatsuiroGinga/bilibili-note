@@ -1,0 +1,15 @@
+{
+  "eval_id": 7,
+  "eval_name": "cloud-host-mcdn-probe-config",
+  "prompt": "新需求：云主机探测 mcdn 的任务配置，知识库里有没有相关参考？",
+  "assertions": [
+    {
+      "text": "检索命中 miner 云主机探测 mcdn 的执行方/任务配置",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "eval_id": 1,
+  "eval_name": "mcdn-probe-retrieval-with-related",
+  "prompt": "查一下知识库里 mcdn 探测相关的文档，以及它们之间的关联，给我 Obsidian 跳转链接",
+  "assertions": [
+    {"text": "检索结果包含 mcdn-v-probe-task-system.md", "expected": true},
+    {"text": "关联文档包含 bban-taishan-probe-mapping 或 bban-mcdn-probe-targets", "expected": true},
+    {"text": "输出包含 obsidian:// 跳转链接", "expected": true}
+  ]
+}

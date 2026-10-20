@@ -1,0 +1,253 @@
+{
+  "metadata": {
+    "skill_name": "kb-related-retrieval",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-08-27T09:53:49Z",
+    "evals_run": [
+      1,
+      2,
+      3
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 223.9,
+        "tokens": 77808,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u68c0\u7d22\u7ed3\u679c\u5305\u542b mcdn-v-probe-task-system.md",
+          "passed": true,
+          "evidence": "\u547d\u4e2d 8 \u7bc7\u542b mcdn-v-probe-task-system\uff08bban-api 5 + manba-bi 3\uff09"
+        },
+        {
+          "text": "\u5173\u8054\u6587\u6863\u5305\u542b bban-taishan-probe-mapping \u6216 bban-mcdn-probe-targets",
+          "passed": true,
+          "evidence": "\u5173\u8054\u542b bban-mcdn-probe-targets\u3001bban-taishan-probe-mapping"
+        },
+        {
+          "text": "\u8f93\u51fa\u5305\u542b obsidian:// \u8df3\u8f6c\u94fe\u63a5",
+          "passed": true,
+          "evidence": "16 \u4e2a obsidian:// \u94fe\u63a5\uff0c\u6bcf\u4e2a\u6587\u6863\u9644\u8df3\u8f6c"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 183.5,
+        "tokens": 69830,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u68c0\u7d22\u7ed3\u679c\u5305\u542b bban-taishan-probe-mapping.md",
+          "passed": true,
+          "evidence": "\u547d\u4e2d bban-taishan-probe-mapping\uff08\u6700\u76f4\u63a5\u547d\u4e2d\uff09+ 3 \u7bc7\u76f8\u5173"
+        },
+        {
+          "text": "\u8f93\u51fa\u5305\u542b obsidian:// \u8df3\u8f6c\u94fe\u63a5",
+          "passed": true,
+          "evidence": "8 \u4e2a obsidian:// \u94fe\u63a5"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 313.1,
+        "tokens": 62659,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u68c0\u7d22\u7ed3\u679c\u5305\u542b bban-node-status-silent-success \u6216 bban-node-field-semantics",
+          "passed": true,
+          "evidence": "\u547d\u4e2d 2 \u7bc7\u76f4\u63a5\u76f8\u5173 + mcdn-v-probe-task-system"
+        },
+        {
+          "text": "\u5173\u8054\u4e3b\u9898\u63d0\u53ca mcdn-v-probe-task-system\uff08isNodeNormal\uff09",
+          "passed": true,
+          "evidence": "\u5173\u8054\u542b isNodeNormal \u72b6\u6001\u95e8\u69db"
+        },
+        {
+          "text": "\u8f93\u51fa\u5305\u542b obsidian:// \u8df3\u8f6c\u94fe\u63a5",
+          "passed": true,
+          "evidence": "3 \u4e2a obsidian:// \u94fe\u63a5"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 288.9,
+        "tokens": 56183,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u68c0\u7d22\u7ed3\u679c\u5305\u542b mcdn-v-probe-task-system.md",
+          "passed": true,
+          "evidence": "\u547d\u4e2d 13 \u4efd\u542b mcdn-v-probe-task-system"
+        },
+        {
+          "text": "\u5173\u8054\u6587\u6863\u5305\u542b bban-taishan-probe-mapping \u6216 bban-mcdn-probe-targets",
+          "passed": true,
+          "evidence": "\u5173\u8054\u542b bban-taishan-probe-mapping\u3001bban-mcdn-probe-targets"
+        },
+        {
+          "text": "\u8f93\u51fa\u5305\u542b obsidian:// \u8df3\u8f6c\u94fe\u63a5",
+          "passed": true,
+          "evidence": "\u4ec5 1 \u4e2a obsidian:// \u94fe\u63a5\uff08\u94fe\u63a5\u8986\u76d6\u4e0d\u5168\uff09"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 2,
+        "failed": 0,
+        "total": 2,
+        "time_seconds": 680.0,
+        "tokens": 77527,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u68c0\u7d22\u7ed3\u679c\u5305\u542b bban-taishan-probe-mapping.md",
+          "passed": true,
+          "evidence": "\u547d\u4e2d 4 \u6587\u4ef6\u542b bban-taishan-probe-mapping"
+        },
+        {
+          "text": "\u8f93\u51fa\u5305\u542b obsidian:// \u8df3\u8f6c\u94fe\u63a5",
+          "passed": true,
+          "evidence": "4 \u4e2a obsidian:// \u94fe\u63a5"
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 3,
+        "failed": 0,
+        "total": 3,
+        "time_seconds": 188.3,
+        "tokens": 54190,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "\u68c0\u7d22\u7ed3\u679c\u5305\u542b bban-node-status-silent-success \u6216 bban-node-field-semantics",
+          "passed": true,
+          "evidence": "\u547d\u4e2d 2 \u7bc7\u76f4\u63a5\u76f8\u5173"
+        },
+        {
+          "text": "\u5173\u8054\u4e3b\u9898\u63d0\u53ca mcdn-v-probe-task-system\uff08isNodeNormal\uff09",
+          "passed": true,
+          "evidence": "\u5173\u8054\u542b mcdn-v-probe-task-system \u4e0e isNodeNormal"
+        },
+        {
+          "text": "\u8f93\u51fa\u5305\u542b obsidian:// \u8df3\u8f6c\u94fe\u63a5",
+          "passed": true,
+          "evidence": "\u4ec5 1 \u4e2a obsidian:// \u94fe\u63a5\uff08\u7528 wikilink \u4ee3\u66ff\uff09"
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 240.1667,
+        "stddev": 66.3136,
+        "min": 183.5,
+        "max": 313.1
+      },
+      "tokens": {
+        "mean": 70099.0,
+        "stddev": 7578.0816,
+        "min": 62659,
+        "max": 77808
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 385.7333,
+        "stddev": 259.759,
+        "min": 188.3,
+        "max": 680.0
+      },
+      "tokens": {
+        "mean": 62633.3333,
+        "stddev": 12936.7304,
+        "min": 54190,
+        "max": 77527
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.00",
+      "time_seconds": "-145.6",
+      "tokens": "+7466"
+    }
+  },
+  "notes": []
+}

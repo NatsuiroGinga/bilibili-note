@@ -1,0 +1,15 @@
+{
+  "eval_id": 3,
+  "eval_name": "task-port-retrieval",
+  "prompt": "搜索知识库中的关于这次任务的知识",
+  "assertions": [
+    {
+      "text": "检索结果包含 mcdn 探测相关条目（mcdn-v-probe-task-system/bban-mcdn-probe-targets/bban-taishan-probe-mapping 任一）",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

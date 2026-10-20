@@ -1,0 +1,68 @@
+{
+  "skill_name": "kb-related-retrieval",
+  "evals": [
+    {
+      "id": 1,
+      "name": "mcdn-probe-retrieval-with-related",
+      "prompt": "查一下知识库里 mcdn 探测相关的文档，以及它们之间的关联，给我 Obsidian 跳转链接",
+      "expected_output": "检索到 mcdn-v-probe-task-system 等条目，给出出链/入链关联文档（如 bban-taishan-probe-mapping、bban-mcdn-probe-targets），每个文档附 obsidian:// 跳转链接",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "taishan-storage-lookup",
+      "prompt": "知识库里有 Taishan/泰山 存储相关的资料吗？列出相关文档和它们的关联",
+      "expected_output": "检索到 bban-taishan-probe-mapping 条目，给出关联文档（存储分布/SCAN 查询相关）和 Obsidian 跳转链接",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "node-status-related-topics",
+      "prompt": "bban-api 知识库里 node 状态相关的文档，看看关联了哪些主题",
+      "expected_output": "检索到 bban-node-status-silent-success / bban-node-field-semantics，给出关联主题（如 mcdn-v-probe-task-system 的 isNodeNormal），附 Obsidian 跳转链接",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "task-port-retrieval",
+      "prompt": "搜索知识库中的关于这次任务的知识",
+      "expected_output": "检索到 mcdn 探测移植相关条目（mcdn-v-probe-task-system、bban-mcdn-probe-targets、bban-taishan-probe-mapping），给出关联 + Obsidian 跳转链接",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "mcdn-http-executor-lookup",
+      "prompt": "如果我给一个 mcdn 配置了 http 为 baidu.com，那么 miner 该怎么探测？不是只有 mcdn 自己能测试是否访问到 baidu 吗",
+      "expected_output": "检索到 mcdn-v-probe-task-system 的『HTTP/ICMP/TCP 探测真实执行方』，说明 miner 执行（裸连 URL，不读 TargetIP），给出关联 + 跳转链接",
+      "files": []
+    },
+    {
+      "id": 6,
+      "name": "vod-live-play-probe-lookup",
+      "prompt": "还有配置是 vod-play 和 live-play，这个是怎么探测到的？",
+      "expected_output": "检索到 VodPlay/LivePlay 探测机制（ffmpeg 拉流解码，URL 由 Hebe 现算），给出关联 + Obsidian 跳转链接",
+      "files": []
+    },
+    {
+      "id": 7,
+      "name": "moni-promql-monitoring-lookup",
+      "prompt": "读取知识库中的 moni 监控和 promql 相关知识，设计一个探测任务下发的监控方案",
+      "expected_output": "检索到 mcdn-probe-prometheus-exporter、json-to-prometheus-textfile-workflow、hawkeye 系列，给出关联 + Obsidian 跳转链接",
+      "files": []
+    },
+    {
+      "id": 8,
+      "name": "cloud-host-mcdn-probe-config",
+      "prompt": "新需求：云主机探测 mcdn 的任务配置，知识库里有没有相关参考？",
+      "expected_output": "检索到 miner 执行探测相关（云主机 miner 探测 mcdn 的执行方、任务配置），给出关联 + Obsidian 跳转链接",
+      "files": []
+    },
+    {
+      "id": 9,
+      "name": "obsidian-setup-and-graph-lookup",
+      "prompt": "知识库里有 Obsidian 知识库配置和知识图谱相关的文档吗？",
+      "expected_output": "检索到 obsidian-project-kb-setup（配置/工作流）、图谱相关，给出关联 + Obsidian 跳转链接",
+      "files": []
+    }
+  ]
+}

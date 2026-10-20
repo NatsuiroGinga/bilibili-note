@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "检索结果包含 bban-node-status-silent-success 或 bban-node-field-semantics",
+      "passed": true,
+      "evidence": "命中 2 篇直接相关 + mcdn-v-probe-task-system"
+    },
+    {
+      "text": "关联主题提及 mcdn-v-probe-task-system（isNodeNormal）",
+      "passed": true,
+      "evidence": "关联含 isNodeNormal 状态门槛"
+    },
+    {
+      "text": "输出包含 obsidian:// 跳转链接",
+      "passed": true,
+      "evidence": "3 个 obsidian:// 链接"
+    }
+  ],
+  "summary": {
+    "pass_rate": 1.0,
+    "passed": 3,
+    "failed": 0,
+    "total": 3
+  }
+}

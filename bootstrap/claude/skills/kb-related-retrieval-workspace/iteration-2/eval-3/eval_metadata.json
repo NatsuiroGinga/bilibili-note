@@ -1,0 +1,19 @@
+{
+  "eval_id": 2,
+  "eval_name": "node-status-related-topics",
+  "prompt": "bban-api 知识库里 node 状态相关的文档，看看关联了哪些主题",
+  "assertions": [
+    {
+      "text": "检索结果包含 bban-node-status-silent-success 或 bban-node-field-semantics",
+      "expected": true
+    },
+    {
+      "text": "关联提 mcdn-v-probe-task-system",
+      "expected": true
+    },
+    {
+      "text": "输出含 obsidian://",
+      "expected": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "google-scholar",
+  "owner": "edwinhu",
+  "repo": "workflows",
+  "path": "skills/google-scholar",
+  "branch": "main",
+  "sha": "49d23f6806c95412f7ba7416f84a4c3e55d958f8",
+  "source": "manual"
+}
