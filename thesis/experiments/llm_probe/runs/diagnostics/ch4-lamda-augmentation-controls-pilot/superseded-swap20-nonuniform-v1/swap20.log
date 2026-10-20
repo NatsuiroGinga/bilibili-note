@@ -1,0 +1,264 @@
+[arm] swap20 device=mps fraction=0.2
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_scheme=quota reuse_scheme=deficit buffer_repeat=2 pos_ratio=0.5 deficit_gamma=1.0 seed=42 threshold=0.5 mask_seed=43
+[load] 2013 train=(69144, 4561)
+[load] 2014 train=(80946, 4561)
+[load] 2016 train=(87354, 4561)
+[load] 2017 train=(79315, 4561)
+[load] 2018 train=(83433, 4561)
+[load] 2019 train=(72840, 4561)
+[load] 2020 train=(81658, 4561)
+[load] 2021 train=(64924, 4561)
+[load] 2022 train=(69132, 4561)
+[load] 2023 train=(43483, 4561)
+[load] 2024 train=(38741, 4561)
+[load] 2025 train=(35730, 4561)
+[model] params=2,687,293
+[parts] 2013: n_parts=1 sizes=[69144]
+[epoch] year=2013 arm=swap20 epoch=1/10 mean_loss=0.693124 perturbation_measured=0.002361 selected_change_rate=0.011808
+[epoch] year=2013 arm=swap20 epoch=2/10 mean_loss=0.692794 perturbation_measured=0.002359 selected_change_rate=0.011798
+[epoch] year=2013 arm=swap20 epoch=3/10 mean_loss=0.692790 perturbation_measured=0.002358 selected_change_rate=0.011791
+[epoch] year=2013 arm=swap20 epoch=4/10 mean_loss=0.692787 perturbation_measured=0.002358 selected_change_rate=0.011791
+[epoch] year=2013 arm=swap20 epoch=5/10 mean_loss=0.692763 perturbation_measured=0.002356 selected_change_rate=0.011782
+[epoch] year=2013 arm=swap20 epoch=6/10 mean_loss=0.692738 perturbation_measured=0.002359 selected_change_rate=0.011799
+[epoch] year=2013 arm=swap20 epoch=7/10 mean_loss=0.692743 perturbation_measured=0.002354 selected_change_rate=0.011774
+[epoch] year=2013 arm=swap20 epoch=8/10 mean_loss=0.692700 perturbation_measured=0.002355 selected_change_rate=0.011778
+[epoch] year=2013 arm=swap20 epoch=9/10 mean_loss=0.692648 perturbation_measured=0.002361 selected_change_rate=0.011809
+[epoch] year=2013 arm=swap20 epoch=10/10 mean_loss=0.692577 perturbation_measured=0.002353 selected_change_rate=0.011769
+[2013] trained on 69,144 rows in 907.5s perturbation_measured=0.002357 selected_change_rate=0.011790
+[2013] avg_f1 backward=0.6786
+[parts] 2014: n_parts=3 sizes=[80946, 200, 200]
+[audit] 截至2014 缓冲块 2013: 200槽 正例100 负例100 | 源 35506/69144 = 0.5135
+[reuse] 截至2014 deficit 复用 = {2013: 2}
+[epoch] year=2014 arm=swap20 epoch=1/10 mean_loss=0.690321 perturbation_measured=0.002487 selected_change_rate=0.012437
+[epoch] year=2014 arm=swap20 epoch=2/10 mean_loss=0.688295 perturbation_measured=0.002489 selected_change_rate=0.012448
+[epoch] year=2014 arm=swap20 epoch=3/10 mean_loss=0.688097 perturbation_measured=0.002485 selected_change_rate=0.012426
+[epoch] year=2014 arm=swap20 epoch=4/10 mean_loss=0.687727 perturbation_measured=0.002489 selected_change_rate=0.012448
+[epoch] year=2014 arm=swap20 epoch=5/10 mean_loss=0.687109 perturbation_measured=0.002483 selected_change_rate=0.012417
+[epoch] year=2014 arm=swap20 epoch=6/10 mean_loss=0.685778 perturbation_measured=0.002485 selected_change_rate=0.012429
+[epoch] year=2014 arm=swap20 epoch=7/10 mean_loss=0.681190 perturbation_measured=0.002488 selected_change_rate=0.012444
+[epoch] year=2014 arm=swap20 epoch=8/10 mean_loss=0.652113 perturbation_measured=0.002488 selected_change_rate=0.012442
+[epoch] year=2014 arm=swap20 epoch=9/10 mean_loss=0.424931 perturbation_measured=0.002492 selected_change_rate=0.012463
+[epoch] year=2014 arm=swap20 epoch=10/10 mean_loss=0.258688 perturbation_measured=0.002490 selected_change_rate=0.012451
+[2014] trained on 81,346 rows in 58.8s perturbation_measured=0.002488 selected_change_rate=0.012441
+[2014] avg_f1 backward=0.9247
+[parts] 2016: n_parts=5 sizes=[87354, 100, 100, 100, 100]
+[audit] 截至2016 缓冲块 2013: 100槽 正例50 负例50 | 源 35506/69144 = 0.5135
+[audit] 截至2016 缓冲块 2014: 100槽 正例50 负例50 | 源 36605/80946 = 0.4522
+[reuse] 截至2016 deficit 复用 = {2013: 2, 2014: 2}
+[epoch] year=2016 arm=swap20 epoch=1/10 mean_loss=0.294377 perturbation_measured=0.002898 selected_change_rate=0.014494
+[epoch] year=2016 arm=swap20 epoch=2/10 mean_loss=0.240583 perturbation_measured=0.002901 selected_change_rate=0.014508
+[epoch] year=2016 arm=swap20 epoch=3/10 mean_loss=0.223181 perturbation_measured=0.002896 selected_change_rate=0.014484
+[epoch] year=2016 arm=swap20 epoch=4/10 mean_loss=0.208547 perturbation_measured=0.002898 selected_change_rate=0.014494
+[epoch] year=2016 arm=swap20 epoch=5/10 mean_loss=0.191416 perturbation_measured=0.002900 selected_change_rate=0.014503
+[epoch] year=2016 arm=swap20 epoch=6/10 mean_loss=0.184774 perturbation_measured=0.002903 selected_change_rate=0.014519
+[epoch] year=2016 arm=swap20 epoch=7/10 mean_loss=0.182181 perturbation_measured=0.002896 selected_change_rate=0.014485
+[epoch] year=2016 arm=swap20 epoch=8/10 mean_loss=0.171252 perturbation_measured=0.002902 selected_change_rate=0.014515
+[epoch] year=2016 arm=swap20 epoch=9/10 mean_loss=0.165071 perturbation_measured=0.002904 selected_change_rate=0.014521
+[epoch] year=2016 arm=swap20 epoch=10/10 mean_loss=0.160605 perturbation_measured=0.002899 selected_change_rate=0.014498
+[2016] trained on 87,754 rows in 74.0s perturbation_measured=0.002900 selected_change_rate=0.014502
+[2016] avg_f1 backward=0.9141
+[parts] 2017: n_parts=7 sizes=[79315, 66, 66, 66, 66, 66, 66]
+[audit] 截至2017 缓冲块 2013: 66槽 正例33 负例33 | 源 35506/69144 = 0.5135
+[audit] 截至2017 缓冲块 2014: 66槽 正例33 负例33 | 源 36605/80946 = 0.4522
+[audit] 截至2017 缓冲块 2016: 66槽 正例33 负例33 | 源 36107/87354 = 0.4133
+[reuse] 截至2017 deficit 复用 = {2013: 2, 2014: 2, 2016: 2}
+[epoch] year=2017 arm=swap20 epoch=1/10 mean_loss=0.176721 perturbation_measured=0.003022 selected_change_rate=0.015113
+[epoch] year=2017 arm=swap20 epoch=2/10 mean_loss=0.121330 perturbation_measured=0.003026 selected_change_rate=0.015132
+[epoch] year=2017 arm=swap20 epoch=3/10 mean_loss=0.109586 perturbation_measured=0.003015 selected_change_rate=0.015078
+[epoch] year=2017 arm=swap20 epoch=4/10 mean_loss=0.101606 perturbation_measured=0.003025 selected_change_rate=0.015126
+[epoch] year=2017 arm=swap20 epoch=5/10 mean_loss=0.095739 perturbation_measured=0.003020 selected_change_rate=0.015103
+[epoch] year=2017 arm=swap20 epoch=6/10 mean_loss=0.093580 perturbation_measured=0.003020 selected_change_rate=0.015103
+[epoch] year=2017 arm=swap20 epoch=7/10 mean_loss=0.087858 perturbation_measured=0.003014 selected_change_rate=0.015075
+[epoch] year=2017 arm=swap20 epoch=8/10 mean_loss=0.082973 perturbation_measured=0.003019 selected_change_rate=0.015098
+[epoch] year=2017 arm=swap20 epoch=9/10 mean_loss=0.080722 perturbation_measured=0.003021 selected_change_rate=0.015110
+[epoch] year=2017 arm=swap20 epoch=10/10 mean_loss=0.078472 perturbation_measured=0.003016 selected_change_rate=0.015082
+[2017] trained on 79,711 rows in 62.8s perturbation_measured=0.003020 selected_change_rate=0.015102
+[2017] avg_f1 backward=0.9290
+[parts] 2018: n_parts=9 sizes=[83433, 50, 50, 50, 50, 50, 50, 50, 50]
+[audit] 截至2018 缓冲块 2013: 50槽 正例25 负例25 | 源 35506/69144 = 0.5135
+[audit] 截至2018 缓冲块 2014: 50槽 正例25 负例25 | 源 36605/80946 = 0.4522
+[audit] 截至2018 缓冲块 2016: 50槽 正例25 负例25 | 源 36107/87354 = 0.4133
+[audit] 截至2018 缓冲块 2017: 50槽 正例25 负例25 | 源 17087/79315 = 0.2154
+[reuse] 截至2018 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2}
+[epoch] year=2018 arm=swap20 epoch=1/10 mean_loss=0.182171 perturbation_measured=0.003679 selected_change_rate=0.018399
+[epoch] year=2018 arm=swap20 epoch=2/10 mean_loss=0.157347 perturbation_measured=0.003681 selected_change_rate=0.018408
+[epoch] year=2018 arm=swap20 epoch=3/10 mean_loss=0.148787 perturbation_measured=0.003679 selected_change_rate=0.018400
+[epoch] year=2018 arm=swap20 epoch=4/10 mean_loss=0.143026 perturbation_measured=0.003673 selected_change_rate=0.018368
+[epoch] year=2018 arm=swap20 epoch=5/10 mean_loss=0.137802 perturbation_measured=0.003675 selected_change_rate=0.018381
+[epoch] year=2018 arm=swap20 epoch=6/10 mean_loss=0.133859 perturbation_measured=0.003672 selected_change_rate=0.018366
+[epoch] year=2018 arm=swap20 epoch=7/10 mean_loss=0.131405 perturbation_measured=0.003676 selected_change_rate=0.018386
+[epoch] year=2018 arm=swap20 epoch=8/10 mean_loss=0.125200 perturbation_measured=0.003679 selected_change_rate=0.018399
+[epoch] year=2018 arm=swap20 epoch=9/10 mean_loss=0.124461 perturbation_measured=0.003676 selected_change_rate=0.018382
+[epoch] year=2018 arm=swap20 epoch=10/10 mean_loss=0.121733 perturbation_measured=0.003676 selected_change_rate=0.018384
+[2018] trained on 83,833 rows in 118.5s perturbation_measured=0.003677 selected_change_rate=0.018387
+[2018] avg_f1 backward=0.8973
+[parts] 2019: n_parts=11 sizes=[72840, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40]
+[audit] 截至2019 缓冲块 2013: 40槽 正例20 负例20 | 源 35506/69144 = 0.5135
+[audit] 截至2019 缓冲块 2014: 40槽 正例20 负例20 | 源 36605/80946 = 0.4522
+[audit] 截至2019 缓冲块 2016: 40槽 正例20 负例20 | 源 36107/87354 = 0.4133
+[audit] 截至2019 缓冲块 2017: 40槽 正例20 负例20 | 源 17087/79315 = 0.2154
+[audit] 截至2019 缓冲块 2018: 40槽 正例20 负例20 | 源 31480/83433 = 0.3773
+[reuse] 截至2019 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2}
+[epoch] year=2019 arm=swap20 epoch=1/10 mean_loss=0.143010 perturbation_measured=0.004716 selected_change_rate=0.023585
+[epoch] year=2019 arm=swap20 epoch=2/10 mean_loss=0.108346 perturbation_measured=0.004716 selected_change_rate=0.023588
+[epoch] year=2019 arm=swap20 epoch=3/10 mean_loss=0.098972 perturbation_measured=0.004711 selected_change_rate=0.023561
+[epoch] year=2019 arm=swap20 epoch=4/10 mean_loss=0.090034 perturbation_measured=0.004710 selected_change_rate=0.023557
+[epoch] year=2019 arm=swap20 epoch=5/10 mean_loss=0.086648 perturbation_measured=0.004712 selected_change_rate=0.023565
+[epoch] year=2019 arm=swap20 epoch=6/10 mean_loss=0.080439 perturbation_measured=0.004718 selected_change_rate=0.023596
+[epoch] year=2019 arm=swap20 epoch=7/10 mean_loss=0.078296 perturbation_measured=0.004716 selected_change_rate=0.023587
+[epoch] year=2019 arm=swap20 epoch=8/10 mean_loss=0.072110 perturbation_measured=0.004715 selected_change_rate=0.023581
+[epoch] year=2019 arm=swap20 epoch=9/10 mean_loss=0.067346 perturbation_measured=0.004713 selected_change_rate=0.023571
+[epoch] year=2019 arm=swap20 epoch=10/10 mean_loss=0.067169 perturbation_measured=0.004712 selected_change_rate=0.023564
+[2019] trained on 73,240 rows in 71.0s perturbation_measured=0.004714 selected_change_rate=0.023575
+[2019] avg_f1 backward=0.8770
+[parts] 2020: n_parts=13 sizes=[81658, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33]
+[audit] 截至2020 缓冲块 2013: 33槽 正例16 负例17 | 源 35506/69144 = 0.5135
+[audit] 截至2020 缓冲块 2014: 33槽 正例16 负例17 | 源 36605/80946 = 0.4522
+[audit] 截至2020 缓冲块 2016: 33槽 正例16 负例17 | 源 36107/87354 = 0.4133
+[audit] 截至2020 缓冲块 2017: 33槽 正例16 负例17 | 源 17087/79315 = 0.2154
+[audit] 截至2020 缓冲块 2018: 33槽 正例16 负例17 | 源 31480/83433 = 0.3773
+[audit] 截至2020 缓冲块 2019: 33槽 正例16 负例17 | 源 33268/72840 = 0.4567
+[reuse] 截至2020 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2}
+[epoch] year=2020 arm=swap20 epoch=1/10 mean_loss=0.101457 perturbation_measured=0.005109 selected_change_rate=0.025549
+[epoch] year=2020 arm=swap20 epoch=2/10 mean_loss=0.086526 perturbation_measured=0.005112 selected_change_rate=0.025564
+[epoch] year=2020 arm=swap20 epoch=3/10 mean_loss=0.079903 perturbation_measured=0.005115 selected_change_rate=0.025579
+[epoch] year=2020 arm=swap20 epoch=4/10 mean_loss=0.075589 perturbation_measured=0.005122 selected_change_rate=0.025616
+[epoch] year=2020 arm=swap20 epoch=5/10 mean_loss=0.071146 perturbation_measured=0.005113 selected_change_rate=0.025571
+[epoch] year=2020 arm=swap20 epoch=6/10 mean_loss=0.068249 perturbation_measured=0.005117 selected_change_rate=0.025590
+[epoch] year=2020 arm=swap20 epoch=7/10 mean_loss=0.066803 perturbation_measured=0.005119 selected_change_rate=0.025601
+[epoch] year=2020 arm=swap20 epoch=8/10 mean_loss=0.064814 perturbation_measured=0.005123 selected_change_rate=0.025622
+[epoch] year=2020 arm=swap20 epoch=9/10 mean_loss=0.062440 perturbation_measured=0.005114 selected_change_rate=0.025578
+[epoch] year=2020 arm=swap20 epoch=10/10 mean_loss=0.059365 perturbation_measured=0.005113 selected_change_rate=0.025568
+[2020] trained on 82,054 rows in 66.4s perturbation_measured=0.005116 selected_change_rate=0.025584
+[2020] avg_f1 backward=0.8832
+[parts] 2021: n_parts=15 sizes=[64924, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28]
+[audit] 截至2021 缓冲块 2013: 28槽 正例14 负例14 | 源 35506/69144 = 0.5135
+[audit] 截至2021 缓冲块 2014: 28槽 正例14 负例14 | 源 36605/80946 = 0.4522
+[audit] 截至2021 缓冲块 2016: 28槽 正例14 负例14 | 源 36107/87354 = 0.4133
+[audit] 截至2021 缓冲块 2017: 28槽 正例14 负例14 | 源 17087/79315 = 0.2154
+[audit] 截至2021 缓冲块 2018: 28槽 正例14 负例14 | 源 31480/83433 = 0.3773
+[audit] 截至2021 缓冲块 2019: 28槽 正例14 负例14 | 源 33268/72840 = 0.4567
+[audit] 截至2021 缓冲块 2020: 28槽 正例14 负例14 | 源 37084/81658 = 0.4541
+[reuse] 截至2021 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2}
+[epoch] year=2021 arm=swap20 epoch=1/10 mean_loss=0.115767 perturbation_measured=0.006630 selected_change_rate=0.033155
+[epoch] year=2021 arm=swap20 epoch=2/10 mean_loss=0.092954 perturbation_measured=0.006652 selected_change_rate=0.033269
+[epoch] year=2021 arm=swap20 epoch=3/10 mean_loss=0.083944 perturbation_measured=0.006651 selected_change_rate=0.033262
+[epoch] year=2021 arm=swap20 epoch=4/10 mean_loss=0.077700 perturbation_measured=0.006655 selected_change_rate=0.033283
+[epoch] year=2021 arm=swap20 epoch=5/10 mean_loss=0.071165 perturbation_measured=0.006653 selected_change_rate=0.033275
+[epoch] year=2021 arm=swap20 epoch=6/10 mean_loss=0.067920 perturbation_measured=0.006642 selected_change_rate=0.033219
+[epoch] year=2021 arm=swap20 epoch=7/10 mean_loss=0.067997 perturbation_measured=0.006655 selected_change_rate=0.033282
+[epoch] year=2021 arm=swap20 epoch=8/10 mean_loss=0.062705 perturbation_measured=0.006652 selected_change_rate=0.033266
+[epoch] year=2021 arm=swap20 epoch=9/10 mean_loss=0.061960 perturbation_measured=0.006651 selected_change_rate=0.033262
+[epoch] year=2021 arm=swap20 epoch=10/10 mean_loss=0.056461 perturbation_measured=0.006644 selected_change_rate=0.033228
+[2021] trained on 65,316 rows in 51.4s perturbation_measured=0.006649 selected_change_rate=0.033250
+[2021] avg_f1 backward=0.8790
+[parts] 2022: n_parts=17 sizes=[69132, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]
+[audit] 截至2022 缓冲块 2013: 25槽 正例12 负例13 | 源 35506/69144 = 0.5135
+[audit] 截至2022 缓冲块 2014: 25槽 正例12 负例13 | 源 36605/80946 = 0.4522
+[audit] 截至2022 缓冲块 2016: 25槽 正例12 负例13 | 源 36107/87354 = 0.4133
+[audit] 截至2022 缓冲块 2017: 25槽 正例12 负例13 | 源 17087/79315 = 0.2154
+[audit] 截至2022 缓冲块 2018: 25槽 正例12 负例13 | 源 31480/83433 = 0.3773
+[audit] 截至2022 缓冲块 2019: 25槽 正例12 负例13 | 源 33268/72840 = 0.4567
+[audit] 截至2022 缓冲块 2020: 25槽 正例12 负例13 | 源 37084/81658 = 0.4541
+[audit] 截至2022 缓冲块 2021: 25槽 正例12 负例13 | 源 28502/64924 = 0.4390
+[reuse] 截至2022 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2}
+[epoch] year=2022 arm=swap20 epoch=1/10 mean_loss=0.071055 perturbation_measured=0.006023 selected_change_rate=0.030120
+[epoch] year=2022 arm=swap20 epoch=2/10 mean_loss=0.057611 perturbation_measured=0.006031 selected_change_rate=0.030161
+[epoch] year=2022 arm=swap20 epoch=3/10 mean_loss=0.052412 perturbation_measured=0.006035 selected_change_rate=0.030180
+[epoch] year=2022 arm=swap20 epoch=4/10 mean_loss=0.050105 perturbation_measured=0.006033 selected_change_rate=0.030172
+[epoch] year=2022 arm=swap20 epoch=5/10 mean_loss=0.048840 perturbation_measured=0.006026 selected_change_rate=0.030139
+[epoch] year=2022 arm=swap20 epoch=6/10 mean_loss=0.044866 perturbation_measured=0.006022 selected_change_rate=0.030119
+[epoch] year=2022 arm=swap20 epoch=7/10 mean_loss=0.043131 perturbation_measured=0.006018 selected_change_rate=0.030098
+[epoch] year=2022 arm=swap20 epoch=8/10 mean_loss=0.041815 perturbation_measured=0.006036 selected_change_rate=0.030185
+[epoch] year=2022 arm=swap20 epoch=9/10 mean_loss=0.040148 perturbation_measured=0.006031 selected_change_rate=0.030162
+[epoch] year=2022 arm=swap20 epoch=10/10 mean_loss=0.037123 perturbation_measured=0.006021 selected_change_rate=0.030110
+[2022] trained on 69,532 rows in 56.7s perturbation_measured=0.006028 selected_change_rate=0.030144
+[2022] avg_f1 backward=0.8412
+[parts] 2023: n_parts=19 sizes=[43483, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22]
+[audit] 截至2023 缓冲块 2013: 22槽 正例11 负例11 | 源 35506/69144 = 0.5135
+[audit] 截至2023 缓冲块 2014: 22槽 正例11 负例11 | 源 36605/80946 = 0.4522
+[audit] 截至2023 缓冲块 2016: 22槽 正例11 负例11 | 源 36107/87354 = 0.4133
+[audit] 截至2023 缓冲块 2017: 22槽 正例11 负例11 | 源 17087/79315 = 0.2154
+[audit] 截至2023 缓冲块 2018: 22槽 正例11 负例11 | 源 31480/83433 = 0.3773
+[audit] 截至2023 缓冲块 2019: 22槽 正例11 负例11 | 源 33268/72840 = 0.4567
+[audit] 截至2023 缓冲块 2020: 22槽 正例11 负例11 | 源 37084/81658 = 0.4541
+[audit] 截至2023 缓冲块 2021: 22槽 正例11 负例11 | 源 28502/64924 = 0.4390
+[audit] 截至2023 缓冲块 2022: 22槽 正例11 负例11 | 源 33318/69132 = 0.4819
+[reuse] 截至2023 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2}
+[epoch] year=2023 arm=swap20 epoch=1/10 mean_loss=0.114036 perturbation_measured=0.006562 selected_change_rate=0.032820
+[epoch] year=2023 arm=swap20 epoch=2/10 mean_loss=0.086734 perturbation_measured=0.006562 selected_change_rate=0.032815
+[epoch] year=2023 arm=swap20 epoch=3/10 mean_loss=0.080976 perturbation_measured=0.006549 selected_change_rate=0.032751
+[epoch] year=2023 arm=swap20 epoch=4/10 mean_loss=0.074937 perturbation_measured=0.006580 selected_change_rate=0.032907
+[epoch] year=2023 arm=swap20 epoch=5/10 mean_loss=0.070769 perturbation_measured=0.006576 selected_change_rate=0.032885
+[epoch] year=2023 arm=swap20 epoch=6/10 mean_loss=0.068005 perturbation_measured=0.006564 selected_change_rate=0.032828
+[epoch] year=2023 arm=swap20 epoch=7/10 mean_loss=0.063189 perturbation_measured=0.006554 selected_change_rate=0.032777
+[epoch] year=2023 arm=swap20 epoch=8/10 mean_loss=0.062457 perturbation_measured=0.006579 selected_change_rate=0.032901
+[epoch] year=2023 arm=swap20 epoch=9/10 mean_loss=0.058923 perturbation_measured=0.006572 selected_change_rate=0.032866
+[epoch] year=2023 arm=swap20 epoch=10/10 mean_loss=0.059048 perturbation_measured=0.006562 selected_change_rate=0.032817
+[2023] trained on 43,879 rows in 31.6s perturbation_measured=0.006566 selected_change_rate=0.032837
+[2023] avg_f1 backward=0.8876
+[parts] 2024: n_parts=21 sizes=[38741, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]
+[audit] 截至2024 缓冲块 2013: 20槽 正例10 负例10 | 源 35506/69144 = 0.5135
+[audit] 截至2024 缓冲块 2014: 20槽 正例10 负例10 | 源 36605/80946 = 0.4522
+[audit] 截至2024 缓冲块 2016: 20槽 正例10 负例10 | 源 36107/87354 = 0.4133
+[audit] 截至2024 缓冲块 2017: 20槽 正例10 负例10 | 源 17087/79315 = 0.2154
+[audit] 截至2024 缓冲块 2018: 20槽 正例10 负例10 | 源 31480/83433 = 0.3773
+[audit] 截至2024 缓冲块 2019: 20槽 正例10 负例10 | 源 33268/72840 = 0.4567
+[audit] 截至2024 缓冲块 2020: 20槽 正例10 负例10 | 源 37084/81658 = 0.4541
+[audit] 截至2024 缓冲块 2021: 20槽 正例10 负例10 | 源 28502/64924 = 0.4390
+[audit] 截至2024 缓冲块 2022: 20槽 正例10 负例10 | 源 33318/69132 = 0.4819
+[audit] 截至2024 缓冲块 2023: 20槽 正例10 负例10 | 源 6314/43483 = 0.1452
+[reuse] 截至2024 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2}
+[epoch] year=2024 arm=swap20 epoch=1/10 mean_loss=0.043658 perturbation_measured=0.006773 selected_change_rate=0.033873
+[epoch] year=2024 arm=swap20 epoch=2/10 mean_loss=0.037049 perturbation_measured=0.006777 selected_change_rate=0.033891
+[epoch] year=2024 arm=swap20 epoch=3/10 mean_loss=0.035881 perturbation_measured=0.006784 selected_change_rate=0.033929
+[epoch] year=2024 arm=swap20 epoch=4/10 mean_loss=0.032916 perturbation_measured=0.006778 selected_change_rate=0.033897
+[epoch] year=2024 arm=swap20 epoch=5/10 mean_loss=0.030088 perturbation_measured=0.006783 selected_change_rate=0.033921
+[epoch] year=2024 arm=swap20 epoch=6/10 mean_loss=0.029487 perturbation_measured=0.006776 selected_change_rate=0.033888
+[epoch] year=2024 arm=swap20 epoch=7/10 mean_loss=0.027845 perturbation_measured=0.006763 selected_change_rate=0.033823
+[epoch] year=2024 arm=swap20 epoch=8/10 mean_loss=0.027513 perturbation_measured=0.006767 selected_change_rate=0.033840
+[epoch] year=2024 arm=swap20 epoch=9/10 mean_loss=0.024993 perturbation_measured=0.006784 selected_change_rate=0.033926
+[epoch] year=2024 arm=swap20 epoch=10/10 mean_loss=0.025488 perturbation_measured=0.006773 selected_change_rate=0.033870
+[2024] trained on 39,141 rows in 139.7s perturbation_measured=0.006776 selected_change_rate=0.033886
+[2024] avg_f1 backward=0.8996
+[parts] 2025: n_parts=23 sizes=[35730, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18, 18]
+[audit] 截至2025 缓冲块 2013: 18槽 正例9 负例9 | 源 35506/69144 = 0.5135
+[audit] 截至2025 缓冲块 2014: 18槽 正例9 负例9 | 源 36605/80946 = 0.4522
+[audit] 截至2025 缓冲块 2016: 18槽 正例9 负例9 | 源 36107/87354 = 0.4133
+[audit] 截至2025 缓冲块 2017: 18槽 正例9 负例9 | 源 17087/79315 = 0.2154
+[audit] 截至2025 缓冲块 2018: 18槽 正例9 负例9 | 源 31480/83433 = 0.3773
+[audit] 截至2025 缓冲块 2019: 18槽 正例9 负例9 | 源 33268/72840 = 0.4567
+[audit] 截至2025 缓冲块 2020: 18槽 正例9 负例9 | 源 37084/81658 = 0.4541
+[audit] 截至2025 缓冲块 2021: 18槽 正例9 负例9 | 源 28502/64924 = 0.4390
+[audit] 截至2025 缓冲块 2022: 18槽 正例9 负例9 | 源 33318/69132 = 0.4819
+[audit] 截至2025 缓冲块 2023: 18槽 正例9 负例9 | 源 6314/43483 = 0.1452
+[audit] 截至2025 缓冲块 2024: 18槽 正例9 负例9 | 源 635/38741 = 0.0164
+[reuse] 截至2025 deficit 复用 = {2013: 2, 2014: 2, 2016: 2, 2017: 2, 2018: 2, 2019: 2, 2020: 2, 2021: 2, 2022: 2, 2023: 2, 2024: 2}
+[epoch] year=2025 arm=swap20 epoch=1/10 mean_loss=0.008562 perturbation_measured=0.006742 selected_change_rate=0.033716
+[epoch] year=2025 arm=swap20 epoch=2/10 mean_loss=0.006565 perturbation_measured=0.006748 selected_change_rate=0.033747
+[epoch] year=2025 arm=swap20 epoch=3/10 mean_loss=0.005791 perturbation_measured=0.006738 selected_change_rate=0.033699
+[epoch] year=2025 arm=swap20 epoch=4/10 mean_loss=0.006037 perturbation_measured=0.006733 selected_change_rate=0.033672
+[epoch] year=2025 arm=swap20 epoch=5/10 mean_loss=0.004388 perturbation_measured=0.006748 selected_change_rate=0.033746
+[epoch] year=2025 arm=swap20 epoch=6/10 mean_loss=0.003651 perturbation_measured=0.006743 selected_change_rate=0.033721
+[epoch] year=2025 arm=swap20 epoch=7/10 mean_loss=0.003236 perturbation_measured=0.006736 selected_change_rate=0.033690
+[epoch] year=2025 arm=swap20 epoch=8/10 mean_loss=0.003532 perturbation_measured=0.006742 selected_change_rate=0.033720
+[epoch] year=2025 arm=swap20 epoch=9/10 mean_loss=0.003414 perturbation_measured=0.006736 selected_change_rate=0.033688
+[epoch] year=2025 arm=swap20 epoch=10/10 mean_loss=0.003238 perturbation_measured=0.006725 selected_change_rate=0.033633
+[2025] trained on 36,126 rows in 25.4s perturbation_measured=0.006739 selected_change_rate=0.033703
+[2025] avg_f1 backward=0.8269
+[preds] swap20 末年模型 @2013: f1=0.8908 n=17287 pos=8877 nonfinite=0
+[preds] swap20 末年模型 @2014: f1=0.8940 n=20237 pos=9151 nonfinite=0
+[preds] swap20 末年模型 @2016: f1=0.8776 n=21839 pos=9027 nonfinite=0
+[preds] swap20 末年模型 @2017: f1=0.8883 n=19829 pos=4272 nonfinite=0
+[preds] swap20 末年模型 @2018: f1=0.8962 n=20859 pos=7870 nonfinite=0
+[preds] swap20 末年模型 @2019: f1=0.9470 n=18210 pos=8317 nonfinite=0
+[preds] swap20 末年模型 @2020: f1=0.9571 n=20415 pos=9271 nonfinite=0
+[preds] swap20 末年模型 @2021: f1=0.9553 n=16231 pos=7125 nonfinite=0
+[preds] swap20 末年模型 @2022: f1=0.9596 n=17284 pos=8330 nonfinite=0
+[preds] swap20 末年模型 @2023: f1=0.8885 n=10871 pos=1578 nonfinite=0
+[preds] swap20 末年模型 @2024: f1=0.7681 n=9686 pos=159 nonfinite=0
+[preds] swap20 末年模型 @2025: f1=0.0000 n=8933 pos=5 nonfinite=0
+
+=== swap20：末年 2025 的 avg_f1（官方报告口径）= 0.8268828960 ===
+[done] swap20 用时 1762.1s
+[comparison] 两臂结果尚未齐备，跳过对照汇总
