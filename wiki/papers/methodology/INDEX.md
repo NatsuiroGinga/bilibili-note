@@ -317,12 +317,13 @@ tags:
 
 ## 特征交互家族：FM / PNN（2026-10-20 新增，第四章机制探针 #3）
 
-本节回答「稀疏二值特征上的显式二阶交互有哪些可迁移构件」。**原件状态**：两篇 PDF 目前只在 Zotero 存储，
-`raw/` 迁移与 SHA-256 待主代理补齐；Rendle 2010 仅题录。检查点见 `.Codex/docs/2026-10-20-FMPNN文献入库/`。
+本节回答「稀疏二值特征上的显式二阶交互有哪些可迁移构件」。**原件状态**：三篇全文均已入库
+（PNN 与 Android FM 2026-10-20 代理入库；Rendle 2010 由用户手动下载，同日完成 `raw/`＋SHA-256＋笔记）。
+检查点见 `.Codex/docs/2026-10-20-FMPNN文献入库/`。
 
 - **[[2016-Qu-乘积神经网络PNN|Qu et al. 2016：PNN 乘积神经网络]]**（arXiv:1611.00144v1；ICDM 2016 正式版未取得）— 逐字段 one-hot 嵌入后接内积/外积乘积层；IPNN 以 $W_p=\theta\theta^\top$ 把二阶交互降到 $O(D_1MN)$，OPNN 以 $f_\Sigma f_\Sigma^\top$ 降到 $O(D_1M(M+N))$（物理第 3 页，Eq. 11–14）。去掉乘积层等同 FNN，无隐层等权求和时内积 PNN 等同 FM（第 4 页）。Criteo/iPinYou 上 IPNN 与 OPNN 在不同指标互有胜负（表 II）。
 - **[[2018-Li-安卓恶意软件因子分解机|Li et al. 2018：Android 恶意软件上的 FM]]**（arXiv:1805.11843v2；**题名核验为 Android FM，不是 xDeepFM**）— DREBIN 式长稀疏二值特征（93,324 维、平均 73 个非零）上以 FM 建模二阶交互，参数 $O(nk)$；提供 **partial FM**「只在指定特征组之间建交互」的接口（物理第 5 页）。随机 80/20 切分下 FM 与单隐层 MLP 精度/F1 打平，作者明确收窄其优势为训练时间与归纳偏置（第 6–7 页）。**无年度切分，不支持漂移结论。**
-- **Rendle 2010：Factorization Machines（ICDM 2010，DOI 10.1109/ICDM.2010.127）— 仅题录，原件阻塞**：Zotero 三条重复条目均无 PDF，IEEE 付费墙，本次未建笔记、未凭记忆补公式。
+- **[[2010-Rendle-因子分解机|Rendle 2010：Factorization Machines 正源]]**（ICDM 2010，DOI 10.1109/ICDM.2010.127，IEEE 付费墙原件由用户手动下载）— 二阶 FM 模型方程 Eq. 1／因子内积 Eq. 3／Lemma 3.1 的 $O(kn)$ 重排（稀疏 $O(k\,m(\mathbf x))$）／Eq. 4 逐参数 O(1) 梯度；核心主张：因子化打破交互参数独立性，从未共现的特征对也能借相关交互估计。
 
 ## 相关索引
 
