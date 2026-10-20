@@ -1,0 +1,269 @@
+{
+  "adaptive_mask_protocol": {
+    "applies_to": "仅训练批次；ch3.evaluate 与 ch3.score_shard 不施加",
+    "expected_p_t": {
+      "2013-2017": 0.0,
+      "2018": "约 0.198",
+      "2019-2025": 0.2
+    },
+    "mask_formula": "keep = (mask_rng.random(xb.shape) >= p_t).astype(np.float32); xb = xb * keep",
+    "n_low": 3000,
+    "n_span": 500,
+    "p_max": 0.2,
+    "post_transform": "无：丢弃后不重新二值化，不做其他变换",
+    "rng": "mask_rng = np.random.default_rng(ch3.SEED + 1)，独立于 rng 与 buf_rng",
+    "rng_seed": 43,
+    "rule": "n_t = 当前年度训练分片中至少一个样本取 1 的特征坐标数；p_t = 0.20 * clip((n_t - 3000) / 500, 0, 1)",
+    "status": "结果知情后的确认性检验，不是预注册假设",
+    "uses_only": "当前年度 train 特征矩阵；不使用标签、不使用测试分片"
+  },
+  "arm": "adapt",
+  "criteria": {
+    "falsification": [
+      {
+        "id": "F1",
+        "measured_pp": 0.6435796748734512,
+        "passed": false,
+        "text": "adapt − base ≤ 0.00 pp（12 年平均）",
+        "threshold_pp": 0.0
+      },
+      {
+        "id": "F2",
+        "measured_pp": 0.2326891487518079,
+        "passed": false,
+        "text": "adapt < drop20 − 0.30 pp（12 年平均）",
+        "threshold_pp": -0.3
+      },
+      {
+        "id": "F3",
+        "measured_count": 0,
+        "negative_years": [],
+        "passed": false,
+        "text": "2018–2023 中 adapt − base 为负的年度数 ≥ 3",
+        "threshold_count": 3
+      }
+    ],
+    "falsified_any_passed": false,
+    "support": [
+      {
+        "id": "S1",
+        "measured_pp": 0.6435796748734512,
+        "passed": true,
+        "text": "adapt − base ≥ +0.50 pp（12 年平均）",
+        "threshold_pp": 0.5
+      },
+      {
+        "id": "S2",
+        "measured_pp": 0.2326891487518079,
+        "passed": true,
+        "text": "adapt ≥ drop20 − 0.20 pp（12 年平均）",
+        "threshold_pp": -0.2
+      },
+      {
+        "id": "S3",
+        "measured_count": 6,
+        "passed": true,
+        "positive_years": [
+          "2018",
+          "2019",
+          "2020",
+          "2021",
+          "2022",
+          "2023"
+        ],
+        "text": "2018–2023 六个年度中 adapt − base 为正的年度数 ≥ 5",
+        "threshold_count": 5
+      }
+    ],
+    "support_all_passed": true,
+    "verdict": "支持 H2"
+  },
+  "disclosure": "H2 的调度规则与阈值是在看到 H1 固定率逐年结果之后提出的；本文件只作确认性检验，正文不得写成「预先注册的 adaptive 机制」。单训练种子 42，未做多种子训练；不做训练随机性下的稳健性主张。",
+  "integrity_checks": {
+    "adapt_npz_f1_equals_result_json": true,
+    "adapt_y_true_equals_base_by_year": true,
+    "evaluation_and_scoring_never_masked": true,
+    "mask_rng_independent_of_train_and_buffer_rng": true,
+    "reference_npz_f1_equals_reference_result_json": true
+  },
+  "label": "结果知情后的确认性检验，不是预注册假设",
+  "per_year": {
+    "2013": {
+      "delta_adapt_minus_base": -0.0220427183140528,
+      "delta_adapt_minus_drop20": 0.0007415872486662423,
+      "f1_adapt": 0.8900952576052443,
+      "f1_base": 0.9121379759192971,
+      "f1_drop20": 0.8893536703565781,
+      "n_t": 1872.0,
+      "p_t": 0.0
+    },
+    "2014": {
+      "delta_adapt_minus_base": -0.012537479268714846,
+      "delta_adapt_minus_drop20": 0.0007913092749263217,
+      "f1_adapt": 0.8950977901955804,
+      "f1_base": 0.9076352694642953,
+      "f1_drop20": 0.8943064809206541,
+      "n_t": 2087.0,
+      "p_t": 0.0
+    },
+    "2016": {
+      "delta_adapt_minus_base": 0.005092542433282166,
+      "delta_adapt_minus_drop20": 0.0051326153337467595,
+      "f1_adapt": 0.8830787000577519,
+      "f1_base": 0.8779861576244697,
+      "f1_drop20": 0.8779460847240051,
+      "n_t": 2938.0,
+      "p_t": 0.0
+    },
+    "2017": {
+      "delta_adapt_minus_base": -0.015258480776800032,
+      "delta_adapt_minus_drop20": 0.017681580696449317,
+      "f1_adapt": 0.8908110536957987,
+      "f1_base": 0.9060695344725987,
+      "f1_drop20": 0.8731294729993494,
+      "n_t": 2935.0,
+      "p_t": 0.0
+    },
+    "2018": {
+      "delta_adapt_minus_base": 0.017431027223785978,
+      "delta_adapt_minus_drop20": 0.012456724254054974,
+      "f1_adapt": 0.9059486050877079,
+      "f1_base": 0.8885175778639219,
+      "f1_drop20": 0.8934918808336529,
+      "n_t": 3494.0,
+      "p_t": 0.1976
+    },
+    "2019": {
+      "delta_adapt_minus_base": 0.014725272400554323,
+      "delta_adapt_minus_drop20": -0.0001586690755517317,
+      "f1_adapt": 0.95071831242044,
+      "f1_base": 0.9359930400198857,
+      "f1_drop20": 0.9508769814959918,
+      "n_t": 3912.0,
+      "p_t": 0.2
+    },
+    "2020": {
+      "delta_adapt_minus_base": 0.01331932709174588,
+      "delta_adapt_minus_drop20": 1.5642941904925323e-05,
+      "f1_adapt": 0.954218732721442,
+      "f1_base": 0.9408994056296961,
+      "f1_drop20": 0.954203089779537,
+      "n_t": 4069.0,
+      "p_t": 0.2
+    },
+    "2021": {
+      "delta_adapt_minus_base": 0.013926533668677132,
+      "delta_adapt_minus_drop20": -0.0036772690645373585,
+      "f1_adapt": 0.9438136400263717,
+      "f1_base": 0.9298871063576946,
+      "f1_drop20": 0.947490909090909,
+      "n_t": 4208.0,
+      "p_t": 0.2
+    },
+    "2022": {
+      "delta_adapt_minus_base": 0.017242382363200415,
+      "delta_adapt_minus_drop20": -0.0034457951863453573,
+      "f1_adapt": 0.9554108527131783,
+      "f1_base": 0.9381684703499779,
+      "f1_drop20": 0.9588566478995236,
+      "n_t": 4303.0,
+      "p_t": 0.2
+    },
+    "2023": {
+      "delta_adapt_minus_base": 0.03658928613339685,
+      "delta_adapt_minus_drop20": -0.00924937744574883,
+      "f1_adapt": 0.8609035930273924,
+      "f1_base": 0.8243143068939955,
+      "f1_drop20": 0.8701529704731412,
+      "n_t": 4304.0,
+      "p_t": 0.2
+    },
+    "2024": {
+      "delta_adapt_minus_base": 0.008741868029739752,
+      "delta_adapt_minus_drop20": 0.007634348872651575,
+      "f1_adapt": 0.7509293680297398,
+      "f1_base": 0.7421875,
+      "f1_drop20": 0.7432950191570882,
+      "n_t": 3574.0,
+      "p_t": 0.2
+    },
+    "2025": {
+      "delta_adapt_minus_base": 0.0,
+      "delta_adapt_minus_drop20": 0.0,
+      "f1_adapt": 0.0,
+      "f1_base": 0.0,
+      "f1_drop20": 0.0,
+      "n_t": 3316.0,
+      "p_t": 0.1264
+    }
+  },
+  "public_protocol": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "deficit_gamma": 1.0,
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "evaluate_fn": "ch3.evaluate",
+    "lr": 0.01,
+    "memory": 200,
+    "model": "ch3.ChenEncoderMLP",
+    "momentum": 0.9,
+    "optimizer_lifetime": "per_year_rebuild_inside_train_fn",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "rng_streams": "train_rng=default_rng(SEED); buf_rng=default_rng(SEED)（各臂同序消费）",
+    "score_fn": "ch3.score_shard",
+    "seed": 42,
+    "strategy": "expreplay",
+    "threshold": 0.5,
+    "train_fn": "train_epochs_with_feature_dropout（从 ch4_lamda_feature_dropout_pilot 逐字导入，按年度传入标量 p_t）",
+    "weight_decay": 1e-06
+  },
+  "references": {
+    "base": "/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-feature-dropout-pilot/preds_base_{year}.npz",
+    "drop20": "/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-feature-dropout-pilot/preds_drop20_{year}.npz",
+    "reference_run": "ch4-lamda-feature-dropout-pilot"
+  },
+  "run_name": "ch4-lamda-adaptive-mask-pilot",
+  "summary": {
+    "criterion_years": [
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "delta_mean_adapt_minus_base": 0.0064357967487345125,
+    "delta_mean_adapt_minus_base_pp": 0.6435796748734512,
+    "delta_mean_adapt_minus_drop20": 0.002326891487518079,
+    "delta_mean_adapt_minus_drop20_pp": 0.2326891487518079,
+    "mean_f1_adapt": 0.823418825465054,
+    "mean_f1_base": 0.8169830287163194,
+    "mean_f1_drop20": 0.8210919339775359,
+    "negative_years_2018_2023_vs_base": [],
+    "positive_years_2018_2023_vs_base": [
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023"
+    ]
+  },
+  "ts": "2026-10-20T05:08:48.928688Z"
+}
