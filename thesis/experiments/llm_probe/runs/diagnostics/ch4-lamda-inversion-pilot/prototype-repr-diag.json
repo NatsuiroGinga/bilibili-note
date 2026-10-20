@@ -1,0 +1,75 @@
+{
+  "schema_version": "ch4-prototype-repr-diag-v1",
+  "model": "/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-inversion-pilot/replay-model.pt",
+  "targets": [
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "cap_per_year": 1000,
+  "results": [
+    {
+      "year": 2020,
+      "n_test": 20415,
+      "n_pos": 9271,
+      "n_alert_mlp": 8563,
+      "mlp_f1": 0.9408994056296961,
+      "proto_only_f1_topn": 0.9408994056296961,
+      "combined_f1_topn": 0.9408994056296961,
+      "delta_combined_minus_mlp_pp": 0.0,
+      "proto_auc": 0.9874586153257311
+    },
+    {
+      "year": 2021,
+      "n_test": 16231,
+      "n_pos": 7125,
+      "n_alert_mlp": 6339,
+      "mlp_f1": 0.9298871063576946,
+      "proto_only_f1_topn": 0.9300356506238859,
+      "combined_f1_topn": 0.9300356506238859,
+      "delta_combined_minus_mlp_pp": 0.014854426619137495,
+      "proto_auc": 0.9897502861040148
+    },
+    {
+      "year": 2022,
+      "n_test": 17284,
+      "n_pos": 8330,
+      "n_alert_mlp": 7471,
+      "mlp_f1": 0.9381684703499779,
+      "proto_only_f1_topn": 0.9381684703499779,
+      "combined_f1_topn": 0.9381684703499779,
+      "delta_combined_minus_mlp_pp": 0.0,
+      "proto_auc": 0.9926527836955644
+    },
+    {
+      "year": 2023,
+      "n_test": 10871,
+      "n_pos": 1578,
+      "n_alert_mlp": 1120,
+      "mlp_f1": 0.8243143068939955,
+      "proto_only_f1_topn": 0.8243143068939955,
+      "combined_f1_topn": 0.8243143068939955,
+      "delta_combined_minus_mlp_pp": 0.0,
+      "proto_auc": 0.9775802261729362
+    },
+    {
+      "year": 2024,
+      "n_test": 9686,
+      "n_pos": 159,
+      "n_alert_mlp": 97,
+      "mlp_f1": 0.7421875,
+      "proto_only_f1_topn": 0.7421875,
+      "combined_f1_topn": 0.7421875,
+      "delta_combined_minus_mlp_pp": 0.0,
+      "proto_auc": 0.9446683474243676
+    }
+  ],
+  "criteria": {
+    "n_support_years": 0,
+    "support": false,
+    "falsify": false,
+    "verdict": "mixed"
+  }
+}

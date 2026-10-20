@@ -1,0 +1,89 @@
+{
+  "schema_version": "ch4-knn-head-diag-v1",
+  "model": "/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-inversion-pilot/replay-model.pt",
+  "targets": [
+    2020,
+    2021,
+    2022,
+    2023,
+    2024
+  ],
+  "cap_per_year": 1000,
+  "ks": [
+    16,
+    64
+  ],
+  "results": [
+    {
+      "year": 2020,
+      "n_test": 20415,
+      "n_pos": 9271,
+      "n_alert_mlp": 8563,
+      "mlp_f1": 0.9408994056296961,
+      "knn16_auc": 0.9610090202464624,
+      "combined16_f1_topn": 0.9378714814399461,
+      "delta16_combined_minus_mlp_pp": -0.3027924189749953,
+      "knn64_auc": 0.9891190789533286,
+      "combined64_f1_topn": 0.9447123472019737,
+      "delta64_combined_minus_mlp_pp": 0.38129415722776283
+    },
+    {
+      "year": 2021,
+      "n_test": 16231,
+      "n_pos": 7125,
+      "n_alert_mlp": 6339,
+      "mlp_f1": 0.9298871063576946,
+      "knn16_auc": 0.8358478042239356,
+      "combined16_f1_topn": 0.8818687430478309,
+      "delta16_combined_minus_mlp_pp": -4.801836330986364,
+      "knn64_auc": 0.9847317018661303,
+      "combined64_f1_topn": 0.92825311942959,
+      "delta64_combined_minus_mlp_pp": -0.16339869281045694
+    },
+    {
+      "year": 2022,
+      "n_test": 17284,
+      "n_pos": 8330,
+      "n_alert_mlp": 7471,
+      "mlp_f1": 0.9381684703499779,
+      "knn16_auc": 0.9116527558086,
+      "combined16_f1_topn": 0.9367761534080121,
+      "delta16_combined_minus_mlp_pp": -0.13923169419657322,
+      "knn64_auc": 0.993148863297832,
+      "combined64_f1_topn": 0.9413328270362635,
+      "delta64_combined_minus_mlp_pp": 0.3164356686285674
+    },
+    {
+      "year": 2023,
+      "n_test": 10871,
+      "n_pos": 1578,
+      "n_alert_mlp": 1120,
+      "mlp_f1": 0.8243143068939955,
+      "knn16_auc": 0.8938461932929334,
+      "combined16_f1_topn": 0.7906632085957762,
+      "delta16_combined_minus_mlp_pp": -3.365109829821933,
+      "knn64_auc": 0.9683297675438003,
+      "combined64_f1_topn": 0.8131949592290586,
+      "delta64_combined_minus_mlp_pp": -1.111934766493694
+    },
+    {
+      "year": 2024,
+      "n_test": 9686,
+      "n_pos": 159,
+      "n_alert_mlp": 97,
+      "mlp_f1": 0.7421875,
+      "knn16_auc": 0.8518550059315035,
+      "combined16_f1_topn": 0.6328125,
+      "delta16_combined_minus_mlp_pp": -10.9375,
+      "knn64_auc": 0.9287117117652378,
+      "combined64_f1_topn": 0.6953125,
+      "delta64_combined_minus_mlp_pp": -4.6875
+    }
+  ],
+  "criteria": {
+    "k_support_years": 0,
+    "support": false,
+    "falsify": false,
+    "verdict": "mixed"
+  }
+}

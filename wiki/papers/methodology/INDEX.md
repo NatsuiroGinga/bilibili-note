@@ -287,6 +287,34 @@ tags:
 - **[[2019-Cao-LDAM标签分布感知间隔|Cao et al. 2019：LDAM + DRW]]**（NeurIPS 2019，arXiv:1906.07413）— 类相关间隔 \(\Delta_j=C/n_j^{1/4}\)（Eq. 12–13，物理第 5 页）与**延迟再平衡**（Algorithm 1，第 6 页）；早期重采样/重加权会损害特征（§3.3）。**M2 启用时点的关键证据**：全程平衡可能不如「先自然训练、后退火期平衡」。
 - **[[2020-Kang-长尾解耦表示与分类器|Kang et al. 2020：Decoupling]]**（ICLR 2020，arXiv:1910.09217）— 采样概率 \(p_j\propto n_j^q\)（Eq. 1，物理第 3 页），**实例平衡（q=1）学表示、分类器再平衡（cRT/NCM/τ-normalization）**；ImageNet-LT ResNeXt-50：Joint `44.4`、NCM `47.3`、cRT `49.5`（Table 2，第 7 页）。**对 M2 的最强反证/替代方案**：表示学习阶段用自然分布可能更好，类别不平衡应主要在决策边界处理；NCM 同时是 M1 的低成本强基线。
 
+## 分类器再平衡、先验校正与延迟重加权（2026-10-20 新增，PAAT M2'）
+
+原件在 `raw/papers/methodology/`。本节回答「全程平衡采样失败后，如何在分类器/决策边界层面再平衡」，以及这些方法的 label shift 前提边界。检索与入库检查点见 `.Codex/docs/2026-10-20-cRT长尾再平衡文献/`。
+
+### 静态长尾的直接方法
+
+- **[[2020-Kang-长尾解耦表示与分类器|Kang et al. 2020：Decoupling / cRT / NCM / LWS]]**（ICLR 2020，arXiv:1910.09217）— **cRT 精确协议**：第一阶段用实例平衡（自然）采样训练骨干 90 epoch；第二阶段**冻结骨干**、随机重初始化分类器 \(W,b\)，用**类平衡采样 + 交叉熵**重训 **10 epoch**，SGD 动量 0.9、batch 512、cosine 从 0.2 退火到 0（§4、§5.1，物理第 4–5 页）。ImageNet-LT ResNeXt-50：Joint `44.4`→cRT `49.5`（+5.1）；ResNet-10 `34.8`→`41.8`（+7.0）；Places-LT `30.2`→`36.7`；iNat ResNet-50 90/200 epoch `61.7/65.8`→`65.2/67.6`（Table 2–3，第 8 页）。**与 NCM 的区别**：NCM 不训练、不做平衡采样，直接取每类训练样本的均值特征做余弦/欧氏最近邻（§4，第 4 页）；NCM 在 few-shot 分片接近 cRT，但整体低于 cRT（ImageNet-LT `47.3` vs `49.5`）。
+- **[[2020-Ren-平衡元Softmax|Ren et al. 2020：Balanced Meta-Softmax]]**（NeurIPS 2020，arXiv:2007.10740；**任务下达时给的 2007.10742 是错 ID**）— Balanced Softmax 损失 \(\hat\ell=-\log(n_y e^{\eta_y}/\sum_i n_i e^{\eta_i})\)（Eq. 4，物理第 3 页），显式建模**训练/测试标签分布偏移**；CIFAR-10-LT IF200 `71.2`→`81.5`，CIFAR-100-LT `41.0`→`45.5`（Table 2，第 7 页）。**前提仍是 \(p(x\mid y)\) 不变**；二分类下等价于给正类 logit 加 \(\log(n_+/n_-)\)。
+- **[[2021-Menon-对数几率调整|Menon et al. 2021：Logit Adjustment]]**（ICLR 2021，arXiv:2007.07314）— post-hoc \(f_y-\tau\log\pi_y\)（Eq. 9，第 5 页）与 logit-adjusted loss（Eq. 10，第 6 页）；对**平衡误差** Fisher 一致（Theorem 1，第 7 页）。CIFAR-10-LT 平衡误差 `27.16`→`19.08`（post-hoc \(\tau^*\)）；ImageNet-LT `53.11`→`49.56`（Table 3，第 9 页）。**前提**：固定类条件 \(p(x\mid y)\)、只变先验 \(p(y)\)（Eq. 7–8）；\(p(x\mid y)\) 漂移时前提不成立。
+- **[[2021-Hong-LADE标签分布解耦|Hong et al. 2021：LADE / PC Softmax]]**（CVPR 2021，arXiv:2012.00321；doi:10.1109/CVPR46437.2021.00656；**任务下达时给的 2103.17084 是错 ID**）— 把长尾写成 label shift：\(p_s(x\mid y)=p_t(x\mid y)\)、\(p_s(y)\neq p_t(y)\)（§2.2、§3.1，第 2–3 页）。PC Softmax 在推理时做 \(f-\log p_s(y)+\log p_t(y)\)（Eq. 4，第 3 页），可适配任意目标先验；LADE = CE + α·LADER（Eq. 20，第 4 页）。CIFAR-100-LT IR100：Softmax `41.0`、Balanced Softmax `45.1`、PC Softmax `45.3`、LADE `45.4`（Table 2，第 6 页）；在 Forward/Backward 偏移目标上 LADE 全档最优（Table 6，第 7 页）。
+
+### 长尾 + 持续/在线学习（第二优先）
+
+- **[[2022-Liu-长尾类增量学习|Liu et al. 2022：LT-CIL 两阶段 + LWS]]**（ECCV 2022，arXiv:2210.00266）— 提出 Ordered / Shuffled LT-CIL；第二阶段类平衡采样只训练**当前任务头 + LWS**，并**冻结旧头 \(h_{1:t-1}\)**（§3.3，第 6–7 页）。CIFAR-100 Ordered 10 task：LUCIR `42.15`→`45.73`；Shuffled 5 task `35.09`→`39.40`；ImageNet-Subset Shuffled `45.80`→`52.08`（Table 1，第 9 页）。**对 M2' 的约束**：跨年度再平衡不应让修改后的分类头反传进编码器。
+- **[[2024-Raghavan-DELTA长尾在线持续学习|Raghavan et al. 2024：DELTA]]**（CVPRW 2024，arXiv:2404.04476）— 长尾在线持续学习的两阶段解耦：Stage 1 监督对比学习，Stage 2 **冻结除分类层外的所有层**，用 Equalization Loss（受 Balanced Softmax 启发，用任务内 \(P(k^t)\) 代替全局类频）（§4，第 4–5 页）。Split CIFAR-100-LT 20 task M=2K：DELTA `19.93` vs OnPRO `18.01`；10 task `22.47` vs `18.85`（Table 1，第 7 页）。**边界**：任务是新增类，不是同一标签空间的年度概念漂移；不含显式 label shift 假设。
+
+### 漂移 + 标签移位（第二优先）
+
+- **[[2023-Baby-在线标签移位|Baby et al. 2023：Online Label Shift]]**（NeurIPS 2023，arXiv:2305.19570）— \(Q_t(y)\) 任意变化、\(Q_t(x\mid y)\) 不变（§2，第 3 页）；UOLS 用 \(q_t(y)/q_0(y)\) 重加权 + 在线回归，SOLS 用加权 ERM；动态遗憾 \(\tilde O(T^{2/3}V_T^{1/3}+\sqrt{T\log|\mathcal H|})\)（Theorem 6，第 10 页）。**Appendix A（第 16 页）明确写：label shift 假设不成立则不适用。**
+- **[[2022-Tomaszewska-LIMES流式类先验漂移|Tomaszewska & Lampert 2022：LIMES]]**（ICPR 2022，arXiv:2206.05181）— 流式 class-prior shift 下只调整分类器偏置：\(b_y'=b_y+\log(q(y)/p(y))\)（Eq. 9，第 4 页）；用历史类分布外推下一时刻。geo-tweets 的日内最低准确率显著优于单模型/集成/增量训练（Table 1，第 6–7 页）。**同样假设 \(q(x\mid y)=p(x\mid y)\)。**
+
+### 汇总判断（任务结论，非论文原文）
+
+- **cRT**：冻结全部骨干层，随机重初始化分类器，类平衡采样 + CE，10 epoch（Kang §4、§5.1）。与 NCM 的区别是“是否训练分类器 + 是否改采样”。
+- **DRW**：LDAM 的 Algorithm 1（物理第 6 页）：\(t\le T_0\) 用自然 ERM；\(t>T_0\) 用 \(n_y^{-1}\) 重加权并归一化学习率。\(T_0\) 绑定**学习率退火点**而不是固定比例：CIFAR-10/100 训练 200 epoch、学习率在第 160/180 epoch 各衰减一次，Figure 3（第 10 页）明确“在 epoch 160 退火”，DRW 从此点开始 → \(T_0=160\)（0.80）；iNat 2018 训练 90 epoch、在第 30/60 epoch 退火，“从 epoch 60 开始再平衡” → \(T_0=60\)（0.667）；Tiny ImageNet 训练 120 epoch、第 90 epoch 衰减 → \(T_0=90\)（0.75）（附录 B，第 15 页）。**原文 §4 说“until the last learning rate decay”，与 CIFAR 的 160/180 两次衰减存在措辞歧义；以 Figure 3 与实现细节为准。** PAAT 的 10 epoch 年度协议若按 0.8 比例映射，可先测 \(T_0=8\)，并同时测 \(T_0=7\)/\(T_0=6\) 作为敏感性；这是**任务化假设，需实验验证**，不是论文给出的常数。
+- **前提边界**：Balanced Softmax / Logit Adjustment / LADE / OLS / LIMES 全部假设 \(p(x\mid y)\) 不变、只变 \(p(y)\)。本课题的 33.5× 采样噪声若反映类条件漂移，则这些方法只能作“先验校正基线/诊断”，不能作机制主张。
+- **「漂移 + 长尾」联合证据**：本次检索**未检得**同时满足“\(p(x\mid y)\) 漂移 + 长尾训练分布 + 分类器再平衡”的论文。LT-CIL/DELTA 是“长尾 + 序列/在线任务（新增类）”，OLS/LIMES 是“标签比例漂移 + 类条件不变”，三者的假设与本课题都不完全同构；不能用静态长尾或纯 label shift 结论冒充联合证据。检索式与候选见任务目录 `notes.md`。
+
 ## 相关索引
 
 - **[[wiki/papers/rwkv/INDEX|RWKV 论文索引]]** — 架构与网络安全证据主索引。

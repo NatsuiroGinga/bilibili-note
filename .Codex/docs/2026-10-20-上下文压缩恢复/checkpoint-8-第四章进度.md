@@ -1,0 +1,84 @@
+# 上下文压缩检查点 ⑧：第四章进度（2026-10-20，压缩前）
+
+> **工作树**：`/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908`
+> **分支**：`exp/ch3-lamda-20260908`
+> **前一份**：`checkpoint-7-第四章进度.md`（本文件取代其状态；⑦ 的“六方向否决”仍有效）
+> **DRIFT**：用户 2026-10-20 明确废弃，不再投入；DRIFT 工作树原样保留。
+
+---
+
+## 一、一句话状态
+
+**第三章已定稿（0.8170）；第四章仍无成立方法。已实测关闭十余个方向，唯一正信号是 M1（原型/对比损失）在回放底座上的 `+0.44 pp`（2023 +1.36、2024 −1.35），仍在单种子噪声内。当前唯一在跑的候选是“M1 + 延迟再平衡/cRT”；架构线（TabM/FM/FT-Transformer）为备选。**
+
+## 二、已关闭方向（全部有实测制品）
+
+| 方向 | 关键读数 | 结论 |
+|---|---|---|
+| 训练过程 LSUV | 12y `0.792402`，Δ **−2.46 pp**；复现门通过 | 否决 |
+| He / Adam / 动量 / 轮次 | +0.0035 / −0.0635 / +0.0052 / 轨迹判据否决 | 否决 |
+| 冷坐标重初始化 / 冷层阈值 | −0.216 pp；oracle +0.21 pp | 否决 |
+| 增广（dropout/adapt/swap/flip） | drop10 +0.473、drop20 +0.411、adapt +0.6436、swap 均匀 +0.3994、flip −12.63 | 均不作章级 |
+| 后验原型 / kNN | 融合 F1 = MLP（Δ≈0）；kNN k=16 多负、k=64 无一年 ≥+1.0 pp | 决策层家族关闭 |
+| **完整 PAAT（M1+M2）** | `m1m2` 12y `0.794211`（**−2.28 pp**）；2024 **−8.53 pp** | **否决（C4/C5）** |
+| **叠加到原论文** | `orig_m1m2` **−32.0 pp**；`orig_m1` **−25.25 pp**（2018 backward `0.1956`） | **否决；Ch4 不能脱离 Ch3** |
+
+## 三、唯一正信号：M1（原型/对比表示）
+
+- 定义：在回放底座上，编码器 128 维输出接投影头（128→64），历史正/负例运行原型（EMA 0.9），`L = BCE + 0.5·L_proto`，`L_proto = CE([cos_neg, cos_pos]/0.1, y)`；**M2（全程 50/50 平衡）有害，已关闭**。
+- 读数：12y `0.821339`（+0.44 pp vs base）；2023 `0.8379`（+1.36）；2024 `0.7287`（−1.35）；2013/2016/2021/2022 均 +1 pp 左右。
+- 边界：单种子 42；+0.44 pp 在噪声（0.14–1.16）内；2024 反向是明确弱点。
+- **配置空间**：`orig 0.7244 → replay 0.8170 → replay+M1 0.8213`；**没有 orig+Ch4**。
+
+## 四、用户裁决（本章必须遵守）
+
+1. **第四章 = 训练方法改进（朱式完整算法）或模型架构改进**；优化器/初始化/决策层微调不算。
+2. **必须任务化改造**，不得机械挪用其他论文的模块（ProtoNet/cRT 的直接拼装不合格）。
+3. **叠加到原论文算法**的假设已被实验否决（`orig_m1` −25.25 pp）；路由配置空间只能是 `orig / replay / replay+M1`。
+4. 参照朱的章节架构：第三、四章成果在第五章组装成系统（路由、独立开关、独立验收面）。
+
+## 五、文献状态
+
+### 已入库（本地全文＋wiki 笔记＋Zotero）
+- ProtoNet（Snell 2017）、SupCon（Khosla 2020）、ClassBalanced（Cui 2019）、LDAM（Cao 2019）、Decoupling（Kang 2020）。
+- 架构：TabM、TabR、FT-Transformer、TabTransformer 等已有本地全文（见 `thesis/methods/第四章-架构机制文献调研.md`，39 个锚点）。
+
+### 正在进行（cRT/长尾再平衡代理，未提交完）
+- 已下载：Balanced Meta-Softmax（Ren 2020）、Logit Adjustment（Menon 2021）、LADE（Hong 2021）、Long-Tailed Class-Incremental（Liu 2022）、LIMES（Tomaszewska 2022）、Online Label Shift（Baby 2023）、DELTA（Raghavan 2024）。
+- 待完成：notes.md、部分 wiki 笔记、INDEX 同步、cRT 精确协议与“漂移+长尾”证据的结论。
+- **FM/PNN 仍只有题录**；只有决定走 FM 架构时才需补全文。
+
+## 六、理论状态
+
+- Opus 理论代理仍在运行，`thesis/methods/第四章-PAAT理论推导.md` **尚未写出**。
+- 已向其提供六臂＋`orig_m1` 读数；要求解释：M1 有益、M2 早期平衡有害、组合负交互、M1 依赖回放、延迟 cRT 的条件；不得为配合结果编定理。
+
+## 七、下一步（按序）
+
+1. **等 cRT 文献回收**：确认 cRT/DRW 的精确协议、以及 Logit Adjustment 的 label-shift 前提在 `p(x|y)` 漂移下是否成立。
+2. **实现并跑 `M1 + 延迟再平衡（cRT/DRW）`**（回放底座；顺序两阶段，不并发；预算感知，最后 2 轮或年度末短阶段）。
+3. **任务化改造的硬消融**（防止机械挪用）：
+   - 通用 M1 vs **DAP**（年度加权原型、稀疏活跃坐标相似度、样本量权重）——DAP 须在 2024 ≥ 通用 M1 + 1.0 pp，否则任务化无效；
+   - 通用 cRT vs **ABC**（观测正例率 + 年度加权类平衡）——ABC 须在 2024 ≥ 通用 cRT + 0.5 pp；
+   - 完整 DAP+ABC 须显著优于通用组合。
+4. **判据**：DAP+ABC 在 2023/2024 均 ≥ base +1.0 pp、12y ≥ base −0.2 pp；否则训练方法线收口。
+5. **备选（架构）**：TabM（本地全文，最优先）→ FM/PNN（需补全文）→ FT-Transformer。
+
+## 八、关键文件
+
+- 第三章正文：`thesis/chapters/第三章-LAMDA/3.3-方法框架设计.md`（预算切分＋复用配置）、`3.4-算法实现与模型适配.md`（算法 3-1）、`3.5/3.6`（理论/实验）。
+- 第三章代码：`thesis/experiments/llm_probe/tools/ch3_lamda_domain_il_e4.py`（`split_by_year`/`reuse_by_deficit`）。
+- PAAT：`thesis/methods/第四章-原型锚定年度训练算法（PAAT）方案.md`；实验 `runs/diagnostics/ch4-lamda-paat-pilot/`（六臂＋orig_m1＋comparison）。
+- 倒置：`runs/diagnostics/ch4-lamda-inversion-pilot/`（naive/head/replay/head_replay/prototype/kNN）。
+- 文献报告：`thesis/methods/第四章-架构机制文献调研.md`；PAAT 文献任务 `.Codex/docs/2026-10-20-PAAT文献入库/`；cRT 任务 `.Codex/docs/2026-10-20-cRT长尾再平衡文献/`。
+- 决策文档：`thesis/methods/第四章-候选方向比较与选择.md`、`第四章-选题靶子判据.md`、`第五章-第三四章成果集成方式（照参照论文第五章）.md`。
+
+## 九、安全事项（未完成）
+
+- **Zotero API key 必须在历史中轮换**（6 个历史提交）；`Zotero.txt` 已停止跟踪并加入 `.gitignore`，但历史仍在。
+- 服务器密码轮换：用户待办。
+
+## 十、本轮提交与远程
+
+- 本检查点与 cRT 文献、诊断 JSON 一并提交；分支 `exp/ch3-lamda-20260908` 推送 origin（28+ 个提交）。
+- 若 cRT/理论代理在压缩后继续写入，下一次同步需再提交它们的剩余产物。
