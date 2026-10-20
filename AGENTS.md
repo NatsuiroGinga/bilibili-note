@@ -58,6 +58,14 @@
 - 在线题录、摘要、Google Scholar、OpenAlex、Semantic Scholar、Crossref、Hugging Face 和代码仓库只作候选发现；没有 `raw/` 原件与 `wiki/` 全文笔记的来源不得升级为全文证据，正式纳入时执行 `raw/AGENTS.md` 与 `wiki/AGENTS.md`。
 - 首次用第三方库或接口不确定时，核验目标版本并查官方文档或 Context7，记录库、版本、来源和签名。语法/导入通过不能证明运行时接口存在，事故细节留专用手册。
 
+### Google Scholar 检索入口（scholar CLI，2026-10-20 用户裁决）
+
+- **工具与认证**：`scholar` CLI（`~/.local/bin/scholar`，技能 `mcpmarket-me:google-scholar`）；首次使用或报认证错误时运行 `scholar auth --port 9222`，从已开启远程调试的 Chrome 提取 cookies，存储于 `~/.google-scholar/cookies`（0600）。
+- **命令**：自然语言问题用 `scholar search "<问题>"`（配 `--json` 便于解析，配 `--bibtex` 取得题录）；关键词或作者检索用 `scholar lookup "<关键词|author:名>"`；已有 cluster ID 时用 `scholar cite <id> --json` 直取元数据；开放获取 PDF 加 `--download`，付费墙论文只返回 URL 交用户手动下载。
+- **铁律：禁止凭记忆写论文题名、作者、期刊、年份或摘要。** 引用任何论文前必须先由 `--bibtex` 或 `scholar cite` 取得元数据，只呈现实际返回的字段；缺失字段写“不可得”，不得用记忆补全。
+- **证据定位**：scholar 返回一律是**外部候选**。正式纳入仍走 `raw/` 原件与 `wiki/` 结构化全文笔记入库流程；未取得全文的来源不得支撑正文论断、候选存废或研究裁决。本地混合索引（`scripts/literature_search`）仍是第一步，仅在本地证据不足时用 scholar 做外部扩展。
+- **频控**：Google Scholar 会对快速连续查询限流；一次会话同一主题 ≤3 条命令，命中不足时改写查询或回到本地索引，不得连续重试。
+
 ## 协作代理独立复核
 
 - 协作代理的计划、代码、审查、状态和结论一律视为待核候选，不因措辞完整、自报 `READY`、静态检查通过或已提交而自动接受；主代理结合当前合同和原始证据独立判断，可采纳、修正或否决。
