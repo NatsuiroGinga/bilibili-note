@@ -1,0 +1,239 @@
+{
+  "base_gate": {
+    "abs_delta": 0.0,
+    "expected": 0.8169830287163194,
+    "observed": 0.8169830287163194,
+    "passed": true
+  },
+  "cold_stats_per_year": {
+    "2013": {
+      "applied": false,
+      "cold_count": 1872,
+      "cur_std": 0.008554515428841114,
+      "factor": 25.038643754848405,
+      "input_dim": 4561,
+      "p": 0.00955779020085451,
+      "target_std": 0.21419346431810687,
+      "year": 2013
+    },
+    "2014": {
+      "applied": true,
+      "cold_count": 237,
+      "cur_std": 0.008547309786081314,
+      "factor": 24.678484091154246,
+      "input_dim": 4561,
+      "p": 0.009855395922172296,
+      "target_std": 0.21093464857797473,
+      "year": 2014
+    },
+    "2016": {
+      "applied": true,
+      "cold_count": 877,
+      "cur_std": 0.008529532700777054,
+      "factor": 23.12766728657909,
+      "input_dim": 4561,
+      "p": 0.011268232112941147,
+      "target_std": 0.19726819441356808,
+      "year": 2016
+    },
+    "2017": {
+      "applied": true,
+      "cold_count": 277,
+      "cur_std": 0.008534133434295654,
+      "factor": 22.148249163936732,
+      "input_dim": 4561,
+      "p": 0.012273608448728998,
+      "target_std": 0.18901611370106325,
+      "year": 2017
+    },
+    "2018": {
+      "applied": true,
+      "cold_count": 466,
+      "cur_std": 0.008543149568140507,
+      "factor": 20.922458902666683,
+      "input_dim": 4561,
+      "p": 0.013724876869233264,
+      "target_std": 0.17874369573875437,
+      "year": 2018
+    },
+    "2019": {
+      "applied": true,
+      "cold_count": 212,
+      "cur_std": 0.008553449995815754,
+      "factor": 19.187909273102747,
+      "input_dim": 4561,
+      "p": 0.016279159158161242,
+      "target_std": 0.16412282249173377,
+      "year": 2019
+    },
+    "2020": {
+      "applied": true,
+      "cold_count": 188,
+      "cur_std": 0.008548055775463581,
+      "factor": 18.959778340235864,
+      "input_dim": 4561,
+      "p": 0.016694319373711682,
+      "target_std": 0.1620692427427625,
+      "year": 2020
+    },
+    "2021": {
+      "applied": true,
+      "cold_count": 181,
+      "cur_std": 0.00854172557592392,
+      "factor": 16.922732675953363,
+      "input_dim": 4561,
+      "p": 0.020986388402443018,
+      "target_std": 0.14454933851271426,
+      "year": 2021
+    },
+    "2022": {
+      "applied": true,
+      "cold_count": 99,
+      "cur_std": 0.008565004914999008,
+      "factor": 17.205709247978696,
+      "input_dim": 4561,
+      "p": 0.020191544062971824,
+      "target_std": 0.1473669842749814,
+      "year": 2022
+    },
+    "2023": {
+      "applied": true,
+      "cold_count": 120,
+      "cur_std": 0.008564445190131664,
+      "factor": 15.15584605041902,
+      "input_dim": 4561,
+      "p": 0.026026219270141652,
+      "target_std": 0.12980141280888716,
+      "year": 2023
+    },
+    "2024": {
+      "applied": true,
+      "cold_count": 32,
+      "cur_std": 0.008556216955184937,
+      "factor": 14.328349239780866,
+      "input_dim": 4561,
+      "p": 0.029175212641844164,
+      "target_std": 0.12259646470522424,
+      "year": 2024
+    },
+    "2025": {
+      "applied": false,
+      "cold_count": 0,
+      "cur_std": null,
+      "factor": 1.0,
+      "input_dim": 4561,
+      "p": 0.029262005664668255,
+      "target_std": 0.12241451511977379,
+      "year": 2025
+    }
+  },
+  "comparison_arm": "coldinit",
+  "delta_mean_f1_coldinit_minus_base": -0.00215753246510908,
+  "mean_f1_base": 0.8169830287163194,
+  "mean_f1_coldinit": 0.8148254962512104,
+  "notes": [
+    "ΔF1 = coldinit − base，单种子 42，未做多种子训练。",
+    "本文件只报告材料性先导读数，不作机制定案。"
+  ],
+  "per_year": {
+    "2013": {
+      "delta_coldinit_minus_base": 0.009714571886605405,
+      "f1_base": 0.9121379759192971,
+      "f1_coldinit": 0.9218525478059025
+    },
+    "2014": {
+      "delta_coldinit_minus_base": 0.004639653680193034,
+      "f1_base": 0.9076352694642953,
+      "f1_coldinit": 0.9122749231444883
+    },
+    "2016": {
+      "delta_coldinit_minus_base": 0.00042184732240757583,
+      "f1_base": 0.8779861576244697,
+      "f1_coldinit": 0.8784080049468773
+    },
+    "2017": {
+      "delta_coldinit_minus_base": -0.0005613528639331067,
+      "f1_base": 0.9060695344725987,
+      "f1_coldinit": 0.9055081816086656
+    },
+    "2018": {
+      "delta_coldinit_minus_base": -0.01989665847684663,
+      "f1_base": 0.8885175778639219,
+      "f1_coldinit": 0.8686209193870753
+    },
+    "2019": {
+      "delta_coldinit_minus_base": -0.01149857461885917,
+      "f1_base": 0.9359930400198857,
+      "f1_coldinit": 0.9244944654010265
+    },
+    "2020": {
+      "delta_coldinit_minus_base": -0.0014834695081928917,
+      "f1_base": 0.9408994056296961,
+      "f1_coldinit": 0.9394159361215032
+    },
+    "2021": {
+      "delta_coldinit_minus_base": 0.005097413766144476,
+      "f1_base": 0.9298871063576946,
+      "f1_coldinit": 0.934984520123839
+    },
+    "2022": {
+      "delta_coldinit_minus_base": 0.004659888798744016,
+      "f1_base": 0.9381684703499779,
+      "f1_coldinit": 0.9428283591487219
+    },
+    "2023": {
+      "delta_coldinit_minus_base": 0.0014683818721186181,
+      "f1_base": 0.8243143068939955,
+      "f1_coldinit": 0.8257826887661142
+    },
+    "2024": {
+      "delta_coldinit_minus_base": -0.018452091439688734,
+      "f1_base": 0.7421875,
+      "f1_coldinit": 0.7237354085603113
+    },
+    "2025": {
+      "delta_coldinit_minus_base": 0.0,
+      "f1_base": 0.0,
+      "f1_coldinit": 0.0
+    }
+  },
+  "public_protocol": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "deficit_gamma": 1.0,
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "evaluate_fn": "ch3.evaluate",
+    "lr": 0.01,
+    "memory": 200,
+    "model": "ch3.ChenEncoderMLP",
+    "momentum": 0.9,
+    "optimizer_lifetime": "per_year_rebuild_inside_ch3.train_epochs",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "rng_streams": "train_rng=default_rng(SEED); buf_rng=default_rng(SEED)（各臂同序消费）",
+    "score_fn": "ch3.score_shard",
+    "seed": 42,
+    "strategy": "expreplay",
+    "threshold": 0.5,
+    "train_fn": "ch3.train_epochs",
+    "weight_decay": 1e-06
+  },
+  "reference_arm": "base",
+  "run_name": "ch4-lamda-cold-init-pilot",
+  "ts": "2026-10-20T04:10:32.754164Z"
+}
