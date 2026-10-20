@@ -1,0 +1,63 @@
+{
+  "arm": "lsuv",
+  "mean_f1": 0.7924017650868382,
+  "per_year": {
+    "2013": 0.905298698469749,
+    "2014": 0.9033715115341184,
+    "2016": 0.8740139476391906,
+    "2017": 0.8762364294330519,
+    "2018": 0.8264699563131133,
+    "2019": 0.9136320305052431,
+    "2020": 0.9155319639972306,
+    "2021": 0.9046275825264923,
+    "2022": 0.8968468171943914,
+    "2023": 0.7992438563327032,
+    "2024": 0.6935483870967742,
+    "2025": 0.0
+  },
+  "lsuv_records": [
+    {
+      "layer_index": 0,
+      "layer": "Linear(in_features=4561, out_features=512, bias=True)",
+      "final_output_std": 1.0,
+      "iters_used": 2
+    },
+    {
+      "layer_index": 1,
+      "layer": "Linear(in_features=512, out_features=384, bias=True)",
+      "final_output_std": 0.9999998807907104,
+      "iters_used": 2
+    },
+    {
+      "layer_index": 2,
+      "layer": "Linear(in_features=384, out_features=256, bias=True)",
+      "final_output_std": 1.0,
+      "iters_used": 2
+    },
+    {
+      "layer_index": 3,
+      "layer": "Linear(in_features=256, out_features=128, bias=True)",
+      "final_output_std": 1.0,
+      "iters_used": 2
+    },
+    {
+      "layer_index": 4,
+      "layer": "Linear(in_features=128, out_features=100, bias=True)",
+      "final_output_std": 0.9999999403953552,
+      "iters_used": 2
+    },
+    {
+      "layer_index": 5,
+      "layer": "Linear(in_features=100, out_features=100, bias=True)",
+      "final_output_std": 0.9999999403953552,
+      "iters_used": 2
+    },
+    {
+      "layer_index": 6,
+      "layer": "Linear(in_features=100, out_features=1, bias=True)",
+      "final_output_std": 1.0,
+      "iters_used": 2
+    }
+  ],
+  "wall_seconds": 193.5
+}
