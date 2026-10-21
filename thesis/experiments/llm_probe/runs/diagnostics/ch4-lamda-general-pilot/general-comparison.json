@@ -1,0 +1,101 @@
+{
+  "schema_version": "ch4-general-pilot-comparison-v1",
+  "k_curve": [
+    {
+      "k": 2,
+      "arm": "k2",
+      "mean_f1": 0.8147754575556311,
+      "f1_2023": 0.8192322027581066,
+      "f1_2024": 0.7091633466135459,
+      "n_params": 2705299,
+      "wall_seconds": 433.0,
+      "source": "ch4-lamda-general-pilot/k2-result.json"
+    },
+    {
+      "k": 4,
+      "arm": "tabm4",
+      "mean_f1": 0.832346367494066,
+      "f1_2023": 0.8681241184767278,
+      "f1_2024": 0.7703703703703704,
+      "n_params": 2723305,
+      "wall_seconds": 822.4,
+      "source": "ch4-lamda-tabm-pilot/tabm4-result.json"
+    },
+    {
+      "k": 8,
+      "arm": "tabm8",
+      "mean_f1": 0.829245656012021,
+      "f1_2023": 0.865979381443299,
+      "f1_2024": 0.7575757575757576,
+      "n_params": 2759317,
+      "wall_seconds": 1591.3,
+      "source": "ch4-lamda-tabm-pilot/tabm8-result.json"
+    }
+  ],
+  "k_curve_direction": {
+    "k_order": [
+      2,
+      4,
+      8
+    ],
+    "mean_f1": [
+      0.8147754575556311,
+      0.832346367494066,
+      0.829245656012021
+    ],
+    "label": "non_monotonic",
+    "criterion": "预登记仅登记方向，不作支持/否决判定"
+  },
+  "width_variant": {
+    "arm": "halfwidth",
+    "k": 4,
+    "encoder_widths": [
+      256,
+      192,
+      128,
+      64
+    ],
+    "head_widths": [
+      64,
+      64,
+      1
+    ],
+    "uniform_reference": "tabm4（512/384/256/128，头 100/100/1）",
+    "delta_mean12_pp": -0.6140552817575418,
+    "delta_2023_pp": -1.3859994691193367,
+    "delta_2024_pp": -2.7075351213282195,
+    "n_params": 1286029,
+    "uniform_n_params": 2723305,
+    "param_ratio": 0.4722309840432856,
+    "wall_seconds": 481.5,
+    "uniform_wall_seconds": 822.4,
+    "criterion": "预登记仅登记与 uniform 的 12y 差，不作支持/否决判定"
+  },
+  "efficiency": {
+    "k2": {
+      "n_params": 2705299,
+      "wall_seconds": 433.0,
+      "sampled_peak_current_allocated_bytes": 31449600,
+      "sampled_peak_driver_allocated_bytes": 1146224640,
+      "before_training_driver_allocated_bytes": 42352640,
+      "after_training_driver_allocated_bytes": 1144127488
+    },
+    "halfwidth": {
+      "n_params": 1286029,
+      "wall_seconds": 481.5,
+      "sampled_peak_current_allocated_bytes": 19728896,
+      "sampled_peak_driver_allocated_bytes": 1146028032,
+      "before_training_driver_allocated_bytes": 42352640,
+      "after_training_driver_allocated_bytes": 1143930880
+    },
+    "tabm4(reference)": {
+      "n_params": 2723305,
+      "wall_seconds": 822.4,
+      "sampled_peak_current_allocated_bytes": null,
+      "sampled_peak_driver_allocated_bytes": null,
+      "note": "既有制品未采显存，仅登记参数与墙钟"
+    }
+  },
+  "registration_note": "k 曲线三点（2/4/8）与宽度对照均为预登记通用性登记项；只登记方向与差值，不作支持/否决判定",
+  "ts": "2026-10-21T10:02:41.066469+00:00"
+}
