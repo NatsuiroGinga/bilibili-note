@@ -1,0 +1,461 @@
+===== 2026-10-21T07:15:01Z START train_single =====
+[arm] train_single kind=D0 lambda=None k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5
+[model] k=4 params=2,723,305
+[parts] 2013: rows=69,144 pos=35,506 pos_rate=0.5135 probe_rows=4,096
+[train_single][train] 2013 epoch=1/10 bce_selected=0.692841 bce_all_members=0.692851 probe_dis=0.000000 probe_std=0.001991 draws=[14, 17, 17, 20] n_batches=68
+[train_single][train] 2013 epoch=2/10 bce_selected=0.692647 bce_all_members=0.692633 probe_dis=0.000000 probe_std=0.000807 draws=[30, 32, 37, 37] n_batches=68
+[train_single][train] 2013 epoch=3/10 bce_selected=0.692554 bce_all_members=0.692548 probe_dis=0.000000 probe_std=0.001352 draws=[46, 55, 51, 52] n_batches=68
+[train_single][train] 2013 epoch=4/10 bce_selected=0.692459 bce_all_members=0.692448 probe_dis=0.000000 probe_std=0.000555 draws=[63, 75, 69, 65] n_batches=68
+[train_single][train] 2013 epoch=5/10 bce_selected=0.692326 bce_all_members=0.692324 probe_dis=0.000000 probe_std=0.001157 draws=[79, 96, 84, 81] n_batches=68
+[train_single][train] 2013 epoch=6/10 bce_selected=0.692157 bce_all_members=0.692146 probe_dis=0.000000 probe_std=0.001453 draws=[98, 113, 97, 100] n_batches=68
+[train_single][train] 2013 epoch=7/10 bce_selected=0.691851 bce_all_members=0.691884 probe_dis=0.000000 probe_std=0.002557 draws=[118, 126, 115, 117] n_batches=68
+[train_single][train] 2013 epoch=8/10 bce_selected=0.691479 bce_all_members=0.691470 probe_dis=0.000000 probe_std=0.001740 draws=[138, 143, 127, 136] n_batches=68
+[train_single][train] 2013 epoch=9/10 bce_selected=0.690730 bce_all_members=0.690716 probe_dis=0.000000 probe_std=0.001767 draws=[153, 154, 144, 161] n_batches=68
+[train_single][train] 2013 epoch=10/10 bce_selected=0.689156 bce_all_members=0.689164 probe_dis=0.000000 probe_std=0.002066 draws=[168, 171, 166, 175] n_batches=68
+[2013] current_f1=0.6786 (72s)
+[parts] 2014: rows=81,346 pos=36,805 pos_rate=0.4525 probe_rows=4,096
+[train_single][train] 2014 epoch=1/10 bce_selected=0.683899 bce_all_members=0.683980 probe_dis=0.000000 probe_std=0.003281 draws=[19, 15, 24, 22] n_batches=80
+[train_single][train] 2014 epoch=2/10 bce_selected=0.662033 bce_all_members=0.662182 probe_dis=0.060954 probe_std=0.008261 draws=[42, 31, 42, 45] n_batches=80
+[train_single][train] 2014 epoch=3/10 bce_selected=0.456144 bce_all_members=0.460314 probe_dis=0.062052 probe_std=0.054238 draws=[69, 43, 63, 65] n_batches=80
+[train_single][train] 2014 epoch=4/10 bce_selected=0.380659 bce_all_members=0.368905 probe_dis=0.054565 probe_std=0.045106 draws=[85, 67, 90, 78] n_batches=80
+[train_single][train] 2014 epoch=5/10 bce_selected=0.247350 bce_all_members=0.247232 probe_dis=0.037516 probe_std=0.030918 draws=[105, 86, 111, 98] n_batches=80
+[train_single][train] 2014 epoch=6/10 bce_selected=0.242176 bce_all_members=0.237618 probe_dis=0.031169 probe_std=0.025210 draws=[121, 107, 129, 123] n_batches=80
+[train_single][train] 2014 epoch=7/10 bce_selected=0.210978 bce_all_members=0.207348 probe_dis=0.031047 probe_std=0.024493 draws=[137, 126, 155, 142] n_batches=80
+[train_single][train] 2014 epoch=8/10 bce_selected=0.181166 bce_all_members=0.180539 probe_dis=0.023844 probe_std=0.022520 draws=[154, 145, 174, 167] n_batches=80
+[train_single][train] 2014 epoch=9/10 bce_selected=0.196896 bce_all_members=0.187025 probe_dis=0.083089 probe_std=0.064975 draws=[171, 168, 195, 186] n_batches=80
+[train_single][train] 2014 epoch=10/10 bce_selected=0.198369 bce_all_members=0.197474 probe_dis=0.059163 probe_std=0.048538 draws=[192, 192, 209, 207] n_batches=80
+[2014] current_f1=0.9385 (78s)
+[parts] 2016: rows=87,754 pos=36,307 pos_rate=0.4137 probe_rows=4,096
+[train_single][train] 2016 epoch=1/10 bce_selected=0.303317 bce_all_members=0.300980 probe_dis=0.033691 probe_std=0.028491 draws=[29, 24, 16, 17] n_batches=86
+[train_single][train] 2016 epoch=2/10 bce_selected=0.226093 bce_all_members=0.227038 probe_dis=0.041870 probe_std=0.033530 draws=[55, 40, 41, 36] n_batches=86
+[train_single][train] 2016 epoch=3/10 bce_selected=0.222564 bce_all_members=0.218134 probe_dis=0.048991 probe_std=0.039439 draws=[72, 56, 67, 63] n_batches=86
+[train_single][train] 2016 epoch=4/10 bce_selected=0.236218 bce_all_members=0.247372 probe_dis=0.124674 probe_std=0.092843 draws=[97, 86, 83, 78] n_batches=86
+[train_single][train] 2016 epoch=5/10 bce_selected=0.230488 bce_all_members=0.231537 probe_dis=0.042074 probe_std=0.035249 draws=[123, 105, 104, 98] n_batches=86
+[train_single][train] 2016 epoch=6/10 bce_selected=0.183555 bce_all_members=0.184923 probe_dis=0.027222 probe_std=0.022644 draws=[147, 126, 120, 123] n_batches=86
+[train_single][train] 2016 epoch=7/10 bce_selected=0.175105 bce_all_members=0.170769 probe_dis=0.048950 probe_std=0.040814 draws=[160, 156, 147, 139] n_batches=86
+[train_single][train] 2016 epoch=8/10 bce_selected=0.173021 bce_all_members=0.169255 probe_dis=0.033325 probe_std=0.028579 draws=[173, 178, 171, 166] n_batches=86
+[train_single][train] 2016 epoch=9/10 bce_selected=0.172843 bce_all_members=0.171457 probe_dis=0.037720 probe_std=0.033372 draws=[197, 201, 191, 185] n_batches=86
+[train_single][train] 2016 epoch=10/10 bce_selected=0.181839 bce_all_members=0.180511 probe_dis=0.030233 probe_std=0.026602 draws=[225, 223, 207, 205] n_batches=86
+[2016] current_f1=0.9384 (81s)
+[parts] 2017: rows=79,711 pos=17,285 pos_rate=0.2168 probe_rows=4,096
+[train_single][train] 2017 epoch=1/10 bce_selected=0.269420 bce_all_members=0.267933 probe_dis=0.028442 probe_std=0.028583 draws=[18, 22, 20, 18] n_batches=78
+[train_single][train] 2017 epoch=2/10 bce_selected=0.137427 bce_all_members=0.138916 probe_dis=0.017008 probe_std=0.019474 draws=[43, 47, 33, 33] n_batches=78
+[train_single][train] 2017 epoch=3/10 bce_selected=0.122380 bce_all_members=0.123714 probe_dis=0.017375 probe_std=0.019444 draws=[62, 67, 46, 59] n_batches=78
+[train_single][train] 2017 epoch=4/10 bce_selected=0.114169 bce_all_members=0.114604 probe_dis=0.012004 probe_std=0.014330 draws=[78, 87, 64, 83] n_batches=78
+[train_single][train] 2017 epoch=5/10 bce_selected=0.108001 bce_all_members=0.107077 probe_dis=0.013631 probe_std=0.015554 draws=[99, 103, 84, 104] n_batches=78
+[train_single][train] 2017 epoch=6/10 bce_selected=0.111497 bce_all_members=0.109341 probe_dis=0.015544 probe_std=0.017301 draws=[121, 122, 99, 126] n_batches=78
+[train_single][train] 2017 epoch=7/10 bce_selected=0.097552 bce_all_members=0.097313 probe_dis=0.012736 probe_std=0.012306 draws=[143, 139, 115, 149] n_batches=78
+[train_single][train] 2017 epoch=8/10 bce_selected=0.103146 bce_all_members=0.103276 probe_dis=0.010457 probe_std=0.011403 draws=[164, 156, 135, 169] n_batches=78
+[train_single][train] 2017 epoch=9/10 bce_selected=0.118124 bce_all_members=0.110516 probe_dis=0.015381 probe_std=0.016708 draws=[180, 177, 161, 184] n_batches=78
+[train_single][train] 2017 epoch=10/10 bce_selected=0.103464 bce_all_members=0.104309 probe_dis=0.013224 probe_std=0.011800 draws=[203, 202, 174, 201] n_batches=78
+[2017] current_f1=0.9398 (75s)
+[parts] 2018: rows=83,833 pos=31,680 pos_rate=0.3779 probe_rows=4,096
+[train_single][train] 2018 epoch=1/10 bce_selected=0.217596 bce_all_members=0.218063 probe_dis=0.031087 probe_std=0.031274 draws=[19, 18, 20, 25] n_batches=82
+[train_single][train] 2018 epoch=2/10 bce_selected=0.204947 bce_all_members=0.208511 probe_dis=0.066528 probe_std=0.070515 draws=[41, 36, 40, 47] n_batches=82
+[train_single][train] 2018 epoch=3/10 bce_selected=0.216883 bce_all_members=0.225186 probe_dis=0.022176 probe_std=0.024803 draws=[70, 53, 56, 67] n_batches=82
+[train_single][train] 2018 epoch=4/10 bce_selected=0.165962 bce_all_members=0.165126 probe_dis=0.020304 probe_std=0.022498 draws=[85, 74, 77, 92] n_batches=82
+[train_single][train] 2018 epoch=5/10 bce_selected=0.154410 bce_all_members=0.154496 probe_dis=0.019531 probe_std=0.022729 draws=[109, 95, 92, 114] n_batches=82
+[train_single][train] 2018 epoch=6/10 bce_selected=0.197610 bce_all_members=0.199967 probe_dis=0.023438 probe_std=0.024142 draws=[129, 115, 115, 133] n_batches=82
+[train_single][train] 2018 epoch=7/10 bce_selected=0.166645 bce_all_members=0.166443 probe_dis=0.015137 probe_std=0.016895 draws=[149, 135, 138, 152] n_batches=82
+[train_single][train] 2018 epoch=8/10 bce_selected=0.151666 bce_all_members=0.151689 probe_dis=0.022664 probe_std=0.026088 draws=[164, 160, 159, 173] n_batches=82
+[train_single][train] 2018 epoch=9/10 bce_selected=0.159438 bce_all_members=0.157985 probe_dis=0.022664 probe_std=0.020001 draws=[191, 176, 179, 192] n_batches=82
+[train_single][train] 2018 epoch=10/10 bce_selected=0.151223 bce_all_members=0.157603 probe_dis=0.016317 probe_std=0.019011 draws=[215, 186, 209, 210] n_batches=82
+[2018] current_f1=0.9423 (91s)
+[parts] 2019: rows=73,240 pos=33,468 pos_rate=0.4570 probe_rows=4,096
+[train_single][train] 2019 epoch=1/10 bce_selected=0.155598 bce_all_members=0.149904 probe_dis=0.018270 probe_std=0.015782 draws=[18, 18, 18, 18] n_batches=72
+[train_single][train] 2019 epoch=2/10 bce_selected=0.118419 bce_all_members=0.117641 probe_dis=0.017578 probe_std=0.014161 draws=[37, 42, 33, 32] n_batches=72
+[train_single][train] 2019 epoch=3/10 bce_selected=0.107930 bce_all_members=0.106971 probe_dis=0.016032 probe_std=0.013829 draws=[57, 59, 47, 53] n_batches=72
+[train_single][train] 2019 epoch=4/10 bce_selected=0.100936 bce_all_members=0.100717 probe_dis=0.017415 probe_std=0.014580 draws=[74, 82, 70, 62] n_batches=72
+[train_single][train] 2019 epoch=5/10 bce_selected=0.096313 bce_all_members=0.096465 probe_dis=0.017334 probe_std=0.014346 draws=[94, 105, 77, 84] n_batches=72
+[train_single][train] 2019 epoch=6/10 bce_selected=0.094381 bce_all_members=0.095353 probe_dis=0.020996 probe_std=0.018220 draws=[107, 126, 93, 106] n_batches=72
+[train_single][train] 2019 epoch=7/10 bce_selected=0.101328 bce_all_members=0.102868 probe_dis=0.090576 probe_std=0.074720 draws=[122, 154, 107, 121] n_batches=72
+[train_single][train] 2019 epoch=8/10 bce_selected=0.123742 bce_all_members=0.118788 probe_dis=0.014364 probe_std=0.013198 draws=[135, 179, 125, 137] n_batches=72
+[train_single][train] 2019 epoch=9/10 bce_selected=0.088012 bce_all_members=0.087658 probe_dis=0.012492 probe_std=0.011729 draws=[156, 192, 147, 153] n_batches=72
+[train_single][train] 2019 epoch=10/10 bce_selected=0.082613 bce_all_members=0.082902 probe_dis=0.018351 probe_std=0.014892 draws=[177, 213, 160, 170] n_batches=72
+[2019] current_f1=0.9689 (80s)
+[parts] 2020: rows=82,054 pos=37,276 pos_rate=0.4543 probe_rows=4,096
+[train_single][train] 2020 epoch=1/10 bce_selected=0.096520 bce_all_members=0.097384 probe_dis=0.015259 probe_std=0.012918 draws=[21, 20, 19, 21] n_batches=81
+[train_single][train] 2020 epoch=2/10 bce_selected=0.086320 bce_all_members=0.085757 probe_dis=0.018148 probe_std=0.016997 draws=[42, 41, 39, 40] n_batches=81
+[train_single][train] 2020 epoch=3/10 bce_selected=0.083329 bce_all_members=0.083521 probe_dis=0.013102 probe_std=0.011758 draws=[64, 58, 57, 64] n_batches=81
+[train_single][train] 2020 epoch=4/10 bce_selected=0.082535 bce_all_members=0.081612 probe_dis=0.017619 probe_std=0.016605 draws=[83, 76, 75, 90] n_batches=81
+[train_single][train] 2020 epoch=5/10 bce_selected=0.076949 bce_all_members=0.077560 probe_dis=0.011434 probe_std=0.010835 draws=[100, 90, 99, 116] n_batches=81
+[train_single][train] 2020 epoch=6/10 bce_selected=0.075770 bce_all_members=0.075505 probe_dis=0.014445 probe_std=0.013906 draws=[121, 110, 124, 131] n_batches=81
+[train_single][train] 2020 epoch=7/10 bce_selected=0.074833 bce_all_members=0.074329 probe_dis=0.013468 probe_std=0.012728 draws=[139, 134, 139, 155] n_batches=81
+[train_single][train] 2020 epoch=8/10 bce_selected=0.072110 bce_all_members=0.072772 probe_dis=0.012858 probe_std=0.011310 draws=[157, 154, 157, 180] n_batches=81
+[train_single][train] 2020 epoch=9/10 bce_selected=0.068091 bce_all_members=0.067811 probe_dis=0.010824 probe_std=0.010707 draws=[174, 181, 179, 195] n_batches=81
+[train_single][train] 2020 epoch=10/10 bce_selected=0.067630 bce_all_members=0.066949 probe_dis=0.017334 probe_std=0.019262 draws=[194, 200, 200, 216] n_batches=81
+[2020] current_f1=0.9761 (85s)
+[parts] 2021: rows=65,316 pos=28,698 pos_rate=0.4394 probe_rows=4,096
+[train_single][train] 2021 epoch=1/10 bce_selected=0.119159 bce_all_members=0.122461 probe_dis=0.011108 probe_std=0.013190 draws=[17, 10, 19, 18] n_batches=64
+[train_single][train] 2021 epoch=2/10 bce_selected=0.106429 bce_all_members=0.107221 probe_dis=0.013102 probe_std=0.015082 draws=[35, 21, 40, 32] n_batches=64
+[train_single][train] 2021 epoch=3/10 bce_selected=0.095162 bce_all_members=0.095148 probe_dis=0.012004 probe_std=0.015733 draws=[54, 34, 56, 48] n_batches=64
+[train_single][train] 2021 epoch=4/10 bce_selected=0.089600 bce_all_members=0.090096 probe_dis=0.013794 probe_std=0.014390 draws=[65, 57, 72, 62] n_batches=64
+[train_single][train] 2021 epoch=5/10 bce_selected=0.094403 bce_all_members=0.092324 probe_dis=0.021159 probe_std=0.021680 draws=[87, 74, 86, 73] n_batches=64
+[train_single][train] 2021 epoch=6/10 bce_selected=0.087199 bce_all_members=0.089126 probe_dis=0.017334 probe_std=0.019502 draws=[103, 91, 104, 86] n_batches=64
+[train_single][train] 2021 epoch=7/10 bce_selected=0.081640 bce_all_members=0.083510 probe_dis=0.010783 probe_std=0.012178 draws=[121, 103, 122, 102] n_batches=64
+[train_single][train] 2021 epoch=8/10 bce_selected=0.074980 bce_all_members=0.074743 probe_dis=0.020915 probe_std=0.021152 draws=[138, 114, 143, 117] n_batches=64
+[train_single][train] 2021 epoch=9/10 bce_selected=0.097653 bce_all_members=0.092043 probe_dis=0.012492 probe_std=0.015802 draws=[151, 132, 159, 134] n_batches=64
+[train_single][train] 2021 epoch=10/10 bce_selected=0.071569 bce_all_members=0.071814 probe_dis=0.010579 probe_std=0.011914 draws=[168, 150, 174, 148] n_batches=64
+[2021] current_f1=0.9772 (66s)
+[parts] 2022: rows=69,532 pos=33,510 pos_rate=0.4819 probe_rows=4,096
+[train_single][train] 2022 epoch=1/10 bce_selected=0.069965 bce_all_members=0.068593 probe_dis=0.007812 probe_std=0.009337 draws=[23, 16, 15, 14] n_batches=68
+[train_single][train] 2022 epoch=2/10 bce_selected=0.056793 bce_all_members=0.056180 probe_dis=0.006999 probe_std=0.008418 draws=[40, 36, 29, 31] n_batches=68
+[train_single][train] 2022 epoch=3/10 bce_selected=0.052783 bce_all_members=0.052294 probe_dis=0.007487 probe_std=0.008713 draws=[65, 53, 45, 41] n_batches=68
+[train_single][train] 2022 epoch=4/10 bce_selected=0.051683 bce_all_members=0.053402 probe_dis=0.007568 probe_std=0.008523 draws=[89, 63, 61, 59] n_batches=68
+[train_single][train] 2022 epoch=5/10 bce_selected=0.049886 bce_all_members=0.049656 probe_dis=0.006917 probe_std=0.008593 draws=[108, 75, 81, 76] n_batches=68
+[train_single][train] 2022 epoch=6/10 bce_selected=0.046595 bce_all_members=0.046327 probe_dis=0.006917 probe_std=0.008691 draws=[125, 97, 95, 91] n_batches=68
+[train_single][train] 2022 epoch=7/10 bce_selected=0.045460 bce_all_members=0.046365 probe_dis=0.009196 probe_std=0.010343 draws=[151, 113, 112, 100] n_batches=68
+[train_single][train] 2022 epoch=8/10 bce_selected=0.055882 bce_all_members=0.058407 probe_dis=0.042725 probe_std=0.038498 draws=[171, 132, 122, 119] n_batches=68
+[train_single][train] 2022 epoch=9/10 bce_selected=0.064797 bce_all_members=0.058452 probe_dis=0.006063 probe_std=0.007973 draws=[189, 150, 139, 134] n_batches=68
+[train_single][train] 2022 epoch=10/10 bce_selected=0.042644 bce_all_members=0.042538 probe_dis=0.007609 probe_std=0.009067 draws=[205, 167, 161, 147] n_batches=68
+[2022] current_f1=0.9861 (74s)
+[parts] 2023: rows=43,879 pos=6,512 pos_rate=0.1484 probe_rows=4,096
+[train_single][train] 2023 epoch=1/10 bce_selected=0.216352 bce_all_members=0.199471 probe_dis=0.018229 probe_std=0.023543 draws=[9, 9, 13, 12] n_batches=43
+[train_single][train] 2023 epoch=2/10 bce_selected=0.131991 bce_all_members=0.137116 probe_dis=0.016602 probe_std=0.024720 draws=[19, 21, 24, 22] n_batches=43
+[train_single][train] 2023 epoch=3/10 bce_selected=0.129824 bce_all_members=0.128116 probe_dis=0.015584 probe_std=0.024941 draws=[35, 29, 32, 33] n_batches=43
+[train_single][train] 2023 epoch=4/10 bce_selected=0.118196 bce_all_members=0.116357 probe_dis=0.017293 probe_std=0.022757 draws=[39, 49, 39, 45] n_batches=43
+[train_single][train] 2023 epoch=5/10 bce_selected=0.105663 bce_all_members=0.106984 probe_dis=0.040487 probe_std=0.042902 draws=[46, 59, 54, 56] n_batches=43
+[train_single][train] 2023 epoch=6/10 bce_selected=0.116204 bce_all_members=0.117814 probe_dis=0.014079 probe_std=0.025703 draws=[53, 65, 70, 70] n_batches=43
+[train_single][train] 2023 epoch=7/10 bce_selected=0.100604 bce_all_members=0.100651 probe_dis=0.011108 probe_std=0.017520 draws=[65, 75, 81, 80] n_batches=43
+[train_single][train] 2023 epoch=8/10 bce_selected=0.092770 bce_all_members=0.090277 probe_dis=0.017171 probe_std=0.022583 draws=[72, 87, 92, 93] n_batches=43
+[train_single][train] 2023 epoch=9/10 bce_selected=0.090106 bce_all_members=0.088969 probe_dis=0.015340 probe_std=0.024784 draws=[82, 100, 101, 104] n_batches=43
+[train_single][train] 2023 epoch=10/10 bce_selected=0.085586 bce_all_members=0.087859 probe_dis=0.013102 probe_std=0.015984 draws=[96, 113, 107, 114] n_batches=43
+[2023] current_f1=0.9191 (51s)
+[parts] 2024: rows=39,141 pos=835 pos_rate=0.0213 probe_rows=4,096
+[train_single][train] 2024 epoch=1/10 bce_selected=0.047945 bce_all_members=0.048313 probe_dis=0.002279 probe_std=0.005092 draws=[6, 12, 13, 8] n_batches=39
+[train_single][train] 2024 epoch=2/10 bce_selected=0.043894 bce_all_members=0.044109 probe_dis=0.001668 probe_std=0.005176 draws=[18, 22, 23, 15] n_batches=39
+[train_single][train] 2024 epoch=3/10 bce_selected=0.042713 bce_all_members=0.042024 probe_dis=0.001506 probe_std=0.004156 draws=[29, 33, 28, 27] n_batches=39
+[train_single][train] 2024 epoch=4/10 bce_selected=0.041708 bce_all_members=0.040556 probe_dis=0.001180 probe_std=0.003800 draws=[38, 45, 35, 38] n_batches=39
+[train_single][train] 2024 epoch=5/10 bce_selected=0.037552 bce_all_members=0.039157 probe_dis=0.001343 probe_std=0.003638 draws=[51, 54, 47, 43] n_batches=39
+[train_single][train] 2024 epoch=6/10 bce_selected=0.042106 bce_all_members=0.039694 probe_dis=0.001180 probe_std=0.004453 draws=[54, 59, 58, 63] n_batches=39
+[train_single][train] 2024 epoch=7/10 bce_selected=0.037506 bce_all_members=0.037801 probe_dis=0.000936 probe_std=0.004880 draws=[66, 64, 70, 73] n_batches=39
+[train_single][train] 2024 epoch=8/10 bce_selected=0.038592 bce_all_members=0.037918 probe_dis=0.001058 probe_std=0.004318 draws=[76, 79, 74, 83] n_batches=39
+[train_single][train] 2024 epoch=9/10 bce_selected=0.036629 bce_all_members=0.036380 probe_dis=0.000977 probe_std=0.003149 draws=[82, 91, 85, 93] n_batches=39
+[train_single][train] 2024 epoch=10/10 bce_selected=0.035386 bce_all_members=0.036380 probe_dis=0.001139 probe_std=0.004458 draws=[98, 99, 95, 98] n_batches=39
+[2024] current_f1=0.7259 (44s)
+[parts] 2025: rows=36,126 pos=216 pos_rate=0.0060 probe_rows=4,096
+[train_single][train] 2025 epoch=1/10 bce_selected=0.009700 bce_all_members=0.009437 probe_dis=0.000000 probe_std=0.000701 draws=[8, 8, 10, 10] n_batches=36
+[train_single][train] 2025 epoch=2/10 bce_selected=0.008046 bce_all_members=0.008356 probe_dis=0.000122 probe_std=0.000701 draws=[12, 22, 22, 16] n_batches=36
+[train_single][train] 2025 epoch=3/10 bce_selected=0.007901 bce_all_members=0.008289 probe_dis=0.000122 probe_std=0.000618 draws=[18, 32, 36, 22] n_batches=36
+[train_single][train] 2025 epoch=4/10 bce_selected=0.008103 bce_all_members=0.007774 probe_dis=0.000000 probe_std=0.000567 draws=[32, 41, 43, 28] n_batches=36
+[train_single][train] 2025 epoch=5/10 bce_selected=0.007275 bce_all_members=0.007099 probe_dis=0.000000 probe_std=0.000596 draws=[39, 49, 52, 40] n_batches=36
+[train_single][train] 2025 epoch=6/10 bce_selected=0.006443 bce_all_members=0.006734 probe_dis=0.000000 probe_std=0.000519 draws=[48, 55, 64, 49] n_batches=36
+[train_single][train] 2025 epoch=7/10 bce_selected=0.006283 bce_all_members=0.006532 probe_dis=0.000000 probe_std=0.000435 draws=[57, 66, 73, 56] n_batches=36
+[train_single][train] 2025 epoch=8/10 bce_selected=0.006903 bce_all_members=0.006807 probe_dis=0.000000 probe_std=0.000467 draws=[68, 76, 80, 64] n_batches=36
+[train_single][train] 2025 epoch=9/10 bce_selected=0.005728 bce_all_members=0.005962 probe_dis=0.000000 probe_std=0.000450 draws=[79, 87, 86, 72] n_batches=36
+[train_single][train] 2025 epoch=10/10 bce_selected=0.004964 bce_all_members=0.005808 probe_dis=0.000122 probe_std=0.000504 draws=[94, 92, 98, 76] n_batches=36
+[2025] current_f1=0.0000 (47s)
+[criteria] d2023=-3.67pp d2024=-6.96pp dmean=-1.20pp support=False applicable=False
+[disagreement] 2023=0.013629534234814339 2024=0.0012389015073301674 uniform_2024=0.002082042810929864 raised=False
+[auc_oracle] {"2023": {"auc_arm": 0.9840482915237863, "auc_base": 0.9777648234623905, "delta_auc": 0.006283468061395792, "f1_arm": 0.8314275175212099, "f1_base": 0.8243143068939955, "delta_f1_pp": 0.7113210627214372, "oracle_f1_arm": 0.9127428383272966, "oracle_tau_arm": 0.03857578709721565, "oracle_margin_arm_pp": 8.131532080608672, "oracle_margin_base_pp": 5.2022591501726385, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"}, "2024": {"auc_arm": 0.9338813950156886, "auc_base": 0.9420963788451623, "delta_auc": -0.008214983829473721, "f1_arm": 0.7007874015748031, "f1_base": 0.7421875, "delta_f1_pp": -4.140009842519687, "oracle_f1_arm": 0.7647058823529411, "oracle_tau_arm": 0.14514338970184326, "oracle_margin_arm_pp": 6.391848077813799, "oracle_margin_base_pp": 0.6847249034748981, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"}}
+=== train_single: 12y mean=0.8203273828 | 2023=0.831428 2024=0.700787 | 860s ===
+===== 2026-10-21T07:29:38Z END train_single rc=0 =====
+===== 2026-10-21T07:29:38Z START ncl05 =====
+[arm] ncl05 kind=NCL lambda=0.5 k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5
+[model] k=4 params=2,723,305
+[parts] 2013: rows=69,144 pos=35,506 pos_rate=0.5135 probe_rows=4,096
+[ncl05][train] 2013 epoch=1/10 loss=0.692848 bce=0.692848 penalty=-1.199995e-08 member_var=1.199995e-08 lam_pen_over_bce=8.660e-09 probe_dis=0.000000 probe_std=0.000066 n_batches=68
+[ncl05][train] 2013 epoch=2/10 loss=0.692631 bce=0.692631 penalty=-2.283560e-08 member_var=2.283560e-08 lam_pen_over_bce=1.648e-08 probe_dis=0.000000 probe_std=0.000065 n_batches=68
+[ncl05][train] 2013 epoch=3/10 loss=0.692549 bce=0.692549 penalty=-2.919250e-08 member_var=2.919250e-08 lam_pen_over_bce=2.108e-08 probe_dis=0.000000 probe_std=0.000079 n_batches=68
+[ncl05][train] 2013 epoch=4/10 loss=0.692444 bce=0.692444 penalty=-4.172119e-08 member_var=4.172119e-08 lam_pen_over_bce=3.013e-08 probe_dis=0.000000 probe_std=0.000089 n_batches=68
+[ncl05][train] 2013 epoch=5/10 loss=0.692316 bce=0.692316 penalty=-5.655003e-08 member_var=5.655003e-08 lam_pen_over_bce=4.084e-08 probe_dis=0.000000 probe_std=0.000109 n_batches=68
+[ncl05][train] 2013 epoch=6/10 loss=0.692143 bce=0.692143 penalty=-7.569954e-08 member_var=7.569954e-08 lam_pen_over_bce=5.468e-08 probe_dis=0.000000 probe_std=0.000143 n_batches=68
+[ncl05][train] 2013 epoch=7/10 loss=0.691870 bce=0.691870 penalty=-1.184939e-07 member_var=1.184939e-07 lam_pen_over_bce=8.563e-08 probe_dis=0.000000 probe_std=0.000189 n_batches=68
+[ncl05][train] 2013 epoch=8/10 loss=0.691414 bce=0.691414 penalty=-1.920320e-07 member_var=1.920320e-07 lam_pen_over_bce=1.389e-07 probe_dis=0.000000 probe_std=0.000255 n_batches=68
+[ncl05][train] 2013 epoch=9/10 loss=0.690631 bce=0.690631 penalty=-3.594691e-07 member_var=3.594691e-07 lam_pen_over_bce=2.602e-07 probe_dis=0.000000 probe_std=0.000387 n_batches=68
+[ncl05][train] 2013 epoch=10/10 loss=0.688975 bce=0.688975 penalty=-8.650327e-07 member_var=8.650327e-07 lam_pen_over_bce=6.278e-07 probe_dis=0.000000 probe_std=0.000696 n_batches=68
+[2013] current_f1=0.6786 (70s)
+[parts] 2014: rows=81,346 pos=36,805 pos_rate=0.4525 probe_rows=4,096
+[ncl05][train] 2014 epoch=1/10 loss=0.683482 bce=0.683484 penalty=-3.427297e-06 member_var=3.427297e-06 lam_pen_over_bce=2.507e-06 probe_dis=0.000000 probe_std=0.001427 n_batches=80
+[ncl05][train] 2014 epoch=2/10 loss=0.657928 bce=0.657949 penalty=-4.089959e-05 member_var=4.089959e-05 lam_pen_over_bce=3.108e-05 probe_dis=0.049113 probe_std=0.008317 n_batches=80
+[ncl05][train] 2014 epoch=3/10 loss=0.431308 bce=0.432304 penalty=-1.992013e-03 member_var=1.992013e-03 lam_pen_over_bce=2.304e-03 probe_dis=0.037842 probe_std=0.028694 n_batches=80
+[ncl05][train] 2014 epoch=4/10 loss=0.226293 bce=0.228223 penalty=-3.858726e-03 member_var=3.858726e-03 lam_pen_over_bce=8.454e-03 probe_dis=0.033651 probe_std=0.027455 n_batches=80
+[ncl05][train] 2014 epoch=5/10 loss=0.173979 bce=0.175811 penalty=-3.663386e-03 member_var=3.663386e-03 lam_pen_over_bce=1.042e-02 probe_dis=0.024740 probe_std=0.020521 n_batches=80
+[ncl05][train] 2014 epoch=6/10 loss=0.143847 bce=0.145326 penalty=-2.957122e-03 member_var=2.957122e-03 lam_pen_over_bce=1.017e-02 probe_dis=0.023438 probe_std=0.019808 n_batches=80
+[ncl05][train] 2014 epoch=7/10 loss=0.123410 bce=0.124700 penalty=-2.580799e-03 member_var=2.580799e-03 lam_pen_over_bce=1.035e-02 probe_dis=0.021362 probe_std=0.018033 n_batches=80
+[ncl05][train] 2014 epoch=8/10 loss=0.113971 bce=0.115103 penalty=-2.263192e-03 member_var=2.263192e-03 lam_pen_over_bce=9.831e-03 probe_dis=0.016927 probe_std=0.014357 n_batches=80
+[ncl05][train] 2014 epoch=9/10 loss=0.101363 bce=0.102348 penalty=-1.971450e-03 member_var=1.971450e-03 lam_pen_over_bce=9.631e-03 probe_dis=0.014242 probe_std=0.013488 n_batches=80
+[ncl05][train] 2014 epoch=10/10 loss=0.095786 bce=0.096750 penalty=-1.927600e-03 member_var=1.927600e-03 lam_pen_over_bce=9.962e-03 probe_dis=0.013550 probe_std=0.011778 n_batches=80
+[2014] current_f1=0.9640 (80s)
+[parts] 2016: rows=87,754 pos=36,307 pos_rate=0.4137 probe_rows=4,096
+[ncl05][train] 2016 epoch=1/10 loss=0.190792 bce=0.192791 penalty=-3.997576e-03 member_var=3.997576e-03 lam_pen_over_bce=1.037e-02 probe_dis=0.022542 probe_std=0.019922 n_batches=86
+[ncl05][train] 2016 epoch=2/10 loss=0.144217 bce=0.145478 penalty=-2.521252e-03 member_var=2.521252e-03 lam_pen_over_bce=8.665e-03 probe_dis=0.017049 probe_std=0.016612 n_batches=86
+[ncl05][train] 2016 epoch=3/10 loss=0.130854 bce=0.132100 penalty=-2.491462e-03 member_var=2.491462e-03 lam_pen_over_bce=9.430e-03 probe_dis=0.018148 probe_std=0.019614 n_batches=86
+[ncl05][train] 2016 epoch=4/10 loss=0.121019 bce=0.122266 penalty=-2.493194e-03 member_var=2.493194e-03 lam_pen_over_bce=1.020e-02 probe_dis=0.017375 probe_std=0.015174 n_batches=86
+[ncl05][train] 2016 epoch=5/10 loss=0.111625 bce=0.112851 penalty=-2.451322e-03 member_var=2.451322e-03 lam_pen_over_bce=1.086e-02 probe_dis=0.018311 probe_std=0.017001 n_batches=86
+[ncl05][train] 2016 epoch=6/10 loss=0.108141 bce=0.109344 penalty=-2.405167e-03 member_var=2.405167e-03 lam_pen_over_bce=1.100e-02 probe_dis=0.013184 probe_std=0.013913 n_batches=86
+[ncl05][train] 2016 epoch=7/10 loss=0.097426 bce=0.098614 penalty=-2.375640e-03 member_var=2.375640e-03 lam_pen_over_bce=1.205e-02 probe_dis=0.015991 probe_std=0.015777 n_batches=86
+[ncl05][train] 2016 epoch=8/10 loss=0.104789 bce=0.106216 penalty=-2.853871e-03 member_var=2.853871e-03 lam_pen_over_bce=1.343e-02 probe_dis=0.016032 probe_std=0.015438 n_batches=86
+[ncl05][train] 2016 epoch=9/10 loss=0.093714 bce=0.094917 penalty=-2.405191e-03 member_var=2.405191e-03 lam_pen_over_bce=1.267e-02 probe_dis=0.017415 probe_std=0.015917 n_batches=86
+[ncl05][train] 2016 epoch=10/10 loss=0.087329 bce=0.088504 penalty=-2.349905e-03 member_var=2.349905e-03 lam_pen_over_bce=1.328e-02 probe_dis=0.015910 probe_std=0.015975 n_batches=86
+[2016] current_f1=0.9593 (92s)
+[parts] 2017: rows=79,711 pos=17,285 pos_rate=0.2168 probe_rows=4,096
+[ncl05][train] 2017 epoch=1/10 loss=0.143588 bce=0.145206 penalty=-3.235943e-03 member_var=3.235943e-03 lam_pen_over_bce=1.114e-02 probe_dis=0.007121 probe_std=0.007949 n_batches=78
+[ncl05][train] 2017 epoch=2/10 loss=0.088371 bce=0.088989 penalty=-1.235115e-03 member_var=1.235115e-03 lam_pen_over_bce=6.940e-03 probe_dis=0.006429 probe_std=0.007350 n_batches=78
+[ncl05][train] 2017 epoch=3/10 loss=0.079229 bce=0.079782 penalty=-1.106469e-03 member_var=1.106469e-03 lam_pen_over_bce=6.934e-03 probe_dis=0.007202 probe_std=0.007018 n_batches=78
+[ncl05][train] 2017 epoch=4/10 loss=0.071538 bce=0.072066 penalty=-1.056830e-03 member_var=1.056830e-03 lam_pen_over_bce=7.332e-03 probe_dis=0.004598 probe_std=0.008089 n_batches=78
+[ncl05][train] 2017 epoch=5/10 loss=0.066543 bce=0.067051 penalty=-1.015916e-03 member_var=1.015916e-03 lam_pen_over_bce=7.576e-03 probe_dis=0.003662 probe_std=0.005219 n_batches=78
+[ncl05][train] 2017 epoch=6/10 loss=0.063031 bce=0.063484 penalty=-9.061113e-04 member_var=9.061113e-04 lam_pen_over_bce=7.136e-03 probe_dis=0.002686 probe_std=0.006559 n_batches=78
+[ncl05][train] 2017 epoch=7/10 loss=0.058570 bce=0.059041 penalty=-9.418818e-04 member_var=9.418818e-04 lam_pen_over_bce=7.976e-03 probe_dis=0.005168 probe_std=0.007681 n_batches=78
+[ncl05][train] 2017 epoch=8/10 loss=0.056123 bce=0.056591 penalty=-9.346782e-04 member_var=9.346782e-04 lam_pen_over_bce=8.258e-03 probe_dis=0.003662 probe_std=0.004639 n_batches=78
+[ncl05][train] 2017 epoch=9/10 loss=0.051716 bce=0.052122 penalty=-8.118978e-04 member_var=8.118978e-04 lam_pen_over_bce=7.788e-03 probe_dis=0.003703 probe_std=0.005984 n_batches=78
+[ncl05][train] 2017 epoch=10/10 loss=0.049957 bce=0.050382 penalty=-8.492957e-04 member_var=8.492957e-04 lam_pen_over_bce=8.429e-03 probe_dis=0.002563 probe_std=0.005067 n_batches=78
+[2017] current_f1=0.9582 (78s)
+[parts] 2018: rows=83,833 pos=31,680 pos_rate=0.3779 probe_rows=4,096
+[ncl05][train] 2018 epoch=1/10 loss=0.157050 bce=0.158514 penalty=-2.928663e-03 member_var=2.928663e-03 lam_pen_over_bce=9.238e-03 probe_dis=0.011922 probe_std=0.013981 n_batches=82
+[ncl05][train] 2018 epoch=2/10 loss=0.125070 bce=0.126001 penalty=-1.862629e-03 member_var=1.862629e-03 lam_pen_over_bce=7.391e-03 probe_dis=0.012858 probe_std=0.013179 n_batches=82
+[ncl05][train] 2018 epoch=3/10 loss=0.115667 bce=0.116576 penalty=-1.818261e-03 member_var=1.818261e-03 lam_pen_over_bce=7.799e-03 probe_dis=0.011637 probe_std=0.012964 n_batches=82
+[ncl05][train] 2018 epoch=4/10 loss=0.106293 bce=0.107169 penalty=-1.750423e-03 member_var=1.750423e-03 lam_pen_over_bce=8.167e-03 probe_dis=0.013468 probe_std=0.016650 n_batches=82
+[ncl05][train] 2018 epoch=5/10 loss=0.100909 bce=0.101817 penalty=-1.815428e-03 member_var=1.815428e-03 lam_pen_over_bce=8.915e-03 probe_dis=0.012451 probe_std=0.011061 n_batches=82
+[ncl05][train] 2018 epoch=6/10 loss=0.097405 bce=0.098240 penalty=-1.668413e-03 member_var=1.668413e-03 lam_pen_over_bce=8.492e-03 probe_dis=0.011068 probe_std=0.014759 n_batches=82
+[ncl05][train] 2018 epoch=7/10 loss=0.090843 bce=0.091703 penalty=-1.719912e-03 member_var=1.719912e-03 lam_pen_over_bce=9.378e-03 probe_dis=0.007975 probe_std=0.010176 n_batches=82
+[ncl05][train] 2018 epoch=8/10 loss=0.089223 bce=0.090109 penalty=-1.771316e-03 member_var=1.771316e-03 lam_pen_over_bce=9.829e-03 probe_dis=0.008260 probe_std=0.011734 n_batches=82
+[ncl05][train] 2018 epoch=9/10 loss=0.087308 bce=0.088169 penalty=-1.722357e-03 member_var=1.722357e-03 lam_pen_over_bce=9.767e-03 probe_dis=0.010742 probe_std=0.009608 n_batches=82
+[ncl05][train] 2018 epoch=10/10 loss=0.081774 bce=0.082563 penalty=-1.577027e-03 member_var=1.577027e-03 lam_pen_over_bce=9.550e-03 probe_dis=0.011149 probe_std=0.014992 n_batches=82
+[2018] current_f1=0.9576 (85s)
+[parts] 2019: rows=73,240 pos=33,468 pos_rate=0.4570 probe_rows=4,096
+[ncl05][train] 2019 epoch=1/10 loss=0.134766 bce=0.136379 penalty=-3.227749e-03 member_var=3.227749e-03 lam_pen_over_bce=1.183e-02 probe_dis=0.014404 probe_std=0.013372 n_batches=72
+[ncl05][train] 2019 epoch=2/10 loss=0.086111 bce=0.086994 penalty=-1.764883e-03 member_var=1.764883e-03 lam_pen_over_bce=1.014e-02 probe_dis=0.013021 probe_std=0.011441 n_batches=72
+[ncl05][train] 2019 epoch=3/10 loss=0.072419 bce=0.073301 penalty=-1.764533e-03 member_var=1.764533e-03 lam_pen_over_bce=1.204e-02 probe_dis=0.011597 probe_std=0.011012 n_batches=72
+[ncl05][train] 2019 epoch=4/10 loss=0.061588 bce=0.062461 penalty=-1.746633e-03 member_var=1.746633e-03 lam_pen_over_bce=1.398e-02 probe_dis=0.009074 probe_std=0.009606 n_batches=72
+[ncl05][train] 2019 epoch=5/10 loss=0.053665 bce=0.054545 penalty=-1.758364e-03 member_var=1.758364e-03 lam_pen_over_bce=1.612e-02 probe_dis=0.009969 probe_std=0.009883 n_batches=72
+[ncl05][train] 2019 epoch=6/10 loss=0.046646 bce=0.047469 penalty=-1.645199e-03 member_var=1.645199e-03 lam_pen_over_bce=1.733e-02 probe_dis=0.006348 probe_std=0.007933 n_batches=72
+[ncl05][train] 2019 epoch=7/10 loss=0.039761 bce=0.040522 penalty=-1.521916e-03 member_var=1.521916e-03 lam_pen_over_bce=1.878e-02 probe_dis=0.007812 probe_std=0.008727 n_batches=72
+[ncl05][train] 2019 epoch=8/10 loss=0.035419 bce=0.036135 penalty=-1.432687e-03 member_var=1.432687e-03 lam_pen_over_bce=1.982e-02 probe_dis=0.005290 probe_std=0.007281 n_batches=72
+[ncl05][train] 2019 epoch=9/10 loss=0.029468 bce=0.030125 penalty=-1.313973e-03 member_var=1.313973e-03 lam_pen_over_bce=2.181e-02 probe_dis=0.003743 probe_std=0.005933 n_batches=72
+[ncl05][train] 2019 epoch=10/10 loss=0.027287 bce=0.027922 penalty=-1.270152e-03 member_var=1.270152e-03 lam_pen_over_bce=2.274e-02 probe_dis=0.009033 probe_std=0.010321 n_batches=72
+[2019] current_f1=0.9736 (67s)
+[parts] 2020: rows=82,054 pos=37,276 pos_rate=0.4543 probe_rows=4,096
+[ncl05][train] 2020 epoch=1/10 loss=0.092072 bce=0.093370 penalty=-2.595673e-03 member_var=2.595673e-03 lam_pen_over_bce=1.390e-02 probe_dis=0.013102 probe_std=0.014343 n_batches=81
+[ncl05][train] 2020 epoch=2/10 loss=0.066028 bce=0.066783 penalty=-1.510476e-03 member_var=1.510476e-03 lam_pen_over_bce=1.131e-02 probe_dis=0.010661 probe_std=0.010405 n_batches=81
+[ncl05][train] 2020 epoch=3/10 loss=0.055970 bce=0.056663 penalty=-1.386190e-03 member_var=1.386190e-03 lam_pen_over_bce=1.223e-02 probe_dis=0.007487 probe_std=0.008105 n_batches=81
+[ncl05][train] 2020 epoch=4/10 loss=0.048484 bce=0.049132 penalty=-1.296641e-03 member_var=1.296641e-03 lam_pen_over_bce=1.320e-02 probe_dis=0.007446 probe_std=0.009527 n_batches=81
+[ncl05][train] 2020 epoch=5/10 loss=0.045664 bce=0.046363 penalty=-1.398399e-03 member_var=1.398399e-03 lam_pen_over_bce=1.508e-02 probe_dis=0.004517 probe_std=0.006264 n_batches=81
+[ncl05][train] 2020 epoch=6/10 loss=0.038303 bce=0.038895 penalty=-1.184502e-03 member_var=1.184502e-03 lam_pen_over_bce=1.523e-02 probe_dis=0.007609 probe_std=0.008875 n_batches=81
+[ncl05][train] 2020 epoch=7/10 loss=0.036623 bce=0.037244 penalty=-1.242833e-03 member_var=1.242833e-03 lam_pen_over_bce=1.668e-02 probe_dis=0.004395 probe_std=0.006541 n_batches=81
+[ncl05][train] 2020 epoch=8/10 loss=0.031252 bce=0.031790 penalty=-1.076296e-03 member_var=1.076296e-03 lam_pen_over_bce=1.693e-02 probe_dis=0.009440 probe_std=0.010079 n_batches=81
+[ncl05][train] 2020 epoch=9/10 loss=0.030241 bce=0.030808 penalty=-1.134165e-03 member_var=1.134165e-03 lam_pen_over_bce=1.841e-02 probe_dis=0.002808 probe_std=0.005114 n_batches=81
+[ncl05][train] 2020 epoch=10/10 loss=0.025753 bce=0.026233 penalty=-9.605797e-04 member_var=9.605797e-04 lam_pen_over_bce=1.831e-02 probe_dis=0.003092 probe_std=0.005713 n_batches=81
+[2020] current_f1=0.9788 (85s)
+[parts] 2021: rows=65,316 pos=28,698 pos_rate=0.4394 probe_rows=4,096
+[ncl05][train] 2021 epoch=1/10 loss=0.105436 bce=0.107009 penalty=-3.144775e-03 member_var=3.144775e-03 lam_pen_over_bce=1.469e-02 probe_dis=0.010986 probe_std=0.015466 n_batches=64
+[ncl05][train] 2021 epoch=2/10 loss=0.068129 bce=0.068922 penalty=-1.586988e-03 member_var=1.586988e-03 lam_pen_over_bce=1.151e-02 probe_dis=0.008341 probe_std=0.010185 n_batches=64
+[ncl05][train] 2021 epoch=3/10 loss=0.054725 bce=0.055531 penalty=-1.611228e-03 member_var=1.611228e-03 lam_pen_over_bce=1.451e-02 probe_dis=0.008545 probe_std=0.011335 n_batches=64
+[ncl05][train] 2021 epoch=4/10 loss=0.045170 bce=0.045905 penalty=-1.471062e-03 member_var=1.471062e-03 lam_pen_over_bce=1.602e-02 probe_dis=0.005330 probe_std=0.008886 n_batches=64
+[ncl05][train] 2021 epoch=5/10 loss=0.040237 bce=0.040949 penalty=-1.424899e-03 member_var=1.424899e-03 lam_pen_over_bce=1.740e-02 probe_dis=0.006551 probe_std=0.007994 n_batches=64
+[ncl05][train] 2021 epoch=6/10 loss=0.033050 bce=0.033615 penalty=-1.129387e-03 member_var=1.129387e-03 lam_pen_over_bce=1.680e-02 probe_dis=0.005208 probe_std=0.008344 n_batches=64
+[ncl05][train] 2021 epoch=7/10 loss=0.029316 bce=0.029898 penalty=-1.164110e-03 member_var=1.164110e-03 lam_pen_over_bce=1.947e-02 probe_dis=0.003703 probe_std=0.005086 n_batches=64
+[ncl05][train] 2021 epoch=8/10 loss=0.026961 bce=0.027494 penalty=-1.067383e-03 member_var=1.067383e-03 lam_pen_over_bce=1.941e-02 probe_dis=0.003255 probe_std=0.004868 n_batches=64
+[ncl05][train] 2021 epoch=9/10 loss=0.022036 bce=0.022452 penalty=-8.321935e-04 member_var=8.321935e-04 lam_pen_over_bce=1.853e-02 probe_dis=0.003621 probe_std=0.005997 n_batches=64
+[ncl05][train] 2021 epoch=10/10 loss=0.020668 bce=0.021075 penalty=-8.155123e-04 member_var=8.155123e-04 lam_pen_over_bce=1.935e-02 probe_dis=0.001872 probe_std=0.003855 n_batches=64
+[2021] current_f1=0.9855 (70s)
+[parts] 2022: rows=69,532 pos=33,510 pos_rate=0.4819 probe_rows=4,096
+[ncl05][train] 2022 epoch=1/10 loss=0.066621 bce=0.067717 penalty=-2.190703e-03 member_var=2.190703e-03 lam_pen_over_bce=1.618e-02 probe_dis=0.006632 probe_std=0.007864 n_batches=68
+[ncl05][train] 2022 epoch=2/10 loss=0.041408 bce=0.041925 penalty=-1.033051e-03 member_var=1.033051e-03 lam_pen_over_bce=1.232e-02 probe_dis=0.004679 probe_std=0.006433 n_batches=68
+[ncl05][train] 2022 epoch=3/10 loss=0.035218 bce=0.035702 penalty=-9.678985e-04 member_var=9.678985e-04 lam_pen_over_bce=1.356e-02 probe_dis=0.003621 probe_std=0.005240 n_batches=68
+[ncl05][train] 2022 epoch=4/10 loss=0.030776 bce=0.031212 penalty=-8.724245e-04 member_var=8.724245e-04 lam_pen_over_bce=1.398e-02 probe_dis=0.003174 probe_std=0.005350 n_batches=68
+[ncl05][train] 2022 epoch=5/10 loss=0.025972 bce=0.026376 penalty=-8.081027e-04 member_var=8.081027e-04 lam_pen_over_bce=1.532e-02 probe_dis=0.002401 probe_std=0.004021 n_batches=68
+[ncl05][train] 2022 epoch=6/10 loss=0.022433 bce=0.022782 penalty=-6.991764e-04 member_var=6.991764e-04 lam_pen_over_bce=1.534e-02 probe_dis=0.005208 probe_std=0.004416 n_batches=68
+[ncl05][train] 2022 epoch=7/10 loss=0.021135 bce=0.021508 penalty=-7.449143e-04 member_var=7.449143e-04 lam_pen_over_bce=1.732e-02 probe_dis=0.001587 probe_std=0.003567 n_batches=68
+[ncl05][train] 2022 epoch=8/10 loss=0.019945 bce=0.020277 penalty=-6.627601e-04 member_var=6.627601e-04 lam_pen_over_bce=1.634e-02 probe_dis=0.002441 probe_std=0.004587 n_batches=68
+[ncl05][train] 2022 epoch=9/10 loss=0.016048 bce=0.016339 penalty=-5.821744e-04 member_var=5.821744e-04 lam_pen_over_bce=1.782e-02 probe_dis=0.002604 probe_std=0.004083 n_batches=68
+[ncl05][train] 2022 epoch=10/10 loss=0.015562 bce=0.015859 penalty=-5.927526e-04 member_var=5.927526e-04 lam_pen_over_bce=1.869e-02 probe_dis=0.001465 probe_std=0.002792 n_batches=68
+[2022] current_f1=0.9872 (80s)
+[parts] 2023: rows=43,879 pos=6,512 pos_rate=0.1484 probe_rows=4,096
+[ncl05][train] 2023 epoch=1/10 loss=0.112537 bce=0.114132 penalty=-3.191673e-03 member_var=3.191673e-03 lam_pen_over_bce=1.398e-02 probe_dis=0.012288 probe_std=0.016622 n_batches=43
+[ncl05][train] 2023 epoch=2/10 loss=0.071389 bce=0.072098 penalty=-1.418974e-03 member_var=1.418974e-03 lam_pen_over_bce=9.841e-03 probe_dis=0.007690 probe_std=0.010363 n_batches=43
+[ncl05][train] 2023 epoch=3/10 loss=0.060469 bce=0.061088 penalty=-1.237841e-03 member_var=1.237841e-03 lam_pen_over_bce=1.013e-02 probe_dis=0.006307 probe_std=0.010011 n_batches=43
+[ncl05][train] 2023 epoch=4/10 loss=0.054305 bce=0.054921 penalty=-1.231450e-03 member_var=1.231450e-03 lam_pen_over_bce=1.121e-02 probe_dis=0.014404 probe_std=0.017714 n_batches=43
+[ncl05][train] 2023 epoch=5/10 loss=0.045901 bce=0.046465 penalty=-1.128231e-03 member_var=1.128231e-03 lam_pen_over_bce=1.214e-02 probe_dis=0.005452 probe_std=0.007685 n_batches=43
+[ncl05][train] 2023 epoch=6/10 loss=0.039088 bce=0.039613 penalty=-1.049389e-03 member_var=1.049389e-03 lam_pen_over_bce=1.325e-02 probe_dis=0.004110 probe_std=0.007462 n_batches=43
+[ncl05][train] 2023 epoch=7/10 loss=0.034420 bce=0.034883 penalty=-9.253088e-04 member_var=9.253088e-04 lam_pen_over_bce=1.326e-02 probe_dis=0.004761 probe_std=0.005556 n_batches=43
+[ncl05][train] 2023 epoch=8/10 loss=0.031721 bce=0.032176 penalty=-9.103642e-04 member_var=9.103642e-04 lam_pen_over_bce=1.415e-02 probe_dis=0.003377 probe_std=0.005997 n_batches=43
+[ncl05][train] 2023 epoch=9/10 loss=0.028289 bce=0.028719 penalty=-8.600573e-04 member_var=8.600573e-04 lam_pen_over_bce=1.497e-02 probe_dis=0.004069 probe_std=0.008006 n_batches=43
+[ncl05][train] 2023 epoch=10/10 loss=0.026827 bce=0.027234 penalty=-8.142064e-04 member_var=8.142064e-04 lam_pen_over_bce=1.495e-02 probe_dis=0.002686 probe_std=0.004255 n_batches=43
+[2023] current_f1=0.9439 (46s)
+[parts] 2024: rows=39,141 pos=835 pos_rate=0.0213 probe_rows=4,096
+[ncl05][train] 2024 epoch=1/10 loss=0.045763 bce=0.046235 penalty=-9.442071e-04 member_var=9.442071e-04 lam_pen_over_bce=1.021e-02 probe_dis=0.002360 probe_std=0.004369 n_batches=39
+[ncl05][train] 2024 epoch=2/10 loss=0.031285 bce=0.031577 penalty=-5.844289e-04 member_var=5.844289e-04 lam_pen_over_bce=9.254e-03 probe_dis=0.001261 probe_std=0.003113 n_batches=39
+[ncl05][train] 2024 epoch=3/10 loss=0.026549 bce=0.026753 penalty=-4.083258e-04 member_var=4.083258e-04 lam_pen_over_bce=7.631e-03 probe_dis=0.001139 probe_std=0.002324 n_batches=39
+[ncl05][train] 2024 epoch=4/10 loss=0.022982 bce=0.023190 penalty=-4.160070e-04 member_var=4.160070e-04 lam_pen_over_bce=8.969e-03 probe_dis=0.000814 probe_std=0.001975 n_batches=39
+[ncl05][train] 2024 epoch=5/10 loss=0.020184 bce=0.020350 penalty=-3.336051e-04 member_var=3.336051e-04 lam_pen_over_bce=8.197e-03 probe_dis=0.001017 probe_std=0.002152 n_batches=39
+[ncl05][train] 2024 epoch=6/10 loss=0.018660 bce=0.018815 penalty=-3.108873e-04 member_var=3.108873e-04 lam_pen_over_bce=8.262e-03 probe_dis=0.001017 probe_std=0.002036 n_batches=39
+[ncl05][train] 2024 epoch=7/10 loss=0.017451 bce=0.017605 penalty=-3.081660e-04 member_var=3.081660e-04 lam_pen_over_bce=8.752e-03 probe_dis=0.000936 probe_std=0.001753 n_batches=39
+[ncl05][train] 2024 epoch=8/10 loss=0.017069 bce=0.017209 penalty=-2.788703e-04 member_var=2.788703e-04 lam_pen_over_bce=8.103e-03 probe_dis=0.000529 probe_std=0.002177 n_batches=39
+[ncl05][train] 2024 epoch=9/10 loss=0.015357 bce=0.015494 penalty=-2.747303e-04 member_var=2.747303e-04 lam_pen_over_bce=8.866e-03 probe_dis=0.000814 probe_std=0.001036 n_batches=39
+[ncl05][train] 2024 epoch=10/10 loss=0.014261 bce=0.014386 penalty=-2.500314e-04 member_var=2.500314e-04 lam_pen_over_bce=8.690e-03 probe_dis=0.000570 probe_std=0.001115 n_batches=39
+[2024] current_f1=0.7870 (42s)
+[parts] 2025: rows=36,126 pos=216 pos_rate=0.0060 probe_rows=4,096
+[ncl05][train] 2025 epoch=1/10 loss=0.007539 bce=0.007642 penalty=-2.055008e-04 member_var=2.055008e-04 lam_pen_over_bce=1.345e-02 probe_dis=0.000000 probe_std=0.000164 n_batches=36
+[ncl05][train] 2025 epoch=2/10 loss=0.004648 bce=0.004695 penalty=-9.361751e-05 member_var=9.361751e-05 lam_pen_over_bce=9.970e-03 probe_dis=0.000244 probe_std=0.000311 n_batches=36
+[ncl05][train] 2025 epoch=3/10 loss=0.003907 bce=0.003948 penalty=-8.196165e-05 member_var=8.196165e-05 lam_pen_over_bce=1.038e-02 probe_dis=0.000285 probe_std=0.000414 n_batches=36
+[ncl05][train] 2025 epoch=4/10 loss=0.003068 bce=0.003096 penalty=-5.662210e-05 member_var=5.662210e-05 lam_pen_over_bce=9.143e-03 probe_dis=0.000285 probe_std=0.000352 n_batches=36
+[ncl05][train] 2025 epoch=5/10 loss=0.002461 bce=0.002496 penalty=-7.051331e-05 member_var=7.051331e-05 lam_pen_over_bce=1.412e-02 probe_dis=0.000122 probe_std=0.000195 n_batches=36
+[ncl05][train] 2025 epoch=6/10 loss=0.001930 bce=0.001956 penalty=-5.104299e-05 member_var=5.104299e-05 lam_pen_over_bce=1.305e-02 probe_dis=0.000244 probe_std=0.000326 n_batches=36
+[ncl05][train] 2025 epoch=7/10 loss=0.001603 bce=0.001635 penalty=-6.492971e-05 member_var=6.492971e-05 lam_pen_over_bce=1.985e-02 probe_dis=0.000285 probe_std=0.000259 n_batches=36
+[ncl05][train] 2025 epoch=8/10 loss=0.001702 bce=0.001729 penalty=-5.441201e-05 member_var=5.441201e-05 lam_pen_over_bce=1.574e-02 probe_dis=0.000122 probe_std=0.000191 n_batches=36
+[ncl05][train] 2025 epoch=9/10 loss=0.001144 bce=0.001166 penalty=-4.411486e-05 member_var=4.411486e-05 lam_pen_over_bce=1.892e-02 probe_dis=0.000285 probe_std=0.000261 n_batches=36
+[ncl05][train] 2025 epoch=10/10 loss=0.001210 bce=0.001227 penalty=-3.514302e-05 member_var=3.514302e-05 lam_pen_over_bce=1.432e-02 probe_dis=0.000163 probe_std=0.000349 n_batches=36
+[2025] current_f1=0.0000 (44s)
+[criteria] d2023=-1.24pp d2024=+0.00pp dmean=-0.22pp support=False applicable=True
+[disagreement] 2023=0.017201729371722933 2024=0.0022196985339665493 uniform_2024=0.002082042810929864 raised=True
+[auc_oracle] {"2023": {"auc_arm": 0.9815929498155869, "auc_base": 0.9777648234623905, "delta_auc": 0.003828126353196404, "f1_arm": 0.8557142857142858, "f1_base": 0.8243143068939955, "delta_f1_pp": 3.139997882029022, "oracle_f1_arm": 0.8904382470119522, "oracle_tau_arm": 0.13165907561779022, "oracle_margin_arm_pp": 3.4723961297666417, "oracle_margin_base_pp": 5.2022591501726385, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"}, "2024": {"auc_arm": 0.9354928363149287, "auc_base": 0.9420963788451623, "delta_auc": -0.0066035425302335415, "f1_arm": 0.7703703703703704, "f1_base": 0.7421875, "delta_f1_pp": 2.818287037037037, "oracle_f1_arm": 0.7703703703703704, "oracle_tau_arm": 0.5316493511199951, "oracle_margin_arm_pp": 0.0, "oracle_margin_base_pp": 0.6847249034748981, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"}}
+=== ncl05: 12y mean=0.8301231931 | 2023=0.855714 2024=0.770370 | 854s ===
+===== 2026-10-21T07:44:09Z END ncl05 rc=0 =====
+===== 2026-10-21T07:44:09Z START ncl2 =====
+[arm] ncl2 kind=NCL lambda=2.0 k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5
+[model] k=4 params=2,723,305
+[parts] 2013: rows=69,144 pos=35,506 pos_rate=0.5135 probe_rows=4,096
+[ncl2][train] 2013 epoch=1/10 loss=0.692848 bce=0.692848 penalty=-1.254374e-08 member_var=1.254374e-08 lam_pen_over_bce=3.621e-08 probe_dis=0.000000 probe_std=0.000077 n_batches=68
+[ncl2][train] 2013 epoch=2/10 loss=0.692631 bce=0.692631 penalty=-2.546009e-08 member_var=2.546009e-08 lam_pen_over_bce=7.352e-08 probe_dis=0.000000 probe_std=0.000085 n_batches=68
+[ncl2][train] 2013 epoch=3/10 loss=0.692549 bce=0.692549 penalty=-3.390213e-08 member_var=3.390213e-08 lam_pen_over_bce=9.791e-08 probe_dis=0.000000 probe_std=0.000106 n_batches=68
+[ncl2][train] 2013 epoch=4/10 loss=0.692444 bce=0.692444 penalty=-4.692047e-08 member_var=4.692047e-08 lam_pen_over_bce=1.355e-07 probe_dis=0.000000 probe_std=0.000109 n_batches=68
+[ncl2][train] 2013 epoch=5/10 loss=0.692316 bce=0.692316 penalty=-6.225751e-08 member_var=6.225751e-08 lam_pen_over_bce=1.799e-07 probe_dis=0.000000 probe_std=0.000127 n_batches=68
+[ncl2][train] 2013 epoch=6/10 loss=0.692143 bce=0.692143 penalty=-8.202396e-08 member_var=8.202396e-08 lam_pen_over_bce=2.370e-07 probe_dis=0.000000 probe_std=0.000167 n_batches=68
+[ncl2][train] 2013 epoch=7/10 loss=0.691870 bce=0.691870 penalty=-1.285543e-07 member_var=1.285543e-07 lam_pen_over_bce=3.716e-07 probe_dis=0.000000 probe_std=0.000217 n_batches=68
+[ncl2][train] 2013 epoch=8/10 loss=0.691414 bce=0.691414 penalty=-2.043086e-07 member_var=2.043086e-07 lam_pen_over_bce=5.910e-07 probe_dis=0.000000 probe_std=0.000278 n_batches=68
+[ncl2][train] 2013 epoch=9/10 loss=0.690629 bce=0.690630 penalty=-3.803826e-07 member_var=3.803826e-07 lam_pen_over_bce=1.102e-06 probe_dis=0.000000 probe_std=0.000411 n_batches=68
+[ncl2][train] 2013 epoch=10/10 loss=0.688970 bce=0.688971 penalty=-9.047764e-07 member_var=9.047764e-07 lam_pen_over_bce=2.626e-06 probe_dis=0.000000 probe_std=0.000731 n_batches=68
+[2013] current_f1=0.6786 (84s)
+[parts] 2014: rows=81,346 pos=36,805 pos_rate=0.4525 probe_rows=4,096
+[ncl2][train] 2014 epoch=1/10 loss=0.683462 bce=0.683469 penalty=-3.548653e-06 member_var=3.548653e-06 lam_pen_over_bce=1.038e-05 probe_dis=0.000000 probe_std=0.001471 n_batches=80
+[ncl2][train] 2014 epoch=2/10 loss=0.657631 bce=0.657716 penalty=-4.292390e-05 member_var=4.292390e-05 lam_pen_over_bce=1.305e-04 probe_dis=0.051392 probe_std=0.008617 n_batches=80
+[ncl2][train] 2014 epoch=3/10 loss=0.425298 bce=0.430217 penalty=-2.459386e-03 member_var=2.459386e-03 lam_pen_over_bce=1.143e-02 probe_dis=0.047852 probe_std=0.035853 n_batches=80
+[ncl2][train] 2014 epoch=4/10 loss=0.220376 bce=0.231381 penalty=-5.502408e-03 member_var=5.502408e-03 lam_pen_over_bce=4.756e-02 probe_dis=0.044027 probe_std=0.035997 n_batches=80
+[ncl2][train] 2014 epoch=5/10 loss=0.170350 bce=0.181517 penalty=-5.583891e-03 member_var=5.583891e-03 lam_pen_over_bce=6.152e-02 probe_dis=0.037028 probe_std=0.029479 n_batches=80
+[ncl2][train] 2014 epoch=6/10 loss=0.141483 bce=0.150257 penalty=-4.386751e-03 member_var=4.386751e-03 lam_pen_over_bce=5.839e-02 probe_dis=0.026611 probe_std=0.024965 n_batches=80
+[ncl2][train] 2014 epoch=7/10 loss=0.121232 bce=0.128660 penalty=-3.714069e-03 member_var=3.714069e-03 lam_pen_over_bce=5.773e-02 probe_dis=0.025879 probe_std=0.021816 n_batches=80
+[ncl2][train] 2014 epoch=8/10 loss=0.112006 bce=0.118451 penalty=-3.222440e-03 member_var=3.222440e-03 lam_pen_over_bce=5.441e-02 probe_dis=0.021647 probe_std=0.018198 n_batches=80
+[ncl2][train] 2014 epoch=9/10 loss=0.098946 bce=0.104645 penalty=-2.849704e-03 member_var=2.849704e-03 lam_pen_over_bce=5.446e-02 probe_dis=0.018107 probe_std=0.017508 n_batches=80
+[ncl2][train] 2014 epoch=10/10 loss=0.093294 bce=0.098660 penalty=-2.682952e-03 member_var=2.682952e-03 lam_pen_over_bce=5.439e-02 probe_dis=0.017049 probe_std=0.014687 n_batches=80
+[2014] current_f1=0.9643 (92s)
+[parts] 2016: rows=87,754 pos=36,307 pos_rate=0.4137 probe_rows=4,096
+[ncl2][train] 2016 epoch=1/10 loss=0.186096 bce=0.196008 penalty=-4.956280e-03 member_var=4.956280e-03 lam_pen_over_bce=5.057e-02 probe_dis=0.027181 probe_std=0.022826 n_batches=86
+[ncl2][train] 2016 epoch=2/10 loss=0.140113 bce=0.147275 penalty=-3.581075e-03 member_var=3.581075e-03 lam_pen_over_bce=4.863e-02 probe_dis=0.022542 probe_std=0.021655 n_batches=86
+[ncl2][train] 2016 epoch=3/10 loss=0.127363 bce=0.134463 penalty=-3.550427e-03 member_var=3.550427e-03 lam_pen_over_bce=5.281e-02 probe_dis=0.024211 probe_std=0.023721 n_batches=86
+[ncl2][train] 2016 epoch=4/10 loss=0.117431 bce=0.124482 penalty=-3.525438e-03 member_var=3.525438e-03 lam_pen_over_bce=5.664e-02 probe_dis=0.023926 probe_std=0.019144 n_batches=86
+[ncl2][train] 2016 epoch=5/10 loss=0.107967 bce=0.114728 penalty=-3.380629e-03 member_var=3.380629e-03 lam_pen_over_bce=5.893e-02 probe_dis=0.022380 probe_std=0.020914 n_batches=86
+[ncl2][train] 2016 epoch=6/10 loss=0.105081 bce=0.111948 penalty=-3.433386e-03 member_var=3.433386e-03 lam_pen_over_bce=6.134e-02 probe_dis=0.017293 probe_std=0.017678 n_batches=86
+[ncl2][train] 2016 epoch=7/10 loss=0.093202 bce=0.099775 penalty=-3.286702e-03 member_var=3.286702e-03 lam_pen_over_bce=6.588e-02 probe_dis=0.021037 probe_std=0.018971 n_batches=86
+[ncl2][train] 2016 epoch=8/10 loss=0.101198 bce=0.108092 penalty=-3.446618e-03 member_var=3.446618e-03 lam_pen_over_bce=6.377e-02 probe_dis=0.021688 probe_std=0.020004 n_batches=86
+[ncl2][train] 2016 epoch=9/10 loss=0.088905 bce=0.095285 penalty=-3.189760e-03 member_var=3.189760e-03 lam_pen_over_bce=6.695e-02 probe_dis=0.021444 probe_std=0.018857 n_batches=86
+[ncl2][train] 2016 epoch=10/10 loss=0.083924 bce=0.090360 penalty=-3.217683e-03 member_var=3.217683e-03 lam_pen_over_bce=7.122e-02 probe_dis=0.020426 probe_std=0.018163 n_batches=86
+[2016] current_f1=0.9592 (94s)
+[parts] 2017: rows=79,711 pos=17,285 pos_rate=0.2168 probe_rows=4,096
+[ncl2][train] 2017 epoch=1/10 loss=0.136319 bce=0.145376 penalty=-4.528510e-03 member_var=4.528510e-03 lam_pen_over_bce=6.230e-02 probe_dis=0.011515 probe_std=0.010623 n_batches=78
+[ncl2][train] 2017 epoch=2/10 loss=0.085229 bce=0.088775 penalty=-1.773225e-03 member_var=1.773225e-03 lam_pen_over_bce=3.995e-02 probe_dis=0.009318 probe_std=0.010190 n_batches=78
+[ncl2][train] 2017 epoch=3/10 loss=0.076967 bce=0.080250 penalty=-1.641560e-03 member_var=1.641560e-03 lam_pen_over_bce=4.091e-02 probe_dis=0.008138 probe_std=0.008593 n_batches=78
+[ncl2][train] 2017 epoch=4/10 loss=0.069310 bce=0.072358 penalty=-1.524010e-03 member_var=1.524010e-03 lam_pen_over_bce=4.212e-02 probe_dis=0.006592 probe_std=0.009574 n_batches=78
+[ncl2][train] 2017 epoch=5/10 loss=0.064289 bce=0.067151 penalty=-1.430865e-03 member_var=1.430865e-03 lam_pen_over_bce=4.262e-02 probe_dis=0.004517 probe_std=0.006734 n_batches=78
+[ncl2][train] 2017 epoch=6/10 loss=0.060914 bce=0.063681 penalty=-1.383349e-03 member_var=1.383349e-03 lam_pen_over_bce=4.345e-02 probe_dis=0.005859 probe_std=0.009104 n_batches=78
+[ncl2][train] 2017 epoch=7/10 loss=0.057163 bce=0.060390 penalty=-1.613330e-03 member_var=1.613330e-03 lam_pen_over_bce=5.343e-02 probe_dis=0.006714 probe_std=0.009400 n_batches=78
+[ncl2][train] 2017 epoch=8/10 loss=0.054817 bce=0.057579 penalty=-1.380702e-03 member_var=1.380702e-03 lam_pen_over_bce=4.796e-02 probe_dis=0.005046 probe_std=0.005811 n_batches=78
+[ncl2][train] 2017 epoch=9/10 loss=0.050009 bce=0.052419 penalty=-1.205204e-03 member_var=1.205204e-03 lam_pen_over_bce=4.598e-02 probe_dis=0.004150 probe_std=0.006811 n_batches=78
+[ncl2][train] 2017 epoch=10/10 loss=0.048655 bce=0.051121 penalty=-1.232934e-03 member_var=1.232934e-03 lam_pen_over_bce=4.824e-02 probe_dis=0.005981 probe_std=0.008226 n_batches=78
+[2017] current_f1=0.9576 (88s)
+[parts] 2018: rows=83,833 pos=31,680 pos_rate=0.3779 probe_rows=4,096
+[ncl2][train] 2018 epoch=1/10 loss=0.153794 bce=0.161264 penalty=-3.734938e-03 member_var=3.734938e-03 lam_pen_over_bce=4.632e-02 probe_dis=0.018066 probe_std=0.016631 n_batches=82
+[ncl2][train] 2018 epoch=2/10 loss=0.121661 bce=0.127008 penalty=-2.673513e-03 member_var=2.673513e-03 lam_pen_over_bce=4.210e-02 probe_dis=0.016113 probe_std=0.016144 n_batches=82
+[ncl2][train] 2018 epoch=3/10 loss=0.113041 bce=0.118245 penalty=-2.602080e-03 member_var=2.602080e-03 lam_pen_over_bce=4.401e-02 probe_dis=0.017822 probe_std=0.017410 n_batches=82
+[ncl2][train] 2018 epoch=4/10 loss=0.102526 bce=0.107727 penalty=-2.600778e-03 member_var=2.600778e-03 lam_pen_over_bce=4.828e-02 probe_dis=0.015910 probe_std=0.019589 n_batches=82
+[ncl2][train] 2018 epoch=5/10 loss=0.097467 bce=0.102993 penalty=-2.763086e-03 member_var=2.763086e-03 lam_pen_over_bce=5.366e-02 probe_dis=0.014486 probe_std=0.014742 n_batches=82
+[ncl2][train] 2018 epoch=6/10 loss=0.093006 bce=0.097955 penalty=-2.474744e-03 member_var=2.474744e-03 lam_pen_over_bce=5.053e-02 probe_dis=0.017090 probe_std=0.019907 n_batches=82
+[ncl2][train] 2018 epoch=7/10 loss=0.087338 bce=0.092375 penalty=-2.518842e-03 member_var=2.518842e-03 lam_pen_over_bce=5.453e-02 probe_dis=0.011637 probe_std=0.013111 n_batches=82
+[ncl2][train] 2018 epoch=8/10 loss=0.085659 bce=0.090894 penalty=-2.617711e-03 member_var=2.617711e-03 lam_pen_over_bce=5.760e-02 probe_dis=0.010620 probe_std=0.015309 n_batches=82
+[ncl2][train] 2018 epoch=9/10 loss=0.083585 bce=0.089031 penalty=-2.722911e-03 member_var=2.722911e-03 lam_pen_over_bce=6.117e-02 probe_dis=0.024333 probe_std=0.023096 n_batches=82
+[ncl2][train] 2018 epoch=10/10 loss=0.079725 bce=0.085099 penalty=-2.687092e-03 member_var=2.687092e-03 lam_pen_over_bce=6.315e-02 probe_dis=0.015015 probe_std=0.017806 n_batches=82
+[2018] current_f1=0.9589 (93s)
+[parts] 2019: rows=73,240 pos=33,468 pos_rate=0.4570 probe_rows=4,096
+[ncl2][train] 2019 epoch=1/10 loss=0.144394 bce=0.152883 penalty=-4.244516e-03 member_var=4.244516e-03 lam_pen_over_bce=5.553e-02 probe_dis=0.018840 probe_std=0.017284 n_batches=72
+[ncl2][train] 2019 epoch=2/10 loss=0.086577 bce=0.091768 penalty=-2.595114e-03 member_var=2.595114e-03 lam_pen_over_bce=5.656e-02 probe_dis=0.016235 probe_std=0.014860 n_batches=72
+[ncl2][train] 2019 epoch=3/10 loss=0.072550 bce=0.077847 penalty=-2.648372e-03 member_var=2.648372e-03 lam_pen_over_bce=6.804e-02 probe_dis=0.014486 probe_std=0.013752 n_batches=72
+[ncl2][train] 2019 epoch=4/10 loss=0.061789 bce=0.066947 penalty=-2.579244e-03 member_var=2.579244e-03 lam_pen_over_bce=7.705e-02 probe_dis=0.012614 probe_std=0.012662 n_batches=72
+[ncl2][train] 2019 epoch=5/10 loss=0.053550 bce=0.058712 penalty=-2.581018e-03 member_var=2.581018e-03 lam_pen_over_bce=8.792e-02 probe_dis=0.015422 probe_std=0.014219 n_batches=72
+[ncl2][train] 2019 epoch=6/10 loss=0.045927 bce=0.050804 penalty=-2.438297e-03 member_var=2.438297e-03 lam_pen_over_bce=9.599e-02 probe_dis=0.010010 probe_std=0.011074 n_batches=72
+[ncl2][train] 2019 epoch=7/10 loss=0.039756 bce=0.044374 penalty=-2.309318e-03 member_var=2.309318e-03 lam_pen_over_bce=1.041e-01 probe_dis=0.013957 probe_std=0.013459 n_batches=72
+[ncl2][train] 2019 epoch=8/10 loss=0.035265 bce=0.039549 penalty=-2.141911e-03 member_var=2.141911e-03 lam_pen_over_bce=1.083e-01 probe_dis=0.008138 probe_std=0.009355 n_batches=72
+[ncl2][train] 2019 epoch=9/10 loss=0.028490 bce=0.032138 penalty=-1.823977e-03 member_var=1.823977e-03 lam_pen_over_bce=1.135e-01 probe_dis=0.006632 probe_std=0.007933 n_batches=72
+[ncl2][train] 2019 epoch=10/10 loss=0.025113 bce=0.028426 penalty=-1.656143e-03 member_var=1.656143e-03 lam_pen_over_bce=1.165e-01 probe_dis=0.007935 probe_std=0.010385 n_batches=72
+[2019] current_f1=0.9760 (77s)
+[parts] 2020: rows=82,054 pos=37,276 pos_rate=0.4543 probe_rows=4,096
+[ncl2][train] 2020 epoch=1/10 loss=0.089237 bce=0.095511 penalty=-3.137438e-03 member_var=3.137438e-03 lam_pen_over_bce=6.570e-02 probe_dis=0.016154 probe_std=0.015050 n_batches=81
+[ncl2][train] 2020 epoch=2/10 loss=0.064282 bce=0.068288 penalty=-2.002849e-03 member_var=2.002849e-03 lam_pen_over_bce=5.866e-02 probe_dis=0.013102 probe_std=0.011769 n_batches=81
+[ncl2][train] 2020 epoch=3/10 loss=0.054249 bce=0.058217 penalty=-1.984098e-03 member_var=1.984098e-03 lam_pen_over_bce=6.816e-02 probe_dis=0.009603 probe_std=0.010029 n_batches=81
+[ncl2][train] 2020 epoch=4/10 loss=0.046231 bce=0.049980 penalty=-1.874682e-03 member_var=1.874682e-03 lam_pen_over_bce=7.502e-02 probe_dis=0.010701 probe_std=0.011700 n_batches=81
+[ncl2][train] 2020 epoch=5/10 loss=0.043059 bce=0.046910 penalty=-1.925565e-03 member_var=1.925565e-03 lam_pen_over_bce=8.210e-02 probe_dis=0.007324 probe_std=0.008255 n_batches=81
+[ncl2][train] 2020 epoch=6/10 loss=0.035872 bce=0.039340 penalty=-1.734059e-03 member_var=1.734059e-03 lam_pen_over_bce=8.816e-02 probe_dis=0.008748 probe_std=0.010649 n_batches=81
+[ncl2][train] 2020 epoch=7/10 loss=0.034169 bce=0.037713 penalty=-1.771734e-03 member_var=1.771734e-03 lam_pen_over_bce=9.396e-02 probe_dis=0.006063 probe_std=0.007766 n_batches=81
+[ncl2][train] 2020 epoch=8/10 loss=0.029259 bce=0.032361 penalty=-1.551170e-03 member_var=1.551170e-03 lam_pen_over_bce=9.587e-02 probe_dis=0.008138 probe_std=0.009079 n_batches=81
+[ncl2][train] 2020 epoch=9/10 loss=0.026831 bce=0.029705 penalty=-1.436954e-03 member_var=1.436954e-03 lam_pen_over_bce=9.675e-02 probe_dis=0.007121 probe_std=0.009814 n_batches=81
+[ncl2][train] 2020 epoch=10/10 loss=0.024713 bce=0.027608 penalty=-1.447664e-03 member_var=1.447664e-03 lam_pen_over_bce=1.049e-01 probe_dis=0.006755 probe_std=0.008002 n_batches=81
+[2020] current_f1=0.9788 (84s)
+[parts] 2021: rows=65,316 pos=28,698 pos_rate=0.4394 probe_rows=4,096
+[ncl2][train] 2021 epoch=1/10 loss=0.098542 bce=0.106385 penalty=-3.921556e-03 member_var=3.921556e-03 lam_pen_over_bce=7.372e-02 probe_dis=0.018066 probe_std=0.020045 n_batches=64
+[ncl2][train] 2021 epoch=2/10 loss=0.063966 bce=0.068609 penalty=-2.321552e-03 member_var=2.321552e-03 lam_pen_over_bce=6.768e-02 probe_dis=0.011230 probe_std=0.013329 n_batches=64
+[ncl2][train] 2021 epoch=3/10 loss=0.050377 bce=0.054940 penalty=-2.281891e-03 member_var=2.281891e-03 lam_pen_over_bce=8.307e-02 probe_dis=0.010864 probe_std=0.013100 n_batches=64
+[ncl2][train] 2021 epoch=4/10 loss=0.042455 bce=0.046567 penalty=-2.056189e-03 member_var=2.056189e-03 lam_pen_over_bce=8.831e-02 probe_dis=0.008911 probe_std=0.011613 n_batches=64
+[ncl2][train] 2021 epoch=5/10 loss=0.035136 bce=0.038608 penalty=-1.736142e-03 member_var=1.736142e-03 lam_pen_over_bce=8.994e-02 probe_dis=0.006104 probe_std=0.008243 n_batches=64
+[ncl2][train] 2021 epoch=6/10 loss=0.030162 bce=0.033558 penalty=-1.697987e-03 member_var=1.697987e-03 lam_pen_over_bce=1.012e-01 probe_dis=0.007365 probe_std=0.010019 n_batches=64
+[ncl2][train] 2021 epoch=7/10 loss=0.027095 bce=0.030243 penalty=-1.573716e-03 member_var=1.573716e-03 lam_pen_over_bce=1.041e-01 probe_dis=0.005208 probe_std=0.006310 n_batches=64
+[ncl2][train] 2021 epoch=8/10 loss=0.024843 bce=0.027719 penalty=-1.437941e-03 member_var=1.437941e-03 lam_pen_over_bce=1.037e-01 probe_dis=0.004069 probe_std=0.005745 n_batches=64
+[ncl2][train] 2021 epoch=9/10 loss=0.020489 bce=0.022777 penalty=-1.143944e-03 member_var=1.143944e-03 lam_pen_over_bce=1.004e-01 probe_dis=0.004679 probe_std=0.006663 n_batches=64
+[ncl2][train] 2021 epoch=10/10 loss=0.019554 bce=0.021763 penalty=-1.104782e-03 member_var=1.104782e-03 lam_pen_over_bce=1.015e-01 probe_dis=0.002157 probe_std=0.004337 n_batches=64
+[2021] current_f1=0.9860 (72s)
+[parts] 2022: rows=69,532 pos=33,510 pos_rate=0.4819 probe_rows=4,096
+[ncl2][train] 2022 epoch=1/10 loss=0.064458 bce=0.070080 penalty=-2.810587e-03 member_var=2.810587e-03 lam_pen_over_bce=8.021e-02 probe_dis=0.009277 probe_std=0.010208 n_batches=68
+[ncl2][train] 2022 epoch=2/10 loss=0.039301 bce=0.042202 penalty=-1.450398e-03 member_var=1.450398e-03 lam_pen_over_bce=6.874e-02 probe_dis=0.007446 probe_std=0.007576 n_batches=68
+[ncl2][train] 2022 epoch=3/10 loss=0.032047 bce=0.034597 penalty=-1.274747e-03 member_var=1.274747e-03 lam_pen_over_bce=7.369e-02 probe_dis=0.004110 probe_std=0.005821 n_batches=68
+[ncl2][train] 2022 epoch=4/10 loss=0.028124 bce=0.030586 penalty=-1.231252e-03 member_var=1.231252e-03 lam_pen_over_bce=8.051e-02 probe_dis=0.004598 probe_std=0.006406 n_batches=68
+[ncl2][train] 2022 epoch=5/10 loss=0.023853 bce=0.026154 penalty=-1.150353e-03 member_var=1.150353e-03 lam_pen_over_bce=8.797e-02 probe_dis=0.003255 probe_std=0.005203 n_batches=68
+[ncl2][train] 2022 epoch=6/10 loss=0.020236 bce=0.022082 penalty=-9.229563e-04 member_var=9.229563e-04 lam_pen_over_bce=8.359e-02 probe_dis=0.003866 probe_std=0.004222 n_batches=68
+[ncl2][train] 2022 epoch=7/10 loss=0.018892 bce=0.020678 penalty=-8.928417e-04 member_var=8.928417e-04 lam_pen_over_bce=8.636e-02 probe_dis=0.002604 probe_std=0.004163 n_batches=68
+[ncl2][train] 2022 epoch=8/10 loss=0.017492 bce=0.019309 penalty=-9.086479e-04 member_var=9.086479e-04 lam_pen_over_bce=9.412e-02 probe_dis=0.003215 probe_std=0.004660 n_batches=68
+[ncl2][train] 2022 epoch=9/10 loss=0.014165 bce=0.015623 penalty=-7.288705e-04 member_var=7.288705e-04 lam_pen_over_bce=9.331e-02 probe_dis=0.003662 probe_std=0.004927 n_batches=68
+[ncl2][train] 2022 epoch=10/10 loss=0.013652 bce=0.015003 penalty=-6.757004e-04 member_var=6.757004e-04 lam_pen_over_bce=9.008e-02 probe_dis=0.001831 probe_std=0.003126 n_batches=68
+[2022] current_f1=0.9869 (80s)
+[parts] 2023: rows=43,879 pos=6,512 pos_rate=0.1484 probe_rows=4,096
+[ncl2][train] 2023 epoch=1/10 loss=0.109402 bce=0.117910 penalty=-4.254099e-03 member_var=4.254099e-03 lam_pen_over_bce=7.216e-02 probe_dis=0.013428 probe_std=0.015740 n_batches=43
+[ncl2][train] 2023 epoch=2/10 loss=0.068361 bce=0.072590 penalty=-2.114562e-03 member_var=2.114562e-03 lam_pen_over_bce=5.826e-02 probe_dis=0.010905 probe_std=0.013331 n_batches=43
+[ncl2][train] 2023 epoch=3/10 loss=0.057572 bce=0.061288 penalty=-1.858017e-03 member_var=1.858017e-03 lam_pen_over_bce=6.063e-02 probe_dis=0.009399 probe_std=0.012435 n_batches=43
+[ncl2][train] 2023 epoch=4/10 loss=0.051543 bce=0.055299 penalty=-1.877680e-03 member_var=1.877680e-03 lam_pen_over_bce=6.791e-02 probe_dis=0.013713 probe_std=0.016686 n_batches=43
+[ncl2][train] 2023 epoch=5/10 loss=0.042628 bce=0.046135 penalty=-1.753796e-03 member_var=1.753796e-03 lam_pen_over_bce=7.603e-02 probe_dis=0.009196 probe_std=0.010532 n_batches=43
+[ncl2][train] 2023 epoch=6/10 loss=0.036823 bce=0.040029 penalty=-1.602818e-03 member_var=1.602818e-03 lam_pen_over_bce=8.008e-02 probe_dis=0.007284 probe_std=0.009124 n_batches=43
+[ncl2][train] 2023 epoch=7/10 loss=0.032312 bce=0.035080 penalty=-1.384261e-03 member_var=1.384261e-03 lam_pen_over_bce=7.892e-02 probe_dis=0.005941 probe_std=0.006607 n_batches=43
+[ncl2][train] 2023 epoch=8/10 loss=0.029589 bce=0.032230 penalty=-1.320640e-03 member_var=1.320640e-03 lam_pen_over_bce=8.195e-02 probe_dis=0.004720 probe_std=0.006746 n_batches=43
+[ncl2][train] 2023 epoch=9/10 loss=0.026983 bce=0.029493 penalty=-1.254986e-03 member_var=1.254986e-03 lam_pen_over_bce=8.510e-02 probe_dis=0.006185 probe_std=0.009478 n_batches=43
+[ncl2][train] 2023 epoch=10/10 loss=0.025443 bce=0.027897 penalty=-1.227300e-03 member_var=1.227300e-03 lam_pen_over_bce=8.799e-02 probe_dis=0.003988 probe_std=0.005886 n_batches=43
+[2023] current_f1=0.9426 (48s)
+[parts] 2024: rows=39,141 pos=835 pos_rate=0.0213 probe_rows=4,096
+[ncl2][train] 2024 epoch=1/10 loss=0.043639 bce=0.045786 penalty=-1.073621e-03 member_var=1.073621e-03 lam_pen_over_bce=4.690e-02 probe_dis=0.001709 probe_std=0.003175 n_batches=39
+[ncl2][train] 2024 epoch=2/10 loss=0.030002 bce=0.031519 penalty=-7.587194e-04 member_var=7.587194e-04 lam_pen_over_bce=4.814e-02 probe_dis=0.002035 probe_std=0.003644 n_batches=39
+[ncl2][train] 2024 epoch=3/10 loss=0.024784 bce=0.025954 penalty=-5.848146e-04 member_var=5.848146e-04 lam_pen_over_bce=4.507e-02 probe_dis=0.001383 probe_std=0.002841 n_batches=39
+[ncl2][train] 2024 epoch=4/10 loss=0.021487 bce=0.022525 penalty=-5.190520e-04 member_var=5.190520e-04 lam_pen_over_bce=4.609e-02 probe_dis=0.001424 probe_std=0.002375 n_batches=39
+[ncl2][train] 2024 epoch=5/10 loss=0.019110 bce=0.020042 penalty=-4.661402e-04 member_var=4.661402e-04 lam_pen_over_bce=4.652e-02 probe_dis=0.000773 probe_std=0.002004 n_batches=39
+[ncl2][train] 2024 epoch=6/10 loss=0.017637 bce=0.018462 penalty=-4.124228e-04 member_var=4.124228e-04 lam_pen_over_bce=4.468e-02 probe_dis=0.001221 probe_std=0.002638 n_batches=39
+[ncl2][train] 2024 epoch=7/10 loss=0.016552 bce=0.017353 penalty=-4.001358e-04 member_var=4.001358e-04 lam_pen_over_bce=4.612e-02 probe_dis=0.001506 probe_std=0.002236 n_batches=39
+[ncl2][train] 2024 epoch=8/10 loss=0.016281 bce=0.017082 penalty=-4.002818e-04 member_var=4.002818e-04 lam_pen_over_bce=4.687e-02 probe_dis=0.001506 probe_std=0.003512 n_batches=39
+[ncl2][train] 2024 epoch=9/10 loss=0.014659 bce=0.015553 penalty=-4.473297e-04 member_var=4.473297e-04 lam_pen_over_bce=5.752e-02 probe_dis=0.000814 probe_std=0.001321 n_batches=39
+[ncl2][train] 2024 epoch=10/10 loss=0.013406 bce=0.014184 penalty=-3.887729e-04 member_var=3.887729e-04 lam_pen_over_bce=5.482e-02 probe_dis=0.000651 probe_std=0.001142 n_batches=39
+[2024] current_f1=0.8059 (46s)
+[parts] 2025: rows=36,126 pos=216 pos_rate=0.0060 probe_rows=4,096
+[ncl2][train] 2025 epoch=1/10 loss=0.007373 bce=0.007755 penalty=-1.908618e-04 member_var=1.908618e-04 lam_pen_over_bce=4.922e-02 probe_dis=0.000000 probe_std=0.000164 n_batches=36
+[ncl2][train] 2025 epoch=2/10 loss=0.004672 bce=0.004919 penalty=-1.235500e-04 member_var=1.235500e-04 lam_pen_over_bce=5.023e-02 probe_dis=0.000285 probe_std=0.000448 n_batches=36
+[ncl2][train] 2025 epoch=3/10 loss=0.003638 bce=0.003821 penalty=-9.161124e-05 member_var=9.161124e-05 lam_pen_over_bce=4.795e-02 probe_dis=0.000366 probe_std=0.000531 n_batches=36
+[ncl2][train] 2025 epoch=4/10 loss=0.003107 bce=0.003261 penalty=-7.709296e-05 member_var=7.709296e-05 lam_pen_over_bce=4.728e-02 probe_dis=0.000285 probe_std=0.000319 n_batches=36
+[ncl2][train] 2025 epoch=5/10 loss=0.002351 bce=0.002532 penalty=-9.071161e-05 member_var=9.071161e-05 lam_pen_over_bce=7.165e-02 probe_dis=0.000000 probe_std=0.000155 n_batches=36
+[ncl2][train] 2025 epoch=6/10 loss=0.001906 bce=0.002022 penalty=-5.779260e-05 member_var=5.779260e-05 lam_pen_over_bce=5.717e-02 probe_dis=0.000000 probe_std=0.000169 n_batches=36
+[ncl2][train] 2025 epoch=7/10 loss=0.001616 bce=0.001756 penalty=-7.000040e-05 member_var=7.000040e-05 lam_pen_over_bce=7.973e-02 probe_dis=0.000244 probe_std=0.000273 n_batches=36
+[ncl2][train] 2025 epoch=8/10 loss=0.001607 bce=0.001726 penalty=-5.946510e-05 member_var=5.946510e-05 lam_pen_over_bce=6.891e-02 probe_dis=0.000285 probe_std=0.000205 n_batches=36
+[ncl2][train] 2025 epoch=9/10 loss=0.001224 bce=0.001347 penalty=-6.146638e-05 member_var=6.146638e-05 lam_pen_over_bce=9.126e-02 probe_dis=0.000285 probe_std=0.000298 n_batches=36
+[ncl2][train] 2025 epoch=10/10 loss=0.001342 bce=0.001422 penalty=-4.032209e-05 member_var=4.032209e-05 lam_pen_over_bce=5.671e-02 probe_dis=0.000122 probe_std=0.000372 n_batches=36
+[2025] current_f1=0.0000 (41s)
+[criteria] d2023=-0.50pp d2024=-0.92pp dmean=-0.09pp support=False applicable=True
+[disagreement] 2023=0.020068684267010087 2024=0.002701493564594948 uniform_2024=0.002082042810929864 raised=True
+[auc_oracle] {"2023": {"auc_arm": 0.9807241082696176, "auc_base": 0.9777648234623905, "delta_auc": 0.0029592848072271805, "f1_arm": 0.8631057658295013, "f1_base": 0.8243143068939955, "delta_f1_pp": 3.879145893550573, "oracle_f1_arm": 0.8859328234120386, "oracle_tau_arm": 0.19453950226306915, "oracle_margin_arm_pp": 2.2827057582537336, "oracle_margin_base_pp": 5.2022591501726385, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"}, "2024": {"auc_arm": 0.9313510162774716, "auc_base": 0.9420963788451623, "delta_auc": -0.010745362567690653, "f1_arm": 0.7611940298507462, "f1_base": 0.7421875, "delta_f1_pp": 1.9006529850746245, "oracle_f1_arm": 0.7640449438202247, "oracle_tau_arm": 0.5433124899864197, "oracle_margin_arm_pp": 0.28509139694784524, "oracle_margin_base_pp": 0.6847249034748981, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"}}
+=== ncl2: 12y mean=0.8314691331 | 2023=0.863106 2024=0.761194 | 912s ===
+[selection] selected=None outcome=ncl_closed gain_source=None reason=两臂均未通过支持判据，NCL 关闭
+===== 2026-10-21T07:59:38Z END ncl2 rc=0 =====
+===== ALL_ARMS_DONE (wrapper marker; background exit 0) =====

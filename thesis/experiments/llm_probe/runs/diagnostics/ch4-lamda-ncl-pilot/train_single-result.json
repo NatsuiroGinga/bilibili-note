@@ -1,0 +1,1339 @@
+{
+  "schema_version": "ch4-ncl-pilot-arm-v1",
+  "design_doc": "thesis/methods/第四章-NCL与训练通道诊断先导设计.md",
+  "arm": "train_single",
+  "kind": "D0",
+  "k": 4,
+  "n_params": 2723305,
+  "device": "mps",
+  "mechanism": {
+    "form": "D0",
+    "train_loss": "每批由独立 rng 均匀抽 1 个成员，计算该成员 BCE",
+    "member_rng": "np.random.default_rng(42)，与训练洗牌流分离",
+    "year_conditioning": "无（全局）",
+    "eval_contract": "4 成员概率平均（model(x) 返回均值；ch3.evaluate/score_shard 同合同）",
+    "note": "训练通道诊断，不承担机制存废，结果只登记",
+    "epoch_disagreement_probe": {
+      "source": "当前年度训练池（x_curr）的固定等距子样本，≤4096 行；不使用标签",
+      "index_rule": "np.linspace(0, n-1, min(n, 4096)).round()；无 RNG，不随 epoch 变化",
+      "model_mode": "eval（关闭 Dropout；不消耗训练 RNG、不更新参数，训练轨迹不变）",
+      "metrics": [
+        "pairwise_disagreement_rate（0.5 判定，成员对均值）",
+        "mean_member_std"
+      ],
+      "field": "train_logs[year].epoch_disagreement（每年 10 点）"
+    },
+    "disagreement": {
+      "2023": 0.013629534234814339,
+      "2024": 0.0012389015073301674,
+      "uniform_2023": 0.018366908901358354,
+      "uniform_2024": 0.002082042810929864,
+      "delta_2024": -0.0008431413035996968,
+      "raised_2024": false,
+      "uniform_source": "runs/diagnostics/ch4-lamda-tabm-pilot/member-disagreement-diag.json"
+    },
+    "member_stats_2024": {
+      "n": 9686,
+      "n_pos": 159,
+      "n_neg": 9527,
+      "f1_per_member": [
+        0.7258687258687259,
+        0.7215686274509804,
+        0.7230769230769231,
+        0.6747967479674797
+      ],
+      "f1_ensemble": 0.7007874015748031,
+      "mean_member_std": 0.0014102591667324305,
+      "member_std_pos": 0.048407673835754395,
+      "member_std_neg": 0.0006259001675061882,
+      "auc_per_member": [
+        0.9263503330157982,
+        0.9272190985831068,
+        0.9224890793659597,
+        0.9190258999084363
+      ],
+      "auc_ensemble": 0.9338813950156886,
+      "mean_ensemble_score": 0.01041843369603157,
+      "pairwise_disagreement_rate": 0.0012389015073301674,
+      "threshold": 0.5
+    },
+    "members_2024_npz": "runs/diagnostics/ch4-lamda-ncl-pilot/preds_train_single_2024_members.npz",
+    "member_mean_vs_saved_score_max_abs_diff": 5.960464477539063e-08
+  },
+  "protocol": {
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "batch": 1024,
+    "lr": 0.01,
+    "momentum": 0.9,
+    "weight_decay": 1e-06,
+    "memory": 200,
+    "seed": 42,
+    "threshold": 0.5,
+    "optimizer_lifetime": "per_year_rebuild_inside_train_fn",
+    "parts_source": "ch4_lamda_training_process_2x2.build_parts",
+    "batch_stream": "ch3.iterate_batches_parts（标准一维标签）",
+    "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767"
+  },
+  "mean_f1": 0.8203273827573146,
+  "f1_2023": 0.8314275175212099,
+  "f1_2024": 0.7007874015748031,
+  "backward_f1": {
+    "2013": 0.9179685373686789,
+    "2014": 0.9143442402026845,
+    "2016": 0.898637421070123,
+    "2017": 0.9157137805021809,
+    "2018": 0.8918593770886245,
+    "2019": 0.9434589800443459,
+    "2020": 0.9458117082426475,
+    "2021": 0.9423345331668258,
+    "2022": 0.941585096305652,
+    "2023": 0.8314275175212099,
+    "2024": 0.7007874015748031,
+    "2025": 0.0
+  },
+  "current_year_f1": {
+    "2013": 0.6785659685063445,
+    "2014": 0.9384816753926701,
+    "2016": 0.9383875780516108,
+    "2017": 0.9397676924919172,
+    "2018": 0.9422950819672131,
+    "2019": 0.9689034369885434,
+    "2020": 0.9760559591068065,
+    "2021": 0.9772245013438959,
+    "2022": 0.9861086054483131,
+    "2023": 0.9190617773372977,
+    "2024": 0.7258687258687259,
+    "2025": 0.0
+  },
+  "criteria": {
+    "reference_uniform_tabm4": {
+      "mean_f1": 0.832346367494066,
+      "f1_2023": 0.8681241184767278,
+      "f1_2024": 0.7703703703703704
+    },
+    "delta_2023_pp": -3.6696600955517855,
+    "delta_2024_pp": -6.958296879556725,
+    "delta_mean12_pp": -1.2018984736751337,
+    "support_2023": false,
+    "support_2024": false,
+    "support_mean12": false,
+    "support": false,
+    "criteria_applicable": false,
+    "thresholds": {
+      "year_delta_pp": 0.5,
+      "mean12_min_pp": -0.2
+    },
+    "verdict": "register_only",
+    "verdict_note": "D0 为训练通道诊断，不承担机制存废；布尔值仅作披露",
+    "auc_oracle_check": {
+      "2023": {
+        "auc_arm": 0.9840482915237863,
+        "auc_base": 0.9777648234623905,
+        "delta_auc": 0.006283468061395792,
+        "f1_arm": 0.8314275175212099,
+        "f1_base": 0.8243143068939955,
+        "delta_f1_pp": 0.7113210627214372,
+        "oracle_f1_arm": 0.9127428383272966,
+        "oracle_tau_arm": 0.03857578709721565,
+        "oracle_margin_arm_pp": 8.131532080608672,
+        "oracle_margin_base_pp": 5.2022591501726385,
+        "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"
+      },
+      "2024": {
+        "auc_arm": 0.9338813950156886,
+        "auc_base": 0.9420963788451623,
+        "delta_auc": -0.008214983829473721,
+        "f1_arm": 0.7007874015748031,
+        "f1_base": 0.7421875,
+        "delta_f1_pp": -4.140009842519687,
+        "oracle_f1_arm": 0.7647058823529411,
+        "oracle_tau_arm": 0.14514338970184326,
+        "oracle_margin_arm_pp": 6.391848077813799,
+        "oracle_margin_base_pp": 0.6847249034748981,
+        "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"
+      }
+    }
+  },
+  "train_logs": {
+    "2013": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.6928413615507238,
+        0.6926466997931985,
+        0.6925539128920611,
+        0.6924588259528665,
+        0.6923263213213753,
+        0.6921566794900333,
+        0.6918512232163373,
+        0.691479346331428,
+        0.6907297022202435,
+        0.6891561956966624
+      ],
+      "epoch_mean_bce_all_members": [
+        0.6928514592787799,
+        0.6926334605497473,
+        0.6925479103537167,
+        0.69244805504294,
+        0.6923236846923828,
+        0.692145964678596,
+        0.6918843213249656,
+        0.6914697534897748,
+        0.6907155654009651,
+        0.6891643860760857
+      ],
+      "member_draw_counts": [
+        168,
+        171,
+        166,
+        175
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.001991450320929289,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0008069294854067266,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0013515737373381853,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0005548599874600768,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0011572623625397682,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0014529861509799957,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.002556599210947752,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0017397800693288445,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0017672802787274122,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0020660972222685814,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 680
+    },
+    "2014": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.68389892578125,
+        0.6620328426361084,
+        0.45614376068115237,
+        0.3806586980819702,
+        0.24734995365142823,
+        0.24217569828033447,
+        0.21097750663757325,
+        0.18116568326950072,
+        0.1968958258628845,
+        0.19836944341659546
+      ],
+      "epoch_mean_bce_all_members": [
+        0.683979845046997,
+        0.6621818542480469,
+        0.4603141784667969,
+        0.3689050436019897,
+        0.24723238945007325,
+        0.23761792182922364,
+        0.20734770298004152,
+        0.18053889274597168,
+        0.1870245099067688,
+        0.1974736213684082
+      ],
+      "member_draw_counts": [
+        192,
+        192,
+        209,
+        207
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.003281037323176861,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.060953776041666664,
+          "mean_member_std": 0.00826132670044899,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.062052408854166664,
+          "mean_member_std": 0.05423813685774803,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0545654296875,
+          "mean_member_std": 0.04510556161403656,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.037516276041666664,
+          "mean_member_std": 0.03091801330447197,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.031168619791666668,
+          "mean_member_std": 0.025210324674844742,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.031046549479166668,
+          "mean_member_std": 0.024492837488651276,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.023844401041666668,
+          "mean_member_std": 0.022520489990711212,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.08308919270833333,
+          "mean_member_std": 0.06497526168823242,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.059163411458333336,
+          "mean_member_std": 0.04853787273168564,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 800
+    },
+    "2016": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.3033174913983012,
+        0.22609335877174555,
+        0.22256367705589117,
+        0.23621778709943905,
+        0.23048837794813998,
+        0.18355523708254792,
+        0.17510534996210142,
+        0.17302107256512309,
+        0.17284303487733352,
+        0.18183874529461527
+      ],
+      "epoch_mean_bce_all_members": [
+        0.3009795477223951,
+        0.22703765159429506,
+        0.21813385985618414,
+        0.24737240547357603,
+        0.23153675434201262,
+        0.1849228947661644,
+        0.17076861581137015,
+        0.169254835261855,
+        0.17145662529523983,
+        0.18051098668298057
+      ],
+      "member_draw_counts": [
+        225,
+        223,
+        207,
+        205
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.03369140625,
+          "mean_member_std": 0.028491303324699402,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0418701171875,
+          "mean_member_std": 0.03352952003479004,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.048990885416666664,
+          "mean_member_std": 0.03943873569369316,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.12467447916666667,
+          "mean_member_std": 0.09284260869026184,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.042073567708333336,
+          "mean_member_std": 0.035249266773462296,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0272216796875,
+          "mean_member_std": 0.02264385297894478,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0489501953125,
+          "mean_member_std": 0.04081408306956291,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0333251953125,
+          "mean_member_std": 0.028578568249940872,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0377197265625,
+          "mean_member_std": 0.03337206691503525,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.030232747395833332,
+          "mean_member_std": 0.026602108031511307,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 860
+    },
+    "2017": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.26941979237091845,
+        0.13742703657883865,
+        0.12238048895811424,
+        0.11416894961626102,
+        0.10800107320149739,
+        0.1114969131274101,
+        0.09755192047510391,
+        0.10314614956195538,
+        0.11812377587342873,
+        0.10346434666560246
+      ],
+      "epoch_mean_bce_all_members": [
+        0.2679328918457031,
+        0.1389159300388434,
+        0.12371394573113857,
+        0.11460441198104467,
+        0.10707673048361754,
+        0.10934121792133038,
+        0.09731273162059295,
+        0.10327583704239283,
+        0.11051585124089168,
+        0.1043086296472794
+      ],
+      "member_draw_counts": [
+        203,
+        202,
+        174,
+        201
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0284423828125,
+          "mean_member_std": 0.028583204373717308,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017008463541666668,
+          "mean_member_std": 0.019473891705274582,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017374674479166668,
+          "mean_member_std": 0.019444236531853676,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.012003580729166666,
+          "mean_member_std": 0.01432962529361248,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.013631184895833334,
+          "mean_member_std": 0.015554193407297134,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.015543619791666666,
+          "mean_member_std": 0.017301345244050026,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.012736002604166666,
+          "mean_member_std": 0.0123063949868083,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.010457356770833334,
+          "mean_member_std": 0.011402564123272896,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.015380859375,
+          "mean_member_std": 0.016707604750990868,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.013224283854166666,
+          "mean_member_std": 0.011799895204603672,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 780
+    },
+    "2018": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.21759605407714844,
+        0.20494723901516054,
+        0.21688298481266674,
+        0.16596248673229683,
+        0.15441038550400152,
+        0.19760992468857183,
+        0.16664450343062237,
+        0.15166625743959009,
+        0.15943833095271412,
+        0.1512226593203661
+      ],
+      "epoch_mean_bce_all_members": [
+        0.21806314514904487,
+        0.20851107341487232,
+        0.22518567341129955,
+        0.16512576545157084,
+        0.15449597195881168,
+        0.19996705869349038,
+        0.1664432199989877,
+        0.15168911073266006,
+        0.15798512900747905,
+        0.15760318244375834
+      ],
+      "member_draw_counts": [
+        215,
+        186,
+        209,
+        210
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.031087239583333332,
+          "mean_member_std": 0.03127434104681015,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0665283203125,
+          "mean_member_std": 0.07051457464694977,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.022176106770833332,
+          "mean_member_std": 0.024803470820188522,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.020304361979166668,
+          "mean_member_std": 0.022497819736599922,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.01953125,
+          "mean_member_std": 0.022728998214006424,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0234375,
+          "mean_member_std": 0.024142470210790634,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.01513671875,
+          "mean_member_std": 0.0168954785913229,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.022664388020833332,
+          "mean_member_std": 0.026088327169418335,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.022664388020833332,
+          "mean_member_std": 0.02000102400779724,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.016316731770833332,
+          "mean_member_std": 0.019011370837688446,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 820
+    },
+    "2019": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.1555975013309055,
+        0.11841928958892822,
+        0.10792958736419678,
+        0.10093595584233601,
+        0.0963131652937995,
+        0.09438066350089179,
+        0.10132775041792128,
+        0.12374224927690294,
+        0.0880119734340244,
+        0.08261258072323269
+      ],
+      "epoch_mean_bce_all_members": [
+        0.14990356233384874,
+        0.11764132976531982,
+        0.10697057512071398,
+        0.10071724653244019,
+        0.09646546178393894,
+        0.0953534377945794,
+        0.10286815961201985,
+        0.11878772576649983,
+        0.08765837219026354,
+        0.08290244473351373
+      ],
+      "member_draw_counts": [
+        177,
+        213,
+        160,
+        170
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.018269856770833332,
+          "mean_member_std": 0.015781641006469727,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017578125,
+          "mean_member_std": 0.01416131854057312,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.016031901041666668,
+          "mean_member_std": 0.013828860595822334,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017415364583333332,
+          "mean_member_std": 0.014580067247152328,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017333984375,
+          "mean_member_std": 0.014345711097121239,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.02099609375,
+          "mean_member_std": 0.018219979479908943,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.090576171875,
+          "mean_member_std": 0.07472047954797745,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.014363606770833334,
+          "mean_member_std": 0.01319799106568098,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.012491861979166666,
+          "mean_member_std": 0.011728610843420029,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.018351236979166668,
+          "mean_member_std": 0.014892332255840302,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 720
+    },
+    "2020": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.09652044154979565,
+        0.08632048265433606,
+        0.08332874745498468,
+        0.08253509615674431,
+        0.0769488016764323,
+        0.07577007788198965,
+        0.07483255127329885,
+        0.07211004068822037,
+        0.0680906684310348,
+        0.0676300025280611
+      ],
+      "epoch_mean_bce_all_members": [
+        0.09738351680614331,
+        0.0857572791017132,
+        0.08352096581164702,
+        0.0816115449976038,
+        0.07755957120730553,
+        0.07550452667989849,
+        0.07432879341973199,
+        0.07277230863217954,
+        0.06781128306447724,
+        0.06694889657291365
+      ],
+      "member_draw_counts": [
+        194,
+        200,
+        200,
+        216
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0152587890625,
+          "mean_member_std": 0.01291840709745884,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.018147786458333332,
+          "mean_member_std": 0.016997460275888443,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.013102213541666666,
+          "mean_member_std": 0.0117576252669096,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017618815104166668,
+          "mean_member_std": 0.016604606062173843,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.011433919270833334,
+          "mean_member_std": 0.01083509624004364,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.014444986979166666,
+          "mean_member_std": 0.013906246051192284,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.013468424479166666,
+          "mean_member_std": 0.012727786786854267,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.012858072916666666,
+          "mean_member_std": 0.01131032407283783,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.010823567708333334,
+          "mean_member_std": 0.010706966742873192,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017333984375,
+          "mean_member_std": 0.019261501729488373,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 810
+    },
+    "2021": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.11915875971317291,
+        0.10642868280410767,
+        0.09516233205795288,
+        0.08960049599409103,
+        0.0944032222032547,
+        0.0871993750333786,
+        0.08164037019014359,
+        0.0749804750084877,
+        0.09765346348285675,
+        0.07156867533922195
+      ],
+      "epoch_mean_bce_all_members": [
+        0.12246120721101761,
+        0.10722098499536514,
+        0.09514844417572021,
+        0.09009633958339691,
+        0.09232354164123535,
+        0.08912603557109833,
+        0.08350950479507446,
+        0.0747428834438324,
+        0.09204264730215073,
+        0.07181424647569656
+      ],
+      "member_draw_counts": [
+        168,
+        150,
+        174,
+        148
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0111083984375,
+          "mean_member_std": 0.013190249912440777,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.013102213541666666,
+          "mean_member_std": 0.015082241035997868,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.012003580729166666,
+          "mean_member_std": 0.0157330222427845,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0137939453125,
+          "mean_member_std": 0.01439042016863823,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.021158854166666668,
+          "mean_member_std": 0.021680036559700966,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017333984375,
+          "mean_member_std": 0.0195018257945776,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.010782877604166666,
+          "mean_member_std": 0.012178061529994011,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.020914713541666668,
+          "mean_member_std": 0.02115217223763466,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.012491861979166666,
+          "mean_member_std": 0.015801794826984406,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.010579427083333334,
+          "mean_member_std": 0.011913593858480453,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 640
+    },
+    "2022": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.06996456314535703,
+        0.05679328651989207,
+        0.05278279500849107,
+        0.051683036720051485,
+        0.04988614951863008,
+        0.046594830120311063,
+        0.04545989807914285,
+        0.05588246093076818,
+        0.0647971559973324,
+        0.04264405895681942
+      ],
+      "epoch_mean_bce_all_members": [
+        0.06859278678894043,
+        0.05617980396046358,
+        0.05229412106906667,
+        0.05340195052763995,
+        0.04965577406041762,
+        0.04632718773449168,
+        0.04636465801912196,
+        0.058406882426318,
+        0.05845158941605512,
+        0.0425384149831884
+      ],
+      "member_draw_counts": [
+        205,
+        167,
+        161,
+        147
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0078125,
+          "mean_member_std": 0.009336953982710838,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.006998697916666667,
+          "mean_member_std": 0.008417770266532898,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.007486979166666667,
+          "mean_member_std": 0.00871322676539421,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.007568359375,
+          "mean_member_std": 0.008522608317434788,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.006917317708333333,
+          "mean_member_std": 0.008593129925429821,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.006917317708333333,
+          "mean_member_std": 0.008690929971635342,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.009195963541666666,
+          "mean_member_std": 0.010343041270971298,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.042724609375,
+          "mean_member_std": 0.038498152047395706,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.006062825520833333,
+          "mean_member_std": 0.007972842082381248,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.007609049479166667,
+          "mean_member_std": 0.009067414328455925,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 680
+    },
+    "2023": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.21635150909423828,
+        0.13199053254238394,
+        0.1298238066739814,
+        0.11819623237432436,
+        0.10566264529560887,
+        0.1162042174228402,
+        0.10060444543528002,
+        0.09276976141818734,
+        0.09010598825853924,
+        0.0855855387310649
+      ],
+      "epoch_mean_bce_all_members": [
+        0.19947060873342115,
+        0.13711563376493233,
+        0.12811559854551804,
+        0.11635725997215093,
+        0.1069837725439737,
+        0.1178141194720601,
+        0.10065087606740553,
+        0.0902772726014603,
+        0.0889692417410917,
+        0.0878591537475586
+      ],
+      "member_draw_counts": [
+        96,
+        113,
+        107,
+        114
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.018229166666666668,
+          "mean_member_std": 0.023542530834674835,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0166015625,
+          "mean_member_std": 0.024720383808016777,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.015584309895833334,
+          "mean_member_std": 0.02494129166007042,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017293294270833332,
+          "mean_member_std": 0.02275707572698593,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.040486653645833336,
+          "mean_member_std": 0.042901989072561264,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.014078776041666666,
+          "mean_member_std": 0.025702599436044693,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0111083984375,
+          "mean_member_std": 0.017519935965538025,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.017171223958333332,
+          "mean_member_std": 0.02258322574198246,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.015340169270833334,
+          "mean_member_std": 0.024784326553344727,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.013102213541666666,
+          "mean_member_std": 0.015984036028385162,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 430
+    },
+    "2024": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.04794491865696051,
+        0.043893896616422214,
+        0.04271334256881323,
+        0.04170784583458534,
+        0.0375519043360001,
+        0.04210577255640274,
+        0.03750602709941375,
+        0.038591559116656966,
+        0.036629086885696806,
+        0.035386388118450456
+      ],
+      "epoch_mean_bce_all_members": [
+        0.048312743504842125,
+        0.04410865062322372,
+        0.04202378713167631,
+        0.040555608578217335,
+        0.03915673647171412,
+        0.03969416862879044,
+        0.037801479681944236,
+        0.0379180724804218,
+        0.03638022985213842,
+        0.03638049578055357
+      ],
+      "member_draw_counts": [
+        98,
+        99,
+        95,
+        98
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0022786458333333335,
+          "mean_member_std": 0.005091649480164051,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0016682942708333333,
+          "mean_member_std": 0.005175751633942127,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0015055338541666667,
+          "mean_member_std": 0.004156135022640228,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0011800130208333333,
+          "mean_member_std": 0.003799961879849434,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0013427734375,
+          "mean_member_std": 0.0036376742646098137,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0011800130208333333,
+          "mean_member_std": 0.004453033208847046,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0009358723958333334,
+          "mean_member_std": 0.004880442284047604,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0010579427083333333,
+          "mean_member_std": 0.004318410065025091,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0009765625,
+          "mean_member_std": 0.0031493082642555237,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0011393229166666667,
+          "mean_member_std": 0.004458185750991106,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 390
+    },
+    "2025": {
+      "optimizer_type": "SGD",
+      "epoch_mean_bce_selected_member": [
+        0.00969999200767941,
+        0.008046160969469283,
+        0.007901030282179514,
+        0.008102837536070082,
+        0.007275492780738407,
+        0.006442850248681175,
+        0.006282988107866711,
+        0.006903140909141964,
+        0.00572792606221305,
+        0.004964366141292784
+      ],
+      "epoch_mean_bce_all_members": [
+        0.009437462521923913,
+        0.008356082770559523,
+        0.008288976218965318,
+        0.007774094740549724,
+        0.00709933125310474,
+        0.006734089305003484,
+        0.0065321413179238634,
+        0.006806735363271501,
+        0.005961721969975365,
+        0.005807671695947647
+      ],
+      "member_draw_counts": [
+        94,
+        92,
+        98,
+        76
+      ],
+      "member_rng": "np.random.default_rng(42)，与训练洗牌流独立",
+      "epoch_disagreement": [
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0007012183777987957,
+          "epoch": 1
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0001220703125,
+          "mean_member_std": 0.0007009913679212332,
+          "epoch": 2
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0001220703125,
+          "mean_member_std": 0.000617792597040534,
+          "epoch": 3
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0005669865058735013,
+          "epoch": 4
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0005962214199826121,
+          "epoch": 5
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0005188637296669185,
+          "epoch": 6
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.00043493384146131575,
+          "epoch": 7
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.00046738103264942765,
+          "epoch": 8
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0,
+          "mean_member_std": 0.0004496762412600219,
+          "epoch": 9
+        },
+        {
+          "n": 4096,
+          "pairwise_disagreement_rate": 0.0001220703125,
+          "mean_member_std": 0.0005039771785959601,
+          "epoch": 10
+        }
+      ],
+      "n_batches": 360
+    }
+  },
+  "wall_seconds": 860.2,
+  "ts": "2026-10-21T07:29:37.823507Z"
+}
