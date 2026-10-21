@@ -178,14 +178,14 @@ tags:
 
 ## 集成统计与隐式正则（2026-10-21 新增，第四章家族 C 正源）
 
-本节回答「集成为什么可能带来增益、增益如何记账」。Krogh 1995、Lakshminarayanan 2017、Liu & Yao 1999、Keskar 2017、Fort et al. 2019 五篇原件均在 `raw/papers/methodology/`；Brown et al. 2005 仅有题录（付费墙，见末行）。Krogh/Lakshminarayanan 的核验记录见 `.Codex/docs/2026-10-20-第四章理论家族补齐/`，后三篇见 `.Codex/docs/2026-10-21-第四章引用缺口补齐/`。
+本节回答「集成为什么可能带来增益、增益如何记账」。Krogh 1995、Lakshminarayanan 2017、Liu & Yao 1999、Keskar 2017、Fort et al. 2019、Brown et al. 2005 六篇原件均在 `raw/papers/methodology/`（Brown 为用户 2026-10-21 手动下载）。Krogh/Lakshminarayanan 的核验记录见 `.Codex/docs/2026-10-20-第四章理论家族补齐/`，后三篇见 `.Codex/docs/2026-10-21-第四章引用缺口补齐/`。
 
 - **[[1995-Krogh-神经网络集成歧义分解|Krogh & Vedelsby 1995：歧义分解]]**（NIPS 7）— 平方损失回归下给出精确恒等式 $E=\overline{E}-\overline{A}$（式 10，物理第 3 页）：集成误差 = 成员加权平均误差 − 加权平均歧义；**集成相对成员平均的增益恰好是歧义**，且歧义可仅用未标注输入估计（第 3 页）。均匀权重下 $E\le\frac1N\sum_\alpha E^\alpha$（式 11，第 3 页）。**边界**：作者自述交叉验证集成的收益依设置而变、"still unclear"（第 5 页）；恒等式仅对平方损失成立，不能直接搬到 F1/AUC。
 - **[[2017-Lakshminarayanan-深度集成预测不确定性|Lakshminarayanan et al. 2017：Deep Ensembles]]**（NeurIPS 2017，arXiv:1612.01474v3）— $M=5$ 个独立随机初始化网络等权混合；回归混合方差 = **成员平均方差 + 成员均值方差**（全方差公式，物理第 5 页），论文据此表达预测不确定性，并以 NLL/Brier/OOD 熵做经验评估（第 6–9 页）。**边界**：论文没有证明「方差按 $1/M$ 缩小」，其 OOD 实验是静态数据集移位，不是年度漂移；集成需要 $M$ 倍训练预算。
 - **[[1999-Liu-负相关学习NCL|Liu & Yao 1999：负相关学习 NCL]]**（IEEE Trans. SMC—Part B 29(6):716–725，DOI `10.1109/3477.809027`）— 同时训练时给成员误差加 $\lambda p_i$，$p_i=(F_i-F)\sum_{j\ne i}(F_j-F)$，最小化它鼓励成员误差负相关（式 8–11，物理第 718 页）；$0\le\lambda\le1$，无噪声回归 $\lambda\approx0.9$ 最优、噪声条件 $\lambda=0.5$ 最优（第 719–721 页）；分类 $\lambda=1.0$ 时成员正确集交集 113 对独立训练 146，但简单平均未获益、winner-take-all 才明显改善（第 723–724 页）。**边界**：本课题先导的 $\lambda=2.0$ 超出原文 $[0,1]$ 范围；原文是回归 MSE 与小规模分类集，不含年度漂移、共享主干或 F1/AUC。
 - **[[2017-Keskar-大批量训练与尖锐极小|Keskar et al. 2017：大批量与尖锐极小]]**（ICLR 2017，arXiv:1609.04836v2）— 大批量收敛到尖锐极小、小批量收敛到平坦极小；6 个网络上式 (4) 锐度差 **1–2 个数量级**（物理第 6–7 页），且差距不是过拟合/过训练（第 4 页）；梯度噪声把迭代推出尖锐极小的吸引域（第 7 页）。**边界**：论文不检验集成或成员均值损失；H2a 的「成员维度方差缩减」与文中的 minibatch 梯度噪声不是同一量，不能据此预测 H2a 的方向，只能作「锐度↔泛化」的锚点。
 - **[[2019-Fort-深度集成的损失面视角|Fort, Hu & Lakshminarayanan 2019：深度集成的损失面视角]]**（arXiv:1912.02757v2，预印本）— 不同随机初始化探索函数空间的不同 mode，同一轨迹及其子空间内的函数预测高度相似（物理第 2–4 页）；独立初始化在 diversity–accuracy 平面上优于 dropout/对角高斯/低秩高斯/随机子空间（第 6 页），SVHN 上独立运行 JS 散度 0.384 对子空间方法 0.034–0.155（第 7 页）。**边界**：完整随机初始化 ≠ TabM 随机符号首适配的小扰动；静态分布移位不是年度漂移；预印本未经同行评审。
-- **Brown et al. 2005：集成多样性创建方法综述（仅题录，未入库）** — *Diversity creation methods: a survey and categorisation*，*Information Fusion* 6(1):5–20，DOI `10.1016/j.inffus.2004.04.004`；作者 Gavin Brown、Jeremy Wyatt、Rachel Harris、Xin Yao。Crossref 题录与 Semantic Scholar 返回的 DBLP 键 `journals/inffus/BrownWHY05` 一致；OpenAlex 判 `closed`，Semantic Scholar 标注的伯明翰大学 OA 链接实测已重定向到学院主页，CiteSeerX 仅有 submittedVersion 记录且无 PDF——**未找到可用开放副本，登记为付费墙题录**。
+- **[[2005-Brown-多样性创建方法分类学|Brown et al. 2005：多样性创建方法综述与分类学]]**（用户手动下载入库）— 歧义分解保证凸组合不劣于平均成员，但「多样性本身并不足够」：歧义项与个体精度须平衡（§2.1.1）；implicit（Bagging 类随机）/explicit（Boosting/NCL 类直接操纵）分类学（§3）——本课题机制一的随机符号适配属 implicit、机制二的 NCL 惩罚属 explicit，分工有分类学注脚。
 
 ## 相关索引
 
