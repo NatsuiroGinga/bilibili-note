@@ -1,0 +1,206 @@
+{
+  "schema_version": "ch4-anchor-pilot-comparison-v1",
+  "reference_uniform_tabm4": {
+    "mean_f1": 0.832346367494066,
+    "f1_2023": 0.8681241184767278,
+    "f1_2024": 0.7703703703703704,
+    "preds_dir": "runs/diagnostics/ch4-lamda-tabm-pilot"
+  },
+  "criteria_text": {
+    "support": "该臂 2023 与 2024 相对 uniform tabm4 各 >= +0.5 pp，且 12 年平均 >= uniform − 0.20 pp",
+    "direction_validity": "C − C' 在 2024 >= +0.5 pp（只对通过支持判据的 C 臂判定）",
+    "form_selection": "恰一臂通过 -> 选该臂；两臂通过 -> 取 2024 增量更高者；两臂皆败 -> 第二机制设计重开"
+  },
+  "arms": {
+    "c_anchor": {
+      "mean_f1": 0.8272570839224519,
+      "f1_2023": 0.842758117475374,
+      "f1_2024": 0.7452471482889734,
+      "delta_2023_pp": -2.5366001001353777,
+      "delta_2024_pp": -2.5123222081396945,
+      "delta_mean12_pp": -0.5089283571614089,
+      "support": false,
+      "support_components": {
+        "2023": false,
+        "2024": false,
+        "mean12": false
+      },
+      "auc_oracle_check": {
+        "2023": {
+          "auc_arm": 0.981544874053095,
+          "auc_uniform": 0.9825729452521399,
+          "delta_auc": -0.001028071199044911,
+          "f1_arm": 0.842758117475374,
+          "f1_uniform": 0.8681241184767278,
+          "delta_f1_pp": -2.5366001001353777,
+          "oracle_f1_arm": 0.9001969796454367,
+          "oracle_tau_arm": 0.03674446418881416,
+          "oracle_margin_arm_pp": 5.743886217006267,
+          "oracle_margin_uniform_pp": 2.992932923029956,
+          "gain_exceeds_uniform_oracle_margin": false
+        },
+        "2024": {
+          "auc_arm": 0.936679137017401,
+          "auc_uniform": 0.9412441171830078,
+          "delta_auc": -0.004564980165606802,
+          "f1_arm": 0.7452471482889734,
+          "f1_uniform": 0.7703703703703704,
+          "delta_f1_pp": -2.5123222081396945,
+          "oracle_f1_arm": 0.7749077490774908,
+          "oracle_tau_arm": 0.3053526282310486,
+          "oracle_margin_arm_pp": 2.96606007885174,
+          "oracle_margin_uniform_pp": 0.6261932035127926,
+          "gain_exceeds_uniform_oracle_margin": false
+        }
+      },
+      "bootstrap_2024": {
+        "delta_point": -0.025123222081396945,
+        "ci95": [
+          -0.05220134420134424,
+          -0.0008852865089192107
+        ],
+        "ci_excludes_zero": true,
+        "n_boot": 10000,
+        "seed": 42,
+        "paired_with": "uniform_tabm4",
+        "rule": "y_score >= 0.5；95% 百分位区间；只量化测试样本不确定性，不冒充训练随机性"
+      }
+    },
+    "a_route2": {
+      "mean_f1": 0.8199304615379049,
+      "f1_2023": 0.8183513614323014,
+      "f1_2024": 0.7829181494661922,
+      "delta_2023_pp": -4.977275704442641,
+      "delta_2024_pp": 1.2547779095821832,
+      "delta_mean12_pp": -1.2415905956161044,
+      "support": false,
+      "support_components": {
+        "2023": false,
+        "2024": true,
+        "mean12": false
+      },
+      "auc_oracle_check": {
+        "2023": {
+          "auc_arm": 0.9822514854728683,
+          "auc_uniform": 0.9825729452521399,
+          "delta_auc": -0.0003214597792715601,
+          "f1_arm": 0.8183513614323014,
+          "f1_uniform": 0.8681241184767278,
+          "delta_f1_pp": -4.977275704442641,
+          "oracle_f1_arm": 0.8964586846543001,
+          "oracle_tau_arm": 0.025737395510077477,
+          "oracle_margin_arm_pp": 7.8107323221998755,
+          "oracle_margin_uniform_pp": 2.992932923029956,
+          "gain_exceeds_uniform_oracle_margin": false
+        },
+        "2024": {
+          "auc_arm": 0.9310202780181845,
+          "auc_uniform": 0.9412441171830078,
+          "delta_auc": -0.010223839164823278,
+          "f1_arm": 0.7829181494661922,
+          "f1_uniform": 0.7703703703703704,
+          "delta_f1_pp": 1.2547779095821832,
+          "oracle_f1_arm": 0.7857142857142857,
+          "oracle_tau_arm": 0.5188801884651184,
+          "oracle_margin_arm_pp": 0.2796136248093495,
+          "oracle_margin_uniform_pp": 0.6261932035127926,
+          "gain_exceeds_uniform_oracle_margin": true
+        }
+      },
+      "bootstrap_2024": {
+        "delta_point": 0.012547779095821832,
+        "ci95": [
+          -0.027454692406051487,
+          0.05225707135930979
+        ],
+        "ci_excludes_zero": false,
+        "n_boot": 10000,
+        "seed": 42,
+        "paired_with": "uniform_tabm4",
+        "rule": "y_score >= 0.5；95% 百分位区间；只量化测试样本不确定性，不冒充训练随机性"
+      }
+    },
+    "c_anti": {
+      "mean_f1": 0.8280011280250807,
+      "f1_2023": 0.8538433778419343,
+      "f1_2024": 0.752851711026616,
+      "delta_2023_pp": -1.4280740634793454,
+      "delta_2024_pp": -1.7518659343754406,
+      "delta_mean12_pp": -0.434523946898524,
+      "support": false,
+      "support_components": {
+        "2023": false,
+        "2024": false,
+        "mean12": false
+      },
+      "auc_oracle_check": {
+        "2023": {
+          "auc_arm": 0.9807314730672759,
+          "auc_uniform": 0.9825729452521399,
+          "delta_auc": -0.0018414721848639681,
+          "f1_arm": 0.8538433778419343,
+          "f1_uniform": 0.8681241184767278,
+          "delta_f1_pp": -1.4280740634793454,
+          "oracle_f1_arm": 0.8922661263086795,
+          "oracle_tau_arm": 0.1670239120721817,
+          "oracle_margin_arm_pp": 3.8422748466745205,
+          "oracle_margin_uniform_pp": 2.992932923029956,
+          "gain_exceeds_uniform_oracle_margin": false
+        },
+        "2024": {
+          "auc_arm": 0.9297554187271794,
+          "auc_uniform": 0.9412441171830078,
+          "delta_auc": -0.01148869845582845,
+          "f1_arm": 0.752851711026616,
+          "f1_uniform": 0.7703703703703704,
+          "delta_f1_pp": -1.7518659343754406,
+          "oracle_f1_arm": 0.7714285714285715,
+          "oracle_tau_arm": 0.26192590594291687,
+          "oracle_margin_arm_pp": 1.8576860401955497,
+          "oracle_margin_uniform_pp": 0.6261932035127926,
+          "gain_exceeds_uniform_oracle_margin": false
+        }
+      },
+      "bootstrap_2024": {
+        "delta_point": -0.017518659343754406,
+        "ci95": [
+          -0.04215393073064103,
+          0.0042064096858606065
+        ],
+        "ci_excludes_zero": false,
+        "n_boot": 10000,
+        "seed": 42,
+        "paired_with": "uniform_tabm4",
+        "rule": "y_score >= 0.5；95% 百分位区间；只量化测试样本不确定性，不冒充训练随机性"
+      }
+    }
+  },
+  "status": "complete",
+  "ts": "2026-10-21T07:07:18.631179Z",
+  "direction_check": {
+    "definition": "F1_2024(c_anchor) − F1_2024(c_anti) >= +0.5 pp",
+    "f1_2024_c_anchor": 0.7452471482889734,
+    "f1_2024_c_anti": 0.752851711026616,
+    "gap_pp": -0.760456273764254,
+    "direction_valid": false,
+    "applies_to": "c_anchor",
+    "note": "形式 A 无反向对照臂，方向有效性不适用"
+  },
+  "form_selection": {
+    "eligibility": {
+      "c_anchor": false,
+      "a_route2": false
+    },
+    "eligibility_rule": "c_anchor = support AND direction_valid；a_route2 = support（无反向对照）",
+    "eligible_arms": [],
+    "selected": null,
+    "outcome": "reopen_mechanism_design",
+    "reason": "两臂皆败，第二机制设计重开",
+    "support_only_disclosure": {
+      "eligible_arms": [],
+      "selected": null,
+      "outcome": "reopen_mechanism_design",
+      "note": "若「通过」只按支持判据解释（不把方向有效性作为门槛），结果的次要读数；主判据按 eligibility_rule 执行。"
+    }
+  }
+}

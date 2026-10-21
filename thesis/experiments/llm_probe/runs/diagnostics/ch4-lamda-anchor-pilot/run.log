@@ -1,0 +1,468 @@
+==== START c_anchor 2026-10-21T06:26:19Z ====
+[arm] c_anchor k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5
+[groups] G0=[2013, 2016, 2018, 2020, 2022, 2024] G1=[2014, 2017, 2019, 2021, 2023, 2025]
+[weights] raw in/out=2.0/0.6666666666666666 raw_mean=1.333333 effective in/out=1.5/0.5
+[model] k=4 params=2,723,305
+[parts] 2013: parts=1 rows=69,144 pos=35,506 pos_rate=0.5135 replay_years=[]
+[c_anchor][train] 2013 epoch=1/10 loss=0.692846 bce_unweighted=0.692852 n_batches=68
+[c_anchor][train] 2013 epoch=2/10 loss=0.692620 bce_unweighted=0.692635 n_batches=68
+[c_anchor][train] 2013 epoch=3/10 loss=0.692519 bce_unweighted=0.692549 n_batches=68
+[c_anchor][train] 2013 epoch=4/10 loss=0.692399 bce_unweighted=0.692449 n_batches=68
+[c_anchor][train] 2013 epoch=5/10 loss=0.692218 bce_unweighted=0.692299 n_batches=68
+[c_anchor][train] 2013 epoch=6/10 loss=0.691908 bce_unweighted=0.692050 n_batches=68
+[c_anchor][train] 2013 epoch=7/10 loss=0.691420 bce_unweighted=0.691657 n_batches=68
+[c_anchor][train] 2013 epoch=8/10 loss=0.690557 bce_unweighted=0.690964 n_batches=68
+[c_anchor][train] 2013 epoch=9/10 loss=0.688713 bce_unweighted=0.689478 n_batches=68
+[c_anchor][train] 2013 epoch=10/10 loss=0.683461 bce_unweighted=0.685186 n_batches=68
+[2013] current_f1=0.6801 (76s)
+[parts] 2014: parts=3 rows=81,346 pos=36,805 pos_rate=0.4525 replay_years=[2013]
+[c_anchor][train] 2014 epoch=1/10 loss=0.671361 bce_unweighted=0.669302 n_batches=80
+[c_anchor][train] 2014 epoch=2/10 loss=0.499717 bce_unweighted=0.507010 n_batches=80
+[c_anchor][train] 2014 epoch=3/10 loss=0.239502 bce_unweighted=0.254220 n_batches=80
+[c_anchor][train] 2014 epoch=4/10 loss=0.180434 bce_unweighted=0.194045 n_batches=80
+[c_anchor][train] 2014 epoch=5/10 loss=0.148392 bce_unweighted=0.160007 n_batches=80
+[c_anchor][train] 2014 epoch=6/10 loss=0.127032 bce_unweighted=0.136646 n_batches=80
+[c_anchor][train] 2014 epoch=7/10 loss=0.112890 bce_unweighted=0.121124 n_batches=80
+[c_anchor][train] 2014 epoch=8/10 loss=0.105556 bce_unweighted=0.111970 n_batches=80
+[c_anchor][train] 2014 epoch=9/10 loss=0.097324 bce_unweighted=0.103798 n_batches=80
+[c_anchor][train] 2014 epoch=10/10 loss=0.091129 bce_unweighted=0.097367 n_batches=80
+[2014] current_f1=0.9654 (97s)
+[parts] 2016: parts=5 rows=87,754 pos=36,307 pos_rate=0.4137 replay_years=[2013, 2014]
+[c_anchor][train] 2016 epoch=1/10 loss=0.188408 bce_unweighted=0.190061 n_batches=86
+[c_anchor][train] 2016 epoch=2/10 loss=0.143180 bce_unweighted=0.146037 n_batches=86
+[c_anchor][train] 2016 epoch=3/10 loss=0.131702 bce_unweighted=0.133934 n_batches=86
+[c_anchor][train] 2016 epoch=4/10 loss=0.120993 bce_unweighted=0.123831 n_batches=86
+[c_anchor][train] 2016 epoch=5/10 loss=0.112256 bce_unweighted=0.115511 n_batches=86
+[c_anchor][train] 2016 epoch=6/10 loss=0.109502 bce_unweighted=0.112443 n_batches=86
+[c_anchor][train] 2016 epoch=7/10 loss=0.097601 bce_unweighted=0.101993 n_batches=86
+[c_anchor][train] 2016 epoch=8/10 loss=0.103860 bce_unweighted=0.105764 n_batches=86
+[c_anchor][train] 2016 epoch=9/10 loss=0.093973 bce_unweighted=0.097437 n_batches=86
+[c_anchor][train] 2016 epoch=10/10 loss=0.085157 bce_unweighted=0.089864 n_batches=86
+[2016] current_f1=0.9583 (95s)
+[parts] 2017: parts=7 rows=79,711 pos=17,285 pos_rate=0.2168 replay_years=[2013, 2014, 2016]
+[c_anchor][train] 2017 epoch=1/10 loss=0.182089 bce_unweighted=0.174754 n_batches=78
+[c_anchor][train] 2017 epoch=2/10 loss=0.100076 bce_unweighted=0.100572 n_batches=78
+[c_anchor][train] 2017 epoch=3/10 loss=0.088266 bce_unweighted=0.088460 n_batches=78
+[c_anchor][train] 2017 epoch=4/10 loss=0.078940 bce_unweighted=0.079706 n_batches=78
+[c_anchor][train] 2017 epoch=5/10 loss=0.072531 bce_unweighted=0.073722 n_batches=78
+[c_anchor][train] 2017 epoch=6/10 loss=0.070245 bce_unweighted=0.070898 n_batches=78
+[c_anchor][train] 2017 epoch=7/10 loss=0.064547 bce_unweighted=0.065971 n_batches=78
+[c_anchor][train] 2017 epoch=8/10 loss=0.060577 bce_unweighted=0.062263 n_batches=78
+[c_anchor][train] 2017 epoch=9/10 loss=0.056830 bce_unweighted=0.058734 n_batches=78
+[c_anchor][train] 2017 epoch=10/10 loss=0.053663 bce_unweighted=0.055741 n_batches=78
+[2017] current_f1=0.9593 (83s)
+[parts] 2018: parts=9 rows=83,833 pos=31,680 pos_rate=0.3779 replay_years=[2013, 2014, 2016, 2017]
+[c_anchor][train] 2018 epoch=1/10 loss=0.160468 bce_unweighted=0.161768 n_batches=82
+[c_anchor][train] 2018 epoch=2/10 loss=0.129001 bce_unweighted=0.131107 n_batches=82
+[c_anchor][train] 2018 epoch=3/10 loss=0.118534 bce_unweighted=0.121135 n_batches=82
+[c_anchor][train] 2018 epoch=4/10 loss=0.109593 bce_unweighted=0.113031 n_batches=82
+[c_anchor][train] 2018 epoch=5/10 loss=0.103573 bce_unweighted=0.106984 n_batches=82
+[c_anchor][train] 2018 epoch=6/10 loss=0.099729 bce_unweighted=0.102929 n_batches=82
+[c_anchor][train] 2018 epoch=7/10 loss=0.094218 bce_unweighted=0.098051 n_batches=82
+[c_anchor][train] 2018 epoch=8/10 loss=0.091228 bce_unweighted=0.094731 n_batches=82
+[c_anchor][train] 2018 epoch=9/10 loss=0.088173 bce_unweighted=0.091636 n_batches=82
+[c_anchor][train] 2018 epoch=10/10 loss=0.084204 bce_unweighted=0.088081 n_batches=82
+[2018] current_f1=0.9563 (83s)
+[parts] 2019: parts=11 rows=73,240 pos=33,468 pos_rate=0.4570 replay_years=[2013, 2014, 2016, 2017, 2018]
+[c_anchor][train] 2019 epoch=1/10 loss=0.148878 bce_unweighted=0.145016 n_batches=72
+[c_anchor][train] 2019 epoch=2/10 loss=0.092287 bce_unweighted=0.093126 n_batches=72
+[c_anchor][train] 2019 epoch=3/10 loss=0.078126 bce_unweighted=0.079793 n_batches=72
+[c_anchor][train] 2019 epoch=4/10 loss=0.066705 bce_unweighted=0.069091 n_batches=72
+[c_anchor][train] 2019 epoch=5/10 loss=0.060091 bce_unweighted=0.062639 n_batches=72
+[c_anchor][train] 2019 epoch=6/10 loss=0.051781 bce_unweighted=0.054849 n_batches=72
+[c_anchor][train] 2019 epoch=7/10 loss=0.044957 bce_unweighted=0.048249 n_batches=72
+[c_anchor][train] 2019 epoch=8/10 loss=0.039623 bce_unweighted=0.043217 n_batches=72
+[c_anchor][train] 2019 epoch=9/10 loss=0.035833 bce_unweighted=0.039239 n_batches=72
+[c_anchor][train] 2019 epoch=10/10 loss=0.033281 bce_unweighted=0.036249 n_batches=72
+[2019] current_f1=0.9754 (69s)
+[parts] 2020: parts=13 rows=82,054 pos=37,276 pos_rate=0.4543 replay_years=[2013, 2014, 2016, 2017, 2018, 2019]
+[c_anchor][train] 2020 epoch=1/10 loss=0.092283 bce_unweighted=0.092506 n_batches=81
+[c_anchor][train] 2020 epoch=2/10 loss=0.067739 bce_unweighted=0.069483 n_batches=81
+[c_anchor][train] 2020 epoch=3/10 loss=0.057691 bce_unweighted=0.060067 n_batches=81
+[c_anchor][train] 2020 epoch=4/10 loss=0.050524 bce_unweighted=0.053782 n_batches=81
+[c_anchor][train] 2020 epoch=5/10 loss=0.045673 bce_unweighted=0.048991 n_batches=81
+[c_anchor][train] 2020 epoch=6/10 loss=0.039462 bce_unweighted=0.043472 n_batches=81
+[c_anchor][train] 2020 epoch=7/10 loss=0.038868 bce_unweighted=0.042016 n_batches=81
+[c_anchor][train] 2020 epoch=8/10 loss=0.033872 bce_unweighted=0.037666 n_batches=81
+[c_anchor][train] 2020 epoch=9/10 loss=0.031272 bce_unweighted=0.034793 n_batches=81
+[c_anchor][train] 2020 epoch=10/10 loss=0.028170 bce_unweighted=0.031348 n_batches=81
+[2020] current_f1=0.9793 (78s)
+[parts] 2021: parts=15 rows=65,316 pos=28,698 pos_rate=0.4394 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020]
+[c_anchor][train] 2021 epoch=1/10 loss=0.121236 bce_unweighted=0.117413 n_batches=64
+[c_anchor][train] 2021 epoch=2/10 loss=0.075857 bce_unweighted=0.076499 n_batches=64
+[c_anchor][train] 2021 epoch=3/10 loss=0.061854 bce_unweighted=0.063696 n_batches=64
+[c_anchor][train] 2021 epoch=4/10 loss=0.051396 bce_unweighted=0.053891 n_batches=64
+[c_anchor][train] 2021 epoch=5/10 loss=0.044745 bce_unweighted=0.047357 n_batches=64
+[c_anchor][train] 2021 epoch=6/10 loss=0.038757 bce_unweighted=0.041333 n_batches=64
+[c_anchor][train] 2021 epoch=7/10 loss=0.032733 bce_unweighted=0.035327 n_batches=64
+[c_anchor][train] 2021 epoch=8/10 loss=0.029211 bce_unweighted=0.031729 n_batches=64
+[c_anchor][train] 2021 epoch=9/10 loss=0.025331 bce_unweighted=0.027580 n_batches=64
+[c_anchor][train] 2021 epoch=10/10 loss=0.024000 bce_unweighted=0.026171 n_batches=64
+[2021] current_f1=0.9851 (62s)
+[parts] 2022: parts=17 rows=69,532 pos=33,510 pos_rate=0.4819 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021]
+[c_anchor][train] 2022 epoch=1/10 loss=0.067446 bce_unweighted=0.067625 n_batches=68
+[c_anchor][train] 2022 epoch=2/10 loss=0.043268 bce_unweighted=0.044433 n_batches=68
+[c_anchor][train] 2022 epoch=3/10 loss=0.037416 bce_unweighted=0.038883 n_batches=68
+[c_anchor][train] 2022 epoch=4/10 loss=0.032168 bce_unweighted=0.033953 n_batches=68
+[c_anchor][train] 2022 epoch=5/10 loss=0.027680 bce_unweighted=0.029782 n_batches=68
+[c_anchor][train] 2022 epoch=6/10 loss=0.023706 bce_unweighted=0.025841 n_batches=68
+[c_anchor][train] 2022 epoch=7/10 loss=0.022584 bce_unweighted=0.024821 n_batches=68
+[c_anchor][train] 2022 epoch=8/10 loss=0.021269 bce_unweighted=0.023223 n_batches=68
+[c_anchor][train] 2022 epoch=9/10 loss=0.017830 bce_unweighted=0.019915 n_batches=68
+[c_anchor][train] 2022 epoch=10/10 loss=0.017973 bce_unweighted=0.019701 n_batches=68
+[2022] current_f1=0.9872 (68s)
+[parts] 2023: parts=19 rows=43,879 pos=6,512 pos_rate=0.1484 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022]
+[c_anchor][train] 2023 epoch=1/10 loss=0.129276 bce_unweighted=0.128115 n_batches=43
+[c_anchor][train] 2023 epoch=2/10 loss=0.076520 bce_unweighted=0.078236 n_batches=43
+[c_anchor][train] 2023 epoch=3/10 loss=0.065652 bce_unweighted=0.067668 n_batches=43
+[c_anchor][train] 2023 epoch=4/10 loss=0.057861 bce_unweighted=0.060553 n_batches=43
+[c_anchor][train] 2023 epoch=5/10 loss=0.049576 bce_unweighted=0.052976 n_batches=43
+[c_anchor][train] 2023 epoch=6/10 loss=0.043557 bce_unweighted=0.046994 n_batches=43
+[c_anchor][train] 2023 epoch=7/10 loss=0.039978 bce_unweighted=0.043144 n_batches=43
+[c_anchor][train] 2023 epoch=8/10 loss=0.036259 bce_unweighted=0.039484 n_batches=43
+[c_anchor][train] 2023 epoch=9/10 loss=0.031970 bce_unweighted=0.035435 n_batches=43
+[c_anchor][train] 2023 epoch=10/10 loss=0.030431 bce_unweighted=0.033464 n_batches=43
+[2023] current_f1=0.9443 (45s)
+[parts] 2024: parts=21 rows=39,141 pos=835 pos_rate=0.0213 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+[c_anchor][train] 2024 epoch=1/10 loss=0.046673 bce_unweighted=0.046579 n_batches=39
+[c_anchor][train] 2024 epoch=2/10 loss=0.033481 bce_unweighted=0.034119 n_batches=39
+[c_anchor][train] 2024 epoch=3/10 loss=0.027719 bce_unweighted=0.028704 n_batches=39
+[c_anchor][train] 2024 epoch=4/10 loss=0.024256 bce_unweighted=0.025423 n_batches=39
+[c_anchor][train] 2024 epoch=5/10 loss=0.021565 bce_unweighted=0.022768 n_batches=39
+[c_anchor][train] 2024 epoch=6/10 loss=0.019978 bce_unweighted=0.021287 n_batches=39
+[c_anchor][train] 2024 epoch=7/10 loss=0.018295 bce_unweighted=0.019708 n_batches=39
+[c_anchor][train] 2024 epoch=8/10 loss=0.018816 bce_unweighted=0.019883 n_batches=39
+[c_anchor][train] 2024 epoch=9/10 loss=0.017091 bce_unweighted=0.018083 n_batches=39
+[c_anchor][train] 2024 epoch=10/10 loss=0.015020 bce_unweighted=0.016345 n_batches=39
+[2024] current_f1=0.7868 (38s)
+[parts] 2025: parts=23 rows=36,126 pos=216 pos_rate=0.0060 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+[c_anchor][train] 2025 epoch=1/10 loss=0.007780 bce_unweighted=0.008162 n_batches=36
+[c_anchor][train] 2025 epoch=2/10 loss=0.005145 bce_unweighted=0.005409 n_batches=36
+[c_anchor][train] 2025 epoch=3/10 loss=0.004440 bce_unweighted=0.004750 n_batches=36
+[c_anchor][train] 2025 epoch=4/10 loss=0.003451 bce_unweighted=0.003831 n_batches=36
+[c_anchor][train] 2025 epoch=5/10 loss=0.002801 bce_unweighted=0.002980 n_batches=36
+[c_anchor][train] 2025 epoch=6/10 loss=0.002472 bce_unweighted=0.002680 n_batches=36
+[c_anchor][train] 2025 epoch=7/10 loss=0.002252 bce_unweighted=0.002405 n_batches=36
+[c_anchor][train] 2025 epoch=8/10 loss=0.002055 bce_unweighted=0.002247 n_batches=36
+[c_anchor][train] 2025 epoch=9/10 loss=0.001669 bce_unweighted=0.001857 n_batches=36
+[c_anchor][train] 2025 epoch=10/10 loss=0.001973 bce_unweighted=0.002098 n_batches=36
+[2025] current_f1=0.0000 (35s)
+[criteria] d2023=-2.54pp d2024=-2.51pp dmean=-0.51pp support=False
+[auc_oracle] {"2023": {"auc_arm": 0.981544874053095, "auc_uniform": 0.9825729452521399, "delta_auc": -0.001028071199044911, "f1_arm": 0.842758117475374, "f1_uniform": 0.8681241184767278, "delta_f1_pp": -2.5366001001353777, "oracle_f1_arm": 0.9001969796454367, "oracle_tau_arm": 0.03674446418881416, "oracle_margin_arm_pp": 5.743886217006267, "oracle_margin_uniform_pp": 2.992932923029956, "gain_exceeds_uniform_oracle_margin": false}, "2024": {"auc_arm": 0.936679137017401, "auc_uniform": 0.9412441171830078, "delta_auc": -0.004564980165606802, "f1_arm": 0.7452471482889734, "f1_uniform": 0.7703703703703704, "delta_f1_pp": -2.5123222081396945, "oracle_f1_arm": 0.7749077490774908, "oracle_tau_arm": 0.3053526282310486, "oracle_margin_arm_pp": 2.96606007885174, "oracle_margin_uniform_pp": 0.6261932035127926, "gain_exceeds_uniform_oracle_margin": false}}
+[bootstrap_2024] {"delta_point": -0.025123222081396945, "ci95": [-0.05220134420134424, -0.0008852865089192107], "ci_excludes_zero": true, "n_boot": 10000, "seed": 42, "paired_with": "uniform_tabm4", "rule": "y_score >= 0.5；95% 百分位区间；只量化测试样本不确定性，不冒充训练随机性"}
+=== c_anchor: 12y mean=0.8272570839 | 2023=0.842758 2024=0.745247 | 841s ===
+==== DONE c_anchor 2026-10-21T06:40:34Z ====
+==== START a_route2 2026-10-21T06:40:34Z ====
+[arm] a_route2 k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5
+[groups] G0=[2013, 2016, 2018, 2020, 2022, 2024] G1=[2014, 2017, 2019, 2021, 2023, 2025]
+[weights] raw in/out=2.0/0.6666666666666666 raw_mean=1.333333 effective in/out=1.5/0.5
+[route] year_group j -> active members {2j,2j+1}; k_t=2
+[model] k=4 params=2,723,305
+[parts] 2013: parts=1 rows=69,144 pos=35,506 pos_rate=0.5135 replay_years=[]
+[a_route2][train] 2013 epoch=1/10 loss=0.692832 n_batches=68
+[a_route2][train] 2013 epoch=2/10 loss=0.692583 n_batches=68
+[a_route2][train] 2013 epoch=3/10 loss=0.692417 n_batches=68
+[a_route2][train] 2013 epoch=4/10 loss=0.692181 n_batches=68
+[a_route2][train] 2013 epoch=5/10 loss=0.691785 n_batches=68
+[a_route2][train] 2013 epoch=6/10 loss=0.691102 n_batches=68
+[a_route2][train] 2013 epoch=7/10 loss=0.689690 n_batches=68
+[a_route2][train] 2013 epoch=8/10 loss=0.685936 n_batches=68
+[a_route2][train] 2013 epoch=9/10 loss=0.667941 n_batches=68
+[a_route2][train] 2013 epoch=10/10 loss=0.475471 n_batches=68
+[2013] current_f1=0.9157 (65s)
+[parts] 2014: parts=3 rows=81,346 pos=36,805 pos_rate=0.4525 replay_years=[2013]
+[a_route2][train] 2014 epoch=1/10 loss=0.347189 n_batches=80
+[a_route2][train] 2014 epoch=2/10 loss=0.187098 n_batches=80
+[a_route2][train] 2014 epoch=3/10 loss=0.149643 n_batches=80
+[a_route2][train] 2014 epoch=4/10 loss=0.124640 n_batches=80
+[a_route2][train] 2014 epoch=5/10 loss=0.110258 n_batches=80
+[a_route2][train] 2014 epoch=6/10 loss=0.099923 n_batches=80
+[a_route2][train] 2014 epoch=7/10 loss=0.090884 n_batches=80
+[a_route2][train] 2014 epoch=8/10 loss=0.089598 n_batches=80
+[a_route2][train] 2014 epoch=9/10 loss=0.079056 n_batches=80
+[a_route2][train] 2014 epoch=10/10 loss=0.074729 n_batches=80
+[2014] current_f1=0.9689 (77s)
+[parts] 2016: parts=5 rows=87,754 pos=36,307 pos_rate=0.4137 replay_years=[2013, 2014]
+[a_route2][train] 2016 epoch=1/10 loss=0.244115 n_batches=86
+[a_route2][train] 2016 epoch=2/10 loss=0.156535 n_batches=86
+[a_route2][train] 2016 epoch=3/10 loss=0.137490 n_batches=86
+[a_route2][train] 2016 epoch=4/10 loss=0.125761 n_batches=86
+[a_route2][train] 2016 epoch=5/10 loss=0.112657 n_batches=86
+[a_route2][train] 2016 epoch=6/10 loss=0.107511 n_batches=86
+[a_route2][train] 2016 epoch=7/10 loss=0.096609 n_batches=86
+[a_route2][train] 2016 epoch=8/10 loss=0.097312 n_batches=86
+[a_route2][train] 2016 epoch=9/10 loss=0.090137 n_batches=86
+[a_route2][train] 2016 epoch=10/10 loss=0.080347 n_batches=86
+[2016] current_f1=0.9584 (82s)
+[parts] 2017: parts=7 rows=79,711 pos=17,285 pos_rate=0.2168 replay_years=[2013, 2014, 2016]
+[a_route2][train] 2017 epoch=1/10 loss=0.233646 n_batches=78
+[a_route2][train] 2017 epoch=2/10 loss=0.119543 n_batches=78
+[a_route2][train] 2017 epoch=3/10 loss=0.100974 n_batches=78
+[a_route2][train] 2017 epoch=4/10 loss=0.089325 n_batches=78
+[a_route2][train] 2017 epoch=5/10 loss=0.080205 n_batches=78
+[a_route2][train] 2017 epoch=6/10 loss=0.078575 n_batches=78
+[a_route2][train] 2017 epoch=7/10 loss=0.070885 n_batches=78
+[a_route2][train] 2017 epoch=8/10 loss=0.065531 n_batches=78
+[a_route2][train] 2017 epoch=9/10 loss=0.060614 n_batches=78
+[a_route2][train] 2017 epoch=10/10 loss=0.057098 n_batches=78
+[2017] current_f1=0.9549 (82s)
+[parts] 2018: parts=9 rows=83,833 pos=31,680 pos_rate=0.3779 replay_years=[2013, 2014, 2016, 2017]
+[a_route2][train] 2018 epoch=1/10 loss=0.274036 n_batches=82
+[a_route2][train] 2018 epoch=2/10 loss=0.161448 n_batches=82
+[a_route2][train] 2018 epoch=3/10 loss=0.142018 n_batches=82
+[a_route2][train] 2018 epoch=4/10 loss=0.131390 n_batches=82
+[a_route2][train] 2018 epoch=5/10 loss=0.122932 n_batches=82
+[a_route2][train] 2018 epoch=6/10 loss=0.114190 n_batches=82
+[a_route2][train] 2018 epoch=7/10 loss=0.106116 n_batches=82
+[a_route2][train] 2018 epoch=8/10 loss=0.101471 n_batches=82
+[a_route2][train] 2018 epoch=9/10 loss=0.102488 n_batches=82
+[a_route2][train] 2018 epoch=10/10 loss=0.096871 n_batches=82
+[2018] current_f1=0.9562 (78s)
+[parts] 2019: parts=11 rows=73,240 pos=33,468 pos_rate=0.4570 replay_years=[2013, 2014, 2016, 2017, 2018]
+[a_route2][train] 2019 epoch=1/10 loss=0.168345 n_batches=72
+[a_route2][train] 2019 epoch=2/10 loss=0.103225 n_batches=72
+[a_route2][train] 2019 epoch=3/10 loss=0.087941 n_batches=72
+[a_route2][train] 2019 epoch=4/10 loss=0.076321 n_batches=72
+[a_route2][train] 2019 epoch=5/10 loss=0.067991 n_batches=72
+[a_route2][train] 2019 epoch=6/10 loss=0.059639 n_batches=72
+[a_route2][train] 2019 epoch=7/10 loss=0.051600 n_batches=72
+[a_route2][train] 2019 epoch=8/10 loss=0.046226 n_batches=72
+[a_route2][train] 2019 epoch=9/10 loss=0.039985 n_batches=72
+[a_route2][train] 2019 epoch=10/10 loss=0.035158 n_batches=72
+[2019] current_f1=0.9726 (70s)
+[parts] 2020: parts=13 rows=82,054 pos=37,276 pos_rate=0.4543 replay_years=[2013, 2014, 2016, 2017, 2018, 2019]
+[a_route2][train] 2020 epoch=1/10 loss=0.122827 n_batches=81
+[a_route2][train] 2020 epoch=2/10 loss=0.078088 n_batches=81
+[a_route2][train] 2020 epoch=3/10 loss=0.067981 n_batches=81
+[a_route2][train] 2020 epoch=4/10 loss=0.058613 n_batches=81
+[a_route2][train] 2020 epoch=5/10 loss=0.052867 n_batches=81
+[a_route2][train] 2020 epoch=6/10 loss=0.047958 n_batches=81
+[a_route2][train] 2020 epoch=7/10 loss=0.043805 n_batches=81
+[a_route2][train] 2020 epoch=8/10 loss=0.037004 n_batches=81
+[a_route2][train] 2020 epoch=9/10 loss=0.034768 n_batches=81
+[a_route2][train] 2020 epoch=10/10 loss=0.029923 n_batches=81
+[2020] current_f1=0.9773 (80s)
+[parts] 2021: parts=15 rows=65,316 pos=28,698 pos_rate=0.4394 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020]
+[a_route2][train] 2021 epoch=1/10 loss=0.136634 n_batches=64
+[a_route2][train] 2021 epoch=2/10 loss=0.085182 n_batches=64
+[a_route2][train] 2021 epoch=3/10 loss=0.069443 n_batches=64
+[a_route2][train] 2021 epoch=4/10 loss=0.057994 n_batches=64
+[a_route2][train] 2021 epoch=5/10 loss=0.051003 n_batches=64
+[a_route2][train] 2021 epoch=6/10 loss=0.042673 n_batches=64
+[a_route2][train] 2021 epoch=7/10 loss=0.036040 n_batches=64
+[a_route2][train] 2021 epoch=8/10 loss=0.031945 n_batches=64
+[a_route2][train] 2021 epoch=9/10 loss=0.026959 n_batches=64
+[a_route2][train] 2021 epoch=10/10 loss=0.024093 n_batches=64
+[2021] current_f1=0.9846 (63s)
+[parts] 2022: parts=17 rows=69,532 pos=33,510 pos_rate=0.4819 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021]
+[a_route2][train] 2022 epoch=1/10 loss=0.088117 n_batches=68
+[a_route2][train] 2022 epoch=2/10 loss=0.050575 n_batches=68
+[a_route2][train] 2022 epoch=3/10 loss=0.042378 n_batches=68
+[a_route2][train] 2022 epoch=4/10 loss=0.037969 n_batches=68
+[a_route2][train] 2022 epoch=5/10 loss=0.033003 n_batches=68
+[a_route2][train] 2022 epoch=6/10 loss=0.029480 n_batches=68
+[a_route2][train] 2022 epoch=7/10 loss=0.025739 n_batches=68
+[a_route2][train] 2022 epoch=8/10 loss=0.023731 n_batches=68
+[a_route2][train] 2022 epoch=9/10 loss=0.019652 n_batches=68
+[a_route2][train] 2022 epoch=10/10 loss=0.018787 n_batches=68
+[2022] current_f1=0.9860 (65s)
+[parts] 2023: parts=19 rows=43,879 pos=6,512 pos_rate=0.1484 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022]
+[a_route2][train] 2023 epoch=1/10 loss=0.128910 n_batches=43
+[a_route2][train] 2023 epoch=2/10 loss=0.076370 n_batches=43
+[a_route2][train] 2023 epoch=3/10 loss=0.065973 n_batches=43
+[a_route2][train] 2023 epoch=4/10 loss=0.057738 n_batches=43
+[a_route2][train] 2023 epoch=5/10 loss=0.048857 n_batches=43
+[a_route2][train] 2023 epoch=6/10 loss=0.042632 n_batches=43
+[a_route2][train] 2023 epoch=7/10 loss=0.038791 n_batches=43
+[a_route2][train] 2023 epoch=8/10 loss=0.035339 n_batches=43
+[a_route2][train] 2023 epoch=9/10 loss=0.031108 n_batches=43
+[a_route2][train] 2023 epoch=10/10 loss=0.028521 n_batches=43
+[2023] current_f1=0.9409 (42s)
+[parts] 2024: parts=21 rows=39,141 pos=835 pos_rate=0.0213 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+[a_route2][train] 2024 epoch=1/10 loss=0.051232 n_batches=39
+[a_route2][train] 2024 epoch=2/10 loss=0.038385 n_batches=39
+[a_route2][train] 2024 epoch=3/10 loss=0.032423 n_batches=39
+[a_route2][train] 2024 epoch=4/10 loss=0.028156 n_batches=39
+[a_route2][train] 2024 epoch=5/10 loss=0.024688 n_batches=39
+[a_route2][train] 2024 epoch=6/10 loss=0.022354 n_batches=39
+[a_route2][train] 2024 epoch=7/10 loss=0.020292 n_batches=39
+[a_route2][train] 2024 epoch=8/10 loss=0.021044 n_batches=39
+[a_route2][train] 2024 epoch=9/10 loss=0.017455 n_batches=39
+[a_route2][train] 2024 epoch=10/10 loss=0.015585 n_batches=39
+[2024] current_f1=0.7704 (36s)
+[parts] 2025: parts=23 rows=36,126 pos=216 pos_rate=0.0060 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+[a_route2][train] 2025 epoch=1/10 loss=0.009113 n_batches=36
+[a_route2][train] 2025 epoch=2/10 loss=0.005219 n_batches=36
+[a_route2][train] 2025 epoch=3/10 loss=0.004808 n_batches=36
+[a_route2][train] 2025 epoch=4/10 loss=0.004292 n_batches=36
+[a_route2][train] 2025 epoch=5/10 loss=0.003221 n_batches=36
+[a_route2][train] 2025 epoch=6/10 loss=0.002682 n_batches=36
+[a_route2][train] 2025 epoch=7/10 loss=0.002284 n_batches=36
+[a_route2][train] 2025 epoch=8/10 loss=0.002127 n_batches=36
+[a_route2][train] 2025 epoch=9/10 loss=0.001794 n_batches=36
+[a_route2][train] 2025 epoch=10/10 loss=0.001970 n_batches=36
+[2025] current_f1=0.0000 (34s)
+[criteria] d2023=-4.98pp d2024=+1.25pp dmean=-1.24pp support=False
+[auc_oracle] {"2023": {"auc_arm": 0.9822514854728683, "auc_uniform": 0.9825729452521399, "delta_auc": -0.0003214597792715601, "f1_arm": 0.8183513614323014, "f1_uniform": 0.8681241184767278, "delta_f1_pp": -4.977275704442641, "oracle_f1_arm": 0.8964586846543001, "oracle_tau_arm": 0.025737395510077477, "oracle_margin_arm_pp": 7.8107323221998755, "oracle_margin_uniform_pp": 2.992932923029956, "gain_exceeds_uniform_oracle_margin": false}, "2024": {"auc_arm": 0.9310202780181845, "auc_uniform": 0.9412441171830078, "delta_auc": -0.010223839164823278, "f1_arm": 0.7829181494661922, "f1_uniform": 0.7703703703703704, "delta_f1_pp": 1.2547779095821832, "oracle_f1_arm": 0.7857142857142857, "oracle_tau_arm": 0.5188801884651184, "oracle_margin_arm_pp": 0.2796136248093495, "oracle_margin_uniform_pp": 0.6261932035127926, "gain_exceeds_uniform_oracle_margin": true}}
+[bootstrap_2024] {"delta_point": 0.012547779095821832, "ci95": [-0.027454692406051487, 0.05225707135930979], "ci_excludes_zero": false, "n_boot": 10000, "seed": 42, "paired_with": "uniform_tabm4", "rule": "y_score >= 0.5；95% 百分位区间；只量化测试样本不确定性，不冒充训练随机性"}
+=== a_route2: 12y mean=0.8199304615 | 2023=0.818351 2024=0.782918 | 788s ===
+==== DONE a_route2 2026-10-21T06:53:57Z ====
+==== START c_anti 2026-10-21T06:53:57Z ====
+[arm] c_anti k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5
+[groups] G0=[2013, 2016, 2018, 2020, 2022, 2024] G1=[2014, 2017, 2019, 2021, 2023, 2025]
+[weights] raw in/out=2.0/0.6666666666666666 raw_mean=1.333333 effective in/out=1.5/0.5
+[model] k=4 params=2,723,305
+[parts] 2013: parts=1 rows=69,144 pos=35,506 pos_rate=0.5135 replay_years=[]
+[c_anti][train] 2013 epoch=1/10 loss=0.692835 bce_unweighted=0.692846 n_batches=68
+[c_anti][train] 2013 epoch=2/10 loss=0.692602 bce_unweighted=0.692621 n_batches=68
+[c_anti][train] 2013 epoch=3/10 loss=0.692503 bce_unweighted=0.692536 n_batches=68
+[c_anti][train] 2013 epoch=4/10 loss=0.692364 bce_unweighted=0.692417 n_batches=68
+[c_anti][train] 2013 epoch=5/10 loss=0.692169 bce_unweighted=0.692257 n_batches=68
+[c_anti][train] 2013 epoch=6/10 loss=0.691874 bce_unweighted=0.692020 n_batches=68
+[c_anti][train] 2013 epoch=7/10 loss=0.691375 bce_unweighted=0.691618 n_batches=68
+[c_anti][train] 2013 epoch=8/10 loss=0.690461 bce_unweighted=0.690884 n_batches=68
+[c_anti][train] 2013 epoch=9/10 loss=0.688508 bce_unweighted=0.689322 n_batches=68
+[c_anti][train] 2013 epoch=10/10 loss=0.682777 bce_unweighted=0.684701 n_batches=68
+[2013] current_f1=0.7153 (66s)
+[parts] 2014: parts=3 rows=81,346 pos=36,805 pos_rate=0.4525 replay_years=[2013]
+[c_anti][train] 2014 epoch=1/10 loss=0.669776 bce_unweighted=0.667114 n_batches=80
+[c_anti][train] 2014 epoch=2/10 loss=0.487792 bce_unweighted=0.493317 n_batches=80
+[c_anti][train] 2014 epoch=3/10 loss=0.236492 bce_unweighted=0.249809 n_batches=80
+[c_anti][train] 2014 epoch=4/10 loss=0.173999 bce_unweighted=0.186715 n_batches=80
+[c_anti][train] 2014 epoch=5/10 loss=0.141379 bce_unweighted=0.153479 n_batches=80
+[c_anti][train] 2014 epoch=6/10 loss=0.124250 bce_unweighted=0.134309 n_batches=80
+[c_anti][train] 2014 epoch=7/10 loss=0.111277 bce_unweighted=0.120203 n_batches=80
+[c_anti][train] 2014 epoch=8/10 loss=0.108281 bce_unweighted=0.114767 n_batches=80
+[c_anti][train] 2014 epoch=9/10 loss=0.095095 bce_unweighted=0.102643 n_batches=80
+[c_anti][train] 2014 epoch=10/10 loss=0.090578 bce_unweighted=0.097275 n_batches=80
+[2014] current_f1=0.9655 (75s)
+[parts] 2016: parts=5 rows=87,754 pos=36,307 pos_rate=0.4137 replay_years=[2013, 2014]
+[c_anti][train] 2016 epoch=1/10 loss=0.187400 bce_unweighted=0.188934 n_batches=86
+[c_anti][train] 2016 epoch=2/10 loss=0.144728 bce_unweighted=0.146465 n_batches=86
+[c_anti][train] 2016 epoch=3/10 loss=0.130470 bce_unweighted=0.132985 n_batches=86
+[c_anti][train] 2016 epoch=4/10 loss=0.121546 bce_unweighted=0.124218 n_batches=86
+[c_anti][train] 2016 epoch=5/10 loss=0.115804 bce_unweighted=0.118152 n_batches=86
+[c_anti][train] 2016 epoch=6/10 loss=0.108945 bce_unweighted=0.111924 n_batches=86
+[c_anti][train] 2016 epoch=7/10 loss=0.097710 bce_unweighted=0.102028 n_batches=86
+[c_anti][train] 2016 epoch=8/10 loss=0.108525 bce_unweighted=0.109714 n_batches=86
+[c_anti][train] 2016 epoch=9/10 loss=0.089742 bce_unweighted=0.094378 n_batches=86
+[c_anti][train] 2016 epoch=10/10 loss=0.083467 bce_unweighted=0.088481 n_batches=86
+[2016] current_f1=0.9595 (80s)
+[parts] 2017: parts=7 rows=79,711 pos=17,285 pos_rate=0.2168 replay_years=[2013, 2014, 2016]
+[c_anti][train] 2017 epoch=1/10 loss=0.182515 bce_unweighted=0.170889 n_batches=78
+[c_anti][train] 2017 epoch=2/10 loss=0.101309 bce_unweighted=0.100399 n_batches=78
+[c_anti][train] 2017 epoch=3/10 loss=0.088304 bce_unweighted=0.088039 n_batches=78
+[c_anti][train] 2017 epoch=4/10 loss=0.079368 bce_unweighted=0.079593 n_batches=78
+[c_anti][train] 2017 epoch=5/10 loss=0.072932 bce_unweighted=0.073636 n_batches=78
+[c_anti][train] 2017 epoch=6/10 loss=0.069781 bce_unweighted=0.070447 n_batches=78
+[c_anti][train] 2017 epoch=7/10 loss=0.064360 bce_unweighted=0.065655 n_batches=78
+[c_anti][train] 2017 epoch=8/10 loss=0.061049 bce_unweighted=0.062037 n_batches=78
+[c_anti][train] 2017 epoch=9/10 loss=0.057345 bce_unweighted=0.058643 n_batches=78
+[c_anti][train] 2017 epoch=10/10 loss=0.054492 bce_unweighted=0.055777 n_batches=78
+[2017] current_f1=0.9577 (75s)
+[parts] 2018: parts=9 rows=83,833 pos=31,680 pos_rate=0.3779 replay_years=[2013, 2014, 2016, 2017]
+[c_anti][train] 2018 epoch=1/10 loss=0.160086 bce_unweighted=0.161305 n_batches=82
+[c_anti][train] 2018 epoch=2/10 loss=0.128079 bce_unweighted=0.130765 n_batches=82
+[c_anti][train] 2018 epoch=3/10 loss=0.117650 bce_unweighted=0.121032 n_batches=82
+[c_anti][train] 2018 epoch=4/10 loss=0.108658 bce_unweighted=0.112776 n_batches=82
+[c_anti][train] 2018 epoch=5/10 loss=0.102089 bce_unweighted=0.106989 n_batches=82
+[c_anti][train] 2018 epoch=6/10 loss=0.098402 bce_unweighted=0.102723 n_batches=82
+[c_anti][train] 2018 epoch=7/10 loss=0.093360 bce_unweighted=0.097834 n_batches=82
+[c_anti][train] 2018 epoch=8/10 loss=0.088972 bce_unweighted=0.093765 n_batches=82
+[c_anti][train] 2018 epoch=9/10 loss=0.120184 bce_unweighted=0.118744 n_batches=82
+[c_anti][train] 2018 epoch=10/10 loss=0.087681 bce_unweighted=0.091661 n_batches=82
+[2018] current_f1=0.9564 (78s)
+[parts] 2019: parts=11 rows=73,240 pos=33,468 pos_rate=0.4570 replay_years=[2013, 2014, 2016, 2017, 2018]
+[c_anti][train] 2019 epoch=1/10 loss=0.156991 bce_unweighted=0.149532 n_batches=72
+[c_anti][train] 2019 epoch=2/10 loss=0.096015 bce_unweighted=0.095649 n_batches=72
+[c_anti][train] 2019 epoch=3/10 loss=0.081877 bce_unweighted=0.082520 n_batches=72
+[c_anti][train] 2019 epoch=4/10 loss=0.071048 bce_unweighted=0.072447 n_batches=72
+[c_anti][train] 2019 epoch=5/10 loss=0.063193 bce_unweighted=0.065209 n_batches=72
+[c_anti][train] 2019 epoch=6/10 loss=0.055861 bce_unweighted=0.058237 n_batches=72
+[c_anti][train] 2019 epoch=7/10 loss=0.048952 bce_unweighted=0.051592 n_batches=72
+[c_anti][train] 2019 epoch=8/10 loss=0.044821 bce_unweighted=0.047580 n_batches=72
+[c_anti][train] 2019 epoch=9/10 loss=0.038064 bce_unweighted=0.041470 n_batches=72
+[c_anti][train] 2019 epoch=10/10 loss=0.034442 bce_unweighted=0.037590 n_batches=72
+[2019] current_f1=0.9729 (68s)
+[parts] 2020: parts=13 rows=82,054 pos=37,276 pos_rate=0.4543 replay_years=[2013, 2014, 2016, 2017, 2018, 2019]
+[c_anti][train] 2020 epoch=1/10 loss=0.093285 bce_unweighted=0.093191 n_batches=81
+[c_anti][train] 2020 epoch=2/10 loss=0.068318 bce_unweighted=0.069860 n_batches=81
+[c_anti][train] 2020 epoch=3/10 loss=0.057905 bce_unweighted=0.060571 n_batches=81
+[c_anti][train] 2020 epoch=4/10 loss=0.051324 bce_unweighted=0.054691 n_batches=81
+[c_anti][train] 2020 epoch=5/10 loss=0.047212 bce_unweighted=0.050611 n_batches=81
+[c_anti][train] 2020 epoch=6/10 loss=0.041223 bce_unweighted=0.045233 n_batches=81
+[c_anti][train] 2020 epoch=7/10 loss=0.038496 bce_unweighted=0.042260 n_batches=81
+[c_anti][train] 2020 epoch=8/10 loss=0.034234 bce_unweighted=0.038295 n_batches=81
+[c_anti][train] 2020 epoch=9/10 loss=0.031665 bce_unweighted=0.035520 n_batches=81
+[c_anti][train] 2020 epoch=10/10 loss=0.029077 bce_unweighted=0.032822 n_batches=81
+[2020] current_f1=0.9793 (77s)
+[parts] 2021: parts=15 rows=65,316 pos=28,698 pos_rate=0.4394 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020]
+[c_anti][train] 2021 epoch=1/10 loss=0.146607 bce_unweighted=0.136188 n_batches=64
+[c_anti][train] 2021 epoch=2/10 loss=0.082509 bce_unweighted=0.081614 n_batches=64
+[c_anti][train] 2021 epoch=3/10 loss=0.068264 bce_unweighted=0.068470 n_batches=64
+[c_anti][train] 2021 epoch=4/10 loss=0.056603 bce_unweighted=0.057580 n_batches=64
+[c_anti][train] 2021 epoch=5/10 loss=0.050838 bce_unweighted=0.051877 n_batches=64
+[c_anti][train] 2021 epoch=6/10 loss=0.041520 bce_unweighted=0.043183 n_batches=64
+[c_anti][train] 2021 epoch=7/10 loss=0.036266 bce_unweighted=0.038031 n_batches=64
+[c_anti][train] 2021 epoch=8/10 loss=0.033325 bce_unweighted=0.034784 n_batches=64
+[c_anti][train] 2021 epoch=9/10 loss=0.028675 bce_unweighted=0.030448 n_batches=64
+[c_anti][train] 2021 epoch=10/10 loss=0.026677 bce_unweighted=0.028297 n_batches=64
+[2021] current_f1=0.9862 (60s)
+[parts] 2022: parts=17 rows=69,532 pos=33,510 pos_rate=0.4819 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021]
+[c_anti][train] 2022 epoch=1/10 loss=0.064828 bce_unweighted=0.065857 n_batches=68
+[c_anti][train] 2022 epoch=2/10 loss=0.043088 bce_unweighted=0.044622 n_batches=68
+[c_anti][train] 2022 epoch=3/10 loss=0.037034 bce_unweighted=0.038855 n_batches=68
+[c_anti][train] 2022 epoch=4/10 loss=0.032470 bce_unweighted=0.034653 n_batches=68
+[c_anti][train] 2022 epoch=5/10 loss=0.028227 bce_unweighted=0.030686 n_batches=68
+[c_anti][train] 2022 epoch=6/10 loss=0.024479 bce_unweighted=0.027127 n_batches=68
+[c_anti][train] 2022 epoch=7/10 loss=0.022613 bce_unweighted=0.025308 n_batches=68
+[c_anti][train] 2022 epoch=8/10 loss=0.021278 bce_unweighted=0.023700 n_batches=68
+[c_anti][train] 2022 epoch=9/10 loss=0.017816 bce_unweighted=0.020505 n_batches=68
+[c_anti][train] 2022 epoch=10/10 loss=0.017007 bce_unweighted=0.019431 n_batches=68
+[2022] current_f1=0.9872 (63s)
+[parts] 2023: parts=19 rows=43,879 pos=6,512 pos_rate=0.1484 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022]
+[c_anti][train] 2023 epoch=1/10 loss=0.112048 bce_unweighted=0.112241 n_batches=43
+[c_anti][train] 2023 epoch=2/10 loss=0.072365 bce_unweighted=0.074152 n_batches=43
+[c_anti][train] 2023 epoch=3/10 loss=0.062179 bce_unweighted=0.064032 n_batches=43
+[c_anti][train] 2023 epoch=4/10 loss=0.056445 bce_unweighted=0.058225 n_batches=43
+[c_anti][train] 2023 epoch=5/10 loss=0.049333 bce_unweighted=0.051612 n_batches=43
+[c_anti][train] 2023 epoch=6/10 loss=0.042984 bce_unweighted=0.045365 n_batches=43
+[c_anti][train] 2023 epoch=7/10 loss=0.039308 bce_unweighted=0.041563 n_batches=43
+[c_anti][train] 2023 epoch=8/10 loss=0.035614 bce_unweighted=0.037964 n_batches=43
+[c_anti][train] 2023 epoch=9/10 loss=0.031919 bce_unweighted=0.034439 n_batches=43
+[c_anti][train] 2023 epoch=10/10 loss=0.031146 bce_unweighted=0.032895 n_batches=43
+[2023] current_f1=0.9445 (42s)
+[parts] 2024: parts=21 rows=39,141 pos=835 pos_rate=0.0213 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]
+[c_anti][train] 2024 epoch=1/10 loss=0.046522 bce_unweighted=0.046049 n_batches=39
+[c_anti][train] 2024 epoch=2/10 loss=0.033055 bce_unweighted=0.033689 n_batches=39
+[c_anti][train] 2024 epoch=3/10 loss=0.027835 bce_unweighted=0.028888 n_batches=39
+[c_anti][train] 2024 epoch=4/10 loss=0.023901 bce_unweighted=0.025147 n_batches=39
+[c_anti][train] 2024 epoch=5/10 loss=0.021618 bce_unweighted=0.023000 n_batches=39
+[c_anti][train] 2024 epoch=6/10 loss=0.019688 bce_unweighted=0.021287 n_batches=39
+[c_anti][train] 2024 epoch=7/10 loss=0.018428 bce_unweighted=0.019789 n_batches=39
+[c_anti][train] 2024 epoch=8/10 loss=0.017955 bce_unweighted=0.019361 n_batches=39
+[c_anti][train] 2024 epoch=9/10 loss=0.016227 bce_unweighted=0.017463 n_batches=39
+[c_anti][train] 2024 epoch=10/10 loss=0.015089 bce_unweighted=0.016445 n_batches=39
+[2024] current_f1=0.7927 (38s)
+[parts] 2025: parts=23 rows=36,126 pos=216 pos_rate=0.0060 replay_years=[2013, 2014, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+[c_anti][train] 2025 epoch=1/10 loss=0.007947 bce_unweighted=0.008189 n_batches=36
+[c_anti][train] 2025 epoch=2/10 loss=0.005130 bce_unweighted=0.005350 n_batches=36
+[c_anti][train] 2025 epoch=3/10 loss=0.004532 bce_unweighted=0.004851 n_batches=36
+[c_anti][train] 2025 epoch=4/10 loss=0.003983 bce_unweighted=0.004160 n_batches=36
+[c_anti][train] 2025 epoch=5/10 loss=0.003002 bce_unweighted=0.003271 n_batches=36
+[c_anti][train] 2025 epoch=6/10 loss=0.002632 bce_unweighted=0.002865 n_batches=36
+[c_anti][train] 2025 epoch=7/10 loss=0.002354 bce_unweighted=0.002528 n_batches=36
+[c_anti][train] 2025 epoch=8/10 loss=0.002149 bce_unweighted=0.002386 n_batches=36
+[c_anti][train] 2025 epoch=9/10 loss=0.001712 bce_unweighted=0.001911 n_batches=36
+[c_anti][train] 2025 epoch=10/10 loss=0.001766 bce_unweighted=0.001941 n_batches=36
+[2025] current_f1=0.0000 (34s)
+[criteria] d2023=-1.43pp d2024=-1.75pp dmean=-0.43pp support=False
+[auc_oracle] {"2023": {"auc_arm": 0.9807314730672759, "auc_uniform": 0.9825729452521399, "delta_auc": -0.0018414721848639681, "f1_arm": 0.8538433778419343, "f1_uniform": 0.8681241184767278, "delta_f1_pp": -1.4280740634793454, "oracle_f1_arm": 0.8922661263086795, "oracle_tau_arm": 0.1670239120721817, "oracle_margin_arm_pp": 3.8422748466745205, "oracle_margin_uniform_pp": 2.992932923029956, "gain_exceeds_uniform_oracle_margin": false}, "2024": {"auc_arm": 0.9297554187271794, "auc_uniform": 0.9412441171830078, "delta_auc": -0.01148869845582845, "f1_arm": 0.752851711026616, "f1_uniform": 0.7703703703703704, "delta_f1_pp": -1.7518659343754406, "oracle_f1_arm": 0.7714285714285715, "oracle_tau_arm": 0.26192590594291687, "oracle_margin_arm_pp": 1.8576860401955497, "oracle_margin_uniform_pp": 0.6261932035127926, "gain_exceeds_uniform_oracle_margin": false}}
+[bootstrap_2024] {"delta_point": -0.017518659343754406, "ci95": [-0.04215393073064103, 0.0042064096858606065], "ci_excludes_zero": false, "n_boot": 10000, "seed": 42, "paired_with": "uniform_tabm4", "rule": "y_score >= 0.5；95% 百分位区间；只量化测试样本不确定性，不冒充训练随机性"}
+=== c_anti: 12y mean=0.8280011280 | 2023=0.853843 2024=0.752852 | 768s ===
+[form_selection] selected=None outcome=reopen_mechanism_design reason=两臂皆败，第二机制设计重开
+==== DONE c_anti 2026-10-21T07:06:59Z ====
+==== ALL DONE 2026-10-21T07:06:59Z ====
