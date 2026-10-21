@@ -1,0 +1,182 @@
+{
+  "schema_version": "ch4-corr-pilot-comparison-v1",
+  "design_doc": "thesis/methods/第四章-成对相关惩罚先导设计.md",
+  "reference_uniform_tabm4": {
+    "mean_f1": 0.832346367494066,
+    "f1_2023": 0.8681241184767278,
+    "f1_2024": 0.7703703703703704,
+    "disagreement_2024": 0.002082042810929864,
+    "preds_dir": "runs/diagnostics/ch4-lamda-tabm-pilot"
+  },
+  "criteria_text": {
+    "support": "2023 与 2024 相对 uniform tabm4 各 >= +0.5 pp，且 12 年平均 >= uniform − 0.20 pp",
+    "selection": "若两臂均过支持判据，取 2024 增量高者；若仅一臂过，取该臂；均不过 -> 机制二关闭，章级设计重构（无第四轮）",
+    "mechanism": "2024 pairwise 不一致率须上升（uniform 0.2082%）；不升 = 增益来源不明"
+  },
+  "arms": {
+    "corr05": {
+      "kind": "CORR",
+      "lambda": 0.5,
+      "mean_f1": 0.0,
+      "f1_2023": 0.0,
+      "f1_2024": 0.0,
+      "delta_2023_pp": -86.81241184767278,
+      "delta_2024_pp": -77.03703703703704,
+      "delta_mean12_pp": -83.2346367494066,
+      "support": false,
+      "support_components": {
+        "2023": false,
+        "2024": false,
+        "mean12": false
+      },
+      "verdict": "not_support",
+      "disagreement_2024": 0.007037648840250533,
+      "disagreement_2024_raised": true,
+      "epoch_disagreement_2024": {
+        "rates": [
+          0.009969075520833334,
+          0.008870442708333334,
+          0.009195963541666666,
+          0.009236653645833334,
+          0.0093994140625,
+          0.008707682291666666,
+          0.008504231770833334,
+          0.008707682291666666,
+          0.0084228515625,
+          0.008544921875
+        ],
+        "mean_member_std": [
+          0.05916375294327736,
+          0.04325299337506294,
+          0.03451775014400482,
+          0.028977058827877045,
+          0.02600593864917755,
+          0.0236130952835083,
+          0.022024210542440414,
+          0.02105412632226944,
+          0.020438093692064285,
+          0.019622834399342537
+        ],
+        "first": 0.009969075520833334,
+        "last": 0.008544921875,
+        "delta_first_to_last": -0.001424153645833334
+      },
+      "auc_oracle_check": {
+        "2023": {
+          "auc_arm": 0.9743311570356255,
+          "auc_base": 0.9777648234623905,
+          "delta_auc": -0.003433666426765014,
+          "f1_arm": 0.0,
+          "f1_base": 0.8243143068939955,
+          "delta_f1_pp": -82.43143068939955,
+          "oracle_f1_arm": 0.8694214876033057,
+          "oracle_tau_arm": 0.01774132438004017,
+          "oracle_margin_arm_pp": 86.94214876033057,
+          "oracle_margin_base_pp": 5.2022591501726385,
+          "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"
+        },
+        "2024": {
+          "auc_arm": 0.9169272633290488,
+          "auc_base": 0.9420963788451623,
+          "delta_auc": -0.02516911551611345,
+          "f1_arm": 0.0,
+          "f1_base": 0.7421875,
+          "delta_f1_pp": -74.21875,
+          "oracle_f1_arm": 0.6846153846153846,
+          "oracle_tau_arm": 0.2188909351825714,
+          "oracle_margin_arm_pp": 68.46153846153847,
+          "oracle_margin_base_pp": 0.6847249034748981,
+          "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"
+        }
+      }
+    },
+    "corr10": {
+      "kind": "CORR",
+      "lambda": 1.0,
+      "mean_f1": 0.0,
+      "f1_2023": 0.0,
+      "f1_2024": 0.0,
+      "delta_2023_pp": -86.81241184767278,
+      "delta_2024_pp": -77.03703703703704,
+      "delta_mean12_pp": -83.2346367494066,
+      "support": false,
+      "support_components": {
+        "2023": false,
+        "2024": false,
+        "mean12": false
+      },
+      "verdict": "not_support",
+      "disagreement_2024": 0.006246128432789593,
+      "disagreement_2024_raised": true,
+      "epoch_disagreement_2024": {
+        "rates": [
+          0.009480794270833334,
+          0.008992513020833334,
+          0.009073893229166666,
+          0.008829752604166666,
+          0.008951822916666666,
+          0.009073893229166666,
+          0.008829752604166666,
+          0.0089111328125,
+          0.008951822916666666,
+          0.008585611979166666
+        ],
+        "mean_member_std": [
+          0.06128687784075737,
+          0.04518706351518631,
+          0.03590032085776329,
+          0.030620289966464043,
+          0.027059830725193024,
+          0.024826163426041603,
+          0.02333805523812771,
+          0.022227037698030472,
+          0.02157459408044815,
+          0.020840533077716827
+        ],
+        "first": 0.009480794270833334,
+        "last": 0.008585611979166666,
+        "delta_first_to_last": -0.0008951822916666678
+      },
+      "auc_oracle_check": {
+        "2023": {
+          "auc_arm": 0.9733361251371865,
+          "auc_base": 0.9777648234623905,
+          "delta_auc": -0.0044286983252039835,
+          "f1_arm": 0.0,
+          "f1_base": 0.8243143068939955,
+          "delta_f1_pp": -82.43143068939955,
+          "oracle_f1_arm": 0.8664235996022539,
+          "oracle_tau_arm": 0.013892434537410736,
+          "oracle_margin_arm_pp": 86.64235996022539,
+          "oracle_margin_base_pp": 5.2022591501726385,
+          "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"
+        },
+        "2024": {
+          "auc_arm": 0.9149613181470999,
+          "auc_base": 0.9420963788451623,
+          "delta_auc": -0.027135060698062374,
+          "f1_arm": 0.0,
+          "f1_base": 0.7421875,
+          "delta_f1_pp": -74.21875,
+          "oracle_f1_arm": 0.6641509433962264,
+          "oracle_tau_arm": 0.051178671419620514,
+          "oracle_margin_arm_pp": 66.41509433962264,
+          "oracle_margin_base_pp": 0.6847249034748981,
+          "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"
+        }
+      }
+    }
+  },
+  "status": "complete",
+  "ts": "2026-10-21T09:41:32.389870Z",
+  "selection": {
+    "eligible_arms": [],
+    "selected": null,
+    "outcome": "round3_fail_chapter_restructure",
+    "reason": "两臂均未通过支持判据，机制二关闭，章级设计重构（无第四轮）",
+    "mechanism_2_status": "closed",
+    "gain_source_label": null,
+    "gain_source_note": null,
+    "rule": "两臂均过 -> 取 2024 增量高者；仅一臂过 -> 取该臂；均不过 -> 机制二关闭，章级设计重构（预登记，无第四轮）"
+  }
+}

@@ -1,0 +1,366 @@
+=== [2026-10-21T09:01:48Z] attempt2 (零方差梯度修复) start corr05 ===
+[arm] corr05 kind=corr lambda=0.5 k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5 eps=1e-08
+[model] k=4 params=2,723,305
+[parts] 2013: rows=69,144 pos=35,506 pos_rate=0.5135 probe_rows=4,096
+[corr05][train] 2013 epoch=1/10 loss=0.693695 bce=0.692960 corr=1.470724e-03 lam_abs_corr_over_bce=1.061e-03 probe_dis=0.000000 probe_std=0.002148 n_batches=68
+[corr05][train] 2013 epoch=2/10 loss=0.693319 bce=0.692835 corr=9.678203e-04 lam_abs_corr_over_bce=6.984e-04 probe_dis=0.000000 probe_std=0.001531 n_batches=68
+[corr05][train] 2013 epoch=3/10 loss=0.692349 bce=0.692875 corr=-1.052653e-03 lam_abs_corr_over_bce=7.596e-04 probe_dis=0.000000 probe_std=0.000973 n_batches=68
+[corr05][train] 2013 epoch=4/10 loss=0.691506 bce=0.692873 corr=-2.733857e-03 lam_abs_corr_over_bce=1.973e-03 probe_dis=0.000000 probe_std=0.000816 n_batches=68
+[corr05][train] 2013 epoch=5/10 loss=0.693111 bce=0.692847 corr=5.285109e-04 lam_abs_corr_over_bce=3.814e-04 probe_dis=0.000000 probe_std=0.000606 n_batches=68
+[corr05][train] 2013 epoch=6/10 loss=0.692534 bce=0.692829 corr=-5.899270e-04 lam_abs_corr_over_bce=4.257e-04 probe_dis=0.000000 probe_std=0.000256 n_batches=68
+[corr05][train] 2013 epoch=7/10 loss=0.691153 bce=0.692767 corr=-3.227835e-03 lam_abs_corr_over_bce=2.330e-03 probe_dis=0.000000 probe_std=0.000743 n_batches=68
+[corr05][train] 2013 epoch=8/10 loss=0.692935 bce=0.692865 corr=1.397628e-04 lam_abs_corr_over_bce=1.009e-04 probe_dis=0.000000 probe_std=0.000576 n_batches=68
+[corr05][train] 2013 epoch=9/10 loss=0.692590 bce=0.692817 corr=-4.542658e-04 lam_abs_corr_over_bce=3.278e-04 probe_dis=0.000000 probe_std=0.000642 n_batches=68
+[corr05][train] 2013 epoch=10/10 loss=0.692280 bce=0.692848 corr=-1.134844e-03 lam_abs_corr_over_bce=8.190e-04 probe_dis=0.000000 probe_std=0.000986 n_batches=68
+[2013] current_f1=0.6786 (80s)
+[parts] 2014: rows=81,346 pos=36,805 pos_rate=0.4525 probe_rows=4,096
+[corr05][train] 2014 epoch=1/10 loss=0.689571 bce=0.690280 corr=-1.416772e-03 lam_abs_corr_over_bce=1.026e-03 probe_dis=0.000000 probe_std=0.000901 n_batches=80
+[corr05][train] 2014 epoch=2/10 loss=0.688967 bce=0.688679 corr=5.756048e-04 lam_abs_corr_over_bce=4.179e-04 probe_dis=0.000000 probe_std=0.001307 n_batches=80
+[corr05][train] 2014 epoch=3/10 loss=0.686738 bce=0.688715 corr=-3.954907e-03 lam_abs_corr_over_bce=2.871e-03 probe_dis=0.000000 probe_std=0.000688 n_batches=80
+[corr05][train] 2014 epoch=4/10 loss=0.689149 bce=0.688614 corr=1.068068e-03 lam_abs_corr_over_bce=7.755e-04 probe_dis=0.000000 probe_std=0.001199 n_batches=80
+[corr05][train] 2014 epoch=5/10 loss=0.688344 bce=0.688665 corr=-6.415315e-04 lam_abs_corr_over_bce=4.658e-04 probe_dis=0.000000 probe_std=0.000315 n_batches=80
+[corr05][train] 2014 epoch=6/10 loss=0.688424 bce=0.688660 corr=-4.722176e-04 lam_abs_corr_over_bce=3.429e-04 probe_dis=0.000000 probe_std=0.000818 n_batches=80
+[corr05][train] 2014 epoch=7/10 loss=0.688675 bce=0.688654 corr=4.196649e-05 lam_abs_corr_over_bce=3.047e-05 probe_dis=0.000000 probe_std=0.000888 n_batches=80
+[corr05][train] 2014 epoch=8/10 loss=0.689222 bce=0.688718 corr=1.009077e-03 lam_abs_corr_over_bce=7.326e-04 probe_dis=0.000000 probe_std=0.000070 n_batches=80
+[corr05][train] 2014 epoch=9/10 loss=0.689669 bce=0.688694 corr=1.948965e-03 lam_abs_corr_over_bce=1.415e-03 probe_dis=0.000000 probe_std=0.001263 n_batches=80
+[corr05][train] 2014 epoch=10/10 loss=0.688829 bce=0.688725 corr=2.070292e-04 lam_abs_corr_over_bce=1.503e-04 probe_dis=0.000000 probe_std=0.000418 n_batches=80
+[2014] current_f1=0.0000 (81s)
+[parts] 2016: rows=87,754 pos=36,307 pos_rate=0.4137 probe_rows=4,096
+[corr05][train] 2016 epoch=1/10 loss=0.678890 bce=0.678951 corr=-1.204108e-04 lam_abs_corr_over_bce=8.867e-05 probe_dis=0.000000 probe_std=0.000321 n_batches=86
+[corr05][train] 2016 epoch=2/10 loss=0.678945 bce=0.678358 corr=1.175390e-03 lam_abs_corr_over_bce=8.663e-04 probe_dis=0.000000 probe_std=0.000497 n_batches=86
+[corr05][train] 2016 epoch=3/10 loss=0.677994 bce=0.678337 corr=-6.855494e-04 lam_abs_corr_over_bce=5.053e-04 probe_dis=0.000000 probe_std=0.000805 n_batches=86
+[corr05][train] 2016 epoch=4/10 loss=0.677952 bce=0.678291 corr=-6.782830e-04 lam_abs_corr_over_bce=5.000e-04 probe_dis=0.000000 probe_std=0.000916 n_batches=86
+[corr05][train] 2016 epoch=5/10 loss=0.677626 bce=0.678270 corr=-1.289233e-03 lam_abs_corr_over_bce=9.504e-04 probe_dis=0.000000 probe_std=0.000405 n_batches=86
+[corr05][train] 2016 epoch=6/10 loss=0.679484 bce=0.678330 corr=2.309746e-03 lam_abs_corr_over_bce=1.703e-03 probe_dis=0.000000 probe_std=0.000557 n_batches=86
+[corr05][train] 2016 epoch=7/10 loss=0.678285 bce=0.678216 corr=1.381991e-04 lam_abs_corr_over_bce=1.019e-04 probe_dis=0.000000 probe_std=0.001414 n_batches=86
+[corr05][train] 2016 epoch=8/10 loss=0.678292 bce=0.678292 corr=1.642636e-06 lam_abs_corr_over_bce=1.211e-06 probe_dis=0.000000 probe_std=0.001756 n_batches=86
+[corr05][train] 2016 epoch=9/10 loss=0.678319 bce=0.678275 corr=8.665638e-05 lam_abs_corr_over_bce=6.388e-05 probe_dis=0.000000 probe_std=0.000464 n_batches=86
+[corr05][train] 2016 epoch=10/10 loss=0.678989 bce=0.678326 corr=1.326843e-03 lam_abs_corr_over_bce=9.780e-04 probe_dis=0.000000 probe_std=0.000277 n_batches=86
+[2016] current_f1=0.0000 (95s)
+[parts] 2017: rows=79,711 pos=17,285 pos_rate=0.2168 probe_rows=4,096
+[corr05][train] 2017 epoch=1/10 loss=0.542506 bce=0.542731 corr=-4.507544e-04 lam_abs_corr_over_bce=4.153e-04 probe_dis=0.000000 probe_std=0.000725 n_batches=78
+[corr05][train] 2017 epoch=2/10 loss=0.524066 bce=0.523408 corr=1.315617e-03 lam_abs_corr_over_bce=1.257e-03 probe_dis=0.000000 probe_std=0.000317 n_batches=78
+[corr05][train] 2017 epoch=3/10 loss=0.523147 bce=0.523340 corr=-3.870535e-04 lam_abs_corr_over_bce=3.698e-04 probe_dis=0.000000 probe_std=0.000316 n_batches=78
+[corr05][train] 2017 epoch=4/10 loss=0.525077 bce=0.523336 corr=3.480857e-03 lam_abs_corr_over_bce=3.326e-03 probe_dis=0.000000 probe_std=0.000277 n_batches=78
+[corr05][train] 2017 epoch=5/10 loss=0.523972 bce=0.523432 corr=1.079686e-03 lam_abs_corr_over_bce=1.031e-03 probe_dis=0.000000 probe_std=0.000168 n_batches=78
+[corr05][train] 2017 epoch=6/10 loss=0.521086 bce=0.523321 corr=-4.468665e-03 lam_abs_corr_over_bce=4.270e-03 probe_dis=0.000000 probe_std=0.000215 n_batches=78
+[corr05][train] 2017 epoch=7/10 loss=0.523070 bce=0.523169 corr=-1.976859e-04 lam_abs_corr_over_bce=1.889e-04 probe_dis=0.000000 probe_std=0.000451 n_batches=78
+[corr05][train] 2017 epoch=8/10 loss=0.522399 bce=0.523226 corr=-1.654182e-03 lam_abs_corr_over_bce=1.581e-03 probe_dis=0.000000 probe_std=0.000197 n_batches=78
+[corr05][train] 2017 epoch=9/10 loss=0.522724 bce=0.523045 corr=-6.409759e-04 lam_abs_corr_over_bce=6.127e-04 probe_dis=0.000000 probe_std=0.000132 n_batches=78
+[corr05][train] 2017 epoch=10/10 loss=0.521866 bce=0.523141 corr=-2.548673e-03 lam_abs_corr_over_bce=2.436e-03 probe_dis=0.000000 probe_std=0.000194 n_batches=78
+[2017] current_f1=0.0000 (90s)
+[parts] 2018: rows=83,833 pos=31,680 pos_rate=0.3779 probe_rows=4,096
+[corr05][train] 2018 epoch=1/10 loss=0.675513 bce=0.675752 corr=-4.793273e-04 lam_abs_corr_over_bce=3.547e-04 probe_dis=0.000000 probe_std=0.000447 n_batches=82
+[corr05][train] 2018 epoch=2/10 loss=0.664167 bce=0.663035 corr=2.264178e-03 lam_abs_corr_over_bce=1.707e-03 probe_dis=0.000000 probe_std=0.000401 n_batches=82
+[corr05][train] 2018 epoch=3/10 loss=0.663699 bce=0.663044 corr=1.309215e-03 lam_abs_corr_over_bce=9.873e-04 probe_dis=0.000000 probe_std=0.000435 n_batches=82
+[corr05][train] 2018 epoch=4/10 loss=0.662803 bce=0.663033 corr=-4.604994e-04 lam_abs_corr_over_bce=3.473e-04 probe_dis=0.000000 probe_std=0.000889 n_batches=82
+[corr05][train] 2018 epoch=5/10 loss=0.663859 bce=0.663047 corr=1.624436e-03 lam_abs_corr_over_bce=1.225e-03 probe_dis=0.000000 probe_std=0.000434 n_batches=82
+=== [2026-10-21T09:10:20Z] attempt2-continued: 上轮 attempt2 于 corr05 2018 epoch5 被停止（无结果制品）；本段从 corr05 重新完整开始，规格正确实现不变 ===
+[arm] corr05 kind=corr lambda=0.5 k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5 eps=1e-08
+[model] k=4 params=2,723,305
+[parts] 2013: rows=69,144 pos=35,506 pos_rate=0.5135 probe_rows=4,096
+[corr05][train] 2013 epoch=1/10 loss=0.693695 bce=0.692960 corr=1.470724e-03 lam_abs_corr_over_bce=1.061e-03 probe_dis=0.000000 probe_std=0.002148 n_batches=68
+[corr05][train] 2013 epoch=2/10 loss=0.693319 bce=0.692835 corr=9.678203e-04 lam_abs_corr_over_bce=6.984e-04 probe_dis=0.000000 probe_std=0.001531 n_batches=68
+[corr05][train] 2013 epoch=3/10 loss=0.692349 bce=0.692875 corr=-1.052653e-03 lam_abs_corr_over_bce=7.596e-04 probe_dis=0.000000 probe_std=0.000973 n_batches=68
+[corr05][train] 2013 epoch=4/10 loss=0.691506 bce=0.692873 corr=-2.733857e-03 lam_abs_corr_over_bce=1.973e-03 probe_dis=0.000000 probe_std=0.000816 n_batches=68
+[corr05][train] 2013 epoch=5/10 loss=0.693111 bce=0.692847 corr=5.285109e-04 lam_abs_corr_over_bce=3.814e-04 probe_dis=0.000000 probe_std=0.000606 n_batches=68
+[corr05][train] 2013 epoch=6/10 loss=0.692534 bce=0.692829 corr=-5.899270e-04 lam_abs_corr_over_bce=4.257e-04 probe_dis=0.000000 probe_std=0.000256 n_batches=68
+[corr05][train] 2013 epoch=7/10 loss=0.691153 bce=0.692767 corr=-3.227835e-03 lam_abs_corr_over_bce=2.330e-03 probe_dis=0.000000 probe_std=0.000743 n_batches=68
+[corr05][train] 2013 epoch=8/10 loss=0.692935 bce=0.692865 corr=1.397628e-04 lam_abs_corr_over_bce=1.009e-04 probe_dis=0.000000 probe_std=0.000576 n_batches=68
+[corr05][train] 2013 epoch=9/10 loss=0.692590 bce=0.692817 corr=-4.542658e-04 lam_abs_corr_over_bce=3.278e-04 probe_dis=0.000000 probe_std=0.000642 n_batches=68
+[corr05][train] 2013 epoch=10/10 loss=0.692280 bce=0.692848 corr=-1.134844e-03 lam_abs_corr_over_bce=8.190e-04 probe_dis=0.000000 probe_std=0.000986 n_batches=68
+[2013] current_f1=0.6786 (85s)
+[parts] 2014: rows=81,346 pos=36,805 pos_rate=0.4525 probe_rows=4,096
+[corr05][train] 2014 epoch=1/10 loss=0.689571 bce=0.690280 corr=-1.416772e-03 lam_abs_corr_over_bce=1.026e-03 probe_dis=0.000000 probe_std=0.000901 n_batches=80
+[corr05][train] 2014 epoch=2/10 loss=0.688967 bce=0.688679 corr=5.756048e-04 lam_abs_corr_over_bce=4.179e-04 probe_dis=0.000000 probe_std=0.001307 n_batches=80
+[corr05][train] 2014 epoch=3/10 loss=0.686738 bce=0.688715 corr=-3.954907e-03 lam_abs_corr_over_bce=2.871e-03 probe_dis=0.000000 probe_std=0.000688 n_batches=80
+[corr05][train] 2014 epoch=4/10 loss=0.689149 bce=0.688614 corr=1.068068e-03 lam_abs_corr_over_bce=7.755e-04 probe_dis=0.000000 probe_std=0.001199 n_batches=80
+[corr05][train] 2014 epoch=5/10 loss=0.688344 bce=0.688665 corr=-6.415315e-04 lam_abs_corr_over_bce=4.658e-04 probe_dis=0.000000 probe_std=0.000315 n_batches=80
+[corr05][train] 2014 epoch=6/10 loss=0.688424 bce=0.688660 corr=-4.722176e-04 lam_abs_corr_over_bce=3.429e-04 probe_dis=0.000000 probe_std=0.000818 n_batches=80
+[corr05][train] 2014 epoch=7/10 loss=0.688675 bce=0.688654 corr=4.196649e-05 lam_abs_corr_over_bce=3.047e-05 probe_dis=0.000000 probe_std=0.000888 n_batches=80
+[corr05][train] 2014 epoch=8/10 loss=0.689222 bce=0.688718 corr=1.009077e-03 lam_abs_corr_over_bce=7.326e-04 probe_dis=0.000000 probe_std=0.000070 n_batches=80
+[corr05][train] 2014 epoch=9/10 loss=0.689669 bce=0.688694 corr=1.948965e-03 lam_abs_corr_over_bce=1.415e-03 probe_dis=0.000000 probe_std=0.001263 n_batches=80
+[corr05][train] 2014 epoch=10/10 loss=0.688829 bce=0.688725 corr=2.070292e-04 lam_abs_corr_over_bce=1.503e-04 probe_dis=0.000000 probe_std=0.000418 n_batches=80
+[2014] current_f1=0.0000 (94s)
+[parts] 2016: rows=87,754 pos=36,307 pos_rate=0.4137 probe_rows=4,096
+[corr05][train] 2016 epoch=1/10 loss=0.678890 bce=0.678951 corr=-1.204108e-04 lam_abs_corr_over_bce=8.867e-05 probe_dis=0.000000 probe_std=0.000321 n_batches=86
+[corr05][train] 2016 epoch=2/10 loss=0.678945 bce=0.678358 corr=1.175390e-03 lam_abs_corr_over_bce=8.663e-04 probe_dis=0.000000 probe_std=0.000497 n_batches=86
+[corr05][train] 2016 epoch=3/10 loss=0.677994 bce=0.678337 corr=-6.855494e-04 lam_abs_corr_over_bce=5.053e-04 probe_dis=0.000000 probe_std=0.000805 n_batches=86
+[corr05][train] 2016 epoch=4/10 loss=0.677952 bce=0.678291 corr=-6.782830e-04 lam_abs_corr_over_bce=5.000e-04 probe_dis=0.000000 probe_std=0.000916 n_batches=86
+[corr05][train] 2016 epoch=5/10 loss=0.677626 bce=0.678270 corr=-1.289233e-03 lam_abs_corr_over_bce=9.504e-04 probe_dis=0.000000 probe_std=0.000405 n_batches=86
+[corr05][train] 2016 epoch=6/10 loss=0.679484 bce=0.678330 corr=2.309746e-03 lam_abs_corr_over_bce=1.703e-03 probe_dis=0.000000 probe_std=0.000557 n_batches=86
+[corr05][train] 2016 epoch=7/10 loss=0.678285 bce=0.678216 corr=1.381991e-04 lam_abs_corr_over_bce=1.019e-04 probe_dis=0.000000 probe_std=0.001414 n_batches=86
+[corr05][train] 2016 epoch=8/10 loss=0.678292 bce=0.678292 corr=1.642636e-06 lam_abs_corr_over_bce=1.211e-06 probe_dis=0.000000 probe_std=0.001756 n_batches=86
+[corr05][train] 2016 epoch=9/10 loss=0.678319 bce=0.678275 corr=8.665638e-05 lam_abs_corr_over_bce=6.388e-05 probe_dis=0.000000 probe_std=0.000464 n_batches=86
+[corr05][train] 2016 epoch=10/10 loss=0.678989 bce=0.678326 corr=1.326843e-03 lam_abs_corr_over_bce=9.780e-04 probe_dis=0.000000 probe_std=0.000277 n_batches=86
+[2016] current_f1=0.0000 (99s)
+[parts] 2017: rows=79,711 pos=17,285 pos_rate=0.2168 probe_rows=4,096
+[corr05][train] 2017 epoch=1/10 loss=0.542506 bce=0.542731 corr=-4.507544e-04 lam_abs_corr_over_bce=4.153e-04 probe_dis=0.000000 probe_std=0.000725 n_batches=78
+[corr05][train] 2017 epoch=2/10 loss=0.524066 bce=0.523408 corr=1.315617e-03 lam_abs_corr_over_bce=1.257e-03 probe_dis=0.000000 probe_std=0.000317 n_batches=78
+[corr05][train] 2017 epoch=3/10 loss=0.523147 bce=0.523340 corr=-3.870535e-04 lam_abs_corr_over_bce=3.698e-04 probe_dis=0.000000 probe_std=0.000316 n_batches=78
+[corr05][train] 2017 epoch=4/10 loss=0.525077 bce=0.523336 corr=3.480857e-03 lam_abs_corr_over_bce=3.326e-03 probe_dis=0.000000 probe_std=0.000277 n_batches=78
+[corr05][train] 2017 epoch=5/10 loss=0.523972 bce=0.523432 corr=1.079686e-03 lam_abs_corr_over_bce=1.031e-03 probe_dis=0.000000 probe_std=0.000168 n_batches=78
+[corr05][train] 2017 epoch=6/10 loss=0.521086 bce=0.523321 corr=-4.468665e-03 lam_abs_corr_over_bce=4.270e-03 probe_dis=0.000000 probe_std=0.000215 n_batches=78
+[corr05][train] 2017 epoch=7/10 loss=0.523070 bce=0.523169 corr=-1.976859e-04 lam_abs_corr_over_bce=1.889e-04 probe_dis=0.000000 probe_std=0.000451 n_batches=78
+[corr05][train] 2017 epoch=8/10 loss=0.522399 bce=0.523226 corr=-1.654182e-03 lam_abs_corr_over_bce=1.581e-03 probe_dis=0.000000 probe_std=0.000197 n_batches=78
+[corr05][train] 2017 epoch=9/10 loss=0.522724 bce=0.523045 corr=-6.409759e-04 lam_abs_corr_over_bce=6.127e-04 probe_dis=0.000000 probe_std=0.000132 n_batches=78
+[corr05][train] 2017 epoch=10/10 loss=0.521866 bce=0.523141 corr=-2.548673e-03 lam_abs_corr_over_bce=2.436e-03 probe_dis=0.000000 probe_std=0.000194 n_batches=78
+[2017] current_f1=0.0000 (94s)
+[parts] 2018: rows=83,833 pos=31,680 pos_rate=0.3779 probe_rows=4,096
+[corr05][train] 2018 epoch=1/10 loss=0.675513 bce=0.675752 corr=-4.793273e-04 lam_abs_corr_over_bce=3.547e-04 probe_dis=0.000000 probe_std=0.000447 n_batches=82
+[corr05][train] 2018 epoch=2/10 loss=0.664167 bce=0.663035 corr=2.264178e-03 lam_abs_corr_over_bce=1.707e-03 probe_dis=0.000000 probe_std=0.000401 n_batches=82
+[corr05][train] 2018 epoch=3/10 loss=0.663699 bce=0.663044 corr=1.309215e-03 lam_abs_corr_over_bce=9.873e-04 probe_dis=0.000000 probe_std=0.000435 n_batches=82
+[corr05][train] 2018 epoch=4/10 loss=0.662803 bce=0.663033 corr=-4.604994e-04 lam_abs_corr_over_bce=3.473e-04 probe_dis=0.000000 probe_std=0.000889 n_batches=82
+[corr05][train] 2018 epoch=5/10 loss=0.663859 bce=0.663047 corr=1.624436e-03 lam_abs_corr_over_bce=1.225e-03 probe_dis=0.000000 probe_std=0.000434 n_batches=82
+[corr05][train] 2018 epoch=6/10 loss=0.664061 bce=0.662978 corr=2.167090e-03 lam_abs_corr_over_bce=1.634e-03 probe_dis=0.000000 probe_std=0.000741 n_batches=82
+[corr05][train] 2018 epoch=7/10 loss=0.662660 bce=0.663033 corr=-7.468326e-04 lam_abs_corr_over_bce=5.632e-04 probe_dis=0.000000 probe_std=0.000674 n_batches=82
+[corr05][train] 2018 epoch=8/10 loss=0.664498 bce=0.663033 corr=2.929013e-03 lam_abs_corr_over_bce=2.209e-03 probe_dis=0.000000 probe_std=0.000784 n_batches=82
+[corr05][train] 2018 epoch=9/10 loss=0.663224 bce=0.662998 corr=4.518730e-04 lam_abs_corr_over_bce=3.408e-04 probe_dis=0.000000 probe_std=0.001183 n_batches=82
+[corr05][train] 2018 epoch=10/10 loss=0.662983 bce=0.663034 corr=-1.030938e-04 lam_abs_corr_over_bce=7.774e-05 probe_dis=0.000000 probe_std=0.001025 n_batches=82
+[2018] current_f1=0.0000 (93s)
+[parts] 2019: rows=73,240 pos=33,468 pos_rate=0.4570 probe_rows=4,096
+[corr05][train] 2019 epoch=1/10 loss=0.692584 bce=0.692956 corr=-7.448568e-04 lam_abs_corr_over_bce=5.374e-04 probe_dis=0.000000 probe_std=0.002260 n_batches=72
+[corr05][train] 2019 epoch=2/10 loss=0.690136 bce=0.689500 corr=1.272871e-03 lam_abs_corr_over_bce=9.230e-04 probe_dis=0.000000 probe_std=0.001558 n_batches=72
+[corr05][train] 2019 epoch=3/10 loss=0.689235 bce=0.689443 corr=-4.162225e-04 lam_abs_corr_over_bce=3.019e-04 probe_dis=0.000000 probe_std=0.002539 n_batches=72
+[corr05][train] 2019 epoch=4/10 loss=0.689082 bce=0.689454 corr=-7.437292e-04 lam_abs_corr_over_bce=5.394e-04 probe_dis=0.000000 probe_std=0.001447 n_batches=72
+[corr05][train] 2019 epoch=5/10 loss=0.690191 bce=0.689487 corr=1.406814e-03 lam_abs_corr_over_bce=1.020e-03 probe_dis=0.000000 probe_std=0.001447 n_batches=72
+[corr05][train] 2019 epoch=6/10 loss=0.689524 bce=0.689472 corr=1.043338e-04 lam_abs_corr_over_bce=7.566e-05 probe_dis=0.000000 probe_std=0.001118 n_batches=72
+[corr05][train] 2019 epoch=7/10 loss=0.688921 bce=0.689402 corr=-9.620966e-04 lam_abs_corr_over_bce=6.978e-04 probe_dis=0.000000 probe_std=0.001088 n_batches=72
+[corr05][train] 2019 epoch=8/10 loss=0.689593 bce=0.689508 corr=1.699526e-04 lam_abs_corr_over_bce=1.232e-04 probe_dis=0.000000 probe_std=0.001324 n_batches=72
+[corr05][train] 2019 epoch=9/10 loss=0.688389 bce=0.689537 corr=-2.294408e-03 lam_abs_corr_over_bce=1.664e-03 probe_dis=0.000000 probe_std=0.000608 n_batches=72
+[corr05][train] 2019 epoch=10/10 loss=0.688201 bce=0.689454 corr=-2.506863e-03 lam_abs_corr_over_bce=1.818e-03 probe_dis=0.000000 probe_std=0.000548 n_batches=72
+[2019] current_f1=0.0000 (80s)
+[parts] 2020: rows=82,054 pos=37,276 pos_rate=0.4543 probe_rows=4,096
+[corr05][train] 2020 epoch=1/10 loss=0.688476 bce=0.689027 corr=-1.101924e-03 lam_abs_corr_over_bce=7.996e-04 probe_dis=0.000000 probe_std=0.000964 n_batches=81
+[corr05][train] 2020 epoch=2/10 loss=0.687696 bce=0.688908 corr=-2.423873e-03 lam_abs_corr_over_bce=1.759e-03 probe_dis=0.000000 probe_std=0.000533 n_batches=81
+[corr05][train] 2020 epoch=3/10 loss=0.689108 bce=0.688951 corr=3.136855e-04 lam_abs_corr_over_bce=2.277e-04 probe_dis=0.000000 probe_std=0.000724 n_batches=81
+[corr05][train] 2020 epoch=4/10 loss=0.689607 bce=0.689021 corr=1.171924e-03 lam_abs_corr_over_bce=8.504e-04 probe_dis=0.000000 probe_std=0.001005 n_batches=81
+[corr05][train] 2020 epoch=5/10 loss=0.688521 bce=0.688882 corr=-7.226690e-04 lam_abs_corr_over_bce=5.245e-04 probe_dis=0.000000 probe_std=0.002054 n_batches=81
+[corr05][train] 2020 epoch=6/10 loss=0.688636 bce=0.688928 corr=-5.838190e-04 lam_abs_corr_over_bce=4.237e-04 probe_dis=0.000000 probe_std=0.001410 n_batches=81
+[corr05][train] 2020 epoch=7/10 loss=0.688789 bce=0.688778 corr=2.147887e-05 lam_abs_corr_over_bce=1.559e-05 probe_dis=0.000000 probe_std=0.000541 n_batches=81
+[corr05][train] 2020 epoch=8/10 loss=0.679366 bce=0.688790 corr=-1.884897e-02 lam_abs_corr_over_bce=1.368e-02 probe_dis=0.000000 probe_std=0.003775 n_batches=81
+[corr05][train] 2020 epoch=9/10 loss=0.585288 bce=0.687252 corr=-2.039266e-01 lam_abs_corr_over_bce=1.484e-01 probe_dis=0.000000 probe_std=0.010117 n_batches=81
+[corr05][train] 2020 epoch=10/10 loss=0.523614 bce=0.680918 corr=-3.146092e-01 lam_abs_corr_over_bce=2.310e-01 probe_dis=0.000000 probe_std=0.017536 n_batches=81
+[2020] current_f1=0.0000 (98s)
+[parts] 2021: rows=65,316 pos=28,698 pos_rate=0.4394 probe_rows=4,096
+[corr05][train] 2021 epoch=1/10 loss=0.501571 bce=0.660238 corr=-3.173339e-01 lam_abs_corr_over_bce=2.403e-01 probe_dis=0.176025 probe_std=0.042718 n_batches=64
+[corr05][train] 2021 epoch=2/10 loss=0.442038 bce=0.600301 corr=-3.165260e-01 lam_abs_corr_over_bce=2.636e-01 probe_dis=0.271932 probe_std=0.132587 n_batches=64
+[corr05][train] 2021 epoch=3/10 loss=0.336368 bce=0.494249 corr=-3.157620e-01 lam_abs_corr_over_bce=3.194e-01 probe_dis=0.282349 probe_std=0.204641 n_batches=64
+[corr05][train] 2021 epoch=4/10 loss=0.285300 bce=0.444893 corr=-3.191872e-01 lam_abs_corr_over_bce=3.587e-01 probe_dis=0.283773 probe_std=0.219911 n_batches=64
+[corr05][train] 2021 epoch=5/10 loss=0.266268 bce=0.426788 corr=-3.210403e-01 lam_abs_corr_over_bce=3.761e-01 probe_dis=0.285522 probe_std=0.224703 n_batches=64
+[corr05][train] 2021 epoch=6/10 loss=0.255618 bce=0.416240 corr=-3.212425e-01 lam_abs_corr_over_bce=3.859e-01 probe_dis=0.287191 probe_std=0.227653 n_batches=64
+[corr05][train] 2021 epoch=7/10 loss=0.250515 bce=0.411725 corr=-3.224202e-01 lam_abs_corr_over_bce=3.915e-01 probe_dis=0.286784 probe_std=0.229604 n_batches=64
+[corr05][train] 2021 epoch=8/10 loss=0.247819 bce=0.409361 corr=-3.230843e-01 lam_abs_corr_over_bce=3.946e-01 probe_dis=0.290771 probe_std=0.229478 n_batches=64
+[corr05][train] 2021 epoch=9/10 loss=0.245319 bce=0.407043 corr=-3.234472e-01 lam_abs_corr_over_bce=3.973e-01 probe_dis=0.287598 probe_std=0.230437 n_batches=64
+[corr05][train] 2021 epoch=10/10 loss=0.243445 bce=0.405242 corr=-3.235949e-01 lam_abs_corr_over_bce=3.993e-01 probe_dis=0.288208 probe_std=0.230615 n_batches=64
+[2021] current_f1=0.9628 (76s)
+[parts] 2022: rows=69,532 pos=33,510 pos_rate=0.4819 probe_rows=4,096
+[corr05][train] 2022 epoch=1/10 loss=0.231866 bce=0.393213 corr=-3.226948e-01 lam_abs_corr_over_bce=4.103e-01 probe_dis=0.318237 probe_std=0.238684 n_batches=68
+[corr05][train] 2022 epoch=2/10 loss=0.223662 bce=0.385854 corr=-3.243841e-01 lam_abs_corr_over_bce=4.203e-01 probe_dis=0.320190 probe_std=0.240345 n_batches=68
+[corr05][train] 2022 epoch=3/10 loss=0.221493 bce=0.383853 corr=-3.247192e-01 lam_abs_corr_over_bce=4.230e-01 probe_dis=0.316447 probe_std=0.240116 n_batches=68
+[corr05][train] 2022 epoch=4/10 loss=0.220226 bce=0.382633 corr=-3.248130e-01 lam_abs_corr_over_bce=4.244e-01 probe_dis=0.319214 probe_std=0.241046 n_batches=68
+[corr05][train] 2022 epoch=5/10 loss=0.218614 bce=0.381197 corr=-3.251671e-01 lam_abs_corr_over_bce=4.265e-01 probe_dis=0.316732 probe_std=0.240891 n_batches=68
+[corr05][train] 2022 epoch=6/10 loss=0.217372 bce=0.380019 corr=-3.252940e-01 lam_abs_corr_over_bce=4.280e-01 probe_dis=0.319661 probe_std=0.241219 n_batches=68
+[corr05][train] 2022 epoch=7/10 loss=0.216722 bce=0.379228 corr=-3.250120e-01 lam_abs_corr_over_bce=4.285e-01 probe_dis=0.318929 probe_std=0.241447 n_batches=68
+[corr05][train] 2022 epoch=8/10 loss=0.215578 bce=0.378195 corr=-3.252337e-01 lam_abs_corr_over_bce=4.300e-01 probe_dis=0.318726 probe_std=0.241709 n_batches=68
+[corr05][train] 2022 epoch=9/10 loss=0.214662 bce=0.377260 corr=-3.251962e-01 lam_abs_corr_over_bce=4.310e-01 probe_dis=0.318888 probe_std=0.242117 n_batches=68
+[corr05][train] 2022 epoch=10/10 loss=0.213960 bce=0.376582 corr=-3.252442e-01 lam_abs_corr_over_bce=4.318e-01 probe_dis=0.317383 probe_std=0.242158 n_batches=68
+[2022] current_f1=0.9832 (73s)
+[parts] 2023: rows=43,879 pos=6,512 pos_rate=0.1484 probe_rows=4,096
+[corr05][train] 2023 epoch=1/10 loss=0.208830 bce=0.365814 corr=-3.139687e-01 lam_abs_corr_over_bce=4.291e-01 probe_dis=0.078532 probe_std=0.180993 n_batches=43
+[corr05][train] 2023 epoch=2/10 loss=0.136043 bce=0.294872 corr=-3.176594e-01 lam_abs_corr_over_bce=5.386e-01 probe_dis=0.083659 probe_std=0.143135 n_batches=43
+[corr05][train] 2023 epoch=3/10 loss=0.110761 bce=0.270508 corr=-3.194934e-01 lam_abs_corr_over_bce=5.905e-01 probe_dis=0.083862 probe_std=0.126517 n_batches=43
+[corr05][train] 2023 epoch=4/10 loss=0.102052 bce=0.262256 corr=-3.204076e-01 lam_abs_corr_over_bce=6.109e-01 probe_dis=0.084391 probe_std=0.118266 n_batches=43
+[corr05][train] 2023 epoch=5/10 loss=0.098392 bce=0.258505 corr=-3.202249e-01 lam_abs_corr_over_bce=6.194e-01 probe_dis=0.083049 probe_std=0.114843 n_batches=43
+[corr05][train] 2023 epoch=6/10 loss=0.095478 bce=0.256232 corr=-3.215076e-01 lam_abs_corr_over_bce=6.274e-01 probe_dis=0.087036 probe_std=0.113501 n_batches=43
+[corr05][train] 2023 epoch=7/10 loss=0.093483 bce=0.254532 corr=-3.220973e-01 lam_abs_corr_over_bce=6.327e-01 probe_dis=0.087158 probe_std=0.112981 n_batches=43
+[corr05][train] 2023 epoch=8/10 loss=0.092516 bce=0.253404 corr=-3.217750e-01 lam_abs_corr_over_bce=6.349e-01 probe_dis=0.083659 probe_std=0.112222 n_batches=43
+[corr05][train] 2023 epoch=9/10 loss=0.090746 bce=0.251844 corr=-3.221949e-01 lam_abs_corr_over_bce=6.397e-01 probe_dis=0.086955 probe_std=0.112742 n_batches=43
+[corr05][train] 2023 epoch=10/10 loss=0.089298 bce=0.250819 corr=-3.230416e-01 lam_abs_corr_over_bce=6.440e-01 probe_dis=0.088257 probe_std=0.113325 n_batches=43
+[2023] current_f1=0.9056 (44s)
+[parts] 2024: rows=39,141 pos=835 pos_rate=0.0213 probe_rows=4,096
+[corr05][train] 2024 epoch=1/10 loss=-0.034091 bce=0.118720 corr=-3.056217e-01 lam_abs_corr_over_bce=1.287e+00 probe_dis=0.009969 probe_std=0.059164 n_batches=39
+[corr05][train] 2024 epoch=2/10 loss=-0.059127 bce=0.098443 corr=-3.151390e-01 lam_abs_corr_over_bce=1.601e+00 probe_dis=0.008870 probe_std=0.043253 n_batches=39
+[corr05][train] 2024 epoch=3/10 loss=-0.071074 bce=0.087301 corr=-3.167492e-01 lam_abs_corr_over_bce=1.814e+00 probe_dis=0.009196 probe_std=0.034518 n_batches=39
+[corr05][train] 2024 epoch=4/10 loss=-0.077057 bce=0.081899 corr=-3.179114e-01 lam_abs_corr_over_bce=1.941e+00 probe_dis=0.009237 probe_std=0.028977 n_batches=39
+[corr05][train] 2024 epoch=5/10 loss=-0.080513 bce=0.078940 corr=-3.189047e-01 lam_abs_corr_over_bce=2.020e+00 probe_dis=0.009399 probe_std=0.026006 n_batches=39
+[corr05][train] 2024 epoch=6/10 loss=-0.080526 bce=0.078202 corr=-3.174555e-01 lam_abs_corr_over_bce=2.030e+00 probe_dis=0.008708 probe_std=0.023613 n_batches=39
+[corr05][train] 2024 epoch=7/10 loss=-0.084287 bce=0.075736 corr=-3.200462e-01 lam_abs_corr_over_bce=2.113e+00 probe_dis=0.008504 probe_std=0.022024 n_batches=39
+[corr05][train] 2024 epoch=8/10 loss=-0.083377 bce=0.076328 corr=-3.194106e-01 lam_abs_corr_over_bce=2.092e+00 probe_dis=0.008708 probe_std=0.021054 n_batches=39
+[corr05][train] 2024 epoch=9/10 loss=-0.086564 bce=0.074079 corr=-3.212865e-01 lam_abs_corr_over_bce=2.169e+00 probe_dis=0.008423 probe_std=0.020438 n_batches=39
+[corr05][train] 2024 epoch=10/10 loss=-0.086348 bce=0.074903 corr=-3.225020e-01 lam_abs_corr_over_bce=2.153e+00 probe_dis=0.008545 probe_std=0.019623 n_batches=39
+[2024] current_f1=0.0000 (38s)
+[parts] 2025: rows=36,126 pos=216 pos_rate=0.0060 probe_rows=4,096
+[corr05][train] 2025 epoch=1/10 loss=-0.119807 bce=0.032111 corr=-3.038370e-01 lam_abs_corr_over_bce=4.731e+00 probe_dis=0.000732 probe_std=0.014485 n_batches=36
+[corr05][train] 2025 epoch=2/10 loss=-0.118761 bce=0.030884 corr=-2.992895e-01 lam_abs_corr_over_bce=4.845e+00 probe_dis=0.000366 probe_std=0.013313 n_batches=36
+[corr05][train] 2025 epoch=3/10 loss=-0.125798 bce=0.030413 corr=-3.124215e-01 lam_abs_corr_over_bce=5.136e+00 probe_dis=0.000285 probe_std=0.012368 n_batches=36
+[corr05][train] 2025 epoch=4/10 loss=-0.127445 bce=0.029492 corr=-3.138725e-01 lam_abs_corr_over_bce=5.321e+00 probe_dis=0.000285 probe_std=0.011424 n_batches=36
+[corr05][train] 2025 epoch=5/10 loss=-0.122749 bce=0.029526 corr=-3.045500e-01 lam_abs_corr_over_bce=5.157e+00 probe_dis=0.001180 probe_std=0.011414 n_batches=36
+[corr05][train] 2025 epoch=6/10 loss=-0.129618 bce=0.029313 corr=-3.178620e-01 lam_abs_corr_over_bce=5.422e+00 probe_dis=0.000285 probe_std=0.010298 n_batches=36
+[corr05][train] 2025 epoch=7/10 loss=-0.132804 bce=0.028811 corr=-3.232287e-01 lam_abs_corr_over_bce=5.610e+00 probe_dis=0.000407 probe_std=0.009650 n_batches=36
+[corr05][train] 2025 epoch=8/10 loss=-0.131800 bce=0.028621 corr=-3.208420e-01 lam_abs_corr_over_bce=5.605e+00 probe_dis=0.000285 probe_std=0.009112 n_batches=36
+[corr05][train] 2025 epoch=9/10 loss=-0.132861 bce=0.028563 corr=-3.228469e-01 lam_abs_corr_over_bce=5.652e+00 probe_dis=0.000285 probe_std=0.008701 n_batches=36
+[corr05][train] 2025 epoch=10/10 loss=-0.133051 bce=0.027954 corr=-3.220100e-01 lam_abs_corr_over_bce=5.760e+00 probe_dis=0.000407 probe_std=0.008436 n_batches=36
+[2025] current_f1=0.0000 (41s)
+[criteria] d2023=-86.81pp d2024=-77.04pp dmean=-83.23pp support=False
+[disagreement] 2023=0.06994143439732621 2024=0.007037648840250533 uniform_2024=0.002082042810929864 raised=True
+[auc_oracle] {"2023": {"auc_arm": 0.9743311570356255, "auc_base": 0.9777648234623905, "delta_auc": -0.003433666426765014, "f1_arm": 0.0, "f1_base": 0.8243143068939955, "delta_f1_pp": -82.43143068939955, "oracle_f1_arm": 0.8694214876033057, "oracle_tau_arm": 0.01774132438004017, "oracle_margin_arm_pp": 86.94214876033057, "oracle_margin_base_pp": 5.2022591501726385, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"}, "2024": {"auc_arm": 0.9169272633290488, "auc_base": 0.9420963788451623, "delta_auc": -0.02516911551611345, "f1_arm": 0.0, "f1_base": 0.7421875, "delta_f1_pp": -74.21875, "oracle_f1_arm": 0.6846153846153846, "oracle_tau_arm": 0.2188909351825714, "oracle_margin_arm_pp": 68.46153846153847, "oracle_margin_base_pp": 0.6847249034748981, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"}}
+=== corr05: 12y mean=0.0000000000 | 2023=0.000000 2024=0.000000 | 930s ===
+=== corr05 rc=0 ===
+=== [2026-10-21T09:26:08Z] start corr10 ===
+[arm] corr10 kind=corr lambda=1.0 k=4 device=mps
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 seed=42 threshold=0.5 eps=1e-08
+[model] k=4 params=2,723,305
+[parts] 2013: rows=69,144 pos=35,506 pos_rate=0.5135 probe_rows=4,096
+[corr10][train] 2013 epoch=1/10 loss=0.693430 bce=0.692988 corr=4.415855e-04 lam_abs_corr_over_bce=6.372e-04 probe_dis=0.000000 probe_std=0.004057 n_batches=68
+[corr10][train] 2013 epoch=2/10 loss=0.693122 bce=0.692946 corr=1.757413e-04 lam_abs_corr_over_bce=2.536e-04 probe_dis=0.000000 probe_std=0.000917 n_batches=68
+[corr10][train] 2013 epoch=3/10 loss=0.690142 bce=0.693112 corr=-2.970104e-03 lam_abs_corr_over_bce=4.285e-03 probe_dis=0.000000 probe_std=0.001415 n_batches=68
+[corr10][train] 2013 epoch=4/10 loss=0.691042 bce=0.693086 corr=-2.043838e-03 lam_abs_corr_over_bce=2.949e-03 probe_dis=0.000000 probe_std=0.001119 n_batches=68
+[corr10][train] 2013 epoch=5/10 loss=0.694008 bce=0.692949 corr=1.059003e-03 lam_abs_corr_over_bce=1.528e-03 probe_dis=0.000000 probe_std=0.001574 n_batches=68
+[corr10][train] 2013 epoch=6/10 loss=0.691714 bce=0.692935 corr=-1.221439e-03 lam_abs_corr_over_bce=1.763e-03 probe_dis=0.000000 probe_std=0.001553 n_batches=68
+[corr10][train] 2013 epoch=7/10 loss=0.690948 bce=0.692863 corr=-1.914907e-03 lam_abs_corr_over_bce=2.764e-03 probe_dis=0.000000 probe_std=0.001680 n_batches=68
+[corr10][train] 2013 epoch=8/10 loss=0.692978 bce=0.693055 corr=-7.705533e-05 lam_abs_corr_over_bce=1.112e-04 probe_dis=0.000000 probe_std=0.000906 n_batches=68
+[corr10][train] 2013 epoch=9/10 loss=0.692673 bce=0.692963 corr=-2.896380e-04 lam_abs_corr_over_bce=4.180e-04 probe_dis=0.000000 probe_std=0.001398 n_batches=68
+[corr10][train] 2013 epoch=10/10 loss=0.690917 bce=0.692969 corr=-2.051300e-03 lam_abs_corr_over_bce=2.960e-03 probe_dis=0.000000 probe_std=0.002164 n_batches=68
+[2013] current_f1=0.6786 (78s)
+[parts] 2014: rows=81,346 pos=36,805 pos_rate=0.4525 probe_rows=4,096
+[corr10][train] 2014 epoch=1/10 loss=0.688778 bce=0.690214 corr=-1.436149e-03 lam_abs_corr_over_bce=2.081e-03 probe_dis=0.000000 probe_std=0.002023 n_batches=80
+[corr10][train] 2014 epoch=2/10 loss=0.689443 bce=0.688800 corr=6.429488e-04 lam_abs_corr_over_bce=9.334e-04 probe_dis=0.000000 probe_std=0.002949 n_batches=80
+[corr10][train] 2014 epoch=3/10 loss=0.686886 bce=0.688871 corr=-1.985198e-03 lam_abs_corr_over_bce=2.882e-03 probe_dis=0.000000 probe_std=0.001322 n_batches=80
+[corr10][train] 2014 epoch=4/10 loss=0.688192 bce=0.688740 corr=-5.479404e-04 lam_abs_corr_over_bce=7.956e-04 probe_dis=0.000000 probe_std=0.002426 n_batches=80
+[corr10][train] 2014 epoch=5/10 loss=0.688481 bce=0.688917 corr=-4.364981e-04 lam_abs_corr_over_bce=6.336e-04 probe_dis=0.000000 probe_std=0.000692 n_batches=80
+[corr10][train] 2014 epoch=6/10 loss=0.688908 bce=0.688751 corr=1.569943e-04 lam_abs_corr_over_bce=2.279e-04 probe_dis=0.000000 probe_std=0.000584 n_batches=80
+[corr10][train] 2014 epoch=7/10 loss=0.689987 bce=0.688870 corr=1.117342e-03 lam_abs_corr_over_bce=1.622e-03 probe_dis=0.000000 probe_std=0.001043 n_batches=80
+[corr10][train] 2014 epoch=8/10 loss=0.690254 bce=0.688858 corr=1.395979e-03 lam_abs_corr_over_bce=2.027e-03 probe_dis=0.000000 probe_std=0.001466 n_batches=80
+[corr10][train] 2014 epoch=9/10 loss=0.690940 bce=0.688776 corr=2.163834e-03 lam_abs_corr_over_bce=3.142e-03 probe_dis=0.000000 probe_std=0.002170 n_batches=80
+[corr10][train] 2014 epoch=10/10 loss=0.691750 bce=0.688796 corr=2.953649e-03 lam_abs_corr_over_bce=4.288e-03 probe_dis=0.000000 probe_std=0.003492 n_batches=80
+[2014] current_f1=0.0000 (92s)
+[parts] 2016: rows=87,754 pos=36,307 pos_rate=0.4137 probe_rows=4,096
+[corr10][train] 2016 epoch=1/10 loss=0.678056 bce=0.678948 corr=-8.922420e-04 lam_abs_corr_over_bce=1.314e-03 probe_dis=0.000000 probe_std=0.000929 n_batches=86
+[corr10][train] 2016 epoch=2/10 loss=0.680180 bce=0.678517 corr=1.663323e-03 lam_abs_corr_over_bce=2.451e-03 probe_dis=0.000000 probe_std=0.001526 n_batches=86
+[corr10][train] 2016 epoch=3/10 loss=0.678796 bce=0.678526 corr=2.697592e-04 lam_abs_corr_over_bce=3.976e-04 probe_dis=0.000000 probe_std=0.001375 n_batches=86
+[corr10][train] 2016 epoch=4/10 loss=0.679742 bce=0.678503 corr=1.238933e-03 lam_abs_corr_over_bce=1.826e-03 probe_dis=0.000000 probe_std=0.001909 n_batches=86
+[corr10][train] 2016 epoch=5/10 loss=0.680884 bce=0.678479 corr=2.404834e-03 lam_abs_corr_over_bce=3.544e-03 probe_dis=0.000000 probe_std=0.001748 n_batches=86
+[corr10][train] 2016 epoch=6/10 loss=0.678166 bce=0.678470 corr=-3.039620e-04 lam_abs_corr_over_bce=4.480e-04 probe_dis=0.000000 probe_std=0.000821 n_batches=86
+[corr10][train] 2016 epoch=7/10 loss=0.677069 bce=0.678362 corr=-1.292756e-03 lam_abs_corr_over_bce=1.906e-03 probe_dis=0.000000 probe_std=0.002523 n_batches=86
+[corr10][train] 2016 epoch=8/10 loss=0.678154 bce=0.678439 corr=-2.856773e-04 lam_abs_corr_over_bce=4.211e-04 probe_dis=0.000000 probe_std=0.001988 n_batches=86
+[corr10][train] 2016 epoch=9/10 loss=0.676544 bce=0.678367 corr=-1.823687e-03 lam_abs_corr_over_bce=2.688e-03 probe_dis=0.000000 probe_std=0.000677 n_batches=86
+[corr10][train] 2016 epoch=10/10 loss=0.678858 bce=0.678478 corr=3.799285e-04 lam_abs_corr_over_bce=5.600e-04 probe_dis=0.000000 probe_std=0.001489 n_batches=86
+[2016] current_f1=0.0000 (93s)
+[parts] 2017: rows=79,711 pos=17,285 pos_rate=0.2168 probe_rows=4,096
+[corr10][train] 2017 epoch=1/10 loss=0.541343 bce=0.540404 corr=9.385920e-04 lam_abs_corr_over_bce=1.737e-03 probe_dis=0.000000 probe_std=0.001228 n_batches=78
+[corr10][train] 2017 epoch=2/10 loss=0.522813 bce=0.523628 corr=-8.149134e-04 lam_abs_corr_over_bce=1.556e-03 probe_dis=0.000000 probe_std=0.000861 n_batches=78
+[corr10][train] 2017 epoch=3/10 loss=0.526388 bce=0.523669 corr=2.718795e-03 lam_abs_corr_over_bce=5.192e-03 probe_dis=0.000000 probe_std=0.000523 n_batches=78
+[corr10][train] 2017 epoch=4/10 loss=0.522250 bce=0.523548 corr=-1.297880e-03 lam_abs_corr_over_bce=2.479e-03 probe_dis=0.000000 probe_std=0.000801 n_batches=78
+[corr10][train] 2017 epoch=5/10 loss=0.525329 bce=0.523460 corr=1.868791e-03 lam_abs_corr_over_bce=3.570e-03 probe_dis=0.000000 probe_std=0.000693 n_batches=78
+[corr10][train] 2017 epoch=6/10 loss=0.523895 bce=0.523443 corr=4.518779e-04 lam_abs_corr_over_bce=8.633e-04 probe_dis=0.000000 probe_std=0.000136 n_batches=78
+[corr10][train] 2017 epoch=7/10 loss=0.522673 bce=0.523309 corr=-6.364663e-04 lam_abs_corr_over_bce=1.216e-03 probe_dis=0.000000 probe_std=0.000624 n_batches=78
+[corr10][train] 2017 epoch=8/10 loss=0.524083 bce=0.523258 corr=8.254521e-04 lam_abs_corr_over_bce=1.578e-03 probe_dis=0.000000 probe_std=0.000313 n_batches=78
+[corr10][train] 2017 epoch=9/10 loss=0.523084 bce=0.523187 corr=-1.031061e-04 lam_abs_corr_over_bce=1.971e-04 probe_dis=0.000000 probe_std=0.000735 n_batches=78
+[corr10][train] 2017 epoch=10/10 loss=0.524515 bce=0.523228 corr=1.287628e-03 lam_abs_corr_over_bce=2.461e-03 probe_dis=0.000000 probe_std=0.000790 n_batches=78
+[2017] current_f1=0.0000 (83s)
+[parts] 2018: rows=83,833 pos=31,680 pos_rate=0.3779 probe_rows=4,096
+[corr10][train] 2018 epoch=1/10 loss=0.675161 bce=0.674623 corr=5.375912e-04 lam_abs_corr_over_bce=7.969e-04 probe_dis=0.000000 probe_std=0.001881 n_batches=82
+[corr10][train] 2018 epoch=2/10 loss=0.664519 bce=0.663046 corr=1.472566e-03 lam_abs_corr_over_bce=2.221e-03 probe_dis=0.000000 probe_std=0.002570 n_batches=82
+[corr10][train] 2018 epoch=3/10 loss=0.663811 bce=0.663008 corr=8.023130e-04 lam_abs_corr_over_bce=1.210e-03 probe_dis=0.000000 probe_std=0.001579 n_batches=82
+[corr10][train] 2018 epoch=4/10 loss=0.582714 bce=0.663207 corr=-8.049336e-02 lam_abs_corr_over_bce=1.214e-01 probe_dis=0.000000 probe_std=0.011875 n_batches=82
+[corr10][train] 2018 epoch=5/10 loss=0.347531 bce=0.663257 corr=-3.157256e-01 lam_abs_corr_over_bce=4.760e-01 probe_dis=0.000000 probe_std=0.014204 n_batches=82
+[corr10][train] 2018 epoch=6/10 loss=0.341929 bce=0.662924 corr=-3.209945e-01 lam_abs_corr_over_bce=4.842e-01 probe_dis=0.000000 probe_std=0.013485 n_batches=82
+[corr10][train] 2018 epoch=7/10 loss=0.339682 bce=0.662707 corr=-3.230257e-01 lam_abs_corr_over_bce=4.874e-01 probe_dis=0.000000 probe_std=0.013073 n_batches=82
+[corr10][train] 2018 epoch=8/10 loss=0.338305 bce=0.662470 corr=-3.241647e-01 lam_abs_corr_over_bce=4.893e-01 probe_dis=0.000000 probe_std=0.013147 n_batches=82
+[corr10][train] 2018 epoch=9/10 loss=0.337545 bce=0.662141 corr=-3.245962e-01 lam_abs_corr_over_bce=4.902e-01 probe_dis=0.000000 probe_std=0.013540 n_batches=82
+[corr10][train] 2018 epoch=10/10 loss=0.336560 bce=0.661733 corr=-3.251730e-01 lam_abs_corr_over_bce=4.914e-01 probe_dis=0.000000 probe_std=0.014339 n_batches=82
+[2018] current_f1=0.0000 (91s)
+[parts] 2019: rows=73,240 pos=33,468 pos_rate=0.4570 probe_rows=4,096
+[corr10][train] 2019 epoch=1/10 loss=0.364186 bce=0.687538 corr=-3.233526e-01 lam_abs_corr_over_bce=4.703e-01 probe_dis=0.000000 probe_std=0.019086 n_batches=72
+[corr10][train] 2019 epoch=2/10 loss=0.343173 bce=0.667063 corr=-3.238895e-01 lam_abs_corr_over_bce=4.855e-01 probe_dis=0.332845 probe_std=0.047656 n_batches=72
+[corr10][train] 2019 epoch=3/10 loss=0.264235 bce=0.586751 corr=-3.225158e-01 lam_abs_corr_over_bce=5.497e-01 probe_dis=0.321208 probe_std=0.163863 n_batches=72
+[corr10][train] 2019 epoch=4/10 loss=0.157509 bce=0.480306 corr=-3.227972e-01 lam_abs_corr_over_bce=6.721e-01 probe_dis=0.310832 probe_std=0.209256 n_batches=72
+[corr10][train] 2019 epoch=5/10 loss=0.121352 bce=0.445322 corr=-3.239695e-01 lam_abs_corr_over_bce=7.275e-01 probe_dis=0.315023 probe_std=0.218584 n_batches=72
+[corr10][train] 2019 epoch=6/10 loss=0.105971 bce=0.430171 corr=-3.242006e-01 lam_abs_corr_over_bce=7.537e-01 probe_dis=0.312826 probe_std=0.222202 n_batches=72
+[corr10][train] 2019 epoch=7/10 loss=0.098872 bce=0.421626 corr=-3.227547e-01 lam_abs_corr_over_bce=7.655e-01 probe_dis=0.304810 probe_std=0.224488 n_batches=72
+[corr10][train] 2019 epoch=8/10 loss=0.093281 bce=0.416196 corr=-3.229156e-01 lam_abs_corr_over_bce=7.759e-01 probe_dis=0.314128 probe_std=0.227354 n_batches=72
+[corr10][train] 2019 epoch=9/10 loss=0.089003 bce=0.411949 corr=-3.229456e-01 lam_abs_corr_over_bce=7.839e-01 probe_dis=0.308757 probe_std=0.228174 n_batches=72
+[corr10][train] 2019 epoch=10/10 loss=0.085650 bce=0.408645 corr=-3.229947e-01 lam_abs_corr_over_bce=7.904e-01 probe_dis=0.307170 probe_std=0.229521 n_batches=72
+[2019] current_f1=0.9558 (80s)
+[parts] 2020: rows=82,054 pos=37,276 pos_rate=0.4543 probe_rows=4,096
+[corr10][train] 2020 epoch=1/10 loss=0.086187 bce=0.407659 corr=-3.214721e-01 lam_abs_corr_over_bce=7.886e-01 probe_dis=0.296997 probe_std=0.230918 n_batches=81
+[corr10][train] 2020 epoch=2/10 loss=0.077546 bce=0.400520 corr=-3.229741e-01 lam_abs_corr_over_bce=8.064e-01 probe_dis=0.302002 probe_std=0.232477 n_batches=81
+[corr10][train] 2020 epoch=3/10 loss=0.074246 bce=0.397841 corr=-3.235953e-01 lam_abs_corr_over_bce=8.134e-01 probe_dis=0.300456 probe_std=0.233675 n_batches=81
+[corr10][train] 2020 epoch=4/10 loss=0.071163 bce=0.395186 corr=-3.240229e-01 lam_abs_corr_over_bce=8.199e-01 probe_dis=0.303711 probe_std=0.234019 n_batches=81
+[corr10][train] 2020 epoch=5/10 loss=0.070493 bce=0.393733 corr=-3.232392e-01 lam_abs_corr_over_bce=8.210e-01 probe_dis=0.309896 probe_std=0.234545 n_batches=81
+[corr10][train] 2020 epoch=6/10 loss=0.069596 bce=0.392461 corr=-3.228653e-01 lam_abs_corr_over_bce=8.227e-01 probe_dis=0.304647 probe_std=0.235594 n_batches=81
+[corr10][train] 2020 epoch=7/10 loss=0.069439 bce=0.390993 corr=-3.215537e-01 lam_abs_corr_over_bce=8.224e-01 probe_dis=0.302938 probe_std=0.235153 n_batches=81
+[corr10][train] 2020 epoch=8/10 loss=0.066741 bce=0.389853 corr=-3.231118e-01 lam_abs_corr_over_bce=8.288e-01 probe_dis=0.304810 probe_std=0.235970 n_batches=81
+[corr10][train] 2020 epoch=9/10 loss=0.064065 bce=0.387398 corr=-3.233332e-01 lam_abs_corr_over_bce=8.346e-01 probe_dis=0.304281 probe_std=0.236553 n_batches=81
+[corr10][train] 2020 epoch=10/10 loss=0.062111 bce=0.385525 corr=-3.234137e-01 lam_abs_corr_over_bce=8.389e-01 probe_dis=0.303955 probe_std=0.236911 n_batches=81
+[2020] current_f1=0.9692 (98s)
+[parts] 2021: rows=65,316 pos=28,698 pos_rate=0.4394 probe_rows=4,096
+[corr10][train] 2021 epoch=1/10 loss=0.081080 bce=0.403320 corr=-3.222399e-01 lam_abs_corr_over_bce=7.990e-01 probe_dis=0.291423 probe_std=0.232893 n_batches=64
+[corr10][train] 2021 epoch=2/10 loss=0.073215 bce=0.396079 corr=-3.228644e-01 lam_abs_corr_over_bce=8.152e-01 probe_dis=0.286296 probe_std=0.233846 n_batches=64
+[corr10][train] 2021 epoch=3/10 loss=0.069823 bce=0.393193 corr=-3.233704e-01 lam_abs_corr_over_bce=8.224e-01 probe_dis=0.291545 probe_std=0.233103 n_batches=64
+[corr10][train] 2021 epoch=4/10 loss=0.067053 bce=0.390377 corr=-3.233236e-01 lam_abs_corr_over_bce=8.282e-01 probe_dis=0.290731 probe_std=0.233664 n_batches=64
+[corr10][train] 2021 epoch=5/10 loss=0.064497 bce=0.387843 corr=-3.233463e-01 lam_abs_corr_over_bce=8.337e-01 probe_dis=0.288289 probe_std=0.235811 n_batches=64
+[corr10][train] 2021 epoch=6/10 loss=0.062764 bce=0.385817 corr=-3.230533e-01 lam_abs_corr_over_bce=8.373e-01 probe_dis=0.294271 probe_std=0.234756 n_batches=64
+[corr10][train] 2021 epoch=7/10 loss=0.060654 bce=0.383736 corr=-3.230820e-01 lam_abs_corr_over_bce=8.419e-01 probe_dis=0.294596 probe_std=0.235487 n_batches=64
+[corr10][train] 2021 epoch=8/10 loss=0.058966 bce=0.381753 corr=-3.227873e-01 lam_abs_corr_over_bce=8.455e-01 probe_dis=0.290934 probe_std=0.236440 n_batches=64
+[corr10][train] 2021 epoch=9/10 loss=0.057222 bce=0.379922 corr=-3.227004e-01 lam_abs_corr_over_bce=8.494e-01 probe_dis=0.294108 probe_std=0.236392 n_batches=64
+[corr10][train] 2021 epoch=10/10 loss=0.056223 bce=0.378513 corr=-3.222896e-01 lam_abs_corr_over_bce=8.515e-01 probe_dis=0.291219 probe_std=0.237793 n_batches=64
+[2021] current_f1=0.9752 (70s)
+[parts] 2022: rows=69,532 pos=33,510 pos_rate=0.4819 probe_rows=4,096
+[corr10][train] 2022 epoch=1/10 loss=0.058683 bce=0.381561 corr=-3.228783e-01 lam_abs_corr_over_bce=8.462e-01 probe_dis=0.318563 probe_std=0.241069 n_batches=68
+[corr10][train] 2022 epoch=2/10 loss=0.051001 bce=0.375260 corr=-3.242591e-01 lam_abs_corr_over_bce=8.641e-01 probe_dis=0.319336 probe_std=0.242420 n_batches=68
+[corr10][train] 2022 epoch=3/10 loss=0.049429 bce=0.373516 corr=-3.240871e-01 lam_abs_corr_over_bce=8.677e-01 probe_dis=0.317301 probe_std=0.243140 n_batches=68
+[corr10][train] 2022 epoch=4/10 loss=0.047128 bce=0.371747 corr=-3.246181e-01 lam_abs_corr_over_bce=8.732e-01 probe_dis=0.316284 probe_std=0.243293 n_batches=68
+[corr10][train] 2022 epoch=5/10 loss=0.047030 bce=0.371387 corr=-3.243571e-01 lam_abs_corr_over_bce=8.734e-01 probe_dis=0.316813 probe_std=0.243893 n_batches=68
+[corr10][train] 2022 epoch=6/10 loss=0.045257 bce=0.369949 corr=-3.246922e-01 lam_abs_corr_over_bce=8.777e-01 probe_dis=0.315023 probe_std=0.243926 n_batches=68
+[corr10][train] 2022 epoch=7/10 loss=0.043943 bce=0.368941 corr=-3.249986e-01 lam_abs_corr_over_bce=8.809e-01 probe_dis=0.317708 probe_std=0.243974 n_batches=68
+[corr10][train] 2022 epoch=8/10 loss=0.043193 bce=0.368110 corr=-3.249174e-01 lam_abs_corr_over_bce=8.827e-01 probe_dis=0.316040 probe_std=0.244596 n_batches=68
+[corr10][train] 2022 epoch=9/10 loss=0.042343 bce=0.367265 corr=-3.249218e-01 lam_abs_corr_over_bce=8.847e-01 probe_dis=0.319051 probe_std=0.244352 n_batches=68
+[corr10][train] 2022 epoch=10/10 loss=0.040866 bce=0.366031 corr=-3.251646e-01 lam_abs_corr_over_bce=8.884e-01 probe_dis=0.316610 probe_std=0.244800 n_batches=68
+[2022] current_f1=0.9856 (78s)
+[parts] 2023: rows=43,879 pos=6,512 pos_rate=0.1484 probe_rows=4,096
+[corr10][train] 2023 epoch=1/10 loss=0.042799 bce=0.358875 corr=-3.160764e-01 lam_abs_corr_over_bce=8.807e-01 probe_dis=0.080892 probe_std=0.189470 n_batches=43
+[corr10][train] 2023 epoch=2/10 loss=-0.029023 bce=0.290950 corr=-3.199725e-01 lam_abs_corr_over_bce=1.100e+00 probe_dis=0.089437 probe_std=0.149767 n_batches=43
+[corr10][train] 2023 epoch=3/10 loss=-0.054330 bce=0.266263 corr=-3.205929e-01 lam_abs_corr_over_bce=1.204e+00 probe_dis=0.080973 probe_std=0.133945 n_batches=43
+[corr10][train] 2023 epoch=4/10 loss=-0.068190 bce=0.254579 corr=-3.227689e-01 lam_abs_corr_over_bce=1.268e+00 probe_dis=0.085164 probe_std=0.123209 n_batches=43
+[corr10][train] 2023 epoch=5/10 loss=-0.073180 bce=0.249760 corr=-3.229404e-01 lam_abs_corr_over_bce=1.293e+00 probe_dis=0.086466 probe_std=0.119110 n_batches=43
+[corr10][train] 2023 epoch=6/10 loss=-0.073823 bce=0.248247 corr=-3.220704e-01 lam_abs_corr_over_bce=1.297e+00 probe_dis=0.084188 probe_std=0.116778 n_batches=43
+[corr10][train] 2023 epoch=7/10 loss=-0.074720 bce=0.247398 corr=-3.221178e-01 lam_abs_corr_over_bce=1.302e+00 probe_dis=0.085449 probe_std=0.116221 n_batches=43
+[corr10][train] 2023 epoch=8/10 loss=-0.077729 bce=0.245233 corr=-3.229625e-01 lam_abs_corr_over_bce=1.317e+00 probe_dis=0.083293 probe_std=0.114927 n_batches=43
+[corr10][train] 2023 epoch=9/10 loss=-0.079623 bce=0.243520 corr=-3.231429e-01 lam_abs_corr_over_bce=1.327e+00 probe_dis=0.086589 probe_std=0.115483 n_batches=43
+[corr10][train] 2023 epoch=10/10 loss=-0.080333 bce=0.242744 corr=-3.230769e-01 lam_abs_corr_over_bce=1.331e+00 probe_dis=0.087199 probe_std=0.115635 n_batches=43
+[2023] current_f1=0.9088 (49s)
+[parts] 2024: rows=39,141 pos=835 pos_rate=0.0213 probe_rows=4,096
+[corr10][train] 2024 epoch=1/10 loss=-0.168852 bce=0.123984 corr=-2.928356e-01 lam_abs_corr_over_bce=2.362e+00 probe_dis=0.009481 probe_std=0.061287 n_batches=39
+[corr10][train] 2024 epoch=2/10 loss=-0.214648 bce=0.100469 corr=-3.151172e-01 lam_abs_corr_over_bce=3.136e+00 probe_dis=0.008993 probe_std=0.045187 n_batches=39
+[corr10][train] 2024 epoch=3/10 loss=-0.227338 bce=0.089461 corr=-3.167991e-01 lam_abs_corr_over_bce=3.541e+00 probe_dis=0.009074 probe_std=0.035900 n_batches=39
+[corr10][train] 2024 epoch=4/10 loss=-0.235974 bce=0.083901 corr=-3.198750e-01 lam_abs_corr_over_bce=3.813e+00 probe_dis=0.008830 probe_std=0.030620 n_batches=39
+[corr10][train] 2024 epoch=5/10 loss=-0.241407 bce=0.080394 corr=-3.218008e-01 lam_abs_corr_over_bce=4.003e+00 probe_dis=0.008952 probe_std=0.027060 n_batches=39
+[corr10][train] 2024 epoch=6/10 loss=-0.242026 bce=0.079471 corr=-3.214970e-01 lam_abs_corr_over_bce=4.045e+00 probe_dis=0.009074 probe_std=0.024826 n_batches=39
+[corr10][train] 2024 epoch=7/10 loss=-0.245366 bce=0.076828 corr=-3.221944e-01 lam_abs_corr_over_bce=4.194e+00 probe_dis=0.008830 probe_std=0.023338 n_batches=39
+[corr10][train] 2024 epoch=8/10 loss=-0.245178 bce=0.077730 corr=-3.229074e-01 lam_abs_corr_over_bce=4.154e+00 probe_dis=0.008911 probe_std=0.022227 n_batches=39
+[corr10][train] 2024 epoch=9/10 loss=-0.247516 bce=0.075245 corr=-3.227609e-01 lam_abs_corr_over_bce=4.289e+00 probe_dis=0.008952 probe_std=0.021575 n_batches=39
+[corr10][train] 2024 epoch=10/10 loss=-0.247507 bce=0.076027 corr=-3.235336e-01 lam_abs_corr_over_bce=4.256e+00 probe_dis=0.008586 probe_std=0.020841 n_batches=39
+[2024] current_f1=0.0606 (46s)
+[parts] 2025: rows=36,126 pos=216 pos_rate=0.0060 probe_rows=4,096
+[corr10][train] 2025 epoch=1/10 loss=-0.255735 bce=0.033169 corr=-2.889045e-01 lam_abs_corr_over_bce=8.710e+00 probe_dis=0.000773 probe_std=0.015961 n_batches=36
+[corr10][train] 2025 epoch=2/10 loss=-0.261440 bce=0.032942 corr=-2.943819e-01 lam_abs_corr_over_bce=8.936e+00 probe_dis=0.000366 probe_std=0.014683 n_batches=36
+[corr10][train] 2025 epoch=3/10 loss=-0.274864 bce=0.033698 corr=-3.085618e-01 lam_abs_corr_over_bce=9.157e+00 probe_dis=0.000407 probe_std=0.013518 n_batches=36
+[corr10][train] 2025 epoch=4/10 loss=-0.276353 bce=0.032776 corr=-3.091287e-01 lam_abs_corr_over_bce=9.432e+00 probe_dis=0.000122 probe_std=0.012563 n_batches=36
+[corr10][train] 2025 epoch=5/10 loss=-0.262164 bce=0.032549 corr=-2.947129e-01 lam_abs_corr_over_bce=9.054e+00 probe_dis=0.000977 probe_std=0.012901 n_batches=36
+[corr10][train] 2025 epoch=6/10 loss=-0.284115 bce=0.031478 corr=-3.155936e-01 lam_abs_corr_over_bce=1.003e+01 probe_dis=0.000122 probe_std=0.011169 n_batches=36
+[corr10][train] 2025 epoch=7/10 loss=-0.290349 bce=0.031677 corr=-3.220251e-01 lam_abs_corr_over_bce=1.017e+01 probe_dis=0.000244 probe_std=0.010784 n_batches=36
+[corr10][train] 2025 epoch=8/10 loss=-0.293705 bce=0.031354 corr=-3.250585e-01 lam_abs_corr_over_bce=1.037e+01 probe_dis=0.000244 probe_std=0.010253 n_batches=36
+[corr10][train] 2025 epoch=9/10 loss=-0.294286 bce=0.031116 corr=-3.254019e-01 lam_abs_corr_over_bce=1.046e+01 probe_dis=0.000244 probe_std=0.009944 n_batches=36
+[corr10][train] 2025 epoch=10/10 loss=-0.296181 bce=0.030347 corr=-3.265280e-01 lam_abs_corr_over_bce=1.076e+01 probe_dis=0.000244 probe_std=0.009627 n_batches=36
+[2025] current_f1=0.0000 (41s)
+[criteria] d2023=-86.81pp d2024=-77.04pp dmean=-83.23pp support=False
+[disagreement] 2023=0.06157053935547174 2024=0.006246128432789593 uniform_2024=0.002082042810929864 raised=True
+[auc_oracle] {"2023": {"auc_arm": 0.9733361251371865, "auc_base": 0.9777648234623905, "delta_auc": -0.0044286983252039835, "f1_arm": 0.0, "f1_base": 0.8243143068939955, "delta_f1_pp": -82.43143068939955, "oracle_f1_arm": 0.8664235996022539, "oracle_tau_arm": 0.013892434537410736, "oracle_margin_arm_pp": 86.64235996022539, "oracle_margin_base_pp": 5.2022591501726385, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2023.npz"}, "2024": {"auc_arm": 0.9149613181470999, "auc_base": 0.9420963788451623, "delta_auc": -0.027135060698062374, "f1_arm": 0.0, "f1_base": 0.7421875, "delta_f1_pp": -74.21875, "oracle_f1_arm": 0.6641509433962264, "oracle_tau_arm": 0.051178671419620514, "oracle_margin_arm_pp": 66.41509433962264, "oracle_margin_base_pp": 0.6847249034748981, "base_preds": "runs/diagnostics/ch4-lamda-paat-pilot/preds_base_2024.npz"}}
+=== corr10: 12y mean=0.0000000000 | 2023=0.000000 2024=0.000000 | 910s ===
+[selection] selected=None outcome=round3_fail_chapter_restructure gain_source=None reason=两臂均未通过支持判据，机制二关闭，章级设计重构（无第四轮）
+=== corr10 rc=0 ===
+=== ALL_DONE ===
