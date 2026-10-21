@@ -1,0 +1,105 @@
+{
+  "arms_order": [
+    "deep4",
+    "swa",
+    "mcdrop"
+  ],
+  "budget_claim": {
+    "abs_diff": 0.009084152778363386,
+    "deep4_mean_f1": 0.8232622147157026,
+    "note": "supported=True ⇒ 支持“预算内可行化”主张；False ⇒ 主张降级为“预算内近优”，如实登记，不改判据",
+    "statement": "|uniform tabm4 12y mean F1 - deep4 12y mean F1| <= 1.0 pp",
+    "supported": true,
+    "tol": 0.01,
+    "uniform_mean_f1": 0.832346367494066
+  },
+  "descriptive_deltas_12y_pp": {
+    "base": {
+      "vs_base_pp": 0.0,
+      "vs_uniform_pp": -1.5363338777746538
+    },
+    "deep4": {
+      "vs_base_pp": 0.6279185999383152,
+      "vs_uniform_pp": -0.9084152778363386
+    },
+    "mcdrop": {
+      "vs_base_pp": 0.005459233452320689,
+      "vs_uniform_pp": -1.5308746443223331
+    },
+    "swa": {
+      "vs_base_pp": -0.22875227430292355,
+      "vs_uniform_pp": -1.7650861520775774
+    },
+    "uniform_tabm4": {
+      "vs_base_pp": 1.5363338777746538,
+      "vs_uniform_pp": 0.0
+    }
+  },
+  "design": "thesis/methods/第四章-外部基线矩阵设计.md",
+  "efficiency": {
+    "deep4_n_params_per_member": 2687293,
+    "deep4_n_params_total": 10749172,
+    "deep4_over_uniform_wall_ratio": 0.6512645914396887,
+    "deep4_sum_member_train_over_uniform_wall_ratio": 0.5946011673151751,
+    "deep4_sum_member_train_seconds": 489.0,
+    "deep4_wall_seconds": 535.6,
+    "note": "墙钟为各臂协议墙钟（不含数据加载）。deep4_wall_seconds 含 4 次训练、逐成员年度评测与最终 backward 打分；deep4_sum_member_train_seconds 为纯训练和。uniform 为单次训练运行。冻结设计的效率对照点按实测如实登记，不预设 ≈4×。",
+    "uniform_n_params": 2723305,
+    "uniform_tabm4_wall_seconds": 822.4
+  },
+  "reference_constants": {
+    "base_mean_f1": 0.8169830287163194,
+    "uniform_tabm4_f1_2023": 0.8681241184767278,
+    "uniform_tabm4_f1_2024": 0.7703703703703704,
+    "uniform_tabm4_mean_f1": 0.832346367494066
+  },
+  "schema_version": "ch4-lamda-baselines-comparison-v1",
+  "table": {
+    "base": {
+      "f1_2023": 0.8243143068939955,
+      "f1_2024": 0.7421875,
+      "mean_f1": 0.8169830287163194,
+      "n_params": null,
+      "n_params_per_model": null,
+      "source": "runs/diagnostics/ch4-lamda-paat-pilot/base-result.json",
+      "wall_seconds": 165.5
+    },
+    "deep4": {
+      "f1_2023": 0.8396778916544656,
+      "f1_2024": 0.7142857142857143,
+      "mean_f1": 0.8232622147157026,
+      "n_params": 10749172,
+      "n_params_per_model": 2687293,
+      "source": "ch4-lamda-baselines-pilot/deep4-result.json",
+      "wall_seconds": 535.6
+    },
+    "mcdrop": {
+      "f1_2023": 0.8241392077008516,
+      "f1_2024": 0.7421875,
+      "mean_f1": 0.8170376210508427,
+      "n_params": 2687293,
+      "n_params_per_model": null,
+      "source": "ch4-lamda-baselines-pilot/mcdrop-result.json",
+      "wall_seconds": 133.5
+    },
+    "swa": {
+      "f1_2023": 0.8168908819133034,
+      "f1_2024": 0.7272727272727273,
+      "mean_f1": 0.8146955059732902,
+      "n_params": 2687293,
+      "n_params_per_model": null,
+      "source": "ch4-lamda-baselines-pilot/swa-result.json",
+      "wall_seconds": 126.6
+    },
+    "uniform_tabm4": {
+      "f1_2023": 0.8681241184767278,
+      "f1_2024": 0.7703703703703704,
+      "mean_f1": 0.832346367494066,
+      "n_params": 2723305,
+      "n_params_per_model": null,
+      "source": "runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json",
+      "wall_seconds": 822.4
+    }
+  },
+  "ts": "2026-10-21T11:05:57.771999+00:00"
+}

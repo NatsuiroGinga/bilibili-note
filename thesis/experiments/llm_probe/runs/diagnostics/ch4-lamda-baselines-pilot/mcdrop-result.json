@@ -1,0 +1,644 @@
+{
+  "arm": "mcdrop",
+  "backward_f1": {
+    "2013": 0.9122959266691978,
+    "2014": 0.9080163335482484,
+    "2016": 0.8782856186171103,
+    "2017": 0.9056870363829036,
+    "2018": 0.8888740394253257,
+    "2019": 0.935834523883471,
+    "2020": 0.9405563032750112,
+    "2021": 0.9302049302049302,
+    "2022": 0.9383700329030625,
+    "2023": 0.8241392077008516,
+    "2024": 0.7421875,
+    "2025": 0.0
+  },
+  "current_year_f1": {
+    "2013": 0.6785659685063445,
+    "2014": 0.9573121246550884,
+    "2016": 0.9587502779630865,
+    "2017": 0.9509067806399446,
+    "2018": 0.9558748728382502,
+    "2019": 0.974362039084444,
+    "2020": 0.9772395523598422,
+    "2021": 0.9856257046223225,
+    "2022": 0.9869332209309327,
+    "2023": 0.936741214057508,
+    "2024": 0.7789473684210526,
+    "2025": 0.0
+  },
+  "current_year_n": {
+    "2013": 17287,
+    "2014": 20237,
+    "2016": 21839,
+    "2017": 19829,
+    "2018": 20859,
+    "2019": 18210,
+    "2020": 20415,
+    "2021": 16231,
+    "2022": 17284,
+    "2023": 10871,
+    "2024": 9686,
+    "2025": 8933
+  },
+  "current_year_pos": {
+    "2013": 8877,
+    "2014": 9151,
+    "2016": 9027,
+    "2017": 4272,
+    "2018": 7870,
+    "2019": 8317,
+    "2020": 9271,
+    "2021": 7125,
+    "2022": 8330,
+    "2023": 1578,
+    "2024": 159,
+    "2025": 5
+  },
+  "data_prep_seconds": 10.1,
+  "definition": {
+    "T": 10,
+    "T_basis": "task setting: standard practice T=10; no direct literature value registered",
+    "inference_mode": "model.train() keeps Dropout active during all T passes",
+    "inference_rng": "fixed independent seed 20261021; global torch/mps RNG snapshot saved before and restored after inference",
+    "method": "MC dropout, mean of T sigmoid probabilities",
+    "training": "standard single-model training (same as base protocol)"
+  },
+  "efficiency": {
+    "device": "mps",
+    "mps_memory": {
+      "after_training_driver_allocated_bytes": 1162002432,
+      "api_note": "torch 2.12 的 MPS 内存接口为 current_allocated_memory / driver_allocated_memory（字节）；*_bytes 别名不存在",
+      "available": true,
+      "before_training_driver_allocated_bytes": 44040192,
+      "sampled_peak_current_allocated_bytes": 24137984,
+      "sampled_peak_driver_allocated_bytes": 1162002432,
+      "samples": [
+        {
+          "current_allocated_bytes": 10749952,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 44040192,
+          "driver_api": "driver_allocated_memory",
+          "label": "before_training",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 24137984,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161838592,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2013",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21501952,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161854976,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2014",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21869312,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161871360,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2016",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21869312,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161887744,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2017",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21869312,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161904128,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2018",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21869312,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161920512,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2019",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21915136,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161936896,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2020",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21869312,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161936896,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2021",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21869312,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161953280,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2022",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21869312,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161969664,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2023",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21800448,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1161986048,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2024",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21766656,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1162002432,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_year_2025",
+          "mps": true
+        },
+        {
+          "current_allocated_bytes": 21766656,
+          "current_api": "current_allocated_memory",
+          "driver_allocated_bytes": 1162002432,
+          "driver_api": "driver_allocated_memory",
+          "label": "after_training",
+          "mps": true
+        }
+      ],
+      "sampling": "训练前、每年（或每成员）评价后、打分结束后各采样一次；peak 为采样最大值，非硬件峰值"
+    },
+    "n_params": 2687293,
+    "wall_seconds": 133.5
+  },
+  "f1_2023": 0.8241392077008516,
+  "f1_2024": 0.7421875,
+  "mean_f1": 0.8170376210508427,
+  "mps_memory": {
+    "after_training_driver_allocated_bytes": 1162002432,
+    "api_note": "torch 2.12 的 MPS 内存接口为 current_allocated_memory / driver_allocated_memory（字节）；*_bytes 别名不存在",
+    "available": true,
+    "before_training_driver_allocated_bytes": 44040192,
+    "sampled_peak_current_allocated_bytes": 24137984,
+    "sampled_peak_driver_allocated_bytes": 1162002432,
+    "samples": [
+      {
+        "current_allocated_bytes": 10749952,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 44040192,
+        "driver_api": "driver_allocated_memory",
+        "label": "before_training",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 24137984,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161838592,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2013",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21501952,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161854976,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2014",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21869312,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161871360,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2016",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21869312,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161887744,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2017",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21869312,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161904128,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2018",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21869312,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161920512,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2019",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21915136,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161936896,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2020",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21869312,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161936896,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2021",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21869312,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161953280,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2022",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21869312,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161969664,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2023",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21800448,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1161986048,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2024",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21766656,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1162002432,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_year_2025",
+        "mps": true
+      },
+      {
+        "current_allocated_bytes": 21766656,
+        "current_api": "current_allocated_memory",
+        "driver_allocated_bytes": 1162002432,
+        "driver_api": "driver_allocated_memory",
+        "label": "after_training",
+        "mps": true
+      }
+    ],
+    "sampling": "训练前、每年（或每成员）评价后、打分结束后各采样一次；peak 为采样最大值，非硬件峰值"
+  },
+  "n_params": 2687293,
+  "parts_meta": {
+    "2013": {
+      "n_parts": 1,
+      "pos": 35506,
+      "pos_rate": 0.5135080411894019,
+      "rows": 69144
+    },
+    "2014": {
+      "n_parts": 3,
+      "pos": 36805,
+      "pos_rate": 0.45245002827428515,
+      "rows": 81346
+    },
+    "2016": {
+      "n_parts": 5,
+      "pos": 36307,
+      "pos_rate": 0.4137361259885589,
+      "rows": 87754
+    },
+    "2017": {
+      "n_parts": 7,
+      "pos": 17285,
+      "pos_rate": 0.21684585565354844,
+      "rows": 79711
+    },
+    "2018": {
+      "n_parts": 9,
+      "pos": 31680,
+      "pos_rate": 0.37789414669640836,
+      "rows": 83833
+    },
+    "2019": {
+      "n_parts": 11,
+      "pos": 33468,
+      "pos_rate": 0.4569634079737848,
+      "rows": 73240
+    },
+    "2020": {
+      "n_parts": 13,
+      "pos": 37276,
+      "pos_rate": 0.45428620176956636,
+      "rows": 82054
+    },
+    "2021": {
+      "n_parts": 15,
+      "pos": 28698,
+      "pos_rate": 0.43937167003490724,
+      "rows": 65316
+    },
+    "2022": {
+      "n_parts": 17,
+      "pos": 33510,
+      "pos_rate": 0.4819363746188805,
+      "rows": 69532
+    },
+    "2023": {
+      "n_parts": 19,
+      "pos": 6512,
+      "pos_rate": 0.14840812233642517,
+      "rows": 43879
+    },
+    "2024": {
+      "n_parts": 21,
+      "pos": 835,
+      "pos_rate": 0.02133312894407399,
+      "rows": 39141
+    },
+    "2025": {
+      "n_parts": 23,
+      "pos": 216,
+      "pos_rate": 0.005979073243647235,
+      "rows": 36126
+    }
+  },
+  "protocol": {
+    "batch": 1024,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "data_root_source": "env:LAMDA_DATA_ROOT",
+    "deficit_gamma": 1.0,
+    "device": "mps",
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "loss": "BCE",
+    "lr": 0.01,
+    "memory": 200,
+    "momentum": 0.9,
+    "optimizer": "SGD",
+    "optimizer_lifetime": "per_year_rebuild_inside_train_fn",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "seed": 42,
+    "threshold": 0.5,
+    "weight_decay": 1e-06
+  },
+  "schema_version": "ch4-baselines-arm-v1",
+  "train_logs": {
+    "2013": {
+      "epoch_mean_bce": [
+        0.6931221905876609,
+        0.692785431356991,
+        0.6927719677195829,
+        0.6927558113546932,
+        0.6927166546092314,
+        0.6926727855906767,
+        0.6926525901345646,
+        0.6925667033475988,
+        0.6924492892097024,
+        0.6922642763923196
+      ],
+      "n_batches": 680,
+      "optimizer_type": "SGD"
+    },
+    "2014": {
+      "epoch_mean_bce": [
+        0.6898413181304932,
+        0.6874224662780761,
+        0.6861526966094971,
+        0.682017183303833,
+        0.6544228553771972,
+        0.39850611686706544,
+        0.18959393501281738,
+        0.14776148796081542,
+        0.12586328983306885,
+        0.11705735921859742
+      ],
+      "n_batches": 800,
+      "optimizer_type": "SGD"
+    },
+    "2016": {
+      "epoch_mean_bce": [
+        0.19708331795625908,
+        0.15233166273250137,
+        0.1389565246049748,
+        0.12832262349683185,
+        0.11770310512808867,
+        0.11069840054179347,
+        0.10232155822044195,
+        0.0968116050542787,
+        0.09224108762519304,
+        0.08777678290078807
+      ],
+      "n_batches": 860,
+      "optimizer_type": "SGD"
+    },
+    "2017": {
+      "epoch_mean_bce": [
+        0.12856459006285056,
+        0.08415748522831844,
+        0.07326346177321214,
+        0.06638972575847919,
+        0.0595552248832507,
+        0.058441693966205306,
+        0.05337043908926157,
+        0.04906626542409261,
+        0.049272604477711215,
+        0.0451118793243017
+      ],
+      "n_batches": 780,
+      "optimizer_type": "SGD"
+    },
+    "2018": {
+      "epoch_mean_bce": [
+        0.15523361578220274,
+        0.11856143067522747,
+        0.10474950511281084,
+        0.09616690147213819,
+        0.09289991564866973,
+        0.08621242569714058,
+        0.08081312877375905,
+        0.0748309100546488,
+        0.074081903550683,
+        0.06965293535372107
+      ],
+      "n_batches": 820,
+      "optimizer_type": "SGD"
+    },
+    "2019": {
+      "epoch_mean_bce": [
+        0.13266468048095703,
+        0.07738237248526679,
+        0.06409636471006605,
+        0.05056577920913696,
+        0.04333441456158956,
+        0.03473510344823202,
+        0.03149554133415222,
+        0.02801709042655097,
+        0.02314247853226132,
+        0.023042438758744135
+      ],
+      "n_batches": 720,
+      "optimizer_type": "SGD"
+    },
+    "2020": {
+      "epoch_mean_bce": [
+        0.0891278879142102,
+        0.059029590936354646,
+        0.04829172146173171,
+        0.04148837372108742,
+        0.034238562171841846,
+        0.029767048211745275,
+        0.029897424909803603,
+        0.026278740094031815,
+        0.023944832660533762,
+        0.020848840843012303
+      ],
+      "n_batches": 810,
+      "optimizer_type": "SGD"
+    },
+    "2021": {
+      "epoch_mean_bce": [
+        0.10204553604125977,
+        0.05905724689364433,
+        0.0449729859828949,
+        0.035305753350257874,
+        0.029512999579310417,
+        0.02745136059820652,
+        0.02393152005970478,
+        0.020226845517754555,
+        0.01804790087044239,
+        0.016883887350559235
+      ],
+      "n_batches": 640,
+      "optimizer_type": "SGD"
+    },
+    "2022": {
+      "epoch_mean_bce": [
+        0.06821905865388758,
+        0.03754023944630342,
+        0.03053452688104966,
+        0.02451947857351864,
+        0.02010489036055172,
+        0.017390224863501155,
+        0.014202816521420199,
+        0.013368962442173678,
+        0.011727755560594447,
+        0.010983008672209346
+      ],
+      "n_batches": 680,
+      "optimizer_type": "SGD"
+    },
+    "2023": {
+      "epoch_mean_bce": [
+        0.11395219314930051,
+        0.06844932533973871,
+        0.054618768913801324,
+        0.04539682144342467,
+        0.0369420051574707,
+        0.032817721366882324,
+        0.029204731763795365,
+        0.02796540149422579,
+        0.025626470876294515,
+        0.02494375650272813
+      ],
+      "n_batches": 430,
+      "optimizer_type": "SGD"
+    },
+    "2024": {
+      "epoch_mean_bce": [
+        0.04664158821105957,
+        0.034058668674566805,
+        0.025471655222085807,
+        0.021716183576828394,
+        0.01914066229111109,
+        0.01691149442623823,
+        0.015066779576815091,
+        0.01270268895687201,
+        0.011491647897622524,
+        0.010623040871742444
+      ],
+      "n_batches": 390,
+      "optimizer_type": "SGD"
+    },
+    "2025": {
+      "epoch_mean_bce": [
+        0.006150091687838237,
+        0.0035318612224525875,
+        0.0030315940578778586,
+        0.002635987475514412,
+        0.0019936689900027383,
+        0.0015543470573094157,
+        0.0015796004898018306,
+        0.0014503761712047788,
+        0.0010713630666335423,
+        0.0012055373647146756
+      ],
+      "n_batches": 360,
+      "optimizer_type": "SGD"
+    }
+  },
+  "train_seconds": 109.9,
+  "ts": "2026-10-21T11:05:57.709713+00:00",
+  "wall_seconds": 133.5,
+  "year_wall_seconds": {
+    "2013": 10.5,
+    "2014": 12.3,
+    "2016": 13.3,
+    "2017": 11.9,
+    "2018": 12.4,
+    "2019": 10.7,
+    "2020": 12.2,
+    "2021": 10.1,
+    "2022": 10.6,
+    "2023": 6.6,
+    "2024": 5.9,
+    "2025": 5.4
+  }
+}

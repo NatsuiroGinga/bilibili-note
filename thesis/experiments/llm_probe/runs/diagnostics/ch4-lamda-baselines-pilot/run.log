@@ -1,0 +1,946 @@
+[run] arm=all device=mps data_root=/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767 source=env:LAMDA_DATA_ROOT run_dir=/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-baselines-pilot
+
+########## deep4 ##########
+[arm] deep4 device=mps members=(42, 43, 44, 45)
+[config] epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 threshold=0.5
+[data] train store loaded in 10.9s root=/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767
+[parts] 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
+[parts] 2014: n_parts=3 rows=81,346 pos=36,805 pos_rate=0.4525
+[parts] 2016: n_parts=5 rows=87,754 pos=36,307 pos_rate=0.4137
+[parts] 2017: n_parts=7 rows=79,711 pos=17,285 pos_rate=0.2168
+[parts] 2018: n_parts=9 rows=83,833 pos=31,680 pos_rate=0.3779
+[parts] 2019: n_parts=11 rows=73,240 pos=33,468 pos_rate=0.4570
+[parts] 2020: n_parts=13 rows=82,054 pos=37,276 pos_rate=0.4543
+[parts] 2021: n_parts=15 rows=65,316 pos=28,698 pos_rate=0.4394
+[parts] 2022: n_parts=17 rows=69,532 pos=33,510 pos_rate=0.4819
+[parts] 2023: n_parts=19 rows=43,879 pos=6,512 pos_rate=0.1484
+[parts] 2024: n_parts=21 rows=39,141 pos=835 pos_rate=0.0213
+[parts] 2025: n_parts=23 rows=36,126 pos=216 pos_rate=0.0060
+[deep4][member] seed=42 start
+[deep4-seed42][train] 2013 epoch=1/10 bce=0.693122 n_batches=68
+[deep4-seed42][train] 2013 epoch=2/10 bce=0.692785 n_batches=68
+[deep4-seed42][train] 2013 epoch=3/10 bce=0.692772 n_batches=68
+[deep4-seed42][train] 2013 epoch=4/10 bce=0.692756 n_batches=68
+[deep4-seed42][train] 2013 epoch=5/10 bce=0.692717 n_batches=68
+[deep4-seed42][train] 2013 epoch=6/10 bce=0.692673 n_batches=68
+[deep4-seed42][train] 2013 epoch=7/10 bce=0.692653 n_batches=68
+[deep4-seed42][train] 2013 epoch=8/10 bce=0.692567 n_batches=68
+[deep4-seed42][train] 2013 epoch=9/10 bce=0.692449 n_batches=68
+[deep4-seed42][train] 2013 epoch=10/10 bce=0.692264 n_batches=68
+[deep4][seed42][2013] member_f1=0.6786 (11s)
+[deep4-seed42][train] 2014 epoch=1/10 bce=0.689841 n_batches=80
+[deep4-seed42][train] 2014 epoch=2/10 bce=0.687422 n_batches=80
+[deep4-seed42][train] 2014 epoch=3/10 bce=0.686153 n_batches=80
+[deep4-seed42][train] 2014 epoch=4/10 bce=0.682017 n_batches=80
+[deep4-seed42][train] 2014 epoch=5/10 bce=0.654423 n_batches=80
+[deep4-seed42][train] 2014 epoch=6/10 bce=0.398506 n_batches=80
+[deep4-seed42][train] 2014 epoch=7/10 bce=0.189594 n_batches=80
+[deep4-seed42][train] 2014 epoch=8/10 bce=0.147761 n_batches=80
+[deep4-seed42][train] 2014 epoch=9/10 bce=0.125863 n_batches=80
+[deep4-seed42][train] 2014 epoch=10/10 bce=0.117057 n_batches=80
+[deep4][seed42][2014] member_f1=0.9574 (11s)
+[deep4-seed42][train] 2016 epoch=1/10 bce=0.197083 n_batches=86
+[deep4-seed42][train] 2016 epoch=2/10 bce=0.152332 n_batches=86
+[deep4-seed42][train] 2016 epoch=3/10 bce=0.138957 n_batches=86
+[deep4-seed42][train] 2016 epoch=4/10 bce=0.128323 n_batches=86
+[deep4-seed42][train] 2016 epoch=5/10 bce=0.117703 n_batches=86
+[deep4-seed42][train] 2016 epoch=6/10 bce=0.110698 n_batches=86
+[deep4-seed42][train] 2016 epoch=7/10 bce=0.102322 n_batches=86
+[deep4-seed42][train] 2016 epoch=8/10 bce=0.096812 n_batches=86
+[deep4-seed42][train] 2016 epoch=9/10 bce=0.092241 n_batches=86
+[deep4-seed42][train] 2016 epoch=10/10 bce=0.087777 n_batches=86
+[deep4][seed42][2016] member_f1=0.9585 (12s)
+[deep4-seed42][train] 2017 epoch=1/10 bce=0.128565 n_batches=78
+[deep4-seed42][train] 2017 epoch=2/10 bce=0.084157 n_batches=78
+[deep4-seed42][train] 2017 epoch=3/10 bce=0.073263 n_batches=78
+[deep4-seed42][train] 2017 epoch=4/10 bce=0.066390 n_batches=78
+[deep4-seed42][train] 2017 epoch=5/10 bce=0.059555 n_batches=78
+[deep4-seed42][train] 2017 epoch=6/10 bce=0.058442 n_batches=78
+[deep4-seed42][train] 2017 epoch=7/10 bce=0.053370 n_batches=78
+[deep4-seed42][train] 2017 epoch=8/10 bce=0.049066 n_batches=78
+[deep4-seed42][train] 2017 epoch=9/10 bce=0.049273 n_batches=78
+[deep4-seed42][train] 2017 epoch=10/10 bce=0.045112 n_batches=78
+[deep4][seed42][2017] member_f1=0.9506 (12s)
+[deep4-seed42][train] 2018 epoch=1/10 bce=0.155234 n_batches=82
+[deep4-seed42][train] 2018 epoch=2/10 bce=0.118561 n_batches=82
+[deep4-seed42][train] 2018 epoch=3/10 bce=0.104750 n_batches=82
+[deep4-seed42][train] 2018 epoch=4/10 bce=0.096167 n_batches=82
+[deep4-seed42][train] 2018 epoch=5/10 bce=0.092900 n_batches=82
+[deep4-seed42][train] 2018 epoch=6/10 bce=0.086212 n_batches=82
+[deep4-seed42][train] 2018 epoch=7/10 bce=0.080813 n_batches=82
+[deep4-seed42][train] 2018 epoch=8/10 bce=0.074831 n_batches=82
+[deep4-seed42][train] 2018 epoch=9/10 bce=0.074082 n_batches=82
+[deep4-seed42][train] 2018 epoch=10/10 bce=0.069653 n_batches=82
+[deep4][seed42][2018] member_f1=0.9562 (12s)
+[deep4-seed42][train] 2019 epoch=1/10 bce=0.132665 n_batches=72
+[deep4-seed42][train] 2019 epoch=2/10 bce=0.077382 n_batches=72
+[deep4-seed42][train] 2019 epoch=3/10 bce=0.064096 n_batches=72
+[deep4-seed42][train] 2019 epoch=4/10 bce=0.050566 n_batches=72
+[deep4-seed42][train] 2019 epoch=5/10 bce=0.043334 n_batches=72
+[deep4-seed42][train] 2019 epoch=6/10 bce=0.034735 n_batches=72
+[deep4-seed42][train] 2019 epoch=7/10 bce=0.031496 n_batches=72
+[deep4-seed42][train] 2019 epoch=8/10 bce=0.028017 n_batches=72
+[deep4-seed42][train] 2019 epoch=9/10 bce=0.023142 n_batches=72
+[deep4-seed42][train] 2019 epoch=10/10 bce=0.023042 n_batches=72
+[deep4][seed42][2019] member_f1=0.9744 (10s)
+[deep4-seed42][train] 2020 epoch=1/10 bce=0.089128 n_batches=81
+[deep4-seed42][train] 2020 epoch=2/10 bce=0.059030 n_batches=81
+[deep4-seed42][train] 2020 epoch=3/10 bce=0.048292 n_batches=81
+[deep4-seed42][train] 2020 epoch=4/10 bce=0.041488 n_batches=81
+[deep4-seed42][train] 2020 epoch=5/10 bce=0.034239 n_batches=81
+[deep4-seed42][train] 2020 epoch=6/10 bce=0.029767 n_batches=81
+[deep4-seed42][train] 2020 epoch=7/10 bce=0.029897 n_batches=81
+[deep4-seed42][train] 2020 epoch=8/10 bce=0.026279 n_batches=81
+[deep4-seed42][train] 2020 epoch=9/10 bce=0.023945 n_batches=81
+[deep4-seed42][train] 2020 epoch=10/10 bce=0.020849 n_batches=81
+[deep4][seed42][2020] member_f1=0.9770 (11s)
+[deep4-seed42][train] 2021 epoch=1/10 bce=0.102046 n_batches=64
+[deep4-seed42][train] 2021 epoch=2/10 bce=0.059057 n_batches=64
+[deep4-seed42][train] 2021 epoch=3/10 bce=0.044973 n_batches=64
+[deep4-seed42][train] 2021 epoch=4/10 bce=0.035306 n_batches=64
+[deep4-seed42][train] 2021 epoch=5/10 bce=0.029513 n_batches=64
+[deep4-seed42][train] 2021 epoch=6/10 bce=0.027451 n_batches=64
+[deep4-seed42][train] 2021 epoch=7/10 bce=0.023932 n_batches=64
+[deep4-seed42][train] 2021 epoch=8/10 bce=0.020227 n_batches=64
+[deep4-seed42][train] 2021 epoch=9/10 bce=0.018048 n_batches=64
+[deep4-seed42][train] 2021 epoch=10/10 bce=0.016884 n_batches=64
+[deep4][seed42][2021] member_f1=0.9856 (9s)
+[deep4-seed42][train] 2022 epoch=1/10 bce=0.068219 n_batches=68
+[deep4-seed42][train] 2022 epoch=2/10 bce=0.037540 n_batches=68
+[deep4-seed42][train] 2022 epoch=3/10 bce=0.030535 n_batches=68
+[deep4-seed42][train] 2022 epoch=4/10 bce=0.024519 n_batches=68
+[deep4-seed42][train] 2022 epoch=5/10 bce=0.020105 n_batches=68
+[deep4-seed42][train] 2022 epoch=6/10 bce=0.017390 n_batches=68
+[deep4-seed42][train] 2022 epoch=7/10 bce=0.014203 n_batches=68
+[deep4-seed42][train] 2022 epoch=8/10 bce=0.013369 n_batches=68
+[deep4-seed42][train] 2022 epoch=9/10 bce=0.011728 n_batches=68
+[deep4-seed42][train] 2022 epoch=10/10 bce=0.010983 n_batches=68
+[deep4][seed42][2022] member_f1=0.9869 (10s)
+[deep4-seed42][train] 2023 epoch=1/10 bce=0.113952 n_batches=43
+[deep4-seed42][train] 2023 epoch=2/10 bce=0.068449 n_batches=43
+[deep4-seed42][train] 2023 epoch=3/10 bce=0.054619 n_batches=43
+[deep4-seed42][train] 2023 epoch=4/10 bce=0.045397 n_batches=43
+[deep4-seed42][train] 2023 epoch=5/10 bce=0.036942 n_batches=43
+[deep4-seed42][train] 2023 epoch=6/10 bce=0.032818 n_batches=43
+[deep4-seed42][train] 2023 epoch=7/10 bce=0.029205 n_batches=43
+[deep4-seed42][train] 2023 epoch=8/10 bce=0.027965 n_batches=43
+[deep4-seed42][train] 2023 epoch=9/10 bce=0.025626 n_batches=43
+[deep4-seed42][train] 2023 epoch=10/10 bce=0.024944 n_batches=43
+[deep4][seed42][2023] member_f1=0.9352 (6s)
+[deep4-seed42][train] 2024 epoch=1/10 bce=0.046642 n_batches=39
+[deep4-seed42][train] 2024 epoch=2/10 bce=0.034059 n_batches=39
+[deep4-seed42][train] 2024 epoch=3/10 bce=0.025472 n_batches=39
+[deep4-seed42][train] 2024 epoch=4/10 bce=0.021716 n_batches=39
+[deep4-seed42][train] 2024 epoch=5/10 bce=0.019141 n_batches=39
+[deep4-seed42][train] 2024 epoch=6/10 bce=0.016911 n_batches=39
+[deep4-seed42][train] 2024 epoch=7/10 bce=0.015067 n_batches=39
+[deep4-seed42][train] 2024 epoch=8/10 bce=0.012703 n_batches=39
+[deep4-seed42][train] 2024 epoch=9/10 bce=0.011492 n_batches=39
+[deep4-seed42][train] 2024 epoch=10/10 bce=0.010623 n_batches=39
+[deep4][seed42][2024] member_f1=0.7789 (6s)
+[deep4-seed42][train] 2025 epoch=1/10 bce=0.006150 n_batches=36
+[deep4-seed42][train] 2025 epoch=2/10 bce=0.003532 n_batches=36
+[deep4-seed42][train] 2025 epoch=3/10 bce=0.003032 n_batches=36
+[deep4-seed42][train] 2025 epoch=4/10 bce=0.002636 n_batches=36
+[deep4-seed42][train] 2025 epoch=5/10 bce=0.001994 n_batches=36
+[deep4-seed42][train] 2025 epoch=6/10 bce=0.001554 n_batches=36
+[deep4-seed42][train] 2025 epoch=7/10 bce=0.001580 n_batches=36
+[deep4-seed42][train] 2025 epoch=8/10 bce=0.001450 n_batches=36
+[deep4-seed42][train] 2025 epoch=9/10 bce=0.001071 n_batches=36
+[deep4-seed42][train] 2025 epoch=10/10 bce=0.001206 n_batches=36
+[deep4][seed42][2025] member_f1=0.0000 (5s)
+[deep4][member] seed=42 done train_wall=111s
+[deep4][member] seed=43 start
+[deep4-seed43][train] 2013 epoch=1/10 bce=0.692848 n_batches=68
+[deep4-seed43][train] 2013 epoch=2/10 bce=0.692806 n_batches=68
+[deep4-seed43][train] 2013 epoch=3/10 bce=0.692676 n_batches=68
+[deep4-seed43][train] 2013 epoch=4/10 bce=0.692610 n_batches=68
+[deep4-seed43][train] 2013 epoch=5/10 bce=0.692523 n_batches=68
+[deep4-seed43][train] 2013 epoch=6/10 bce=0.692453 n_batches=68
+[deep4-seed43][train] 2013 epoch=7/10 bce=0.692203 n_batches=68
+[deep4-seed43][train] 2013 epoch=8/10 bce=0.691948 n_batches=68
+[deep4-seed43][train] 2013 epoch=9/10 bce=0.691379 n_batches=68
+[deep4-seed43][train] 2013 epoch=10/10 bce=0.690154 n_batches=68
+[deep4][seed43][2013] member_f1=0.6786 (10s)
+[deep4-seed43][train] 2014 epoch=1/10 bce=0.685340 n_batches=80
+[deep4-seed43][train] 2014 epoch=2/10 bce=0.663889 n_batches=80
+[deep4-seed43][train] 2014 epoch=3/10 bce=0.436339 n_batches=80
+[deep4-seed43][train] 2014 epoch=4/10 bce=0.195427 n_batches=80
+[deep4-seed43][train] 2014 epoch=5/10 bce=0.150711 n_batches=80
+[deep4-seed43][train] 2014 epoch=6/10 bce=0.129786 n_batches=80
+[deep4-seed43][train] 2014 epoch=7/10 bce=0.120550 n_batches=80
+[deep4-seed43][train] 2014 epoch=8/10 bce=0.108422 n_batches=80
+[deep4-seed43][train] 2014 epoch=9/10 bce=0.107493 n_batches=80
+[deep4-seed43][train] 2014 epoch=10/10 bce=0.099096 n_batches=80
+[deep4][seed43][2014] member_f1=0.9597 (11s)
+[deep4-seed43][train] 2016 epoch=1/10 bce=0.183693 n_batches=86
+[deep4-seed43][train] 2016 epoch=2/10 bce=0.141107 n_batches=86
+[deep4-seed43][train] 2016 epoch=3/10 bce=0.127776 n_batches=86
+[deep4-seed43][train] 2016 epoch=4/10 bce=0.114846 n_batches=86
+[deep4-seed43][train] 2016 epoch=5/10 bce=0.107046 n_batches=86
+[deep4-seed43][train] 2016 epoch=6/10 bce=0.097786 n_batches=86
+[deep4-seed43][train] 2016 epoch=7/10 bce=0.093873 n_batches=86
+[deep4-seed43][train] 2016 epoch=8/10 bce=0.088708 n_batches=86
+[deep4-seed43][train] 2016 epoch=9/10 bce=0.084552 n_batches=86
+[deep4-seed43][train] 2016 epoch=10/10 bce=0.074313 n_batches=86
+[deep4][seed43][2016] member_f1=0.9570 (14s)
+[deep4-seed43][train] 2017 epoch=1/10 bce=0.121141 n_batches=78
+[deep4-seed43][train] 2017 epoch=2/10 bce=0.080006 n_batches=78
+[deep4-seed43][train] 2017 epoch=3/10 bce=0.068964 n_batches=78
+[deep4-seed43][train] 2017 epoch=4/10 bce=0.060945 n_batches=78
+[deep4-seed43][train] 2017 epoch=5/10 bce=0.057149 n_batches=78
+[deep4-seed43][train] 2017 epoch=6/10 bce=0.052079 n_batches=78
+[deep4-seed43][train] 2017 epoch=7/10 bce=0.051362 n_batches=78
+[deep4-seed43][train] 2017 epoch=8/10 bce=0.046158 n_batches=78
+[deep4-seed43][train] 2017 epoch=9/10 bce=0.044568 n_batches=78
+[deep4-seed43][train] 2017 epoch=10/10 bce=0.043752 n_batches=78
+[deep4][seed43][2017] member_f1=0.9608 (17s)
+[deep4-seed43][train] 2018 epoch=1/10 bce=0.153338 n_batches=82
+[deep4-seed43][train] 2018 epoch=2/10 bce=0.115418 n_batches=82
+[deep4-seed43][train] 2018 epoch=3/10 bce=0.102631 n_batches=82
+[deep4-seed43][train] 2018 epoch=4/10 bce=0.093637 n_batches=82
+[deep4-seed43][train] 2018 epoch=5/10 bce=0.086726 n_batches=82
+[deep4-seed43][train] 2018 epoch=6/10 bce=0.084057 n_batches=82
+[deep4-seed43][train] 2018 epoch=7/10 bce=0.081381 n_batches=82
+[deep4-seed43][train] 2018 epoch=8/10 bce=0.074404 n_batches=82
+[deep4-seed43][train] 2018 epoch=9/10 bce=0.069873 n_batches=82
+[deep4-seed43][train] 2018 epoch=10/10 bce=0.068321 n_batches=82
+[deep4][seed43][2018] member_f1=0.9593 (16s)
+[deep4-seed43][train] 2019 epoch=1/10 bce=0.128856 n_batches=72
+[deep4-seed43][train] 2019 epoch=2/10 bce=0.076241 n_batches=72
+[deep4-seed43][train] 2019 epoch=3/10 bce=0.060648 n_batches=72
+[deep4-seed43][train] 2019 epoch=4/10 bce=0.051150 n_batches=72
+[deep4-seed43][train] 2019 epoch=5/10 bce=0.045443 n_batches=72
+[deep4-seed43][train] 2019 epoch=6/10 bce=0.034698 n_batches=72
+[deep4-seed43][train] 2019 epoch=7/10 bce=0.033287 n_batches=72
+[deep4-seed43][train] 2019 epoch=8/10 bce=0.025645 n_batches=72
+[deep4-seed43][train] 2019 epoch=9/10 bce=0.022118 n_batches=72
+[deep4-seed43][train] 2019 epoch=10/10 bce=0.020391 n_batches=72
+[deep4][seed43][2019] member_f1=0.9768 (14s)
+[deep4-seed43][train] 2020 epoch=1/10 bce=0.089428 n_batches=81
+[deep4-seed43][train] 2020 epoch=2/10 bce=0.058992 n_batches=81
+[deep4-seed43][train] 2020 epoch=3/10 bce=0.049019 n_batches=81
+[deep4-seed43][train] 2020 epoch=4/10 bce=0.039402 n_batches=81
+[deep4-seed43][train] 2020 epoch=5/10 bce=0.035018 n_batches=81
+[deep4-seed43][train] 2020 epoch=6/10 bce=0.031323 n_batches=81
+[deep4-seed43][train] 2020 epoch=7/10 bce=0.028145 n_batches=81
+[deep4-seed43][train] 2020 epoch=8/10 bce=0.023442 n_batches=81
+[deep4-seed43][train] 2020 epoch=9/10 bce=0.019420 n_batches=81
+[deep4-seed43][train] 2020 epoch=10/10 bce=0.018659 n_batches=81
+[deep4][seed43][2020] member_f1=0.9783 (14s)
+[deep4-seed43][train] 2021 epoch=1/10 bce=0.098661 n_batches=64
+[deep4-seed43][train] 2021 epoch=2/10 bce=0.060277 n_batches=64
+[deep4-seed43][train] 2021 epoch=3/10 bce=0.044103 n_batches=64
+[deep4-seed43][train] 2021 epoch=4/10 bce=0.036810 n_batches=64
+[deep4-seed43][train] 2021 epoch=5/10 bce=0.030765 n_batches=64
+[deep4-seed43][train] 2021 epoch=6/10 bce=0.026220 n_batches=64
+[deep4-seed43][train] 2021 epoch=7/10 bce=0.022570 n_batches=64
+[deep4-seed43][train] 2021 epoch=8/10 bce=0.020176 n_batches=64
+[deep4-seed43][train] 2021 epoch=9/10 bce=0.020020 n_batches=64
+[deep4-seed43][train] 2021 epoch=10/10 bce=0.018698 n_batches=64
+[deep4][seed43][2021] member_f1=0.9841 (11s)
+[deep4-seed43][train] 2022 epoch=1/10 bce=0.065323 n_batches=68
+[deep4-seed43][train] 2022 epoch=2/10 bce=0.038806 n_batches=68
+[deep4-seed43][train] 2022 epoch=3/10 bce=0.029516 n_batches=68
+[deep4-seed43][train] 2022 epoch=4/10 bce=0.024543 n_batches=68
+[deep4-seed43][train] 2022 epoch=5/10 bce=0.019623 n_batches=68
+[deep4-seed43][train] 2022 epoch=6/10 bce=0.017443 n_batches=68
+[deep4-seed43][train] 2022 epoch=7/10 bce=0.015308 n_batches=68
+[deep4-seed43][train] 2022 epoch=8/10 bce=0.013587 n_batches=68
+[deep4-seed43][train] 2022 epoch=9/10 bce=0.012306 n_batches=68
+[deep4-seed43][train] 2022 epoch=10/10 bce=0.011773 n_batches=68
+[deep4][seed43][2022] member_f1=0.9871 (12s)
+[deep4-seed43][train] 2023 epoch=1/10 bce=0.112222 n_batches=43
+[deep4-seed43][train] 2023 epoch=2/10 bce=0.068767 n_batches=43
+[deep4-seed43][train] 2023 epoch=3/10 bce=0.054119 n_batches=43
+[deep4-seed43][train] 2023 epoch=4/10 bce=0.043636 n_batches=43
+[deep4-seed43][train] 2023 epoch=5/10 bce=0.037515 n_batches=43
+[deep4-seed43][train] 2023 epoch=6/10 bce=0.033800 n_batches=43
+[deep4-seed43][train] 2023 epoch=7/10 bce=0.031453 n_batches=43
+[deep4-seed43][train] 2023 epoch=8/10 bce=0.032652 n_batches=43
+[deep4-seed43][train] 2023 epoch=9/10 bce=0.025020 n_batches=43
+[deep4-seed43][train] 2023 epoch=10/10 bce=0.024868 n_batches=43
+[deep4][seed43][2023] member_f1=0.9337 (7s)
+[deep4-seed43][train] 2024 epoch=1/10 bce=0.046795 n_batches=39
+[deep4-seed43][train] 2024 epoch=2/10 bce=0.030317 n_batches=39
+[deep4-seed43][train] 2024 epoch=3/10 bce=0.023934 n_batches=39
+[deep4-seed43][train] 2024 epoch=4/10 bce=0.021555 n_batches=39
+[deep4-seed43][train] 2024 epoch=5/10 bce=0.019172 n_batches=39
+[deep4-seed43][train] 2024 epoch=6/10 bce=0.018003 n_batches=39
+[deep4-seed43][train] 2024 epoch=7/10 bce=0.014430 n_batches=39
+[deep4-seed43][train] 2024 epoch=8/10 bce=0.013391 n_batches=39
+[deep4-seed43][train] 2024 epoch=9/10 bce=0.012380 n_batches=39
+[deep4-seed43][train] 2024 epoch=10/10 bce=0.011409 n_batches=39
+[deep4][seed43][2024] member_f1=0.8029 (6s)
+[deep4-seed43][train] 2025 epoch=1/10 bce=0.007525 n_batches=36
+[deep4-seed43][train] 2025 epoch=2/10 bce=0.004615 n_batches=36
+[deep4-seed43][train] 2025 epoch=3/10 bce=0.002610 n_batches=36
+[deep4-seed43][train] 2025 epoch=4/10 bce=0.002311 n_batches=36
+[deep4-seed43][train] 2025 epoch=5/10 bce=0.002426 n_batches=36
+[deep4-seed43][train] 2025 epoch=6/10 bce=0.001973 n_batches=36
+[deep4-seed43][train] 2025 epoch=7/10 bce=0.002149 n_batches=36
+[deep4-seed43][train] 2025 epoch=8/10 bce=0.001266 n_batches=36
+[deep4-seed43][train] 2025 epoch=9/10 bce=0.001224 n_batches=36
+[deep4-seed43][train] 2025 epoch=10/10 bce=0.001247 n_batches=36
+[deep4][seed43][2025] member_f1=0.0000 (6s)
+[deep4][member] seed=43 done train_wall=131s
+[deep4][member] seed=44 start
+[deep4-seed44][train] 2013 epoch=1/10 bce=0.693212 n_batches=68
+[deep4-seed44][train] 2013 epoch=2/10 bce=0.692687 n_batches=68
+[deep4-seed44][train] 2013 epoch=3/10 bce=0.692608 n_batches=68
+[deep4-seed44][train] 2013 epoch=4/10 bce=0.692528 n_batches=68
+[deep4-seed44][train] 2013 epoch=5/10 bce=0.692304 n_batches=68
+[deep4-seed44][train] 2013 epoch=6/10 bce=0.691972 n_batches=68
+[deep4-seed44][train] 2013 epoch=7/10 bce=0.691315 n_batches=68
+[deep4-seed44][train] 2013 epoch=8/10 bce=0.689917 n_batches=68
+[deep4-seed44][train] 2013 epoch=9/10 bce=0.685536 n_batches=68
+[deep4-seed44][train] 2013 epoch=10/10 bce=0.661020 n_batches=68
+[deep4][seed44][2013] member_f1=0.8888 (11s)
+[deep4-seed44][train] 2014 epoch=1/10 bce=0.473891 n_batches=80
+[deep4-seed44][train] 2014 epoch=2/10 bce=0.201175 n_batches=80
+[deep4-seed44][train] 2014 epoch=3/10 bce=0.147263 n_batches=80
+[deep4-seed44][train] 2014 epoch=4/10 bce=0.125255 n_batches=80
+[deep4-seed44][train] 2014 epoch=5/10 bce=0.116571 n_batches=80
+[deep4-seed44][train] 2014 epoch=6/10 bce=0.106765 n_batches=80
+[deep4-seed44][train] 2014 epoch=7/10 bce=0.102321 n_batches=80
+[deep4-seed44][train] 2014 epoch=8/10 bce=0.098504 n_batches=80
+[deep4-seed44][train] 2014 epoch=9/10 bce=0.095358 n_batches=80
+[deep4-seed44][train] 2014 epoch=10/10 bce=0.085315 n_batches=80
+[deep4][seed44][2014] member_f1=0.9617 (13s)
+[deep4-seed44][train] 2016 epoch=1/10 bce=0.191004 n_batches=86
+[deep4-seed44][train] 2016 epoch=2/10 bce=0.138782 n_batches=86
+[deep4-seed44][train] 2016 epoch=3/10 bce=0.122330 n_batches=86
+[deep4-seed44][train] 2016 epoch=4/10 bce=0.110805 n_batches=86
+[deep4-seed44][train] 2016 epoch=5/10 bce=0.101985 n_batches=86
+[deep4-seed44][train] 2016 epoch=6/10 bce=0.095710 n_batches=86
+[deep4-seed44][train] 2016 epoch=7/10 bce=0.086382 n_batches=86
+[deep4-seed44][train] 2016 epoch=8/10 bce=0.081927 n_batches=86
+[deep4-seed44][train] 2016 epoch=9/10 bce=0.081798 n_batches=86
+[deep4-seed44][train] 2016 epoch=10/10 bce=0.073942 n_batches=86
+[deep4][seed44][2016] member_f1=0.9579 (15s)
+[deep4-seed44][train] 2017 epoch=1/10 bce=0.118501 n_batches=78
+[deep4-seed44][train] 2017 epoch=2/10 bce=0.077416 n_batches=78
+[deep4-seed44][train] 2017 epoch=3/10 bce=0.070235 n_batches=78
+[deep4-seed44][train] 2017 epoch=4/10 bce=0.061022 n_batches=78
+[deep4-seed44][train] 2017 epoch=5/10 bce=0.055989 n_batches=78
+[deep4-seed44][train] 2017 epoch=6/10 bce=0.052297 n_batches=78
+[deep4-seed44][train] 2017 epoch=7/10 bce=0.047634 n_batches=78
+[deep4-seed44][train] 2017 epoch=8/10 bce=0.045771 n_batches=78
+[deep4-seed44][train] 2017 epoch=9/10 bce=0.045044 n_batches=78
+[deep4-seed44][train] 2017 epoch=10/10 bce=0.041482 n_batches=78
+[deep4][seed44][2017] member_f1=0.9543 (13s)
+[deep4-seed44][train] 2018 epoch=1/10 bce=0.152040 n_batches=82
+[deep4-seed44][train] 2018 epoch=2/10 bce=0.114734 n_batches=82
+[deep4-seed44][train] 2018 epoch=3/10 bce=0.101187 n_batches=82
+[deep4-seed44][train] 2018 epoch=4/10 bce=0.094928 n_batches=82
+[deep4-seed44][train] 2018 epoch=5/10 bce=0.086731 n_batches=82
+[deep4-seed44][train] 2018 epoch=6/10 bce=0.081387 n_batches=82
+[deep4-seed44][train] 2018 epoch=7/10 bce=0.076462 n_batches=82
+[deep4-seed44][train] 2018 epoch=8/10 bce=0.072820 n_batches=82
+[deep4-seed44][train] 2018 epoch=9/10 bce=0.069635 n_batches=82
+[deep4-seed44][train] 2018 epoch=10/10 bce=0.068386 n_batches=82
+[deep4][seed44][2018] member_f1=0.9586 (14s)
+[deep4-seed44][train] 2019 epoch=1/10 bce=0.127391 n_batches=72
+[deep4-seed44][train] 2019 epoch=2/10 bce=0.073974 n_batches=72
+[deep4-seed44][train] 2019 epoch=3/10 bce=0.060477 n_batches=72
+[deep4-seed44][train] 2019 epoch=4/10 bce=0.048076 n_batches=72
+[deep4-seed44][train] 2019 epoch=5/10 bce=0.040457 n_batches=72
+[deep4-seed44][train] 2019 epoch=6/10 bce=0.034465 n_batches=72
+[deep4-seed44][train] 2019 epoch=7/10 bce=0.028769 n_batches=72
+[deep4-seed44][train] 2019 epoch=8/10 bce=0.023989 n_batches=72
+[deep4-seed44][train] 2019 epoch=9/10 bce=0.021661 n_batches=72
+[deep4-seed44][train] 2019 epoch=10/10 bce=0.018959 n_batches=72
+[deep4][seed44][2019] member_f1=0.9773 (12s)
+[deep4-seed44][train] 2020 epoch=1/10 bce=0.087015 n_batches=81
+[deep4-seed44][train] 2020 epoch=2/10 bce=0.058930 n_batches=81
+[deep4-seed44][train] 2020 epoch=3/10 bce=0.047083 n_batches=81
+[deep4-seed44][train] 2020 epoch=4/10 bce=0.039738 n_batches=81
+[deep4-seed44][train] 2020 epoch=5/10 bce=0.034523 n_batches=81
+[deep4-seed44][train] 2020 epoch=6/10 bce=0.032558 n_batches=81
+[deep4-seed44][train] 2020 epoch=7/10 bce=0.024064 n_batches=81
+[deep4-seed44][train] 2020 epoch=8/10 bce=0.023519 n_batches=81
+[deep4-seed44][train] 2020 epoch=9/10 bce=0.020210 n_batches=81
+[deep4-seed44][train] 2020 epoch=10/10 bce=0.018290 n_batches=81
+[deep4][seed44][2020] member_f1=0.9772 (15s)
+[deep4-seed44][train] 2021 epoch=1/10 bce=0.102682 n_batches=64
+[deep4-seed44][train] 2021 epoch=2/10 bce=0.058778 n_batches=64
+[deep4-seed44][train] 2021 epoch=3/10 bce=0.048698 n_batches=64
+[deep4-seed44][train] 2021 epoch=4/10 bce=0.036956 n_batches=64
+[deep4-seed44][train] 2021 epoch=5/10 bce=0.030070 n_batches=64
+[deep4-seed44][train] 2021 epoch=6/10 bce=0.027510 n_batches=64
+[deep4-seed44][train] 2021 epoch=7/10 bce=0.022774 n_batches=64
+[deep4-seed44][train] 2021 epoch=8/10 bce=0.021045 n_batches=64
+[deep4-seed44][train] 2021 epoch=9/10 bce=0.017929 n_batches=64
+[deep4-seed44][train] 2021 epoch=10/10 bce=0.017332 n_batches=64
+[deep4][seed44][2021] member_f1=0.9852 (12s)
+[deep4-seed44][train] 2022 epoch=1/10 bce=0.063134 n_batches=68
+[deep4-seed44][train] 2022 epoch=2/10 bce=0.040036 n_batches=68
+[deep4-seed44][train] 2022 epoch=3/10 bce=0.031091 n_batches=68
+[deep4-seed44][train] 2022 epoch=4/10 bce=0.024352 n_batches=68
+[deep4-seed44][train] 2022 epoch=5/10 bce=0.020083 n_batches=68
+[deep4-seed44][train] 2022 epoch=6/10 bce=0.017136 n_batches=68
+[deep4-seed44][train] 2022 epoch=7/10 bce=0.015683 n_batches=68
+[deep4-seed44][train] 2022 epoch=8/10 bce=0.013612 n_batches=68
+[deep4-seed44][train] 2022 epoch=9/10 bce=0.012531 n_batches=68
+[deep4-seed44][train] 2022 epoch=10/10 bce=0.013321 n_batches=68
+[deep4][seed44][2022] member_f1=0.9858 (12s)
+[deep4-seed44][train] 2023 epoch=1/10 bce=0.099979 n_batches=43
+[deep4-seed44][train] 2023 epoch=2/10 bce=0.064107 n_batches=43
+[deep4-seed44][train] 2023 epoch=3/10 bce=0.052070 n_batches=43
+[deep4-seed44][train] 2023 epoch=4/10 bce=0.043589 n_batches=43
+[deep4-seed44][train] 2023 epoch=5/10 bce=0.039608 n_batches=43
+[deep4-seed44][train] 2023 epoch=6/10 bce=0.034198 n_batches=43
+[deep4-seed44][train] 2023 epoch=7/10 bce=0.029265 n_batches=43
+[deep4-seed44][train] 2023 epoch=8/10 bce=0.032824 n_batches=43
+[deep4-seed44][train] 2023 epoch=9/10 bce=0.024245 n_batches=43
+[deep4-seed44][train] 2023 epoch=10/10 bce=0.021226 n_batches=43
+[deep4][seed44][2023] member_f1=0.9438 (8s)
+[deep4-seed44][train] 2024 epoch=1/10 bce=0.047931 n_batches=39
+[deep4-seed44][train] 2024 epoch=2/10 bce=0.030716 n_batches=39
+[deep4-seed44][train] 2024 epoch=3/10 bce=0.024728 n_batches=39
+[deep4-seed44][train] 2024 epoch=4/10 bce=0.020337 n_batches=39
+[deep4-seed44][train] 2024 epoch=5/10 bce=0.019501 n_batches=39
+[deep4-seed44][train] 2024 epoch=6/10 bce=0.015266 n_batches=39
+[deep4-seed44][train] 2024 epoch=7/10 bce=0.014506 n_batches=39
+[deep4-seed44][train] 2024 epoch=8/10 bce=0.013687 n_batches=39
+[deep4-seed44][train] 2024 epoch=9/10 bce=0.011853 n_batches=39
+[deep4-seed44][train] 2024 epoch=10/10 bce=0.010162 n_batches=39
+[deep4][seed44][2024] member_f1=0.7986 (8s)
+[deep4-seed44][train] 2025 epoch=1/10 bce=0.007583 n_batches=36
+[deep4-seed44][train] 2025 epoch=2/10 bce=0.003525 n_batches=36
+[deep4-seed44][train] 2025 epoch=3/10 bce=0.002923 n_batches=36
+[deep4-seed44][train] 2025 epoch=4/10 bce=0.002559 n_batches=36
+[deep4-seed44][train] 2025 epoch=5/10 bce=0.002059 n_batches=36
+[deep4-seed44][train] 2025 epoch=6/10 bce=0.001549 n_batches=36
+[deep4-seed44][train] 2025 epoch=7/10 bce=0.001729 n_batches=36
+[deep4-seed44][train] 2025 epoch=8/10 bce=0.001233 n_batches=36
+[deep4-seed44][train] 2025 epoch=9/10 bce=0.001068 n_batches=36
+[deep4-seed44][train] 2025 epoch=10/10 bce=0.000712 n_batches=36
+[deep4][seed44][2025] member_f1=0.0000 (6s)
+[deep4][member] seed=44 done train_wall=133s
+[deep4][member] seed=45 start
+[deep4-seed45][train] 2013 epoch=1/10 bce=0.693234 n_batches=68
+[deep4-seed45][train] 2013 epoch=2/10 bce=0.692687 n_batches=68
+[deep4-seed45][train] 2013 epoch=3/10 bce=0.692671 n_batches=68
+[deep4-seed45][train] 2013 epoch=4/10 bce=0.692548 n_batches=68
+[deep4-seed45][train] 2013 epoch=5/10 bce=0.692396 n_batches=68
+[deep4-seed45][train] 2013 epoch=6/10 bce=0.692140 n_batches=68
+[deep4-seed45][train] 2013 epoch=7/10 bce=0.691684 n_batches=68
+[deep4-seed45][train] 2013 epoch=8/10 bce=0.690560 n_batches=68
+[deep4-seed45][train] 2013 epoch=9/10 bce=0.687330 n_batches=68
+[deep4-seed45][train] 2013 epoch=10/10 bce=0.670946 n_batches=68
+[deep4][seed45][2013] member_f1=0.8466 (13s)
+[deep4-seed45][train] 2014 epoch=1/10 bce=0.528082 n_batches=80
+[deep4-seed45][train] 2014 epoch=2/10 bce=0.229238 n_batches=80
+[deep4-seed45][train] 2014 epoch=3/10 bce=0.161762 n_batches=80
+[deep4-seed45][train] 2014 epoch=4/10 bce=0.133722 n_batches=80
+[deep4-seed45][train] 2014 epoch=5/10 bce=0.119807 n_batches=80
+[deep4-seed45][train] 2014 epoch=6/10 bce=0.112326 n_batches=80
+[deep4-seed45][train] 2014 epoch=7/10 bce=0.102869 n_batches=80
+[deep4-seed45][train] 2014 epoch=8/10 bce=0.098779 n_batches=80
+[deep4-seed45][train] 2014 epoch=9/10 bce=0.091661 n_batches=80
+[deep4-seed45][train] 2014 epoch=10/10 bce=0.084834 n_batches=80
+[deep4][seed45][2014] member_f1=0.9620 (13s)
+[deep4-seed45][train] 2016 epoch=1/10 bce=0.189503 n_batches=86
+[deep4-seed45][train] 2016 epoch=2/10 bce=0.137865 n_batches=86
+[deep4-seed45][train] 2016 epoch=3/10 bce=0.123352 n_batches=86
+[deep4-seed45][train] 2016 epoch=4/10 bce=0.110962 n_batches=86
+[deep4-seed45][train] 2016 epoch=5/10 bce=0.101573 n_batches=86
+[deep4-seed45][train] 2016 epoch=6/10 bce=0.094777 n_batches=86
+[deep4-seed45][train] 2016 epoch=7/10 bce=0.090521 n_batches=86
+[deep4-seed45][train] 2016 epoch=8/10 bce=0.080022 n_batches=86
+[deep4-seed45][train] 2016 epoch=9/10 bce=0.074147 n_batches=86
+[deep4-seed45][train] 2016 epoch=10/10 bce=0.070018 n_batches=86
+[deep4][seed45][2016] member_f1=0.9555 (13s)
+[deep4-seed45][train] 2017 epoch=1/10 bce=0.124584 n_batches=78
+[deep4-seed45][train] 2017 epoch=2/10 bce=0.081345 n_batches=78
+[deep4-seed45][train] 2017 epoch=3/10 bce=0.069587 n_batches=78
+[deep4-seed45][train] 2017 epoch=4/10 bce=0.062480 n_batches=78
+[deep4-seed45][train] 2017 epoch=5/10 bce=0.057626 n_batches=78
+[deep4-seed45][train] 2017 epoch=6/10 bce=0.053306 n_batches=78
+[deep4-seed45][train] 2017 epoch=7/10 bce=0.050119 n_batches=78
+[deep4-seed45][train] 2017 epoch=8/10 bce=0.048212 n_batches=78
+[deep4-seed45][train] 2017 epoch=9/10 bce=0.046301 n_batches=78
+[deep4-seed45][train] 2017 epoch=10/10 bce=0.042732 n_batches=78
+[deep4][seed45][2017] member_f1=0.9600 (12s)
+[deep4-seed45][train] 2018 epoch=1/10 bce=0.153071 n_batches=82
+[deep4-seed45][train] 2018 epoch=2/10 bce=0.115396 n_batches=82
+[deep4-seed45][train] 2018 epoch=3/10 bce=0.103654 n_batches=82
+[deep4-seed45][train] 2018 epoch=4/10 bce=0.095144 n_batches=82
+[deep4-seed45][train] 2018 epoch=5/10 bce=0.087841 n_batches=82
+[deep4-seed45][train] 2018 epoch=6/10 bce=0.081325 n_batches=82
+[deep4-seed45][train] 2018 epoch=7/10 bce=0.080822 n_batches=82
+[deep4-seed45][train] 2018 epoch=8/10 bce=0.074902 n_batches=82
+[deep4-seed45][train] 2018 epoch=9/10 bce=0.070678 n_batches=82
+[deep4-seed45][train] 2018 epoch=10/10 bce=0.070266 n_batches=82
+[deep4][seed45][2018] member_f1=0.9571 (12s)
+[deep4-seed45][train] 2019 epoch=1/10 bce=0.116877 n_batches=72
+[deep4-seed45][train] 2019 epoch=2/10 bce=0.073271 n_batches=72
+[deep4-seed45][train] 2019 epoch=3/10 bce=0.057964 n_batches=72
+[deep4-seed45][train] 2019 epoch=4/10 bce=0.046662 n_batches=72
+[deep4-seed45][train] 2019 epoch=5/10 bce=0.039423 n_batches=72
+[deep4-seed45][train] 2019 epoch=6/10 bce=0.035917 n_batches=72
+[deep4-seed45][train] 2019 epoch=7/10 bce=0.029007 n_batches=72
+[deep4-seed45][train] 2019 epoch=8/10 bce=0.022368 n_batches=72
+[deep4-seed45][train] 2019 epoch=9/10 bce=0.018643 n_batches=72
+[deep4-seed45][train] 2019 epoch=10/10 bce=0.018247 n_batches=72
+[deep4][seed45][2019] member_f1=0.9759 (11s)
+[deep4-seed45][train] 2020 epoch=1/10 bce=0.087084 n_batches=81
+[deep4-seed45][train] 2020 epoch=2/10 bce=0.057328 n_batches=81
+[deep4-seed45][train] 2020 epoch=3/10 bce=0.048106 n_batches=81
+[deep4-seed45][train] 2020 epoch=4/10 bce=0.040625 n_batches=81
+[deep4-seed45][train] 2020 epoch=5/10 bce=0.033366 n_batches=81
+[deep4-seed45][train] 2020 epoch=6/10 bce=0.029015 n_batches=81
+[deep4-seed45][train] 2020 epoch=7/10 bce=0.023030 n_batches=81
+[deep4-seed45][train] 2020 epoch=8/10 bce=0.022279 n_batches=81
+[deep4-seed45][train] 2020 epoch=9/10 bce=0.019285 n_batches=81
+[deep4-seed45][train] 2020 epoch=10/10 bce=0.017073 n_batches=81
+[deep4][seed45][2020] member_f1=0.9786 (12s)
+[deep4-seed45][train] 2021 epoch=1/10 bce=0.108969 n_batches=64
+[deep4-seed45][train] 2021 epoch=2/10 bce=0.061730 n_batches=64
+[deep4-seed45][train] 2021 epoch=3/10 bce=0.045366 n_batches=64
+[deep4-seed45][train] 2021 epoch=4/10 bce=0.036655 n_batches=64
+[deep4-seed45][train] 2021 epoch=5/10 bce=0.029185 n_batches=64
+[deep4-seed45][train] 2021 epoch=6/10 bce=0.026807 n_batches=64
+[deep4-seed45][train] 2021 epoch=7/10 bce=0.022138 n_batches=64
+[deep4-seed45][train] 2021 epoch=8/10 bce=0.019867 n_batches=64
+[deep4-seed45][train] 2021 epoch=9/10 bce=0.018265 n_batches=64
+[deep4-seed45][train] 2021 epoch=10/10 bce=0.019832 n_batches=64
+[deep4][seed45][2021] member_f1=0.9854 (9s)
+[deep4-seed45][train] 2022 epoch=1/10 bce=0.064856 n_batches=68
+[deep4-seed45][train] 2022 epoch=2/10 bce=0.037578 n_batches=68
+[deep4-seed45][train] 2022 epoch=3/10 bce=0.028601 n_batches=68
+[deep4-seed45][train] 2022 epoch=4/10 bce=0.025100 n_batches=68
+[deep4-seed45][train] 2022 epoch=5/10 bce=0.020646 n_batches=68
+[deep4-seed45][train] 2022 epoch=6/10 bce=0.017221 n_batches=68
+[deep4-seed45][train] 2022 epoch=7/10 bce=0.015162 n_batches=68
+[deep4-seed45][train] 2022 epoch=8/10 bce=0.012921 n_batches=68
+[deep4-seed45][train] 2022 epoch=9/10 bce=0.011751 n_batches=68
+[deep4-seed45][train] 2022 epoch=10/10 bce=0.010551 n_batches=68
+[deep4][seed45][2022] member_f1=0.9870 (10s)
+[deep4-seed45][train] 2023 epoch=1/10 bce=0.108694 n_batches=43
+[deep4-seed45][train] 2023 epoch=2/10 bce=0.065726 n_batches=43
+[deep4-seed45][train] 2023 epoch=3/10 bce=0.051538 n_batches=43
+[deep4-seed45][train] 2023 epoch=4/10 bce=0.044218 n_batches=43
+[deep4-seed45][train] 2023 epoch=5/10 bce=0.038625 n_batches=43
+[deep4-seed45][train] 2023 epoch=6/10 bce=0.033671 n_batches=43
+[deep4-seed45][train] 2023 epoch=7/10 bce=0.030999 n_batches=43
+[deep4-seed45][train] 2023 epoch=8/10 bce=0.027249 n_batches=43
+[deep4-seed45][train] 2023 epoch=9/10 bce=0.025233 n_batches=43
+[deep4-seed45][train] 2023 epoch=10/10 bce=0.021207 n_batches=43
+[deep4][seed45][2023] member_f1=0.9373 (6s)
+[deep4-seed45][train] 2024 epoch=1/10 bce=0.046903 n_batches=39
+[deep4-seed45][train] 2024 epoch=2/10 bce=0.032260 n_batches=39
+[deep4-seed45][train] 2024 epoch=3/10 bce=0.025578 n_batches=39
+[deep4-seed45][train] 2024 epoch=4/10 bce=0.022942 n_batches=39
+[deep4-seed45][train] 2024 epoch=5/10 bce=0.022213 n_batches=39
+[deep4-seed45][train] 2024 epoch=6/10 bce=0.018455 n_batches=39
+[deep4-seed45][train] 2024 epoch=7/10 bce=0.016065 n_batches=39
+[deep4-seed45][train] 2024 epoch=8/10 bce=0.015114 n_batches=39
+[deep4-seed45][train] 2024 epoch=9/10 bce=0.014660 n_batches=39
+[deep4-seed45][train] 2024 epoch=10/10 bce=0.012288 n_batches=39
+[deep4][seed45][2024] member_f1=0.7905 (5s)
+[deep4-seed45][train] 2025 epoch=1/10 bce=0.007409 n_batches=36
+[deep4-seed45][train] 2025 epoch=2/10 bce=0.004680 n_batches=36
+[deep4-seed45][train] 2025 epoch=3/10 bce=0.003430 n_batches=36
+[deep4-seed45][train] 2025 epoch=4/10 bce=0.003194 n_batches=36
+[deep4-seed45][train] 2025 epoch=5/10 bce=0.002939 n_batches=36
+[deep4-seed45][train] 2025 epoch=6/10 bce=0.002110 n_batches=36
+[deep4-seed45][train] 2025 epoch=7/10 bce=0.002071 n_batches=36
+[deep4-seed45][train] 2025 epoch=8/10 bce=0.001940 n_batches=36
+[deep4-seed45][train] 2025 epoch=9/10 bce=0.001331 n_batches=36
+[deep4-seed45][train] 2025 epoch=10/10 bce=0.001281 n_batches=36
+[deep4][seed45][2025] member_f1=0.0000 (5s)
+[deep4][member] seed=45 done train_wall=115s
+[deep4][ensemble][2013] current_f1=0.8523
+[deep4][ensemble][2014] current_f1=0.9651
+[deep4][ensemble][2016] current_f1=0.9597
+[deep4][ensemble][2017] current_f1=0.9621
+[deep4][ensemble][2018] current_f1=0.9616
+[deep4][ensemble][2019] current_f1=0.9795
+[deep4][ensemble][2020] current_f1=0.9810
+[deep4][ensemble][2021] current_f1=0.9871
+[deep4][ensemble][2022] current_f1=0.9885
+[deep4][ensemble][2023] current_f1=0.9456
+[deep4][ensemble][2024] current_f1=0.8014
+[deep4][ensemble][2025] current_f1=0.0000
+=== deep4: 12y mean=0.8232622147 | 2023=0.839678 2024=0.714286 | params=10,749,172 | wall=536s ===
+[deep4][efficiency] sum_member_train=489.0s wall=535.6s params/member=2,687,293 peak_current=21766656 peak_driver=1159725056
+[comparison] 未写：缺少臂 ['swa', 'mcdrop']
+
+########## swa ##########
+[arm] swa device=mps start_epoch=5 epochs=10
+[data] train store loaded in 9.9s root=/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767
+[parts] 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
+[parts] 2014: n_parts=3 rows=81,346 pos=36,805 pos_rate=0.4525
+[parts] 2016: n_parts=5 rows=87,754 pos=36,307 pos_rate=0.4137
+[parts] 2017: n_parts=7 rows=79,711 pos=17,285 pos_rate=0.2168
+[parts] 2018: n_parts=9 rows=83,833 pos=31,680 pos_rate=0.3779
+[parts] 2019: n_parts=11 rows=73,240 pos=33,468 pos_rate=0.4570
+[parts] 2020: n_parts=13 rows=82,054 pos=37,276 pos_rate=0.4543
+[parts] 2021: n_parts=15 rows=65,316 pos=28,698 pos_rate=0.4394
+[parts] 2022: n_parts=17 rows=69,532 pos=33,510 pos_rate=0.4819
+[parts] 2023: n_parts=19 rows=43,879 pos=6,512 pos_rate=0.1484
+[parts] 2024: n_parts=21 rows=39,141 pos=835 pos_rate=0.0213
+[parts] 2025: n_parts=23 rows=36,126 pos=216 pos_rate=0.0060
+[swa][model] params=2,687,293
+[swa][train] 2013 epoch=1/10 bce=0.693122 n_batches=68
+[swa][train] 2013 epoch=2/10 bce=0.692785 n_batches=68
+[swa][train] 2013 epoch=3/10 bce=0.692772 n_batches=68
+[swa][train] 2013 epoch=4/10 bce=0.692756 n_batches=68
+[swa][swa] 2013 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2013 epoch=5/10 bce=0.692717 n_batches=68
+[swa][swa] 2013 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2013 epoch=6/10 bce=0.692673 n_batches=68
+[swa][swa] 2013 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2013 epoch=7/10 bce=0.692653 n_batches=68
+[swa][swa] 2013 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2013 epoch=8/10 bce=0.692567 n_batches=68
+[swa][swa] 2013 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2013 epoch=9/10 bce=0.692449 n_batches=68
+[swa][swa] 2013 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2013 epoch=10/10 bce=0.692264 n_batches=68
+[swa][2013] current_f1=0.6786 snapshots=6 bn=no_op_no_batchnorm (10s)
+[swa][train] 2014 epoch=1/10 bce=0.689841 n_batches=80
+[swa][train] 2014 epoch=2/10 bce=0.687422 n_batches=80
+[swa][train] 2014 epoch=3/10 bce=0.686153 n_batches=80
+[swa][train] 2014 epoch=4/10 bce=0.682017 n_batches=80
+[swa][swa] 2014 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2014 epoch=5/10 bce=0.654423 n_batches=80
+[swa][swa] 2014 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2014 epoch=6/10 bce=0.398506 n_batches=80
+[swa][swa] 2014 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2014 epoch=7/10 bce=0.189594 n_batches=80
+[swa][swa] 2014 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2014 epoch=8/10 bce=0.147761 n_batches=80
+[swa][swa] 2014 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2014 epoch=9/10 bce=0.125863 n_batches=80
+[swa][swa] 2014 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2014 epoch=10/10 bce=0.117057 n_batches=80
+[swa][2014] current_f1=0.9367 snapshots=6 bn=no_op_no_batchnorm (12s)
+[swa][train] 2016 epoch=1/10 bce=0.197083 n_batches=86
+[swa][train] 2016 epoch=2/10 bce=0.152332 n_batches=86
+[swa][train] 2016 epoch=3/10 bce=0.138957 n_batches=86
+[swa][train] 2016 epoch=4/10 bce=0.128323 n_batches=86
+[swa][swa] 2016 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2016 epoch=5/10 bce=0.117703 n_batches=86
+[swa][swa] 2016 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2016 epoch=6/10 bce=0.110698 n_batches=86
+[swa][swa] 2016 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2016 epoch=7/10 bce=0.102322 n_batches=86
+[swa][swa] 2016 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2016 epoch=8/10 bce=0.096812 n_batches=86
+[swa][swa] 2016 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2016 epoch=9/10 bce=0.092241 n_batches=86
+[swa][swa] 2016 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2016 epoch=10/10 bce=0.087777 n_batches=86
+[swa][2016] current_f1=0.9574 snapshots=6 bn=no_op_no_batchnorm (13s)
+[swa][train] 2017 epoch=1/10 bce=0.128565 n_batches=78
+[swa][train] 2017 epoch=2/10 bce=0.084157 n_batches=78
+[swa][train] 2017 epoch=3/10 bce=0.073263 n_batches=78
+[swa][train] 2017 epoch=4/10 bce=0.066390 n_batches=78
+[swa][swa] 2017 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2017 epoch=5/10 bce=0.059555 n_batches=78
+[swa][swa] 2017 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2017 epoch=6/10 bce=0.058442 n_batches=78
+[swa][swa] 2017 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2017 epoch=7/10 bce=0.053370 n_batches=78
+[swa][swa] 2017 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2017 epoch=8/10 bce=0.049066 n_batches=78
+[swa][swa] 2017 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2017 epoch=9/10 bce=0.049273 n_batches=78
+[swa][swa] 2017 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2017 epoch=10/10 bce=0.045112 n_batches=78
+[swa][2017] current_f1=0.9604 snapshots=6 bn=no_op_no_batchnorm (12s)
+[swa][train] 2018 epoch=1/10 bce=0.155234 n_batches=82
+[swa][train] 2018 epoch=2/10 bce=0.118561 n_batches=82
+[swa][train] 2018 epoch=3/10 bce=0.104750 n_batches=82
+[swa][train] 2018 epoch=4/10 bce=0.096167 n_batches=82
+[swa][swa] 2018 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2018 epoch=5/10 bce=0.092900 n_batches=82
+[swa][swa] 2018 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2018 epoch=6/10 bce=0.086212 n_batches=82
+[swa][swa] 2018 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2018 epoch=7/10 bce=0.080813 n_batches=82
+[swa][swa] 2018 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2018 epoch=8/10 bce=0.074831 n_batches=82
+[swa][swa] 2018 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2018 epoch=9/10 bce=0.074082 n_batches=82
+[swa][swa] 2018 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2018 epoch=10/10 bce=0.069653 n_batches=82
+[swa][2018] current_f1=0.9589 snapshots=6 bn=no_op_no_batchnorm (13s)
+[swa][train] 2019 epoch=1/10 bce=0.132665 n_batches=72
+[swa][train] 2019 epoch=2/10 bce=0.077382 n_batches=72
+[swa][train] 2019 epoch=3/10 bce=0.064096 n_batches=72
+[swa][train] 2019 epoch=4/10 bce=0.050566 n_batches=72
+[swa][swa] 2019 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2019 epoch=5/10 bce=0.043334 n_batches=72
+[swa][swa] 2019 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2019 epoch=6/10 bce=0.034735 n_batches=72
+[swa][swa] 2019 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2019 epoch=7/10 bce=0.031496 n_batches=72
+[swa][swa] 2019 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2019 epoch=8/10 bce=0.028017 n_batches=72
+[swa][swa] 2019 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2019 epoch=9/10 bce=0.023142 n_batches=72
+[swa][swa] 2019 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2019 epoch=10/10 bce=0.023042 n_batches=72
+[swa][2019] current_f1=0.9775 snapshots=6 bn=no_op_no_batchnorm (11s)
+[swa][train] 2020 epoch=1/10 bce=0.089128 n_batches=81
+[swa][train] 2020 epoch=2/10 bce=0.059030 n_batches=81
+[swa][train] 2020 epoch=3/10 bce=0.048292 n_batches=81
+[swa][train] 2020 epoch=4/10 bce=0.041488 n_batches=81
+[swa][swa] 2020 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2020 epoch=5/10 bce=0.034239 n_batches=81
+[swa][swa] 2020 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2020 epoch=6/10 bce=0.029767 n_batches=81
+[swa][swa] 2020 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2020 epoch=7/10 bce=0.029897 n_batches=81
+[swa][swa] 2020 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2020 epoch=8/10 bce=0.026279 n_batches=81
+[swa][swa] 2020 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2020 epoch=9/10 bce=0.023945 n_batches=81
+[swa][swa] 2020 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2020 epoch=10/10 bce=0.020849 n_batches=81
+[swa][2020] current_f1=0.9788 snapshots=6 bn=no_op_no_batchnorm (12s)
+[swa][train] 2021 epoch=1/10 bce=0.102046 n_batches=64
+[swa][train] 2021 epoch=2/10 bce=0.059057 n_batches=64
+[swa][train] 2021 epoch=3/10 bce=0.044973 n_batches=64
+[swa][train] 2021 epoch=4/10 bce=0.035306 n_batches=64
+[swa][swa] 2021 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2021 epoch=5/10 bce=0.029513 n_batches=64
+[swa][swa] 2021 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2021 epoch=6/10 bce=0.027451 n_batches=64
+[swa][swa] 2021 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2021 epoch=7/10 bce=0.023932 n_batches=64
+[swa][swa] 2021 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2021 epoch=8/10 bce=0.020227 n_batches=64
+[swa][swa] 2021 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2021 epoch=9/10 bce=0.018048 n_batches=64
+[swa][swa] 2021 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2021 epoch=10/10 bce=0.016884 n_batches=64
+[swa][2021] current_f1=0.9863 snapshots=6 bn=no_op_no_batchnorm (10s)
+[swa][train] 2022 epoch=1/10 bce=0.068219 n_batches=68
+[swa][train] 2022 epoch=2/10 bce=0.037540 n_batches=68
+[swa][train] 2022 epoch=3/10 bce=0.030535 n_batches=68
+[swa][train] 2022 epoch=4/10 bce=0.024519 n_batches=68
+[swa][swa] 2022 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2022 epoch=5/10 bce=0.020105 n_batches=68
+[swa][swa] 2022 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2022 epoch=6/10 bce=0.017390 n_batches=68
+[swa][swa] 2022 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2022 epoch=7/10 bce=0.014203 n_batches=68
+[swa][swa] 2022 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2022 epoch=8/10 bce=0.013369 n_batches=68
+[swa][swa] 2022 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2022 epoch=9/10 bce=0.011728 n_batches=68
+[swa][swa] 2022 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2022 epoch=10/10 bce=0.010983 n_batches=68
+[swa][2022] current_f1=0.9870 snapshots=6 bn=no_op_no_batchnorm (10s)
+[swa][train] 2023 epoch=1/10 bce=0.113952 n_batches=43
+[swa][train] 2023 epoch=2/10 bce=0.068449 n_batches=43
+[swa][train] 2023 epoch=3/10 bce=0.054619 n_batches=43
+[swa][train] 2023 epoch=4/10 bce=0.045397 n_batches=43
+[swa][swa] 2023 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2023 epoch=5/10 bce=0.036942 n_batches=43
+[swa][swa] 2023 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2023 epoch=6/10 bce=0.032818 n_batches=43
+[swa][swa] 2023 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2023 epoch=7/10 bce=0.029205 n_batches=43
+[swa][swa] 2023 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2023 epoch=8/10 bce=0.027965 n_batches=43
+[swa][swa] 2023 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2023 epoch=9/10 bce=0.025626 n_batches=43
+[swa][swa] 2023 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2023 epoch=10/10 bce=0.024944 n_batches=43
+[swa][2023] current_f1=0.9445 snapshots=6 bn=no_op_no_batchnorm (7s)
+[swa][train] 2024 epoch=1/10 bce=0.046642 n_batches=39
+[swa][train] 2024 epoch=2/10 bce=0.034059 n_batches=39
+[swa][train] 2024 epoch=3/10 bce=0.025472 n_batches=39
+[swa][train] 2024 epoch=4/10 bce=0.021716 n_batches=39
+[swa][swa] 2024 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2024 epoch=5/10 bce=0.019141 n_batches=39
+[swa][swa] 2024 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2024 epoch=6/10 bce=0.016911 n_batches=39
+[swa][swa] 2024 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2024 epoch=7/10 bce=0.015067 n_batches=39
+[swa][swa] 2024 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2024 epoch=8/10 bce=0.012703 n_batches=39
+[swa][swa] 2024 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2024 epoch=9/10 bce=0.011492 n_batches=39
+[swa][swa] 2024 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2024 epoch=10/10 bce=0.010623 n_batches=39
+[swa][2024] current_f1=0.7877 snapshots=6 bn=no_op_no_batchnorm (6s)
+[swa][train] 2025 epoch=1/10 bce=0.006150 n_batches=36
+[swa][train] 2025 epoch=2/10 bce=0.003532 n_batches=36
+[swa][train] 2025 epoch=3/10 bce=0.003032 n_batches=36
+[swa][train] 2025 epoch=4/10 bce=0.002636 n_batches=36
+[swa][swa] 2025 epoch=5 snapshot=1 (running mean over 1 epoch-ends)
+[swa][train] 2025 epoch=5/10 bce=0.001994 n_batches=36
+[swa][swa] 2025 epoch=6 snapshot=2 (running mean over 2 epoch-ends)
+[swa][train] 2025 epoch=6/10 bce=0.001554 n_batches=36
+[swa][swa] 2025 epoch=7 snapshot=3 (running mean over 3 epoch-ends)
+[swa][train] 2025 epoch=7/10 bce=0.001580 n_batches=36
+[swa][swa] 2025 epoch=8 snapshot=4 (running mean over 4 epoch-ends)
+[swa][train] 2025 epoch=8/10 bce=0.001450 n_batches=36
+[swa][swa] 2025 epoch=9 snapshot=5 (running mean over 5 epoch-ends)
+[swa][train] 2025 epoch=9/10 bce=0.001071 n_batches=36
+[swa][swa] 2025 epoch=10 snapshot=6 (running mean over 6 epoch-ends)
+[swa][train] 2025 epoch=10/10 bce=0.001206 n_batches=36
+[swa][2025] current_f1=0.0000 snapshots=6 bn=no_op_no_batchnorm (5s)
+=== swa: 12y mean=0.8146955060 | 2023=0.816891 2024=0.727273 | params=2,687,293 | wall=127s ===
+[swa][efficiency] live_train=109.7s wall=126.6s params=2,687,293 peak_current=34887936 peak_driver=1170210816
+[comparison] 未写：缺少臂 ['mcdrop']
+
+########## mcdrop ##########
+[arm] mcdrop device=mps T=10 infer_seed=20261021
+[data] train store loaded in 10.0s root=/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767
+[parts] 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
+[parts] 2014: n_parts=3 rows=81,346 pos=36,805 pos_rate=0.4525
+[parts] 2016: n_parts=5 rows=87,754 pos=36,307 pos_rate=0.4137
+[parts] 2017: n_parts=7 rows=79,711 pos=17,285 pos_rate=0.2168
+[parts] 2018: n_parts=9 rows=83,833 pos=31,680 pos_rate=0.3779
+[parts] 2019: n_parts=11 rows=73,240 pos=33,468 pos_rate=0.4570
+[parts] 2020: n_parts=13 rows=82,054 pos=37,276 pos_rate=0.4543
+[parts] 2021: n_parts=15 rows=65,316 pos=28,698 pos_rate=0.4394
+[parts] 2022: n_parts=17 rows=69,532 pos=33,510 pos_rate=0.4819
+[parts] 2023: n_parts=19 rows=43,879 pos=6,512 pos_rate=0.1484
+[parts] 2024: n_parts=21 rows=39,141 pos=835 pos_rate=0.0213
+[parts] 2025: n_parts=23 rows=36,126 pos=216 pos_rate=0.0060
+[mcdrop][model] params=2,687,293
+[mcdrop][train] 2013 epoch=1/10 bce=0.693122 n_batches=68
+[mcdrop][train] 2013 epoch=2/10 bce=0.692785 n_batches=68
+[mcdrop][train] 2013 epoch=3/10 bce=0.692772 n_batches=68
+[mcdrop][train] 2013 epoch=4/10 bce=0.692756 n_batches=68
+[mcdrop][train] 2013 epoch=5/10 bce=0.692717 n_batches=68
+[mcdrop][train] 2013 epoch=6/10 bce=0.692673 n_batches=68
+[mcdrop][train] 2013 epoch=7/10 bce=0.692653 n_batches=68
+[mcdrop][train] 2013 epoch=8/10 bce=0.692567 n_batches=68
+[mcdrop][train] 2013 epoch=9/10 bce=0.692449 n_batches=68
+[mcdrop][train] 2013 epoch=10/10 bce=0.692264 n_batches=68
+[mcdrop][2013] current_f1=0.6786 T=10 (10s)
+[mcdrop][train] 2014 epoch=1/10 bce=0.689841 n_batches=80
+[mcdrop][train] 2014 epoch=2/10 bce=0.687422 n_batches=80
+[mcdrop][train] 2014 epoch=3/10 bce=0.686153 n_batches=80
+[mcdrop][train] 2014 epoch=4/10 bce=0.682017 n_batches=80
+[mcdrop][train] 2014 epoch=5/10 bce=0.654423 n_batches=80
+[mcdrop][train] 2014 epoch=6/10 bce=0.398506 n_batches=80
+[mcdrop][train] 2014 epoch=7/10 bce=0.189594 n_batches=80
+[mcdrop][train] 2014 epoch=8/10 bce=0.147761 n_batches=80
+[mcdrop][train] 2014 epoch=9/10 bce=0.125863 n_batches=80
+[mcdrop][train] 2014 epoch=10/10 bce=0.117057 n_batches=80
+[mcdrop][2014] current_f1=0.9573 T=10 (12s)
+[mcdrop][train] 2016 epoch=1/10 bce=0.197083 n_batches=86
+[mcdrop][train] 2016 epoch=2/10 bce=0.152332 n_batches=86
+[mcdrop][train] 2016 epoch=3/10 bce=0.138957 n_batches=86
+[mcdrop][train] 2016 epoch=4/10 bce=0.128323 n_batches=86
+[mcdrop][train] 2016 epoch=5/10 bce=0.117703 n_batches=86
+[mcdrop][train] 2016 epoch=6/10 bce=0.110698 n_batches=86
+[mcdrop][train] 2016 epoch=7/10 bce=0.102322 n_batches=86
+[mcdrop][train] 2016 epoch=8/10 bce=0.096812 n_batches=86
+[mcdrop][train] 2016 epoch=9/10 bce=0.092241 n_batches=86
+[mcdrop][train] 2016 epoch=10/10 bce=0.087777 n_batches=86
+[mcdrop][2016] current_f1=0.9588 T=10 (13s)
+[mcdrop][train] 2017 epoch=1/10 bce=0.128565 n_batches=78
+[mcdrop][train] 2017 epoch=2/10 bce=0.084157 n_batches=78
+[mcdrop][train] 2017 epoch=3/10 bce=0.073263 n_batches=78
+[mcdrop][train] 2017 epoch=4/10 bce=0.066390 n_batches=78
+[mcdrop][train] 2017 epoch=5/10 bce=0.059555 n_batches=78
+[mcdrop][train] 2017 epoch=6/10 bce=0.058442 n_batches=78
+[mcdrop][train] 2017 epoch=7/10 bce=0.053370 n_batches=78
+[mcdrop][train] 2017 epoch=8/10 bce=0.049066 n_batches=78
+[mcdrop][train] 2017 epoch=9/10 bce=0.049273 n_batches=78
+[mcdrop][train] 2017 epoch=10/10 bce=0.045112 n_batches=78
+[mcdrop][2017] current_f1=0.9509 T=10 (12s)
+[mcdrop][train] 2018 epoch=1/10 bce=0.155234 n_batches=82
+[mcdrop][train] 2018 epoch=2/10 bce=0.118561 n_batches=82
+[mcdrop][train] 2018 epoch=3/10 bce=0.104750 n_batches=82
+[mcdrop][train] 2018 epoch=4/10 bce=0.096167 n_batches=82
+[mcdrop][train] 2018 epoch=5/10 bce=0.092900 n_batches=82
+[mcdrop][train] 2018 epoch=6/10 bce=0.086212 n_batches=82
+[mcdrop][train] 2018 epoch=7/10 bce=0.080813 n_batches=82
+[mcdrop][train] 2018 epoch=8/10 bce=0.074831 n_batches=82
+[mcdrop][train] 2018 epoch=9/10 bce=0.074082 n_batches=82
+[mcdrop][train] 2018 epoch=10/10 bce=0.069653 n_batches=82
+[mcdrop][2018] current_f1=0.9559 T=10 (12s)
+[mcdrop][train] 2019 epoch=1/10 bce=0.132665 n_batches=72
+[mcdrop][train] 2019 epoch=2/10 bce=0.077382 n_batches=72
+[mcdrop][train] 2019 epoch=3/10 bce=0.064096 n_batches=72
+[mcdrop][train] 2019 epoch=4/10 bce=0.050566 n_batches=72
+[mcdrop][train] 2019 epoch=5/10 bce=0.043334 n_batches=72
+[mcdrop][train] 2019 epoch=6/10 bce=0.034735 n_batches=72
+[mcdrop][train] 2019 epoch=7/10 bce=0.031496 n_batches=72
+[mcdrop][train] 2019 epoch=8/10 bce=0.028017 n_batches=72
+[mcdrop][train] 2019 epoch=9/10 bce=0.023142 n_batches=72
+[mcdrop][train] 2019 epoch=10/10 bce=0.023042 n_batches=72
+[mcdrop][2019] current_f1=0.9744 T=10 (11s)
+[mcdrop][train] 2020 epoch=1/10 bce=0.089128 n_batches=81
+[mcdrop][train] 2020 epoch=2/10 bce=0.059030 n_batches=81
+[mcdrop][train] 2020 epoch=3/10 bce=0.048292 n_batches=81
+[mcdrop][train] 2020 epoch=4/10 bce=0.041488 n_batches=81
+[mcdrop][train] 2020 epoch=5/10 bce=0.034239 n_batches=81
+[mcdrop][train] 2020 epoch=6/10 bce=0.029767 n_batches=81
+[mcdrop][train] 2020 epoch=7/10 bce=0.029897 n_batches=81
+[mcdrop][train] 2020 epoch=8/10 bce=0.026279 n_batches=81
+[mcdrop][train] 2020 epoch=9/10 bce=0.023945 n_batches=81
+[mcdrop][train] 2020 epoch=10/10 bce=0.020849 n_batches=81
+[mcdrop][2020] current_f1=0.9772 T=10 (12s)
+[mcdrop][train] 2021 epoch=1/10 bce=0.102046 n_batches=64
+[mcdrop][train] 2021 epoch=2/10 bce=0.059057 n_batches=64
+[mcdrop][train] 2021 epoch=3/10 bce=0.044973 n_batches=64
+[mcdrop][train] 2021 epoch=4/10 bce=0.035306 n_batches=64
+[mcdrop][train] 2021 epoch=5/10 bce=0.029513 n_batches=64
+[mcdrop][train] 2021 epoch=6/10 bce=0.027451 n_batches=64
+[mcdrop][train] 2021 epoch=7/10 bce=0.023932 n_batches=64
+[mcdrop][train] 2021 epoch=8/10 bce=0.020227 n_batches=64
+[mcdrop][train] 2021 epoch=9/10 bce=0.018048 n_batches=64
+[mcdrop][train] 2021 epoch=10/10 bce=0.016884 n_batches=64
+[mcdrop][2021] current_f1=0.9856 T=10 (10s)
+[mcdrop][train] 2022 epoch=1/10 bce=0.068219 n_batches=68
+[mcdrop][train] 2022 epoch=2/10 bce=0.037540 n_batches=68
+[mcdrop][train] 2022 epoch=3/10 bce=0.030535 n_batches=68
+[mcdrop][train] 2022 epoch=4/10 bce=0.024519 n_batches=68
+[mcdrop][train] 2022 epoch=5/10 bce=0.020105 n_batches=68
+[mcdrop][train] 2022 epoch=6/10 bce=0.017390 n_batches=68
+[mcdrop][train] 2022 epoch=7/10 bce=0.014203 n_batches=68
+[mcdrop][train] 2022 epoch=8/10 bce=0.013369 n_batches=68
+[mcdrop][train] 2022 epoch=9/10 bce=0.011728 n_batches=68
+[mcdrop][train] 2022 epoch=10/10 bce=0.010983 n_batches=68
+[mcdrop][2022] current_f1=0.9869 T=10 (11s)
+[mcdrop][train] 2023 epoch=1/10 bce=0.113952 n_batches=43
+[mcdrop][train] 2023 epoch=2/10 bce=0.068449 n_batches=43
+[mcdrop][train] 2023 epoch=3/10 bce=0.054619 n_batches=43
+[mcdrop][train] 2023 epoch=4/10 bce=0.045397 n_batches=43
+[mcdrop][train] 2023 epoch=5/10 bce=0.036942 n_batches=43
+[mcdrop][train] 2023 epoch=6/10 bce=0.032818 n_batches=43
+[mcdrop][train] 2023 epoch=7/10 bce=0.029205 n_batches=43
+[mcdrop][train] 2023 epoch=8/10 bce=0.027965 n_batches=43
+[mcdrop][train] 2023 epoch=9/10 bce=0.025626 n_batches=43
+[mcdrop][train] 2023 epoch=10/10 bce=0.024944 n_batches=43
+[mcdrop][2023] current_f1=0.9367 T=10 (7s)
+[mcdrop][train] 2024 epoch=1/10 bce=0.046642 n_batches=39
+[mcdrop][train] 2024 epoch=2/10 bce=0.034059 n_batches=39
+[mcdrop][train] 2024 epoch=3/10 bce=0.025472 n_batches=39
+[mcdrop][train] 2024 epoch=4/10 bce=0.021716 n_batches=39
+[mcdrop][train] 2024 epoch=5/10 bce=0.019141 n_batches=39
+[mcdrop][train] 2024 epoch=6/10 bce=0.016911 n_batches=39
+[mcdrop][train] 2024 epoch=7/10 bce=0.015067 n_batches=39
+[mcdrop][train] 2024 epoch=8/10 bce=0.012703 n_batches=39
+[mcdrop][train] 2024 epoch=9/10 bce=0.011492 n_batches=39
+[mcdrop][train] 2024 epoch=10/10 bce=0.010623 n_batches=39
+[mcdrop][2024] current_f1=0.7789 T=10 (6s)
+[mcdrop][train] 2025 epoch=1/10 bce=0.006150 n_batches=36
+[mcdrop][train] 2025 epoch=2/10 bce=0.003532 n_batches=36
+[mcdrop][train] 2025 epoch=3/10 bce=0.003032 n_batches=36
+[mcdrop][train] 2025 epoch=4/10 bce=0.002636 n_batches=36
+[mcdrop][train] 2025 epoch=5/10 bce=0.001994 n_batches=36
+[mcdrop][train] 2025 epoch=6/10 bce=0.001554 n_batches=36
+[mcdrop][train] 2025 epoch=7/10 bce=0.001580 n_batches=36
+[mcdrop][train] 2025 epoch=8/10 bce=0.001450 n_batches=36
+[mcdrop][train] 2025 epoch=9/10 bce=0.001071 n_batches=36
+[mcdrop][train] 2025 epoch=10/10 bce=0.001206 n_batches=36
+[mcdrop][2025] current_f1=0.0000 T=10 (5s)
+=== mcdrop: 12y mean=0.8170376211 | 2023=0.824139 2024=0.742188 | params=2,687,293 | wall=134s ===
+[mcdrop][efficiency] train=109.9s wall=133.5s params=2,687,293 peak_current=24137984 peak_driver=1162002432
+[comparison] budget_claim.supported=True abs_diff=0.009084 efficiency_ratio=0.651
+[done] arms=['deep4', 'swa', 'mcdrop']
