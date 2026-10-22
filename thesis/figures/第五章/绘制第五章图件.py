@@ -30,6 +30,7 @@ sys.path.insert(0, str(HERE.parent / "第三章"))
 import figstyle as fs  # noqa: E402
 
 from matplotlib.figure import Figure  # noqa: E402
+from matplotlib.patches import Patch  # noqa: E402
 from matplotlib.ticker import FuncFormatter  # noqa: E402
 
 DATA_DIR = (
@@ -127,6 +128,21 @@ def load_benchmark() -> tuple[dict[str, object], dict[str, object]]:
                     raise ValueError(
                         f"{service} {scenario} 的 {key} 与第一轮汇总不一致"
                     )
+    for service in ("py", "rs"):
+        for key in ("rss_mb_max", "startup_s"):
+            if abs(float(chart[key][service]) - float(replication[service][key])) > 1e-9:
+                raise ValueError(f"{service} 的 {key} 与第一轮汇总不一致")
+
+    warm_rust = float(
+        benchmark["replication_summary"]["round2_rs_then_py"]["services"]["rs"][
+            "startup_s"
+        ]
+    )
+    cold_rust = float(chart["startup_s"]["rs"])
+    if not (0.0 < warm_rust < cold_rust):
+        raise ValueError(
+            f"Rust 热启动 {warm_rust} 应小于冷启动 {cold_rust}"
+        )
     return benchmark, chart
 
 
