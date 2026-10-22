@@ -14,6 +14,7 @@
 
 ## 二、立即待办（新机克隆验证后按序执行）
 
+0. **新机起点（必读）**：`git clone` 默认落在 `main`（旧路线）——**必须先 `git checkout exp/ch3-lamda-20260908`**，一切工作在该分支根目录进行（无需重建 `.worktrees/` 结构，那是旧机的布局）；本工作树的根 `CLAUDE.md`/`AGENTS.md` 路由链已指向本卡。然后按 1.8170 复现门验证环境。
 1. **克隆验证门槛**：`tools/ch3_lamda_domain_il_e4.py` 复现门（12y = 0.8170，MPS/CUDA 序列各自成立）；
 2. **full 格重跑**：`tools/ch5_system_runner.py` 的 full 格（三格 result 已在
    `runs/diagnostics/ch5-system/`，full 于本机死亡于 2018 epoch 8，约 14 分钟）；
