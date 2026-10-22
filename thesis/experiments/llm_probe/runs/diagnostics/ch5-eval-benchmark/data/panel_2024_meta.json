@@ -1,0 +1,15 @@
+{
+  "shape": [
+    9686,
+    4561
+  ],
+  "dtype": "float32-le",
+  "path": "panel_2024.f32",
+  "source": "ch3.load_year(2024, 'test')",
+  "n_samples": 9686,
+  "n_features": 4561,
+  "positive": 159,
+  "request_order_seed": 42,
+  "request_order_path": "request_order.i32",
+  "service_batch": 32
+}

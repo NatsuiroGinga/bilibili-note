@@ -1,0 +1,2 @@
+[eval-rs] device=Mps input_dim=4561 k=4 weights_sha256=b33891795b6c9a69… model_load=0.325s
+[eval-rs] listening on 127.0.0.1:18082

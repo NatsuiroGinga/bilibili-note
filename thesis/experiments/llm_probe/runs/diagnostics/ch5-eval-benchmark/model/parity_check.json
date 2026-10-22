@@ -1,0 +1,9 @@
+{
+  "device": "mps",
+  "keys_match": true,
+  "n_keys": 35,
+  "max_abs_diff": 0.0,
+  "batch": 32,
+  "weights_sha256": "b33891795b6c9a69fcbe0ce1957f9137f368d5f667aa32f01c3e22ecca3b564e",
+  "ts": "2026-10-22T06:26:56.679844+00:00"
+}

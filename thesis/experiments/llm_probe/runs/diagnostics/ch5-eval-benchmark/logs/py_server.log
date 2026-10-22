@@ -1,0 +1,2 @@
+[eval-py] device=mps input_dim=4561 k=4 params=2,723,305 model_load=0.370s
+[eval-py] listening on 127.0.0.1:18081

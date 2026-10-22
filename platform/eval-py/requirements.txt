@@ -1,0 +1,4 @@
+# 2026-10-22 安装收据：uv pip install --python /opt/miniconda3/envs/rwkv/bin/python fastapi uvicorn
+# 冻结环境已有：torch 2.12.0、safetensors 0.8.0、numpy 2.4.6
+fastapi==0.159.1
+uvicorn==0.54.0

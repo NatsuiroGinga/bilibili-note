@@ -116,3 +116,5 @@ Zotero.txt
 .env.*
 *.pem
 credentials.json
+platform/eval-rs/target/
+thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/data/*.f32
