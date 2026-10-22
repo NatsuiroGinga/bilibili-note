@@ -21,6 +21,7 @@ import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
@@ -35,6 +36,10 @@ DATA_DIR = (
     REPO / "thesis/experiments/llm_probe/runs/diagnostics/ch5-system"
 )
 COMPARISON = DATA_DIR / "system-comparison.json"
+BENCHMARK = (
+    REPO
+    / "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/benchmark.json"
+)
 CELLS = ("naive", "replay", "naive_members", "full")
 YEARS = (
     "2013",
@@ -95,6 +100,34 @@ def load_curves() -> tuple[dict[str, dict[str, float]], dict[str, object]]:
                 )
 
     return curves, comparison
+
+
+def load_benchmark() -> tuple[dict[str, object], dict[str, object]]:
+    """读取评测服务基准的 chart_data，并与第一轮复现汇总逐项核对。"""
+
+    benchmark = json.loads(BENCHMARK.read_text(encoding="utf-8"))
+    chart = benchmark["chart_data"]
+    if chart["services"] != ["py", "rs"]:
+        raise ValueError(f"服务顺序与预期不一致：{chart['services']}")
+    if chart["concurrency"] != [1, 8]:
+        raise ValueError(f"并发档位与预期不一致：{chart['concurrency']}")
+    if chart["batch"] != 32 or chart["panel_samples"] != 9686:
+        raise ValueError(
+            f"批次或面板样本量与预期不一致：batch={chart['batch']}, "
+            f"panel_samples={chart['panel_samples']}"
+        )
+
+    replication = benchmark["replication_summary"]["round1_py_then_rs"]["services"]
+    for index, scenario in enumerate(("c1", "c8")):
+        for service in ("py", "rs"):
+            expected = replication[service]["scenarios"][scenario]
+            for key in ("p50_ms", "p95_ms", "p99_ms", "throughput_samples_s"):
+                actual = float(chart[key][service][index])
+                if abs(actual - float(expected[key])) > 1e-9:
+                    raise ValueError(
+                        f"{service} {scenario} 的 {key} 与第一轮汇总不一致"
+                    )
+    return benchmark, chart
 
 
 # ---------------------------------------------------------------- 图 5-1
@@ -508,6 +541,186 @@ def draw_curves(curves: dict[str, dict[str, float]]) -> fs.Canvas:
     return fs.Canvas(fig, ax, width_mm, height_mm)
 
 
+def _draw_grouped_bars(
+    *,
+    width_mm: float,
+    height_mm: float,
+    group_labels: tuple[str, ...],
+    values: dict[str, list[float]],
+    ylabel: str,
+    xlabel: str,
+    ylim: float,
+    yticks: list[float],
+    value_formatter: Callable[[float], str],
+    footnote: str,
+    ratio_labels: tuple[str, ...],
+    ratio_gap: float = 0.075,
+) -> fs.Canvas:
+    """分组柱状图：Python 与 Rust 两柱一组，灰度下以填充图案区分。"""
+
+    fig = Figure(
+        figsize=(fs.mm_to_inch(width_mm), fs.mm_to_inch(height_mm)),
+        dpi=200,
+        facecolor=fs.WHITE,
+    )
+    ax = fig.add_axes((0.105, 0.315, 0.865, 0.605))
+
+    x_positions = list(range(len(group_labels)))
+    bar_width = 0.32
+    offset = 0.17
+    style = {
+        "py": {"face": "#D9D9D9", "edge": "#444444", "hatch": "///"},
+        "rs": {"face": "#8C8C8C", "edge": "#1F1F1F", "hatch": "\\\\\\\\\\\\"},
+    }
+    bars = {}
+    for service in ("py", "rs"):
+        positions = [
+            position + (-offset if service == "py" else offset)
+            for position in x_positions
+        ]
+        bars[service] = ax.bar(
+            positions,
+            values[service],
+            width=bar_width,
+            color=style[service]["face"],
+            edgecolor=style[service]["edge"],
+            linewidth=0.8,
+            hatch=style[service]["hatch"],
+            zorder=3,
+        )
+        for position, value in zip(positions, values[service]):
+            ax.text(
+                position,
+                value + ylim * 0.018,
+                fs.checked(value_formatter(value), 8.0),
+                ha="center",
+                va="bottom",
+                size=8.0,
+                color=fs.INK,
+                zorder=5,
+            )
+
+    for position, ratio in zip(x_positions, ratio_labels):
+        peak = max(values["py"][position], values["rs"][position])
+        ax.text(
+            position,
+            peak + ylim * ratio_gap,
+            fs.checked(ratio, 8.0),
+            ha="center",
+            va="bottom",
+            size=8.0,
+            color=fs.MUTED,
+            zorder=5,
+        )
+
+    ax.set_xlim(-0.6, len(x_positions) - 0.4)
+    ax.set_ylim(0.0, ylim)
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(group_labels, size=8.0)
+    ax.set_yticks(yticks)
+    ax.tick_params(axis="y", labelsize=8.0)
+    ax.tick_params(axis="x", length=2.5, width=0.6, pad=3.0)
+    ax.tick_params(axis="y", length=2.5, width=0.6, pad=2.5)
+    ax.set_ylabel(fs.checked(ylabel, 9.0), size=9.0, labelpad=5.0)
+    ax.set_xlabel(fs.checked(xlabel, 9.0), size=9.0, labelpad=5.0)
+    ax.grid(axis="y", color="#D9D9D9", linewidth=0.5, zorder=0)
+    ax.set_axisbelow(True)
+    for side in ("top", "right"):
+        ax.spines[side].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_linewidth(0.7)
+        ax.spines[side].set_color(fs.INK)
+
+    legend_labels = [
+        fs.checked("Python（FastAPI）", 8.0),
+        fs.checked("Rust（axum）", 8.0),
+    ]
+    fig.legend(
+        [bars["py"], bars["rs"]],
+        legend_labels,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.105),
+        ncol=2,
+        frameon=False,
+        fontsize=8.0,
+        handlelength=2.4,
+        columnspacing=2.0,
+        borderaxespad=0.0,
+    )
+    fig.text(
+        0.5,
+        0.022,
+        fs.checked(footnote, 8.0),
+        ha="center",
+        va="bottom",
+        size=8.0,
+        color=fs.MUTED,
+    )
+    return fs.Canvas(fig, ax, width_mm, height_mm)
+
+
+def draw_throughput(chart: dict[str, object]) -> fs.Canvas:
+    """图 5-3：两档并发下的吞吐对照。"""
+
+    py_values = [float(value) for value in chart["throughput_samples_s"]["py"]]
+    rs_values = [float(value) for value in chart["throughput_samples_s"]["rs"]]
+    ratios = [rs / py for py, rs in zip(py_values, rs_values)]
+    cv = _draw_grouped_bars(
+        width_mm=150.0,
+        height_mm=90.0,
+        group_labels=("1", "8"),
+        values={"py": py_values, "rs": rs_values},
+        ylabel="吞吐（样本/秒）",
+        xlabel="并发数",
+        ylim=14000.0,
+        yticks=[0, 3000, 6000, 9000, 12000],
+        value_formatter=lambda value: f"{value:,.0f}",
+        footnote="第一轮 3 遍完整面板的中位吞吐；面板 9,686 样本，批大小 32。",
+        ratio_labels=tuple(
+            f"Rust/Python {ratio:.2f} 倍" for ratio in ratios
+        ),
+    )
+    cv.ax.yaxis.set_major_formatter(
+        FuncFormatter(lambda value, _: f"{value:,.0f}")
+    )
+    return cv
+
+
+def draw_latency(chart: dict[str, object]) -> fs.Canvas:
+    """图 5-4：八并发下三种延迟分位的对照。"""
+
+    py_values = [
+        float(chart["p50_ms"]["py"][1]),
+        float(chart["p95_ms"]["py"][1]),
+        float(chart["p99_ms"]["py"][1]),
+    ]
+    rs_values = [
+        float(chart["p50_ms"]["rs"][1]),
+        float(chart["p95_ms"]["rs"][1]),
+        float(chart["p99_ms"]["rs"][1]),
+    ]
+    ratios = [rs / py for py, rs in zip(py_values, rs_values)]
+    return _draw_grouped_bars(
+        width_mm=150.0,
+        height_mm=90.0,
+        group_labels=("p50", "p95", "p99"),
+        values={"py": py_values, "rs": rs_values},
+        ylabel="延迟（ms）",
+        xlabel="延迟分位",
+        ylim=88.0,
+        yticks=[0, 20, 40, 60, 80],
+        value_formatter=lambda value: f"{value:.2f}",
+        footnote=(
+            "第一轮 3 遍完整面板的中位延迟；Rust/Python 延迟比 p50 "
+            f"{ratios[0]:.2f}、p95 {ratios[1]:.2f}、p99 {ratios[2]:.2f}。"
+        ),
+        ratio_labels=tuple(
+            f"Rust/Python {ratio:.2f} 倍" for ratio in ratios
+        ),
+        ratio_gap=0.085,
+    )
+
+
 # ---------------------------------------------------------------- 清单登记
 
 
@@ -643,7 +856,8 @@ def update_manifest(entries: list[dict[str, object]]) -> Path:
         "png_dpi": fs.PNG_DPI,
     }
     manifest["matplotlib_data_mode"] = (
-        "图 5-2 由四格结果 JSON 的 panel.backward_f1 读取并断言，"
+        "图 5-2 由四格结果 JSON 的 panel.backward_f1 读取并断言；"
+        "图 5-3 与图 5-4 由 benchmark.json 的 chart_data 读取并断言；"
         "图 5-1 依据 5.2、5.4 正文绘制"
     )
     path.write_text(
@@ -658,6 +872,7 @@ def update_manifest(entries: list[dict[str, object]]) -> Path:
 
 def main() -> None:
     curves, _ = load_curves()
+    _, chart = load_benchmark()
 
     architecture = draw_architecture()
     fs.save_figure(
@@ -682,6 +897,43 @@ def main() -> None:
         ),
         curve_figure,
     )
+
+    throughput_figure = draw_throughput(chart)
+    fs.save_figure(
+        HERE,
+        fs.FigureSpec(
+            stem="图5-3-两种评测服务的吞吐对照",
+            width_mm=150.0,
+            height_mm=90.0,
+            draw=None,
+        ),
+        throughput_figure,
+    )
+
+    latency_figure = draw_latency(chart)
+    fs.save_figure(
+        HERE,
+        fs.FigureSpec(
+            stem="图5-4-八并发下的延迟分位对照",
+            width_mm=150.0,
+            height_mm=90.0,
+            draw=None,
+        ),
+        latency_figure,
+    )
+
+    py_tp = [float(value) for value in chart["throughput_samples_s"]["py"]]
+    rs_tp = [float(value) for value in chart["throughput_samples_s"]["rs"]]
+    tp_ratios = [rs / py for py, rs in zip(py_tp, rs_tp)]
+    py_latency = {
+        key: float(chart[key]["py"][1]) for key in ("p50_ms", "p95_ms", "p99_ms")
+    }
+    rs_latency = {
+        key: float(chart[key]["rs"][1]) for key in ("p50_ms", "p95_ms", "p99_ms")
+    }
+    latency_ratios = {
+        key: rs_latency[key] / py_latency[key] for key in py_latency
+    }
 
     entries = [
         build_entry(
@@ -732,6 +984,75 @@ def main() -> None:
                 },
             },
         ),
+        build_entry(
+            "图5-3-两种评测服务的吞吐对照",
+            "两种评测服务在并发 1 与并发 8 下的吞吐对照。柱为第一轮 3 遍完整 2024 年测试"
+            "面板（9,686 样本，批大小 32）的中位吞吐；Python 为 FastAPI 实现，Rust 为 "
+            "axum 实现。并发 1 时 Rust/Python 吞吐比为 1.11，并发 8 时为 1.72。",
+            150.0,
+            90.0,
+            throughput_figure,
+            "真实数据：ch5-eval-benchmark/benchmark.json.chart_data",
+            [
+                "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/"
+                "benchmark.json.chart_data.{services,concurrency,batch,panel_samples,"
+                "throughput_samples_s}",
+                "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/"
+                "benchmark.json.replication_summary.round1_py_then_rs.services."
+                "{py,rs}.scenarios.{c1,c8}.throughput_samples_s",
+                "thesis/chapters/第五章-LAMDA/5.6-评测服务的多语言实现对比.md 表 5-10",
+            ],
+            {
+                "concurrency": [1, 8],
+                "throughput_samples_s": {
+                    "py": py_tp,
+                    "rs": rs_tp,
+                },
+                "rust_over_python": {
+                    "c1": tp_ratios[0],
+                    "c8": tp_ratios[1],
+                },
+                "verification": {
+                    "source": "chart_data.throughput_samples_s 与第一轮复现汇总逐位一致（容差 1e-9）",
+                    "values": "柱顶数值由 chart_data 直接格式化，未手抄",
+                },
+            },
+        ),
+        build_entry(
+            "图5-4-八并发下的延迟分位对照",
+            "八并发下两种评测服务的 p50、p95 与 p99 延迟对照。柱为第一轮 3 遍完整"
+            "面板的中位延迟；Rust/Python 延迟比分别为 0.62、0.43 与 0.47。",
+            150.0,
+            90.0,
+            latency_figure,
+            "真实数据：ch5-eval-benchmark/benchmark.json.chart_data",
+            [
+                "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/"
+                "benchmark.json.chart_data.{services,concurrency,batch,panel_samples,"
+                "p50_ms,p95_ms,p99_ms}",
+                "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/"
+                "benchmark.json.replication_summary.round1_py_then_rs.services."
+                "{py,rs}.scenarios.c8.{p50_ms,p95_ms,p99_ms}",
+                "thesis/chapters/第五章-LAMDA/5.6-评测服务的多语言实现对比.md 表 5-10",
+            ],
+            {
+                "concurrency": 8,
+                "latency_ms": {
+                    "p50": {"py": py_latency["p50_ms"], "rs": rs_latency["p50_ms"]},
+                    "p95": {"py": py_latency["p95_ms"], "rs": rs_latency["p95_ms"]},
+                    "p99": {"py": py_latency["p99_ms"], "rs": rs_latency["p99_ms"]},
+                },
+                "rust_over_python": {
+                    "p50": latency_ratios["p50_ms"],
+                    "p95": latency_ratios["p95_ms"],
+                    "p99": latency_ratios["p99_ms"],
+                },
+                "verification": {
+                    "source": "chart_data.p50/p95/p99_ms 与第一轮复现汇总逐位一致（容差 1e-9）",
+                    "values": "柱顶数值由 chart_data 直接格式化，未手抄",
+                },
+            },
+        ),
     ]
 
     manifest = update_manifest(entries)
@@ -741,6 +1062,18 @@ def main() -> None:
     print("[数据核对] 图 5-2 的 2023 年回看 F1：")
     for cell in CELLS:
         print(f"  {cell}: {curves[cell]['2023']:.12f}")
+    print("[数据核对] 图 5-3 吞吐（样本/秒）：")
+    for index, concurrency in enumerate(chart["concurrency"]):
+        print(
+            f"  并发 {concurrency}: py={py_tp[index]:.6f}, "
+            f"rs={rs_tp[index]:.6f}, rust/py={tp_ratios[index]:.6f}"
+        )
+    print("[数据核对] 图 5-4 八并发延迟（ms）：")
+    for key, label in (("p50_ms", "p50"), ("p95_ms", "p95"), ("p99_ms", "p99")):
+        print(
+            f"  {label}: py={py_latency[key]:.6f}, "
+            f"rs={rs_latency[key]:.6f}, rust/py={latency_ratios[key]:.6f}"
+        )
 
 
 if __name__ == "__main__":

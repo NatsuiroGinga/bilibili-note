@@ -91,8 +91,8 @@
       "sha256": "5f9074cf8d63e2da7ae3df02278c66747035ccbc5abb21db304d4439e6781dec",
       "sha256_by_format": {
         "png": "5f9074cf8d63e2da7ae3df02278c66747035ccbc5abb21db304d4439e6781dec",
-        "pdf": "c240126c2abb35ebd1dd49037b66f0c8fb798e2a673ba426b108cae27a7657a4",
-        "svg": "a0e952c37d98f5503d141b12901421b7a2a5affcd7e062dce0472010cbf35d3a"
+        "pdf": "760a1252e2e67bc4231141311ccd864257723c50fc78a3260d5667177504f744",
+        "svg": "234c5ec4099ba72d190201ccc4b62d90d371d64a5ff0ce105121a2ec393814d7"
       },
       "outputs": {
         "png": "图5-1-服务与计算分离的系统架构.png",
@@ -132,8 +132,8 @@
       "sha256": "39b149e4ffc8551c5119841b0e37594f172ac08d61729be12ba0f8023428c8ab",
       "sha256_by_format": {
         "png": "39b149e4ffc8551c5119841b0e37594f172ac08d61729be12ba0f8023428c8ab",
-        "pdf": "1d8bdddd0209156e1028e0b6e41a2c5810ff0b7df2732d6fca194906a7e24e42",
-        "svg": "635c901cd5ee75d631a6a382c09f6dba8e1e6a8e99e4ce5bfc4296a070168a9b"
+        "pdf": "2863266be182a8edd9468c5b6cba8ae8421349aaf647069fb2c82c691b8f448e",
+        "svg": "84e105cfe3e3dad3ad69dbb0c1bf06baae1b8ca81d1b2b51ebd8928ed08a21e7"
       },
       "outputs": {
         "png": "图5-2-四格配置的12年回看F1曲线.png",
@@ -170,6 +170,134 @@
         "years_order": "panel.backward_f1 键序与图件年度顺序逐位一致",
         "summary_match": "四格 2023/2024/2025 与 mean_f1_12y 逐位一致（容差 1e-12）",
         "equivalence_runner_match": "full 与 replay 逐年与 equivalence_checks.runner 逐位一致"
+      }
+    },
+    {
+      "stem": "图5-3-两种评测服务的吞吐对照",
+      "caption": "两种评测服务在并发 1 与并发 8 下的吞吐对照。柱为第一轮 3 遍完整 2024 年测试面板（9,686 样本，批大小 32）的中位吞吐；Python 为 FastAPI 实现，Rust 为 axum 实现。并发 1 时 Rust/Python 吞吐比为 1.11，并发 8 时为 1.72。",
+      "generator": "thesis/figures/第五章/绘制第五章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 150.0,
+      "height_mm": 90.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2362,
+        1417
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.9
+      ],
+      "bytes": 143139,
+      "bytes_by_format": {
+        "png": 143139,
+        "pdf": 31593,
+        "svg": 11915
+      },
+      "sha256": "154168240faf92d308970f1eb3ca359fabe48b09c031480b28c8e512639b6f1d",
+      "sha256_by_format": {
+        "png": "154168240faf92d308970f1eb3ca359fabe48b09c031480b28c8e512639b6f1d",
+        "pdf": "5dafe11ad87d3cc46cbc584040a109d4c6a7c3634c170d4f0740f128c329b416",
+        "svg": "c82ae6366c0e6f364f68daa0137ab291a48ee9dab6a1fe537883fc253e1cd221"
+      },
+      "outputs": {
+        "png": "图5-3-两种评测服务的吞吐对照.png",
+        "pdf": "图5-3-两种评测服务的吞吐对照.pdf",
+        "svg": "图5-3-两种评测服务的吞吐对照.svg"
+      },
+      "evidence_mode": "真实数据：ch5-eval-benchmark/benchmark.json.chart_data",
+      "data_keys": [
+        "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/benchmark.json.chart_data.{services,concurrency,batch,panel_samples,throughput_samples_s}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/benchmark.json.replication_summary.round1_py_then_rs.services.{py,rs}.scenarios.{c1,c8}.throughput_samples_s",
+        "thesis/chapters/第五章-LAMDA/5.6-评测服务的多语言实现对比.md 表 5-10"
+      ],
+      "concurrency": [
+        1,
+        8
+      ],
+      "throughput_samples_s": {
+        "py": [
+          4172.858262521908,
+          7154.106765943303
+        ],
+        "rs": [
+          4634.012228191226,
+          12322.672469590869
+        ]
+      },
+      "rust_over_python": {
+        "c1": 1.1105127317194368,
+        "c8": 1.7224613599914687
+      },
+      "verification": {
+        "source": "chart_data.throughput_samples_s 与第一轮复现汇总逐位一致（容差 1e-9）",
+        "values": "柱顶数值由 chart_data 直接格式化，未手抄"
+      }
+    },
+    {
+      "stem": "图5-4-八并发下的延迟分位对照",
+      "caption": "八并发下两种评测服务的 p50、p95 与 p99 延迟对照。柱为第一轮 3 遍完整面板的中位延迟；Rust/Python 延迟比分别为 0.62、0.43 与 0.47。",
+      "generator": "thesis/figures/第五章/绘制第五章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 150.0,
+      "height_mm": 90.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2362,
+        1417
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.9
+      ],
+      "bytes": 160244,
+      "bytes_by_format": {
+        "png": 160244,
+        "pdf": 30934,
+        "svg": 13560
+      },
+      "sha256": "820373bc9ad4d3b5a43c86a39179c9ee5b66d99d796fbdb75949cc57970a6b9d",
+      "sha256_by_format": {
+        "png": "820373bc9ad4d3b5a43c86a39179c9ee5b66d99d796fbdb75949cc57970a6b9d",
+        "pdf": "07fed10fb11a97c5b5288400fa6f115782b6d5898551a1b09c15147035c32776",
+        "svg": "ca4847e9676e831c0de233f797f3e52cae699555bb73d65d40442daf025a90a5"
+      },
+      "outputs": {
+        "png": "图5-4-八并发下的延迟分位对照.png",
+        "pdf": "图5-4-八并发下的延迟分位对照.pdf",
+        "svg": "图5-4-八并发下的延迟分位对照.svg"
+      },
+      "evidence_mode": "真实数据：ch5-eval-benchmark/benchmark.json.chart_data",
+      "data_keys": [
+        "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/benchmark.json.chart_data.{services,concurrency,batch,panel_samples,p50_ms,p95_ms,p99_ms}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch5-eval-benchmark/benchmark.json.replication_summary.round1_py_then_rs.services.{py,rs}.scenarios.c8.{p50_ms,p95_ms,p99_ms}",
+        "thesis/chapters/第五章-LAMDA/5.6-评测服务的多语言实现对比.md 表 5-10"
+      ],
+      "concurrency": 8,
+      "latency_ms": {
+        "p50": {
+          "py": 31.933875055983663,
+          "rs": 19.840750144794583
+        },
+        "p95": {
+          "py": 63.114445423707366,
+          "rs": 26.886437670327723
+        },
+        "p99": {
+          "py": 73.9819988841191,
+          "rs": 34.43543008062991
+        }
+      },
+      "rust_over_python": {
+        "p50": 0.6213073142552078,
+        "p95": 0.4259949919520089,
+        "p99": 0.4654568759971932
+      },
+      "verification": {
+        "source": "chart_data.p50/p95/p99_ms 与第一轮复现汇总逐位一致（容差 1e-9）",
+        "values": "柱顶数值由 chart_data 直接格式化，未手抄"
       }
     },
     {
@@ -250,7 +378,7 @@
     "numpy": "2.5.4",
     "pillow": "13.0.0",
     "os": "macOS-26.5-arm64-arm-64bit-Mach-O",
-    "generated_at_utc": "2026-10-22T06:37:24+00:00"
+    "generated_at_utc": "2026-10-22T06:54:53+00:00"
   },
   "matplotlib_typography": {
     "cjk_font_requested": "SimHei",
@@ -266,5 +394,5 @@
     "aux_line_pt": 0.5,
     "png_dpi": 400
   },
-  "matplotlib_data_mode": "图 5-2 由四格结果 JSON 的 panel.backward_f1 读取并断言，图 5-1 依据 5.2、5.4 正文绘制"
+  "matplotlib_data_mode": "图 5-2 由四格结果 JSON 的 panel.backward_f1 读取并断言；图 5-3 与图 5-4 由 benchmark.json 的 chart_data 读取并断言；图 5-1 依据 5.2、5.4 正文绘制"
 }
