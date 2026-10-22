@@ -18,16 +18,17 @@
 1. **克隆验证门槛**：`tools/ch3_lamda_domain_il_e4.py` 复现门（12y = 0.8170，MPS/CUDA 序列各自成立）；
 2. **full 格重跑**：`tools/ch5_system_runner.py` 的 full 格（三格 result 已在
    `runs/diagnostics/ch5-system/`，full 于本机死亡于 2018 epoch 8，约 14 分钟）；
-3. **Rust 检索续做**：`.Codex/docs/2026-10-22-rust-python服务对比检索/`（已有 TechEmpower r23 数据表；
+3. **HF 托管已生效（勿重复上传）**：第五章评测基准的大文件已托管至 HF 数据集仓库 `Heehobino/lamda-ch5-eval-benchmark`（panel_2024.f32 168 MB、tabm4_state.safetensors、panel_2024_meta.json；版本化提交哈希 3801db96/63993fa2/4aaf99df 见 `runs/diagnostics/ch5-eval-benchmark/data/README.md`）。新机恢复：`hf auth login`（账号 Heehobino）后 `hf download Heehobino/lamda-ch5-eval-benchmark --repo-type dataset --local-dir <同目录>/data/`；
+4. **Rust 检索续做**：`.Codex/docs/2026-10-22-rust-python服务对比检索/`（已有 TechEmpower r23 数据表；
    三问检索＋裁决输入表待续；rust-skills 需在新机 `~/.claude/skills/` 重装）；
-4. **第四章正文**：按重构骨架 4.1（问题=第三章边界）→ 4.2（形式化）→ 4.3（方法）→ 4.4（算法 4-1）→
+5. **第四章正文**：按重构骨架 4.1（问题=第三章边界）→ 4.2（形式化）→ 4.3（方法）→ 4.4（算法 4-1）→
    4.5（理论：双通道账＋精确 F1 分解＋合流曲线＋梯度性质）→ 4.6（实验矩阵）→ 4.7（小结导向第五章）；
    素材：`第四章-整合方法重构决定.md`、`第四章-去相关惩罚的梯度性质.md`、`第二三四五章衔接设计.md`、
    各 result JSON＋bootstrap；
-5. **第五章正文＋平台阶段 B/C**：Web 前端（Vue3）、集成测试、功能用例表（栈与模块见
+6. **第五章正文＋平台阶段 B/C**：Web 前端（Vue3）、集成测试、功能用例表（栈与模块见
    `第五章形态与实现计划.md`，Go/Gin＋GORM/MySQL，DSN 走 `CH5_MYSQL_DSN`）；
-6. **图件**：双通道分解图、S1' 合流曲线、k 曲线、参数-性能对照（数据全在库）；
-7. 每章 paper-self-review 门禁。
+7. **图件**：双通道分解图、S1' 合流曲线、k 曲线、参数-性能对照（数据全在库）；
+8. 每章 paper-self-review 门禁。
 
 ## 三、关键文件地图
 
