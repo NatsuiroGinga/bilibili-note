@@ -18,6 +18,19 @@
     }
   },
   "cells": {
+    "full": {
+      "data_budget": "quota_deficit",
+      "eval_consistency_passed": true,
+      "f1_2023": 0.8681241184767278,
+      "f1_2024": 0.7703703703703704,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.832346367494066,
+      "member_engine": "tabm4",
+      "member_k": 4,
+      "n_params": 2723305,
+      "peak_mps_current_allocated_memory_mib": 200.5,
+      "wall_seconds": 1293.2
+    },
     "naive": {
       "data_budget": "naive",
       "eval_consistency_passed": true,
@@ -61,11 +74,85 @@
   "completed_cells": [
     "naive",
     "replay",
-    "naive_members"
+    "naive_members",
+    "full"
   ],
-  "data_load_seconds_shared": 11.2,
+  "data_load_seconds_shared": 12.2,
   "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
   "equivalence_checks": {
+    "full": {
+      "deltas": {
+        "f1_2023": 0.0,
+        "f1_2024": 0.0,
+        "f1_2025": 0.0,
+        "mean_f1_12y": 0.0
+      },
+      "max_abs_delta": 0.0,
+      "passed": true,
+      "per_year_deltas": {
+        "2013": 0.0,
+        "2014": 0.0,
+        "2016": 0.0,
+        "2017": 0.0,
+        "2018": 0.0,
+        "2019": 0.0,
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": 0.0,
+        "2023": 0.0,
+        "2024": 0.0,
+        "2025": 0.0
+      },
+      "preds_check": {
+        "identical": true,
+        "max_abs_score_diff": 0.0,
+        "missing_years": [],
+        "reference_dir": "runs/diagnostics/ch4-lamda-tabm-pilot",
+        "y_true_equal": true
+      },
+      "reference": {
+        "backward_f1": {
+          "2013": 0.9118810314823604,
+          "2014": 0.9088164879775164,
+          "2016": 0.89910641754671,
+          "2017": 0.9123901987979658,
+          "2018": 0.9031880286271958,
+          "2019": 0.9477080416387654,
+          "2020": 0.9536204709645398,
+          "2021": 0.9570561017929439,
+          "2022": 0.9558951422536961,
+          "2023": 0.8681241184767278,
+          "2024": 0.7703703703703704,
+          "2025": 0.0
+        },
+        "f1_2023": 0.8681241184767278,
+        "f1_2024": 0.7703703703703704,
+        "f1_2025": 0.0,
+        "mean_f1_12y": 0.832346367494066
+      },
+      "reference_source": "runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json",
+      "runner": {
+        "backward_f1": {
+          "2013": 0.9118810314823604,
+          "2014": 0.9088164879775164,
+          "2016": 0.89910641754671,
+          "2017": 0.9123901987979658,
+          "2018": 0.9031880286271958,
+          "2019": 0.9477080416387654,
+          "2020": 0.9536204709645398,
+          "2021": 0.9570561017929439,
+          "2022": 0.9558951422536961,
+          "2023": 0.8681241184767278,
+          "2024": 0.7703703703703704,
+          "2025": 0.0
+        },
+        "f1_2023": 0.8681241184767278,
+        "f1_2024": 0.7703703703703704,
+        "f1_2025": 0.0,
+        "mean_f1_12y": 0.832346367494066
+      },
+      "tolerance": 1e-06
+    },
     "replay": {
       "deltas": {
         "f1_2023": 0.0,
@@ -146,9 +233,7 @@
     },
     "tolerance": 1e-06
   },
-  "missing_cells": [
-    "full"
-  ],
+  "missing_cells": [],
   "protocol_summary": {
     "batch": 1024,
     "device": "mps",
@@ -160,5 +245,5 @@
   },
   "run_name": "ch5-system",
   "schema_version": "ch5-system-comparison-v1",
-  "ts": "2026-10-22T03:57:15.077699Z"
+  "ts": "2026-10-22T06:21:01.086644Z"
 }
