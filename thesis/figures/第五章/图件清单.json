@@ -1,0 +1,270 @@
+{
+  "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）；界面截图按用户 2026-10-22 指定的 1920×1080 PNG 产出；数据图按合同 300 dpi 下限、实际 400 dpi 导出 PNG+PDF+SVG",
+  "figure_mode": "Web 平台界面截图（真实端到端运行）+ matplotlib 数据图/示意图",
+  "environment": {
+    "generator": "platform/frontend/scripts/capture-screenshots.mjs",
+    "node": "24.16.0",
+    "npm": "11.13.0",
+    "vite": "8.3.5",
+    "vue": "3.5.44",
+    "element_plus": "2.14.7",
+    "echarts": "6.1.0",
+    "playwright": "1.64.1",
+    "browser": "Playwright Chromium（headless）",
+    "os": "macOS Darwin 25.5.0 arm64",
+    "viewport": [
+      1920,
+      1080
+    ],
+    "device_scale_factor": 1,
+    "readiness_gate": "window.__PAGE_READY__ === true 后等待 900 ms，再截图"
+  },
+  "typography": {
+    "mode": "平台实际 UI 字体（PingFang SC / 系统无衬线）",
+    "cjk_font_used": "PingFang SC",
+    "latin_font_used": "系统无衬线",
+    "note": "界面截图保留平台真实渲染字体，不套用 matplotlib 数据图的 SimHei / Times New Roman 规格；图中文字与数值均为页面原生文本。"
+  },
+  "raster": {
+    "png_pixels": [
+      1920,
+      1080
+    ],
+    "insertion_width_mm": 162.5,
+    "insertion_height_mm": 91.40625,
+    "png_ppi": [
+      300.11,
+      300.11
+    ],
+    "within_contract": "宽 162.5 mm ≤ 165 mm；高 91.4 mm ≤ 140 mm；300 ppi ≥ 300 ppi"
+  },
+  "grayscale_readable": true,
+  "data_mode": "真实数据；CLI 四格收据读构建期快照，平台读数读 MySQL 任务完成快照",
+  "provenance": {
+    "platform_backend": "Go/Gin + GORM/MySQL，MySQL 8.4.13 容器，AutoMigrate 建表",
+    "mysql_container": "ch5platform-mysql",
+    "platform_task_id": 1,
+    "platform_task_created_at": "2026-10-22T06:21:18.931209Z",
+    "platform_task_started_at": "2026-10-22T06:21:18.957Z",
+    "platform_task_finished_at": "2026-10-22T06:26:22.329Z",
+    "platform_task_execution_seconds": 303.372,
+    "queue_wait_seconds": 0.025791,
+    "kernel_wall_seconds_cell": 282.1,
+    "kernel_data_load_seconds": 15.6,
+    "result_timestamp": "2026-10-22T06:26:20.150346Z",
+    "platform_naive_mean_f1_12y": 0.7244106926575061,
+    "cli_naive_mean_f1_12y": 0.7244106926575061,
+    "platform_vs_cli_naive_max_abs_delta": 0.0,
+    "cli_naive_kernel_wall_seconds_cell": 144.0,
+    "wall_note": "平台内核墙钟 282.1 s 与 CLI 144.0 s 的差异原因待同环境复测；本次平台后端启动环境未设置 OMP_NUM_THREADS=4。F1 读数逐位一致。",
+    "data_root": "<worktree>/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "data_root_tracked_in": ".worktrees/ch3-drift-20260908（本工作树无数据副本）",
+    "cli_snapshot": "platform/frontend/snapshots/ch5-cli/system-comparison.json",
+    "cli_snapshot_provenance": "platform/frontend/snapshots/ch5-cli/PROVENANCE.json",
+    "cli_snapshot_ts": "2026-10-22T06:21:01.086644Z",
+    "reference_tabm4": "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json"
+  },
+  "figures": [
+    {
+      "stem": "图5-1-服务与计算分离的系统架构",
+      "caption": "服务与计算分离的系统架构。配置层由 Vue3 与 ECharts 实现，提交双开关组合并展示四格结果；服务层为 Go/Gin 服务进程，含六组接口、单协程任务队列、日志与静态托管，任务记录经 GORM 写入 MySQL；计算层为宿主机 Python 训练内核，由子进程调用，依次完成开关映射、第三章回放构成与第四章成员化引擎；评测层产出 12 年回看面板、当年评价面板与三类断言。MySQL 8.4 运行于 Docker 容器，Go 服务进程与 Python 训练内核运行于宿主机。",
+      "generator": "thesis/figures/第五章/绘制第五章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 165.0,
+      "height_mm": 128.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2598,
+        2015
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.9
+      ],
+      "bytes": 476438,
+      "bytes_by_format": {
+        "png": 476438,
+        "pdf": 59380,
+        "svg": 26181
+      },
+      "sha256": "5f9074cf8d63e2da7ae3df02278c66747035ccbc5abb21db304d4439e6781dec",
+      "sha256_by_format": {
+        "png": "5f9074cf8d63e2da7ae3df02278c66747035ccbc5abb21db304d4439e6781dec",
+        "pdf": "c240126c2abb35ebd1dd49037b66f0c8fb798e2a673ba426b108cae27a7657a4",
+        "svg": "a0e952c37d98f5503d141b12901421b7a2a5affcd7e062dce0472010cbf35d3a"
+      },
+      "outputs": {
+        "png": "图5-1-服务与计算分离的系统架构.png",
+        "pdf": "图5-1-服务与计算分离的系统架构.pdf",
+        "svg": "图5-1-服务与计算分离的系统架构.svg"
+      },
+      "evidence_mode": "架构示意（依据 5.2、5.4 正文）",
+      "data_keys": [
+        "thesis/chapters/第五章-LAMDA/5.2-系统架构设计.md §5.2.1–§5.2.3",
+        "thesis/chapters/第五章-LAMDA/5.4-系统部署与运行环境.md §5.4.1–§5.4.3",
+        "platform/docker-compose.yml（MySQL 8.4 容器边界）"
+      ]
+    },
+    {
+      "stem": "图5-2-四格配置的12年回看F1曲线",
+      "caption": "四格配置在 12 个测试年度上的回看 F1。横轴为测试年度（12 个年度），纵轴为末年经验模型对历史年度统一回评的 F1；四条曲线分别为朴素（naive）、数据预算（replay）、成员引擎（naive_members）与完整（full），完整格以加粗实线突出。灰色底纹标出 2023–2025 三个正例稀缺年度。",
+      "generator": "thesis/figures/第五章/绘制第五章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 150.0,
+      "height_mm": 100.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2362,
+        1574
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.8
+      ],
+      "bytes": 218851,
+      "bytes_by_format": {
+        "png": 218851,
+        "pdf": 34710,
+        "svg": 24522
+      },
+      "sha256": "39b149e4ffc8551c5119841b0e37594f172ac08d61729be12ba0f8023428c8ab",
+      "sha256_by_format": {
+        "png": "39b149e4ffc8551c5119841b0e37594f172ac08d61729be12ba0f8023428c8ab",
+        "pdf": "1d8bdddd0209156e1028e0b6e41a2c5810ff0b7df2732d6fca194906a7e24e42",
+        "svg": "635c901cd5ee75d631a6a382c09f6dba8e1e6a8e99e4ce5bfc4296a070168a9b"
+      },
+      "outputs": {
+        "png": "图5-2-四格配置的12年回看F1曲线.png",
+        "pdf": "图5-2-四格配置的12年回看F1曲线.pdf",
+        "svg": "图5-2-四格配置的12年回看F1曲线.svg"
+      },
+      "evidence_mode": "真实数据：四格统一入口重跑结果 JSON",
+      "data_keys": [
+        "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/system-comparison.json.cells.<cell>.{f1_2023,f1_2024,f1_2025,mean_f1_12y}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/<cell>-result.json.panel.backward_f1",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/system-comparison.json.equivalence_checks.{full,replay}.runner.backward_f1"
+      ],
+      "years": [
+        "2013",
+        "2014",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "series_2023": {
+        "naive": 0.7494071146245059,
+        "replay": 0.8243143068939955,
+        "naive_members": 0.7969581749049429,
+        "full": 0.8681241184767278
+      },
+      "verification": {
+        "years_order": "panel.backward_f1 键序与图件年度顺序逐位一致",
+        "summary_match": "四格 2023/2024/2025 与 mean_f1_12y 逐位一致（容差 1e-12）",
+        "equivalence_runner_match": "full 与 replay 逐年与 equivalence_checks.runner 逐位一致"
+      }
+    },
+    {
+      "stem": "图5-7-实验配置与双开关交互界面",
+      "caption": "实验配置页。数据预算下拉选择 naive 或 quota_deficit，成员引擎开关切换 off 或 tabm4；页面实时映射到四格并展示冻结参数（种子 42、批量 1024、10 epoch、SGD(0.01,0.9,1e-6)、阈值 0.5、回放记忆 200）。顶部为本次真实提交任务 #1 的完成收据。",
+      "bytes": 299615,
+      "sha256": "203e257fe95d2fa706a64d726c51a498d1b818c026fc5509f67e127162949722",
+      "outputs": {
+        "png": "图5-7-实验配置与双开关交互界面.png"
+      },
+      "evidence_mode": "平台真实运行界面",
+      "data_keys": [
+        "GET /api/health.backend",
+        "GET /api/tasks[0]",
+        "artifacts/comparison/system-comparison.json.cells",
+        "ch5_system_runner.py protocol constants"
+      ]
+    },
+    {
+      "stem": "图5-8-任务列表与状态页",
+      "caption": "任务列表与运行状态页。上表为平台任务（MySQL tasks 表），展示任务 #1 的配置、四格、pending→running→completed 状态、提交/开始/完成时间与耗时；下表为 CLI 四格归档收据，运行入口与平台任务分列。列表每 5 秒轮询。",
+      "bytes": 280525,
+      "sha256": "00ed69a9068a5d1e9c5a191cd3a18343f89e4fbadf9e65757ea996b55a440bc9",
+      "outputs": {
+        "png": "图5-8-任务列表与状态页.png"
+      },
+      "evidence_mode": "平台真实运行界面",
+      "data_keys": [
+        "GET /api/tasks[0].{status,created_at,started_at,finished_at}",
+        "MySQL tasks.id=1",
+        "artifacts/comparison/system-comparison.json.cells"
+      ]
+    },
+    {
+      "stem": "图5-9-评测结果12年面板可视化页",
+      "caption": "评测结果详情页。展示平台任务 #1（naive 格）的 12 年面板 F1 折线（实线为末年模型统一回评，虚线为当年即时评价）、逐年指标表与配置断言摘要。12 年平均 F1 为 0.7244，F1-2023 为 0.7494，F1-2024 为 0.6829；2025 年测试分片仅 5 个正样本，当年与末年 F1 均为 0。",
+      "bytes": 351083,
+      "sha256": "07c6025138a16f545117787f32ec4202a403df9f9950ada67380c2a3ed0526c9",
+      "outputs": {
+        "png": "图5-9-评测结果12年面板可视化页.png"
+      },
+      "evidence_mode": "平台任务 #1 完成快照",
+      "data_keys": [
+        "GET /api/tasks/1/results.panel.backward_f1",
+        "GET /api/tasks/1/results.panel.current_year_f1",
+        "GET /api/tasks/1/results.panel.current_year_metrics",
+        "GET /api/tasks/1/results.per_year",
+        "GET /api/tasks/1/results.model.contract",
+        "GET /api/tasks/1/results.eval_consistency",
+        "GET /api/tasks/1/results.protocol"
+      ]
+    },
+    {
+      "stem": "图5-10-系统四格消融对比页",
+      "caption": "系统四格消融对比页。柱为 CLI 四格收据的 12 年平均 F1（naive 0.7244、naive_members 0.7576、replay 0.8170、full 0.8323），绿色菱形为本次平台 E2E 任务 #1 的 naive 读数（0.7244）。表格逐格标注运行入口、墙钟与来源；full 先导行为第四章 TABM4 先导参考，与本次 full CLI 读数一致。",
+      "bytes": 350733,
+      "sha256": "f6d41ed6d0c95f4e86a2c4d41f8cb60530b4a21a490ce7507edec0e0f39f2839",
+      "outputs": {
+        "png": "图5-10-系统四格消融对比页.png"
+      },
+      "evidence_mode": "CLI 四格快照 + 平台任务快照",
+      "data_keys": [
+        "artifacts/comparison/system-comparison.json.cells",
+        "GET /api/tasks/1/results.panel.mean_f1_12y",
+        "artifacts/reference/tabm4-result.json.mean_f1"
+      ]
+    }
+  ],
+  "matplotlib_environment": {
+    "generator": "thesis/figures/第五章/绘制第五章图件.py",
+    "style_module": "thesis/figures/第三章/figstyle.py",
+    "uv_project": "thesis/figures/第五章",
+    "uv_lock_sha256": "bfb6c6470194ee4c63f9808345bdf8d6a3bab273eeb83ac39f45cbfdc7e01541",
+    "command": "uv run --project \"thesis/figures/第五章\" --locked python \"thesis/figures/第五章/绘制第五章图件.py\"",
+    "python": "3.13.13",
+    "python_executable": ".venv/bin/python3",
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "os": "macOS-26.5-arm64-arm-64bit-Mach-O",
+    "generated_at_utc": "2026-10-22T06:37:24+00:00"
+  },
+  "matplotlib_typography": {
+    "cjk_font_requested": "SimHei",
+    "cjk_font_used": "SimHei",
+    "cjk_font_path": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/SimHei.ttf",
+    "cjk_face_index": 0,
+    "latin_font_used": "Times New Roman",
+    "latin_font_path": "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+    "math_fontset": "custom (Cambria Math)",
+    "min_font_pt": 8.0,
+    "main_font_pt": 9.0,
+    "main_line_pt": 1.0,
+    "aux_line_pt": 0.5,
+    "png_dpi": 400
+  },
+  "matplotlib_data_mode": "图 5-2 由四格结果 JSON 的 panel.backward_f1 读取并断言，图 5-1 依据 5.2、5.4 正文绘制"
+}
