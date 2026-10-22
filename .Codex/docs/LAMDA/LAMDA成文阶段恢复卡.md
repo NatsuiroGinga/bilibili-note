@@ -62,3 +62,12 @@
 3. 正文禁负面落差框架（数据全呈、归因中性）；三轮负结果写"成员分工的作用面分析"；
 4. 凭据只走环境变量（`CH5_MYSQL_DSN`）；Zotero API key 轮换仍未做（历史 6 提交泄露在案）；
 5. 每章定稿前 paper-self-review 门禁。
+
+## 五、新机重建的完整清单（GitHub 之外还有四类，缺一不可）
+
+1. **LAMDA 数据集（最大前置项）**：`runs/data-raw/` 不入库（体量大），按 `LAMDA第三章恢复卡.md` 的固定 revision 重新获取；取回后设 `LAMDA_DATA_ROOT` 环境变量指向数据根——没有它复现门都跑不了；
+2. **Python 环境**：miniconda `rwkv` 环境（torch 2.12 全家桶），按 `新机器快速上手.md` 重建；
+3. **凭据三项**：`hf auth login`（拉取 HF 托管的大文件）、`CH5_MYSQL_DSN`（平台部署时）、Zotero（若使用）；
+4. **Claude 记忆与 rust-skills**：`~/.claude/projects/-Users-bilibili-personal-note/memory/` 手动复制；`git clone https://github.com/leonardomso/rust-skills.git ~/.claude/skills/rust-skills`。
+
+GitHub 拉取覆盖的是：代码、正文、理论件、恢复卡、实验制品（results/preds/指标 JSON）、图件、平台代码与 Docker 编排。以上四类补齐后，从复现门开始续做。
