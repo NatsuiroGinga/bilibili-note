@@ -1,0 +1,35 @@
+{
+  "schema_version": "ch4-baseline-signif-v1",
+  "B": 5000,
+  "seed": 42,
+  "pairing": "每年同索引同时抽两臂（配对）",
+  "rows": {
+    "deep4": {
+      "plugin_diff_pp": 0.9084152778363386,
+      "boot_mean_pp": 0.7689296727200774,
+      "ci95_pp": [
+        0.6637376967178452,
+        0.8891900813211315
+      ],
+      "ci_excludes_zero": true
+    },
+    "swa": {
+      "plugin_diff_pp": 1.7650861520775774,
+      "boot_mean_pp": 0.8092807206374744,
+      "ci95_pp": [
+        0.6838914179643012,
+        0.9463255364000444
+      ],
+      "ci_excludes_zero": true
+    },
+    "mcdrop": {
+      "plugin_diff_pp": 1.5308746443223331,
+      "boot_mean_pp": 0.8544927883731421,
+      "ci95_pp": [
+        0.7333026158092582,
+        0.9860761491411729
+      ],
+      "ci_excludes_zero": true
+    }
+  }
+}
