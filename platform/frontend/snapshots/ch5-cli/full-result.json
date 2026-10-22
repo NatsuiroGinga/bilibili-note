@@ -1,0 +1,1109 @@
+{
+  "cell": "full",
+  "config": {
+    "data_budget": "quota_deficit",
+    "member_engine": "tabm4"
+  },
+  "efficiency": {
+    "mps_memory": {
+      "api": "torch.mps.current_allocated_memory",
+      "baseline_current_allocated_memory_bytes": 0,
+      "device": "mps",
+      "n_samples": 6215,
+      "note": "峰值由后台线程按间隔采样近似；current_allocated_memory 为分配器在用字节数。",
+      "peak_current_allocated_memory_bytes": 210275840,
+      "peak_current_allocated_memory_mib": 200.5,
+      "peak_driver_allocated_memory_bytes": 1156530176,
+      "peak_driver_allocated_memory_mib": 1103.0,
+      "sampling_interval_seconds": 0.2
+    },
+    "score_seconds": 20.4,
+    "wall_seconds_cell": 1293.2,
+    "wall_seconds_scope": "cell 内（模型构造＋训练＋评价＋打分）；共享数据加载不计入"
+  },
+  "equivalence": {
+    "deltas": {
+      "f1_2023": 0.0,
+      "f1_2024": 0.0,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.0
+    },
+    "max_abs_delta": 0.0,
+    "passed": true,
+    "per_year_deltas": {
+      "2013": 0.0,
+      "2014": 0.0,
+      "2016": 0.0,
+      "2017": 0.0,
+      "2018": 0.0,
+      "2019": 0.0,
+      "2020": 0.0,
+      "2021": 0.0,
+      "2022": 0.0,
+      "2023": 0.0,
+      "2024": 0.0,
+      "2025": 0.0
+    },
+    "preds_check": {
+      "identical": true,
+      "max_abs_score_diff": 0.0,
+      "missing_years": [],
+      "reference_dir": "runs/diagnostics/ch4-lamda-tabm-pilot",
+      "y_true_equal": true
+    },
+    "reference": {
+      "backward_f1": {
+        "2013": 0.9118810314823604,
+        "2014": 0.9088164879775164,
+        "2016": 0.89910641754671,
+        "2017": 0.9123901987979658,
+        "2018": 0.9031880286271958,
+        "2019": 0.9477080416387654,
+        "2020": 0.9536204709645398,
+        "2021": 0.9570561017929439,
+        "2022": 0.9558951422536961,
+        "2023": 0.8681241184767278,
+        "2024": 0.7703703703703704,
+        "2025": 0.0
+      },
+      "f1_2023": 0.8681241184767278,
+      "f1_2024": 0.7703703703703704,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.832346367494066
+    },
+    "reference_source": "runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json",
+    "runner": {
+      "backward_f1": {
+        "2013": 0.9118810314823604,
+        "2014": 0.9088164879775164,
+        "2016": 0.89910641754671,
+        "2017": 0.9123901987979658,
+        "2018": 0.9031880286271958,
+        "2019": 0.9477080416387654,
+        "2020": 0.9536204709645398,
+        "2021": 0.9570561017929439,
+        "2022": 0.9558951422536961,
+        "2023": 0.8681241184767278,
+        "2024": 0.7703703703703704,
+        "2025": 0.0
+      },
+      "f1_2023": 0.8681241184767278,
+      "f1_2024": 0.7703703703703704,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.832346367494066
+    },
+    "tolerance": 1e-06
+  },
+  "eval_consistency": {
+    "abs_diff": 0.0,
+    "evaluate_f1": 0.0,
+    "passed": true,
+    "score_shard_f1": 0.0,
+    "year": 2025
+  },
+  "model": {
+    "class": "TabMMLP",
+    "contract": {
+      "class": "TabMMLP",
+      "class_matches": true,
+      "engine": "tabm4",
+      "expected_n_params": 2723305,
+      "member_k": 4,
+      "member_k_matches": true,
+      "n_params": 2723305,
+      "params_match": true
+    },
+    "engine": "tabm4",
+    "input_dim": 4561,
+    "member_k": 4,
+    "n_params": 2723305
+  },
+  "panel": {
+    "backward_f1": {
+      "2013": 0.9118810314823604,
+      "2014": 0.9088164879775164,
+      "2016": 0.89910641754671,
+      "2017": 0.9123901987979658,
+      "2018": 0.9031880286271958,
+      "2019": 0.9477080416387654,
+      "2020": 0.9536204709645398,
+      "2021": 0.9570561017929439,
+      "2022": 0.9558951422536961,
+      "2023": 0.8681241184767278,
+      "2024": 0.7703703703703704,
+      "2025": 0.0
+    },
+    "current_year_f1": {
+      "2013": 0.6785659685063445,
+      "2014": 0.9640319230348748,
+      "2016": 0.9590141387467679,
+      "2017": 0.9577597364395811,
+      "2018": 0.9575865807768352,
+      "2019": 0.975233117538754,
+      "2020": 0.979079950267582,
+      "2021": 0.9859750510959193,
+      "2022": 0.9879257523878177,
+      "2023": 0.9441591784338896,
+      "2024": 0.8029197080291971,
+      "2025": 0.0
+    },
+    "current_year_metrics": {
+      "2013": {
+        "accuracy": 0.5135072597905941,
+        "f1": 0.6785659685063445,
+        "n": 17287,
+        "n_pos": 8877,
+        "precision": 0.5135072597905941,
+        "recall": 1.0
+      },
+      "2014": {
+        "accuracy": 0.9674852992044275,
+        "f1": 0.9640319230348748,
+        "n": 20237,
+        "n_pos": 9151,
+        "precision": 0.9644536804112436,
+        "recall": 0.9636105343678286
+      },
+      "2016": {
+        "accuracy": 0.9658867164247448,
+        "f1": 0.9590141387467679,
+        "n": 21839,
+        "n_pos": 9027,
+        "precision": 0.952568306010929,
+        "recall": 0.9655478010413204
+      },
+      "2017": {
+        "accuracy": 0.98189520399415,
+        "f1": 0.9577597364395811,
+        "n": 19829,
+        "n_pos": 4272,
+        "precision": 0.9628578187840076,
+        "recall": 0.9527153558052435
+      },
+      "2018": {
+        "accuracy": 0.9681192770506736,
+        "f1": 0.9575865807768352,
+        "n": 20859,
+        "n_pos": 7870,
+        "precision": 0.9613266743501089,
+        "recall": 0.9538754764930114
+      },
+      "2019": {
+        "accuracy": 0.9771004942339374,
+        "f1": 0.975233117538754,
+        "n": 18210,
+        "n_pos": 8317,
+        "precision": 0.9636150234741784,
+        "recall": 0.9871347841769869
+      },
+      "2020": {
+        "accuracy": 0.9810433504775901,
+        "f1": 0.979079950267582,
+        "n": 20415,
+        "n_pos": 9271,
+        "precision": 0.9813610749891634,
+        "recall": 0.9768094056736059
+      },
+      "2021": {
+        "accuracy": 0.9877395108126424,
+        "f1": 0.9859750510959193,
+        "n": 16231,
+        "n_pos": 7125,
+        "precision": 0.9902321630804077,
+        "recall": 0.9817543859649123
+      },
+      "2022": {
+        "accuracy": 0.9883707475121499,
+        "f1": 0.9879257523878177,
+        "n": 17284,
+        "n_pos": 8330,
+        "precision": 0.988697847781652,
+        "recall": 0.9871548619447779
+      },
+      "2023": {
+        "accuracy": 0.9839941127771135,
+        "f1": 0.9441591784338896,
+        "n": 10871,
+        "n_pos": 1578,
+        "precision": 0.9564369310793238,
+        "recall": 0.9321926489226869
+      },
+      "2024": {
+        "accuracy": 0.9944249432170142,
+        "f1": 0.8029197080291971,
+        "n": 9686,
+        "n_pos": 159,
+        "precision": 0.9565217391304348,
+        "recall": 0.6918238993710691
+      },
+      "2025": {
+        "accuracy": 0.9989924997201388,
+        "f1": 0.0,
+        "n": 8933,
+        "n_pos": 5,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "f1_2023": 0.8681241184767278,
+    "f1_2024": 0.7703703703703704,
+    "f1_2025": 0.0,
+    "mean_f1_12y": 0.832346367494066,
+    "panel_definition": "末年 2025 的模型对全部 12 个年度测试分片逐样本打分（backward）",
+    "test_sizes": {
+      "2013": {
+        "n": 17287,
+        "n_pos": 8877
+      },
+      "2014": {
+        "n": 20237,
+        "n_pos": 9151
+      },
+      "2016": {
+        "n": 21839,
+        "n_pos": 9027
+      },
+      "2017": {
+        "n": 19829,
+        "n_pos": 4272
+      },
+      "2018": {
+        "n": 20859,
+        "n_pos": 7870
+      },
+      "2019": {
+        "n": 18210,
+        "n_pos": 8317
+      },
+      "2020": {
+        "n": 20415,
+        "n_pos": 9271
+      },
+      "2021": {
+        "n": 16231,
+        "n_pos": 7125
+      },
+      "2022": {
+        "n": 17284,
+        "n_pos": 8330
+      },
+      "2023": {
+        "n": 10871,
+        "n_pos": 1578
+      },
+      "2024": {
+        "n": 9686,
+        "n_pos": 159
+      },
+      "2025": {
+        "n": 8933,
+        "n_pos": 5
+      }
+    }
+  },
+  "per_year": {
+    "2013": {
+      "blocks": [],
+      "current_year_f1": 0.6785659685063445,
+      "current_year_metrics": {
+        "accuracy": 0.5135072597905941,
+        "f1": 0.6785659685063445,
+        "n": 17287,
+        "n_pos": 8877,
+        "precision": 0.5135072597905941,
+        "recall": 1.0
+      },
+      "eval_seconds": 0.77,
+      "n_parts": 1,
+      "parts_contract": {
+        "first_is_current": true,
+        "first_year_single_part": true,
+        "n_parts": 1
+      },
+      "pos": 35506,
+      "pos_rate": 0.5135080411894019,
+      "reps": {},
+      "rows": 69144,
+      "train_seconds": 64.8,
+      "year": 2013
+    },
+    "2014": {
+      "blocks": [
+        {
+          "pos": 100,
+          "rows": 200,
+          "source_year": 2013
+        }
+      ],
+      "current_year_f1": 0.9640319230348748,
+      "current_year_metrics": {
+        "accuracy": 0.9674852992044275,
+        "f1": 0.9640319230348748,
+        "n": 20237,
+        "n_pos": 9151,
+        "precision": 0.9644536804112436,
+        "recall": 0.9636105343678286
+      },
+      "eval_seconds": 1.08,
+      "n_parts": 3,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 3,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 36805,
+      "pos_rate": 0.45245002827428515,
+      "reps": {
+        "2013": 2
+      },
+      "rows": 81346,
+      "train_seconds": 72.2,
+      "year": 2014
+    },
+    "2016": {
+      "blocks": [
+        {
+          "pos": 50,
+          "rows": 100,
+          "source_year": 2013
+        },
+        {
+          "pos": 50,
+          "rows": 100,
+          "source_year": 2014
+        }
+      ],
+      "current_year_f1": 0.9590141387467679,
+      "current_year_metrics": {
+        "accuracy": 0.9658867164247448,
+        "f1": 0.9590141387467679,
+        "n": 21839,
+        "n_pos": 9027,
+        "precision": 0.952568306010929,
+        "recall": 0.9655478010413204
+      },
+      "eval_seconds": 0.94,
+      "n_parts": 5,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 5,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 36307,
+      "pos_rate": 0.4137361259885589,
+      "reps": {
+        "2013": 2,
+        "2014": 2
+      },
+      "rows": 87754,
+      "train_seconds": 86.0,
+      "year": 2016
+    },
+    "2017": {
+      "blocks": [
+        {
+          "pos": 33,
+          "rows": 66,
+          "source_year": 2013
+        },
+        {
+          "pos": 33,
+          "rows": 66,
+          "source_year": 2014
+        },
+        {
+          "pos": 33,
+          "rows": 66,
+          "source_year": 2016
+        }
+      ],
+      "current_year_f1": 0.9577597364395811,
+      "current_year_metrics": {
+        "accuracy": 0.98189520399415,
+        "f1": 0.9577597364395811,
+        "n": 19829,
+        "n_pos": 4272,
+        "precision": 0.9628578187840076,
+        "recall": 0.9527153558052435
+      },
+      "eval_seconds": 1.6,
+      "n_parts": 7,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 7,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 17285,
+      "pos_rate": 0.21684585565354844,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2
+      },
+      "rows": 79711,
+      "train_seconds": 96.9,
+      "year": 2017
+    },
+    "2018": {
+      "blocks": [
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2013
+        },
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2014
+        },
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2016
+        },
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2017
+        }
+      ],
+      "current_year_f1": 0.9575865807768352,
+      "current_year_metrics": {
+        "accuracy": 0.9681192770506736,
+        "f1": 0.9575865807768352,
+        "n": 20859,
+        "n_pos": 7870,
+        "precision": 0.9613266743501089,
+        "recall": 0.9538754764930114
+      },
+      "eval_seconds": 2.9,
+      "n_parts": 9,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 9,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 31680,
+      "pos_rate": 0.37789414669640836,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2
+      },
+      "rows": 83833,
+      "train_seconds": 156.5,
+      "year": 2018
+    },
+    "2019": {
+      "blocks": [
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2013
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2014
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2016
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2017
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2018
+        }
+      ],
+      "current_year_f1": 0.975233117538754,
+      "current_year_metrics": {
+        "accuracy": 0.9771004942339374,
+        "f1": 0.975233117538754,
+        "n": 18210,
+        "n_pos": 8317,
+        "precision": 0.9636150234741784,
+        "recall": 0.9871347841769869
+      },
+      "eval_seconds": 1.46,
+      "n_parts": 11,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 11,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 33468,
+      "pos_rate": 0.4569634079737848,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2
+      },
+      "rows": 73240,
+      "train_seconds": 140.1,
+      "year": 2019
+    },
+    "2020": {
+      "blocks": [
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2013
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2014
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2016
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2017
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2018
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2019
+        }
+      ],
+      "current_year_f1": 0.979079950267582,
+      "current_year_metrics": {
+        "accuracy": 0.9810433504775901,
+        "f1": 0.979079950267582,
+        "n": 20415,
+        "n_pos": 9271,
+        "precision": 0.9813610749891634,
+        "recall": 0.9768094056736059
+      },
+      "eval_seconds": 1.56,
+      "n_parts": 13,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 13,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 37276,
+      "pos_rate": 0.45428620176956636,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2
+      },
+      "rows": 82054,
+      "train_seconds": 143.5,
+      "year": 2020
+    },
+    "2021": {
+      "blocks": [
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2013
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2014
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2016
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2017
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2018
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2019
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2020
+        }
+      ],
+      "current_year_f1": 0.9859750510959193,
+      "current_year_metrics": {
+        "accuracy": 0.9877395108126424,
+        "f1": 0.9859750510959193,
+        "n": 16231,
+        "n_pos": 7125,
+        "precision": 0.9902321630804077,
+        "recall": 0.9817543859649123
+      },
+      "eval_seconds": 1.44,
+      "n_parts": 15,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 15,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 28698,
+      "pos_rate": 0.43937167003490724,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2
+      },
+      "rows": 65316,
+      "train_seconds": 153.9,
+      "year": 2021
+    },
+    "2022": {
+      "blocks": [
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2013
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2014
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2016
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2017
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2018
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2019
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2020
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2021
+        }
+      ],
+      "current_year_f1": 0.9879257523878177,
+      "current_year_metrics": {
+        "accuracy": 0.9883707475121499,
+        "f1": 0.9879257523878177,
+        "n": 17284,
+        "n_pos": 8330,
+        "precision": 0.988697847781652,
+        "recall": 0.9871548619447779
+      },
+      "eval_seconds": 1.4,
+      "n_parts": 17,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 17,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 33510,
+      "pos_rate": 0.4819363746188805,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2
+      },
+      "rows": 69532,
+      "train_seconds": 124.6,
+      "year": 2022
+    },
+    "2023": {
+      "blocks": [
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2013
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2014
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2016
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2017
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2018
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2019
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2020
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2021
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2022
+        }
+      ],
+      "current_year_f1": 0.9441591784338896,
+      "current_year_metrics": {
+        "accuracy": 0.9839941127771135,
+        "f1": 0.9441591784338896,
+        "n": 10871,
+        "n_pos": 1578,
+        "precision": 0.9564369310793238,
+        "recall": 0.9321926489226869
+      },
+      "eval_seconds": 1.11,
+      "n_parts": 19,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 19,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 6512,
+      "pos_rate": 0.14840812233642517,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2,
+        "2022": 2
+      },
+      "rows": 43879,
+      "train_seconds": 79.6,
+      "year": 2023
+    },
+    "2024": {
+      "blocks": [
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2013
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2014
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2016
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2017
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2018
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2019
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2020
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2021
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2022
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2023
+        }
+      ],
+      "current_year_f1": 0.8029197080291971,
+      "current_year_metrics": {
+        "accuracy": 0.9944249432170142,
+        "f1": 0.8029197080291971,
+        "n": 9686,
+        "n_pos": 159,
+        "precision": 0.9565217391304348,
+        "recall": 0.6918238993710691
+      },
+      "eval_seconds": 1.0,
+      "n_parts": 21,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 21,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 835,
+      "pos_rate": 0.02133312894407399,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2,
+        "2022": 2,
+        "2023": 2
+      },
+      "rows": 39141,
+      "train_seconds": 68.4,
+      "year": 2024
+    },
+    "2025": {
+      "blocks": [
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2013
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2014
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2016
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2017
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2018
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2019
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2020
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2021
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2022
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2023
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2024
+        }
+      ],
+      "current_year_f1": 0.0,
+      "current_year_metrics": {
+        "accuracy": 0.9989924997201388,
+        "f1": 0.0,
+        "n": 8933,
+        "n_pos": 5,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "eval_seconds": 0.85,
+      "n_parts": 23,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 23,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 216,
+      "pos_rate": 0.005979073243647235,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2,
+        "2022": 2,
+        "2023": 2,
+        "2024": 2
+      },
+      "rows": 36126,
+      "train_seconds": 63.7,
+      "year": 2025
+    }
+  },
+  "protocol": {
+    "backward_panel": "末年模型对 12 个年度测试分片打分",
+    "batch": 1024,
+    "buf_rng_seed": 42,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "current_year": "每个 experience 训练结束后立即评价当年测试分片",
+    "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "deficit_gamma": 1.0,
+    "device": "mps",
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "lr": 0.01,
+    "memory": 200,
+    "momentum": 0.9,
+    "optimizer_lifetime": "每年度在训练函数体内重建",
+    "optimizer_type": "SGD",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "score": "成员 sigmoid 概率均值",
+    "seed": 42,
+    "test_file_pattern": "Baseline/{year}/{year}_test.parquet",
+    "threshold": 0.5,
+    "weight_decay": 1e-06
+  },
+  "run_name": "ch5-system",
+  "schema_version": "ch5-system-cell-result-v1",
+  "ts": "2026-10-22T06:20:10.276172Z"
+}

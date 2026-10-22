@@ -1,6 +1,8 @@
 {
-  "completed_cells": [],
-  "current_cell": "naive",
+  "completed_cells": [
+    "naive"
+  ],
+  "current_cell": null,
   "data_load_seconds": 15.6,
   "planned_cells": [
     "naive",
@@ -10,6 +12,6 @@
   ],
   "run_name": "ch5-system",
   "schema_version": "ch5-system-status-v1",
-  "status": "running",
-  "ts": "2026-10-22T06:21:37.996919Z"
+  "status": "completed",
+  "ts": "2026-10-22T06:26:20.938662Z"
 }

@@ -9,7 +9,7 @@
       "api": "torch.mps.current_allocated_memory",
       "baseline_current_allocated_memory_bytes": 0,
       "device": "mps",
-      "n_samples": 706,
+      "n_samples": 1384,
       "note": "峰值由后台线程按间隔采样近似；current_allocated_memory 为分配器在用字节数。",
       "peak_current_allocated_memory_bytes": 74877440,
       "peak_current_allocated_memory_mib": 71.4,
@@ -17,8 +17,8 @@
       "peak_driver_allocated_memory_mib": 1125.9,
       "sampling_interval_seconds": 0.2
     },
-    "score_seconds": 5.6,
-    "wall_seconds_cell": 144.0,
+    "score_seconds": 8.2,
+    "wall_seconds_cell": 282.1,
     "wall_seconds_scope": "cell 内（模型构造＋训练＋评价＋打分）；共享数据加载不计入"
   },
   "equivalence": null,
@@ -241,7 +241,7 @@
         "precision": 0.5135072597905941,
         "recall": 1.0
       },
-      "eval_seconds": 0.2,
+      "eval_seconds": 0.44,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -253,7 +253,7 @@
       "pos_rate": 0.5135080411894019,
       "reps": {},
       "rows": 69144,
-      "train_seconds": 13.0,
+      "train_seconds": 25.1,
       "year": 2013
     },
     "2014": {
@@ -267,7 +267,7 @@
         "precision": 0.8770412130637636,
         "recall": 0.9860124576549011
       },
-      "eval_seconds": 0.26,
+      "eval_seconds": 0.55,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -279,7 +279,7 @@
       "pos_rate": 0.45221505695154796,
       "reps": {},
       "rows": 80946,
-      "train_seconds": 12.8,
+      "train_seconds": 28.1,
       "year": 2014
     },
     "2016": {
@@ -293,7 +293,7 @@
         "precision": 0.9413347685683531,
         "recall": 0.9687603855101362
       },
-      "eval_seconds": 0.29,
+      "eval_seconds": 0.57,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -305,7 +305,7 @@
       "pos_rate": 0.41334111775076127,
       "reps": {},
       "rows": 87354,
-      "train_seconds": 13.7,
+      "train_seconds": 29.8,
       "year": 2016
     },
     "2017": {
@@ -319,7 +319,7 @@
         "precision": 0.9661743687470223,
         "recall": 0.949438202247191
       },
-      "eval_seconds": 0.24,
+      "eval_seconds": 0.46,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -331,7 +331,7 @@
       "pos_rate": 0.21543213767887537,
       "reps": {},
       "rows": 79315,
-      "train_seconds": 12.9,
+      "train_seconds": 26.9,
       "year": 2017
     },
     "2018": {
@@ -345,7 +345,7 @@
         "precision": 0.9737536270113426,
         "recall": 0.9381194409148665
       },
-      "eval_seconds": 0.27,
+      "eval_seconds": 0.6,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -357,7 +357,7 @@
       "pos_rate": 0.37730873874845683,
       "reps": {},
       "rows": 83433,
-      "train_seconds": 12.9,
+      "train_seconds": 26.3,
       "year": 2018
     },
     "2019": {
@@ -371,7 +371,7 @@
         "precision": 0.9679100059206631,
         "recall": 0.9828063003486834
       },
-      "eval_seconds": 0.22,
+      "eval_seconds": 0.43,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -383,7 +383,7 @@
       "pos_rate": 0.456727073036793,
       "reps": {},
       "rows": 72840,
-      "train_seconds": 10.7,
+      "train_seconds": 24.3,
       "year": 2019
     },
     "2020": {
@@ -397,7 +397,7 @@
         "precision": 0.9718987071268298,
         "recall": 0.9811239348506094
       },
-      "eval_seconds": 0.28,
+      "eval_seconds": 0.43,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -409,7 +409,7 @@
       "pos_rate": 0.45413799015405715,
       "reps": {},
       "rows": 81658,
-      "train_seconds": 12.3,
+      "train_seconds": 23.7,
       "year": 2020
     },
     "2021": {
@@ -423,7 +423,7 @@
         "precision": 0.9873150105708245,
         "recall": 0.9831578947368421
       },
-      "eval_seconds": 0.3,
+      "eval_seconds": 0.39,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -435,7 +435,7 @@
       "pos_rate": 0.43900560655535703,
       "reps": {},
       "rows": 64924,
-      "train_seconds": 13.2,
+      "train_seconds": 20.2,
       "year": 2021
     },
     "2022": {
@@ -449,7 +449,7 @@
         "precision": 0.9852923592012436,
         "recall": 0.9891956782713085
       },
-      "eval_seconds": 0.23,
+      "eval_seconds": 0.37,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -461,7 +461,7 @@
       "pos_rate": 0.48194757854539144,
       "reps": {},
       "rows": 69132,
-      "train_seconds": 11.4,
+      "train_seconds": 23.1,
       "year": 2022
     },
     "2023": {
@@ -475,7 +475,7 @@
         "precision": 0.9595300261096605,
         "recall": 0.9315589353612167
       },
-      "eval_seconds": 0.14,
+      "eval_seconds": 0.23,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -487,7 +487,7 @@
       "pos_rate": 0.14520617252719453,
       "reps": {},
       "rows": 43483,
-      "train_seconds": 6.2,
+      "train_seconds": 12.7,
       "year": 2023
     },
     "2024": {
@@ -501,7 +501,7 @@
         "precision": 0.8702290076335878,
         "recall": 0.7169811320754716
       },
-      "eval_seconds": 0.35,
+      "eval_seconds": 0.2,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -513,7 +513,7 @@
       "pos_rate": 0.01639090369376113,
       "reps": {},
       "rows": 38741,
-      "train_seconds": 5.3,
+      "train_seconds": 12.1,
       "year": 2024
     },
     "2025": {
@@ -527,7 +527,7 @@
         "precision": 0.0,
         "recall": 0.0
       },
-      "eval_seconds": 0.11,
+      "eval_seconds": 0.21,
       "n_parts": 1,
       "parts_contract": {
         "first_is_current": true,
@@ -539,7 +539,7 @@
       "pos_rate": 0.0005037783375314861,
       "reps": {},
       "rows": 35730,
-      "train_seconds": 6.6,
+      "train_seconds": 11.8,
       "year": 2025
     }
   },
@@ -583,5 +583,5 @@
   },
   "run_name": "ch5-system",
   "schema_version": "ch5-system-cell-result-v1",
-  "ts": "2026-10-22T03:42:20.329225Z"
+  "ts": "2026-10-22T06:26:20.150346Z"
 }

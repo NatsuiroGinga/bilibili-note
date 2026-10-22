@@ -22,3 +22,26 @@
 [parts] naive 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
 [naive][2013] current_f1=0.6786 train=25.1s eval=0.4s
 [parts] naive 2014: n_parts=1 rows=80,946 pos=36,605 pos_rate=0.4522
+[naive][2014] current_f1=0.9283 train=28.1s eval=0.6s
+[parts] naive 2016: n_parts=1 rows=87,354 pos=36,107 pos_rate=0.4133
+[naive][2016] current_f1=0.9549 train=29.8s eval=0.6s
+[parts] naive 2017: n_parts=1 rows=79,315 pos=17,087 pos_rate=0.2154
+[naive][2017] current_f1=0.9577 train=26.9s eval=0.5s
+[parts] naive 2018: n_parts=1 rows=83,433 pos=31,480 pos_rate=0.3773
+[naive][2018] current_f1=0.9556 train=26.3s eval=0.6s
+[parts] naive 2019: n_parts=1 rows=72,840 pos=33,268 pos_rate=0.4567
+[naive][2019] current_f1=0.9753 train=24.3s eval=0.4s
+[parts] naive 2020: n_parts=1 rows=81,658 pos=37,084 pos_rate=0.4541
+[naive][2020] current_f1=0.9765 train=23.7s eval=0.4s
+[parts] naive 2021: n_parts=1 rows=64,924 pos=28,502 pos_rate=0.4390
+[naive][2021] current_f1=0.9852 train=20.2s eval=0.4s
+[parts] naive 2022: n_parts=1 rows=69,132 pos=33,318 pos_rate=0.4819
+[naive][2022] current_f1=0.9872 train=23.1s eval=0.4s
+[parts] naive 2023: n_parts=1 rows=43,483 pos=6,314 pos_rate=0.1452
+[naive][2023] current_f1=0.9453 train=12.7s eval=0.2s
+[parts] naive 2024: n_parts=1 rows=38,741 pos=635 pos_rate=0.0164
+[naive][2024] current_f1=0.7862 train=12.1s eval=0.2s
+[parts] naive 2025: n_parts=1 rows=35,730 pos=18 pos_rate=0.0005
+[naive][2025] current_f1=0.0000 train=11.8s eval=0.2s
+=== naive: 12y mean=0.7244106927 | 2023=0.749407 2024=0.682927 2025=0.000000 | wall=282s peak_mps=71.4MiB ===
+[done] ch5-system completed=['naive'] artifacts=/Users/bilibili/personal/note/.worktrees/ch3-lamda-20260908/thesis/experiments/llm_probe/runs/diagnostics/ch5-system

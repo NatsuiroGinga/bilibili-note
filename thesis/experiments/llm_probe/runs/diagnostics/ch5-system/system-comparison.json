@@ -42,7 +42,7 @@
       "member_k": 1,
       "n_params": 2687293,
       "peak_mps_current_allocated_memory_mib": 71.4,
-      "wall_seconds": 144.0
+      "wall_seconds": 282.1
     },
     "naive_members": {
       "data_budget": "naive",
@@ -72,12 +72,9 @@
     }
   },
   "completed_cells": [
-    "naive",
-    "replay",
-    "naive_members",
-    "full"
+    "naive"
   ],
-  "data_load_seconds_shared": 12.2,
+  "data_load_seconds_shared": 15.6,
   "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
   "equivalence_checks": {
     "full": {
@@ -245,5 +242,5 @@
   },
   "run_name": "ch5-system",
   "schema_version": "ch5-system-comparison-v1",
-  "ts": "2026-10-22T06:21:01.086644Z"
+  "ts": "2026-10-22T06:26:20.937799Z"
 }

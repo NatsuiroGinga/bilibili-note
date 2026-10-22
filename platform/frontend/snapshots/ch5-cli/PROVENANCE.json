@@ -1,0 +1,66 @@
+{
+  "schema_version": "ch5-cli-snapshot-provenance-v1",
+  "frozen_at": "2026-10-22T06:30:00Z",
+  "reason": "平台端到端任务 #1 运行 naive 格时会重写 runs/diagnostics/ch5-system/naive-result.json 与 system-comparison.json；为让图 5-7、图 5-8、图 5-10 的 CLI 四格收据可复现，冻结本次 E2E 之前的 CLI 收据。",
+  "source_root": "thesis/experiments/llm_probe/runs/diagnostics/ch5-system",
+  "files": [
+    {
+      "path": "system-comparison.json",
+      "original_source": "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/system-comparison.json",
+      "original_mtime": "2026-10-22T06:21:01.086Z",
+      "snapshot_sha256": "b9a0384afbecec03a47daad10d5ace9a128fc70e2c4ddce48e1f0e933d2e61d9",
+      "bytes": 7179,
+      "note": "CLI 四格收据，ts=2026-10-22T06:21:01.086644Z，completed_cells=[naive,replay,naive_members,full]"
+    },
+    {
+      "path": "naive-result.json",
+      "original_source": "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/naive-result.json",
+      "original_mtime": "2026-10-22T03:42:20.331Z",
+      "snapshot_sha256": "b1f010db8728785ce0c7abdb15fcdcf4d223d8152c8c0123e411fe13edb8f2cd",
+      "bytes": 15197,
+      "note": "CLI naive 收据，ts=2026-10-22T03:42:20.329225Z，mean_f1_12y=0.7244106926575061，wall_seconds_cell=144.0"
+    },
+    {
+      "path": "replay-result.json",
+      "original_source": "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/replay-result.json",
+      "original_mtime": "2026-10-22T03:44:55.218Z",
+      "snapshot_sha256": "836d3b6d4ab692d2b7b8ebb1cd8854ee07a90f534677e8f24999f9deab18db67",
+      "bytes": 25901,
+      "note": "CLI replay 收据，ts=2026-10-22T03:44:55.216652Z，mean_f1_12y=0.8169830287163194，wall_seconds_cell=154.7"
+    },
+    {
+      "path": "naive_members-result.json",
+      "original_source": "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/naive_members-result.json",
+      "original_mtime": "2026-10-22T03:57:14.880Z",
+      "snapshot_sha256": "15cefeb6a7290d155d25720a2891602bf12427a993c85264933ac8620435ee42",
+      "bytes": 15212,
+      "note": "CLI naive_members 收据，ts=2026-10-22T03:57:14.878890Z，mean_f1_12y=0.7576119548881529，wall_seconds_cell=739.0"
+    },
+    {
+      "path": "full-result.json",
+      "original_source": "thesis/experiments/llm_probe/runs/diagnostics/ch5-system/full-result.json",
+      "original_mtime": "2026-10-22T06:20:10.278Z",
+      "snapshot_sha256": "e063e607951f4cc7f0fb29fa169c9df6f868cf63897e2d869ae7dcdad28efdb6",
+      "bytes": 26089,
+      "note": "CLI full 收据，ts=2026-10-22T06:20:10.276172Z，mean_f1_12y=0.832346367494066，wall_seconds_cell=1293.2，与第四章 TABM4 先导等价性 passed"
+    }
+  ],
+  "platform_e2e_that_overwrote_source": {
+    "task_id": 1,
+    "data_budget": "naive",
+    "member_engine": "off",
+    "created_at": "2026-10-22T06:21:18.931209Z",
+    "started_at": "2026-10-22T06:21:18.957Z",
+    "finished_at": "2026-10-22T06:26:22.329Z",
+    "result_ts": "2026-10-22T06:26:20.150346Z",
+    "mean_f1_12y": 0.7244106926575061,
+    "kernel_wall_seconds_cell": 282.1,
+    "verification": "平台 naive 与快照 CLI naive 的 panel.backward_f1、current_year_f1、current_year_metrics、mean_f1_12y、f1_2023、f1_2024、f1_2025 逐项比较，max_abs_delta=0.0"
+  },
+  "reference_tabm4": {
+    "path": "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json",
+    "ts": "2026-10-20T08:59:18.457798Z",
+    "mean_f1": 0.832346367494066,
+    "note": "第四章 TABM4 先导参考，未被本次运行覆盖"
+  }
+}

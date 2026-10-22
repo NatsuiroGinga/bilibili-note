@@ -1,0 +1,33 @@
+# 第五章 Web 平台本地依赖：MySQL 8.4。
+# 密码只从环境变量 CH5_MYSQL_ROOT_PASSWORD 读取，不写入本文件、日志或仓库。
+# 启动示例（密码从系统钥匙串读取）：
+#   CH5_MYSQL_ROOT_PASSWORD="$(security find-generic-password -a ch5platform -s ch5-mysql-root -w)" \
+#     docker compose -f platform/docker-compose.yml up -d
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: ch5platform-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${CH5_MYSQL_ROOT_PASSWORD:?请设置环境变量 CH5_MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${CH5_MYSQL_DATABASE:-ch5platform}
+      TZ: Asia/Shanghai
+    ports:
+      - "127.0.0.1:3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - ch5_mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent
+      interval: 5s
+      timeout: 5s
+      retries: 40
+      start_period: 20s
+
+volumes:
+  ch5_mysql_data:
+    name: ch5platform_mysql_data
