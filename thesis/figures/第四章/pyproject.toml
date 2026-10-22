@@ -1,0 +1,9 @@
+[project]
+name = "chapter4-thesis-figures"
+version = "0.1.0"
+description = "第四章预算约束成员化训练图件"
+requires-python = ">=3.13"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "pillow>=13.0.0",
+]

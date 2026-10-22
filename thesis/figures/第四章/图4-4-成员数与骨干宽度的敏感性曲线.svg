@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="425.19685pt" height="269.291339pt" viewBox="0 0 425.19685 269.291339" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <title>图4-4-成员数与骨干宽度的敏感性曲线</title>
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>图4-4-成员数与骨干宽度的敏感性曲线</dc:title>
+    <dc:date>2026-10-22T14:58:12.369798</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 269.291339 
+L 425.19685 269.291339 
+L 425.19685 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 44.645669 214.086614 
+L 380.551181 214.086614 
+L 380.551181 25.582677 
+L 44.645669 25.582677 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <defs>
+       <path id="m6fce56a4d9" d="M 0 0 
+L 0 2.5 
+" style="stroke: #000000; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#m6fce56a4d9" x="73.18666" y="214.086614" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_1">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="73.18666" y="224.633489" transform="rotate(-0 73.18666 224.633489)">2</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_2">
+      <g>
+       <use xlink:href="#m6fce56a4d9" x="161.005095" y="214.086614" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_2">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="161.005095" y="224.633489" transform="rotate(-0 161.005095 224.633489)">4</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_3">
+      <g>
+       <use xlink:href="#m6fce56a4d9" x="336.641964" y="214.086614" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_3">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="336.641964" y="224.633489" transform="rotate(-0 336.641964 224.633489)">8</text>
+     </g>
+    </g>
+    <g id="text_4">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="212.598425" y="238.707708" transform="rotate(-0 212.598425 238.707708)">成员数 k</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_4">
+      <path d="M 44.645669 200.622047 
+L 380.551181 200.622047 
+" clip-path="url(#p6af451d311)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_5">
+      <defs>
+       <path id="me8b56a4422" d="M 0 0 
+L -2.5 0 
+" style="stroke: #000000; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#me8b56a4422" x="44.645669" y="200.622047" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_5">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end" x="39.645669" y="203.395485" transform="rotate(-0 39.645669 203.395485)">81</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_6">
+      <path d="M 44.645669 133.299213 
+L 380.551181 133.299213 
+" clip-path="url(#p6af451d311)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_7">
+      <g>
+       <use xlink:href="#me8b56a4422" x="44.645669" y="133.299213" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_6">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end" x="39.645669" y="136.07265" transform="rotate(-0 39.645669 136.07265)">82</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_8">
+      <path d="M 44.645669 65.976378 
+L 380.551181 65.976378 
+" clip-path="url(#p6af451d311)" style="fill: none; stroke: #d9d9d9; stroke-width: 0.5; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_9">
+      <g>
+       <use xlink:href="#me8b56a4422" x="44.645669" y="65.976378" style="stroke: #000000; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_7">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: end" x="39.645669" y="68.749815" transform="rotate(-0 39.645669 68.749815)">83</text>
+     </g>
+    </g>
+    <g id="text_8">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle" x="24.703286" y="119.834646" transform="rotate(-90 24.703286 119.834646)">12 年平均 F1（%）</text>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 44.645669 214.086614 
+L 44.645669 25.582677 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 380.551181 214.086614 
+L 380.551181 25.582677 
+" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 44.645669 214.086614 
+L 380.551181 214.086614 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_10">
+    <path d="M 73.18666 168.472313 
+L 161.005095 50.179967 
+L 336.641964 71.054836 
+" clip-path="url(#p6af451d311)" style="fill: none; stroke: #1f1f1f; stroke-width: 1.4; stroke-linecap: square"/>
+    <defs>
+     <path id="mce83596df1" d="M 0 2.5 
+C 0.663008 2.5 1.29895 2.236584 1.767767 1.767767 
+C 2.236584 1.29895 2.5 0.663008 2.5 0 
+C 2.5 -0.663008 2.236584 -1.29895 1.767767 -1.767767 
+C 1.29895 -2.236584 0.663008 -2.5 0 -2.5 
+C -0.663008 -2.5 -1.29895 -2.236584 -1.767767 -1.767767 
+C -2.236584 -1.29895 -2.5 -0.663008 -2.5 0 
+C -2.5 0.663008 -2.236584 1.29895 -1.767767 1.767767 
+C -1.29895 2.236584 -0.663008 2.5 0 2.5 
+z
+" style="stroke: #1f1f1f"/>
+    </defs>
+    <g clip-path="url(#p6af451d311)">
+     <use xlink:href="#mce83596df1" x="73.18666" y="168.472313" style="fill: #1f1f1f; stroke: #1f1f1f"/>
+     <use xlink:href="#mce83596df1" x="161.005095" y="50.179967" style="fill: #1f1f1f; stroke: #1f1f1f"/>
+     <use xlink:href="#mce83596df1" x="336.641964" y="71.054836" style="fill: #1f1f1f; stroke: #1f1f1f"/>
+    </g>
+   </g>
+   <g id="legend_1">
+    <g id="line2d_11">
+     <path d="M 94.549675 26.952559 
+L 105.749675 26.952559 
+L 116.949675 26.952559 
+" style="fill: none; stroke: #1f1f1f; stroke-width: 1.4; stroke-linecap: square"/>
+     <g>
+      <use xlink:href="#mce83596df1" x="105.749675" y="26.952559" style="fill: #1f1f1f; stroke: #1f1f1f"/>
+     </g>
+    </g>
+    <g id="text_9">
+     <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start" x="123.349675" y="29.752559" transform="rotate(-0 123.349675 29.752559)">12 年平均 F1</text>
+    </g>
+    <g id="line2d_12">
+     <path d="M 182.198425 26.952559 
+L 193.398425 26.952559 
+L 204.598425 26.952559 
+" style="fill: none; stroke-dasharray: 5.5,2.2; stroke-dashoffset: 0; stroke: #666666; stroke-width: 1.1"/>
+     <defs>
+      <path id="ma467661cc7" d="M -2.2 2.2 
+L 2.2 2.2 
+L 2.2 -2.2 
+L -2.2 -2.2 
+z
+" style="stroke: #666666; stroke-linejoin: miter"/>
+     </defs>
+     <g>
+      <use xlink:href="#ma467661cc7" x="193.398425" y="26.952559" style="fill: #ffffff; stroke: #666666; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="text_10">
+     <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start" x="210.998425" y="29.752559" transform="rotate(-0 210.998425 29.752559)">2024 年度 F1</text>
+    </g>
+    <g id="line2d_13">
+     <defs>
+      <path id="m88fa5fd0f0" d="M -0 3.535534 
+L 3.535534 0 
+L 0 -3.535534 
+L -3.535534 -0 
+z
+" style="stroke: #1f1f1f; stroke-linejoin: miter"/>
+     </defs>
+     <g>
+      <use xlink:href="#m88fa5fd0f0" x="281.047175" y="26.952559" style="fill: #ffffff; stroke: #1f1f1f; stroke-linejoin: miter"/>
+     </g>
+    </g>
+    <g id="text_11">
+     <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start" x="298.647175" y="29.752559" transform="rotate(-0 298.647175 29.752559)">半宽骨干</text>
+    </g>
+   </g>
+   <g id="line2d_14">
+    <g clip-path="url(#p6af451d311)">
+     <use xlink:href="#m88fa5fd0f0" x="173.299676" y="91.519909" style="fill: #ffffff; stroke: #1f1f1f; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="patch_6">
+    <path d="M 161.005095 45.873964 
+Q 161.005095 47.028259 161.005095 48.182553 
+" style="fill: none; stroke: #777777; stroke-width: 0.5; stroke-linecap: round"/>
+   </g>
+   <g id="text_12">
+    <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #1f1f1f" x="161.005095" y="40.150006" transform="rotate(-0 161.005095 40.150006)">本章配置</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g id="matplotlib.axis_3">
+    <g id="ytick_4">
+     <g id="line2d_15">
+      <defs>
+       <path id="m0176cf2db9" d="M 0 0 
+L 2.5 0 
+" style="stroke: #555555; stroke-width: 0.6"/>
+      </defs>
+      <g>
+       <use xlink:href="#m0176cf2db9" x="380.551181" y="202.998147" style="fill: #555555; stroke: #555555; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_13">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #555555" x="385.551181" y="205.771585" transform="rotate(-0 385.551181 205.771585)">70</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_16">
+      <g>
+       <use xlink:href="#m0176cf2db9" x="380.551181" y="158.64428" style="fill: #555555; stroke: #555555; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_14">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #555555" x="385.551181" y="161.417717" transform="rotate(-0 385.551181 161.417717)">72</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_17">
+      <g>
+       <use xlink:href="#m0176cf2db9" x="380.551181" y="114.290412" style="fill: #555555; stroke: #555555; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_15">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #555555" x="385.551181" y="117.06385" transform="rotate(-0 385.551181 117.06385)">74</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_18">
+      <g>
+       <use xlink:href="#m0176cf2db9" x="380.551181" y="69.936545" style="fill: #555555; stroke: #555555; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_16">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #555555" x="385.551181" y="72.709982" transform="rotate(-0 385.551181 72.709982)">76</text>
+     </g>
+    </g>
+    <g id="ytick_8">
+     <g id="line2d_19">
+      <g>
+       <use xlink:href="#m0176cf2db9" x="380.551181" y="25.582677" style="fill: #555555; stroke: #555555; stroke-width: 0.6"/>
+      </g>
+     </g>
+     <g id="text_17">
+      <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: start; fill: #555555" x="385.551181" y="28.356115" transform="rotate(-0 385.551181 28.356115)">78</text>
+     </g>
+    </g>
+    <g id="text_18">
+     <text style="font-size: 9px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="406.96915" y="119.834646" transform="rotate(-90 406.96915 119.834646)">2024 年度 F1（%）</text>
+    </g>
+   </g>
+   <g id="patch_7">
+    <path d="M 44.645669 214.086614 
+L 44.645669 25.582677 
+" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 380.551181 214.086614 
+L 380.551181 25.582677 
+" style="fill: none; stroke: #666666; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 44.645669 214.086614 
+L 380.551181 214.086614 
+" style="fill: none; stroke: #000000; stroke-width: 0.7; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_20">
+    <path d="M 73.18666 182.676654 
+L 161.005095 46.938243 
+L 336.641964 75.312771 
+" clip-path="url(#p6af451d311)" style="fill: none; stroke-dasharray: 5.5,2.2; stroke-dashoffset: 0; stroke: #666666; stroke-width: 1.1"/>
+    <g clip-path="url(#p6af451d311)">
+     <use xlink:href="#ma467661cc7" x="73.18666" y="182.676654" style="fill: #ffffff; stroke: #666666; stroke-linejoin: miter"/>
+     <use xlink:href="#ma467661cc7" x="161.005095" y="46.938243" style="fill: #ffffff; stroke: #666666; stroke-linejoin: miter"/>
+     <use xlink:href="#ma467661cc7" x="336.641964" y="75.312771" style="fill: #ffffff; stroke: #666666; stroke-linejoin: miter"/>
+    </g>
+   </g>
+   <g id="line2d_21">
+    <defs>
+     <path id="m7eacbe83a8" d="M -0 3.535534 
+L 3.535534 0 
+L 0 -3.535534 
+L -3.535534 -0 
+z
+" style="stroke: #666666; stroke-linejoin: miter"/>
+    </defs>
+    <g clip-path="url(#p6af451d311)">
+     <use xlink:href="#m7eacbe83a8" x="173.299676" y="106.98307" style="fill: #ffffff; stroke: #666666; stroke-linejoin: miter"/>
+    </g>
+   </g>
+  </g>
+  <g id="text_19">
+   <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="212.598425" y="251.543707" transform="rotate(-0 212.598425 251.543707)">半宽骨干为 k=4 的宽度变体（空心菱形，横向略移）；参数为全宽的 47.2%。</text>
+  </g>
+  <g id="text_20">
+   <text style="font-size: 8px; font-family: 'Times New Roman', 'SimHei'; text-anchor: middle; fill: #555555" x="212.598425" y="264.992649" transform="rotate(-0 212.598425 264.992649)">其 12 年平均 F1 为 82.62%、低 0.61 pp；2024 年度为 74.33%、低 2.71 pp。</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p6af451d311">
+   <rect x="44.645669" y="25.582677" width="335.905512" height="188.503937"/>
+  </clipPath>
+ </defs>
+</svg>

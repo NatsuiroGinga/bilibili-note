@@ -20,8 +20,7 @@
 
 0. **新机起点（必读）**：`git clone` 默认落在 `main`（旧路线）——**必须先 `git checkout exp/ch3-lamda-20260908`**，一切工作在该分支根目录进行（无需重建 `.worktrees/` 结构，那是旧机的布局）；本工作树的根 `CLAUDE.md`/`AGENTS.md` 路由链已指向本卡。然后按 1.8170 复现门验证环境。
 1. **克隆验证门槛**：`tools/ch3_lamda_domain_il_e4.py` 复现门（12y = 0.8170，MPS/CUDA 序列各自成立）；
-2. **full 格重跑**：`tools/ch5_system_runner.py` 的 full 格（三格 result 已在
-   `runs/diagnostics/ch5-system/`，full 于本机死亡于 2018 epoch 8，约 14 分钟）；
+2. ~~full 格重跑~~ **已完成**（本机最终批次 `74a443ba`：full 与第四章制品逐位一致差 0.0，四格 system-comparison.json 齐备）；
 3. **HF 托管已生效（勿重复上传）**：第五章评测基准的大文件已托管至 HF 数据集仓库 `Heehobino/lamda-ch5-eval-benchmark`（panel_2024.f32 168 MB、tabm4_state.safetensors、panel_2024_meta.json；版本化提交哈希 3801db96/63993fa2/4aaf99df 见 `runs/diagnostics/ch5-eval-benchmark/data/README.md`）。新机恢复：`hf auth login`（账号 Heehobino）后 `hf download Heehobino/lamda-ch5-eval-benchmark --repo-type dataset --local-dir <同目录>/data/`；
 4. **Rust 检索续做**：`.Codex/docs/2026-10-22-rust-python服务对比检索/`（已有 TechEmpower r23 数据表；
    三问检索＋裁决输入表待续；rust-skills 需在新机 `~/.claude/skills/` 重装）；
@@ -33,6 +32,14 @@
    `第五章形态与实现计划.md`，Go/Gin＋GORM/MySQL，DSN 走 `CH5_MYSQL_DSN`）；
 7. **图件**：双通道分解图、S1' 合流曲线、k 曲线、参数-性能对照（数据全在库）；
 8. 每章 paper-self-review 门禁。
+
+## 二.5、本机停用时的在途任务（新机接续）
+
+三个代理在换机前被有意停止，其未完成工作在新机重派（数据与脚本全部在库）：
+1. **第四章图件 图 4-1～4-5**（正文图题已冻结于 `thesis/chapters/第四章-LAMDA/`；部分产物在 `thesis/figures/第四章/` 未入库，重跑覆盖即可）；体例参照 `thesis/figures/第五章/绘制第五章图件.py`；
+2. **图 5-5 评测服务综合指标视图**（2×2 四象限：吞吐/尾延迟/内存/冷热启动；数据 `runs/diagnostics/ch5-eval-benchmark/benchmark.json` 的 chart_data；任务简报要点：象限标注判优方向、启动行双口径分列）；
+3. **fable 正文公式验证报告**（范围：二/四/五章逐公式＋表 4-x/5-x 数值对制品复算；第四章制品核对已基本完成、第二章进行中——报告未落盘，需重跑；产出落 `.Codex/docs/2026-10-22-公式验证报告/fable-验证报告.md`）。
+平台后端（127.0.0.1:8080）与 MySQL 容器在本机仍在运行，弃用时直接关机即可（数据卷保留在 Docker；新机 compose 重建）。
 
 ## 三、关键文件地图
 

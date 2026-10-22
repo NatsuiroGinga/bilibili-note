@@ -1,0 +1,685 @@
+{
+  "figures": [
+    {
+      "stem": "图4-1-预算约束成员化训练的总体结构",
+      "caption": "预算约束成员化训练的总体结构。年度 t 的训练批由第三章回放构成 P_t 给出；共享主干上并行训练 k=4 个成员，成员适配参数为输入与输出尺度向量；训练信号为全体成员二元交叉熵的均值，评测取成员概率均值，阈值 0.5，当年更新 10 轮后回看全部已到达年度。",
+      "generator": "thesis/figures/第四章/绘制第四章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 165.0,
+      "height_mm": 125.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2598,
+        1968
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.9
+      ],
+      "bytes": 350684,
+      "bytes_by_format": {
+        "png": 350684,
+        "pdf": 48964,
+        "svg": 26158
+      },
+      "sha256": "3f3b365a5f0a365a0cbe54227b44c6ab2fde23a7b0283c30213796f53dec91e6",
+      "sha256_by_format": {
+        "png": "3f3b365a5f0a365a0cbe54227b44c6ab2fde23a7b0283c30213796f53dec91e6",
+        "pdf": "84a639f702b95f0e3026e2e74f39b0da99cae8e4531a523361c479b5eec62ce5",
+        "svg": "28e949196fd19f3f029d356f015a764e47fe2401fe74065285fe2c4de8716996"
+      },
+      "outputs": {
+        "png": "图4-1-预算约束成员化训练的总体结构.png",
+        "pdf": "图4-1-预算约束成员化训练的总体结构.pdf",
+        "svg": "图4-1-预算约束成员化训练的总体结构.svg"
+      },
+      "evidence_mode": "架构示意（依据 4.3、4.4 正文与 tabm4-result.json 的参数量）",
+      "data_keys": [
+        "thesis/chapters/第四章-LAMDA/4.3-方法框架设计.md §4.3.1–§4.3.4",
+        "thesis/chapters/第四章-LAMDA/4.4-算法实现与模型适配.md",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json.{n_params,k,protocol}"
+      ],
+      "parameters": {
+        "shared_trunk": 2686014,
+        "member_adapters": 37291,
+        "total": 2723305,
+        "k": 4
+      },
+      "verification": {
+        "total": "共享主干 + 成员适配 = 2,686,014 + 37,291 = 2,723,305",
+        "k": "tabm4-result.json.k = 4",
+        "protocol": "tabm4-result.json.protocol 与 4.6.1 节一致"
+      }
+    },
+    {
+      "stem": "图4-2-三类显式分工约束的成员分歧轨迹与跨年读数",
+      "caption": "三类显式分工约束的成员分歧轨迹与跨年读数。上排为五臂在 12 个年度的首轮成员判定不一致率（跨年起点），下排为 2024 年度十轮训练内的不一致率轨迹；左列为 NCL 系与单路损失参照，右列为成对相关惩罚。NCL 臂的跨年起点由 2016 年度的 2.25% 降至 2024 年度的 0.24%，成对相关惩罚臂在 2020 至 2022 年度维持约 30% 的起点，但 12 年平均 F1 为 0。",
+      "generator": "thesis/figures/第四章/绘制第四章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 165.0,
+      "height_mm": 125.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2598,
+        1968
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.9
+      ],
+      "bytes": 511923,
+      "bytes_by_format": {
+        "png": 511923,
+        "pdf": 44040,
+        "svg": 63867
+      },
+      "sha256": "e440bd7fa6ec85921608780afffcc0659bc05b7148279a6956b9d46c96dd5c96",
+      "sha256_by_format": {
+        "png": "e440bd7fa6ec85921608780afffcc0659bc05b7148279a6956b9d46c96dd5c96",
+        "pdf": "7b4842151629b32b1127cbad7f0a68613fcf429cfbd700bfcd1f87529466648e",
+        "svg": "0d25d614872b67f17eac4135ee140dd89e466b669ad086d78b33462aea3b5c03"
+      },
+      "outputs": {
+        "png": "图4-2-三类显式分工约束的成员分歧轨迹与跨年读数.png",
+        "pdf": "图4-2-三类显式分工约束的成员分歧轨迹与跨年读数.pdf",
+        "svg": "图4-2-三类显式分工约束的成员分歧轨迹与跨年读数.svg"
+      },
+      "evidence_mode": "真实数据：五臂 train_logs 的 epoch_disagreement 逐轮探针",
+      "data_keys": [
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-ncl-pilot/<arm>-result.json.train_logs.<year>.epoch_disagreement",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-corr-pilot/<arm>-result.json.train_logs.<year>.epoch_disagreement",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-ncl-pilot/ncl-comparison.json.arms.<arm>.epoch_disagreement_2024",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-corr-pilot/corr-comparison.json.arms.<arm>.epoch_disagreement_2024"
+      ],
+      "years": [
+        "2013",
+        "2014",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "arms": {
+        "train_single": {
+          "mean_f1": 0.8203273827573146,
+          "f1_2023": 0.8314275175212099,
+          "f1_2024": 0.7007874015748031,
+          "first_epoch_by_year": [
+            0.0,
+            0.0,
+            0.03369140625,
+            0.028442382812,
+            0.031087239583,
+            0.018269856771,
+            0.015258789062,
+            0.011108398438,
+            0.0078125,
+            0.018229166667,
+            0.002278645833,
+            0.0
+          ],
+          "within_2024": [
+            0.002278645833,
+            0.001668294271,
+            0.001505533854,
+            0.001180013021,
+            0.001342773438,
+            0.001180013021,
+            0.000935872396,
+            0.001057942708,
+            0.0009765625,
+            0.001139322917
+          ]
+        },
+        "ncl05": {
+          "mean_f1": 0.8301231930955244,
+          "f1_2023": 0.8557142857142858,
+          "f1_2024": 0.7703703703703704,
+          "first_epoch_by_year": [
+            0.0,
+            0.0,
+            0.022542317708,
+            0.007120768229,
+            0.011922200521,
+            0.014404296875,
+            0.013102213542,
+            0.010986328125,
+            0.006632486979,
+            0.012288411458,
+            0.002360026042,
+            0.0
+          ],
+          "within_2024": [
+            0.002360026042,
+            0.001261393229,
+            0.001139322917,
+            0.000813802083,
+            0.001017252604,
+            0.001017252604,
+            0.000935872396,
+            0.000528971354,
+            0.000813802083,
+            0.000569661458
+          ]
+        },
+        "ncl2": {
+          "mean_f1": 0.831469133080037,
+          "f1_2023": 0.8631057658295013,
+          "f1_2024": 0.7611940298507462,
+          "first_epoch_by_year": [
+            0.0,
+            0.0,
+            0.027180989583,
+            0.011515299479,
+            0.01806640625,
+            0.018839518229,
+            0.016153971354,
+            0.01806640625,
+            0.00927734375,
+            0.013427734375,
+            0.001708984375,
+            0.0
+          ],
+          "within_2024": [
+            0.001708984375,
+            0.002034505208,
+            0.001383463542,
+            0.001424153646,
+            0.000773111979,
+            0.001220703125,
+            0.001505533854,
+            0.001505533854,
+            0.000813802083,
+            0.000651041667
+          ]
+        },
+        "corr05": {
+          "mean_f1": 0.0,
+          "f1_2023": 0.0,
+          "f1_2024": 0.0,
+          "first_epoch_by_year": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.176025390625,
+            0.318237304688,
+            0.078531901042,
+            0.009969075521,
+            0.000732421875
+          ],
+          "within_2024": [
+            0.009969075521,
+            0.008870442708,
+            0.009195963542,
+            0.009236653646,
+            0.009399414062,
+            0.008707682292,
+            0.008504231771,
+            0.008707682292,
+            0.008422851562,
+            0.008544921875
+          ]
+        },
+        "corr10": {
+          "mean_f1": 0.0,
+          "f1_2023": 0.0,
+          "f1_2024": 0.0,
+          "first_epoch_by_year": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.296997070312,
+            0.291422526042,
+            0.318562825521,
+            0.080891927083,
+            0.009480794271,
+            0.000773111979
+          ],
+          "within_2024": [
+            0.009480794271,
+            0.008992513021,
+            0.009073893229,
+            0.008829752604,
+            0.008951822917,
+            0.009073893229,
+            0.008829752604,
+            0.008911132812,
+            0.008951822917,
+            0.008585611979
+          ]
+        }
+      },
+      "verification": {
+        "years_order": "train_logs 键序与 12 个年度逐位一致",
+        "epoch_order": "每个年度 10 轮，epoch 序号 1 至 10",
+        "probe_n": "每个轮次探针 n=4096",
+        "summary_match": "2024 逐轮数组与 comparison 的 epoch_disagreement_2024.rates 逐位一致",
+        "first3_last3": "ncl05 2021-2024 比值 3.2/2.3/2.6/2.5；train_single 2021-2023 比值 0.8/0.4/1.1"
+      }
+    },
+    {
+      "stem": "图4-3-参数总量与跨年平均F1的对照",
+      "caption": "参数总量与跨年平均 F1 的对照（五种配置的预算位置）。横轴为参数总量，对数刻度；纵轴为 12 年平均 F1。均匀成员化位于左上（2.72M 参数、83.23%），深度集成位于右上（10.75M 参数、82.33%），底座与半宽骨干位于左侧。",
+      "generator": "thesis/figures/第四章/绘制第四章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 150.0,
+      "height_mm": 100.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2362,
+        1574
+      ],
+      "png_ppi_measured": [
+        400.0,
+        399.8
+      ],
+      "bytes": 187727,
+      "bytes_by_format": {
+        "png": 187727,
+        "pdf": 30096,
+        "svg": 15666
+      },
+      "sha256": "daf4b58ff2622c75c9a72b558e9c22914204ba7331fb1f6afa45f259480d590f",
+      "sha256_by_format": {
+        "png": "daf4b58ff2622c75c9a72b558e9c22914204ba7331fb1f6afa45f259480d590f",
+        "pdf": "7ed5ac941482c1208c87445c3ef968cfc7b0c1f809b34f1ca311b77f63d2bb14",
+        "svg": "c155e75fd794f851c5167d10c81235de55d3ff900b07e4ed3f2cbd7f58804f8c"
+      },
+      "outputs": {
+        "png": "图4-3-参数总量与跨年平均F1的对照.png",
+        "pdf": "图4-3-参数总量与跨年平均F1的对照.pdf",
+        "svg": "图4-3-参数总量与跨年平均F1的对照.svg"
+      },
+      "evidence_mode": "真实数据：general-comparison.json、baselines-comparison.json 与结果 JSON",
+      "data_keys": [
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-general-pilot/general-comparison.json.k_curve 与 width_variant",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-baselines-pilot/baselines-comparison.json.table 与 budget_claim",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json.{mean_f1,n_params}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-paat-pilot/base-result.json.mean_f1",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-baselines-pilot/deep4-result.json.{mean_f1,n_params}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-baselines-pilot/mcdrop-result.json.n_params（底座同架构参数量）"
+      ],
+      "points": [
+        {
+          "key": "base",
+          "label": "第三章底座",
+          "n_params": 2687293,
+          "mean_f1": 0.8169830287163194,
+          "budget_label": null
+        },
+        {
+          "key": "uniform",
+          "label": "均匀成员化（k=4）",
+          "n_params": 2723305,
+          "mean_f1": 0.832346367494066,
+          "budget_label": "单次预算"
+        },
+        {
+          "key": "tabm8",
+          "label": "成员数 8",
+          "n_params": 2759317,
+          "mean_f1": 0.829245656012021,
+          "budget_label": null
+        },
+        {
+          "key": "halfwidth",
+          "label": "半宽骨干",
+          "n_params": 1286029,
+          "mean_f1": 0.8262058146764906,
+          "budget_label": null
+        },
+        {
+          "key": "deep4",
+          "label": "深度集成（4 成员）",
+          "n_params": 10749172,
+          "mean_f1": 0.8232622147157026,
+          "budget_label": "4× 预算"
+        }
+      ],
+      "verification": {
+        "k_curve_match": "k2/tabm4/tabm8 的 mean_f1、f1_2023、f1_2024、n_params、wall_seconds 与各自结果 JSON 逐位一致",
+        "width_match": "半宽骨干的 delta_mean12_pp、delta_2024_pp、param_ratio 由 halfwidth 与 tabm4 结果逐位计算",
+        "budget_claim": "baselines-comparison.json.budget_claim.abs_diff 与 tabm4-base 差逐位一致，supported=true",
+        "base_n_params": "base-result.json 未登记 n_params；取同架构 mcdrop/swa 与 deep4 单成员的 2,687,293"
+      }
+    },
+    {
+      "stem": "图4-4-成员数与骨干宽度的敏感性曲线",
+      "caption": "成员数与骨干宽度的敏感性曲线。左轴为 12 年平均 F1，右轴为 2024 年度 F1；实线圆点为 12 年平均，虚线方点为 2024 年度，成员数取 2、4、8。半宽骨干为 k=4 的骨干宽度变体，以空心菱形并入，横向略移以区分；其 12 年平均低 0.61 个百分点，2024 年度低 2.71 个百分点。",
+      "generator": "thesis/figures/第四章/绘制第四章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 150.0,
+      "height_mm": 95.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2362,
+        1496
+      ],
+      "png_ppi_measured": [
+        400.0,
+        400.0
+      ],
+      "bytes": 158021,
+      "bytes_by_format": {
+        "png": 158021,
+        "pdf": 25649,
+        "svg": 14474
+      },
+      "sha256": "820fd6dc6c47db1d9cc88498f19c45b21ecad4be77176cb37f20e8652c942b72",
+      "sha256_by_format": {
+        "png": "820fd6dc6c47db1d9cc88498f19c45b21ecad4be77176cb37f20e8652c942b72",
+        "pdf": "77d857729faae5a6664c789ed44bce57081186c056c159566e934562aba47797",
+        "svg": "8aaff51c1b2806945e49da27d46d3c58d24615ec2434a840d2055058dc0baabf"
+      },
+      "outputs": {
+        "png": "图4-4-成员数与骨干宽度的敏感性曲线.png",
+        "pdf": "图4-4-成员数与骨干宽度的敏感性曲线.pdf",
+        "svg": "图4-4-成员数与骨干宽度的敏感性曲线.svg"
+      },
+      "evidence_mode": "真实数据：general-comparison.json 的 k_curve 与 width_variant",
+      "data_keys": [
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-general-pilot/general-comparison.json.k_curve[0..2]",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-general-pilot/general-comparison.json.width_variant",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-general-pilot/k2-result.json.{mean_f1,f1_2024,n_params}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json.{mean_f1,f1_2024,n_params}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/tabm8-result.json.{mean_f1,f1_2024,n_params}",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-general-pilot/halfwidth-result.json.{mean_f1,f1_2024,n_params}"
+      ],
+      "k_curve": [
+        {
+          "k": 2,
+          "arm": "k2",
+          "mean_f1": 0.8147754575556311,
+          "f1_2024": 0.7091633466135459,
+          "n_params": 2705299,
+          "wall_seconds": 433.0
+        },
+        {
+          "k": 4,
+          "arm": "tabm4",
+          "mean_f1": 0.832346367494066,
+          "f1_2024": 0.7703703703703704,
+          "n_params": 2723305,
+          "wall_seconds": 822.4
+        },
+        {
+          "k": 8,
+          "arm": "tabm8",
+          "mean_f1": 0.829245656012021,
+          "f1_2024": 0.7575757575757576,
+          "n_params": 2759317,
+          "wall_seconds": 1591.3
+        }
+      ],
+      "width_variant": {
+        "arm": "halfwidth",
+        "mean_f1": 0.8262058146764906,
+        "f1_2024": 0.7432950191570882,
+        "n_params": 1286029,
+        "param_ratio": 0.4722309840432856,
+        "delta_mean12_pp": -0.6140552817575418,
+        "delta_2024_pp": -2.7075351213282195
+      },
+      "verification": {
+        "k2_match": "k_curve[0] 与 k2-result.json 逐位一致",
+        "tabm4_match": "k_curve[1] 与 tabm4-result.json 逐位一致",
+        "tabm8_match": "k_curve[2] 与 tabm8-result.json 逐位一致",
+        "halfwidth_match": "width_variant 由 halfwidth-result.json 与 tabm4-result.json 逐位计算"
+      }
+    },
+    {
+      "stem": "图4-5-增益的双通道分解与成员分歧的逐年形态",
+      "caption": "增益的双通道分解与成员分歧的逐年形态。左图为 base 至 uniform 的逐年增益，按评测平均通道与训练通道堆叠，黑色菱形为合计；最右侧为 12 年均值。右图为正例侧与负例侧成员间标准差的逐年形态，对数刻度；2023 与 2024 年正例侧分别为负例侧的 16.6 与 42.9 倍。",
+      "generator": "thesis/figures/第四章/绘制第四章图件.py",
+      "environment_ref": "matplotlib_environment",
+      "typography_ref": "matplotlib_typography",
+      "width_mm": 165.0,
+      "height_mm": 112.0,
+      "png_dpi": 400,
+      "png_pixels": [
+        2598,
+        1763
+      ],
+      "png_ppi_measured": [
+        399.9,
+        399.8
+      ],
+      "bytes": 302570,
+      "bytes_by_format": {
+        "png": 302570,
+        "pdf": 34241,
+        "svg": 40177
+      },
+      "sha256": "3304ac15ef10aab223da64a5e5d69e1a62ab05af81a434fd7f3815ffce5b4c1f",
+      "sha256_by_format": {
+        "png": "3304ac15ef10aab223da64a5e5d69e1a62ab05af81a434fd7f3815ffce5b4c1f",
+        "pdf": "c52cd682503e6b11cfb1461db6a89829166651c94086cf4db44257586b83e58f",
+        "svg": "cf6c83e16ea8ffbca22e88e4635fe2f22df6a4394a2d279712fceeb3e1f1bec8"
+      },
+      "outputs": {
+        "png": "图4-5-增益的双通道分解与成员分歧的逐年形态.png",
+        "pdf": "图4-5-增益的双通道分解与成员分歧的逐年形态.pdf",
+        "svg": "图4-5-增益的双通道分解与成员分歧的逐年形态.svg"
+      },
+      "evidence_mode": "真实数据：member-disagreement-diag.json、tabm4-result.json 与 base-result.json",
+      "data_keys": [
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/member-disagreement-diag.json.years.<year>.f1_per_member",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/member-disagreement-diag.json.years.<year>.f1_ensemble",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/member-disagreement-diag.json.years.<year>.member_std_pos",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/member-disagreement-diag.json.years.<year>.member_std_neg",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json.backward_f1",
+        "thesis/experiments/llm_probe/runs/diagnostics/ch4-lamda-paat-pilot/base-result.json.backward_f1"
+      ],
+      "years": [
+        "2013",
+        "2014",
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "rows": [
+        {
+          "year": "2013",
+          "base_f1": 0.9121379759192971,
+          "member_mean_f1": 0.8996810098414995,
+          "ensemble_f1": 0.9118810314823604,
+          "train_channel_pp": -1.245696607779767,
+          "eval_channel_pp": 1.220002164086098,
+          "total_pp": -0.025694443693669022,
+          "member_std_pos": 0.025250796228647232,
+          "member_std_neg": 0.09859619289636612
+        },
+        {
+          "year": "2014",
+          "base_f1": 0.9076352694642953,
+          "member_mean_f1": 0.8962721809786116,
+          "ensemble_f1": 0.9088164879775164,
+          "train_channel_pp": -1.1363088485683681,
+          "eval_channel_pp": 1.2544306998904742,
+          "total_pp": 0.11812185132210606,
+          "member_std_pos": 0.031617097556591034,
+          "member_std_neg": 0.07492400705814362
+        },
+        {
+          "year": "2016",
+          "base_f1": 0.8779861576244697,
+          "member_mean_f1": 0.8824205472641106,
+          "ensemble_f1": 0.89910641754671,
+          "train_channel_pp": 0.44343896396408233,
+          "eval_channel_pp": 1.668587028259938,
+          "total_pp": 2.1120259922240203,
+          "member_std_pos": 0.05839015170931816,
+          "member_std_neg": 0.057914361357688904
+        },
+        {
+          "year": "2017",
+          "base_f1": 0.9060695344725987,
+          "member_mean_f1": 0.8895859151324581,
+          "ensemble_f1": 0.9123901987979658,
+          "train_channel_pp": -1.6483619340140643,
+          "eval_channel_pp": 2.2804283665507685,
+          "total_pp": 0.6320664325367042,
+          "member_std_pos": 0.04410148784518242,
+          "member_std_neg": 0.031438231468200684
+        },
+        {
+          "year": "2018",
+          "base_f1": 0.8885175778639219,
+          "member_mean_f1": 0.8875267604496588,
+          "ensemble_f1": 0.9031880286271958,
+          "train_channel_pp": -0.0990817414263101,
+          "eval_channel_pp": 1.566126817753699,
+          "total_pp": 1.467045076327389,
+          "member_std_pos": 0.06175448000431061,
+          "member_std_neg": 0.029766159132122993
+        },
+        {
+          "year": "2019",
+          "base_f1": 0.9359930400198857,
+          "member_mean_f1": 0.9400420339372184,
+          "ensemble_f1": 0.9477080416387654,
+          "train_channel_pp": 0.40489939173327105,
+          "eval_channel_pp": 0.7666007701547017,
+          "total_pp": 1.1715001618879728,
+          "member_std_pos": 0.041096314787864685,
+          "member_std_neg": 0.026711083948612213
+        },
+        {
+          "year": "2020",
+          "base_f1": 0.9408994056296961,
+          "member_mean_f1": 0.9481424415943365,
+          "ensemble_f1": 0.9536204709645398,
+          "train_channel_pp": 0.7243035964640376,
+          "eval_channel_pp": 0.5478029370203363,
+          "total_pp": 1.272106533484374,
+          "member_std_pos": 0.034352920949459076,
+          "member_std_neg": 0.014647272415459156
+        },
+        {
+          "year": "2021",
+          "base_f1": 0.9298871063576946,
+          "member_mean_f1": 0.9507972692379615,
+          "ensemble_f1": 0.9570561017929439,
+          "train_channel_pp": 2.0910162880266925,
+          "eval_channel_pp": 0.6258832554982385,
+          "total_pp": 2.716899543524931,
+          "member_std_pos": 0.03854755684733391,
+          "member_std_neg": 0.00984937697649002
+        },
+        {
+          "year": "2022",
+          "base_f1": 0.9381684703499779,
+          "member_mean_f1": 0.9491525564822315,
+          "ensemble_f1": 0.9558951422536961,
+          "train_channel_pp": 1.0984086132253656,
+          "eval_channel_pp": 0.6742585771464582,
+          "total_pp": 1.7726671903718239,
+          "member_std_pos": 0.04428261145949364,
+          "member_std_neg": 0.00915931910276413
+        },
+        {
+          "year": "2023",
+          "base_f1": 0.8243143068939955,
+          "member_mean_f1": 0.8579980783228494,
+          "ensemble_f1": 0.8681241184767278,
+          "train_channel_pp": 3.3683771428853815,
+          "eval_channel_pp": 1.0126040153878413,
+          "total_pp": 4.380981158273222,
+          "member_std_pos": 0.07290052622556686,
+          "member_std_neg": 0.004400759469717741
+        },
+        {
+          "year": "2024",
+          "base_f1": 0.7421875,
+          "member_mean_f1": 0.7579905732622365,
+          "ensemble_f1": 0.7703703703703704,
+          "train_channel_pp": 1.580307326223651,
+          "eval_channel_pp": 1.237979710813386,
+          "total_pp": 2.818287037037037,
+          "member_std_pos": 0.051464296877384186,
+          "member_std_neg": 0.0012005784083157778
+        },
+        {
+          "year": "2025",
+          "base_f1": 0.0,
+          "member_mean_f1": 0.0,
+          "ensemble_f1": 0.0,
+          "train_channel_pp": 0.0,
+          "eval_channel_pp": 0.0,
+          "total_pp": 0.0,
+          "member_std_pos": 0.024893617257475853,
+          "member_std_neg": 0.0008245919016189873
+        }
+      ],
+      "means_pp": {
+        "train_channel": 0.4651085158944977,
+        "eval_channel": 1.0712253618801617,
+        "total": 1.5363338777746594
+      },
+      "verification": {
+        "identity_gate": "member-disagreement-diag.json.identity_gate.passed = true",
+        "ensemble_match": "每年 f1_ensemble 与 tabm4-result.json.backward_f1 逐位一致",
+        "per_member_count": "每年 f1_per_member 长度 = k = 4",
+        "channel_identity": "训练通道 + 评测通道 = 合计（容差 1e-12）",
+        "means": "12 年均值（含 2025 年零值）为 0.47、1.07、1.54 个百分点",
+        "std_ratio": "2023 与 2024 年正/负成员标准差比分别为 16.6 与 42.9"
+      }
+    }
+  ],
+  "contract": "AGENTS.md 学位论文图件合同（2026-08-13 重定）；数据图按合同 300 dpi 下限、实际 400 dpi 导出 PNG+PDF+SVG",
+  "figure_mode": "matplotlib 数据图/示意图（数值从运行制品 JSON 读取）",
+  "grayscale_readable": true,
+  "data_mode": "图 4-1 的结构与算量取自 tabm4-result.json 与 4.3、4.4 正文；图 4-2 读取五臂 train_logs 的 epoch_disagreement；图 4-3 读取 general-comparison.json、baselines-comparison.json 与结果 JSON；图 4-4 读取 general-comparison.json 的 k_curve 与 width_variant；图 4-5 读取 member-disagreement-diag.json、tabm4-result.json 与 base-result.json。",
+  "matplotlib_environment": {
+    "generator": "thesis/figures/第四章/绘制第四章图件.py",
+    "style_module": "thesis/figures/第三章/figstyle.py",
+    "uv_project": "thesis/figures/第四章",
+    "uv_lock_sha256": "006f65542d4ed494826e22af7901fcad650c7edac6e56d0177c9eed75642523e",
+    "command": "uv run --project \"thesis/figures/第四章\" --locked python \"thesis/figures/第四章/绘制第四章图件.py\"",
+    "python": "3.13.13",
+    "python_executable": ".venv/bin/python3",
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.4",
+    "pillow": "13.0.0",
+    "os": "macOS-26.5-arm64-arm-64bit-Mach-O",
+    "generated_at_utc": "2026-10-22T06:58:13+00:00"
+  },
+  "matplotlib_typography": {
+    "cjk_font_requested": "SimHei",
+    "cjk_font_used": "SimHei",
+    "cjk_font_path": "/Applications/Microsoft Word.app/Contents/Resources/DFonts/SimHei.ttf",
+    "cjk_face_index": 0,
+    "latin_font_used": "Times New Roman",
+    "latin_font_path": "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+    "math_fontset": "custom (Cambria Math)",
+    "min_font_pt": 8.0,
+    "main_font_pt": 9.0,
+    "main_line_pt": 1.0,
+    "aux_line_pt": 0.5,
+    "png_dpi": 400
+  }
+}
