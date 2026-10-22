@@ -209,3 +209,19 @@ BSM、Logit Adjustment、LADE、OLS、LIMES **全部假设 label shift**（`p(x|
 1. **任务化改造设计**（按仓库技能编排：research-ideation 研究问题卡 → sc:brainstorm → brainstorming architectural 分类；判据看读数前冻结）——把 TabM 机制与年度漂移结构绑定（候选：年度稀缺度感知的成员分配/成员分工/成员路由），并用硬消融证明任务化部分有独立贡献，回应「不得机械挪用」约束；
 2. **多种子不适用**：路线合同规定「训练只用单一冻结种子 42，禁止多种子训练；配对重采样只量化样本不确定性」——tabm4 的不确定性用配对 bootstrap 量化，不重训；
 3. 对照义务：Android FM（Li 2018，域内直接近邻）作为相关工作对照写入，FM 探针降为备选。
+
+### 十七、换机交接（2026-10-22 深夜，本机弃用前最后同步）
+
+**未竟事项（新机第一件事）**：
+1. `full` 格重跑：`cd thesis/experiments/llm_probe && /opt/miniconda3/envs/rwkv/bin/python tools/ch5_system_runner.py --cell full`（或按该脚本的调用约定；naive/replay/naive_members 三格 result 已入库，full 训练在本机死亡于 2018 epoch 8，未产出）；
+2. Rust 检索续做：`.Codex/docs/2026-10-22-rust-python服务对比检索/` 已有 TechEmpower 数据表（techempower-r23-selected.tsv），三问检索与裁决表待续（代理两次停滞，检索通道 TechEmpower/WebSearch 可用）；
+3. Web 平台阶段 B（Vue3 前端）＋阶段 C（集成测试）——阶段 A 后端已入库（`platform/backend/`）。
+
+**本机资产清单（不随仓库走，新机需重建/复制）**：
+- Python 环境：`/opt/miniconda3/envs/rwkv`（按 `新机器快速上手.md` 重建）；
+- rust-skills：`git clone https://github.com/leonardomso/rust-skills.git ~/.claude/skills/rust-skills`（本机已装，Rust 工具链 1.97.1）；
+- Claude 记忆：`~/.claude/projects/-Users-bilibili-personal-note/memory/`（若新机克隆路径不同需手动复制）；
+- MySQL：本机未配置（`CH5_MYSQL_DSN` 未设），新机部署时按 `platform/backend/README.md`；
+- Zotero 本地库与 cookies：机器特定，按需迁移。
+
+**验证门槛**：新机克隆后先跑 `tools/ch3_lamda_domain_il_e4.py` 复现门（12y = 0.8170，MPS 序列），对上才继续。

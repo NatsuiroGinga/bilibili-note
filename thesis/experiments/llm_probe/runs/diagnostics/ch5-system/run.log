@@ -1,0 +1,294 @@
+[run] ch5-system cells=['naive', 'replay', 'naive_members', 'full'] device=mps data_root=/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767
+[load] 2013 train=(69144, 4561) (1.1s)
+[load] 2014 train=(80946, 4561) (1.1s)
+[load] 2016 train=(87354, 4561) (1.3s)
+[load] 2017 train=(79315, 4561) (1.2s)
+[load] 2018 train=(83433, 4561) (1.1s)
+[load] 2019 train=(72840, 4561) (0.9s)
+[load] 2020 train=(81658, 4561) (1.2s)
+[load] 2021 train=(64924, 4561) (0.8s)
+[load] 2022 train=(69132, 4561) (0.9s)
+[load] 2023 train=(43483, 4561) (0.6s)
+[load] 2024 train=(38741, 4561) (0.5s)
+[load] 2025 train=(35730, 4561) (0.5s)
+[load] 全部年度完成：11.2s input_dim=4561
+[cell] naive start data_budget=naive member_engine=off device=mps
+[config] seed=42 epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_repeat=2 threshold=0.5
+[model] cell=naive class=ChenEncoderMLP params=2,687,293 member_k=1 expected=2,687,293
+[parts] naive 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
+[naive][2013] current_f1=0.6786 train=13.0s eval=0.2s
+[parts] naive 2014: n_parts=1 rows=80,946 pos=36,605 pos_rate=0.4522
+[naive][2014] current_f1=0.9283 train=12.8s eval=0.3s
+[parts] naive 2016: n_parts=1 rows=87,354 pos=36,107 pos_rate=0.4133
+[naive][2016] current_f1=0.9549 train=13.7s eval=0.3s
+[parts] naive 2017: n_parts=1 rows=79,315 pos=17,087 pos_rate=0.2154
+[naive][2017] current_f1=0.9577 train=12.9s eval=0.2s
+[parts] naive 2018: n_parts=1 rows=83,433 pos=31,480 pos_rate=0.3773
+[naive][2018] current_f1=0.9556 train=12.9s eval=0.3s
+[parts] naive 2019: n_parts=1 rows=72,840 pos=33,268 pos_rate=0.4567
+[naive][2019] current_f1=0.9753 train=10.7s eval=0.2s
+[parts] naive 2020: n_parts=1 rows=81,658 pos=37,084 pos_rate=0.4541
+[naive][2020] current_f1=0.9765 train=12.3s eval=0.3s
+[parts] naive 2021: n_parts=1 rows=64,924 pos=28,502 pos_rate=0.4390
+[naive][2021] current_f1=0.9852 train=13.2s eval=0.3s
+[parts] naive 2022: n_parts=1 rows=69,132 pos=33,318 pos_rate=0.4819
+[naive][2022] current_f1=0.9872 train=11.4s eval=0.2s
+[parts] naive 2023: n_parts=1 rows=43,483 pos=6,314 pos_rate=0.1452
+[naive][2023] current_f1=0.9453 train=6.2s eval=0.1s
+[parts] naive 2024: n_parts=1 rows=38,741 pos=635 pos_rate=0.0164
+[naive][2024] current_f1=0.7862 train=5.3s eval=0.3s
+[parts] naive 2025: n_parts=1 rows=35,730 pos=18 pos_rate=0.0005
+[naive][2025] current_f1=0.0000 train=6.6s eval=0.1s
+=== naive: 12y mean=0.7244106927 | 2023=0.749407 2024=0.682927 2025=0.000000 | wall=144s peak_mps=71.4MiB ===
+[cell] replay start data_budget=quota_deficit member_engine=off device=mps
+[config] seed=42 epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_repeat=2 threshold=0.5
+[model] cell=replay class=ChenEncoderMLP params=2,687,293 member_k=1 expected=2,687,293
+[parts] replay 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
+[replay][2013] current_f1=0.6786 train=11.1s eval=0.3s
+[parts] replay 2014: n_parts=3 rows=81,346 pos=36,805 pos_rate=0.4525
+[audit] replay 2014: blocks=2013(200/100) reps={'2013': 2}
+[replay][2014] current_f1=0.9574 train=10.9s eval=0.2s
+[parts] replay 2016: n_parts=5 rows=87,754 pos=36,307 pos_rate=0.4137
+[audit] replay 2016: blocks=2013(100/50), 2014(100/50) reps={'2013': 2, '2014': 2}
+[replay][2016] current_f1=0.9585 train=11.9s eval=0.3s
+[parts] replay 2017: n_parts=7 rows=79,711 pos=17,285 pos_rate=0.2168
+[audit] replay 2017: blocks=2013(66/33), 2014(66/33), 2016(66/33) reps={'2013': 2, '2014': 2, '2016': 2}
+[replay][2017] current_f1=0.9506 train=12.1s eval=0.2s
+[parts] replay 2018: n_parts=9 rows=83,833 pos=31,680 pos_rate=0.3779
+[audit] replay 2018: blocks=2013(50/25), 2014(50/25), 2016(50/25), 2017(50/25) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2}
+[replay][2018] current_f1=0.9562 train=14.4s eval=0.3s
+[parts] replay 2019: n_parts=11 rows=73,240 pos=33,468 pos_rate=0.4570
+[audit] replay 2019: blocks=2013(40/20), 2014(40/20), 2016(40/20), 2017(40/20), 2018(40/20) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2, '2018': 2}
+[replay][2019] current_f1=0.9744 train=16.3s eval=0.2s
+[parts] replay 2020: n_parts=13 rows=82,054 pos=37,276 pos_rate=0.4543
+[audit] replay 2020: blocks=2013(33/16), 2014(33/16), 2016(33/16), 2017(33/16), 2018(33/16), 2019(33/16) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2, '2018': 2, '2019': 2}
+[replay][2020] current_f1=0.9770 train=17.0s eval=0.3s
+[parts] replay 2021: n_parts=15 rows=65,316 pos=28,698 pos_rate=0.4394
+[audit] replay 2021: blocks=2013(28/14), 2014(28/14), 2016(28/14), 2017(28/14), 2018(28/14), 2019(28/14), 2020(28/14) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2, '2018': 2, '2019': 2, '2020': 2}
+[replay][2021] current_f1=0.9856 train=10.9s eval=0.2s
+[parts] replay 2022: n_parts=17 rows=69,532 pos=33,510 pos_rate=0.4819
+[audit] replay 2022: blocks=2013(25/12), 2014(25/12), 2016(25/12), 2017(25/12), 2018(25/12), 2019(25/12), 2020(25/12), 2021(25/12) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2, '2018': 2, '2019': 2, '2020': 2, '2021': 2}
+[replay][2022] current_f1=0.9869 train=11.7s eval=0.2s
+[parts] replay 2023: n_parts=19 rows=43,879 pos=6,512 pos_rate=0.1484
+[audit] replay 2023: blocks=2013(22/11), 2014(22/11), 2016(22/11), 2017(22/11), 2018(22/11), 2019(22/11), 2020(22/11), 2021(22/11), 2022(22/11) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2, '2018': 2, '2019': 2, '2020': 2, '2021': 2, '2022': 2}
+[replay][2023] current_f1=0.9352 train=6.8s eval=0.1s
+[parts] replay 2024: n_parts=21 rows=39,141 pos=835 pos_rate=0.0213
+[audit] replay 2024: blocks=2013(20/10), 2014(20/10), 2016(20/10), 2017(20/10), 2018(20/10), 2019(20/10), 2020(20/10), 2021(20/10), 2022(20/10), 2023(20/10) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2, '2018': 2, '2019': 2, '2020': 2, '2021': 2, '2022': 2, '2023': 2}
+[replay][2024] current_f1=0.7789 train=6.3s eval=0.1s
+[parts] replay 2025: n_parts=23 rows=36,126 pos=216 pos_rate=0.0060
+[audit] replay 2025: blocks=2013(18/9), 2014(18/9), 2016(18/9), 2017(18/9), 2018(18/9), 2019(18/9), 2020(18/9), 2021(18/9), 2022(18/9), 2023(18/9), 2024(18/9) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2, '2018': 2, '2019': 2, '2020': 2, '2021': 2, '2022': 2, '2023': 2, '2024': 2}
+[replay][2025] current_f1=0.0000 train=6.0s eval=0.1s
+=== replay: 12y mean=0.8169830287 | 2023=0.824314 2024=0.742188 2025=0.000000 | wall=155s peak_mps=70.9MiB ===
+[equivalence] replay: max_abs_delta=0.000e+00 passed=True source=runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json
+[cell] naive_members start data_budget=naive member_engine=tabm4 device=mps
+[config] seed=42 epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_repeat=2 threshold=0.5
+[model] cell=naive_members class=TabMMLP params=2,723,305 member_k=4 expected=2,723,305
+[parts] naive_members 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
+[tabm4][train] 2013 epoch=1/10 bce=0.692848 n_batches=68
+[tabm4][train] 2013 epoch=2/10 bce=0.692631 n_batches=68
+[tabm4][train] 2013 epoch=3/10 bce=0.692549 n_batches=68
+[tabm4][train] 2013 epoch=4/10 bce=0.692444 n_batches=68
+[tabm4][train] 2013 epoch=5/10 bce=0.692316 n_batches=68
+[tabm4][train] 2013 epoch=6/10 bce=0.692143 n_batches=68
+[tabm4][train] 2013 epoch=7/10 bce=0.691870 n_batches=68
+[tabm4][train] 2013 epoch=8/10 bce=0.691414 n_batches=68
+[tabm4][train] 2013 epoch=9/10 bce=0.690632 n_batches=68
+[tabm4][train] 2013 epoch=10/10 bce=0.688977 n_batches=68
+[naive_members][2013] current_f1=0.6786 train=62.5s eval=0.7s
+[parts] naive_members 2014: n_parts=1 rows=80,946 pos=36,605 pos_rate=0.4522
+[tabm4][train] 2014 epoch=1/10 bce=0.683273 n_batches=80
+[tabm4][train] 2014 epoch=2/10 bce=0.658070 n_batches=80
+[tabm4][train] 2014 epoch=3/10 bce=0.432223 n_batches=80
+[tabm4][train] 2014 epoch=4/10 bce=0.227899 n_batches=80
+[tabm4][train] 2014 epoch=5/10 bce=0.175683 n_batches=80
+[tabm4][train] 2014 epoch=6/10 bce=0.144125 n_batches=80
+[tabm4][train] 2014 epoch=7/10 bce=0.126556 n_batches=80
+[tabm4][train] 2014 epoch=8/10 bce=0.112808 n_batches=80
+[tabm4][train] 2014 epoch=9/10 bce=0.108407 n_batches=80
+[tabm4][train] 2014 epoch=10/10 bce=0.097640 n_batches=80
+[naive_members][2014] current_f1=0.9368 train=72.6s eval=0.9s
+[parts] naive_members 2016: n_parts=1 rows=87,354 pos=36,107 pos_rate=0.4133
+[tabm4][train] 2016 epoch=1/10 bce=0.198690 n_batches=86
+[tabm4][train] 2016 epoch=2/10 bce=0.148230 n_batches=86
+[tabm4][train] 2016 epoch=3/10 bce=0.132524 n_batches=86
+[tabm4][train] 2016 epoch=4/10 bce=0.125454 n_batches=86
+[tabm4][train] 2016 epoch=5/10 bce=0.112123 n_batches=86
+[tabm4][train] 2016 epoch=6/10 bce=0.107727 n_batches=86
+[tabm4][train] 2016 epoch=7/10 bce=0.099913 n_batches=86
+[tabm4][train] 2016 epoch=8/10 bce=0.096962 n_batches=86
+[tabm4][train] 2016 epoch=9/10 bce=0.094454 n_batches=86
+[tabm4][train] 2016 epoch=10/10 bce=0.086309 n_batches=86
+[naive_members][2016] current_f1=0.9562 train=79.5s eval=1.1s
+[parts] naive_members 2017: n_parts=1 rows=79,315 pos=17,087 pos_rate=0.2154
+[tabm4][train] 2017 epoch=1/10 bce=0.145344 n_batches=78
+[tabm4][train] 2017 epoch=2/10 bce=0.090450 n_batches=78
+[tabm4][train] 2017 epoch=3/10 bce=0.079330 n_batches=78
+[tabm4][train] 2017 epoch=4/10 bce=0.073099 n_batches=78
+[tabm4][train] 2017 epoch=5/10 bce=0.067583 n_batches=78
+[tabm4][train] 2017 epoch=6/10 bce=0.061795 n_batches=78
+[tabm4][train] 2017 epoch=7/10 bce=0.059215 n_batches=78
+[tabm4][train] 2017 epoch=8/10 bce=0.054171 n_batches=78
+[tabm4][train] 2017 epoch=9/10 bce=0.052198 n_batches=78
+[tabm4][train] 2017 epoch=10/10 bce=0.051612 n_batches=78
+[naive_members][2017] current_f1=0.9563 train=68.8s eval=0.8s
+[parts] naive_members 2018: n_parts=1 rows=83,433 pos=31,480 pos_rate=0.3773
+[tabm4][train] 2018 epoch=1/10 bce=0.157613 n_batches=82
+[tabm4][train] 2018 epoch=2/10 bce=0.127838 n_batches=82
+[tabm4][train] 2018 epoch=3/10 bce=0.116421 n_batches=82
+[tabm4][train] 2018 epoch=4/10 bce=0.107534 n_batches=82
+[tabm4][train] 2018 epoch=5/10 bce=0.100493 n_batches=82
+[tabm4][train] 2018 epoch=6/10 bce=0.098032 n_batches=82
+[tabm4][train] 2018 epoch=7/10 bce=0.092942 n_batches=82
+[tabm4][train] 2018 epoch=8/10 bce=0.087545 n_batches=82
+[tabm4][train] 2018 epoch=9/10 bce=0.083897 n_batches=82
+[tabm4][train] 2018 epoch=10/10 bce=0.088436 n_batches=82
+[naive_members][2018] current_f1=0.9599 train=77.2s eval=1.0s
+[parts] naive_members 2019: n_parts=1 rows=72,840 pos=33,268 pos_rate=0.4567
+[tabm4][train] 2019 epoch=1/10 bce=0.146411 n_batches=72
+[tabm4][train] 2019 epoch=2/10 bce=0.089928 n_batches=72
+[tabm4][train] 2019 epoch=3/10 bce=0.075140 n_batches=72
+[tabm4][train] 2019 epoch=4/10 bce=0.065882 n_batches=72
+[tabm4][train] 2019 epoch=5/10 bce=0.056882 n_batches=72
+[tabm4][train] 2019 epoch=6/10 bce=0.050639 n_batches=72
+[tabm4][train] 2019 epoch=7/10 bce=0.044334 n_batches=72
+[tabm4][train] 2019 epoch=8/10 bce=0.037146 n_batches=72
+[tabm4][train] 2019 epoch=9/10 bce=0.034717 n_batches=72
+[tabm4][train] 2019 epoch=10/10 bce=0.028608 n_batches=72
+[naive_members][2019] current_f1=0.9770 train=62.8s eval=0.8s
+[parts] naive_members 2020: n_parts=1 rows=81,658 pos=37,084 pos_rate=0.4541
+[tabm4][train] 2020 epoch=1/10 bce=0.097391 n_batches=80
+[tabm4][train] 2020 epoch=2/10 bce=0.067066 n_batches=80
+[tabm4][train] 2020 epoch=3/10 bce=0.057357 n_batches=80
+[tabm4][train] 2020 epoch=4/10 bce=0.050829 n_batches=80
+[tabm4][train] 2020 epoch=5/10 bce=0.047395 n_batches=80
+[tabm4][train] 2020 epoch=6/10 bce=0.041589 n_batches=80
+[tabm4][train] 2020 epoch=7/10 bce=0.036274 n_batches=80
+[tabm4][train] 2020 epoch=8/10 bce=0.031358 n_batches=80
+[tabm4][train] 2020 epoch=9/10 bce=0.027728 n_batches=80
+[tabm4][train] 2020 epoch=10/10 bce=0.024938 n_batches=80
+[naive_members][2020] current_f1=0.9796 train=70.1s eval=0.8s
+[parts] naive_members 2021: n_parts=1 rows=64,924 pos=28,502 pos_rate=0.4390
+[tabm4][train] 2021 epoch=1/10 bce=0.101943 n_batches=64
+[tabm4][train] 2021 epoch=2/10 bce=0.067093 n_batches=64
+[tabm4][train] 2021 epoch=3/10 bce=0.053891 n_batches=64
+[tabm4][train] 2021 epoch=4/10 bce=0.046044 n_batches=64
+[tabm4][train] 2021 epoch=5/10 bce=0.042204 n_batches=64
+[tabm4][train] 2021 epoch=6/10 bce=0.034438 n_batches=64
+[tabm4][train] 2021 epoch=7/10 bce=0.029577 n_batches=64
+[tabm4][train] 2021 epoch=8/10 bce=0.026647 n_batches=64
+[tabm4][train] 2021 epoch=9/10 bce=0.024723 n_batches=64
+[tabm4][train] 2021 epoch=10/10 bce=0.022314 n_batches=64
+[naive_members][2021] current_f1=0.9847 train=57.3s eval=0.6s
+[parts] naive_members 2022: n_parts=1 rows=69,132 pos=33,318 pos_rate=0.4819
+[tabm4][train] 2022 epoch=1/10 bce=0.065571 n_batches=68
+[tabm4][train] 2022 epoch=2/10 bce=0.041767 n_batches=68
+[tabm4][train] 2022 epoch=3/10 bce=0.034545 n_batches=68
+[tabm4][train] 2022 epoch=4/10 bce=0.029029 n_batches=68
+[tabm4][train] 2022 epoch=5/10 bce=0.024766 n_batches=68
+[tabm4][train] 2022 epoch=6/10 bce=0.021922 n_batches=68
+[tabm4][train] 2022 epoch=7/10 bce=0.020240 n_batches=68
+[tabm4][train] 2022 epoch=8/10 bce=0.018126 n_batches=68
+[tabm4][train] 2022 epoch=9/10 bce=0.015961 n_batches=68
+[tabm4][train] 2022 epoch=10/10 bce=0.014368 n_batches=68
+[naive_members][2022] current_f1=0.9888 train=60.6s eval=0.8s
+[parts] naive_members 2023: n_parts=1 rows=43,483 pos=6,314 pos_rate=0.1452
+[tabm4][train] 2023 epoch=1/10 bce=0.116222 n_batches=43
+[tabm4][train] 2023 epoch=2/10 bce=0.072509 n_batches=43
+[tabm4][train] 2023 epoch=3/10 bce=0.060876 n_batches=43
+[tabm4][train] 2023 epoch=4/10 bce=0.055480 n_batches=43
+[tabm4][train] 2023 epoch=5/10 bce=0.047348 n_batches=43
+[tabm4][train] 2023 epoch=6/10 bce=0.043988 n_batches=43
+[tabm4][train] 2023 epoch=7/10 bce=0.037019 n_batches=43
+[tabm4][train] 2023 epoch=8/10 bce=0.032492 n_batches=43
+[tabm4][train] 2023 epoch=9/10 bce=0.031704 n_batches=43
+[tabm4][train] 2023 epoch=10/10 bce=0.030894 n_batches=43
+[naive_members][2023] current_f1=0.9397 train=38.5s eval=0.5s
+[parts] naive_members 2024: n_parts=1 rows=38,741 pos=635 pos_rate=0.0164
+[tabm4][train] 2024 epoch=1/10 bce=0.043372 n_batches=38
+[tabm4][train] 2024 epoch=2/10 bce=0.031923 n_batches=38
+[tabm4][train] 2024 epoch=3/10 bce=0.026886 n_batches=38
+[tabm4][train] 2024 epoch=4/10 bce=0.023962 n_batches=38
+[tabm4][train] 2024 epoch=5/10 bce=0.021231 n_batches=38
+[tabm4][train] 2024 epoch=6/10 bce=0.019364 n_batches=38
+[tabm4][train] 2024 epoch=7/10 bce=0.017894 n_batches=38
+[tabm4][train] 2024 epoch=8/10 bce=0.016385 n_batches=38
+[tabm4][train] 2024 epoch=9/10 bce=0.015574 n_batches=38
+[tabm4][train] 2024 epoch=10/10 bce=0.014553 n_batches=38
+[naive_members][2024] current_f1=0.8028 train=33.3s eval=0.4s
+[parts] naive_members 2025: n_parts=1 rows=35,730 pos=18 pos_rate=0.0005
+[tabm4][train] 2025 epoch=1/10 bce=0.004675 n_batches=35
+[tabm4][train] 2025 epoch=2/10 bce=0.004140 n_batches=35
+[tabm4][train] 2025 epoch=3/10 bce=0.003696 n_batches=35
+[tabm4][train] 2025 epoch=4/10 bce=0.003456 n_batches=35
+[tabm4][train] 2025 epoch=5/10 bce=0.003365 n_batches=35
+[tabm4][train] 2025 epoch=6/10 bce=0.003029 n_batches=35
+[tabm4][train] 2025 epoch=7/10 bce=0.002670 n_batches=35
+[tabm4][train] 2025 epoch=8/10 bce=0.002434 n_batches=35
+[tabm4][train] 2025 epoch=9/10 bce=0.002061 n_batches=35
+[tabm4][train] 2025 epoch=10/10 bce=0.001874 n_batches=35
+[naive_members][2025] current_f1=0.0000 train=32.4s eval=0.4s
+=== naive_members: 12y mean=0.7576119549 | 2023=0.796958 2024=0.727273 2025=0.000000 | wall=739s peak_mps=200.2MiB ===
+[cell] full start data_budget=quota_deficit member_engine=tabm4 device=mps
+[config] seed=42 epochs=10 batch=1024 lr=0.01 momentum=0.9 weight_decay=1e-06 memory=200 buffer_repeat=2 threshold=0.5
+[model] cell=full class=TabMMLP params=2,723,305 member_k=4 expected=2,723,305
+[parts] full 2013: n_parts=1 rows=69,144 pos=35,506 pos_rate=0.5135
+[tabm4][train] 2013 epoch=1/10 bce=0.692848 n_batches=68
+[tabm4][train] 2013 epoch=2/10 bce=0.692631 n_batches=68
+[tabm4][train] 2013 epoch=3/10 bce=0.692549 n_batches=68
+[tabm4][train] 2013 epoch=4/10 bce=0.692444 n_batches=68
+[tabm4][train] 2013 epoch=5/10 bce=0.692316 n_batches=68
+[tabm4][train] 2013 epoch=6/10 bce=0.692143 n_batches=68
+[tabm4][train] 2013 epoch=7/10 bce=0.691870 n_batches=68
+[tabm4][train] 2013 epoch=8/10 bce=0.691414 n_batches=68
+[tabm4][train] 2013 epoch=9/10 bce=0.690632 n_batches=68
+[tabm4][train] 2013 epoch=10/10 bce=0.688977 n_batches=68
+[full][2013] current_f1=0.6786 train=58.8s eval=0.7s
+[parts] full 2014: n_parts=3 rows=81,346 pos=36,805 pos_rate=0.4525
+[audit] full 2014: blocks=2013(200/100) reps={'2013': 2}
+[tabm4][train] 2014 epoch=1/10 bce=0.683491 n_batches=80
+[tabm4][train] 2014 epoch=2/10 bce=0.658046 n_batches=80
+[tabm4][train] 2014 epoch=3/10 bce=0.433233 n_batches=80
+[tabm4][train] 2014 epoch=4/10 bce=0.227989 n_batches=80
+[tabm4][train] 2014 epoch=5/10 bce=0.175014 n_batches=80
+[tabm4][train] 2014 epoch=6/10 bce=0.144625 n_batches=80
+[tabm4][train] 2014 epoch=7/10 bce=0.124083 n_batches=80
+[tabm4][train] 2014 epoch=8/10 bce=0.114808 n_batches=80
+[tabm4][train] 2014 epoch=9/10 bce=0.102290 n_batches=80
+[tabm4][train] 2014 epoch=10/10 bce=0.096393 n_batches=80
+[full][2014] current_f1=0.9640 train=70.2s eval=0.8s
+[parts] full 2016: n_parts=5 rows=87,754 pos=36,307 pos_rate=0.4137
+[audit] full 2016: blocks=2013(100/50), 2014(100/50) reps={'2013': 2, '2014': 2}
+[tabm4][train] 2016 epoch=1/10 bce=0.191901 n_batches=86
+[tabm4][train] 2016 epoch=2/10 bce=0.145276 n_batches=86
+[tabm4][train] 2016 epoch=3/10 bce=0.132497 n_batches=86
+[tabm4][train] 2016 epoch=4/10 bce=0.122631 n_batches=86
+[tabm4][train] 2016 epoch=5/10 bce=0.112974 n_batches=86
+[tabm4][train] 2016 epoch=6/10 bce=0.109580 n_batches=86
+[tabm4][train] 2016 epoch=7/10 bce=0.098655 n_batches=86
+[tabm4][train] 2016 epoch=8/10 bce=0.107402 n_batches=86
+[tabm4][train] 2016 epoch=9/10 bce=0.094319 n_batches=86
+[tabm4][train] 2016 epoch=10/10 bce=0.087571 n_batches=86
+[full][2016] current_f1=0.9590 train=77.2s eval=0.8s
+[parts] full 2017: n_parts=7 rows=79,711 pos=17,285 pos_rate=0.2168
+[audit] full 2017: blocks=2013(66/33), 2014(66/33), 2016(66/33) reps={'2013': 2, '2014': 2, '2016': 2}
+[tabm4][train] 2017 epoch=1/10 bce=0.148237 n_batches=78
+[tabm4][train] 2017 epoch=2/10 bce=0.090631 n_batches=78
+[tabm4][train] 2017 epoch=3/10 bce=0.080869 n_batches=78
+[tabm4][train] 2017 epoch=4/10 bce=0.073106 n_batches=78
+[tabm4][train] 2017 epoch=5/10 bce=0.067655 n_batches=78
+[tabm4][train] 2017 epoch=6/10 bce=0.064001 n_batches=78
+[tabm4][train] 2017 epoch=7/10 bce=0.059610 n_batches=78
+[tabm4][train] 2017 epoch=8/10 bce=0.057237 n_batches=78
+[tabm4][train] 2017 epoch=9/10 bce=0.052952 n_batches=78
+[tabm4][train] 2017 epoch=10/10 bce=0.050853 n_batches=78
+[full][2017] current_f1=0.9578 train=67.5s eval=0.9s
+[parts] full 2018: n_parts=9 rows=83,833 pos=31,680 pos_rate=0.3779
+[audit] full 2018: blocks=2013(50/25), 2014(50/25), 2016(50/25), 2017(50/25) reps={'2013': 2, '2014': 2, '2016': 2, '2017': 2}
+[tabm4][train] 2018 epoch=1/10 bce=0.158981 n_batches=82
+[tabm4][train] 2018 epoch=2/10 bce=0.126477 n_batches=82
+[tabm4][train] 2018 epoch=3/10 bce=0.116282 n_batches=82
+[tabm4][train] 2018 epoch=4/10 bce=0.107599 n_batches=82
+[tabm4][train] 2018 epoch=5/10 bce=0.101794 n_batches=82
+[tabm4][train] 2018 epoch=6/10 bce=0.098928 n_batches=82
+[tabm4][train] 2018 epoch=7/10 bce=0.091997 n_batches=82
+[tabm4][train] 2018 epoch=8/10 bce=0.089912 n_batches=82

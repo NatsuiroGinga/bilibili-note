@@ -1,0 +1,1103 @@
+{
+  "cell": "replay",
+  "config": {
+    "data_budget": "quota_deficit",
+    "member_engine": "off"
+  },
+  "efficiency": {
+    "mps_memory": {
+      "api": "torch.mps.current_allocated_memory",
+      "baseline_current_allocated_memory_bytes": 0,
+      "device": "mps",
+      "n_samples": 758,
+      "note": "峰值由后台线程按间隔采样近似；current_allocated_memory 为分配器在用字节数。",
+      "peak_current_allocated_memory_bytes": 74357248,
+      "peak_current_allocated_memory_mib": 70.9,
+      "peak_driver_allocated_memory_bytes": 1181007872,
+      "peak_driver_allocated_memory_mib": 1126.3,
+      "sampling_interval_seconds": 0.2
+    },
+    "score_seconds": 12.4,
+    "wall_seconds_cell": 154.7,
+    "wall_seconds_scope": "cell 内（模型构造＋训练＋评价＋打分）；共享数据加载不计入"
+  },
+  "equivalence": {
+    "deltas": {
+      "f1_2023": 0.0,
+      "f1_2024": 0.0,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.0
+    },
+    "max_abs_delta": 0.0,
+    "passed": true,
+    "per_year_deltas": {
+      "2013": 0.0,
+      "2014": 0.0,
+      "2016": 0.0,
+      "2017": 0.0,
+      "2018": 0.0,
+      "2019": 0.0,
+      "2020": 0.0,
+      "2021": 0.0,
+      "2022": 0.0,
+      "2023": 0.0,
+      "2024": 0.0,
+      "2025": 0.0
+    },
+    "preds_check": null,
+    "reference": {
+      "backward_f1": {
+        "2013": 0.9121379759192971,
+        "2014": 0.9076352694642953,
+        "2016": 0.8779861576244697,
+        "2017": 0.9060695344725987,
+        "2018": 0.8885175778639219,
+        "2019": 0.9359930400198857,
+        "2020": 0.9408994056296961,
+        "2021": 0.9298871063576946,
+        "2022": 0.9381684703499779,
+        "2023": 0.8243143068939955,
+        "2024": 0.7421875,
+        "2025": 0.0
+      },
+      "f1_2023": 0.8243143068939955,
+      "f1_2024": 0.7421875,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.8169830287163194
+    },
+    "reference_source": "runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json",
+    "runner": {
+      "backward_f1": {
+        "2013": 0.9121379759192971,
+        "2014": 0.9076352694642953,
+        "2016": 0.8779861576244697,
+        "2017": 0.9060695344725987,
+        "2018": 0.8885175778639219,
+        "2019": 0.9359930400198857,
+        "2020": 0.9408994056296961,
+        "2021": 0.9298871063576946,
+        "2022": 0.9381684703499779,
+        "2023": 0.8243143068939955,
+        "2024": 0.7421875,
+        "2025": 0.0
+      },
+      "f1_2023": 0.8243143068939955,
+      "f1_2024": 0.7421875,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.8169830287163194
+    },
+    "tolerance": 1e-06
+  },
+  "eval_consistency": {
+    "abs_diff": 0.0,
+    "evaluate_f1": 0.0,
+    "passed": true,
+    "score_shard_f1": 0.0,
+    "year": 2025
+  },
+  "model": {
+    "class": "ChenEncoderMLP",
+    "contract": {
+      "class": "ChenEncoderMLP",
+      "class_matches": true,
+      "engine": "off",
+      "expected_n_params": 2687293,
+      "member_k": 1,
+      "member_k_matches": true,
+      "n_params": 2687293,
+      "params_match": true
+    },
+    "engine": "off",
+    "input_dim": 4561,
+    "member_k": 1,
+    "n_params": 2687293
+  },
+  "panel": {
+    "backward_f1": {
+      "2013": 0.9121379759192971,
+      "2014": 0.9076352694642953,
+      "2016": 0.8779861576244697,
+      "2017": 0.9060695344725987,
+      "2018": 0.8885175778639219,
+      "2019": 0.9359930400198857,
+      "2020": 0.9408994056296961,
+      "2021": 0.9298871063576946,
+      "2022": 0.9381684703499779,
+      "2023": 0.8243143068939955,
+      "2024": 0.7421875,
+      "2025": 0.0
+    },
+    "current_year_f1": {
+      "2013": 0.6785659685063445,
+      "2014": 0.9574065053850733,
+      "2016": 0.9584700061155279,
+      "2017": 0.9506072874493927,
+      "2018": 0.9561899917339607,
+      "2019": 0.9744263862332696,
+      "2020": 0.9770208164368749,
+      "2021": 0.9855542245084913,
+      "2022": 0.9869316470942487,
+      "2023": 0.9352472089314194,
+      "2024": 0.7789473684210526,
+      "2025": 0.0
+    },
+    "current_year_metrics": {
+      "2013": {
+        "accuracy": 0.5135072597905941,
+        "f1": 0.6785659685063445,
+        "n": 17287,
+        "n_pos": 8877,
+        "precision": 0.5135072597905941,
+        "recall": 1.0
+      },
+      "2014": {
+        "accuracy": 0.9611108365864506,
+        "f1": 0.9574065053850733,
+        "n": 20237,
+        "n_pos": 9151,
+        "precision": 0.948423761526914,
+        "recall": 0.966561031581248
+      },
+      "2016": {
+        "accuracy": 0.9657951371399789,
+        "f1": 0.9584700061155279,
+        "n": 21839,
+        "n_pos": 9027,
+        "precision": 0.9620535714285714,
+        "recall": 0.9549130386617924
+      },
+      "2017": {
+        "accuracy": 0.978465883302234,
+        "f1": 0.9506072874493927,
+        "n": 19829,
+        "n_pos": 4272,
+        "precision": 0.9396295449348273,
+        "recall": 0.9618445692883895
+      },
+      "2018": {
+        "accuracy": 0.9669686945682918,
+        "f1": 0.9561899917339607,
+        "n": 20859,
+        "n_pos": 7870,
+        "precision": 0.9569810360188367,
+        "recall": 0.955400254129606
+      },
+      "2019": {
+        "accuracy": 0.9764964305326743,
+        "f1": 0.9744263862332696,
+        "n": 18210,
+        "n_pos": 8317,
+        "precision": 0.9685235776220453,
+        "recall": 0.980401587110737
+      },
+      "2020": {
+        "accuracy": 0.979181974038697,
+        "f1": 0.9770208164368749,
+        "n": 20415,
+        "n_pos": 9271,
+        "precision": 0.9795099739809193,
+        "recall": 0.974544277855679
+      },
+      "2021": {
+        "accuracy": 0.9873698478220689,
+        "f1": 0.9855542245084913,
+        "n": 16231,
+        "n_pos": 7125,
+        "precision": 0.9896688366827059,
+        "recall": 0.9814736842105263
+      },
+      "2022": {
+        "accuracy": 0.987445035871326,
+        "f1": 0.9869316470942487,
+        "n": 17284,
+        "n_pos": 8330,
+        "precision": 0.9902114803625378,
+        "recall": 0.9836734693877551
+      },
+      "2023": {
+        "accuracy": 0.9813264649066323,
+        "f1": 0.9352472089314194,
+        "n": 10871,
+        "n_pos": 1578,
+        "precision": 0.9415542710340398,
+        "recall": 0.9290240811153359
+      },
+      "2024": {
+        "accuracy": 0.9934957670865167,
+        "f1": 0.7789473684210526,
+        "n": 9686,
+        "n_pos": 159,
+        "precision": 0.8809523809523809,
+        "recall": 0.6981132075471698
+      },
+      "2025": {
+        "accuracy": 0.9993283331467592,
+        "f1": 0.0,
+        "n": 8933,
+        "n_pos": 5,
+        "precision": 0.0,
+        "recall": 0.0
+      }
+    },
+    "f1_2023": 0.8243143068939955,
+    "f1_2024": 0.7421875,
+    "f1_2025": 0.0,
+    "mean_f1_12y": 0.8169830287163194,
+    "panel_definition": "末年 2025 的模型对全部 12 个年度测试分片逐样本打分（backward）",
+    "test_sizes": {
+      "2013": {
+        "n": 17287,
+        "n_pos": 8877
+      },
+      "2014": {
+        "n": 20237,
+        "n_pos": 9151
+      },
+      "2016": {
+        "n": 21839,
+        "n_pos": 9027
+      },
+      "2017": {
+        "n": 19829,
+        "n_pos": 4272
+      },
+      "2018": {
+        "n": 20859,
+        "n_pos": 7870
+      },
+      "2019": {
+        "n": 18210,
+        "n_pos": 8317
+      },
+      "2020": {
+        "n": 20415,
+        "n_pos": 9271
+      },
+      "2021": {
+        "n": 16231,
+        "n_pos": 7125
+      },
+      "2022": {
+        "n": 17284,
+        "n_pos": 8330
+      },
+      "2023": {
+        "n": 10871,
+        "n_pos": 1578
+      },
+      "2024": {
+        "n": 9686,
+        "n_pos": 159
+      },
+      "2025": {
+        "n": 8933,
+        "n_pos": 5
+      }
+    }
+  },
+  "per_year": {
+    "2013": {
+      "blocks": [],
+      "current_year_f1": 0.6785659685063445,
+      "current_year_metrics": {
+        "accuracy": 0.5135072597905941,
+        "f1": 0.6785659685063445,
+        "n": 17287,
+        "n_pos": 8877,
+        "precision": 0.5135072597905941,
+        "recall": 1.0
+      },
+      "eval_seconds": 0.29,
+      "n_parts": 1,
+      "parts_contract": {
+        "first_is_current": true,
+        "first_year_single_part": true,
+        "n_parts": 1
+      },
+      "pos": 35506,
+      "pos_rate": 0.5135080411894019,
+      "reps": {},
+      "rows": 69144,
+      "train_seconds": 11.1,
+      "year": 2013
+    },
+    "2014": {
+      "blocks": [
+        {
+          "pos": 100,
+          "rows": 200,
+          "source_year": 2013
+        }
+      ],
+      "current_year_f1": 0.9574065053850733,
+      "current_year_metrics": {
+        "accuracy": 0.9611108365864506,
+        "f1": 0.9574065053850733,
+        "n": 20237,
+        "n_pos": 9151,
+        "precision": 0.948423761526914,
+        "recall": 0.966561031581248
+      },
+      "eval_seconds": 0.25,
+      "n_parts": 3,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 3,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 36805,
+      "pos_rate": 0.45245002827428515,
+      "reps": {
+        "2013": 2
+      },
+      "rows": 81346,
+      "train_seconds": 10.9,
+      "year": 2014
+    },
+    "2016": {
+      "blocks": [
+        {
+          "pos": 50,
+          "rows": 100,
+          "source_year": 2013
+        },
+        {
+          "pos": 50,
+          "rows": 100,
+          "source_year": 2014
+        }
+      ],
+      "current_year_f1": 0.9584700061155279,
+      "current_year_metrics": {
+        "accuracy": 0.9657951371399789,
+        "f1": 0.9584700061155279,
+        "n": 21839,
+        "n_pos": 9027,
+        "precision": 0.9620535714285714,
+        "recall": 0.9549130386617924
+      },
+      "eval_seconds": 0.28,
+      "n_parts": 5,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 5,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 36307,
+      "pos_rate": 0.4137361259885589,
+      "reps": {
+        "2013": 2,
+        "2014": 2
+      },
+      "rows": 87754,
+      "train_seconds": 11.9,
+      "year": 2016
+    },
+    "2017": {
+      "blocks": [
+        {
+          "pos": 33,
+          "rows": 66,
+          "source_year": 2013
+        },
+        {
+          "pos": 33,
+          "rows": 66,
+          "source_year": 2014
+        },
+        {
+          "pos": 33,
+          "rows": 66,
+          "source_year": 2016
+        }
+      ],
+      "current_year_f1": 0.9506072874493927,
+      "current_year_metrics": {
+        "accuracy": 0.978465883302234,
+        "f1": 0.9506072874493927,
+        "n": 19829,
+        "n_pos": 4272,
+        "precision": 0.9396295449348273,
+        "recall": 0.9618445692883895
+      },
+      "eval_seconds": 0.25,
+      "n_parts": 7,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 7,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 17285,
+      "pos_rate": 0.21684585565354844,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2
+      },
+      "rows": 79711,
+      "train_seconds": 12.1,
+      "year": 2017
+    },
+    "2018": {
+      "blocks": [
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2013
+        },
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2014
+        },
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2016
+        },
+        {
+          "pos": 25,
+          "rows": 50,
+          "source_year": 2017
+        }
+      ],
+      "current_year_f1": 0.9561899917339607,
+      "current_year_metrics": {
+        "accuracy": 0.9669686945682918,
+        "f1": 0.9561899917339607,
+        "n": 20859,
+        "n_pos": 7870,
+        "precision": 0.9569810360188367,
+        "recall": 0.955400254129606
+      },
+      "eval_seconds": 0.34,
+      "n_parts": 9,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 9,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 31680,
+      "pos_rate": 0.37789414669640836,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2
+      },
+      "rows": 83833,
+      "train_seconds": 14.4,
+      "year": 2018
+    },
+    "2019": {
+      "blocks": [
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2013
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2014
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2016
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2017
+        },
+        {
+          "pos": 20,
+          "rows": 40,
+          "source_year": 2018
+        }
+      ],
+      "current_year_f1": 0.9744263862332696,
+      "current_year_metrics": {
+        "accuracy": 0.9764964305326743,
+        "f1": 0.9744263862332696,
+        "n": 18210,
+        "n_pos": 8317,
+        "precision": 0.9685235776220453,
+        "recall": 0.980401587110737
+      },
+      "eval_seconds": 0.24,
+      "n_parts": 11,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 11,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 33468,
+      "pos_rate": 0.4569634079737848,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2
+      },
+      "rows": 73240,
+      "train_seconds": 16.3,
+      "year": 2019
+    },
+    "2020": {
+      "blocks": [
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2013
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2014
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2016
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2017
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2018
+        },
+        {
+          "pos": 16,
+          "rows": 33,
+          "source_year": 2019
+        }
+      ],
+      "current_year_f1": 0.9770208164368749,
+      "current_year_metrics": {
+        "accuracy": 0.979181974038697,
+        "f1": 0.9770208164368749,
+        "n": 20415,
+        "n_pos": 9271,
+        "precision": 0.9795099739809193,
+        "recall": 0.974544277855679
+      },
+      "eval_seconds": 0.25,
+      "n_parts": 13,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 13,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 37276,
+      "pos_rate": 0.45428620176956636,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2
+      },
+      "rows": 82054,
+      "train_seconds": 17.0,
+      "year": 2020
+    },
+    "2021": {
+      "blocks": [
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2013
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2014
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2016
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2017
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2018
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2019
+        },
+        {
+          "pos": 14,
+          "rows": 28,
+          "source_year": 2020
+        }
+      ],
+      "current_year_f1": 0.9855542245084913,
+      "current_year_metrics": {
+        "accuracy": 0.9873698478220689,
+        "f1": 0.9855542245084913,
+        "n": 16231,
+        "n_pos": 7125,
+        "precision": 0.9896688366827059,
+        "recall": 0.9814736842105263
+      },
+      "eval_seconds": 0.21,
+      "n_parts": 15,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 15,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 28698,
+      "pos_rate": 0.43937167003490724,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2
+      },
+      "rows": 65316,
+      "train_seconds": 10.9,
+      "year": 2021
+    },
+    "2022": {
+      "blocks": [
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2013
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2014
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2016
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2017
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2018
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2019
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2020
+        },
+        {
+          "pos": 12,
+          "rows": 25,
+          "source_year": 2021
+        }
+      ],
+      "current_year_f1": 0.9869316470942487,
+      "current_year_metrics": {
+        "accuracy": 0.987445035871326,
+        "f1": 0.9869316470942487,
+        "n": 17284,
+        "n_pos": 8330,
+        "precision": 0.9902114803625378,
+        "recall": 0.9836734693877551
+      },
+      "eval_seconds": 0.23,
+      "n_parts": 17,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 17,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 33510,
+      "pos_rate": 0.4819363746188805,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2
+      },
+      "rows": 69532,
+      "train_seconds": 11.7,
+      "year": 2022
+    },
+    "2023": {
+      "blocks": [
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2013
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2014
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2016
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2017
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2018
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2019
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2020
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2021
+        },
+        {
+          "pos": 11,
+          "rows": 22,
+          "source_year": 2022
+        }
+      ],
+      "current_year_f1": 0.9352472089314194,
+      "current_year_metrics": {
+        "accuracy": 0.9813264649066323,
+        "f1": 0.9352472089314194,
+        "n": 10871,
+        "n_pos": 1578,
+        "precision": 0.9415542710340398,
+        "recall": 0.9290240811153359
+      },
+      "eval_seconds": 0.15,
+      "n_parts": 19,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 19,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 6512,
+      "pos_rate": 0.14840812233642517,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2,
+        "2022": 2
+      },
+      "rows": 43879,
+      "train_seconds": 6.8,
+      "year": 2023
+    },
+    "2024": {
+      "blocks": [
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2013
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2014
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2016
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2017
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2018
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2019
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2020
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2021
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2022
+        },
+        {
+          "pos": 10,
+          "rows": 20,
+          "source_year": 2023
+        }
+      ],
+      "current_year_f1": 0.7789473684210526,
+      "current_year_metrics": {
+        "accuracy": 0.9934957670865167,
+        "f1": 0.7789473684210526,
+        "n": 9686,
+        "n_pos": 159,
+        "precision": 0.8809523809523809,
+        "recall": 0.6981132075471698
+      },
+      "eval_seconds": 0.14,
+      "n_parts": 21,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 21,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 835,
+      "pos_rate": 0.02133312894407399,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2,
+        "2022": 2,
+        "2023": 2
+      },
+      "rows": 39141,
+      "train_seconds": 6.3,
+      "year": 2024
+    },
+    "2025": {
+      "blocks": [
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2013
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2014
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2016
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2017
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2018
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2019
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2020
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2021
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2022
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2023
+        },
+        {
+          "pos": 9,
+          "rows": 18,
+          "source_year": 2024
+        }
+      ],
+      "current_year_f1": 0.0,
+      "current_year_metrics": {
+        "accuracy": 0.9993283331467592,
+        "f1": 0.0,
+        "n": 8933,
+        "n_pos": 5,
+        "precision": 0.0,
+        "recall": 0.0
+      },
+      "eval_seconds": 0.13,
+      "n_parts": 23,
+      "parts_contract": {
+        "block_rows_within_quota": true,
+        "blocks_before_current_year": true,
+        "first_is_current": true,
+        "n_parts": 23,
+        "parts_count_matches_reps": true,
+        "reps_keys_match_blocks": true,
+        "reps_within_bounds": true
+      },
+      "pos": 216,
+      "pos_rate": 0.005979073243647235,
+      "reps": {
+        "2013": 2,
+        "2014": 2,
+        "2016": 2,
+        "2017": 2,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 2,
+        "2022": 2,
+        "2023": 2,
+        "2024": 2
+      },
+      "rows": 36126,
+      "train_seconds": 6.0,
+      "year": 2025
+    }
+  },
+  "protocol": {
+    "backward_panel": "末年模型对 12 个年度测试分片打分",
+    "batch": 1024,
+    "buf_rng_seed": 42,
+    "buffer_repeat": 2,
+    "buffer_scheme": "quota",
+    "current_year": "每个 experience 训练结束后立即评价当年测试分片",
+    "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+    "deficit_gamma": 1.0,
+    "device": "mps",
+    "domain_years": [
+      2013,
+      2014,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ],
+    "epochs": 10,
+    "lr": 0.01,
+    "memory": 200,
+    "momentum": 0.9,
+    "optimizer_lifetime": "每年度在训练函数体内重建",
+    "optimizer_type": "SGD",
+    "pos_ratio": 0.5,
+    "reuse_scheme": "deficit",
+    "score": "单模型 sigmoid",
+    "seed": 42,
+    "test_file_pattern": "Baseline/{year}/{year}_test.parquet",
+    "threshold": 0.5,
+    "weight_decay": 1e-06
+  },
+  "run_name": "ch5-system",
+  "schema_version": "ch5-system-cell-result-v1",
+  "ts": "2026-10-22T03:44:55.216652Z"
+}

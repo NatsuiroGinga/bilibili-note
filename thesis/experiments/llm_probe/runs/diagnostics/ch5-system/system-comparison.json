@@ -1,0 +1,164 @@
+{
+  "cell_matrix": {
+    "full": {
+      "data_budget": "quota_deficit",
+      "member_engine": "tabm4"
+    },
+    "naive": {
+      "data_budget": "naive",
+      "member_engine": "off"
+    },
+    "naive_members": {
+      "data_budget": "naive",
+      "member_engine": "tabm4"
+    },
+    "replay": {
+      "data_budget": "quota_deficit",
+      "member_engine": "off"
+    }
+  },
+  "cells": {
+    "naive": {
+      "data_budget": "naive",
+      "eval_consistency_passed": true,
+      "f1_2023": 0.7494071146245059,
+      "f1_2024": 0.6829268292682927,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.7244106926575061,
+      "member_engine": "off",
+      "member_k": 1,
+      "n_params": 2687293,
+      "peak_mps_current_allocated_memory_mib": 71.4,
+      "wall_seconds": 144.0
+    },
+    "naive_members": {
+      "data_budget": "naive",
+      "eval_consistency_passed": true,
+      "f1_2023": 0.7969581749049429,
+      "f1_2024": 0.7272727272727273,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.7576119548881529,
+      "member_engine": "tabm4",
+      "member_k": 4,
+      "n_params": 2723305,
+      "peak_mps_current_allocated_memory_mib": 200.2,
+      "wall_seconds": 739.0
+    },
+    "replay": {
+      "data_budget": "quota_deficit",
+      "eval_consistency_passed": true,
+      "f1_2023": 0.8243143068939955,
+      "f1_2024": 0.7421875,
+      "f1_2025": 0.0,
+      "mean_f1_12y": 0.8169830287163194,
+      "member_engine": "off",
+      "member_k": 1,
+      "n_params": 2687293,
+      "peak_mps_current_allocated_memory_mib": 70.9,
+      "wall_seconds": 154.7
+    }
+  },
+  "completed_cells": [
+    "naive",
+    "replay",
+    "naive_members"
+  ],
+  "data_load_seconds_shared": 11.2,
+  "data_root": "/Users/bilibili/personal/note/.worktrees/ch3-drift-20260908/thesis/experiments/llm_probe/runs/data-raw/lamda-iclr2026-baseline-ad9614bdd5556767",
+  "equivalence_checks": {
+    "replay": {
+      "deltas": {
+        "f1_2023": 0.0,
+        "f1_2024": 0.0,
+        "f1_2025": 0.0,
+        "mean_f1_12y": 0.0
+      },
+      "max_abs_delta": 0.0,
+      "passed": true,
+      "per_year_deltas": {
+        "2013": 0.0,
+        "2014": 0.0,
+        "2016": 0.0,
+        "2017": 0.0,
+        "2018": 0.0,
+        "2019": 0.0,
+        "2020": 0.0,
+        "2021": 0.0,
+        "2022": 0.0,
+        "2023": 0.0,
+        "2024": 0.0,
+        "2025": 0.0
+      },
+      "preds_check": null,
+      "reference": {
+        "backward_f1": {
+          "2013": 0.9121379759192971,
+          "2014": 0.9076352694642953,
+          "2016": 0.8779861576244697,
+          "2017": 0.9060695344725987,
+          "2018": 0.8885175778639219,
+          "2019": 0.9359930400198857,
+          "2020": 0.9408994056296961,
+          "2021": 0.9298871063576946,
+          "2022": 0.9381684703499779,
+          "2023": 0.8243143068939955,
+          "2024": 0.7421875,
+          "2025": 0.0
+        },
+        "f1_2023": 0.8243143068939955,
+        "f1_2024": 0.7421875,
+        "f1_2025": 0.0,
+        "mean_f1_12y": 0.8169830287163194
+      },
+      "reference_source": "runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json",
+      "runner": {
+        "backward_f1": {
+          "2013": 0.9121379759192971,
+          "2014": 0.9076352694642953,
+          "2016": 0.8779861576244697,
+          "2017": 0.9060695344725987,
+          "2018": 0.8885175778639219,
+          "2019": 0.9359930400198857,
+          "2020": 0.9408994056296961,
+          "2021": 0.9298871063576946,
+          "2022": 0.9381684703499779,
+          "2023": 0.8243143068939955,
+          "2024": 0.7421875,
+          "2025": 0.0
+        },
+        "f1_2023": 0.8243143068939955,
+        "f1_2024": 0.7421875,
+        "f1_2025": 0.0,
+        "mean_f1_12y": 0.8169830287163194
+      },
+      "tolerance": 1e-06
+    }
+  },
+  "expected_equivalence": {
+    "full": {
+      "mean_f1_12y": 0.832346367494066,
+      "source": "runs/diagnostics/ch4-lamda-tabm-pilot/tabm4-result.json"
+    },
+    "note": "等价性不符时保留本 runner 读数并如实报告差异，不改动任何数字。",
+    "replay": {
+      "mean_f1_12y": 0.8169830287163194,
+      "source": "runs/diagnostics/ch3-lamda-domain-il-e4-replication-v1/metrics_expreplay_m200_quota_deficit_r2.json"
+    },
+    "tolerance": 1e-06
+  },
+  "missing_cells": [
+    "full"
+  ],
+  "protocol_summary": {
+    "batch": 1024,
+    "device": "mps",
+    "epochs": 10,
+    "optimizer": "SGD(0.01,0.9,1e-6)",
+    "panel": "final experience 2025 backward over 12 test years + per-year current_year",
+    "seed": 42,
+    "threshold": 0.5
+  },
+  "run_name": "ch5-system",
+  "schema_version": "ch5-system-comparison-v1",
+  "ts": "2026-10-22T03:57:15.077699Z"
+}
